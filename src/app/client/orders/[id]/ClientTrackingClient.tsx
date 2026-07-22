@@ -153,7 +153,7 @@ export default function ClientTrackingClient({ initialData }: { initialData: Dem
 
       <Link
         href={`/chat/${demand.id}`}
-        className="flex items-center justify-center gap-2 mb-6 w-full border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-sm font-medium bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-sm"
+        className="touch-target flex items-center justify-center gap-2 mb-6 w-full border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-sm font-medium bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-sm active:scale-[0.98] transition-transform"
       >
         💬 联系服务方
       </Link>
@@ -172,7 +172,7 @@ export default function ClientTrackingClient({ initialData }: { initialData: Dem
           <button
             onClick={() => setShowConfirm(true)}
             disabled={settling}
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:from-emerald-400 hover:to-green-500 active:scale-[0.98] disabled:opacity-50"
+            className="touch-target flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:from-emerald-400 hover:to-green-500 active:scale-[0.97] disabled:opacity-50"
           >
             确认无误，通过平台放款
           </button>
@@ -227,14 +227,14 @@ export default function ClientTrackingClient({ initialData }: { initialData: Dem
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700"
+                className="touch-target flex-1 rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-300 transition-transform hover:bg-zinc-700 active:scale-95"
               >
                 取消
               </button>
               <button
                 onClick={handleSettle}
                 disabled={settling}
-                className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                className="touch-target flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white transition-transform hover:bg-emerald-500 active:scale-95 disabled:opacity-50"
               >
                 {settling ? "处理中..." : "确认放款"}
               </button>

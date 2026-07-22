@@ -198,7 +198,7 @@ export default function ReviewPage({
                   <button
                     key={star}
                     type="button"
-                    className={`text-3xl transition-colors ${
+                    className={`touch-target inline-flex items-center justify-center text-3xl transition-colors active:scale-90 ${
                       filled
                         ? "text-yellow-400"
                         : "text-slate-500 dark:text-zinc-500/30 hover:text-yellow-300"
@@ -243,7 +243,7 @@ export default function ReviewPage({
         <div className="flex items-center gap-4">
           <Button
             type="submit"
-            className="flex-1 rounded-xl"
+            className="touch-target flex-1 rounded-xl active:scale-[0.98]"
             size="lg"
             disabled={submitting || rating === 0}
           >
@@ -252,7 +252,7 @@ export default function ReviewPage({
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl"
+            className="touch-target rounded-xl active:scale-[0.98]"
             size="lg"
             onClick={() => router.back()}
             disabled={submitting}
