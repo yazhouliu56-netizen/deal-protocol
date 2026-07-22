@@ -1,36 +1,37 @@
-name: CI - TypeCheck & E2E Verification
+name: CI & Smoke Test
 
 on:
   push:
-    branches: [ main, master, dev, "feat/*", "fix/*" ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [ master ]
+  deployment_status:
 
 jobs:
-  verify:
-    name: TypeCheck & E2E Regression
+  typecheck-and-build:
+    if: github.event_name != 'deployment_status'
     runs-on: ubuntu-latest
-
-    env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
     steps:
-      - name: 📥 检出项目代码
-        uses: actions/checkout@v4
-
-      - name: 🟢 设置 Node.js 环境
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
+      - run: npm ci
+      - run: npx tsc --noEmit
 
-      - name: 📦 安装依赖项
-        run: npm ci
-
-      - name: 🔍 TypeScript 全量类型检查
-        run: npx tsc --noEmit
-
-      - name: 🚀 运行四大主线 E2E 自动化回归测试
-        if: env.SUPABASE_SERVICE_ROLE_KEY != ''
-        run: npm run test:verify
+  vercel-smoke-test:
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Execute Smoke Test on Vercel Target URL
+        env:
+          BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+        run: npm run test:smoke
