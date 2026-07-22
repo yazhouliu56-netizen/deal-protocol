@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "crons": [
+    {
+      "path": "/api/cron/check-timeouts",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/resolve-disputes",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+▲ Next.js 16.2.9 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://198.18.0.1:3000
+- Environments: .env.local, .env
+✓ Ready in 710ms
+○ (serwist) Serwist is disabled.
+○ (serwist) Serwist is disabled.
+
+○ Compiling / ...
+ GET / 200 in 12.2s (next.js: 11.4s, proxy.ts: 238ms, application-code: 490ms)
+○ Compiling /login ...
+ GET /login 200 in 4.1s (next.js: 3.7s, proxy.ts: 6ms, application-code: 396ms)
+ GET / 200 in 67ms (next.js: 18ms, proxy.ts: 10ms, application-code: 39ms)
+ GET /login 200 in 54ms (next.js: 3ms, proxy.ts: 5ms, application-code: 46ms)
+ GET /register 200 in 578ms (next.js: 530ms, proxy.ts: 6ms, application-code: 42ms)
+ GET /login 200 in 263ms (next.js: 12ms, proxy.ts: 5ms, application-code: 246ms)
+[?25h
