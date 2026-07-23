@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
+import { DEMAND_STATUSES } from "@/lib/demand/state";
 
 export async function GET(request: Request) {
   try {
     const supabase = getServiceClient();
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || "PENDING";
+    const status = searchParams.get("status") || DEMAND_STATUSES.PENDING;
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
     const { data: demands, error } = await supabase

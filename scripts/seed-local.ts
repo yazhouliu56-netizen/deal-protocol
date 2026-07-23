@@ -180,8 +180,8 @@ async function seed() {
       demander_id: customer.id,
       provider_id: provider.id,
       amount: 280,
-      fund_status: "held",
-      status: "active",
+      fund_status: "HELD",
+      status: "confirmed",
     },
     { onConflict: "id" },
   )

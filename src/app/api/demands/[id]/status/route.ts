@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
+import { DEMAND_STATUSES } from "@/lib/demand/state"
 
 const STATE_TRANSITIONS: Record<string, string> = {
-  DEPARTED: "ASSIGNED",
-  ARRIVED: "DEPARTED",
-  STARTED: "ARRIVED",
-  COMPLETED: "STARTED",
+  [DEMAND_STATUSES.DEPARTED]: DEMAND_STATUSES.ASSIGNED,
+  [DEMAND_STATUSES.ARRIVED]: DEMAND_STATUSES.DEPARTED,
+  [DEMAND_STATUSES.STARTED]: DEMAND_STATUSES.ARRIVED,
+  [DEMAND_STATUSES.COMPLETED]: DEMAND_STATUSES.STARTED,
 }
 
 export const PATCH = withAuth(async (req, user, ...args) => {
@@ -24,13 +25,13 @@ export const PATCH = withAuth(async (req, user, ...args) => {
     return NextResponse.json({ error: "非法的目标流转状态" }, { status: 400 })
   }
 
-  if (nextStatus === "COMPLETED" && (!imageUrls || imageUrls.length < 2)) {
+  if (nextStatus === DEMAND_STATUSES.COMPLETED && (!imageUrls || imageUrls.length < 2)) {
     return NextResponse.json({ error: "未能通过合规校验：必须提供至少2张完工凭证" }, { status: 400 })
   }
 
   const supabase = await getRouteClient()
   const updatePayload: Record<string, unknown> = { status: nextStatus }
-  if (nextStatus === "COMPLETED") {
+  if (nextStatus === DEMAND_STATUSES.COMPLETED) {
     updatePayload.certificate_images = imageUrls
   }
 

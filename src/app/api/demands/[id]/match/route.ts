@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { findMatches, type MatchCandidate } from "@/lib/matching/engine"
-import { validateDemandTransition } from "@/lib/demand/state"
+import { DEMAND_STATUSES, validateDemandTransition } from "@/lib/demand/state"
 
 export const POST = withAuth(async (req, user, ...args) => {
   const { id } = await (args[0] as { params: Promise<{ id: string }> }).params
@@ -31,7 +31,7 @@ export const POST = withAuth(async (req, user, ...args) => {
   if (matches.length > 0) {
     const { error: updateError } = await supabase
       .from('demands')
-      .update({ matched_provider_id: matches[0].providerId, status: "MATCHED" })
+      .update({ matched_provider_id: matches[0].providerId, status: DEMAND_STATUSES.MATCHED })
       .eq('id', id)
 
     if (updateError) {

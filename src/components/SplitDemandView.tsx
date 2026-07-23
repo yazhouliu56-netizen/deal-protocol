@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react"
 import { useRef, useEffect, useMemo, useState, useCallback, type ChangeEvent } from "react"
 import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import VoiceMicButton from "@/components/VoiceMicButton"
@@ -68,7 +69,20 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
   const [media, setMedia] = useState<Array<{ url: string; name: string; type: "image" | "video" }>>([])
 
-  const [extractedProtocol, setExtractedProtocol] = useState<any>(null)
+  interface ExtractedProtocol {
+    category?: string
+    budget?: number | string
+    pricing_type?: string
+    service_time?: string
+    address_hint?: string
+    duration_minutes?: number
+    therapist_preference?: string
+    health_declaration?: string[]
+    special_requirements?: string[]
+    compliance_clauses?: string[]
+  }
+
+  const [extractedProtocol, setExtractedProtocol] = useState<ExtractedProtocol | null>(null)
   const [createdDemandId, setCreatedDemandId] = useState<string | null>(null)
 
   const userContext = session
@@ -197,8 +211,8 @@ export default function SplitDemandView({ session }: { session?: Session | null 
           extractedProtocol.service_time && `服务时间：${extractedProtocol.service_time}`,
           extractedProtocol.therapist_preference && `技师偏好：${extractedProtocol.therapist_preference}`,
           extractedProtocol.duration_minutes && `服务时长：${extractedProtocol.duration_minutes}分钟`,
-          extractedProtocol.health_declaration?.length && `健康声明：${extractedProtocol.health_declaration.join('；')}`,
-          extractedProtocol.special_requirements?.length && `特殊要求：${extractedProtocol.special_requirements.join('；')}`,
+          extractedProtocol.health_declaration?.length && `健康声明：${extractedProtocol.health_declaration!.join('；')}`,
+          extractedProtocol.special_requirements?.length && `特殊要求：${extractedProtocol.special_requirements!.join('；')}`,
         ].filter(Boolean).join(' | ') || '无额外说明',
         category: String(extractedProtocol.category || '').slice(0, 50),
         budgetMin: cleanBudget > 0 ? cleanBudget : null,
@@ -212,15 +226,15 @@ export default function SplitDemandView({ session }: { session?: Session | null 
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => null)
-        alert(`广播失败: ${errData?.error || errData?.message || '未知错误'}`)
+        toast.error(`广播失败: ${errData?.error || errData?.message || '未知错误'}`)
         return
       }
       const data = await res.json()
       setPublishedId(data.id)
-      alert('🎉 数字化协议广播成功！已成功发布至分布式需求大厅。')
+      toast.success('数字化协议广播成功！已发布至需求大厅。')
     } catch (err) {
       console.error("Broadcast error:", err)
-      alert('网络异常，协议广播失败，请检查控制台。')
+      toast.error('网络异常，协议广播失败。')
     } finally {
       setIsSubmitting(false)
     }
@@ -230,62 +244,62 @@ export default function SplitDemandView({ session }: { session?: Session | null 
   const isComplete = !!publishedId
 
   return (
-    <div className="flex w-full h-screen bg-gray-50">
+    <div className="flex flex-col lg:flex-row w-full min-h-screen bg-zinc-950 touch-manipulation">
 
-      {/* 1. Left: Protocol Canvas (45%) */}
-      <div className="w-[45%] h-full border-r border-gray-200 bg-white p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">📋 数字化服务意向协议</h2>
+      {/* 1. Left: Protocol Canvas (45% on desktop, full-width on mobile) */}
+      <div className="w-full lg:w-[45%] h-auto lg:h-screen border-b lg:border-b-0 lg:border-r border-zinc-800 bg-zinc-900 p-6 overflow-y-auto dark:bg-zinc-900">
+        <h2 className="text-xl font-bold mb-4 text-zinc-100">📋 数字化服务意向协议</h2>
 
         {extractedProtocol ? (
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <div className="text-sm text-blue-600 font-medium">意向品类</div>
-              <div className="text-xl font-bold text-blue-900">{extractedProtocol.category}</div>
+            <div className="p-4 bg-blue-950/30 rounded-lg border border-blue-900/50">
+              <div className="text-sm text-blue-400 font-medium">意向品类</div>
+              <div className="text-xl font-bold text-blue-300">{extractedProtocol.category}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">服务方式</div>
-                <div className="font-semibold text-gray-800">{extractedProtocol.pricing_type || '一口价'}</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">服务方式</div>
+                <div className="font-semibold text-zinc-100">{extractedProtocol.pricing_type || '一口价'}</div>
               </div>
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">预估预算</div>
-                <div className="font-semibold text-gray-800">¥ {extractedProtocol.budget}</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">预估预算</div>
+                <div className="font-semibold text-zinc-100">¥ {extractedProtocol.budget}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">服务时间</div>
-                <div className="font-semibold text-gray-800">{extractedProtocol.service_time}</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">服务时间</div>
+                <div className="font-semibold text-zinc-100">{extractedProtocol.service_time}</div>
               </div>
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">地点线索</div>
-                <div className="font-semibold text-gray-800">{extractedProtocol.address_hint}</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">地点线索</div>
+                <div className="font-semibold text-zinc-100">{extractedProtocol.address_hint}</div>
               </div>
             </div>
 
             {/* Massage-specific: duration_minutes */}
             {extractedProtocol.duration_minutes && (
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">服务时长</div>
-                <div className="font-semibold text-gray-800">{extractedProtocol.duration_minutes} 分钟</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">服务时长</div>
+                <div className="font-semibold text-zinc-100">{extractedProtocol.duration_minutes} 分钟</div>
               </div>
             )}
 
             {/* Massage-specific: therapist preference */}
             {extractedProtocol.therapist_preference && (
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">技师偏好</div>
-                <div className="font-semibold text-gray-800">{extractedProtocol.therapist_preference}</div>
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">技师偏好</div>
+                <div className="font-semibold text-zinc-100">{extractedProtocol.therapist_preference}</div>
               </div>
             )}
 
             {/* Massage-specific: health declaration */}
-            {extractedProtocol.health_declaration?.length > 0 && (
-              <div className="p-3 bg-red-50 rounded border border-red-100">
-                <div className="text-xs text-red-600 font-medium">健康与风险自述声明</div>
-                <ul className="list-disc list-inside text-sm text-red-900 mt-1">
+            {extractedProtocol.health_declaration && extractedProtocol.health_declaration.length > 0 && (
+              <div className="p-3 bg-red-950/30 rounded border border-red-900/50">
+                <div className="text-xs text-red-400 font-medium">健康与风险自述声明</div>
+                <ul className="list-disc list-inside text-sm text-red-300 mt-1">
                   {extractedProtocol.health_declaration.map((h: string, i: number) => (
                     <li key={i}>{h}</li>
                   ))}
@@ -294,10 +308,10 @@ export default function SplitDemandView({ session }: { session?: Session | null 
             )}
 
             {/* Special requirements */}
-            {extractedProtocol.special_requirements?.length > 0 && (
-              <div className="p-3 bg-gray-50 rounded border">
-                <div className="text-xs text-gray-500">个性化要求</div>
-                <ul className="list-disc list-inside text-sm text-gray-800 mt-1">
+            {extractedProtocol.special_requirements && extractedProtocol.special_requirements.length > 0 && (
+              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+                <div className="text-xs text-zinc-400">个性化要求</div>
+                <ul className="list-disc list-inside text-sm text-zinc-300 mt-1">
                   {extractedProtocol.special_requirements.map((r: string, i: number) => (
                     <li key={i}>{r}</li>
                   ))}
@@ -306,11 +320,11 @@ export default function SplitDemandView({ session }: { session?: Session | null 
             )}
 
             {/* Core compliance clauses */}
-            <div className="mt-6 border-t pt-4">
-              <div className="text-xs text-gray-400 font-bold uppercase mb-2">平台合规与免责条款</div>
+            <div className="mt-6 border-t border-zinc-700 pt-4">
+              <div className="text-xs text-zinc-500 font-bold uppercase mb-2">平台合规与免责条款</div>
               <div className="space-y-2">
                 {extractedProtocol.compliance_clauses?.map((clause: string, index: number) => (
-                  <p key={index} className="text-xs text-gray-500 leading-relaxed bg-gray-50 p-2.5 rounded">
+                  <p key={index} className="text-xs text-zinc-400 leading-relaxed bg-zinc-800/50 p-2.5 rounded">
                     {clause}
                   </p>
                 ))}
@@ -332,13 +346,13 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
             {publishedId && (
               <div className="flex flex-col items-center py-8 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                  <CheckCircle2 className="size-7 text-emerald-600" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-950/30">
+                  <CheckCircle2 className="size-7 text-emerald-400" />
                 </div>
-                <h3 className="mt-3 text-lg font-bold text-gray-800">需求已发布！</h3>
-                <p className="mt-0.5 text-sm text-gray-500">ID: {publishedId}</p>
+                <h3 className="mt-3 text-lg font-bold text-zinc-100">需求已发布！</h3>
+                <p className="mt-0.5 text-sm text-zinc-400">ID: {publishedId}</p>
                 <button
-                  className="mt-4 w-full border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl font-medium transition"
+                  className="mt-4 w-full border border-zinc-700 hover:bg-zinc-800 text-zinc-300 py-2.5 rounded-xl font-medium transition"
                   onClick={() => router.push("/dashboard")}
                 >
                   查看订单
@@ -347,16 +361,16 @@ export default function SplitDemandView({ session }: { session?: Session | null 
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+          <div className="flex flex-col items-center justify-center h-64 text-zinc-500">
             <span className="text-4xl mb-2">⚡</span>
             <p className="text-sm">协议待生成</p>
-            <p className="text-xs text-gray-400">在右侧输入需求，AI 将在此处流式点亮协议</p>
+            <p className="text-xs text-zinc-500">在右侧输入需求，AI 将在此处流式点亮协议</p>
           </div>
         )}
       </div>
 
       {/* 2. Right: Pure Chat Area (remaining width) */}
-      <div className="flex-1 h-full flex flex-col bg-gray-50">
+      <div className="flex-1 h-auto lg:h-screen flex flex-col bg-zinc-950">
         {/* Header bar */}
         <div className="flex items-center gap-3 border-b border-slate-200/60 bg-white px-6 py-3 dark:border-zinc-800/60 dark:bg-zinc-950">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">

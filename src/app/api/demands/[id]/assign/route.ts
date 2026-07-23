@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
+import { DEMAND_STATUSES } from "@/lib/demand/state"
 
 export const POST = withAuth(async (req, user, ...args) => {
   const demandId = (await (args[0] as { params: Promise<{ id: string }> }).params).id
@@ -27,11 +28,11 @@ export const POST = withAuth(async (req, user, ...args) => {
   const { data: updated, error } = await supabase
     .from("demands")
     .update({
-      status: "ASSIGNED",
+      status: DEMAND_STATUSES.ASSIGNED,
       matched_provider_id: providerId,
     })
     .eq("id", demandId)
-    .eq("status", "OPEN")
+    .eq("status", DEMAND_STATUSES.OPEN)
     .select()
 
   if (error) {

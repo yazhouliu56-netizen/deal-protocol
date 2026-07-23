@@ -48,8 +48,9 @@ export async function POST(request: Request) {
     if ((authError && authError.message?.includes?.("rate limit")) || !userId) {
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
       if (serviceRoleKey) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
         const adminRes = await fetch(
-          "https://eixqnwaxcnwtxiizmdfs.supabase.co/auth/v1/admin/users",
+          `${supabaseUrl}/auth/v1/admin/users`,
           {
             method: "POST",
             headers: {

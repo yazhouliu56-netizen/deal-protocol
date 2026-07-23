@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
+import { DEMAND_STATUSES } from "@/lib/demand/state";
 
 export const POST = withAuth(async (request: Request, user: any) => {
   try {
@@ -20,7 +21,7 @@ export const POST = withAuth(async (request: Request, user: any) => {
         title,
         description,
         budget,
-        status: "PENDING",
+        status: DEMAND_STATUSES.PENDING,
         embedding: mockEmbedding
       })
       .select()

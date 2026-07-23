@@ -77,21 +77,60 @@ Source: `.env.example` (43 vars). Critical subset:
 | `src/lib/api-auth.ts` | **`withAuth(handler)`** — HOF that wraps API routes with `getUser()` check + passes `user` object. |
 | `src/components/SessionProvider.tsx` | React Context. Calls `supabase.auth.getSession()` + fetches `/api/profile` for role. Listens to `onAuthStateChange`. |
 
-### Page Routes (key pages)
+### Page Routes (full 42 App Router pages)
 
-| Route | File | Type |
-|-------|------|------|
-| `/login` | `src/app/login/page.tsx` | Client, email+password form |
-| `/register` | `src/app/register/page.tsx` | Client, multi-role registration |
-| `/dashboard` | `src/app/dashboard/page.tsx` | Client, protected |
-| `/demands/new` | `src/app/demands/new/page.tsx` | Client, lazy-loads `SplitDemandView` (AI dual-pane) |
-| `/demands/create` | `src/app/demands/create/page.tsx` | Client, traditional form |
-| `/demands/[id]` | `src/app/demands/[id]/page.tsx` | Client |
-| `/orders/[id]` | `src/app/orders/[id]/page.tsx` | Client |
-| `/payment/[id]` | `src/app/payment/[id]/page.tsx` | Client |
-| `/provider/incoming` | `src/app/provider/incoming/page.tsx` | Hybrid (server data fetch + client list) |
-| `/admin/*` | `src/app/admin/*` | Client, admin-only proxy guard |
-| `/offline` | `src/app/offline/page.tsx` | Static, PWA fallback |
+| Route | File | Type | Auth |
+|-------|------|------|------|
+| `/` | `src/app/page.tsx` | Client (14KB) landing | Public |
+| `/login` | `src/app/login/page.tsx` | Client, email+password form | Public |
+| `/register` | `src/app/register/page.tsx` | Client, multi-role registration | Public |
+| `/dashboard` | `src/app/dashboard/page.tsx` | Client, protected (9KB) | Protected |
+| `/console` | `src/app/console/page.tsx` | Client, thin → `ClientConsole` | Protected |
+| `/profile` | `src/app/profile/page.tsx` | Client, `useCountUp` (18KB) | Protected |
+| `/finance` | `src/app/finance/page.tsx` | Client, `useFinanceRealtime` | Protected |
+| `/verification` | `src/app/verification/page.tsx` | Client, photo upload (13KB) | Protected |
+| `/landing` | `src/app/landing/page.tsx` | Client (14KB) | Public |
+| `/demo` | `src/app/demo/page.tsx` | Client (8KB) demo | Public |
+| `/rights` | `src/app/rights/page.tsx` | Client (8KB) | Protected |
+| `/sos` | `src/app/sos/page.tsx` | Client, `getBrowserSupabase` (15KB) | Protected |
+| `/offline` | `src/app/offline/page.tsx` | Static PWA fallback (871B) | Public (SW cache) |
+| `/chat/[id]` | `src/app/chat/[id]/page.tsx` | Client (18KB), realtime chat | Protected |
+| `/evidence/[id]` | `src/app/evidence/[id]/page.tsx` | Client (13KB) | Protected |
+| `/user/[id]` | `src/app/user/[id]/page.tsx` | Client (7KB) | Protected |
+| `/team/[id]` | `src/app/team/[id]/page.tsx` | Client (8KB) | Protected |
+| `/team/create` | `src/app/team/create/page.tsx` | Client (9KB) | Protected |
+| `/developer/radar` | `src/app/developer/radar/page.tsx` | Client, AI demand radar (8KB) | Protected |
+| **Demands** | | | |
+| `/demands` | `src/app/demands/page.tsx` | Client, market hall (5KB) | Protected |
+| `/demands/new` | `src/app/demands/new/page.tsx` | Client, lazy `SplitDemandView` (AI dual-pane) | Protected |
+| `/demands/create` | `src/app/demands/create/page.tsx` | Client, traditional form (5KB) | Protected |
+| `/demands/[id]` | `src/app/demands/[id]/page.tsx` | Client (5KB), detail + status | Protected |
+| **Orders** | | | |
+| `/orders` | `src/app/orders/page.tsx` | Client, `useSSE` (9KB) | Protected |
+| `/orders/[id]` | `src/app/orders/[id]/page.tsx` | Client, `useOrderRealtime` (25KB) | Protected |
+| `/orders/[id]/review` | `src/app/orders/[id]/review/page.tsx` | Client (9KB) | Protected |
+| **Payment** | | | |
+| `/payment/[id]` | `src/app/payment/[id]/page.tsx` | Client (5KB), `/api/payment/escrow` | Protected |
+| **Provider** | | | |
+| `/provider` | `src/app/provider/page.tsx` | Client, thin → `ProviderConsole` | Protected |
+| `/provider/incoming` | `src/app/provider/incoming/page.tsx` | Hybrid (server pre-fetch + client) | Protected |
+| `/provider/grab/[id]` | `src/app/provider/grab/[id]/page.tsx` | Hybrid (2KB) | Protected |
+| `/provider/orders/[id]` | `src/app/provider/orders/[id]/page.tsx` | Hybrid (928B) | Protected |
+| **Client** | | | |
+| `/client/orders/[id]` | `src/app/client/orders/[id]/page.tsx` | Hybrid (690B) | Protected |
+| **Disputes** | | | |
+| `/disputes` | `src/app/disputes/page.tsx` | Client (5KB) | Protected |
+| `/disputes/[id]` | `src/app/disputes/[id]/page.tsx` | Client (5KB) | Protected |
+| **Admin** | | | |
+| `/admin` | `src/app/admin/page.tsx` | Client, `useCountUp` (8KB) | Admin |
+| `/admin/dashboard` | `src/app/admin/dashboard/page.tsx` | Client, thin (133B) | Admin |
+| `/admin/complaints` | `src/app/admin/complaints/page.tsx` | Client (12KB) | Admin |
+| `/admin/config` | `src/app/admin/config/page.tsx` | Client (12KB) | Admin |
+| `/admin/disputes` | `src/app/admin/disputes/page.tsx` | Client (14KB) | Admin |
+| `/admin/protocols` | `src/app/admin/protocols/page.tsx` | Client (5KB) | Admin |
+| `/admin/reputation` | `src/app/admin/reputation/page.tsx` | Client (10KB) | Admin |
+| `/admin/review` | `src/app/admin/review/page.tsx` | Client (11KB) | Admin |
+| `/admin/withdrawals` | `src/app/admin/withdrawals/page.tsx` | Client (10KB) | Admin |
 
 ### API Routes (key)
 

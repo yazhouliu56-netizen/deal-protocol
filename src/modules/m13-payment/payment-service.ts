@@ -169,6 +169,16 @@ export async function confirmCompletion(
 
   await getSupabase()
     .from('protocols')
+    .update({ status: 'completed' })
+    .eq('id', protocolId)
+
+  await getSupabase()
+    .from('orders')
+    .update({ fund_status: 'COMPLETED' })
+    .eq('protocol_id', protocolId)
+
+  await getSupabase()
+    .from('protocols')
     .update({ status: 'satisfaction_held' })
     .eq('id', protocolId)
 

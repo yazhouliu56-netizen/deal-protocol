@@ -1,10 +1,8 @@
-export type DemandStatus =
-  | 'ASSIGNED' | 'DEPARTED' | 'ARRIVED' | 'STARTED' | 'COMPLETED'
-  | 'pending_payment' | 'paid_escrow' | 'settled';
+export type { DemandStatus } from "./demand/state"
 
-export type FulfillmentStatus = 'ASSIGNED' | 'DEPARTED' | 'ARRIVED' | 'STARTED' | 'COMPLETED';
+export type DemandFulfillmentStatus = 'ASSIGNED' | 'DEPARTED' | 'ARRIVED' | 'STARTED' | 'COMPLETED';
 
-export const STATUS_MAP: Record<FulfillmentStatus, { title: string; desc: string }> = {
+export const STATUS_MAP: Record<DemandFulfillmentStatus, { title: string; desc: string }> = {
   ASSIGNED: { title: "已接单", desc: "师傅正在准备出发" },
   DEPARTED: { title: "已出发", desc: "师傅正在赶往您的路上" },
   ARRIVED: { title: "已到达", desc: "师傅已到达现场，准备开工" },
