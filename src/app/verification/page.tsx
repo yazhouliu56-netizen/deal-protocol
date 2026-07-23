@@ -164,6 +164,7 @@ function VerificationForm({
                 type="button"
                 onClick={() => removeFile(idx)}
                 className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/50 text-white"
+                aria-label={`移除证书 ${idx + 1}`}
               >
                 <X className="size-3" />
               </button>
@@ -174,6 +175,7 @@ function VerificationForm({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="flex aspect-[3/2] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 text-slate-400 transition-colors hover:border-indigo-400 hover:text-indigo-400 dark:border-zinc-600 dark:hover:border-indigo-400"
+              aria-label="上传证书图片"
             >
               <Upload className="size-5" />
             </button>

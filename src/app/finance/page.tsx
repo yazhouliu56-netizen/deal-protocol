@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Wallet, ArrowUpRight, ArrowDownLeft, ShieldCheck, Clock, RefreshCw, DollarSign } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionProvider";
 import { useFinanceRealtime } from "@/hooks/use-finance-realtime";
@@ -174,7 +175,20 @@ export default function FinanceDashboardPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-xs font-mono text-zinc-500 py-12 text-center">正在加载实时资金流水...</div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl border border-zinc-800 p-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              ))}
+            </div>
           ) : transactions.length === 0 ? (
             <div className="text-center py-12 space-y-2">
               <p className="text-xs text-zinc-500 font-mono">尚无任何交易流水记录</p>

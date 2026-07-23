@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft, ShieldAlert, FileText, Scale, CheckCircle2 } from "lucide-react";
 
 interface DisputeDetail {
@@ -38,13 +39,23 @@ export default function DisputeDetailPage() {
   };
 
   if (!dispute) {
-    return <div className="min-h-screen bg-zinc-950 text-zinc-400 p-6 font-mono text-xs">调取仲裁档案中...</div>;
+    return (
+      <div className="min-h-screen bg-zinc-950 p-6">
+        <div className="max-w-3xl mx-auto space-y-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6 font-sans touch-manipulation">
       <div className="max-w-3xl mx-auto space-y-6">
-        <button onClick={() => router.back()} className="touch-target inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 active:scale-95 transition-transform">
+        <button onClick={() => router.back()} className="touch-target inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 active:scale-95 transition-transform" aria-label="返回仲裁列表">
           <ArrowLeft className="w-4 h-4"/> 返回仲裁列表
         </button>
 

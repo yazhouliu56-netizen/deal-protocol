@@ -53,6 +53,7 @@ export function MediaPicker({ value, onChange, maxFiles = 3 }: MediaPickerProps)
               type="button"
               onClick={() => removeFile(idx)}
               className="absolute top-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-white"
+              aria-label={`移除第 ${idx + 1} 个文件`}
             >
               <X className="size-3" />
             </button>
@@ -67,6 +68,7 @@ export function MediaPicker({ value, onChange, maxFiles = 3 }: MediaPickerProps)
               "flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20",
               value.length === 0 && "w-full h-24"
             )}
+            aria-label="上传照片或视频"
           >
             <Camera className="size-5 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground">

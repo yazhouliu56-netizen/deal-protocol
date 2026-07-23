@@ -74,6 +74,7 @@ export default function PaymentCheckoutPage({
         <button
           onClick={() => router.back()}
           className="flex size-9 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:text-zinc-200"
+          aria-label="返回上一页"
         >
           <ArrowLeft className="size-4" />
         </button>

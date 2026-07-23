@@ -39,6 +39,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
               <button
                 onClick={onBackToHome}
                 className="p-2 hover:bg-white rounded-lg border border-slate-100 shadow-sm transition-all text-slate-500 hover:text-slate-800 active:scale-95"
+                aria-label="返回首页"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>

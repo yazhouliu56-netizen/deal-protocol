@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { ArrowLeft, DollarSign, Calendar, ShieldAlert, Send } from "lucide-react";
 
 interface DemandDetail {
@@ -45,7 +46,20 @@ export default function DemandDetailPage() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-zinc-950 text-zinc-400 p-6 font-mono text-xs">加载需求数据中...</div>;
+    return (
+      <div className="min-h-screen bg-zinc-950 p-6">
+        <div className="max-w-3xl mx-auto space-y-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <div className="flex gap-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!demand) {

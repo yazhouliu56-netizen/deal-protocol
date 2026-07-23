@@ -6,6 +6,7 @@ import { useSession } from "@/components/SessionProvider"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import toast from "react-hot-toast"
 import { Loader2, Users, DollarSign, Wrench } from "lucide-react"
 
 interface TeamMember {
@@ -55,13 +56,16 @@ export default function TeamDetailPage() {
     if (!session) return
     setJoining(requestId)
     try {
-      await fetch("/api/team/interest", {
+      const res = await fetch("/api/team/interest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId, providerId: session.id }),
       })
-      setJoining(null)
-    } catch {
+      if (!res.ok) throw new Error((await res.json()).error ?? "加入失败")
+      toast.success("已成功加入团队")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "加入团队失败")
+    } finally {
       setJoining(null)
     }
   }

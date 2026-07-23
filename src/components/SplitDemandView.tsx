@@ -597,6 +597,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
                 size="icon"
                 disabled={isLoading || !input.trim() || isComplete || demoState !== "idle"}
                 className="h-11 w-11 rounded-xl bg-white text-slate-600 border border-slate-200/60 hover:bg-slate-50 hover:text-indigo-600 disabled:opacity-40 dark:border-zinc-700/60 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-indigo-400"
+                aria-label="发送消息"
               >
                 {isLoading ? <Loader2 className="size-4 animate-spin" /> : <SendHorizonal className="size-4" />}
               </Button>

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Store, Plus, DollarSign, Clock, ChevronRight, Layers } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface Demand {
   id: string;
@@ -54,7 +55,22 @@ export default function DemandsMarketplacePage() {
         </div>
 
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-zinc-500 font-mono">加载公开网格数据中...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-3 pt-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : demands.length === 0 ? (
           <div className="border border-zinc-800 bg-zinc-900/10 rounded-2xl p-16 text-center text-zinc-500 text-sm">
             <Layers className="w-8 h-8 text-zinc-700 mx-auto mb-3"/>

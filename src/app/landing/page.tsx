@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import toast from "react-hot-toast"
 import { Loader2, Sparkles, CheckCircle2, ArrowRight, Camera, Upload } from "lucide-react"
 
 const CATEGORIES = [
@@ -63,7 +64,7 @@ export default function LandingPage() {
       setResult(data)
       setEditedFields(data.protocol_json)
     } catch (err) {
-      // silent
+      toast.error(err instanceof Error ? err.message : "协议生成失败，请重试")
     } finally {
       setGenerating(false)
     }
@@ -81,7 +82,7 @@ export default function LandingPage() {
       setResult(null)
       setText("")
     } catch {
-      // silent
+      toast.error("发布需求失败，请重试")
     } finally {
       setSubmitting(false)
     }

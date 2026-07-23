@@ -61,7 +61,7 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-2xl p-6 space-y-5 relative shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300">
+        <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300" aria-label="关闭提现弹窗">
           <X className="w-4 h-4"/>
         </button>
 

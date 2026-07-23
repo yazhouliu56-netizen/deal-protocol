@@ -288,6 +288,7 @@ export default function ChatPage({
           <button
             onClick={() => router.push(`/orders/${contractId}`)}
             className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            aria-label="返回订单详情"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -398,6 +399,7 @@ export default function ChatPage({
               onClick={handleSend}
               disabled={!input.trim() || sending}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-[0.97] disabled:opacity-50"
+              aria-label="发送消息"
             >
               {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             </button>

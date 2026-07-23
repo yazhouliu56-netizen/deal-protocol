@@ -167,6 +167,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
               <button
                 onClick={onBackToHome}
                 className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 shadow-sm transition-all text-slate-400 hover:text-slate-200 active:scale-95"
+                aria-label="返回首页"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>

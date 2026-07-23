@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, ArrowRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface DisputeItem {
   id: string;
@@ -75,7 +76,18 @@ export default function DisputesListPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-xs font-mono text-zinc-500 py-12 text-center">正在同步交易仲裁记录...</div>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <Skeleton className="h-5 w-2/3" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
         ) : disputes.length === 0 ? (
           <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-12 text-center space-y-3">
             <div className="text-zinc-500 text-xs font-mono">暂无任何交易维权案件</div>

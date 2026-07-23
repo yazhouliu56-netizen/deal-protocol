@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import toast from "react-hot-toast"
 import { Loader2, Plus, Trash2, Users } from "lucide-react"
 
 interface TeamSlotInput {
@@ -69,10 +70,11 @@ export default function CreateTeamPage() {
         })))
       }
       setStep('confirm')
-    } catch {
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "结构解析失败")
+    } finally {
       setStructuring(false)
     }
-    setStructuring(false)
   }
 
   async function handleSubmit() {
@@ -97,10 +99,11 @@ export default function CreateTeamPage() {
       if (data.protocolId) {
         router.push(`/team/${data.protocolId}`)
       }
-    } catch {
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "创建团队协议失败")
+    } finally {
       setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   if (!session) {

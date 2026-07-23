@@ -27,6 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
+          aria-label={sidebarOpen ? "关闭侧边栏" : "打开侧边栏"}
         >
           {sidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
