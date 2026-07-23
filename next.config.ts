@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
-  swSrc: "src/app/sw.js",
+  swSrc: "sw.js",
   swDest: "public/sw.js",
   disable: false,
 });
