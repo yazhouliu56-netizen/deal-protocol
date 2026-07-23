@@ -102,7 +102,7 @@ export default function Header() {
 
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-lg md:hidden hover:bg-slate-100 transition-colors dark:hover:bg-zinc-800"
+          className="flex h-11 w-11 items-center justify-center rounded-lg md:hidden hover:bg-slate-100 transition-colors dark:hover:bg-zinc-800"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? "关闭菜单" : "打开菜单"}
         >
