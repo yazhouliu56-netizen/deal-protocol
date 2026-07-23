@@ -1,3 +1,5 @@
+/// <reference lib="webworker" />
+
 import { Serwist, CacheFirst } from "serwist";
 
 const serwist = new Serwist({
@@ -7,14 +9,28 @@ const serwist = new Serwist({
   navigationPreload: true,
   disableDevLogs: true,
   runtimeCaching: [
-    { matcher: /^https?:\/\/.*\.(woff2?|ttf|otf|eot)\?.*$/, handler: new CacheFirst(), method: "GET" },
-    { matcher: /^https?:\/\/.*\.(png|jpg|jpeg|gif|svg|webp|ico)\?.*$/, handler: new CacheFirst(), method: "GET" },
-    { matcher: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*$/, handler: new CacheFirst(), method: "GET" },
+    {
+      matcher: /^https?:\/\/.*\.(woff2?|ttf|otf|eot)\?.*$/,
+      handler: new CacheFirst(),
+      method: "GET",
+    },
+    {
+      matcher: /^https?:\/\/.*\.(png|jpg|jpeg|gif|svg|webp|ico)\?.*$/,
+      handler: new CacheFirst(),
+      method: "GET",
+    },
+    {
+      matcher: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*$/,
+      handler: new CacheFirst(),
+      method: "GET",
+    },
   ],
 });
 
 self.addEventListener("install", () => {
-  caches.open("offline-fallback").then((cache) => { cache.add("/offline"); });
+  void caches.open("offline-fallback").then((cache) => {
+    void cache.add("/offline");
+  });
 });
 
 self.addEventListener("fetch", (event) => {
