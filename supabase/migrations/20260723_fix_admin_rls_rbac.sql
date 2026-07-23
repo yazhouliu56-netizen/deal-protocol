@@ -62,3 +62,17 @@ CREATE POLICY "Admin full access wallet logs" ON wallet_logs
         AND public.profiles.role = 'admin'
     )
   );
+
+-- ============================================================
+-- 修复 users.role CHECK 约束: 增加 'admin' 枚举值
+-- 001_schema.sql 中原约束 role IN ('demander','provider','both')
+-- 不含 'admin'，导致 admin 查询永远无法匹配
+-- ============================================================
+ALTER TABLE public.users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE public.users ADD CONSTRAINT users_role_check
+  CHECK (role IN ('demander', 'provider', 'both', 'admin'));
+
+-- 同步修复 profiles 表约束（若存在）
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check
+  CHECK (role IN ('demander', 'provider', 'both', 'admin'));
