@@ -12,7 +12,7 @@
 # Error details
 
 ```
-Error: apiRequestContext.get: connect ETIMEDOUT 199.59.149.203:443
+Error: apiRequestContext.get: connect ETIMEDOUT 103.56.16.112:443
 Call log:
   - → GET https://deal-protocol-phi.vercel.app/
     - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36
@@ -52,7 +52,7 @@ Call log:
   26  | 
   27  |   test("all required security headers are present", async ({ page }) => {
 > 28  |     const res = await page.request.get(BASE_URL)
-      |                                    ^ Error: apiRequestContext.get: connect ETIMEDOUT 199.59.149.203:443
+      |                                    ^ Error: apiRequestContext.get: connect ETIMEDOUT 103.56.16.112:443
   29  |     expect(res.headers()["x-content-type-options"]).toBe("nosniff")
   30  |     expect(res.headers()["x-frame-options"]).toBe("DENY")
   31  |     expect(res.headers()["referrer-policy"]).toBe("strict-origin-when-cross-origin")

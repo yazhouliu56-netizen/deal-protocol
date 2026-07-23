@@ -14,7 +14,7 @@ CREATE POLICY "Client view own demands" ON demands
 DROP POLICY IF EXISTS "Provider view assigned demands" ON demands;
 DROP POLICY IF EXISTS "Provider view assigned demands" ON demands;
 CREATE POLICY "Provider view assigned demands" ON demands
-  FOR SELECT USING (auth.uid() = customer_id);
+  FOR SELECT USING (auth.uid() = provider_id);
 
 DROP POLICY IF EXISTS "Provider update assigned demands" ON demands;
 DROP POLICY IF EXISTS "Provider update assigned demands" ON demands;
