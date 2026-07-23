@@ -1,5 +1,3 @@
-/// <reference lib="webworker" />
-
 import { Serwist, CacheFirst } from "serwist";
 
 const serwist = new Serwist({
@@ -28,8 +26,8 @@ const serwist = new Serwist({
 });
 
 self.addEventListener("install", () => {
-  void caches.open("offline-fallback").then((cache) => {
-    void cache.add("/offline");
+  caches.open("offline-fallback").then((cache) => {
+    cache.add("/offline");
   });
 });
 
