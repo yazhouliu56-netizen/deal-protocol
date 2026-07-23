@@ -15,6 +15,7 @@ vi.mock('../src/modules/m11-evidence-log/evidence-chain', () => ({
 vi.mock('../src/modules/m07-credit/credit-engine', () => ({
   updateCredit: vi.fn(),
   getCreditScore: vi.fn(),
+  isColdStart: vi.fn(),
 }))
 vi.mock('../src/lib/track-metric', () => ({
   trackMetric: vi.fn(),
@@ -29,7 +30,7 @@ vi.mock('@daviekong/payment-core', () => ({
 import { callLLM, buildFunctionTool } from '../src/lib/llm-adapter'
 import { getCategoryConfig } from '../src/modules/m03-category-config/category-loader'
 import { appendEvidence } from '../src/modules/m11-evidence-log/evidence-chain'
-import { updateCredit, getCreditScore } from '../src/modules/m07-credit/credit-engine'
+import { updateCredit, getCreditScore, isColdStart } from '../src/modules/m07-credit/credit-engine'
 import { trackMetric } from '../src/lib/track-metric'
 
 class MockChain {
@@ -121,6 +122,7 @@ describe('E2E Integration Smoke Test', () => {
       dimensions: {},
       baseTotalDeals: 5,
     })
+    isColdStart.mockResolvedValue(false)
 
     trackMetric.mockImplementation(() => {})
 
