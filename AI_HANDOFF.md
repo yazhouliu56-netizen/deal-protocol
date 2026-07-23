@@ -27,13 +27,13 @@
 ```
 tsc --noEmit:   ✅  0 errors
 npm run build:  ✅  97/97 pages, 0 errors
-vitest:         ✅  21/22 files, 112/113 tests (1 pre-existing E2E mock failure in e2e-integration.test.ts — isColdStart export)
+vitest:         ✅  23/23 files, 116/116 tests passed
 ```
 
 ### Git Baseline
 
 ```
-Branch: master | Latest: fc40a0f — "fix: resolve login redirect and session sync bugs"
+Branch: master | Latest: e855322 — "feat: add production release pipeline scripts"
 Tag: v1.0.0
 Remote: https://github.com/yazhouliu56-netizen/deal-protocol.git
 ```
@@ -243,7 +243,19 @@ window.location.href = "/"  // ✅ full redirect clears everything
 3. `STRIPE_WEBHOOK_SECRET` existence check at route entry (was `!`)
 4. Generic error message on sig failure (no Stripe leak)
 
-### 3.4 Known Technical Debt (DO NOT TOUCH WITHOUT PLAN)
+### 3.4 Phase-3 Hardening: DDL, RLS & Idempotency
+
+**Completed in v1.0.0** (commit range `fc40a0f..e855322`).
+
+| Item | Resolution | Files |
+|------|-----------|-------|
+| `tests/e2e-integration.test.ts` cold-start mock failure | Added `isColdStart` to the module's `vi.mock` block — 23/23 files, 116/116 tests now green | `tests/e2e-integration.test.ts` |
+| `demands` + `contracts` missing DDL | Created `20260723_fix_missing_ddl_and_rls.sql` — `CREATE TABLE IF NOT EXISTS` for both tables with all columns + constraints | `supabase/migrations/20260723_fix_missing_ddl_and_rls.sql` |
+| 6 tables missing RLS | Same migration adds RLS policies for `category_configs`, `provider_qualifications`, `credit_events`, `guarantee_links`, `precedents`, `bandit_stats` | `supabase/migrations/20260723_fix_missing_ddl_and_rls.sql` |
+| `profiles.role` mixed case | Same migration normalizes `'ADMIN'` → `'admin'` via UPDATE + CHECK constraint update | `supabase/migrations/20260723_fix_missing_ddl_and_rls.sql` |
+| Stripe webhook idempotency (provider_payment_id) | POST-level duplicate check returns `{ duplicate: true }`; `STRIPE_WEBHOOK_SECRET` missing → 400; `updated_at` added to contract update | `src/app/api/webhooks/stripe/route.ts`, `tests/stripe-webhook.test.ts` |
+
+### 3.5 Known Technical Debt (DO NOT TOUCH WITHOUT PLAN)
 
 | Debt | Impact | File(s) |
 |------|--------|---------|
@@ -350,12 +362,12 @@ Order created → user clicks "Pay with Stripe"
 
 ### Current Status
 
-The platform is **functionally complete** for a v1.0.0 release. The core flows (auth, demand creation, payment, dispute) all work in unit tests. However, the **full end-to-end Stripe payment + webhook flow has NOT been manually verified** against a production Stripe account.
+v1.0.0 released — **production build verified**: `tsc --noEmit` 0 errors, `npm run build` 97/97 pages, `vitest` 116/116 passed. Deployed to `https://deal-protocol-phi.vercel.app` (smoke test: all endpoints 200 OK). Supabase migration `20260723_fix_missing_ddl_and_rls.sql` resolves all DDL/RLS debt from §3.4.
 
-### Blockers
+### Remaining Blockers
 
 1. **E2E Stripe verification requires live keys** — `STRIPE_SECRET_KEY` (sk_live_*) and `STRIPE_WEBHOOK_SECRET` (whsec_*) must be pasted from Stripe Dashboard. The current `.env.local` has placeholder values.
-2. **Supabase migration not auto-executed** — The final migration `20260723_fix_admin_rls_rbac.sql` must be manually run in Supabase SQL Editor.
+2. **Supabase migrations not auto-applied in production** — Run `npx tsx scripts/apply-migrations.ts` (or paste newest `.sql` files into Supabase SQL Editor).
 3. **No production credentials** — Alipay, WeChat Pay, Redis push, SMS, real-name verification all have placeholder/env vars.
 
 ### First Commands for Next Engineer
