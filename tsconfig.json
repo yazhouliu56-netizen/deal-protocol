@@ -54,6 +54,7 @@
     "scripts/**/*",
     ".next",
     "out",
-    ".temp"
+    ".temp",
+    "src/app/sw.ts"
   ]
 }

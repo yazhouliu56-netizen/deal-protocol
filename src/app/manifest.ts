@@ -6,8 +6,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "DealProtocol",
     start_url: "/",
     display: "standalone",
-    background_color: "#000000",
-    theme_color: "#000000",
+    description: "AI 驱动的全品类服务交易平台 — 需求匹配、智能协议、交易保障",
+    background_color: "#0f172a",
+    theme_color: "#0f172a",
     icons: [
       {
         src: "/icon-192.png",
