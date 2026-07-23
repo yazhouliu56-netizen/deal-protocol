@@ -17,6 +17,14 @@ async function handlePaymentSuccess(
   const contractId = intent.metadata?.contractId
   if (!contractId) return
 
+  const { data: existingPayment } = await svc
+    .from("payments")
+    .select("id, status")
+    .eq("provider_payment_id", intent.id)
+    .maybeSingle()
+
+  if (existingPayment) return
+
   const { data: contract } = await svc
     .from("contracts")
     .select("id, fund_status, customer_id, provider_id")
@@ -76,6 +84,14 @@ async function handlePaymentFailed(
   const contractId = intent.metadata?.contractId
   if (!contractId) return
 
+  const { data: existingPayment } = await svc
+    .from("payments")
+    .select("id, status")
+    .eq("provider_payment_id", intent.id)
+    .maybeSingle()
+
+  if (existingPayment) return
+
   await svc.from("payments").insert({
     contract_id: contractId,
     status: "FAILED",
@@ -100,36 +116,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 })
   }
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set")
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+  }
+
   const stripe = getStripe()
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!,
-    )
+    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err) {
     const message = err instanceof Error ? err.message : "Signature verification failed"
     console.warn("Stripe webhook signature verification failed:", message)
-    return NextResponse.json({ error: message }, { status: 400 })
+    return NextResponse.json({ error: "Signature verification failed" }, { status: 400 })
   }
 
   const svc = getServiceClient()
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session
-        if (session.payment_intent) {
-          const intentId = typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : session.payment_intent.id
-          const intent = await stripe.paymentIntents.retrieve(intentId)
-          await handlePaymentSuccess(intent, svc)
-        }
-        break
-      }
-
       case "payment_intent.succeeded": {
         const intent = event.data.object as Stripe.PaymentIntent
         await handlePaymentSuccess(intent, svc)

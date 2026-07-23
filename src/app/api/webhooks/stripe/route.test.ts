@@ -34,6 +34,8 @@ vi.mock("@/lib/event-bus", () => ({
 
 const { POST } = await import("./route")
 
+let existingPayment: { provider_payment_id: string } | null = null
+
 function setupMockContract(contract: Record<string, unknown> | null) {
   const singleFn = vi.fn().mockResolvedValue({ data: contract, error: contract ? null : new Error("not found") })
   const eqFn = vi.fn().mockReturnValue({ single: singleFn })
@@ -41,9 +43,14 @@ function setupMockContract(contract: Record<string, unknown> | null) {
   const insertFn = vi.fn().mockResolvedValue({ error: null })
   const updateFn = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
 
+  const maybeSingleFn = vi.fn().mockResolvedValue({ data: existingPayment, error: null })
+  const eqPaymentsFn = vi.fn().mockReturnValue({ maybeSingle: maybeSingleFn })
+  const selectPaymentsFn = vi.fn().mockReturnValue({ eq: eqPaymentsFn })
+
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === "contracts") return { select: selectFn, update: updateFn }
-    if (table === "payments" || table === "notifications" || table === "contract_events") return { insert: insertFn }
+    if (table === "payments") return { select: selectPaymentsFn, insert: insertFn }
+    if (table === "notifications" || table === "contract_events") return { insert: insertFn }
     return { select: vi.fn(), update: vi.fn(), insert: insertFn }
   })
 
@@ -79,7 +86,7 @@ describe("POST /api/webhooks/stripe", () => {
       const resp = await POST(req)
       const body = await resp.json()
       expect(resp.status).toBe(400)
-      expect(body.error).toContain("bad signature")
+      expect(body.error).toContain("Signature verification failed")
     })
   })
 
@@ -140,12 +147,11 @@ describe("POST /api/webhooks/stripe", () => {
   })
 
   describe("checkout.session.completed", () => {
-    it("resolves payment_intent and updates contract", async () => {
+    it("silently acknowledges checkout.session.completed (falls through to payment_intent.succeeded)", async () => {
       mockConstructEvent.mockReturnValue({
         type: "checkout.session.completed",
         data: { object: { id: "cs_test_789", payment_intent: "pi_checkout_1", metadata: { contractId: "c3" } } },
       })
-      mockRetrievePaymentIntent.mockResolvedValue({ id: "pi_checkout_1", amount: 80000, metadata: { contractId: "c3" } })
       const { updateFn } = setupMockContract({ id: "c3", fund_status: "PENDING", customer_id: "u1", provider_id: "u2" })
       const req = new Request("https://example.com/api/webhooks/stripe", {
         method: "POST",
@@ -154,10 +160,10 @@ describe("POST /api/webhooks/stripe", () => {
       })
       const resp = await POST(req)
       expect(resp.status).toBe(200)
-      expect(mockRetrievePaymentIntent).toHaveBeenCalledWith("pi_checkout_1")
+      expect(mockRetrievePaymentIntent).not.toHaveBeenCalled()
       const heldUpdates = updateFn.mock.calls.filter(
 (c: unknown[]) => (c[0] as Record<string, string>)?.fund_status === "HELD")
-      expect(heldUpdates.length).toBe(1)
+      expect(heldUpdates.length).toBe(0)
     })
   })
 
