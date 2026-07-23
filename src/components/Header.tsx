@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useSession } from "@/components/SessionProvider"
-import { getSupabase } from "@/lib/supabase-client"
+import { getBrowserSupabase } from "@/lib/supabase-browser"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -86,7 +86,7 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => router.push("/profile")}>
                     <User className="mr-2 size-4" /> 个人资料
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => getSupabase().auth.signOut()} className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem onClick={async () => { await getBrowserSupabase().auth.signOut(); window.location.href = "/" }} className="text-destructive focus:text-destructive">
                     <LogOut className="mr-2 size-4" /> 退出登录
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -128,7 +128,7 @@ export default function Header() {
                   <span className="truncate">{session.name || session.email}</span>
                 </div>
                 <Link href="/profile" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-500 hover:bg-slate-100 active:bg-slate-200 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:active:bg-zinc-700">个人资料</Link>
-                <button type="button" onClick={() => { setMobileOpen(false); getSupabase().auth.signOut() }} className="touch-target flex items-center rounded-lg px-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 active:bg-destructive/20">退出登录</button>
+                <button type="button" onClick={async () => { setMobileOpen(false); await getBrowserSupabase().auth.signOut(); window.location.href = "/" }} className="touch-target flex items-center rounded-lg px-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 active:bg-destructive/20">退出登录</button>
               </>
             ) : (
               <div className="flex gap-2 pt-1">

@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
@@ -24,7 +24,9 @@ export function withAuth(
       {
         cookies: {
           getAll() { return cookieStore.getAll() },
-          setAll(cookiesToSet) {
+          setAll(
+            cookiesToSet: { name: string; value: string; options: CookieOptions }[],
+          ) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             )
