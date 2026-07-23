@@ -10,20 +10,18 @@ function getStripe(): Stripe {
   return new Stripe(key, { apiVersion: "2026-06-24.dahlia" })
 }
 
+async function getContractId(
+  metadata: Stripe.Metadata,
+): Promise<string | null> {
+  return metadata.contract_id ?? metadata.contractId ?? null
+}
+
 async function handlePaymentSuccess(
   intent: Stripe.PaymentIntent,
   svc: ReturnType<typeof getServiceClient>,
 ) {
-  const contractId = intent.metadata?.contractId
+  const contractId = await getContractId(intent.metadata)
   if (!contractId) return
-
-  const { data: existingPayment } = await svc
-    .from("payments")
-    .select("id, status")
-    .eq("provider_payment_id", intent.id)
-    .maybeSingle()
-
-  if (existingPayment) return
 
   const { data: contract } = await svc
     .from("contracts")
@@ -33,7 +31,10 @@ async function handlePaymentSuccess(
 
   if (!contract || contract.fund_status === "HELD") return
 
-  await svc.from("contracts").update({ fund_status: "HELD" }).eq("id", contractId)
+  await svc
+    .from("contracts")
+    .update({ fund_status: "HELD", updated_at: new Date().toISOString() })
+    .eq("id", contractId)
 
   await svc.from("payments").insert({
     contract_id: contractId,
@@ -81,16 +82,8 @@ async function handlePaymentFailed(
   intent: Stripe.PaymentIntent,
   svc: ReturnType<typeof getServiceClient>,
 ) {
-  const contractId = intent.metadata?.contractId
+  const contractId = await getContractId(intent.metadata)
   if (!contractId) return
-
-  const { data: existingPayment } = await svc
-    .from("payments")
-    .select("id, status")
-    .eq("provider_payment_id", intent.id)
-    .maybeSingle()
-
-  if (existingPayment) return
 
   await svc.from("payments").insert({
     contract_id: contractId,
@@ -101,7 +94,7 @@ async function handlePaymentFailed(
   })
 
   await svc.from("notifications").insert({
-    user_id: intent.metadata?.payerId ?? "system",
+    user_id: intent.metadata?.payerId ?? intent.metadata?.customer_id ?? "system",
     title: "支付失败",
     body: `订单 ${contractId.slice(0, 8)}... 支付未成功，请重试`,
     type: "pay",
@@ -118,35 +111,38 @@ export async function POST(request: Request) {
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   if (!webhookSecret) {
-    console.error("STRIPE_WEBHOOK_SECRET is not set")
-    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+    return NextResponse.json({ error: "STRIPE_WEBHOOK_SECRET not configured" }, { status: 400 })
   }
 
   const stripe = getStripe()
   let event: Stripe.Event
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Signature verification failed"
-    console.warn("Stripe webhook signature verification failed:", message)
+  } catch {
     return NextResponse.json({ error: "Signature verification failed" }, { status: 400 })
   }
 
   const svc = getServiceClient()
+  const intent = event.data.object as Stripe.PaymentIntent
+
+  const { data: existingPayment } = await svc
+    .from("payments")
+    .select("id, status")
+    .eq("provider_payment_id", intent.id)
+    .maybeSingle()
+
+  if (existingPayment) {
+    return NextResponse.json({ received: true, duplicate: true })
+  }
 
   try {
     switch (event.type) {
-      case "payment_intent.succeeded": {
-        const intent = event.data.object as Stripe.PaymentIntent
+      case "payment_intent.succeeded":
         await handlePaymentSuccess(intent, svc)
         break
-      }
-
-      case "payment_intent.payment_failed": {
-        const intent = event.data.object as Stripe.PaymentIntent
+      case "payment_intent.payment_failed":
         await handlePaymentFailed(intent, svc)
         break
-      }
     }
   } catch (err) {
     console.warn(`Stripe webhook handler error for ${event.type}:`, err)

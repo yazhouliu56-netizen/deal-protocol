@@ -2,14 +2,71 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
 import { getPaymentManager, createPayment } from "@/lib/payment";
+import Stripe from "stripe";
+
+function getStripeClient(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) throw new Error("STRIPE_SECRET_KEY is not set")
+  return new Stripe(key, { apiVersion: "2026-06-24.dahlia" })
+}
 
 export const POST = withAuth(async (req, user) => {
   const supabase = await getRouteClient();
   const body = await req.json();
-  const { orderId, channel } = body as {
-    orderId: string;
-    channel: "alipay" | "wechat";
+  const { contractId: rawContractId, orderId, channel, demandId, amount } = body as {
+    contractId?: string;
+    orderId?: string;
+    channel?: string;
+    demandId?: string;
+    amount?: number;
   };
+
+  const contractId = rawContractId ?? orderId;
+
+  if (channel === "stripe") {
+    if (!contractId) {
+      return NextResponse.json({ error: "缺少 contractId 参数" }, { status: 400 });
+    }
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: "amount 必须为正数" }, { status: 400 });
+    }
+
+    const { data: existingContract } = await supabase
+      .from("contracts")
+      .select("id, fund_status, amount")
+      .eq("id", contractId)
+      .maybeSingle();
+
+    if (!existingContract) {
+      const { error: createError } = await supabase.from("contracts").insert({
+        id: contractId,
+        customer_id: user.id,
+        fund_status: "PENDING_HELD",
+        amount,
+      });
+      if (createError) {
+        return NextResponse.json({ error: "创建合约记录失败" }, { status: 500 });
+      }
+    } else if (existingContract.fund_status !== "PENDING" && existingContract.fund_status !== "PENDING_HELD") {
+      return NextResponse.json({ error: "当前订单状态不可支付" }, { status: 400 });
+    }
+
+    const stripeClient = getStripeClient();
+    const paymentIntent = await stripeClient.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: "cny",
+      metadata: {
+        contract_id: contractId,
+        customer_id: user.id,
+        demand_id: demandId || "",
+      },
+    });
+
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+      contractId,
+    });
+  }
 
   if (!orderId || !channel) {
     return NextResponse.json({ error: "缺少必要参数 orderId 或 channel" }, { status: 400 });
