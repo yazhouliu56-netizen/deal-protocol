@@ -2,10 +2,19 @@ import { execSync } from 'child_process'
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
+import { ProxyAgent } from 'undici'
 
 const VERCELL_URL = 'https://deal-protocol-phi.vercel.app'
 const SUPABASE_URL = 'https://eixqnwaxcnwtxiizmdfs.supabase.co'
 const REMOTE = 'https://github.com/yazhouliu56-netizen/deal-protocol.git'
+
+function fetchOpts(timeout = 10000): RequestInit {
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+  if (proxyUrl) {
+    return { dispatcher: new ProxyAgent(proxyUrl), signal: AbortSignal.timeout(timeout) }
+  }
+  return { signal: AbortSignal.timeout(timeout) }
+}
 
 function env(key: string): string | undefined {
   try {
@@ -31,10 +40,15 @@ async function checkVercel() {
 
   const results: { name: string; ok: boolean; detail: string }[] = []
 
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+  if (proxyUrl) {
+    console.log(`  \x1b[33mℹ 检测到代理: ${proxyUrl}\x1b[0m`)
+  }
+
   // 1.1 Root page
   try {
     const start = Date.now()
-    const res = await fetch(VERCELL_URL, { signal: AbortSignal.timeout(15000) })
+    const res = await fetch(VERCELL_URL, fetchOpts(15000))
     const elapsed = Date.now() - start
     const ok = res.status >= 200 && res.status < 400
     results.push({ name: '首页可达', ok, detail: `HTTP ${res.status} (${elapsed}ms)` })
@@ -50,7 +64,7 @@ async function checkVercel() {
   // 1.2 Health API
   try {
     const start = Date.now()
-    const res = await fetch(`${VERCELL_URL}/api/health`, { signal: AbortSignal.timeout(10000) })
+    const res = await fetch(`${VERCELL_URL}/api/health`, fetchOpts(10000))
     const elapsed = Date.now() - start
     const body = await res.json().catch(() => null)
     results.push({
@@ -65,7 +79,7 @@ async function checkVercel() {
   // 1.3 PWA resources
   for (const path of ['/manifest.webmanifest', '/sitemap.xml', '/sw.js']) {
     try {
-      const res = await fetch(`${VERCELL_URL}${path}`, { signal: AbortSignal.timeout(10000) })
+      const res = await fetch(`${VERCELL_URL}${path}`, fetchOpts(10000))
       results.push({
         name: `静态资源 ${path}`,
         ok: res.status >= 200 && res.status < 400,
@@ -151,7 +165,7 @@ async function checkSupabase() {
 
   // Edge function ping
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/health`, { signal: AbortSignal.timeout(5000) })
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/health`, fetchOpts(5000))
     console.log(`  ${res.ok ? '\x1b[32m✔' : '\x1b[31m✘'} Edge Function health: HTTP ${res.status}\x1b[0m`)
   } catch (e: any) {
     console.log(`  \x1b[33m⚠ Edge Function health 不可达 (未部署时为正常): ${e.message}\x1b[0m`)
