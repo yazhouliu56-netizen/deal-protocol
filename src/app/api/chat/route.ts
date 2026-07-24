@@ -1,6 +1,7 @@
 import { streamText } from "ai"
 import { getAIModel } from "@/lib/ai-provider"
 import { auth } from "@/lib/auth"
+import { interceptChatRisk } from "@/lib/risk-interceptor"
 
 export async function POST(request: Request) {
   let { messages, userContext } = await request.json()
@@ -12,10 +13,24 @@ export async function POST(request: Request) {
     }
   }
 
-  const modelMessages = messages.map((msg: any) => ({
-    role: msg.role,
-    content: msg.content ?? msg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? '',
-  }))
+  const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop()
+  let riskWarning = ''
+  if (lastUserMsg) {
+    const rawText = lastUserMsg.content ?? lastUserMsg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? ''
+    const riskResult = interceptChatRisk(rawText)
+    if (riskResult.hasRisk) {
+      riskWarning = `\n\n【平台风控拦截】检测到用户试图进行私下交易或交换联系方式。已自动屏蔽联系方式。请回复时坚持平台交易原则，引导用户在平台内完成正规交易。`
+    }
+  }
+
+  const modelMessages = messages.map((msg: any) => {
+    let content = msg.content ?? msg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? ''
+    if (msg.role === 'user') {
+      const { sanitizedText, hasRisk } = interceptChatRisk(content)
+      if (hasRisk && sanitizedText) content = sanitizedText
+    }
+    return { role: msg.role, content }
+  })
 
   const userInfo = userContext
     ? `当前用户信息：
@@ -55,6 +70,7 @@ export async function POST(request: Request) {
   { "category": "精油SPA/中式推拿/...", "duration_minutes": 数字(分钟, 默认60), "budget": 数字(元, 默认198), "therapist_preference": "男技师/女技师/无偏好", "service_time": "精确提取用户的服务时间。如果绝对没提，必须死死写死为'随时'，严禁输出'时间串'文本", "address_hint": "提取地点线索。如果绝对没提，必须死死写死为'未提供'，严禁输出'地点'文本", "health_declaration": ["根据用户提到的身体状况自动生成健康声明"], "compliance_clauses": ["条款1", "条款2", "条款3"] }
 
 ${userInfo}
+${riskWarning}
 
 如果用户后续要求调整协议，请重新生成完整的 [PROTOCOL_JSON] 块。`
 

@@ -7,10 +7,11 @@ import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import VoiceMicButton from "@/components/VoiceMicButton"
+import { interceptChatRisk } from "@/lib/risk-interceptor"
 import {
   SendHorizonal, User, Bot, Loader2,
   CheckCircle2, PanelRightOpen,
-  Cpu, Radio, ShieldCheck,
+  Cpu, Radio, ShieldCheck, ShieldAlert,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -84,6 +85,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
   const [extractedProtocol, setExtractedProtocol] = useState<ExtractedProtocol | null>(null)
   const [createdDemandId, setCreatedDemandId] = useState<string | null>(null)
+  const [riskWarning, setRiskWarning] = useState<string | null>(null)
 
   const userContext = session
     ? { name: session.name, creditScore: 780, level: "信用极佳", address: "朝阳区（历史常用地址）", role: session.role }
@@ -107,7 +109,13 @@ export default function SplitDemandView({ session }: { session?: Session | null 
     (e: React.FormEvent) => {
       e.preventDefault()
       if (!input.trim() || isLoading || demoState !== "idle") return
-      sendMessage({ text: input })
+      const riskResult = interceptChatRisk(input)
+      if (riskResult.hasRisk) {
+        setRiskWarning(riskResult.warningMessage ?? null)
+      } else {
+        setRiskWarning(null)
+      }
+      sendMessage({ text: riskResult.sanitizedText || input })
       setInput("")
     },
     [input, isLoading, sendMessage, demoState],
@@ -185,7 +193,11 @@ export default function SplitDemandView({ session }: { session?: Session | null 
   }, [demoState, logIndex])
 
   const handleQuickReply = (text: string) => {
-    sendMessage({ text })
+    const riskResult = interceptChatRisk(text)
+    if (riskResult.hasRisk) {
+      setRiskWarning(riskResult.warningMessage ?? null)
+    }
+    sendMessage({ text: riskResult.sanitizedText || text })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -570,6 +582,18 @@ export default function SplitDemandView({ session }: { session?: Session | null 
                     </div>
                   </div>
                 ))}
+
+                {/* Risk warning card */}
+                {riskWarning && (
+                  <div className="flex gap-3">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-red-950/30 text-red-400">
+                      <ShieldAlert className="size-3.5" />
+                    </div>
+                    <div className="flex-1 rounded-xl px-4 py-3 text-sm leading-relaxed bg-red-950/20 border border-red-900/50 text-red-300">
+                      <p className="whitespace-pre-wrap">{riskWarning}</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Published state */}
                 {isComplete && (
