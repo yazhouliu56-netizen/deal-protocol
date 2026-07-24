@@ -5,8 +5,6 @@ import { resolve } from 'path'
 
 const VERCELL_URL = 'https://deal-protocol-phi.vercel.app'
 const SUPABASE_URL = 'https://eixqnwaxcnwtxiizmdfs.supabase.co'
-const SUPABASE_MGMT_TOKEN = 'sbp_a0422f02b9f0e1f713b9193e900691e6bbd7e3bc'
-const SUPABASE_PROJECT_REF = 'eixqnwaxcnwtxiizmdfs'
 const REMOTE = 'https://github.com/yazhouliu56-netizen/deal-protocol.git'
 
 function env(key: string): string | undefined {
@@ -21,20 +19,6 @@ function env(key: string): string | undefined {
     if (m) return m[1].trim()
   } catch { /* ignore */ }
   return process.env[key]
-}
-
-async function supabaseMgmtSql(query: string): Promise<any[]> {
-  const token = env('SUPABASE_MANAGEMENT_TOKEN') || SUPABASE_MGMT_TOKEN
-  const res = await fetch(`https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query`, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Supabase query failed (${res.status}): ${text.slice(0, 150)}`)
-  }
-  return res.json()
 }
 
 function fmt(v: unknown): string {
@@ -106,45 +90,64 @@ async function checkSupabase() {
   console.log(`  Service Key: ${fmt(serviceKey?.substring(0, 20) + '...')}`)
   console.log(`  Anon Key:    ${fmt(anonKey?.substring(0, 20) + '...')}`)
 
-  // List all tables via Management API SQL
-  console.log('')
-  const EXPECTED_TABLES = [
-    'profiles', 'demands', 'contracts', 'payments', 'credit_records',
-    'provider_wallets', 'withdrawal_requests', 'order_disputes',
-    'notifications', 'order_reviews', 'team_requests', 'developer_profiles',
-    'protocols', 'category_configs', 'bandit_stats', 'evidence_log',
-    'admin_tasks', 'insurance_pool', 'llm_logs', 'users',
-    'orders', 'pricing_configs', 'guarantee_links', 'provider_categories',
-    'provider_qualifications', 'wallet_logs', 'contract_events', 'credit_events',
-    'satisfaction_batches', 'satisfaction_contracts', 'precedents',
+  if (!serviceKey) {
+    console.log('  \x1b[31m✘ SUPABASE_SERVICE_ROLE_KEY 缺失，跳过数据库测试\x1b[0m')
+    return
+  }
+
+  const supabase = createClient(SUPABASE_URL, serviceKey)
+
+  const KEY_TABLES: [string, string][] = [
+    ['profiles', 'profiles'],
+    ['demands', 'demands'],
+    ['contracts', 'contracts'],
+    ['payments', 'payments (原 transactions)'],
+    ['credit_records', 'credit_records (原 credit_scores)'],
+    ['provider_wallets', 'provider_wallets (原 wallets)'],
+    ['withdrawal_requests', 'withdrawal_requests (原 withdrawals)'],
+    ['order_disputes', 'order_disputes'],
+    ['notifications', 'notifications'],
+    ['order_reviews', 'order_reviews (原 reviews)'],
+    ['team_requests', 'team_requests (原 team_invitations)'],
+    ['developer_profiles', 'developer_profiles'],
+    ['protocols', 'protocols'],
+    ['category_configs', 'category_configs (原 categories)'],
+    ['bandit_stats', 'bandit_stats (原 ai_matching_logs)'],
+    ['evidence_log', 'evidence_log (原 evidence_chain)'],
+    ['admin_tasks', 'admin_tasks'],
+    ['insurance_pool', 'insurance_pool'],
+    ['llm_logs', 'llm_logs'],
+    ['users', 'users'],
+    ['orders', 'orders'],
+    ['pricing_configs', 'pricing_configs'],
+    ['guarantee_links', 'guarantee_links'],
+    ['provider_categories', 'provider_categories'],
+    ['provider_qualifications', 'provider_qualifications'],
+    ['wallet_logs', 'wallet_logs'],
+    ['contract_events', 'contract_events'],
+    ['credit_events', 'credit_events'],
+    ['satisfaction_batches', 'satisfaction_batches'],
+    ['satisfaction_contracts', 'satisfaction_contracts'],
+    ['precedents', 'precedents'],
   ]
 
-  try {
-    const rows: any[] = await supabaseMgmtSql(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"
-    )
-    const existingTables = new Set(rows.map((r: any) => r.table_name))
-    console.log(`  云端表总数: ${existingTables.size}`)
-
-    let allOk = true
-    for (const t of EXPECTED_TABLES) {
-      const ok = existingTables.has(t)
-      if (!ok) allOk = false
-      console.log(`  ${ok ? '\x1b[32m✔' : '\x1b[31m✘'} ${t}${ok ? '' : ' 缺失'}\x1b[0m`)
-    }
-
-    // Show any unexpected/missing expected tables
-    if (!allOk) {
-      console.log(`\n  实际所有 public 表:`)
-      const sorted = [...existingTables].sort()
-      for (const t of sorted) {
-        const mark = EXPECTED_TABLES.includes(t) ? '' : ' \x1b[33m(未预期)\x1b[0m'
-        console.log(`    ${t}${mark}`)
+  let okCount = 0
+  for (const [table, label] of KEY_TABLES) {
+    try {
+      const start = Date.now()
+      const { data, error } = await supabase.from(table).select('id').limit(1)
+      const elapsed = Date.now() - start
+      if (error) {
+        console.log(`  \x1b[31m✘ ${label} (${elapsed}ms): ${error.message}\x1b[0m`)
+      } else {
+        console.log(`  \x1b[32m✔ ${label} (${elapsed}ms)\x1b[0m`)
+        okCount++
       }
+    } catch (e: any) {
+      console.log(`  \x1b[31m✘ ${label}: ${e.message}\x1b[0m`)
     }
-  } catch (e: any) {
-    console.log(`  \x1b[31m✘ 无法查询 information_schema: ${e.message}\x1b[0m`)
   }
+  console.log(`\n  可读表: ${okCount}/${KEY_TABLES.length}`)
 
   // Edge function ping
   try {
@@ -232,7 +235,9 @@ async function main() {
   console.log('  巡检完成 — 建议优化项')
   console.log('═══════════════════════════════════════════════════════════')
   console.log(`
-  1. Vercel 环境变量同步:
+  1. PAYMENT_CHANNEL=alipay ✓  支付宝沙箱模式已配置为默认支付通道。
+
+  2. Vercel 环境变量同步:
      需手动在 Vercel Dashboard 添加以下 Key:
      · SUPABASE_SERVICE_ROLE_KEY  (已有 .env.local)
      · DEEPSEEK_API_KEY          (国内 AI 引擎首选)
@@ -241,14 +246,14 @@ async function main() {
      · CRON_SECRET               (定时任务鉴权)
      · PII_ENCRYPTION_KEY        (PII 加密)
 
-  2. 当前支付通道为 alipay，若切回 Stripe 需补充真实密钥。
+  3. 当前支付通道为 alipay（国内支付宝沙箱模式），若需切换回 Stripe 需补充真实密钥并修改 PAYMENT_CHANNEL。
 
-  3. Supabase RLS / 迁移状态:
+  4. Supabase RLS / 迁移状态:
      · 所有 28 个迁移文件已全部应用 ✓
      · 31 张业务表已就绪 (admin_tasks, insurance_pool, llm_logs, anti_fraud 等)
      · Edge Function 未部署 (预期行为，非 P0 依赖)
 
-  4. 建议设置 Vercel 自定义域名 (CNAME) 并更新 NEXT_PUBLIC_SITE_URL。
+  5. 建议设置 Vercel 自定义域名 (CNAME) 并更新 NEXT_PUBLIC_SITE_URL。
 `)
 }
 
