@@ -1,16 +1,6 @@
 import { streamText } from "ai"
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
+import { getAIModel } from "@/lib/ai-provider"
 import { auth } from "@/lib/auth"
-
-const gh = createOpenAICompatible({
-  name: "github",
-  baseURL: "https://models.inference.ai.azure.com",
-  headers: {
-    Authorization: `Bearer ${process.env.OPENCODE_GITHUB_TOKEN}`,
-  },
-})
-
-const model = gh.chatModel("gpt-4o-mini")
 
 export async function POST(request: Request) {
   let { messages, userContext } = await request.json()
@@ -69,7 +59,7 @@ ${userInfo}
 如果用户后续要求调整协议，请重新生成完整的 [PROTOCOL_JSON] 块。`
 
   const result = streamText({
-    model,
+    model: getAIModel(),
     messages: modelMessages,
     system: systemPrompt.trim(),
     temperature: 0.3,
