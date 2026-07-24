@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
-import { DEMAND_STATUSES } from "@/lib/demand/state";
 
+// P0-01: 统一代码路径 — 主力写入 protocols 表
 export const POST = withAuth(async (request: Request, user: any) => {
   try {
     const supabase = getServiceClient();
@@ -12,17 +12,16 @@ export const POST = withAuth(async (request: Request, user: any) => {
       return NextResponse.json({ error: "Invalid parameters signature." }, { status: 400 });
     }
 
-    const mockEmbedding = Array(1536).fill(0).map((_, i) => Math.cos(i * 0.03) / 10);
-
-    const { data: demand, error } = await supabase
-      .from("demands")
+    const { data: protocol, error } = await supabase
+      .from("protocols")
       .insert({
-        user_id: user.id,
-        title,
-        description,
-        budget,
-        status: DEMAND_STATUSES.PENDING,
-        embedding: mockEmbedding
+        demander_id: user.id,
+        category: "家政",
+        core_fields: { title, description },
+        category_fields: { budget_min: budget, budget_max: budget },
+        status: "pending_confirm",
+        risk_tier: "low",
+        response_mode: "grab_first",
       })
       .select()
       .single();
@@ -31,7 +30,7 @@ export const POST = withAuth(async (request: Request, user: any) => {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, demand });
+    return NextResponse.json({ success: true, demand: protocol });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
   }

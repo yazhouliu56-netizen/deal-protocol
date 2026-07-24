@@ -10,6 +10,7 @@ import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from '@/modules/m07-credit/credit-engine'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
 import { getPaymentManager } from '@/lib/payment'
+import { calculateTieredCommission } from '@/lib/contract/commission'
 import type { FundingMode, ServicePhase } from '@/lib/contracts'
 
 // ---- 资金托管（支持六种模式）----
@@ -57,7 +58,6 @@ export async function holdPayment(
 
   if (!protocol) return { success: false }
 
-  const feeRate = await getPlatformFeeRate(protocol.category as string)
   const depositRate = modeOptions?.depositRate ?? 0.3
   const commitmentFee = modeOptions?.commitmentFee ?? 10
   let holdAmount = amount
@@ -77,7 +77,8 @@ export async function holdPayment(
       break
   }
 
-  const platformFee = Math.round(holdAmount * feeRate * 100) / 100
+  const { commissionFee, tier } = calculateTieredCommission(holdAmount)
+  const platformFee = commissionFee
   const satisfactionHold = Math.round(holdAmount * 0.1 * 100) / 100
   const providerIncome = holdAmount - platformFee - satisfactionHold
 
@@ -103,6 +104,19 @@ export async function holdPayment(
   if (!paymentResult.success) {
     return { success: false }
   }
+
+  const insuranceAmount = Number((holdAmount * 0.01).toFixed(2))
+  await getSupabase()
+    .from('insurance_pool')
+    .insert({
+      protocol_id: protocolId,
+      contract_id: order.id,
+      amount: insuranceAmount,
+      type: 'provision',
+      sub_type: 'warranty',
+      description: `1% insurance provision for protocol ${protocolId}`,
+    })
+    .maybeSingle()
 
   await getSupabase()
     .from('protocols')
