@@ -282,6 +282,26 @@ export async function getCreditScore(userId: string, category?: string): Promise
   }
 }
 
+/**
+ * P1-01: 新人保护加权系数 (§5.5)
+ * 前 10 单渐进权重曲线: 1.3 - (completedCount * 0.03)
+ * 最少不低于 1.0
+ */
+export function getNewbornProtectionFactor(completedCount: number): number {
+  if (completedCount >= 10) return 1.0
+  const factor = 1.3 - completedCount * 0.03
+  return Math.max(1.0, factor)
+}
+
+/**
+ * P1-01: 周末 1.5 倍加成 (§5.5)
+ * 周六(6) 周日(0) 返回 1.5，其余返回 1.0
+ */
+export function getWeekendMultiplier(): number {
+  const day = new Date().getDay()
+  return day === 0 || day === 6 ? 1.5 : 1.0
+}
+
 export async function isColdStart(userId: string, category?: string): Promise<boolean> {
   const { data } = await getSupabase()
     .from('credit_records')

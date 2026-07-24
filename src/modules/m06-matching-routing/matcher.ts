@@ -1,7 +1,8 @@
 import { getSupabase } from '@/lib/supabase-client'
 import { matchNearby } from '@/modules/m05-geo-index/geo-service'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
-import { getCreditScore, isColdStart } from '@/modules/m07-credit/credit-engine'
+import { getCreditScore, isColdStart, getNewbornProtectionFactor, getWeekendMultiplier } from '@/modules/m07-credit/credit-engine'
+import { getCreditTierPrivileges } from '@/lib/credit-privileges'
 import type { CandidateProvider, ResponseMode } from '@/lib/contracts'
 
 const VALID_RESPONSE_MODES: ResponseMode[] = ['grab_first', 'interest_list', 'agency_dispatch']
@@ -13,8 +14,10 @@ export interface Ranker {
 export class StaticRanker implements Ranker {
   async rank(candidates: CandidateProvider[]): Promise<CandidateProvider[]> {
     return candidates.sort((a, b) => {
-      const scoreA = a.credit_score * 20 - a.distance_m / 100
-      const scoreB = b.credit_score * 20 - b.distance_m / 100
+      const tierA = getCreditTierPrivileges(a.credit_score)
+      const tierB = getCreditTierPrivileges(b.credit_score)
+      const scoreA = a.credit_score * 20 * tierA.matchingWeight - a.distance_m / 100
+      const scoreB = b.credit_score * 20 * tierB.matchingWeight - b.distance_m / 100
       return scoreB - scoreA
     })
   }
@@ -133,6 +136,9 @@ async function processCandidates(
     if (await isColdStart(geo.provider_id, config.category)) {
       cs = Math.round(cs * 0.5)
     }
+    const newbornFactor = getNewbornProtectionFactor(credit.baseTotalDeals)
+    const weekendMul = getWeekendMultiplier()
+    cs = Math.round(cs * newbornFactor * weekendMul * 100) / 100
 
     candidateRecords.push({
       provider_id: geo.provider_id,
@@ -151,6 +157,9 @@ async function processCandidates(
         if (await isColdStart(geo.provider_id, config.category)) {
           cs = Math.round(cs * 0.5)
         }
+        const newbornFactor = getNewbornProtectionFactor(credit.baseTotalDeals)
+        const weekendMul = getWeekendMultiplier()
+        cs = Math.round(cs * newbornFactor * weekendMul * 100) / 100
         candidateRecords.push({
           provider_id: geo.provider_id,
           distance_m: geo.distance_m,
@@ -244,5 +253,10 @@ async function logEmptyPool(protocolId: string, category: string): Promise<void>
     event_type: 'match_empty',
     payload: { category, reason: 'No candidates found after all escalation steps' },
   })
-  console.warn(`[M06] Empty candidate pool for protocol ${protocolId} (${category})`)
+  await getSupabase().from('admin_tasks').insert({
+    protocol_id: protocolId,
+    type: 'manual_assignment',
+    payload: { category, reason: 'Empty candidate pool after 20km expansion' },
+  })
+  console.warn(`[M06] Empty candidate pool for protocol ${protocolId} (${category}) — admin_task created`)
 }
