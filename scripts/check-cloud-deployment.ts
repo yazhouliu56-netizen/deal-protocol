@@ -1,0 +1,236 @@
+import { execSync } from 'child_process'
+import { createClient } from '@supabase/supabase-js'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+
+const VERCELL_URL = 'https://deal-protocol-lzb840amr-yazhouliu56-netizens-projects.vercel.app'
+const SUPABASE_URL = 'https://eixqnwaxcnwtxiizmdfs.supabase.co'
+const REMOTE = 'https://github.com/yazhouliu56-netizen/deal-protocol.git'
+
+function env(key: string): string | undefined {
+  try {
+    const local = readFileSync(resolve(__dirname, '..', '.env.local'), 'utf-8')
+    const m = local.match(new RegExp(`^${key}=(.+)$`, 'm'))
+    if (m) return m[1].trim()
+  } catch { /* ignore */ }
+  try {
+    const envFile = readFileSync(resolve(__dirname, '..', '.env'), 'utf-8')
+    const m = envFile.match(new RegExp(`^${key}=(.+)$`, 'm'))
+    if (m) return m[1].trim()
+  } catch { /* ignore */ }
+  return process.env[key]
+}
+
+function fmt(v: unknown): string {
+  if (v === undefined || v === null || v === '') return '\x1b[31m✗ MISSING\x1b[0m'
+  return '\x1b[32m✓\x1b[0m ' + String(v).substring(0, 80)
+}
+
+async function checkVercel() {
+  console.log('\n━━━ [1/4] VERCEL 部署巡检 ━━━\n')
+
+  const results: { name: string; ok: boolean; detail: string }[] = []
+
+  // 1.1 Root page
+  try {
+    const start = Date.now()
+    const res = await fetch(VERCELL_URL, { signal: AbortSignal.timeout(15000) })
+    const elapsed = Date.now() - start
+    const ok = res.status >= 200 && res.status < 400
+    results.push({ name: '首页可达', ok, detail: `HTTP ${res.status} (${elapsed}ms)` })
+    const headers = ['x-vercel-id', 'server', 'content-type']
+    for (const h of headers) {
+      const v = res.headers.get(h)
+      if (v) results.push({ name: `Header: ${h}`, ok: true, detail: v })
+    }
+  } catch (e: any) {
+    results.push({ name: '首页可达', ok: false, detail: e.message })
+  }
+
+  // 1.2 Health API
+  try {
+    const start = Date.now()
+    const res = await fetch(`${VERCELL_URL}/api/health`, { signal: AbortSignal.timeout(10000) })
+    const elapsed = Date.now() - start
+    const body = await res.json().catch(() => null)
+    results.push({
+      name: '/api/health',
+      ok: res.status === 200,
+      detail: `${res.status} (${elapsed}ms) → ${JSON.stringify(body)}`,
+    })
+  } catch (e: any) {
+    results.push({ name: '/api/health', ok: false, detail: e.message })
+  }
+
+  // 1.3 PWA resources
+  for (const path of ['/manifest.webmanifest', '/sitemap.xml', '/sw.js']) {
+    try {
+      const res = await fetch(`${VERCELL_URL}${path}`, { signal: AbortSignal.timeout(10000) })
+      results.push({
+        name: `静态资源 ${path}`,
+        ok: res.status >= 200 && res.status < 400,
+        detail: `HTTP ${res.status}`,
+      })
+    } catch (e: any) {
+      results.push({ name: `静态资源 ${path}`, ok: false, detail: e.message })
+    }
+  }
+
+  for (const r of results) {
+    console.log(`  ${r.ok ? '\x1b[32m✔\x1b[0m' : '\x1b[31m✘\x1b[0m'} ${r.name}: ${r.detail}`)
+  }
+}
+
+async function checkSupabase() {
+  console.log('\n━━━ [2/4] SUPABASE 数据库巡检 ━━━\n')
+
+  const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY')
+  const anonKey = env('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+
+  console.log(`  Service Key: ${fmt(serviceKey?.substring(0, 20) + '...')}`)
+  console.log(`  Anon Key:    ${fmt(anonKey?.substring(0, 20) + '...')}`)
+
+  if (!serviceKey) {
+    console.log('  \x1b[31m✘ SUPABASE_SERVICE_ROLE_KEY 缺失，跳过数据库测试\x1b[0m')
+    return
+  }
+
+  const supabase = createClient(SUPABASE_URL, serviceKey)
+
+  // 2.1 Heartbeat
+  try {
+    const start = Date.now()
+    const { error } = await supabase.from('profiles').select('id').limit(1)
+    const elapsed = Date.now() - start
+    if (error) {
+      console.log(`  \x1b[31m✘ profiles 表心跳查询失败 (${elapsed}ms): ${error.message}\x1b[0m`)
+    } else {
+      console.log(`  \x1b[32m✔ profiles 表心跳 OK (${elapsed}ms)\x1b[0m`)
+    }
+  } catch (e: any) {
+    console.log(`  \x1b[31m✘ profiles 表心跳异常: ${e.message}\x1b[0m`)
+  }
+
+  // 2.2 Key tables
+  for (const table of ['demands', 'contracts', 'profiles', 'transactions', 'credit_scores']) {
+    try {
+      const start = Date.now()
+      const { data, error } = await supabase.from(table).select('id').limit(3)
+      const elapsed = Date.now() - start
+      if (error) {
+        console.log(`  \x1b[31m✘ ${table} 查询失败 (${elapsed}ms): ${error.message}\x1b[0m`)
+      } else {
+        console.log(`  \x1b[32m✔ ${table} 表 ${(data ?? []).length} 行 (${elapsed}ms)\x1b[0m`)
+      }
+    } catch (e: any) {
+      console.log(`  \x1b[31m✘ ${table} 查询异常: ${e.message}\x1b[0m`)
+    }
+  }
+
+  // 2.3 Edge function ping
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/health`, { signal: AbortSignal.timeout(5000) })
+    console.log(`  ${res.ok ? '\x1b[32m✔' : '\x1b[31m✘'} Edge Function health: HTTP ${res.status}\x1b[0m`)
+  } catch (e: any) {
+    console.log(`  \x1b[33m⚠ Edge Function health 不可达 (未部署时为正常): ${e.message}\x1b[0m`)
+  }
+}
+
+async function checkStripe() {
+  console.log('\n━━━ [3/4] STRIPE 支付巡检 ━━━\n')
+
+  const secretKey = env('STRIPE_SECRET_KEY')
+  const webhookSecret = env('STRIPE_WEBHOOK_SECRET')
+  const channel = env('PAYMENT_CHANNEL') || 'alipay'
+
+  console.log(`  PAYMENT_CHANNEL:  ${fmt(channel)}`)
+  console.log(`  STRIPE_SECRET_KEY: ${fmt(secretKey?.substring(0, 15) + '...')}`)
+  console.log(`  WEBHOOK_SECRET:    ${fmt(webhookSecret?.substring(0, 12) + '...')}`)
+
+  if (!secretKey || secretKey === 'sk_test_placeholder') {
+    console.log('  \x1b[33m⚠ 跳过 Stripe SDK 调用（密钥为占位值）\x1b[0m')
+    return
+  }
+
+  try {
+    const Stripe = (await import('stripe')).default
+    const stripe = new Stripe(secretKey)
+    const balance = await stripe.balance.retrieve()
+    const avail = balance.available.map((b: any) => `${b.currency.toUpperCase()} ${(b.amount / 100).toFixed(2)}`).join(', ')
+    console.log(`  \x1b[32m✔ stripe.balance.retrieve() OK: ${avail}\x1b[0m`)
+
+    const endpoints = await stripe.webhookEndpoints.list({ limit: 10 })
+    if (endpoints.data.length === 0) {
+      console.log(`  \x1b[33m⚠ 无已配置的 Webhook Endpoint\x1b[0m`)
+    } else {
+      for (const ep of endpoints.data) {
+        const status = ep.status === 'enabled' ? '\x1b[32m✔ 已启用\x1b[0m' : '\x1b[31m✘ 已禁用\x1b[0m'
+        console.log(`  Webhook Endpoint: ${ep.url} — ${status}`)
+      }
+    }
+  } catch (e: any) {
+    console.log(`  \x1b[31m✘ Stripe 认证失败: ${e.message}\x1b[0m`)
+  }
+}
+
+function checkGitHub() {
+  console.log('\n━━━ [4/4] GITHUB 同步巡检 ━━━\n')
+
+  try {
+    const remotes = execSync('git remote -v', { encoding: 'utf-8' }).trim()
+    console.log(`  Git Remote:\n${remotes.split('\n').map(l => `    ${l}`).join('\n')}`)
+  } catch {
+    console.log('  \x1b[31m✘ 无法读取 git remote\x1b[0m')
+  }
+
+  const ahead = execSync('git rev-list --count origin/master..master 2>nul', { encoding: 'utf-8' }).trim()
+  const behind = execSync('git rev-list --count master..origin/master 2>nul', { encoding: 'utf-8' }).trim()
+  if (ahead === '0' && behind === '0') {
+    console.log(`  \x1b[32m✔ 本地与 origin/master 完全同步\x1b[0m`)
+  } else {
+    console.log(`  \x1b[33m⚠ 本地超前 ${ahead} commit(s)，落后 ${behind} commit(s)\x1b[0m`)
+  }
+
+  console.log(`\n  最近 5 个 Commit:`)
+  const log = execSync('git log --oneline -5', { encoding: 'utf-8' }).trim()
+  for (const line of log.split('\n')) {
+    console.log(`    ${line}`)
+  }
+}
+
+async function main() {
+  console.log('═══════════════════════════════════════════════════════════')
+  console.log('  云端四维部署巡检 (Deal Protocol v1.0)')
+  console.log(`  时间: ${new Date().toISOString()}`)
+  console.log('═══════════════════════════════════════════════════════════')
+
+  await checkVercel()
+  await checkSupabase()
+  await checkStripe()
+  checkGitHub()
+
+  console.log('\n═══════════════════════════════════════════════════════════')
+  console.log('  巡检完成 — 建议优化项')
+  console.log('═══════════════════════════════════════════════════════════')
+  console.log(`
+  1. Vercel 环境变量同步:
+     需手动在 Vercel Dashboard 添加以下 Key:
+     · SUPABASE_SERVICE_ROLE_KEY  (已有 .env.local)
+     · DEEPSEEK_API_KEY          (国内 AI 引擎首选)
+     · STRIPE_SECRET_KEY         (替换 sk_test_placeholder 为真实 Key)
+     · STRIPE_WEBHOOK_SECRET     (替换 whsec_placeholder 为真实 Key)
+     · CRON_SECRET               (定时任务鉴权)
+     · PII_ENCRYPTION_KEY        (PII 加密)
+
+  2. 当前支付通道为 alipay，若切回 Stripe 需补充真实密钥。
+
+  3. Supabase 需确认以下 RLS / 迁移已在云端应用:
+     · 20260724_admin_tasks.sql
+     · 20260724_anti_fraud.sql
+     · profiles / demands / contracts RLS policies
+
+  4. 建议设置 Vercel 自定义域名 (CNAME) 并更新 NEXT_PUBLIC_SITE_URL。
+`)
+}
+
+main().catch(console.error)
