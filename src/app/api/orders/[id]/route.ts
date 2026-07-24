@@ -14,6 +14,7 @@ import {
 import { getEngine } from "@/lib/protocol/engine";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
+import { trackWorkflowStageEvidence } from "@/lib/workflow-evidence-tracker";
 
 async function insertNotification({
   userId, title, body, type,
@@ -207,7 +208,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { supabase } = session;
   const body = await request.json();
-  const { action, reason, metadata, evidence } = body;
+  const { action, reason, metadata, evidence, latitude, longitude, photoUrl } = body;
 
   const { data: contract, error: contractError } = await supabase
     .from('contracts')
@@ -496,6 +497,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (updateError) {
     console.warn("Failed to update contract:", updateError.message);
     return NextResponse.json({ error: "更新订单失败" }, { status: 500 });
+  }
+
+  const STAGE_NAMES = ['NOT_ACCEPTED', 'ACCEPTED', 'DEPARTED', 'ARRIVED', 'IN_PROGRESS', 'DONE'] as const;
+  if (nextStage !== null && nextStage !== contract.service_stage) {
+    const stageName = STAGE_NAMES[nextStage];
+    if (stageName) {
+      trackWorkflowStageEvidence({
+        contractId: id,
+        userId: session.user.id,
+        userIp: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || undefined,
+        stage: stageName as any,
+        latitude,
+        longitude,
+        photoUrl,
+      }).catch((e) => console.warn('Stage evidence tracking failed:', e));
+    }
   }
 
   // Re-fetch the updated contract
