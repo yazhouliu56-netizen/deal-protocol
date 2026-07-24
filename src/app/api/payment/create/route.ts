@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
-import { getPaymentManager, createPayment } from "@/lib/payment";
+import { alipayService } from "@/lib/alipay-service";
 import Stripe from "stripe";
 
 function getStripeClient(): Stripe {
@@ -13,7 +13,7 @@ function getStripeClient(): Stripe {
 export const POST = withAuth(async (req, user) => {
   const supabase = await getRouteClient();
   const body = await req.json();
-  const { contractId: rawContractId, orderId, channel, demandId, amount } = body as {
+  const { contractId: rawContractId, orderId, channel: rawChannel, demandId, amount } = body as {
     contractId?: string;
     orderId?: string;
     channel?: string;
@@ -22,11 +22,13 @@ export const POST = withAuth(async (req, user) => {
   };
 
   const contractId = rawContractId ?? orderId;
+  const channel = rawChannel || process.env.PAYMENT_CHANNEL || 'mock';
+
+  if (!contractId) {
+    return NextResponse.json({ error: "缺少 contractId 参数" }, { status: 400 });
+  }
 
   if (channel === "stripe") {
-    if (!contractId) {
-      return NextResponse.json({ error: "缺少 contractId 参数" }, { status: 400 });
-    }
     if (!amount || amount <= 0) {
       return NextResponse.json({ error: "amount 必须为正数" }, { status: 400 });
     }
@@ -63,23 +65,17 @@ export const POST = withAuth(async (req, user) => {
     });
 
     return NextResponse.json({
+      success: true,
+      channel: "stripe",
       clientSecret: paymentIntent.client_secret,
       contractId,
     });
   }
 
-  if (!orderId || !channel) {
-    return NextResponse.json({ error: "缺少必要参数 orderId 或 channel" }, { status: 400 });
-  }
-
-  if (channel !== "alipay" && channel !== "wechat") {
-    return NextResponse.json({ error: "不支持的支付方式" }, { status: 400 });
-  }
-
   const { data: contract, error: contractError } = await supabase
     .from("contracts")
     .select("*")
-    .eq("id", orderId)
+    .eq("id", contractId)
     .single();
 
   if (contractError || !contract) {
@@ -94,73 +90,33 @@ export const POST = withAuth(async (req, user) => {
     return NextResponse.json({ error: "当前订单状态不可支付" }, { status: 400 });
   }
 
-  const notifyUrl = process.env.PAYMENT_NOTIFY_URL
-    ? `${process.env.PAYMENT_NOTIFY_URL}/api/payment/notify`
-    : `${req.headers.get("origin") || ""}/api/payment/notify`;
-
-  const manager = getPaymentManager();
-
-  if (manager.isConfigured(channel)) {
-    const result = await manager.createPayment({
-      orderId: contract.id,
+  if (channel === "alipay") {
+    const payUrl = alipayService.generatePaymentUrl({
+      outTradeNo: contract.id,
       amount: contract.amount,
-      description: `订单支付: ${contract.id.slice(0, 8)}...`,
-      channel,
-      notifyUrl,
-      payerId: user.id,
+      subject: `订单支付: ${contract.id.slice(0, 8)}...`,
     });
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "支付创建失败" }, { status: 500 });
-    }
 
     return NextResponse.json({
-      orderId: result.orderId,
-      payUrl: result.payUrl || null,
-      qrCode: result.qrCode || null,
-      channel,
+      success: true,
+      channel: "alipay",
+      payUrl,
+      contractId: contract.id,
     });
   }
 
-  const paymentResult = await createPayment({
-    amount: contract.amount,
-    description: `订单支付: ${contract.id}`,
-    contractId: contract.id,
-    payerId: user.id,
-    provider: channel === "wechat" ? "alipay" : "stripe",
-  });
+  if (channel === "mock") {
+    await supabase
+      .from("contracts")
+      .update({ fund_status: "HELD" })
+      .eq("id", contract.id);
 
-  if (!paymentResult.success) {
-    return NextResponse.json({ error: paymentResult.error || "支付失败" }, { status: 400 });
+    return NextResponse.json({
+      success: true,
+      channel: "mock",
+      contractId: contract.id,
+    });
   }
 
-  const { error: updateError } = await supabase
-    .from("payments")
-    .update({
-      status: "SUCCEEDED",
-      provider: paymentResult.provider,
-      provider_payment_id: paymentResult.providerPaymentId,
-    })
-    .eq("contract_id", contract.id);
-
-  if (updateError) {
-    console.warn("Failed to update payment record:", updateError);
-  }
-
-  const { error: contractUpdateError } = await supabase
-    .from("contracts")
-    .update({ fund_status: "HELD" })
-    .eq("id", contract.id);
-
-  if (contractUpdateError) {
-    return NextResponse.json({ error: "更新订单状态失败" }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    orderId: contract.id,
-    payUrl: null,
-    qrCode: null,
-    channel,
-    mock: true,
-  });
+  return NextResponse.json({ error: "不支持的支付方式" }, { status: 400 });
 });
