@@ -120,6 +120,12 @@ async function processCandidates(
   const creditResults = await batchLoadCreditScores(providerIds)
   const creditMap = new Map(creditResults.map((c) => [c.userId, c]))
 
+  const { data: walletData } = await getSupabase()
+    .from('provider_wallets')
+    .select('provider_id, deposit_amount, is_staked')
+    .in('provider_id', providerIds)
+  const depositMap = new Map((walletData ?? []).map((w) => [w.provider_id, { depositAmount: Number(w.deposit_amount ?? 0), isStaked: !!w.is_staked }]))
+
   const candidateRecords: CandidateProvider[] = []
 
   for (const geo of geoResults) {
@@ -139,6 +145,10 @@ async function processCandidates(
     const newbornFactor = getNewbornProtectionFactor(credit.baseTotalDeals)
     const weekendMul = getWeekendMultiplier()
     cs = Math.round(cs * newbornFactor * weekendMul * 100) / 100
+
+    const dep = depositMap.get(geo.provider_id)
+    const depositMultiplier = dep?.isStaked && dep.depositAmount >= 500 ? 1.2 : 1.0
+    cs = Math.round(cs * depositMultiplier * 100) / 100
 
     candidateRecords.push({
       provider_id: geo.provider_id,
@@ -160,6 +170,9 @@ async function processCandidates(
         const newbornFactor = getNewbornProtectionFactor(credit.baseTotalDeals)
         const weekendMul = getWeekendMultiplier()
         cs = Math.round(cs * newbornFactor * weekendMul * 100) / 100
+        const dep = depositMap.get(geo.provider_id)
+        const depositMultiplier = dep?.isStaked && dep.depositAmount >= 500 ? 1.2 : 1.0
+        cs = Math.round(cs * depositMultiplier * 100) / 100
         candidateRecords.push({
           provider_id: geo.provider_id,
           distance_m: geo.distance_m,
@@ -180,15 +193,29 @@ async function processCandidates(
   const ranked = await rankerToUse.rank(candidateRecords)
   const topCandidates = ranked.slice(0, 10)
 
+  const { data: tipProtocol } = await getSupabase()
+    .from('protocols')
+    .select('core_fields')
+    .eq('id', protocolId)
+    .single()
+  const hasTip = (tipProtocol?.core_fields as Record<string, unknown> ?? {}).has_tip === true
+  const tipMultiplier = hasTip ? 1.5 : 1.0
+
+  const boostedCandidates = topCandidates.map((c) => ({
+    ...c,
+    credit_score: Math.round(c.credit_score * tipMultiplier * 100) / 100,
+  }))
+  boostedCandidates.sort((a, b) => b.credit_score - a.credit_score)
+
   await getSupabase()
     .from('protocols')
     .update({ status: 'matching' })
     .eq('id', protocolId)
 
   return {
-    candidateIds: topCandidates.map((c) => c.provider_id),
+    candidateIds: boostedCandidates.map((c) => c.provider_id),
     responseMode,
-    matchedCount: topCandidates.length,
+    matchedCount: boostedCandidates.length,
   }
 }
 

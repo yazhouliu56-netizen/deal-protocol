@@ -5,9 +5,17 @@ import { getServiceClient } from "@/lib/supabase-client"
 export const POST = withAuth(async (req, user) => {
   const svc = getServiceClient()
 
+  const anonymousName = `\u5df2\u6ce8\u9500\u7528\u6237 #${user.id.slice(0, 8)}`
+
   const { error: profileError } = await svc
     .from('profiles')
-    .update({ deleted_at: new Date().toISOString() })
+    .update({
+      name: anonymousName,
+      phone: '00000000000',
+      email: null,
+      identity_verified: false,
+      deleted_at: new Date().toISOString(),
+    })
     .eq('id', user.id)
     .is('deleted_at', null)
 
@@ -17,7 +25,11 @@ export const POST = withAuth(async (req, user) => {
 
   const { error: userError } = await svc
     .from('users')
-    .update({ deleted_at: new Date().toISOString() })
+    .update({
+      nickname: anonymousName,
+      phone: '00000000000',
+      deleted_at: new Date().toISOString(),
+    })
     .eq('id', user.id)
 
   if (userError) {
@@ -30,5 +42,8 @@ export const POST = withAuth(async (req, user) => {
     console.warn('[Profile Delete] Auth ban failed:', err)
   }
 
-  return NextResponse.json({ success: true, message: 'Account deleted successfully' })
+  return NextResponse.json({
+    success: true,
+    message: 'Account deleted. Financial records retained per regulatory requirements.',
+  })
 })

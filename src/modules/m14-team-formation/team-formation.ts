@@ -189,6 +189,74 @@ export async function fillTeamSlot(
   return { success: true }
 }
 
+export async function releaseSubTaskPayout(input: {
+  contractId: string
+  memberId: string
+  subTaskAmount: number
+  subTaskTitle: string
+}): Promise<{ success: boolean; settledAmount: number }> {
+  const { data: order } = await getSupabase()
+    .from('orders')
+    .select('id, amount, escrow_status')
+    .eq('protocol_id', input.contractId)
+    .single()
+
+  if (!order) return { success: false, settledAmount: 0 }
+  if (order.escrow_status !== 'held' && order.escrow_status !== 'released') {
+    return { success: false, settledAmount: 0 }
+  }
+
+  const platformFee = Math.round(input.subTaskAmount * 0.05 * 100) / 100
+  const netAmount = input.subTaskAmount - platformFee
+
+  await performWalletTransfer(input.memberId, netAmount, `Sub-task payout: ${input.subTaskTitle} (contract ${input.contractId})`)
+
+  await getSupabase()
+    .from('team_requests')
+    .update({ sub_task_status: 'SETTLED', settled_amount: netAmount })
+    .eq('parent_protocol_id', input.contractId)
+    .eq('member_id', input.memberId)
+
+  await appendEvidence({
+    protocolId: input.contractId,
+    eventType: 'subtask_settled',
+    payload: {
+      member_id: input.memberId,
+      subtask_title: input.subTaskTitle,
+      gross_amount: input.subTaskAmount,
+      platform_fee: platformFee,
+      net_amount: netAmount,
+    },
+  })
+
+  return { success: true, settledAmount: netAmount }
+}
+
+async function performWalletTransfer(userId: string, amount: number, description: string): Promise<void> {
+  const { data: wallet } = await getSupabase()
+    .from('provider_wallets')
+    .select('balance')
+    .eq('provider_id', userId)
+    .single()
+
+  if (wallet) {
+    await getSupabase()
+      .from('provider_wallets')
+      .update({ balance: Math.round((Number(wallet.balance) + amount) * 100) / 100 })
+      .eq('provider_id', userId)
+  }
+
+  await getSupabase()
+    .from('wallet_logs')
+    .insert({
+      provider_id: userId,
+      amount,
+      type: 'payout',
+      order_id: null,
+      description,
+    })
+}
+
 export async function getTeamInfo(protocolId: string): Promise<TeamInfo> {
   const { data: protocol } = await getSupabase()
     .from('protocols')
