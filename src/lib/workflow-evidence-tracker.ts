@@ -9,6 +9,7 @@ export interface WorkflowStageInput {
   latitude?: number;
   longitude?: number;
   photoUrl?: string;
+  photoHash?: string;
   clientDeviceSignature?: string;
 }
 
@@ -24,7 +25,7 @@ export async function trackWorkflowStageEvidence(input: WorkflowStageInput) {
     userId: input.userId,
     userIp: input.userIp || '127.0.0.1',
     coords: input.latitude ? [input.longitude, input.latitude] : null,
-    photoHash: input.photoUrl ? crypto.createHash('sha256').update(input.photoUrl).digest('hex') : null,
+    photoHash: input.photoHash ?? (input.photoUrl ? crypto.createHash('sha256').update(input.photoUrl).digest('hex') : null),
     timestamp: new Date().toISOString(),
   });
 

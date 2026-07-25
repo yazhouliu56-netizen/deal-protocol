@@ -152,3 +152,98 @@ export function verifyMaterialQuote(
     suggestedPrice: Math.round(marketRate * 100) / 100,
   }
 }
+
+// ─── Multi-Modal Dynamic Pricing (Persona A / Persona B) ────────────────────
+
+export interface MultiModalPricingInput {
+  categorySlug: string
+  budget?: number
+  durationHours?: number
+  description?: string
+  voiceText?: string
+  mediaUrls?: string[]
+  location?: [number, number]
+}
+
+export interface PricingEstimationResult {
+  categorySlug: string
+  userBudget: number
+  isUserBudgetProvided: boolean
+  recommendedMinPrice: number
+  recommendedMaxPrice: number
+  suggestedOptimalPrice: number
+  complexityFactor: number
+  estimatedMatchProbability: number
+  marketAdvice: string
+  priceStatus: 'UNDERPRICED' | 'FAIR' | 'PREMIUM' | 'AUTO_RECOMMENDED'
+}
+
+export async function estimateDynamicPricingAndMatchRate(
+  input: MultiModalPricingInput,
+): Promise<PricingEstimationResult> {
+  const hasUserBudget = typeof input.budget === 'number' && input.budget > 0
+  const userBudget = hasUserBudget ? (input.budget as number) : 0
+  const hours = input.durationHours || 2
+  const mediaCount = input.mediaUrls?.length || 0
+
+  let complexity = 1.0
+  const combinedText = `${input.description || ''} ${input.voiceText || ''}`
+
+  if (
+    combinedText.includes('严重') ||
+    combinedText.includes('深层') ||
+    combinedText.includes('急修') ||
+    combinedText.includes('大面积')
+  ) {
+    complexity += 0.3
+  }
+  if (mediaCount > 0) {
+    complexity += 0.1 * Math.min(mediaCount, 3)
+  }
+
+  const baseHourlyRate = 80
+  const optimalPrice = Number((hours * baseHourlyRate * complexity).toFixed(2))
+  const minPrice = Number((optimalPrice * 0.85).toFixed(2))
+  const maxPrice = Number((optimalPrice * 1.25).toFixed(2))
+
+  let probability = 85
+  let status: 'UNDERPRICED' | 'FAIR' | 'PREMIUM' | 'AUTO_RECOMMENDED' = 'FAIR'
+  let advice = ''
+
+  if (!hasUserBudget) {
+    status = 'AUTO_RECOMMENDED'
+    probability = 90
+    advice =
+      `🤖 AI 已根据您提供的${mediaCount > 0 ? `${mediaCount}张现场照片与` : ''}需求细节完成综合评估（复杂度系数: ${complexity.toFixed(2)}）。推荐初始出价 ¥${optimalPrice}，预计可获得极佳的服务商响应率！`
+  } else if (userBudget < minPrice) {
+    status = 'UNDERPRICED'
+    probability = Math.max(15, Math.round((userBudget / minPrice) * 50))
+    advice =
+      `当前预算 ¥${userBudget} 低于评估的市场合理区间 (¥${minPrice}~¥${maxPrice})，接单率预计为 ${probability}%，建议适当提高至 ¥${optimalPrice}。`
+  } else if (userBudget > maxPrice) {
+    status = 'PREMIUM'
+    probability = 98
+    advice =
+      `当前预算 ¥${userBudget} 高于市场平均价，属于优质高出价，预计 3 分钟内触发优质服务商优先抢单！`
+  } else {
+    status = 'FAIR'
+    probability = Math.round(
+      75 + ((userBudget - minPrice) / (maxPrice - minPrice)) * 20,
+    )
+    advice =
+      `当前预算 ¥${userBudget} 处于非常合理的市场成交区间，预计派单成功率达 ${probability}%！`
+  }
+
+  return {
+    categorySlug: input.categorySlug || 'general',
+    userBudget,
+    isUserBudgetProvided: hasUserBudget,
+    recommendedMinPrice: minPrice,
+    recommendedMaxPrice: maxPrice,
+    suggestedOptimalPrice: optimalPrice,
+    complexityFactor: complexity,
+    estimatedMatchProbability: probability,
+    marketAdvice: advice,
+    priceStatus: status,
+  }
+}

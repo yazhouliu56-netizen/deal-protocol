@@ -15,6 +15,7 @@ import { getEngine } from "@/lib/protocol/engine";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
 import { trackWorkflowStageEvidence } from "@/lib/workflow-evidence-tracker";
+import { maskPhone } from "@/lib/privacy-guard";
 
 async function insertNotification({
   userId, title, body, type,
@@ -181,10 +182,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       ...contract,
       demand: demandRes.data ?? null,
       provider: providerRes.data
-        ? { id: providerRes.data.id, name: providerRes.data.name, phone: providerRes.data.phone, creditScore: providerRes.data.credit_score }
+        ? { id: providerRes.data.id, name: providerRes.data.name, phone: maskPhone(providerRes.data.phone), creditScore: providerRes.data.credit_score }
         : null,
       customer: customerRes.data
-        ? { id: customerRes.data.id, name: customerRes.data.name, phone: customerRes.data.phone }
+        ? { id: customerRes.data.id, name: customerRes.data.name, phone: maskPhone(customerRes.data.phone) }
         : null,
       payments: paymentsRes.data ?? [],
       events: eventsRes.data ?? [],
@@ -208,7 +209,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { supabase } = session;
   const body = await request.json();
-  const { action, reason, metadata, evidence, latitude, longitude, photoUrl } = body;
+  const { action, reason, metadata, evidence, latitude, longitude, photoUrl, photoHash } = body;
 
   const { data: contract, error: contractError } = await supabase
     .from('contracts')
@@ -511,6 +512,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         latitude,
         longitude,
         photoUrl,
+        photoHash,
       }).catch((e) => console.warn('Stage evidence tracking failed:', e));
     }
   }

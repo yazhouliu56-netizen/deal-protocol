@@ -8,4 +8,9 @@ export async function register() {
     const { startAutoTransitions } = await import("./lib/auto-transitions")
     startAutoTransitions()
   } catch { /* non-blocking */ }
+
+  try {
+    const { startSLAEnforcer } = await import("./lib/sla-enforcer")
+    startSLAEnforcer()
+  } catch { /* non-blocking */ }
 }

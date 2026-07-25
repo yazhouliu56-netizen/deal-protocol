@@ -52,10 +52,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50 px-4 py-10 dark:bg-zinc-950">
       <div className="mx-auto max-w-5xl">
         <div className="flex items-center justify-center">
-          <Card className="w-full max-w-sm rounded-2xl border-slate-200/60 shadow-sm dark:border-zinc-800/60">
+          <Card className="w-full max-w-sm rounded-2xl border-zinc-200/60 shadow-sm dark:border-zinc-800/60">
         <CardHeader className="text-center">
           <Link
             href="/"
@@ -63,8 +63,8 @@ export default function RegisterPage() {
           >
             信
           </Link>
-          <CardTitle className="text-xl text-slate-900 dark:text-zinc-100">注册</CardTitle>
-          <CardDescription className="text-slate-500 dark:text-zinc-500">
+          <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">注册</CardTitle>
+          <CardDescription className="text-zinc-500 dark:text-zinc-500">
             创建您的信用平台账户
           </CardDescription>
         </CardHeader>
@@ -78,7 +78,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label
                 htmlFor="name"
-                className="text-sm font-medium text-slate-500 dark:text-zinc-500"
+                className="text-sm font-medium text-zinc-500 dark:text-zinc-500"
               >
                 姓名
               </label>
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-slate-500 dark:text-zinc-500"
+                className="text-sm font-medium text-zinc-500 dark:text-zinc-500"
               >
                 邮箱
               </label>
@@ -111,7 +111,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-slate-500 dark:text-zinc-500"
+                className="text-sm font-medium text-zinc-500 dark:text-zinc-500"
               >
                 密码
               </label>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <label
                 htmlFor="phone"
-                className="text-sm font-medium text-slate-500 dark:text-zinc-500"
+                className="text-sm font-medium text-zinc-500 dark:text-zinc-500"
               >
                 手机号（选填）
               </label>
@@ -142,7 +142,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-500 dark:text-zinc-500">
+              <label className="text-sm font-medium text-zinc-500 dark:text-zinc-500">
                 注册身份（可多选）
               </label>
               <div className="flex gap-3">
@@ -190,6 +190,28 @@ export default function RegisterPage() {
                   />
                   服务商
                 </label>
+                <label
+                  className={`flex flex-1 cursor-pointer items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors ${
+                    selectedRoles.includes("TEAM_LEADER")
+                      ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    value="TEAM_LEADER"
+                    checked={selectedRoles.includes("TEAM_LEADER")}
+                    onChange={() => {
+                      setSelectedRoles((prev) =>
+                        prev.includes("TEAM_LEADER")
+                          ? prev.filter((r) => r !== "TEAM_LEADER")
+                          : [...prev, "TEAM_LEADER"]
+                      );
+                    }}
+                    className="sr-only"
+                  />
+                  👥 团队长
+                </label>
               </div>
             </div>
           </CardContent>
@@ -201,7 +223,7 @@ export default function RegisterPage() {
             >
               {loading ? "注册中..." : "注册"}
             </Button>
-            <p className="text-center text-sm text-slate-500 dark:text-zinc-500">
+            <p className="text-center text-sm text-zinc-500 dark:text-zinc-500">
               已有账户？{" "}
               <Link
                 href="/login"

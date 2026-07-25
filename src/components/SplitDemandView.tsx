@@ -58,7 +58,11 @@ const DEMO_LOGS: Record<Exclude<DemoState, "idle">, string[]> = {
   ],
 }
 
-export default function SplitDemandView({ session }: { session?: Session | null }) {
+
+
+export default function SplitDemandView({ session, highlightedField }: { session?: Session | null; highlightedField?: string | null }) {
+  const hf = (field: string) =>
+    highlightedField === field && "ring-2 ring-emerald-500 bg-emerald-500/10 animate-pulse"
   const router = useRouter()
   const scrollRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -264,28 +268,28 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
         {extractedProtocol ? (
           <div className="space-y-4">
-            <div className="p-4 bg-blue-950/30 rounded-lg border border-blue-900/50">
+            <div className={cn("p-4 bg-blue-950/30 rounded-lg border border-blue-900/50 transition-all duration-500", hf('category'))}>
               <div className="text-sm text-blue-400 font-medium">意向品类</div>
               <div className="text-xl font-bold text-blue-300">{extractedProtocol.category}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('pricing_type'))}>
                 <div className="text-xs text-zinc-400">服务方式</div>
                 <div className="font-semibold text-zinc-100">{extractedProtocol.pricing_type || '一口价'}</div>
               </div>
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('budget'))}>
                 <div className="text-xs text-zinc-400">预估预算</div>
                 <div className="font-semibold text-zinc-100">¥ {extractedProtocol.budget}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('service_time'))}>
                 <div className="text-xs text-zinc-400">服务时间</div>
                 <div className="font-semibold text-zinc-100">{extractedProtocol.service_time}</div>
               </div>
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('address_hint'))}>
                 <div className="text-xs text-zinc-400">地点线索</div>
                 <div className="font-semibold text-zinc-100">{extractedProtocol.address_hint}</div>
               </div>
@@ -293,7 +297,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
             {/* Massage-specific: duration_minutes */}
             {extractedProtocol.duration_minutes && (
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('duration_minutes'))}>
                 <div className="text-xs text-zinc-400">服务时长</div>
                 <div className="font-semibold text-zinc-100">{extractedProtocol.duration_minutes} 分钟</div>
               </div>
@@ -301,7 +305,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
             {/* Massage-specific: therapist preference */}
             {extractedProtocol.therapist_preference && (
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('therapist_preference'))}>
                 <div className="text-xs text-zinc-400">技师偏好</div>
                 <div className="font-semibold text-zinc-100">{extractedProtocol.therapist_preference}</div>
               </div>
@@ -309,7 +313,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
             {/* Massage-specific: health declaration */}
             {extractedProtocol.health_declaration && extractedProtocol.health_declaration.length > 0 && (
-              <div className="p-3 bg-red-950/30 rounded border border-red-900/50">
+              <div className={cn("p-3 bg-red-950/30 rounded border border-red-900/50 transition-all duration-500", hf('health_declaration'))}>
                 <div className="text-xs text-red-400 font-medium">健康与风险自述声明</div>
                 <ul className="list-disc list-inside text-sm text-red-300 mt-1">
                   {extractedProtocol.health_declaration.map((h: string, i: number) => (
@@ -321,7 +325,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
 
             {/* Special requirements */}
             {extractedProtocol.special_requirements && extractedProtocol.special_requirements.length > 0 && (
-              <div className="p-3 bg-zinc-800/50 rounded border border-zinc-700">
+              <div className={cn("p-3 bg-zinc-800/50 rounded border border-zinc-700 transition-all duration-500", hf('special_requirements'))}>
                 <div className="text-xs text-zinc-400">个性化要求</div>
                 <ul className="list-disc list-inside text-sm text-zinc-300 mt-1">
                   {extractedProtocol.special_requirements.map((r: string, i: number) => (
@@ -332,7 +336,7 @@ export default function SplitDemandView({ session }: { session?: Session | null 
             )}
 
             {/* Core compliance clauses */}
-            <div className="mt-6 border-t border-zinc-700 pt-4">
+            <div className={cn("mt-6 border-t border-zinc-700 pt-4 transition-all duration-500", hf('compliance_clauses'))}>
               <div className="text-xs text-zinc-500 font-bold uppercase mb-2">平台合规与免责条款</div>
               <div className="space-y-2">
                 {extractedProtocol.compliance_clauses?.map((clause: string, index: number) => (

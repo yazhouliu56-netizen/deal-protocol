@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getServiceClient } from "@/lib/supabase-client"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
+import { maskPhone } from "@/lib/privacy-guard"
 
 export const GET = withAuth(async (req, user) => {
   const svc = getServiceClient()
@@ -40,7 +41,7 @@ export const GET = withAuth(async (req, user) => {
     risk_tier: p.risk_tier,
     final_price: p.final_price,
     created_at: p.created_at,
-    user: userMap.get(p.demander_id) ? { name: userMap.get(p.demander_id)!.name, phone: userMap.get(p.demander_id)!.phone } : null,
+    user: userMap.get(p.demander_id) ? { name: userMap.get(p.demander_id)!.name, phone: maskPhone(userMap.get(p.demander_id)!.phone) } : null,
   }))
 
   const pendingQualifications = (qualsRes.data ?? []).map(q => ({
@@ -50,7 +51,7 @@ export const GET = withAuth(async (req, user) => {
     category: q.category,
     qualification_type: q.qualification_type,
     created_at: q.created_at,
-    user: userMap.get(q.user_id) ? { name: userMap.get(q.user_id)!.name, phone: userMap.get(q.user_id)!.phone } : null,
+    user: userMap.get(q.user_id) ? { name: userMap.get(q.user_id)!.name, phone: maskPhone(userMap.get(q.user_id)!.phone) } : null,
   }))
 
   const allItems = [...pendingQualifications, ...pendingProtocols].sort(

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
+import { maskPhone } from "@/lib/privacy-guard";
 
 export const GET = withAuth(async (req, user) => {
   const svc = await getRouteClient()
@@ -25,9 +26,11 @@ export const GET = withAuth(async (req, user) => {
     if (insertError || !newUser) {
       return NextResponse.json({ error: insertError?.message || 'Failed to create profile' }, { status: 500 })
     }
+    if (newUser.phone) newUser.phone = maskPhone(newUser.phone)
     return NextResponse.json({ user: newUser })
   }
 
+  if (profile.phone) profile.phone = maskPhone(profile.phone)
   return NextResponse.json({ user: profile });
 });
 
