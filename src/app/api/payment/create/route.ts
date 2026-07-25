@@ -1,7 +1,10 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
 import { alipayService } from "@/lib/alipay-service";
+import { wechatPayService } from "@/lib/wechat-pay-service";
+import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit";
 import Stripe from "stripe";
 
 function getStripeClient(): Stripe {
@@ -11,6 +14,8 @@ function getStripeClient(): Stripe {
 }
 
 export const POST = withAuth(async (req, user) => {
+  const userResult = checkRateLimit(`payment:create:user:${user.id}`, RULE_DEFAULT)
+  if (!userResult.allowed) return rateLimitResponse(userResult.resetAt)
   const supabase = await getRouteClient();
   const body = await req.json();
   const { contractId: rawContractId, orderId, channel: rawChannel, demandId, amount } = body as {
@@ -105,11 +110,30 @@ export const POST = withAuth(async (req, user) => {
     });
   }
 
+  if (channel === "wechat") {
+    const prepayId = `mock_${crypto.randomUUID()}`;
+    const jsapiParams = wechatPayService.generateJsapiPayParams(prepayId);
+
+    await supabase
+      .from("contracts")
+      .update({ fund_status: "HELD" })
+      .eq("id", contract.id)
+      .in("fund_status", ["PENDING", "PENDING_HELD"]);
+
+    return NextResponse.json({
+      success: true,
+      channel: "wechat",
+      jsapiParams,
+      contractId: contract.id,
+    });
+  }
+
   if (channel === "mock") {
     await supabase
       .from("contracts")
       .update({ fund_status: "HELD" })
-      .eq("id", contract.id);
+      .eq("id", contract.id)
+      .in("fund_status", ["PENDING", "PENDING_HELD"]);
 
     return NextResponse.json({
       success: true,

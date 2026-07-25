@@ -15,7 +15,7 @@ interface Notification {
   title: string;
   body: string;
   type: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
 }
 
@@ -34,7 +34,7 @@ export default function NotificationBell() {
       const json = await res.json();
       const list = json.notifications ?? [];
       setNotifications(list);
-      setUnreadCount(list.filter((n: Notification) => !n.read).length);
+      setUnreadCount(list.filter((n: Notification) => !n.is_read).length);
     } catch {
       // ignore
     }
@@ -42,11 +42,13 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30_000);
+    return () => clearInterval(interval);
   }, [fetchNotifications]);
 
   const markAllRead = async () => {
     const unreadIds = notifications
-      .filter((n) => !n.read)
+      .filter((n) => !n.is_read)
       .map((n) => n.id);
     if (unreadIds.length === 0) return;
 
@@ -58,7 +60,7 @@ export default function NotificationBell() {
       });
       if (!res.ok) return;
       setNotifications((prev) =>
-        prev.map((n) => (n.read ? n : { ...n, read: true })),
+        prev.map((n) => (n.is_read ? n : { ...n, read: true })),
       );
       setUnreadCount(0);
     } catch {
@@ -101,20 +103,20 @@ export default function NotificationBell() {
                 key={n.id}
                 className={cn(
                   "border-b border-border px-4 py-3 text-sm last:border-0",
-                  !n.read && "bg-accent/50",
+                  !n.is_read && "bg-accent/50",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <span
                     className={cn(
                       "font-medium",
-                      !n.read && "text-foreground",
-                      n.read && "text-muted-foreground",
+                      !n.is_read && "text-foreground",
+                      n.is_read && "text-muted-foreground",
                     )}
                   >
                     {n.title}
                   </span>
-                  {!n.read && (
+                  {!n.is_read && (
                     <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-destructive" />
                   )}
                 </div>

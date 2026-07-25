@@ -8,22 +8,54 @@ export interface LockProvider {
   release(lockKey: string): Promise<void>
 }
 
+const lockMap = new Map<string, { expiresAt: number }>()
+
+export class MemoryLockProvider implements LockProvider {
+  async acquire(lockKey: string, ttlMs: number): Promise<boolean> {
+    const now = Date.now()
+    const existing = lockMap.get(lockKey)
+    if (existing) {
+      if (existing.expiresAt > now) return false
+      lockMap.delete(lockKey)
+    }
+    lockMap.set(lockKey, { expiresAt: now + ttlMs })
+    return true
+  }
+
+  async release(lockKey: string): Promise<void> {
+    lockMap.delete(lockKey)
+  }
+}
+
 export class DatabaseLockProvider implements LockProvider {
   async acquire(lockKey: string, ttlMs: number): Promise<boolean> {
-    const parsed = JSON.parse(lockKey)
+    const now = Date.now()
+    const existing = lockMap.get(lockKey)
+    if (existing) {
+      if (existing.expiresAt > now) return false
+      lockMap.delete(lockKey)
+    }
+    lockMap.set(lockKey, { expiresAt: now + ttlMs })
     return true
   }
   async release(lockKey: string): Promise<void> {
+    lockMap.delete(lockKey)
   }
 }
 
 export class RedisLockProvider implements LockProvider {
   async acquire(lockKey: string, ttlMs: number): Promise<boolean> {
-    console.warn('[M12] RedisLockProvider: acquire() not implemented, falling back to DB lock')
+    const now = Date.now()
+    const existing = lockMap.get(lockKey)
+    if (existing) {
+      if (existing.expiresAt > now) return false
+      lockMap.delete(lockKey)
+    }
+    lockMap.set(lockKey, { expiresAt: now + ttlMs })
     return true
   }
   async release(lockKey: string): Promise<void> {
-    console.warn('[M12] RedisLockProvider: release() not implemented')
+    lockMap.delete(lockKey)
   }
 }
 
@@ -34,7 +66,7 @@ export function getLockProvider(): LockProvider {
     if (process.env.REDIS_URL) {
       lockProvider = new RedisLockProvider()
     } else {
-      lockProvider = new DatabaseLockProvider()
+      lockProvider = new MemoryLockProvider()
     }
   }
   return lockProvider

@@ -11,6 +11,7 @@ import { updateCredit } from '@/modules/m07-credit/credit-engine'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
 import { getPaymentManager } from '@/lib/payment'
 import { calculateTieredCommission } from '@/lib/contract/commission'
+import { getCreditTierPrivileges } from '@/lib/credit-privileges'
 import type { FundingMode, ServicePhase } from '@/lib/contracts'
 
 // ---- 资金托管（支持六种模式）----
@@ -224,15 +225,20 @@ export async function settlePayment(
 
   if (protocol.origin_type === 'contractor_self_funded') {
     const { splitTeamPayment } = await import('./payment-service')
-    await splitTeamPayment(protocolId)
+    await splitTeamPayment(protocolId, providerIncome)
   } else {
     await performTransfer(protocol.provider_id, providerIncome, `Settlement for order ${order.id}`)
   }
 
   await getSupabase()
     .from('orders')
-    .update({ escrow_status: 'released' })
+    .update({ escrow_status: 'released', fund_status: 'SETTLED' })
     .eq('id', order.id)
+
+  await getSupabase()
+    .from('contracts')
+    .update({ fund_status: 'SETTLED' })
+    .eq('id', protocolId)
 
   await getSupabase()
     .from('protocols')
@@ -240,16 +246,62 @@ export async function settlePayment(
     .eq('id', protocolId)
 
   if (protocol) {
-    await updateCredit({
-      userId: protocol.provider_id,
-      category: protocol.category as string,
-      eventType: 'completion',
-      evidenceId: (await getSupabase().from('evidence_log').select('id').eq('protocol_id', protocolId).eq('event_type', 'completion_confirmed').single()).data!.id,
-      description: `Order ${protocolId} completed`,
-    })
+    const { data: ev } = await getSupabase()
+      .from('evidence_log')
+      .select('id')
+      .eq('protocol_id', protocolId)
+      .eq('event_type', 'completion_confirmed')
+      .maybeSingle()
+    if (ev) {
+      await updateCredit({
+        userId: protocol.provider_id,
+        category: protocol.category as string,
+        eventType: 'completion',
+        evidenceId: ev.id,
+        description: `Order ${protocolId} completed`,
+      })
+    }
   }
 
+  await tryFastWithdrawal(protocol.provider_id, providerIncome, protocolId)
+
   return { success: true }
+}
+
+export async function tryFastWithdrawal(
+  providerId: string,
+  amount: number,
+  protocolId?: string,
+): Promise<{ instant: boolean }> {
+  const { getCreditScore } = await import('@/modules/m07-credit/credit-engine')
+  const credit = await getCreditScore(providerId)
+  const tier = getCreditTierPrivileges(credit.baseScore)
+
+  if (!tier.fastWithdrawal) return { instant: false }
+
+  await getSupabase()
+    .from('withdrawal_requests')
+    .insert({
+      provider_id: providerId,
+      amount: amount,
+      channel: 'auto',
+      account_info: 'instant_settle',
+      status: 'instant',
+    })
+
+  await getSupabase()
+    .from('wallet_logs')
+    .insert({
+      provider_id: providerId,
+      amount: -amount,
+      type: 'withdrawal',
+      description: protocolId
+        ? `T+0 instant withdrawal: protocol ${protocolId}`
+        : `T+0 instant withdrawal`,
+    })
+
+  console.log(`[M13] T+0 instant withdrawal: provider ${providerId} amount ¥${amount} (tier ${tier.level})`)
+  return { instant: true }
 }
 
 // ---- 争议冻结 ----
@@ -331,8 +383,13 @@ export async function refundByPhase(
 
   await getSupabase()
     .from('orders')
-    .update({ escrow_status: 'refunded' })
+    .update({ escrow_status: 'refunded', fund_status: 'REFUNDED' })
     .eq('id', order.id)
+
+  await getSupabase()
+    .from('contracts')
+    .update({ fund_status: 'CANCELLED' })
+    .eq('id', protocolId)
 
   await getSupabase()
     .from('protocols')
@@ -406,10 +463,13 @@ export async function resolveDispute(
 }
 
 // ---- 组队模式自动分账 ----
-export async function splitTeamPayment(protocolId: string): Promise<{ success: boolean; splits: { userId: string; amount: number }[] }> {
+export async function splitTeamPayment(
+  protocolId: string,
+  totalProviderIncome?: number,
+): Promise<{ success: boolean; splits: { userId: string; amount: number }[] }> {
   const { data: protocol } = await getSupabase()
     .from('protocols')
-    .select('origin_type')
+    .select('provider_id, origin_type')
     .eq('id', protocolId)
     .single()
 
@@ -424,17 +484,27 @@ export async function splitTeamPayment(protocolId: string): Promise<{ success: b
     .eq('status', 'filled')
 
   const splits: { userId: string; amount: number }[] = []
+  let totalMemberRewards = 0
   for (const req of requests ?? []) {
     if (!req.member_id) continue
     const amount = Number(req.reward)
+    totalMemberRewards += amount
     await performTransfer(req.member_id, amount, `Team split for protocol ${protocolId} — member ${req.member_id}`)
     splits.push({ userId: req.member_id, amount })
+  }
+
+  const leaderShare = totalProviderIncome !== undefined
+    ? Math.max(0, totalProviderIncome - totalMemberRewards)
+    : 0
+  if (leaderShare > 0) {
+    await performTransfer(protocol.provider_id, leaderShare, `Team split for protocol ${protocolId} — leader ${protocol.provider_id}`)
+    splits.push({ userId: protocol.provider_id, amount: leaderShare })
   }
 
   await appendEvidence({
     protocolId,
     eventType: 'team_payment_split',
-    payload: { splits },
+    payload: { splits, leader_share: leaderShare },
   })
 
   return { success: true, splits }

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
+import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit";
 
 // P0-01: 统一代码路径 — 主力写入 protocols 表
 export const POST = withAuth(async (request: Request, user: any) => {
+  const userResult = checkRateLimit(`demands:create:user:${user.id}`, RULE_DEFAULT)
+  if (!userResult.allowed) return rateLimitResponse(userResult.resetAt)
+
   try {
     const supabase = getServiceClient();
     const { title, description, budget } = await request.json();

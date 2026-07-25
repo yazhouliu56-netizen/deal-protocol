@@ -33,6 +33,7 @@ export const POST = withAuth(async (req, user, ...args) => {
       .from('demands')
       .update({ matched_provider_id: matches[0].providerId, status: DEMAND_STATUSES.MATCHED })
       .eq('id', id)
+      .eq('status', demand.status)
 
     if (updateError) {
       console.error('Match update error:', updateError)

@@ -30,7 +30,7 @@ export const PATCH = withAuth(async (req, user) => {
 
   const { error } = await svc
     .from('notifications')
-    .update({ read: true })
+    .update({ is_read: true })
     .eq('user_id', user.id)
     .in('id', ids);
 

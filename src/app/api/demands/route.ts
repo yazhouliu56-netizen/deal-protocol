@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
+import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit"
 import type { PostgrestSingleResponse } from "@supabase/supabase-js"
 
 // P0-01: 统一代码路径 — demands 路由转写至 protocols/contracts 核心数据源
@@ -68,6 +69,9 @@ async function autoMatchProtocol(supabase: ReturnType<typeof import('@/lib/supab
 }
 
 export const POST = withAuth(async (req, user) => {
+  const userResult = checkRateLimit(`demands:create:user:${user.id}`, RULE_DEFAULT)
+  if (!userResult.allowed) return rateLimitResponse(userResult.resetAt)
+
   const supabase = await getRouteClient()
 
   try {
