@@ -265,6 +265,10 @@ export async function settlePayment(
 
   await tryFastWithdrawal(protocol.provider_id, providerIncome, protocolId)
 
+  const { processReferralCommission } = await import('@/lib/referral-service')
+  const platformFee = order.platform_fee ?? 0
+  await processReferralCommission(protocolId, platformFee)
+
   return { success: true }
 }
 
