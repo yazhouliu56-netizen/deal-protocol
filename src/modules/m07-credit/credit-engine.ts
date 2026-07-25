@@ -25,6 +25,7 @@ interface CreditUpdateInput {
   eventType: 'completion' | 'report' | 'verification' | 'violation' | 'sos'
   evidenceId: string
   description: string
+  contractId?: string
 }
 
 function computeComposite(dims: Record<string, number>, createdAt?: string, lastActiveAt?: string, validCount?: number): number {
@@ -142,6 +143,22 @@ export async function updateCredit(input: CreditUpdateInput): Promise<{ success:
     },
     capturedBy: input.userId,
   })
+
+  if (input.eventType === 'completion' && input.contractId) {
+    import('@/lib/fulfillment-summarizer').then(({ generateFulfillmentSnapshot }) => {
+      generateFulfillmentSnapshot(input.contractId!).then(async (snapshot) => {
+        if (snapshot) {
+          await getSupabase()
+            .from('credit_events')
+            .update({
+              sentiment: snapshot.sentiment,
+              fulfillment_snapshot: snapshot.summary,
+            })
+            .eq('evidence_id', input.evidenceId)
+        }
+      }).catch(() => {})
+    }).catch(() => {})
+  }
 
   return { success: true, newScore: composite }
 }

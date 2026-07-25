@@ -149,6 +149,11 @@ export async function generateProtocol(input: GenerationInput): Promise<Generati
     capturedBy: input.userId,
   })
 
+  // LLM Deep Fusion 玩法 1：异步生成正式合同文书
+  import('@/lib/contract-builder').then(({ generateFormalContractDoc }) => {
+    generateFormalContractDoc(protocol as Record<string, unknown>).catch(() => {})
+  })
+
   return {
     success: true,
     protocol: protocol as unknown as ProtocolJSON,

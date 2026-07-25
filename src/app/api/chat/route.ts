@@ -2,6 +2,7 @@ import { streamText } from "ai"
 import { getAIModel } from "@/lib/ai-provider"
 import { auth } from "@/lib/auth"
 import { interceptChatRisk } from "@/lib/risk-interceptor"
+import { buildConciergeContext } from "@/lib/concierge-agent"
 
 export async function POST(request: Request) {
   let { messages, userContext } = await request.json()
@@ -13,7 +14,8 @@ export async function POST(request: Request) {
     }
   }
 
-  const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop()
+  const userId = userContext?.userId ?? (await auth())?.user?.id
+const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop()
   let riskWarning = ''
   if (lastUserMsg) {
     const rawText = lastUserMsg.content ?? lastUserMsg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? ''
@@ -74,9 +76,12 @@ ${riskWarning}
 
 如果用户后续要求调整协议，请重新生成完整的 [PROTOCOL_JSON] 块。`
 
-  const result = streamText({
+  const conciergeMessages = userId ? await buildConciergeContext(userId, lastUserMsg?.content ?? '') : []
+const finalMessages = [...conciergeMessages, ...modelMessages]
+
+const result = streamText({
     model: getAIModel(),
-    messages: modelMessages,
+    messages: finalMessages,
     system: systemPrompt.trim(),
     temperature: 0.3,
   })

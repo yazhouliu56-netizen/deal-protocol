@@ -259,6 +259,7 @@ export async function settlePayment(
         eventType: 'completion',
         evidenceId: ev.id,
         description: `Order ${protocolId} completed`,
+        contractId: protocolId,
       })
     }
   }

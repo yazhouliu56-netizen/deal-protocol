@@ -3,6 +3,7 @@ import { matchNearby } from '@/modules/m05-geo-index/geo-service'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
 import { getCreditScore, isColdStart, getNewbornProtectionFactor, getWeekendMultiplier } from '@/modules/m07-credit/credit-engine'
 import { getCreditTierPrivileges } from '@/lib/credit-privileges'
+import { getCachedSemanticScore } from '@/lib/semantic-matcher'
 import type { CandidateProvider, ResponseMode } from '@/lib/contracts'
 
 const VALID_RESPONSE_MODES: ResponseMode[] = ['grab_first', 'interest_list', 'agency_dispatch']
@@ -145,6 +146,10 @@ async function processCandidates(
     const newbornFactor = getNewbornProtectionFactor(credit.baseTotalDeals)
     const weekendMul = getWeekendMultiplier()
     cs = Math.round(cs * newbornFactor * weekendMul * 100) / 100
+
+    const semanticScore = await getCachedSemanticScore(protocolId, geo.provider_id, config.category)
+    const semanticMultiplier = 1 + semanticScore / 200
+    cs = Math.round(cs * semanticMultiplier * 100) / 100
 
     const dep = depositMap.get(geo.provider_id)
     const depositMultiplier = dep?.isStaked && dep.depositAmount >= 500 ? 1.2 : 1.0
