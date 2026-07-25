@@ -24,7 +24,7 @@ export async function inspectServiceQuality(
 
   const { data: contract } = await supabase
     .from('contracts')
-    .select('id, customer_id, provider_id, amount')
+    .select('id, demand_id, customer_id, provider_id, amount')
     .eq('id', contractId)
     .single()
 
