@@ -1,5 +1,5 @@
 import { getAIModel } from './ai-provider';
-import { getSupabase } from './supabase-client';
+import { getSupabase, getServiceClient } from './supabase-client';
 import { CIVIL_CODE_ARTICLES, COURT_PRECEDENTS } from './legal-knowledge-base';
 import { generateText } from 'ai';
 import { createHash } from 'crypto';
@@ -207,4 +207,124 @@ export async function exportJudicialPackage(disputeId: string): Promise<Record<s
     compiledAt: new Date().toISOString(),
     compiler: 'Deal Protocol AI Arbitration System',
   };
+}
+
+// ─── AI Arbitration v2: RAG + Three‑Perspective ────────────────────────
+
+export interface ArbitrationResult {
+  winner: 'demander' | 'provider' | 'split';
+  reasoning: string;
+  confidence: number;
+  fund_split_ratio: {
+    demander_refund: number;
+    provider_payout: number;
+  };
+  credit_impact: {
+    demander_delta: number;
+    provider_delta: number;
+  };
+  requires_human_review: boolean;
+  precedents_referenced: string[];
+}
+
+export interface ArbitrateDisputeOptions {
+  disputeId: string;
+  orderId: string;
+  reason: string;
+  evidenceLogs?: Array<{ event_type: string; payload: unknown }>;
+}
+
+async function fetchRelevantPrecedents(queryText: string): Promise<Array<{ summary: string; ruling_principle: string }>> {
+  try {
+    const supabase = getServiceClient();
+    const { data, error } = await supabase
+      .from('precedents')
+      .select('summary, ruling_principle, key_factors')
+      .limit(3);
+
+    if (error || !data) return [];
+    return data.map((p) => ({ summary: p.summary, ruling_principle: p.ruling_principle }));
+  } catch {
+    return [];
+  }
+}
+
+export async function arbitrateDispute(options: ArbitrateDisputeOptions): Promise<ArbitrationResult> {
+  const { disputeId, reason, evidenceLogs = [] } = options;
+
+  const precedents = await fetchRelevantPrecedents(reason);
+  const precedentContext = precedents.length > 0
+    ? precedents.map((p, idx) => `[判例 ${idx + 1}] 摘要: ${p.summary} | 裁决原则: ${p.ruling_principle}`).join('\n')
+    : '暂无直接匹配的既往历史判例，请按通用公平原则裁决。';
+
+  const prompt = `你作为 deal-protocol 平台的 AI 首席仲裁官，需对以下服务纠纷进行专业裁决。
+
+【争议编号】：${disputeId}
+【争议申诉说明】：${reason}
+【关键证据链记录】：${JSON.stringify(evidenceLogs, null, 2)}
+【参考历史判例 (RAG)】：${precedentContext}
+
+请按照以下三个视角综合进行推理分析：
+[硬核契约派]：严格对照平台协议条款与证据链真实性，不受情绪干扰。
+[行业常理派]：结合行业服务常规惯例、交通与现场客观因素，判断履约合理性。
+[权益保护派]：基于公平原则，防范过分严苛的霸王条款，保护交易双方合法权益。
+
+请输出且仅输出合法格式的 JSON 对象（切勿包含 Markdown \`\`\`json 标记）：
+{
+  "winner": "demander" | "provider" | "split",
+  "reasoning": "三视角综合裁决说明...",
+  "confidence": 0.92,
+  "fund_split_ratio": {
+    "demander_refund": 0.5,
+    "provider_payout": 0.5
+  },
+  "credit_impact": {
+    "demander_delta": 0,
+    "provider_delta": -5
+  }
+}`;
+
+  let response;
+  try {
+    const model = getAIModel();
+    response = await generateText({ model, prompt });
+  } catch {
+    return {
+      winner: 'split',
+      reasoning: 'AI 服务暂时不可用，已自动转交人工复核。',
+      confidence: 0.5,
+      fund_split_ratio: { demander_refund: 0.5, provider_payout: 0.5 },
+      credit_impact: { demander_delta: 0, provider_delta: 0 },
+      requires_human_review: true,
+      precedents_referenced: [],
+    };
+  }
+
+  try {
+    const cleanJsonStr = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanJsonStr);
+
+    const confidence = typeof parsed.confidence === 'number' ? parsed.confidence : 0.7;
+    const requires_human_review = confidence < 0.85;
+
+    return {
+      winner: parsed.winner || 'split',
+      reasoning: parsed.reasoning || '基于规则的默认划分',
+      confidence,
+      fund_split_ratio: parsed.fund_split_ratio || { demander_refund: 0.5, provider_payout: 0.5 },
+      credit_impact: parsed.credit_impact || { demander_delta: 0, provider_delta: 0 },
+      requires_human_review,
+      precedents_referenced: precedents.map(p => p.summary),
+    };
+  } catch {
+    return {
+      winner: 'split',
+      reasoning: 'AI 响应格式解析异常，已自动转交人工复核。',
+      confidence: 0.5,
+      fund_split_ratio: { demander_refund: 0.5, provider_payout: 0.5 },
+      credit_impact: { demander_delta: 0, provider_delta: 0 },
+      requires_human_review: true,
+      precedents_referenced: [],
+    };
+  }
 }

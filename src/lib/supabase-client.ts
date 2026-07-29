@@ -23,13 +23,28 @@ export function getSupabase(): SupabaseClient {
 }
 
 // Admin client with service_role key (for privileged operations)
+let serviceClient: SupabaseClient | null = null
+
 export function getServiceClient(): SupabaseClient {
+  if (serviceClient) return serviceClient
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  serviceClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
+
+  return serviceClient
+}
+
+// 测试用：注入 mock service client
+export function __setServiceClient(mock: SupabaseClient): void {
+  serviceClient = mock
+}
+
+export function __resetServiceClient(): void {
+  serviceClient = null
 }
 
 // 测试用：注入 mock client

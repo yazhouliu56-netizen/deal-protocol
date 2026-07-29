@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createHash } from 'crypto'
-import { generateAIArbitrationReport, exportJudicialPackage } from '../src/lib/ai-arbitrator'
-import { __setSupabaseClient, __resetSupabaseClient } from '../src/lib/supabase-client'
+import { generateAIArbitrationReport, exportJudicialPackage, arbitrateDispute } from '../src/lib/ai-arbitrator'
+import { __setSupabaseClient, __resetSupabaseClient, __setServiceClient, __resetServiceClient } from '../src/lib/supabase-client'
 import { CIVIL_CODE_ARTICLES, COURT_PRECEDENTS } from '../src/lib/legal-knowledge-base'
+import { generateText } from 'ai'
 
 type QueryResult = { data: unknown; error: unknown }
 
@@ -224,6 +225,223 @@ describe('AI Arbitrator — Legal Knowledge & Civil Code', () => {
       chain.single.mockResolvedValue({ data: null, error: new Error('not found') })
 
       await expect(exportJudicialPackage('nonexistent')).rejects.toThrow('Dispute not found')
+    })
+  })
+})
+
+describe('arbitrateDispute — RAG + Three-Perspective', () => {
+  let serviceChain: MockChain
+
+  function mockServiceClient(precedents: Array<{ summary: string; ruling_principle: string }> = []) {
+    const selectChain = {
+      select: vi.fn(() => ({
+        limit: vi.fn(() => Promise.resolve({ data: precedents, error: null })),
+      })),
+    }
+    serviceChain = { from: vi.fn(() => selectChain) } as unknown as MockChain
+    __setServiceClient({ from: serviceChain.from } as any)
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockServiceClient()
+  })
+
+  afterEach(() => {
+    __resetServiceClient()
+  })
+
+  describe('happy path', () => {
+    it('should return ArbitrationResult with correct structure and valid JSON parse', async () => {
+      mockServiceClient([
+        { summary: '网络服务合同部分履行退款案', ruling_principle: '按比例分配托管预付款' },
+      ])
+
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'provider',
+          reasoning: '[硬核契约派]服务商未按时交付；[行业常理派]履约延迟超出合理区间；[权益保护派]需保障买家基本权益。综合裁定服务商为主要过错方。',
+          confidence: 0.92,
+          fund_split_ratio: { demander_refund: 0.7, provider_payout: 0.3 },
+          credit_impact: { demander_delta: 5, provider_delta: -10 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-rag-001',
+        orderId: 'order-001',
+        reason: '服务商未按约定时间完成服务，且交付质量不达标',
+        evidenceLogs: [
+          { event_type: 'created', payload: { action: 'order_placed' } },
+          { event_type: 'checkin', payload: { location: { lat: 31.23, lng: 121.47 } } },
+        ],
+      })
+
+      expect(result.winner).toBe('provider')
+      expect(result.reasoning).toContain('契约派')
+      expect(result.reasoning).toContain('常理派')
+      expect(result.reasoning).toContain('权益保护派')
+      expect(result.confidence).toBe(0.92)
+      expect(result.fund_split_ratio.demander_refund + result.fund_split_ratio.provider_payout).toBeCloseTo(1.0)
+      expect(result.credit_impact.demander_delta).toBe(5)
+      expect(result.credit_impact.provider_delta).toBe(-10)
+      expect(result.requires_human_review).toBe(false)
+      expect(result.precedents_referenced).toContain('网络服务合同部分履行退款案')
+    })
+
+    it('should handle split winner and equal fund split', async () => {
+      mockServiceClient()
+
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'split',
+          reasoning: '[硬核契约派]……[行业常理派]……[权益保护派]……双方均有过失',
+          confidence: 0.88,
+          fund_split_ratio: { demander_refund: 0.5, provider_payout: 0.5 },
+          credit_impact: { demander_delta: 0, provider_delta: 0 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-rag-002',
+        orderId: 'order-002',
+        reason: '双方沟通不畅导致交付延迟',
+      })
+
+      expect(result.winner).toBe('split')
+      expect(result.fund_split_ratio.demander_refund).toBe(0.5)
+      expect(result.fund_split_ratio.provider_payout).toBe(0.5)
+      expect(result.requires_human_review).toBe(false)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should flag requires_human_review when confidence < 0.85', async () => {
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'demander',
+          reasoning: '裁决说明……',
+          confidence: 0.72,
+          fund_split_ratio: { demander_refund: 1.0, provider_payout: 0.0 },
+          credit_impact: { demander_delta: 10, provider_delta: -20 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-low-conf',
+        orderId: 'order-low',
+        reason: '质量争议',
+      })
+
+      expect(result.confidence).toBe(0.72)
+      expect(result.requires_human_review).toBe(true)
+    })
+
+    it('should return default split with human_review when LLM unreachable', async () => {
+      vi.mocked(generateText).mockRejectedValueOnce(new Error('LLM timeout'))
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-fail',
+        orderId: 'order-fail',
+        reason: '服务争议',
+      })
+
+      expect(result.winner).toBe('split')
+      expect(result.fund_split_ratio.demander_refund).toBe(0.5)
+      expect(result.fund_split_ratio.provider_payout).toBe(0.5)
+      expect(result.requires_human_review).toBe(true)
+      expect(result.reasoning).toContain('不可用')
+    })
+
+    it('should return default split with human_review when JSON parse fails', async () => {
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'invalid json response without proper format',
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-parse-fail',
+        orderId: 'order-parse',
+        reason: '服务未完成',
+      })
+
+      expect(result.winner).toBe('split')
+      expect(result.requires_human_review).toBe(true)
+      expect(result.reasoning).toContain('解析异常')
+    })
+
+    it('should handle empty evidenceLogs gracefully', async () => {
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'split',
+          reasoning: '基于有限信息的初步裁决',
+          confidence: 0.80,
+          fund_split_ratio: { demander_refund: 0.5, provider_payout: 0.5 },
+          credit_impact: { demander_delta: 0, provider_delta: 0 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-empty-ev',
+        orderId: 'order-empty',
+        reason: '沟通记录不全',
+        evidenceLogs: [],
+      })
+
+      expect(result.winner).toBe('split')
+      expect(result.precedents_referenced).toEqual([])
+      expect(result.requires_human_review).toBe(true)
+    })
+
+    it('should include RAG precedent context when service client returns data', async () => {
+      const precedents = [
+        { summary: '技术服务延期交付判例', ruling_principle: '按履约比例分配' },
+        { summary: '承揽质量瑕疵退款案', ruling_principle: '按修复成本折价退款' },
+        { summary: '平台托管资金分割案', ruling_principle: '双方协商不成则强制分割' },
+      ]
+      mockServiceClient(precedents)
+
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'split',
+          reasoning: '援引三条历史判例进行综合分析',
+          confidence: 0.95,
+          fund_split_ratio: { demander_refund: 0.6, provider_payout: 0.4 },
+          credit_impact: { demander_delta: 2, provider_delta: -3 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-rag-multi',
+        orderId: 'order-rag',
+        reason: '服务交付争议',
+      })
+
+      expect(result.precedents_referenced.length).toBe(3)
+      expect(result.precedents_referenced).toContain('技术服务延期交付判例')
+      expect(result.precedents_referenced).toContain('承揽质量瑕疵退款案')
+      expect(result.precedents_referenced).toContain('平台托管资金分割案')
+      expect(result.confidence).toBe(0.95)
+      expect(result.requires_human_review).toBe(false)
+    })
+
+    it('should treat missing confidence as 0.7 and require human review', async () => {
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: JSON.stringify({
+          winner: 'provider',
+          reasoning: '仅含裁决结果，无置信度',
+          fund_split_ratio: { demander_refund: 0.0, provider_payout: 1.0 },
+          credit_impact: { demander_delta: 0, provider_delta: 0 },
+        }),
+      })
+
+      const result = await arbitrateDispute({
+        disputeId: 'dispute-no-conf',
+        orderId: 'order-no',
+        reason: '无置信度测试',
+      })
+
+      expect(result.confidence).toBe(0.7)
+      expect(result.requires_human_review).toBe(true)
     })
   })
 })
