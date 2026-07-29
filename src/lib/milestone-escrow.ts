@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getSupabase, getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 
 export interface MilestoneInput {
@@ -13,9 +13,26 @@ export interface MilestoneRecord {
   title: string
   amount: number
   step_number: number
-  status: 'PENDING' | 'HELD' | 'SETTLED' | 'DISPUTED'
+  status: 'PENDING' | 'HELD' | 'SETTLED' | 'DISPUTED' | 'submitted' | 'completed' | 'skipped'
+  auto_confirm_at: string | null
   created_at: string
   updated_at: string
+}
+
+export interface MilestoneCheckpoint {
+  id: string
+  contract_id: string
+  title: string
+  amount: number
+  step_number: number
+  status: 'pending' | 'submitted' | 'completed' | 'disputed' | 'skipped'
+  auto_confirm_at: string | null
+  created_at: string
+}
+
+export interface ProcessExpiredResult {
+  processedCount: number
+  errors: string[]
 }
 
 export async function createMilestonesForContract(
@@ -146,4 +163,90 @@ export async function releaseMilestoneEscrow(
   })
 
   return { success: true, milestone: updated as unknown as MilestoneRecord }
+}
+
+export async function submitMilestoneCheckpoint(
+  milestoneId: string,
+  hoursToAutoConfirm: number = 24
+): Promise<{ success: boolean; autoConfirmAt: string }> {
+  const supabase = getServiceClient()
+  const autoConfirmAt = new Date(Date.now() + hoursToAutoConfirm * 3600 * 1000).toISOString()
+
+  const { error } = await supabase
+    .from('milestone_schedules')
+    .update({
+      status: 'submitted',
+      auto_confirm_at: autoConfirmAt,
+    })
+    .eq('id', milestoneId)
+    .eq('status', 'pending')
+
+  if (error) {
+    throw new Error(`Failed to submit milestone checkpoint: ${error.message}`)
+  }
+
+  return { success: true, autoConfirmAt }
+}
+
+export async function confirmMilestoneCheckpoint(milestoneId: string): Promise<{ success: boolean }> {
+  const supabase = getServiceClient()
+
+  const { error } = await supabase
+    .from('milestone_schedules')
+    .update({
+      status: 'completed',
+      auto_confirm_at: null,
+    })
+    .eq('id', milestoneId)
+
+  if (error) {
+    throw new Error(`Failed to confirm milestone checkpoint: ${error.message}`)
+  }
+
+  return { success: true }
+}
+
+export async function processExpiredCheckpoints(): Promise<ProcessExpiredResult> {
+  const supabase = getServiceClient()
+  const now = new Date().toISOString()
+  const errors: string[] = []
+  let processedCount = 0
+
+  try {
+    const { data: expiredCheckpoints, error: fetchError } = await supabase
+      .from('milestone_schedules')
+      .select('id, contract_id, title, amount')
+      .eq('status', 'submitted')
+      .lte('auto_confirm_at', now)
+
+    if (fetchError) {
+      return { processedCount: 0, errors: [fetchError.message] }
+    }
+
+    if (!expiredCheckpoints || expiredCheckpoints.length === 0) {
+      return { processedCount: 0, errors: [] }
+    }
+
+    for (const checkpoint of expiredCheckpoints) {
+      const { error: updateError } = await supabase
+        .from('milestone_schedules')
+        .update({
+          status: 'completed',
+          auto_confirm_at: null,
+        })
+        .eq('id', checkpoint.id)
+        .eq('status', 'submitted')
+
+      if (updateError) {
+        errors.push(`Checkpoint ${checkpoint.id} error: ${updateError.message}`)
+      } else {
+        processedCount++
+      }
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    errors.push(`System error: ${msg}`)
+  }
+
+  return { processedCount, errors }
 }
