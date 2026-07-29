@@ -674,3 +674,157 @@ User Input → LLM Classification → Schema Matching → Protocol Generation �
 | Local Dev | `next dev` | Supabase local or remote |
 
 Docker compose runs: **web** (Next.js standalone) + **db** (PostgreSQL 15 with Supabase-compatible schema).
+
+---
+
+# 🚀 PROJECT STATE SUPPLEMENT & CHANGELOG (P0–P2 Evolution)
+
+> **Updated**: 2026-07-29  
+> **Status**: P0-P2 Architectural Refinement Completed (16/16 Integration Tests Passed, 0 TS Errors)
+
+---
+
+## 1. Executive Summary of Refinements (P0–P2)
+
+本项目在保持线上 28+ 数据库表、多渠道支付（Stripe/支付宝/微信）、7 态资金状态机与既有 API 100% 后向兼容的前提下，完成了"无痛增量演进"。消除了第 8 章提出的核心已知隐患，建立了统一类型契约、Zod 防御性校验网关、判例 RAG 智能仲裁以及 Checkpoint 24h 自动解冻机制。
+
+---
+
+## 2. Updated Component Architecture & Module Matrix
+
+### 2.1 数据库强类型契约与 Schema 扩展
+- **新增强类型定义文件**：`src/types/database.types.ts`
+  - 覆盖全量 29 张表（包含 `profiles`, `protocols`, `demands`, `contracts`, `orders`, `milestone_schedules`, `evidence_log`, `credit_records`, `precedents`, `llm_logs` 等）。
+  - 提供 `Row`, `Insert`, `Update` 泛型支持，完全类型化 `Json` 字段、`pgvector` (1024d/1536d `number[]`) 及 `PostGIS` 空间字段。
+  - 导出 `Tables<T>`, `TablesInsert<T>`, `TablesUpdate<T>` 全局辅助工具。
+- **数据库迁移扩展**：`supabase/migrations/20260730_add_checkpoint_fields.sql`
+  - 拓展 `milestone_schedules` 表的 `auto_confirm_at` 字段及 `submitted` / `completed` / `skipped` 状态约束。
+
+### 2.2 统一 API 校验网关与防御性字段剥离
+- **新增校验网关库**：`src/lib/validations/api-schemas.ts`
+  - 针对需求发布 (`createDemandSchema`)、协议生成 (`generateProtocolSchema`)、争议仲裁 (`arbitrateDisputeSchema`)、提现申请 (`withdrawRequestSchema`) 建立标准 Zod 逻辑。
+  - **防御机制**：提供 `validateApiInput<T>` 统一网关函数，利用 Zod 自动剥离（strip）未声明的非合法参数，防止恶意客户端注入。
+  - 导出了自动推导的强类型别名（如 `CreateDemandInput`）。
+
+### 2.3 判例 RAG 与多视角智能仲裁引擎
+- **升级核心模块**：`src/lib/ai-arbitrator.ts`
+  - **判例 RAG 检索**：仲裁前自动查询 Supabase `precedents` 判例库，提取 Top 3 最相关历史判例作为 Prompt 上下文。
+  - **三视角 Prompting**：融合**硬核契约派**（条款/证据链）、**行业常理派**（惯例/合理时效）与**权益保护派**（民法典/公平原则）。
+  - **结构化输出与容错**：强约束输出包含 `winner`, `reasoning`, `confidence`, `fund_split_ratio`, `credit_impact` 的 JSON。
+  - **低置信度降级机制**：置信度 `< 0.85` 或解析异常时自动标记 `requires_human_review: true`，平滑回退至人工/老用户陪审团复核。
+
+### 2.4 履约资金分段解冻与 24h 超时批处理
+- **升级履约模块**：`src/lib/milestone-escrow.ts`
+  - **Checkpoint 提交 (`submitMilestoneCheckpoint`)**：服务者提交节点凭证，自动计算并设置 24h 后的 `auto_confirm_at` 时间戳。
+  - **客户确认 (`confirmMilestoneCheckpoint`)**：客户主动确认，触发状态更新为 `completed` 并清空超时时间。
+  - **超时批处理 (`processExpiredCheckpoints`)**：供 Cron Job (`/api/cron/check-timeouts`) 自动批量检索并解冻客户 24h 无响应的倒计时节点，平滑释放托管资金，与 `contract-machine.ts` 完美兼容。
+
+### 2.5 架构镜像目录与解耦占位规范
+- **重构架构文件**：`src/modules/mM02-mM13/index.ts`
+  - 明确本项目采用 **Modular Monolith** 架构，活跃业务落盘于 `src/modules/mXX-*`。
+  - 导出 `MIRROR_MODULES_REGISTRY` 注册表与 `getDomainModule` 助手，明确 `mM02`–`mM13` 作为未来解耦占位镜像的定位，解决第 8 章的架构悬空隐患。
+
+### 2.6 端到端集成测试基线
+- **新增集成测试套件**：`tests/p2-integration.test.ts`
+  - 涵盖输入校验防护、AI 仲裁降级、Checkpoint 解冻与镜像注册表 4 大核心领域。
+  - 配合全量测试命令 `pnpm test`，实现测试覆盖率提升与 100% 通过率。
+
+---
+
+## 3. Section 8 Known Gaps Remediation Status
+
+| 原已知隐患 (Known Risk/Gap) | 修复状态 | 落地解法与成果 |
+| :--- | :--- | :--- |
+| **`database.types.ts` missing** | ✅ Resolved | 新建 `src/types/database.types.ts`，全量 29 张表实现类型覆盖 |
+| **Mirror modules (mM02–mM13) empty** | ✅ Resolved | 规范 `src/modules/mM02-mM13/index.ts` 注册表与活跃模块映射关系 |
+| **Inconsistent API Zod Validation** | ✅ Resolved | 新建 `src/lib/validations/api-schemas.ts` 并实现 `validateApiInput` 网关 |
+| **Single-LLM Dispute Arbitration Risks** | ✅ Resolved | 升级 `src/lib/ai-arbitrator.ts`，引入 precedents RAG 与 3 视角降级 |
+| **Rigid All-or-Nothing Escrow** | ✅ Resolved | 扩展 `src/lib/milestone-escrow.ts` 支持 Checkpoint 分段 24h 解冻 |
+| **Integration Test Coverage** | ✅ Resolved | 新建 `tests/p2-integration.test.ts` (16/16 passed) |
+
+---
+
+# 📖 OpenCode CLI 任务指令标准规范与工作流手册 (Workflow Playbook)
+
+> **适用场景**: 顶层 AI 架构师 (LLM Architect) 向 本地终端执行工具 (OpenCode CLI) 派发代码修改、重构与新功能 Task 时使用。  
+> **核心原则**: 增量演进 · 零破坏性 · 类型先行 · 自动化闭环
+
+---
+
+## 1. 💡 双 AI 协同成功经验总结 (Key Principles)
+
+1. **架构防御优先 (Architecture-First Defense)**：任何新方案接入前，先进行"冲突与风险审查"，严禁直接覆盖数据库 Schema、支付 Webhook 或鉴权核心。
+2. **离散原子任务 (Discrete Atomic Tasks)**：大需求必须拆解为独立的 Task 1, Task 2...，保证单个 Task 变更可控、单次测试可验证、单次提交可回滚。
+3. **强类型与防御网关 (Type Safety & Defensive Gateways)**：先写 DB/API 类型定义与 Zod 校验，再写业务逻辑，从源头阻断非法参数注入。
+4. **终端自动化闭环 (Command-Driven Verification)**：每一个 Task 必须指定具体的终端验证命令（`tsc --noEmit` + `pnpm test`），由 OpenCode 自动执行并以测试结果判定 Task 是否完成。
+
+---
+
+## 2. 📋 OpenCode CLI 标准任务派发模板 (Task Template)
+
+在向 OpenCode CLI 发送任务时，必须严格遵守以下格式：
+
+```markdown
+### 📌 阶段目标：[简要描述当前阶段的核心目标，例如：建立统一 API 输入校验网关]
+
+#### 📝 Task [编号]: [任务简述，例如：规范 api-schemas.ts 中的 Zod 校验与类型推导]
+- **目标文件/路径**：`[相对路径，例如：src/lib/validations/api-schemas.ts]`
+- **变更类型**：`[新建 / 修改 / 重构 / 删除]`
+- **核心逻辑指导**：
+  1. [具体的逻辑变更点 1]
+  2. [具体的逻辑变更点 2]
+  3. [防御性限制/边界处理说明]
+- **代码/配置参考**：
+  ```[language]
+  // 提供完整、可直接落盘或高度精确的核心代码块、接口定义与导出声明
+```
+- **验证标准 (Verification)**：
+  - **终端命令**：`[例如：npx tsc --noEmit && pnpm test tests/my-test.test.ts]`
+  - **预期结果**：`[例如：TypeScript 编译零报错，相关测试用例 100% 通过]`
+```
+
+---
+
+## 3. 🎯 模板各要素编写规范
+
+### 3.1 任务目标与文件路径声明规范
+- **文件路径**：必须明确给出项目根目录下的**相对路径**（例如 `src/lib/ai-arbitrator.ts`），禁止使用模糊文件名。
+- **变更类型**：明确标注 `新建` / `修改` / `重构` / `删除`，方便 CLI 确认操作动词（`create` / `edit` / `delete`）。
+
+### 3.2 类型与防御性校验约束
+- **TypeScript**：新增/修改代码时，必须优先引用 `src/types/database.types.ts` 或定义显式 Interface，**严禁引入 `any` 类型**。
+- **Zod 防御网关**：涉及 API 路由或外部参数输入时，必须使用 Zod Schema 进行 `.strip()`（默认剥离未声明字段）与范围校验（如 `min/max/uuid/positive`）。
+- **容错降级**：所有依赖外部服务（LLM/支付/第三方 API）的代码，必须包含 `try-catch` 兜底与默认降级数据输出，禁止未捕获的异常导致 API 挂起。
+
+### 3.3 必须执行的终端验证命令结构
+每个任务结尾必须提供由 OpenCode 执行的终端验证指令组合：
+
+```bash
+# 标准校验组合拳：静态类型检查 + 指定单元/集成测试
+npx tsc --noEmit && pnpm test [相关测试文件路径]
+```
+
+> **通过标准**：`Process exited with code 0`，且测试用例通过率 100%。
+
+---
+
+## 4. 🚨 报错反哺与修复任务格式 (Error Feedback Template)
+
+当 OpenCode 执行终端命令产生报错或测试失败时，无需扩大修改范围，应使用以下反哺格式将错误反馈给架构师 AI，请求针对性修复 Task：
+
+```markdown
+### ⚠️ OpenCode 终端执行报错反哺
+
+- **执行 Task**：[Task 编号与名称]
+- **报错指令**：`[例如：npx tsc --noEmit]`
+- **终端报错信息 (Error Output)**：
+  ```text
+  [粘贴终端输出的具体错误栈、TypeScript 报错码 TS2322 或 Vitest Fail 信息]
+  ```
+- **受影响代码上下文**：[受影响的文件及行号]
+- **👉 请架构师仅针对上述报错根源，生成针对性的【Task X.1 专项修复指令】。**
+```
+
+---
+
+*本规范由 deal-protocol 首席架构师制定，用于保障项目全局演进的严谨性与自动化效率。*
