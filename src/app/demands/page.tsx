@@ -9,7 +9,9 @@ import { DemandCard } from '@/components/demands/demand-card';
 import { GachaModal } from '@/components/gacha/gacha-modal';
 import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
 import { DemandCardSkeleton } from '@/components/ui/cyber-skeleton';
-import { Search, Filter, Plus, Gift, Sparkles, Scroll } from 'lucide-react';
+import { GuildRegistrationModal } from '@/components/onboarding/guild-registration-modal';
+import { QueueAdventureModal } from '@/components/encounter/queue-adventure-modal';
+import { Search, Filter, Plus, Gift, Sparkles, Scroll, Clock, Users } from 'lucide-react';
 
 interface DemandCardItem extends Tables<'demands'> {
   category?: string;
@@ -22,6 +24,7 @@ export default function GuildQuestBoardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isGachaOpen, setIsGachaOpen] = useState(false);
+  const [isQueueOpen, setIsQueueOpen] = useState(false);
 
   useEffect(() => {
     async function fetchDemands() {
@@ -64,6 +67,14 @@ export default function GuildQuestBoardPage() {
 
           <div className="flex items-center gap-3">
             <ThemeSwitcher />
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setIsQueueOpen(true)}
+              className="px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 flex items-center gap-1.5"
+            >
+              <Users className="w-4 h-4" /> 排队奇遇
+            </motion.button>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -160,6 +171,23 @@ export default function GuildQuestBoardPage() {
           />
         )}
       </div>
+
+      <GuildRegistrationModal
+        onComplete={() => {
+          setIsGachaOpen(true);
+        }}
+      />
+
+      <QueueAdventureModal
+        isOpen={isQueueOpen}
+        onClose={() => setIsQueueOpen(false)}
+        onSelectSideQuest={(questType) => {
+          setIsQueueOpen(false);
+          if (questType !== 'boba') {
+            setIsGachaOpen(true);
+          }
+        }}
+      />
 
       <GachaModal isOpen={isGachaOpen} onClose={() => setIsGachaOpen(false)} />
     </div>
