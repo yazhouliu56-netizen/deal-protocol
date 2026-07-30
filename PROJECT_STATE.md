@@ -894,3 +894,46 @@ npx tsc --noEmit && pnpm test [相关测试文件路径]
 ---
 
 *本规范由 deal-protocol 首席架构师制定，用于保障项目全局演进的严谨性与自动化效率。*
+
+<!-- ================================================================= -->
+<!-- 归档 PATCH: v3.0.0-PROD 生产环境稳定基线打卡                       -->
+<!-- ================================================================= -->
+
+# 🏁 Deal Protocol — Project Baseline Archive (v3.0.0-PROD)
+
+> **Updated**: 2026-07-30  
+> **Status**: `PRODUCTION_READY / DEPLOYED`  
+> **Target**: Vercel Production Environment (Ready)  
+
+---
+
+## 1. v3.0.0 核心里程碑成果 (Milestone Summary)
+
+### 1.1 数据库防篡改与 SLA 自动解冻锁 (DB Security & Idempotent RPC)
+- **5 表防范性 DDL**：在 `profiles`, `orders`, `contracts`, `milestone_schedules`, `wallet_logs` 上部署防御性列创建 DDL 块，保障 Migration 100% 幂等执行。
+- **RLS 客户端防篡改锁**：封锁客户端 Client SDK 直接 UPDATE 资金余额与交易状态的权限。
+- **SLA 自动解冻存储过程**：`process_milestone_sla_timeouts` 结合 `WHERE status = 'submitted'` 原子条件，防止双重解冻与并发打款。
+
+### 1.2 全 API 路由防护与零 500 优雅降级 (API Resilience)
+- **环境变量断言门网**：在 Supabase Client 初始化前检查 `NEXT_PUBLIC_SUPABASE_URL`。
+- **全局 Try-Catch 捕获**：`/api/profile`（降级 `{ user: null }`）与 `/api/notifications`（降级 `{ notifications: [] }`），彻底消灭 500 Internal Error。
+
+### 1.3 OpenGraph 图片生成器 Runtime 优化 (Vercel Runtime Tuning)
+- 扫荡全网 `opengraph-image.tsx`，将 `runtime` 统一切换为 `'nodejs'`。
+- 成功解锁 Vercel 1MB Edge Function 体积卡点（上限扩展至 50MB Serverless Function），完美支持 `@vercel/og`。
+
+### 1.4 二次元 ACG / 异世界公会 UI 重构与 4 套主题换肤
+- **首页重构**："异世界冒险者公会"重构（"发布异世界悬赏，召集顶尖冒险者"）。
+- **4 套主题实时换肤**：打通 `ThemeProvider` ➔ `<html>[data-theme]` ➔ `globals.css` 主题变量链条：
+  - `cyber-pop`（赛博霓虹 - 默认）
+  - `soft-astral`（星空工坊 - 蓝紫云幻）
+  - `tactical-hud`（战术终端 - 黑绿荧光）
+  - `pro-minimal`（极简干练 - 冷灰商务）
+
+---
+
+## 2. 待讨论与下一阶段 Roadmap (Pending Discussions) `[IN_DISCUSSION]`
+
+- [ ] **[IN_DISCUSSION] 跨链代币 (Web3 Token) 与灵魂绑定勋章 (SBT) 部署**
+- [ ] **[IN_DISCUSSION] A2A Agent 通信协议 (2027 Agent-to-Agent Mesh) 标准升级**
+- [ ] **[IN_DISCUSSION] 多语言全球化 (i18n) 异世界奇遇文案支持**
