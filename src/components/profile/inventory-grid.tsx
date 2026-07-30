@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Sparkles, Shield, Zap, Award, X, Check } from 'lucide-react';
+import { Package, Sparkles, Shield, Zap, Award, X, Check, Backpack } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
 
 export interface InventoryItem {
   id: string;
@@ -54,6 +55,14 @@ export const InventoryGrid: React.FC = () => {
         </div>
       )}
 
+      {items.length === 0 ? (
+        <CyberEmptyState
+          title="成就背包空荡荡 ..."
+          description="尚未获得任何盲盒道具。参与公会悬赏、完成契约或使用秘宝抽卡获取道具吧！"
+          actionText="前往公会大厅"
+          onAction={() => window.location.href = '/demands'}
+        />
+      ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
         {items.map((item) => {
           const Icon = item.icon;
@@ -98,6 +107,7 @@ export const InventoryGrid: React.FC = () => {
           );
         })}
       </div>
+      )}
 
       <AnimatePresence>
         {selectedItem && (

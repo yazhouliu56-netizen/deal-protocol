@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase-client";
 import { createPayment, getAvailablePaymentChannels } from "@/lib/payment";
@@ -577,6 +578,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   await emitEvent({ type: 'order', id, action, userId: session.user.id, metadata: { fundStatus: nextFundStatus || contract.fund_status } })
+
+  revalidatePath(`/demands/${id}`)
+  revalidatePath('/profile')
 
   return NextResponse.json({ contract: updated });
 }

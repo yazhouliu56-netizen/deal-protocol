@@ -203,7 +203,7 @@ export interface Database {
           id: string
           provider_id: string
           amount: number
-          type: 'payout' | 'platform_fee' | 'withdrawal' | 'withdrawal_freeze'
+          type: 'payout' | 'platform_fee' | 'withdrawal' | 'withdrawal_freeze' | 'milestone_payout' | 'sla_release' | 'checkpoint_release'
           order_id: string | null
           description: string | null
           created_at: string

@@ -7,6 +7,8 @@ import { Tables } from '@/types/database.types';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { DemandCard } from '@/components/demands/demand-card';
 import { GachaModal } from '@/components/gacha/gacha-modal';
+import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
+import { DemandCardSkeleton } from '@/components/ui/cyber-skeleton';
 import { Search, Filter, Plus, Gift, Sparkles, Scroll } from 'lucide-react';
 
 interface DemandCardItem extends Tables<'demands'> {
@@ -134,7 +136,7 @@ export default function GuildQuestBoardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-48 rounded-2xl bg-slate-900/40 border border-slate-800 animate-pulse" />
+              <DemandCardSkeleton key={i} />
             ))}
           </div>
         ) : filteredDemands.length > 0 ? (
@@ -148,11 +150,14 @@ export default function GuildQuestBoardPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 border border-dashed border-slate-800 rounded-3xl bg-slate-900/30">
-            <Filter className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-slate-300">未检索到匹配的公会悬赏令</h3>
-            <p className="text-xs text-slate-500 mt-1">尝试调整搜索关键字或发布新的悬赏任务</p>
-          </div>
+          <CyberEmptyState
+            title={searchQuery ? '未检索到匹配的公会悬赏令' : '公会告示板暂无悬赏令'}
+            description={searchQuery ? '尝试调整搜索关键字或重置筛选条件' : '当前分类下尚未发现契约，快去发布新的公会悬赏吧！'}
+            actionText="重置筛选条件"
+            onAction={() => { setSearchQuery(''); setSelectedCategory('all'); }}
+            secondaryText="前往公会大厅"
+            onSecondary={() => router.push('/demands/create')}
+          />
         )}
       </div>
 

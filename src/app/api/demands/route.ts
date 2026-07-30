@@ -1,4 +1,5 @@
 import { NextResponse, after } from "next/server"
+import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit"
@@ -85,6 +86,7 @@ export const POST = withAuth(async (req, user) => {
       const { data: protocol, error } = await supabase.from('protocols').insert(payload).select().single()
       if (error) throw error
 
+      revalidatePath('/demands')
       after(async () => {
         const category = info.category as string
         if (category) await autoMatchProtocol(supabase, protocol!.id, category)
@@ -97,6 +99,7 @@ export const POST = withAuth(async (req, user) => {
     const { data: protocol, error } = await supabase.from('protocols').insert(payload).select().single()
     if (error) throw new Error(`Protocol insert error: ${error.message} (${JSON.stringify(error)})`)
 
+    revalidatePath('/demands')
     after(async () => {
       const category = body.category as string
       if (category) await autoMatchProtocol(supabase, protocol!.id, category)

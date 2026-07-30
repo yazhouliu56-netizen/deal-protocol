@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase-client"
+import { getServiceClient } from "@/lib/supabase-client"
 import { addContractEvent, getNextFundStatus } from "@/lib/contract-machine"
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
@@ -50,12 +50,13 @@ interface OrderQueryRow {
   id: string
   protocol_id: string
   service_phase: string
+  status: string
   updated_at: string | null
   created_at: string
 }
 
 export async function checkAndEnforceSLA(): Promise<string[]> {
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
   const now = new Date()
   const results: string[] = []
 
@@ -71,13 +72,18 @@ export async function checkAndEnforceSLA(): Promise<string[]> {
 
     const { data: orders } = await supabase
       .from("orders")
-      .select("id, protocol_id, service_phase, updated_at, created_at")
+      .select("id, protocol_id, service_phase, status, updated_at, created_at")
       .eq("contract_id", contract.id)
       .order("created_at", { ascending: false })
       .limit(1)
 
     if (!orders || orders.length === 0) continue
+
     const order = orders[0] as unknown as OrderQueryRow
+
+    if (order.service_phase === "CANCELLED" || order.status === "cancelled") {
+      continue
+    }
 
     const sla = SLA_MAP[order.service_phase]
     if (!sla) continue
@@ -101,7 +107,7 @@ async function enforceSLABreach(
   now: Date,
   results: string[],
 ): Promise<void> {
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
   const penaltyPct = 0.05
   const compensationAmount = Math.round(contract.amount * penaltyPct * 100) / 100
   const slaAction = "sla_breach"
@@ -110,15 +116,39 @@ async function enforceSLABreach(
   const nextFundStatus = protocolId ? getNextFundStatus(protocolId, slaAction) : null
   const targetFundStatus = nextFundStatus ?? "CANCELLED"
 
+  const { data: recheckOrder } = await supabase
+    .from("orders")
+    .select("service_phase")
+    .eq("id", order.id)
+    .single()
+
+  if (recheckOrder && recheckOrder.service_phase === "CANCELLED") {
+    results.push(`SLA_SKIP ${contract.id}: order already processed`)
+    return
+  }
+
+  const { data: recheckContract } = await supabase
+    .from("contracts")
+    .select("fund_status")
+    .eq("id", contract.id)
+    .single()
+
+  if (recheckContract && recheckContract.fund_status !== "HELD") {
+    results.push(`SLA_SKIP ${contract.id}: contract fund_status already changed to ${recheckContract.fund_status}`)
+    return
+  }
+
   await supabase
     .from("orders")
     .update({ service_phase: "CANCELLED" as const, status: "cancelled" as const })
     .eq("id", order.id)
+    .in("service_phase", ["ACCEPTED", "DEPARTED"])
 
   await supabase
     .from("contracts")
     .update({ fund_status: targetFundStatus })
     .eq("id", contract.id)
+    .eq("fund_status", "HELD")
 
   await addContractEvent({
     contractId: contract.id,
@@ -135,7 +165,7 @@ async function enforceSLABreach(
   const ev = await appendEvidence({
     protocolId: protocolId ?? undefined,
     orderId: order.id,
-    eventType: "sla_breach",
+    eventType: "SLA_AUTO_RELEASED",
     payload: {
       contract_id: contract.id,
       provider_id: contract.provider_id,
@@ -144,6 +174,7 @@ async function enforceSLABreach(
       elapsed_minutes: elapsedMinutes,
       sla_max_minutes: sla.maxMinutes,
       compensation: compensationAmount,
+      target_fund_status: targetFundStatus,
     },
   })
 
@@ -160,6 +191,16 @@ async function enforceSLABreach(
     evidenceId,
     description: `SLA超时违约: ${sla.label}超时，订单${contract.id}已取消`,
   })
+
+  await supabase
+    .from("wallet_logs")
+    .insert({
+      provider_id: contract.provider_id,
+      amount: compensationAmount,
+      type: "sla_release",
+      order_id: order.id,
+      description: `SLA auto release penalty: ¥${compensationAmount} for order ${order.id}`,
+    })
 
   if (compensationAmount > 0) {
     await supabase

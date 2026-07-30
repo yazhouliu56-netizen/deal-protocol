@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 
@@ -99,6 +100,9 @@ export const POST = withAuth(async (req, user) => {
   if (logError) {
     console.warn("wallet_logs 写入失败，但资金已发放:", logError)
   }
+
+  revalidatePath(`/demands/${orderId}`)
+  revalidatePath('/profile')
 
   return NextResponse.json({
     success: true,

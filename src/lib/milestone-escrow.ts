@@ -1,33 +1,11 @@
 import { getSupabase, getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
+import type { Tables } from '@/types/database.types'
 
 export interface MilestoneInput {
   title: string
   amount: number
   stepNumber: number
-}
-
-export interface MilestoneRecord {
-  id: string
-  contract_id: string
-  title: string
-  amount: number
-  step_number: number
-  status: 'PENDING' | 'HELD' | 'SETTLED' | 'DISPUTED' | 'submitted' | 'completed' | 'skipped'
-  auto_confirm_at: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface MilestoneCheckpoint {
-  id: string
-  contract_id: string
-  title: string
-  amount: number
-  step_number: number
-  status: 'pending' | 'submitted' | 'completed' | 'disputed' | 'skipped'
-  auto_confirm_at: string | null
-  created_at: string
 }
 
 export interface ProcessExpiredResult {
@@ -38,8 +16,8 @@ export interface ProcessExpiredResult {
 export async function createMilestonesForContract(
   contractId: string,
   milestones: MilestoneInput[],
-): Promise<{ success: boolean; records: MilestoneRecord[] }> {
-  const records: MilestoneRecord[] = []
+): Promise<{ success: boolean; records: Tables<'milestone_schedules'>[] }> {
+  const records: Tables<'milestone_schedules'>[] = []
 
   for (const m of milestones) {
     const { data, error } = await getSupabase()
@@ -59,7 +37,7 @@ export async function createMilestonesForContract(
       continue
     }
 
-    records.push(data as unknown as MilestoneRecord)
+    records.push(data as unknown as Tables<'milestone_schedules'>)
   }
 
   if (records.length > 0) {
@@ -68,10 +46,6 @@ export async function createMilestonesForContract(
       .update({ status: 'HELD' })
       .eq('contract_id', contractId)
       .eq('status', 'PENDING')
-
-    for (const r of records) {
-      r.status = 'HELD'
-    }
 
     await appendEvidence({
       protocolId: contractId,
@@ -85,8 +59,10 @@ export async function createMilestonesForContract(
 
 export async function releaseMilestoneEscrow(
   milestoneId: string,
-): Promise<{ success: boolean; milestone?: MilestoneRecord }> {
-  const { data: milestone, error: fetchErr } = await getSupabase()
+): Promise<{ success: boolean; milestone?: Tables<'milestone_schedules'> }> {
+  const supabase = getServiceClient()
+
+  const { data: milestone, error: fetchErr } = await supabase
     .from('milestone_schedules')
     .select('*')
     .eq('id', milestoneId)
@@ -97,13 +73,13 @@ export async function releaseMilestoneEscrow(
     return { success: false }
   }
 
-  const ms = milestone as unknown as MilestoneRecord
+  const ms = milestone as unknown as Tables<'milestone_schedules'>
   if (ms.status !== 'HELD') {
     console.error(`[MilestoneEscrow] Milestone ${milestoneId} status is ${ms.status}, expected HELD`)
     return { success: false }
   }
 
-  const { data: contract } = await getSupabase()
+  const { data: contract } = await supabase
     .from('contracts')
     .select('provider_id')
     .eq('id', ms.contract_id)
@@ -114,40 +90,53 @@ export async function releaseMilestoneEscrow(
     return { success: false }
   }
 
-  const { data: wallet } = await getSupabase()
-    .from('provider_wallets')
-    .select('balance')
-    .eq('provider_id', contract.provider_id)
-    .single()
+  const { data: existingLog } = await supabase
+    .from('wallet_logs')
+    .select('id')
+    .eq('order_id', ms.contract_id)
+    .eq('type', 'milestone_payout')
+    .maybeSingle()
 
-  const newBalance = wallet
-    ? Math.round((Number(wallet.balance) + ms.amount) * 100) / 100
-    : ms.amount
-
-  if (wallet) {
-    await getSupabase()
-      .from('provider_wallets')
-      .update({ balance: newBalance })
-      .eq('provider_id', contract.provider_id)
+  if (existingLog) {
+    console.warn(`[MilestoneEscrow] wallet_logs already exists for contract ${ms.contract_id}, skipping wallet credit`)
   } else {
-    await getSupabase()
+    const { data: wallet } = await supabase
       .from('provider_wallets')
-      .insert({ provider_id: contract.provider_id, balance: ms.amount })
+      .select('balance')
+      .eq('provider_id', contract.provider_id)
+      .single()
+
+    const newBalance = wallet
+      ? Math.round((Number(wallet.balance) + ms.amount) * 100) / 100
+      : ms.amount
+
+    if (wallet) {
+      await supabase
+        .from('provider_wallets')
+        .update({ balance: newBalance })
+        .eq('provider_id', contract.provider_id)
+    } else {
+      await supabase
+        .from('provider_wallets')
+        .insert({ provider_id: contract.provider_id, balance: ms.amount })
+    }
+
+    await supabase
+      .from('wallet_logs')
+      .insert({
+        provider_id: contract.provider_id,
+        amount: ms.amount,
+        type: 'milestone_payout',
+        order_id: ms.contract_id,
+        description: `Milestone release: ${ms.title} (step ${ms.step_number}) for contract ${ms.contract_id}`,
+      })
   }
 
-  await getSupabase()
-    .from('wallet_logs')
-    .insert({
-      provider_id: contract.provider_id,
-      amount: ms.amount,
-      type: 'milestone_payout',
-      description: `Milestone release: ${ms.title} (step ${ms.step_number}) for contract ${ms.contract_id}`,
-    })
-
-  const { data: updated, error: updateErr } = await getSupabase()
+  const { data: updated, error: updateErr } = await supabase
     .from('milestone_schedules')
     .update({ status: 'SETTLED', updated_at: new Date().toISOString() })
     .eq('id', milestoneId)
+    .eq('status', 'HELD')
     .select()
     .single()
 
@@ -162,12 +151,12 @@ export async function releaseMilestoneEscrow(
     payload: { milestone_id: milestoneId, title: ms.title, amount: ms.amount, step_number: ms.step_number },
   })
 
-  return { success: true, milestone: updated as unknown as MilestoneRecord }
+  return { success: true, milestone: updated as unknown as Tables<'milestone_schedules'> }
 }
 
 export async function submitMilestoneCheckpoint(
   milestoneId: string,
-  hoursToAutoConfirm: number = 24
+  hoursToAutoConfirm: number = 24,
 ): Promise<{ success: boolean; autoConfirmAt: string }> {
   const supabase = getServiceClient()
   const autoConfirmAt = new Date(Date.now() + hoursToAutoConfirm * 3600 * 1000).toISOString()
@@ -188,20 +177,94 @@ export async function submitMilestoneCheckpoint(
   return { success: true, autoConfirmAt }
 }
 
-export async function confirmMilestoneCheckpoint(milestoneId: string): Promise<{ success: boolean }> {
+export async function confirmMilestoneCheckpoint(
+  checkpointId: string,
+  userId: string,
+): Promise<{ success: boolean }> {
   const supabase = getServiceClient()
 
-  const { error } = await supabase
+  const { data: updatedCheckpoint, error } = await supabase
     .from('milestone_schedules')
     .update({
       status: 'completed',
-      auto_confirm_at: null,
+      completed_at: new Date().toISOString(),
     })
-    .eq('id', milestoneId)
+    .eq('id', checkpointId)
+    .eq('status', 'submitted')
+    .select()
+    .single()
 
-  if (error) {
-    throw new Error(`Failed to confirm milestone checkpoint: ${error.message}`)
+  if (error || !updatedCheckpoint) {
+    throw new Error(`Checkpoint has been settled or is not in a completable state; duplicate release blocked.`)
   }
+
+  const cp = updatedCheckpoint as unknown as Tables<'milestone_schedules'>
+
+  const { data: existingLog } = await supabase
+    .from('wallet_logs')
+    .select('id')
+    .eq('order_id', cp.contract_id)
+    .eq('type', 'checkpoint_release')
+    .maybeSingle()
+
+  if (existingLog) {
+    console.warn(`[Escrow Security] Checkpoint ${checkpointId} wallet log exists, skipping wallet credit`)
+    return { success: true }
+  }
+
+  const { data: contract } = await supabase
+    .from('contracts')
+    .select('provider_id, demand_id')
+    .eq('id', cp.contract_id)
+    .single()
+
+  if (!contract) {
+    throw new Error(`Contract ${cp.contract_id} not found for checkpoint release`)
+  }
+
+  const { data: wallet } = await supabase
+    .from('provider_wallets')
+    .select('balance')
+    .eq('provider_id', contract.provider_id)
+    .single()
+
+  const newBalance = wallet
+    ? Math.round((Number(wallet.balance) + cp.amount) * 100) / 100
+    : cp.amount
+
+  if (wallet) {
+    await supabase
+      .from('provider_wallets')
+      .update({ balance: newBalance })
+      .eq('provider_id', contract.provider_id)
+  } else {
+    await supabase
+      .from('provider_wallets')
+      .insert({ provider_id: contract.provider_id, balance: cp.amount })
+  }
+
+  await supabase
+    .from('wallet_logs')
+    .insert({
+      provider_id: contract.provider_id,
+      amount: cp.amount,
+      type: 'checkpoint_release',
+      order_id: cp.contract_id,
+      description: `Checkpoint release: ${cp.title} (step ${cp.step_number}) for checkpoint ${checkpointId}`,
+    })
+
+  await appendEvidence({
+    protocolId: contract.demand_id ?? undefined,
+    orderId: cp.contract_id,
+    eventType: 'CHECKPOINT_UNFROZEN',
+    payload: {
+      checkpoint_id: checkpointId,
+      title: cp.title,
+      amount: cp.amount,
+      step_number: cp.step_number,
+      provider_id: contract.provider_id,
+    },
+  })
 
   return { success: true }
 }
@@ -239,9 +302,79 @@ export async function processExpiredCheckpoints(): Promise<ProcessExpiredResult>
 
       if (updateError) {
         errors.push(`Checkpoint ${checkpoint.id} error: ${updateError.message}`)
-      } else {
-        processedCount++
+        continue
       }
+
+      const { data: existingLog } = await supabase
+        .from('wallet_logs')
+        .select('id')
+        .eq('order_id', checkpoint.contract_id)
+        .eq('type', 'checkpoint_release')
+        .maybeSingle()
+
+      if (existingLog) {
+        console.warn(`[Escrow Cron] checkpoint ${checkpoint.id} already credited, skipping`)
+        processedCount++
+        continue
+      }
+
+      const { data: contract } = await supabase
+        .from('contracts')
+        .select('provider_id, demand_id')
+        .eq('id', checkpoint.contract_id)
+        .single()
+
+      if (!contract) {
+        errors.push(`Checkpoint ${checkpoint.id}: contract ${checkpoint.contract_id} not found`)
+        continue
+      }
+
+      const { data: wallet } = await supabase
+        .from('provider_wallets')
+        .select('balance')
+        .eq('provider_id', contract.provider_id)
+        .single()
+
+      const newBalance = wallet
+        ? Math.round((Number(wallet.balance) + checkpoint.amount) * 100) / 100
+        : checkpoint.amount
+
+      if (wallet) {
+        await supabase
+          .from('provider_wallets')
+          .update({ balance: newBalance })
+          .eq('provider_id', contract.provider_id)
+      } else {
+        await supabase
+          .from('provider_wallets')
+          .insert({ provider_id: contract.provider_id, balance: checkpoint.amount })
+      }
+
+      await supabase
+        .from('wallet_logs')
+        .insert({
+          provider_id: contract.provider_id,
+          amount: checkpoint.amount,
+          type: 'checkpoint_release',
+          order_id: checkpoint.contract_id,
+          description: `Auto release expired checkpoint: ${checkpoint.title} for checkpoint ${checkpoint.id}`,
+        })
+
+      await appendEvidence({
+        protocolId: contract.demand_id ?? undefined,
+        orderId: checkpoint.contract_id,
+        eventType: 'CHECKPOINT_UNFROZEN',
+        payload: {
+          checkpoint_id: checkpoint.id,
+          title: checkpoint.title,
+          amount: checkpoint.amount,
+          contract_id: checkpoint.contract_id,
+          provider_id: contract.provider_id,
+          trigger: 'auto_expiry',
+        },
+      })
+
+      processedCount++
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)

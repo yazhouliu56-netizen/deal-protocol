@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 
@@ -38,6 +39,9 @@ export const POST = withAuth(async (req, user) => {
   if (updateError) {
     return NextResponse.json({ error: "支付失败，请稍后重试" }, { status: 500 })
   }
+
+  revalidatePath(`/demands/${orderId}`)
+  revalidatePath('/profile')
 
   return NextResponse.json({ success: true })
 })
