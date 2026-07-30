@@ -17,34 +17,45 @@ export function withAuth(
   ) => Promise<NextResponse>,
 ) {
   const wrapped = async (req: Request, ...args: unknown[]) => {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll(
-            cookiesToSet: { name: string; value: string; options: CookieOptions }[],
-          ) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            )
+    try {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.warn('[withAuth] Supabase env vars missing, returning fallback')
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      const cookieStore = await cookies()
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          cookies: {
+            getAll() { return cookieStore.getAll() },
+            setAll(
+              cookiesToSet: { name: string; value: string; options: CookieOptions }[],
+            ) {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options),
+              )
+            },
           },
         },
-      },
-    )
+      )
 
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser()
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
 
-    if (error || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (error || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      return await handler(req, user as unknown as UserInfo, ...args)
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown server error'
+      console.error('[withAuth] Unhandled error:', errorMsg)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
-
-    return handler(req, user as unknown as UserInfo, ...args)
   }
 
   return wrapped

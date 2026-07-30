@@ -24,7 +24,8 @@ export const GET = withAuth(async (req, user) => {
       .select('id, name, email, phone, role, roles, credit_score, balance, created_at, bio, skills, service_areas, avatar_url, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
       .single()
     if (insertError || !newUser) {
-      return NextResponse.json({ error: insertError?.message || 'Failed to create profile' }, { status: 500 })
+      console.warn('[API Profile] Failed to auto-create profile:', insertError?.message)
+      return NextResponse.json({ user: null, error: 'Profile creation failed' }, { status: 200 })
     }
     if (newUser.phone) newUser.phone = maskPhone(newUser.phone)
     return NextResponse.json({ user: newUser })
@@ -83,7 +84,10 @@ export const PATCH = withAuth(async (req, user) => {
     .select('id, name, email, phone, role, credit_score, balance, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
     .single();
 
-  if (updateError) throw updateError;
+  if (updateError) {
+    console.warn('[API Profile] Update failed:', updateError.message)
+    return NextResponse.json({ user: null, error: updateError.message }, { status: 200 })
+  }
 
   return NextResponse.json({ user: updated });
 });

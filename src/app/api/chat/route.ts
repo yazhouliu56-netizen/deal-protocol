@@ -5,16 +5,17 @@ import { interceptChatRisk } from "@/lib/risk-interceptor"
 import { buildConciergeContext } from "@/lib/concierge-agent"
 
 export async function POST(request: Request) {
-  let { messages, userContext } = await request.json()
+  try {
+    let { messages, userContext } = await request.json()
 
-  if (!userContext) {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return new Response("Unauthorized", { status: 401 })
+    if (!userContext) {
+      const session = await auth()
+      if (!session?.user?.id) {
+        return new Response("Unauthorized", { status: 401 })
+      }
     }
-  }
 
-  const userId = userContext?.userId ?? (await auth())?.user?.id
+    const userId = userContext?.userId ?? (await auth())?.user?.id
 const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop()
   let riskWarning = ''
   if (lastUserMsg) {
@@ -86,5 +87,13 @@ const result = streamText({
     temperature: 0.3,
   })
 
-  return result.toUIMessageStreamResponse()
+    return result.toUIMessageStreamResponse()
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown server error'
+    console.error('[API Chat] Unhandled error:', errorMsg)
+    return new Response(JSON.stringify({ error: errorMsg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
 }

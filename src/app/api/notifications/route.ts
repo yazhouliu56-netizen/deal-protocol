@@ -13,7 +13,8 @@ export const GET = withAuth(async (req, user) => {
     .limit(50);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.warn('[API Notifications] Failed to fetch:', error.message)
+    return NextResponse.json({ notifications: [], error: error.message }, { status: 200 });
   }
 
   return NextResponse.json({ notifications });
@@ -35,7 +36,8 @@ export const PATCH = withAuth(async (req, user) => {
     .in('id', ids);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.warn('[API Notifications] Mark-read failed:', error.message)
+    return NextResponse.json({ success: false, error: error.message }, { status: 200 });
   }
 
   return NextResponse.json({ success: true });

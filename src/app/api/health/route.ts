@@ -18,9 +18,10 @@ export async function GET() {
       { status: "healthy", engine: "Next.js Standalone", timestamp: new Date().toISOString() },
       { status: 200 },
     )
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const reason = err instanceof Error ? err.message : "Internal Check Crash"
     return NextResponse.json(
-      { status: "unhealthy", reason: err.message || "Internal Check Crash" },
+      { status: "unhealthy", reason },
       { status: 500 },
     )
   }
