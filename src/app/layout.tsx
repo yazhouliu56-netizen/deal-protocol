@@ -12,19 +12,19 @@ const SITE_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Deal Protocol — 去中心化服务交易与资金托管平台",
+    default: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
     template: "%s | Deal Protocol",
   },
   description:
-    "AI 驱动的全品类服务交易平台，自然语言需求与链上协议匹配引擎，合约体系保障交易安全。家政维修、按摩推拿，一站式解决。",
+    "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。异世界智能契约与可信魔晶托管协议架构。",
   keywords: [
-    "服务交易",
+    "异世界悬赏",
+    "冒险者公会",
+    "魔晶托管",
+    "智能契约",
     "资金托管",
     "担保交易",
-    "O2O 平台",
-    "上门服务",
     "智能匹配",
-    "协议模板",
     "Deal Protocol",
   ],
   manifest: "/manifest.webmanifest",
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Deal Protocol",
-    title: "Deal Protocol — 去中心化服务交易与资金托管平台",
+    title: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
     description:
-      "AI 驱动的全品类服务交易平台，自然语言需求与链上协议匹配引擎，合约体系保障交易安全。",
+      "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。",
     url: SITE_URL,
     locale: "zh_CN",
     images: [
@@ -49,15 +49,15 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Deal Protocol — 去中心化服务交易与资金托管平台",
+        alt: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Deal Protocol — 去中心化服务交易与资金托管平台",
+    title: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
     description:
-      "AI 驱动的全品类服务交易平台，自然语言需求与链上协议匹配引擎，合约体系保障交易安全。",
+      "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。",
     images: ["/opengraph-image"],
   },
 };
@@ -69,7 +69,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
         <SessionProvider>
           <UXProvider>
             <ThemeProvider>

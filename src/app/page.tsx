@@ -1,254 +1,161 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import ClientConsole from "@/components/ClientConsole"
-import { ArrowRight, Sparkles, Shield, ShieldCheck, FileText, Scale, Cpu, ChevronRight, Lock, ScrollText, Zap, Clock, Route, TrendingUp } from "lucide-react"
+import { motion } from "framer-motion"
+import { ThemeSwitcher } from "@/components/theme/theme-switcher"
+import { CyberOracleDialog } from "@/components/ui/cyber-oracle-dialog"
+import { Scroll, Sparkles, Cpu, Zap, Lock } from "lucide-react"
 
-const STATS = [
-  { value: "＜ 3s", sub: "平均 AI 契约生成时效", icon: Clock },
-  { value: "99.4%", sub: "全网即时派单抢单响应率", icon: Zap },
-  { value: "100%", sub: "双端资金锁定与安全托管", icon: ShieldCheck },
-  { value: "¥4.2M", sub: "历史累计安全流转金额", icon: TrendingUp },
-]
-
-function Typewriter({ texts }: { texts: string[] }) {
-  const [displayText, setDisplayText] = useState("")
-  const idxRef = useRef(0)
-  const charRef = useRef(0)
-  const dirRef = useRef(1)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const dir = dirRef.current
-      const idx = idxRef.current
-      const text = texts[idx]
-      let next = charRef.current + dir
-
-      if (next > text.length) {
-        setTimeout(() => { dirRef.current = -1 }, 1000)
-        return
-      }
-      if (next < 0) {
-        dirRef.current = 1
-        idxRef.current = (idx + 1) % texts.length
-        charRef.current = 0
-        setDisplayText("")
-        return
-      }
-      charRef.current = next
-      setDisplayText(text.slice(0, next))
-    }, 60)
-    return () => clearInterval(interval)
-  }, [texts])
-
-  return <span>{displayText}<span className="animate-pulse">|</span></span>
-}
-
-export default function Home() {
-  const [view, setView] = useState<"home" | "clientConsole">("home")
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.location.search.includes("view=console")) {
-      setView("clientConsole")
-    }
-  }, [])
-
-  if (view === "clientConsole") {
-    return <ClientConsole onBackToHome={() => { setView("home"); window.history.replaceState(null, "", "/") }} />
-  }
-
+export default function HomePage() {
   return (
-    <div className="flex flex-col bg-slate-50 dark:bg-zinc-950">
-      {/* ══════ Hero ══════ */}
-      <section className="relative overflow-hidden px-4 pt-24 pb-20 sm:pt-32 sm:pb-28 lg:pt-40 lg:pb-32">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.08),transparent_50%)]" />
-        <div className="relative mx-auto max-w-5xl text-center">
-          {/* Pill badge */}
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200/60 bg-white px-4 py-1.5 text-xs text-slate-500 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900 dark:text-zinc-400">
-            <Sparkles className="size-3 text-indigo-600 dark:text-indigo-400" />
-            AI 驱动 · 隐私脱敏广播 · 毫秒级即时派单
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden flex flex-col justify-between">
+      {/* 背景赛博发光粒子与网格线 */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-10 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-25 pointer-events-none" />
+
+      {/* 顶部 Header Navigation */}
+      <header className="relative z-20 border-b border-slate-800/80 backdrop-blur-xl bg-slate-950/60 sticky top-0 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-0.5 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-300">
+              <Scroll className="w-5 h-5" />
+            </div>
           </div>
+          <span className="font-black text-base sm:text-lg tracking-tight text-white font-mono">
+            deal-protocol <span className="text-xs text-cyan-400 font-normal ml-1">| 异世界冒险者公会</span>
+          </span>
+        </div>
 
-          {/* Headline */}
-          <h1 className="text-5xl font-black tracking-tight text-slate-900 sm:text-6xl lg:text-7xl dark:text-zinc-100">
-            自然语言输入，
-            <br className="sm:hidden" />
-            <span className="bg-gradient-to-r from-indigo-500 to-emerald-500 bg-clip-text text-transparent">
-              秒级智能派单
-            </span>
-          </h1>
+        {/* 导航菜单与主题切换器 */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-slate-300">
+            <Link href="/" className="text-cyan-400 hover:text-cyan-300 transition">首页</Link>
+            <Link href="/demands" className="hover:text-cyan-300 transition">悬赏大厅</Link>
+            <Link href="/orders" className="hover:text-cyan-300 transition">我的契约</Link>
+            <Link href="/profile" className="hover:text-cyan-300 transition">玩家中心</Link>
+          </nav>
+          <ThemeSwitcher />
+        </div>
+      </header>
 
-          {/* Subtitle */}
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-500 dark:text-zinc-400">
-            基于大模型动态解析时空与任务条款。一键全网隐私脱敏广播，认证履约方即时抢单，交付时双端单向解密。
-          </p>
+      {/* 主体 Hero 展示区 */}
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-12 sm:py-20 space-y-16">
 
-          {/* Typewriter sub */}
-          <div className="mx-auto mt-6 max-w-2xl text-base text-slate-400 dark:text-zinc-500 h-7">
-            <Typewriter texts={[
-              "例如：今晚 9 点在临沂科技园需要一位高级网络专家执行核心路由紧急排障，预算 500 元，限时 2 小时完成...",
-              "例如：明天上午 10 点杭州滨江需 3 名活动执行搭建展台，含物料搬运，预算 800 元，工期 4 小时...",
-              "例如：即刻需要一名同城骑手从 A 点取文件送至 B 点，加急单补贴 20 元，预计 30 分钟送达...",
-            ]} />
-          </div>
+        {/* Banner 与主标语 */}
+        <div className="text-center space-y-6 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+          >
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+            GUILD BOUNTY ECOSYSTEM v3.0
+          </motion.div>
 
-          {/* Dual CTA */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link href="/demands/new">
-              <Button className="rounded-xl bg-indigo-600 px-8 py-7 text-lg font-bold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-600/30">
-                <Zap className="mr-2 size-5" />
-                立即生成并广播协议
-              </Button>
-            </Link>
-            <Link href="/provider">
-              <Button
-                variant="outline"
-                className="rounded-xl border-slate-200/60 bg-white px-8 py-7 text-base font-semibold text-slate-700 shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900 dark:text-zinc-300"
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight leading-tight"
+          >
+            发布异世界悬赏 <br className="hidden sm:inline" /> 召集顶尖冒险者
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans max-w-2xl mx-auto"
+          >
+            基于 AI 魔法阵自动解析奇遇契约，一键向全网冒险者公会广播，魔晶锁定，即时履约。
+          </motion.p>
+
+          {/* 核心行动按钮 */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
+          >
+            <Link href="/demands/create" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="w-full px-8 py-3.5 rounded-2xl font-black text-sm bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2"
               >
-                查看实时派单大盘
-                <ChevronRight className="ml-1.5 size-4" />
-              </Button>
+                <Sparkles className="w-4 h-4" /> ✨ 开启奇遇，发布悬赏
+              </motion.button>
             </Link>
-          </div>
 
-          {/* Trust bar */}
-          <div className="mx-auto mt-12 flex max-w-lg flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-slate-400 dark:text-zinc-500">
-            <span className="flex items-center gap-1.5"><Cpu className="size-3" />AI 语义解析结构化</span>
-            <span className="flex items-center gap-1.5"><Route className="size-3" />即时路由派单网络</span>
-            <span className="flex items-center gap-1.5"><Lock className="size-3" />阶段性资金锁定</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ Feature Bento-Grid ══════ */}
-      <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-            三大核心引擎
-          </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-zinc-500">
-            语义解析 · 路由派单 · 资金锁定
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Card A: AI Semantic Parsing */}
-          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/30">
-              <Cpu className="size-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">AI 语义解析结构化</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500 leading-relaxed">
-              大模型实时解析文本，精准提取时间、地点、任务核心、交付标的，自动固化为标准数字智能协议
-            </p>
-            {/* Protocol card thumbnail */}
-            <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-zinc-800 dark:bg-zinc-800/50">
-              <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">
-                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="animate-pulse">LLM 解析中...</span>
-              </div>
-              <div className="mt-2 space-y-1.5">
-                <div className="flex justify-between text-[10px]"><span className="text-slate-400 dark:text-zinc-500">📍 位置</span><span className="font-medium text-slate-700 dark:text-zinc-300">杭州滨江国际博览中心</span></div>
-                <div className="flex justify-between text-[10px]"><span className="text-slate-400 dark:text-zinc-500">⏱ 时段</span><span className="font-medium text-slate-700 tabular-nums dark:text-zinc-300">明天 10:00 - 18:00</span></div>
-                <div className="flex justify-between text-[10px]"><span className="text-slate-400 dark:text-zinc-500">💰 预算</span><span className="font-medium text-amber-600 dark:text-amber-400">¥1,200</span></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card B: Instant Route Dispatch */}
-          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/30">
-              <Zap className="size-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">动态即时路由派单</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500 leading-relaxed">
-              协议确认瞬间，触发毫秒级地理与技能流向过滤，将需求实时精准推送到周边认证履约方
-            </p>
-            <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/10">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-slate-900 tabular-nums dark:text-zinc-100">＜ 3s</span>
-                <Badge className="border-0 bg-emerald-100 text-[10px] text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-                  ⚡ 即时抢单进行中
-                </Badge>
-              </div>
-              <p className="mt-2 text-[10px] text-emerald-600 dark:text-emerald-400">认证履约方已收到推送 · 1.2km 范围内</p>
-            </div>
-          </div>
-
-          {/* Card C: Milestone-based Fund Locking */}
-          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
-              <Lock className="size-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-zinc-100">阶段性智能资金锁定</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-500 leading-relaxed">
-              交易资金进入独立的阶段性隔离锁定。履约方现场完成任务、上传凭证、双端确认后，资金秒级结算
-            </p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {[
-                { step: "1", label: "智能托管" },
-                { step: "2", label: "履约完成" },
-                { step: "3", label: "秒级结算" },
-              ].map((p) => (
-                <div key={p.step} className="rounded-lg border border-slate-100 bg-white px-2 py-3 text-center dark:border-zinc-800 dark:bg-zinc-900">
-                  <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{p.step}</p>
-                  <p className="mt-0.5 text-[9px] text-slate-500 dark:text-zinc-500">{p.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ System Dashboard Metrics ══════ */}
-      <section className="border-y border-slate-200/60 bg-white px-4 py-16 dark:border-zinc-800/60 dark:bg-zinc-900">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/60 bg-slate-200/60 dark:border-zinc-800/60 dark:bg-zinc-800/60 md:grid-cols-4">
-            {STATS.map((s) => (
-              <div key={s.sub} className="bg-white px-6 py-8 text-center dark:bg-zinc-900">
-                <s.icon className="mx-auto size-5 text-indigo-500/60 dark:text-indigo-400/60" />
-                <p className="mt-3 font-mono text-3xl font-semibold tracking-tight text-slate-900 dark:text-zinc-100">
-                  {s.value}
-                </p>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-zinc-500">{s.sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════ Final CTA ══════ */}
-      <section className="relative overflow-hidden px-4 py-20 sm:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.08),transparent_50%)]" />
-        <div className="relative mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
-            让你的每一次派单，都具备机器级的严谨与毫秒级的响应
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-zinc-500">
-            从自然语言输入到全网广播，再到履约结算，全流程 AI 驱动，实时可追溯。
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <Link href="/demands/new">
-              <Button className="rounded-xl bg-indigo-600 px-8 py-7 text-base font-bold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700">
-                立刻发起即时派单控制台 <ArrowRight className="ml-2 size-4" />
-              </Button>
+            <Link href="/demands" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="w-full px-8 py-3.5 rounded-2xl font-black text-sm bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              >
+                🗡️ 浏览冒险者大厅
+              </motion.button>
             </Link>
-          </div>
+          </motion.div>
         </div>
-      </section>
 
-      {/* ══════ Footer ══════ */}
-      <footer className="border-t border-slate-200/60 bg-white px-4 py-10 dark:border-zinc-800/60 dark:bg-zinc-900">
-        <div className="mx-auto max-w-5xl text-center">
-          <div className="mx-auto mb-3 inline-flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 text-[8px] font-bold text-white">dp</span>
-            <span className="text-sm font-semibold text-slate-900 dark:text-zinc-100">deal<span className="text-indigo-600">-protocol</span></span>
-          </div>
-          <p className="text-xs text-slate-400 dark:text-zinc-500">企业级智能契约与可信任数字资产托管协议架构</p>
+        {/* Galgame 赛博裁决姬 Live 引导 */}
+        <CyberOracleDialog
+          state="excited"
+          speakerName="Cyber-Oracle姬"
+          message="主人！异世界悬赏公会通道已全量打通！AI 魔法阵已就绪，随时为您解析契约并锁定魔晶！"
+          confidenceScore={0.99}
+          className="max-w-2xl mx-auto shadow-2xl"
+        />
+
+        {/* 三大核心魔法引擎卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <motion.div
+            whileHover={{ y: -6, scale: 1.02 }}
+            className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-xl hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all space-y-3"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center text-purple-300">
+              <Cpu className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-100">🔮 魔法阵契约构建</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              AI 自动提取自然语言要求，生成结构化悬赏条款与阶段魔晶分配方案，无缝契合 Zod 防御网关。
+            </p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -6, scale: 1.02 }}
+            className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-xl hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all space-y-3"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-100">⚡ 冒险者公会即时响应</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              基于 pgvector 向量检索与多臂老虎机 (Bandit) 算法，毫秒级即时匹配高分认证猎人。
+            </p>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -6, scale: 1.02 }}
+            className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-xl hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] transition-all space-y-3"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-100">🔒 魔晶契约托管</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              资金全程存入 7 态灵魂金库，结合 24h Checkpoint 自动解冻与判例 RAG 仲裁，保障双端绝对利益。
+            </p>
+          </motion.div>
         </div>
+      </main>
+
+      {/* Footer 底部对齐 */}
+      <footer className="relative z-20 border-t border-slate-800/80 bg-slate-950/80 py-6 px-4 text-center text-xs font-mono text-slate-500">
+        <p>异世界智能契约与可信魔晶托管协议架构 © 2026 deal-protocol</p>
       </footer>
     </div>
   )
