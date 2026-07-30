@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { Suspense, useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Smartphone, Key, MessageCircle, Loader2, CheckCircle2 } from "lucide-react"
+import { Smartphone, Key, MessageCircle, Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
 
 type TabId = "sms" | "password" | "wechat"
@@ -18,7 +18,7 @@ const TABS: { id: TabId; label: string; icon: typeof Smartphone }[] = [
   { id: "wechat", label: "微信登录", icon: MessageCircle },
 ]
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<TabId>("sms")
@@ -42,7 +42,6 @@ export default function LoginPage() {
           <CardDescription>欢迎回来，登录您的账户</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Tabs */}
           <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/50" role="tablist">
             {TABS.map((t) => {
               const Icon = t.icon
@@ -75,6 +74,14 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center text-sm text-muted-foreground">加载中...</div>}>
+      <LoginContent />
+    </Suspense>
   )
 }
 

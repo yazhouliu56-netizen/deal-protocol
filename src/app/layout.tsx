@@ -3,6 +3,7 @@ import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
 import Header from "@/components/Header";
 import { UXProvider } from "@/components/providers/UXProvider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 const SITE_URL =
@@ -71,8 +72,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100">
         <SessionProvider>
           <UXProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
+            <ThemeProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+            </ThemeProvider>
           </UXProvider>
           <Script id="register-sw" strategy="afterInteractive">
             {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js', { scope: '/' }); }`}
