@@ -25,7 +25,7 @@ export async function POST(request: Request) {
             role: "user",
             content: [
               { type: "text", text: "Transcribe this audio recording:" },
-              { type: "data", data: base64, mimeType: audio.type || "audio/webm" },
+              { type: "file", data: { type: "data", data: base64 }, mediaType: audio.type || "audio/webm" },
             ],
           },
         ],

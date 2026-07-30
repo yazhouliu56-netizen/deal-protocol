@@ -2,7 +2,7 @@ import { getSupabase } from "@/lib/supabase-client"
 import { addContractEvent } from "@/lib/contract-machine"
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
-import { nextStage } from "@/lib/protocol/engine"
+
 
 const STAGE_SLA = {
   ACCEPTED: { maxMinutes: 30, label: "接单到出发" },
@@ -103,7 +103,7 @@ async function enforceSLABreach(
       provider_id: contract.provider_id,
       customer_id: contract.customer_id,
       stage: order.service_phase,
-      elapsed_minutes: Math.round((now.getTime() - new Date(order.created_at).getTime()) / 60000),
+      elapsed_minutes: Math.round((now.getTime() - new Date((order as any).created_at).getTime()) / 60000),
       sla_max_minutes: sla.maxMinutes,
       compensation: compensationAmount,
     },
@@ -117,7 +117,7 @@ async function enforceSLABreach(
   await updateCredit({
     userId: contract.provider_id,
     eventType: 'violation',
-    evidenceId: ev,
+    evidenceId: typeof ev === 'string' ? ev : (ev as any).id,
     description: `SLA超时违约: ${sla.label}超时，订单${contract.id}已取消`,
   })
 

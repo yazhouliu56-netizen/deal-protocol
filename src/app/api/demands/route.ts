@@ -2,7 +2,7 @@ import { NextResponse, after } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit"
-import type { PostgrestSingleResponse } from "@supabase/supabase-js"
+import type { PostgrestSingleResponse, SupabaseClient } from "@supabase/supabase-js"
 
 // P0-01: 统一代码路径 — demands 路由转写至 protocols/contracts 核心数据源
 // 保持旧 API 接口不变，但主力读写走 protocols 表
@@ -49,7 +49,7 @@ function makeProtocolPayload(userId: string, body: Record<string, unknown>, info
   return payload
 }
 
-async function autoMatchProtocol(supabase: ReturnType<typeof import('@/lib/supabase-route-client')['getRouteClient'] extends (...args: never[]) => infer R ? R : never>, protocolId: string, category: string): Promise<void> {
+async function autoMatchProtocol(supabase: SupabaseClient, protocolId: string, category: string): Promise<void> {
   try {
     const { routeProtocol } = await import("@/modules/m06-matching-routing/matcher")
     const { data: protocol } = await supabase
@@ -81,7 +81,7 @@ export const POST = withAuth(async (req, user) => {
       const { classifyDemand } = await import("@/lib/demand/classifier")
       const info = await classifyDemand(body.text)
 
-      const payload = makeProtocolPayload(user.id, body, info)
+      const payload = makeProtocolPayload(user.id, body, info as unknown as Record<string, unknown>)
       const { data: protocol, error } = await supabase.from('protocols').insert(payload).select().single()
       if (error) throw error
 

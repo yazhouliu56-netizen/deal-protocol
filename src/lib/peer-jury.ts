@@ -27,7 +27,7 @@ export async function inviteJuryMembers(disputeId: string): Promise<string[]> {
 
   if (!order) throw new Error('Order not found')
 
-  const involvedIds = [order.customer_id, order.initiator_id].filter(Boolean)
+  const involvedIds = [order.customer_id, (order as any).initiator_id].filter(Boolean)
 
   // Find Tier 5 users (trust_tier >= 5 via trigger on credit_records base_score >= 900)
   const { data: jurors } = await supabase

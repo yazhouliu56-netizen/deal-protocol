@@ -21,26 +21,18 @@ export async function proposeCounterOffer(input: NegotiationInput): Promise<Nego
   }
 
   try {
+    const { generateText } = await import('ai')
     const { getAIModel } = await import('@/lib/ai-provider')
     const model = getAIModel()
     const prompt = `You are an AI negotiation assistant. Given a buyer budget of ¥${userBudget} and a provider expected price of ¥${providerExpectedPrice} for "${description}" (category: ${categorySlug}), suggest a win-win counter-offer price and scope adjustments. Return JSON with: counterPrice (number), scopeAdjustments (string array of 2-3 items), estimatedProbability (0-100 number), and reasoning (string).`
 
-    const { text } = await model.doStream({
+    const { text } = await generateText({
+      model,
       system: 'You are a professional negotiation AI. Respond only in JSON.',
       prompt,
     })
 
-    const reader = text.getReader()
-    let result = ''
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      result += decoder.decode(value, { stream: true })
-    }
-    reader.release()
-
-    const parsed = JSON.parse(result) as {
+    const parsed = JSON.parse(text) as {
       counterPrice: number
       scopeAdjustments: string[]
       estimatedProbability: number

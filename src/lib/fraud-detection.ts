@@ -12,10 +12,7 @@ export async function checkFraudRisk(userId: string): Promise<FraudCheckReport> 
     target_user_id: userId,
   })
 
-  const partners: Array<{ partnerId: string; depth: number }> = (circular ?? []) as Array<{
-    partner_id: string
-    depth: number
-  }>
+  const partners: Array<{ partnerId: string; depth: number }> = (circular ?? []) as Array<{ partnerId: string; depth: number }>
 
   const maxDepth = partners.length > 0 ? Math.max(...partners.map((p: { depth: number }) => p.depth)) : 0
 
@@ -25,10 +22,7 @@ export async function checkFraudRisk(userId: string): Promise<FraudCheckReport> 
   else if (maxDepth >= 2) riskLevel = 'low'
 
   return {
-    circularPartners: partners.map((p: { partner_id: string; depth: number }) => ({
-      partnerId: p.partner_id,
-      depth: p.depth,
-    })),
+    circularPartners: partners,
     riskLevel,
     flagged: riskLevel !== 'none',
   }
