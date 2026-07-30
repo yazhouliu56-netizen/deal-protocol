@@ -825,6 +825,72 @@ npx tsc --noEmit && pnpm test [相关测试文件路径]
 - **👉 请架构师仅针对上述报错根源，生成针对性的【Task X.1 专项修复指令】。**
 ```
 
+<!-- ================================================================= -->
+<!-- 增量更新 PATCH: 2026-07-29 | UI/UX 赛博二次元重构与 Phase A/B 架构治理 -->
+<!-- ================================================================= -->
+
+# 🚀 架构与技术演进 Patch (2026-07-29)
+
+## 1. 🎨 前端 UI/UX 与多主题引擎架构
+
+### 1.1 四套主题引擎 (Multi-Theme Engine)
+采用轻量级 Context/CSS Variable 架构，全站组件自动适配以下四套主题：
+* **`cyber-pop`**：霓虹赛博（默认）— 高饱和荧光粉/青蓝、高对比发光边框。
+* **`soft-astral`**：柔和星空 — 渐变紫蓝、星芒浮光、柔和玻璃拟态。
+* **`tactical-hud`**：战术战报 — 军规青绿、网格线框、极简数据卡片。
+* **`pro-minimal`**：专业极简 — 黑白灰高质感、无过度修饰，适合商务交接。
+
+**核心控制组件**：
+* `src/components/theme/theme-provider.tsx` — 全局主题状态管理。
+* `src/components/theme/theme-switcher.tsx` — 快捷主题切换浮窗。
+
+### 1.2 二次元游戏化核心组件矩阵
+| 组件路径 | 业务与交互特色 |
+| :--- | :--- |
+| `src/components/gacha/gacha-modal.tsx` | 三阶段开箱动效 (`idle` 悬浮 ➔ `opening` 粒子聚能 ➔ `revealed` SSR/SR/R 卡牌翻转掉落)。 |
+| `src/components/ui/cyber-oracle-dialog.tsx` | Galgame 赛博裁决姬对话框，支持 4 种表情态切换与实时打字机吐字流，内建 `[休眠保护模式]` 静默降级。 |
+| `src/components/escrow/checkpoint-timer.tsx` | 24h Checkpoint 环形/条形倒计时，支持"落印确认解冻"与盲盒开箱联动。 |
+| `src/components/ai/ai-arbitration-card.tsx` | AI 赛博裁决三视角（契约/常理/权益）权重图谱与置信度仪表盘，低于 85% 自动高亮人工作业警示。 |
+| `src/components/demands/demand-card.tsx` | 悬赏令卡片：Tilt Hover 动效、7 态资金 Badge、Mod 芯片卡槽与发榜人立绘框。 |
+| `src/components/profile/inventory-grid.tsx` | 盲盒成就背包：SSR/SR/R 稀有度边框发光、道具装备/使用详情 Modal。 |
+
+---
+
+## 2. 🔒 Phase A：资金安全与原子锁架构
+
+### 2.1 行级安全策略 (RLS Lockout)
+在 Supabase 层对敏感数据表设置严苛防篡改约束（`supabase/migrations/20260801_audit_rls_and_rpc.sql`）：
+* **`profiles`**：通过 `UPDATE WITH CHECK` 与 `IS NOT DISTINCT FROM` 锚定 `balance`, `credit_score`, `reputation_score`, `trust_tier`，拦截来自客户端 SDK 的直接修改。
+* **`contracts / orders / milestone_schedules`**：封锁客户端直接修改 `fund_status`, `status`, `escrow_status` 资金敏感字段。
+
+### 2.2 存储过程与原子幂等锁 (Security Definer RPC)
+解冻与打款逻辑强制收敛至数据库 RPC，防御并发重放与连击攻击：
+1. **`release_checkpoint_rpc`**：解冻 Checkpoint 阶段资金。
+2. **`sla_auto_release_rpc`**：SLA 超时自动解冻。
+* **幂等机制**：以 `.eq('status', 'submitted')` 为条件原子更新，并配合 `wallet_logs`（拓展类型：`milestone_payout` | `sla_release` | `checkpoint_release`）作重复校验，确保解冻操作有且仅有一次成功。
+
+---
+
+## 3. 🎨 Phase B：复原力与缓存重算 (UI Resilience & Revalidation)
+
+### 3.1 赛博风格空状态与骨架屏
+* **`CyberEmptyState`** (`src/components/ui/cyber-empty-state.tsx`)：玻璃拟态卡片 + 虚线发光边框 + 动画入场，优雅处理无数据场景。
+* **`CyberSkeleton`** (`src/components/ui/cyber-skeleton.tsx`)：提供 `DemandCardSkeleton`、`EscrowStatsSkeleton`、`VerdictCardSkeleton`、`InventoryItemSkeleton` 4 种脉冲骨架屏，彻底消解 Cumulative Layout Shift (CLS)。
+
+### 3.2 服务端缓存重算 (Server Revalidation)
+在关键状态变更的 API Handlers 中注入 `revalidatePath`，保障数据变更后视图实时刷新：
+* `POST /api/demands` ➔ `revalidatePath('/demands')`
+* `POST /api/payment/escrow` ➔ `revalidatePath('/demands/[id]')` & `revalidatePath('/profile')`
+* `POST /api/payment/release` ➔ `revalidatePath('/demands/[id]')` & `revalidatePath('/profile')`
+* `PATCH /api/orders/[id]` ➔ `revalidatePath('/demands/[id]')` & `revalidatePath('/profile')`
+
+---
+
+## 4. 🛠️ 类型定义与 AI SDK 流式规范
+
+* **TypeScript 校验**：实现全项目 0 类型报错（`npx tsc --noEmit` 验证通过）。
+* **AI SDK V4 对齐**：`src/lib/ai-negotiator.ts` 全量拥抱 `streamText` 与 `toTextStreamResponse()`，服务端 API 配合 `NextResponse` 返回 Text Stream Body，打通流式响应管道。
+
 ---
 
 *本规范由 deal-protocol 首席架构师制定，用于保障项目全局演进的严谨性与自动化效率。*
