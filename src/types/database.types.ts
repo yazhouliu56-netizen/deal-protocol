@@ -16,6 +16,8 @@ export interface Database {
           nickname: string | null
           avatar_url: string | null
           role: 'user' | 'demander' | 'provider' | 'admin'
+          balance: number
+          credit_score: number
           identity_verified: boolean
           current_location: unknown | null
           bio: string | null
@@ -239,6 +241,8 @@ export interface Database {
           step_number: number
           status: 'PENDING' | 'HELD' | 'SETTLED' | 'DISPUTED' | 'submitted' | 'completed' | 'skipped'
           auto_confirm_at: string | null
+          confirmed_at: string | null
+          sla_hours: number | null
           created_at: string
           updated_at: string
         }

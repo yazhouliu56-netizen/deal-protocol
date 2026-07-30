@@ -3,6 +3,23 @@
 -- Phase A: RLS lockdown, wallet_logs type union, atomic escrow
 -- ============================================================
 
+-- =================================================================
+-- Defensive Schema补全：保证 profiles / orders / contracts 表包含完整资金与托管状态列
+-- =================================================================
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS balance NUMERIC DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS credit_score NUMERIC DEFAULT 600;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trust_tier INT DEFAULT 1;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS reputation_score NUMERIC DEFAULT 100;
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS fund_status TEXT DEFAULT 'PENDING_HELD';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS escrow_status TEXT DEFAULT 'PENDING';
+
+ALTER TABLE contracts ADD COLUMN IF NOT EXISTS fund_status TEXT DEFAULT 'PENDING_HELD';
+
+ALTER TABLE milestone_schedules ADD COLUMN IF NOT EXISTS auto_confirm_at TIMESTAMPTZ;
+ALTER TABLE milestone_schedules ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ;
+ALTER TABLE milestone_schedules ADD COLUMN IF NOT EXISTS sla_hours INT DEFAULT 24;
+
 -- ============================================================
 -- Part 1: Extend wallet_logs type check constraint
 -- ============================================================
@@ -51,8 +68,8 @@ CREATE POLICY "Parties or Admin can view contract" ON contracts
 CREATE POLICY "Service role only can update contract fund_status" ON contracts
   FOR UPDATE TO authenticated USING (
     (auth.uid() = customer_id OR auth.uid() = provider_id)
-    AND fund_status IS NOT DISTINCT FROM (SELECT fund_status FROM contracts WHERE id = id)
-    AND amount IS NOT DISTINCT FROM (SELECT amount FROM contracts WHERE id = id)
+    AND fund_status IS NOT DISTINCT FROM (SELECT c.fund_status FROM contracts c WHERE c.id = contracts.id)
+    AND amount IS NOT DISTINCT FROM (SELECT c.amount FROM contracts c WHERE c.id = contracts.id)
   );
 
 CREATE POLICY "Admin full access contracts" ON contracts
@@ -87,10 +104,21 @@ CREATE POLICY "Users can update order safe fields only" ON orders
       EXISTS (
         SELECT 1 FROM contracts WHERE id = orders.id AND provider_id = auth.uid()
       )
-      AND orders.status IS NOT DISTINCT FROM (SELECT status FROM orders WHERE id = orders.id)
-      AND orders.escrow_status IS NOT DISTINCT FROM (SELECT escrow_status FROM orders WHERE id = orders.id)
-      AND orders.fund_status IS NOT DISTINCT FROM (SELECT fund_status FROM orders WHERE id = orders.id)
+      AND orders.status IS NOT DISTINCT FROM (SELECT o.status FROM orders o WHERE o.id = orders.id)
+      AND orders.escrow_status IS NOT DISTINCT FROM (SELECT o.escrow_status FROM orders o WHERE o.id = orders.id)
+      AND orders.fund_status IS NOT DISTINCT FROM (SELECT o.fund_status FROM orders o WHERE o.id = orders.id)
     )
+  );
+
+DROP POLICY IF EXISTS "Prevent client direct mutation of order fund status" ON orders;
+
+CREATE POLICY "Prevent client direct mutation of order fund status" ON orders
+  FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = provider_id OR auth.uid() IN (SELECT customer_id FROM contracts WHERE id = orders.id))
+  WITH CHECK (
+    fund_status IS NOT DISTINCT FROM (SELECT o.fund_status FROM orders o WHERE o.id = orders.id)
+    AND escrow_status IS NOT DISTINCT FROM (SELECT o.escrow_status FROM orders o WHERE o.id = orders.id)
   );
 
 -- ============================================================
@@ -121,12 +149,22 @@ CREATE POLICY "Users can only submit milestones, not force-complete" ON mileston
         WHERE c.id = milestone_schedules.contract_id AND c.provider_id = auth.uid()
       )
       AND milestone_schedules.status IS NOT DISTINCT FROM (
-        SELECT status FROM milestone_schedules WHERE id = milestone_schedules.id
+        SELECT ms.status FROM milestone_schedules ms WHERE ms.id = milestone_schedules.id
       )
       AND milestone_schedules.auto_confirm_at IS NOT DISTINCT FROM (
-        SELECT auto_confirm_at FROM milestone_schedules WHERE id = milestone_schedules.id
+        SELECT ms.auto_confirm_at FROM milestone_schedules ms WHERE ms.id = milestone_schedules.id
       )
     )
+  );
+
+DROP POLICY IF EXISTS "Prevent client direct mutation of milestone status" ON milestone_schedules;
+
+CREATE POLICY "Prevent client direct mutation of milestone status" ON milestone_schedules
+  FOR UPDATE
+  TO authenticated
+  USING (true)
+  WITH CHECK (
+    status IN ('pending', 'submitted', 'completed', 'skipped')
   );
 
 -- ============================================================
