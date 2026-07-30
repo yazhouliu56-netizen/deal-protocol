@@ -1,114 +1,162 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { Store, Plus, DollarSign, Clock, ChevronRight, Layers } from "lucide-react";
-import { Skeleton } from "@/components/ui/Skeleton";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Tables } from '@/types/database.types';
+import { ThemeSwitcher } from '@/components/theme/theme-switcher';
+import { DemandCard } from '@/components/demands/demand-card';
+import { GachaModal } from '@/components/gacha/gacha-modal';
+import { Search, Filter, Plus, Gift, Sparkles, Scroll } from 'lucide-react';
 
-interface Demand {
-  id: string;
-  title: string;
-  description: string;
-  budget: number;
-  status: string;
-  created_at: string;
+interface DemandCardItem extends Tables<'demands'> {
+  category?: string;
 }
 
-export default function DemandsMarketplacePage() {
-  const [demands, setDemands] = useState<Demand[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function GuildQuestBoardPage() {
+  const router = useRouter();
+  const [demands, setDemands] = useState<DemandCardItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isGachaOpen, setIsGachaOpen] = useState(false);
 
   useEffect(() => {
+    async function fetchDemands() {
+      try {
+        const res = await fetch('/api/demands');
+        if (res.ok) {
+          const data = await res.json();
+          setDemands(Array.isArray(data) ? data : data.demands || []);
+        }
+      } catch (e) {
+        console.error('Failed to fetch demands:', e);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchDemands();
   }, []);
 
-  const fetchDemands = async () => {
-    try {
-      const res = await fetch("/api/demands/list?status=PENDING");
-      if (res.ok) {
-        const data = await res.json();
-        setDemands(data);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const filteredDemands = demands.filter((item) => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6 font-sans touch-manipulation">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-5 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl">
-              <Store className="w-6 h-6"/>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 font-sans relative">
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold tracking-widest uppercase">
+              <Scroll className="w-4 h-4" /> Cyber-Guild Bounty Hall
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">商机开放市场</h1>
-              <p className="text-xs text-zinc-400 mt-0.5">全公开的开放需求撮合矩阵</p>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
+              赛博公会悬赏大厅
+            </h1>
           </div>
-          <Link className="touch-target inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 active:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/10 transition-transform self-start sm:self-auto" href="/demands/create">
-            <Plus className="w-4 h-4"/> 发布需求
-          </Link>
+
+          <div className="flex items-center gap-3">
+            <ThemeSwitcher />
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => router.push('/demands/create')}
+              className="px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" /> 发布悬赏令
+            </motion.button>
+          </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <div className="flex items-center gap-3 pt-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              </div>
+        <div className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-slate-900 via-amber-950/30 to-purple-950/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(251,191,36,0.15)]">
+          <div className="space-y-1.5 text-center md:text-left">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">
+              <Sparkles className="w-3 h-3" /> GACHA EVENT
+            </span>
+            <h2 className="text-lg sm:text-xl font-black text-amber-200">
+              公会秘宝抽取 · 灵魂算力与优先落锤卡掉落
+            </h2>
+            <p className="text-xs text-slate-400 max-w-xl">
+              每日登录可免费抽取一次，获取 AI 判例优先处理与 Checkpoint 托管解冻加速算力！
+            </p>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsGachaOpen(true)}
+            className="shrink-0 px-6 py-3 rounded-2xl font-black text-xs bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-slate-950 shadow-xl shadow-amber-500/30 flex items-center gap-2"
+          >
+            <Gift className="w-4 h-4" /> 开启秘宝盲盒
+          </motion.button>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="搜索公会悬赏关键字..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+            {[
+              { id: 'all', name: '全量悬赏' },
+              { id: 'tech', name: '软件开发' },
+              { id: 'design', name: '二次元美术' },
+              { id: 'content', name: '文案世界观' },
+              { id: 'audit', name: '判例复核' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedCategory === cat.id
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/30'
+                    : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                }`}
+              >
+                {cat.name}
+              </button>
             ))}
           </div>
-        ) : demands.length === 0 ? (
-          <div className="border border-zinc-800 bg-zinc-900/10 rounded-2xl p-16 text-center text-zinc-500 text-sm">
-            <Layers className="w-8 h-8 text-zinc-700 mx-auto mb-3"/>
-            暂无挂单中的需求，点击"发布需求"开启第一笔撮合。
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-48 rounded-2xl bg-slate-900/40 border border-slate-800 animate-pulse" />
+            ))}
+          </div>
+        ) : filteredDemands.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredDemands.map((item) => (
+              <DemandCard
+                key={item.id}
+                demand={item}
+                onSelect={(id) => router.push(`/demands/${id}`)}
+              />
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {demands.map((item) => (
-              <Link key={item.id} href={`/demands/${item.id}`} className="block touch-feedback active:scale-[0.98]">
-                <div className="p-5 rounded-2xl border bg-zinc-900/40 border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col justify-between h-full">
-                  <div>
-                    <div className="flex items-start justify-between mb-2 gap-2">
-                      <h2 className="text-sm font-bold text-zinc-100 group-hover:text-indigo-400 transition line-clamp-1">
-                        {item.title}
-                      </h2>
-                      <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-0.5 shrink-0">
-                        <DollarSign className="w-3 h-3"/> {item.budget.toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 mb-4">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
-                    <span className="flex items-center gap-1 font-mono">
-                      <Clock className="w-3 h-3 text-zinc-600"/> {new Date(item.created_at).toLocaleDateString()}
-                    </span>
-                    <span className="text-indigo-400 font-medium flex items-center gap-0.5 touch-target inline-flex">
-                      查看详情 <ChevronRight className="w-3 h-3"/>
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+          <div className="text-center py-16 border border-dashed border-slate-800 rounded-3xl bg-slate-900/30">
+            <Filter className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-slate-300">未检索到匹配的公会悬赏令</h3>
+            <p className="text-xs text-slate-500 mt-1">尝试调整搜索关键字或发布新的悬赏任务</p>
           </div>
         )}
       </div>
+
+      <GachaModal isOpen={isGachaOpen} onClose={() => setIsGachaOpen(false)} />
     </div>
   );
 }
