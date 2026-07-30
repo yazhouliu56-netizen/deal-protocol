@@ -1,1 +1,12 @@
-~~明日待办：使用新玩法 Next.js after() 机制重构 POST /api/demands，将同步的 findMatches 匹配逻辑变为后台异步静默执行，彻底抹平发单卡顿。~~ ✅ Done
+# 项目开发进度与计划
+
+##  2026-07-30 今日已完成
+- [x] 重构主题系统，实现全站字体与排版深度联动 (`theme_interactive_demo_v2.html`)
+- [x] 完成多主题字体切换（赛博 Orbitron / 古典 Cinzel / 战术 Share Tech Mono）
+- [x] 绑定 CSS 变量：实现框体倒角、双线/虚线边框、字距与大小写形态同步蜕变
+- [x] 完成看板娘打字机交互与成套主题变身弹窗演示
+
+## 🚀 明日待办 (Next Steps)
+- [ ] 优化移动端响应式适配与小屏设备下的排版体验
+- [ ] 细化主题切换时的 3D 翻转过渡动效与微交互
+- [ ] 尝试将 CSS 主题变量体系抽离组件化（React / Vue / Tailwind）
