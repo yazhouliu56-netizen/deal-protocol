@@ -94,7 +94,7 @@ export async function releaseMilestoneEscrow(
     .from('wallet_logs')
     .select('id')
     .eq('order_id', ms.contract_id)
-    .eq('type', 'milestone_payout')
+    .eq('type', 'MILESTONE_PAYOUT')
     .maybeSingle()
 
   if (existingLog) {
@@ -126,7 +126,7 @@ export async function releaseMilestoneEscrow(
       .insert({
         provider_id: contract.provider_id,
         amount: ms.amount,
-        type: 'milestone_payout',
+        type: 'MILESTONE_PAYOUT',
         order_id: ms.contract_id,
         description: `Milestone release: ${ms.title} (step ${ms.step_number}) for contract ${ms.contract_id}`,
       })
@@ -204,7 +204,7 @@ export async function confirmMilestoneCheckpoint(
     .from('wallet_logs')
     .select('id')
     .eq('order_id', cp.contract_id)
-    .eq('type', 'checkpoint_release')
+    .eq('type', 'CHECKPOINT_RELEASE')
     .maybeSingle()
 
   if (existingLog) {
@@ -248,7 +248,7 @@ export async function confirmMilestoneCheckpoint(
     .insert({
       provider_id: contract.provider_id,
       amount: cp.amount,
-      type: 'checkpoint_release',
+      type: 'CHECKPOINT_RELEASE',
       order_id: cp.contract_id,
       description: `Checkpoint release: ${cp.title} (step ${cp.step_number}) for checkpoint ${checkpointId}`,
     })
@@ -309,7 +309,7 @@ export async function processExpiredCheckpoints(): Promise<ProcessExpiredResult>
         .from('wallet_logs')
         .select('id')
         .eq('order_id', checkpoint.contract_id)
-        .eq('type', 'checkpoint_release')
+        .eq('type', 'CHECKPOINT_RELEASE')
         .maybeSingle()
 
       if (existingLog) {
@@ -355,7 +355,7 @@ export async function processExpiredCheckpoints(): Promise<ProcessExpiredResult>
         .insert({
           provider_id: contract.provider_id,
           amount: checkpoint.amount,
-          type: 'checkpoint_release',
+          type: 'CHECKPOINT_RELEASE',
           order_id: checkpoint.contract_id,
           description: `Auto release expired checkpoint: ${checkpoint.title} for checkpoint ${checkpoint.id}`,
         })

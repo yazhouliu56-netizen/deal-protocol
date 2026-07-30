@@ -11,6 +11,7 @@ ALTER TABLE wallet_logs DROP CONSTRAINT IF EXISTS wallet_logs_type_check;
 ALTER TABLE wallet_logs ADD CONSTRAINT wallet_logs_type_check
   CHECK (type IN (
     'payout', 'platform_fee', 'withdrawal', 'withdrawal_freeze',
+    'MILESTONE_PAYOUT', 'SLA_RELEASE', 'CHECKPOINT_RELEASE',
     'milestone_payout', 'sla_release', 'checkpoint_release'
   ));
 
@@ -202,7 +203,7 @@ BEGIN
   IF EXISTS (
     SELECT 1 FROM wallet_logs
     WHERE order_id = v_checkpoint.contract_id
-      AND type = 'checkpoint_release'
+      AND type IN ('checkpoint_release', 'CHECKPOINT_RELEASE')
       AND description LIKE '%' || p_checkpoint_id || '%'
   ) THEN
     RETURN jsonb_build_object('success', true, 'skipped', true, 'reason', 'Already credited');
@@ -219,7 +220,7 @@ BEGIN
   VALUES (
     v_contract.provider_id,
     v_checkpoint.amount,
-    'checkpoint_release',
+    'CHECKPOINT_RELEASE',
     v_checkpoint.contract_id,
     'Checkpoint release: ' || v_checkpoint.title || ' (step ' || v_checkpoint.step_number || ') for checkpoint ' || p_checkpoint_id
   );
@@ -327,7 +328,7 @@ BEGIN
   -- 4. Compensation payout to wallet
   IF p_compensation > 0 THEN
     INSERT INTO wallet_logs (provider_id, amount, type, order_id, description)
-    VALUES (v_contract.provider_id, p_compensation, 'sla_release', p_order_id,
+    VALUES (v_contract.provider_id, p_compensation, 'SLA_RELEASE', p_order_id,
       'SLA auto release compensation: ¥' || p_compensation);
 
     INSERT INTO insurance_pool (protocol_id, contract_id, amount, type, sub_type, description)

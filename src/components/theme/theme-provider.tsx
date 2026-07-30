@@ -16,10 +16,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode; defaultTheme?:
   defaultTheme = 'cyber-pop',
 }) => {
   const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const savedTheme = localStorage.getItem('deal_protocol_theme') as ThemeMode;
-    if (savedTheme) {
+    if (savedTheme && ['cyber-pop', 'soft-astral', 'tactical-hud', 'pro-minimal'].includes(savedTheme)) {
       setThemeState(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
@@ -34,7 +36,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode; defaultTheme?:
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: mounted ? theme : defaultTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

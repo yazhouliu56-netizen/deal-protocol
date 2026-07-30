@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Sparkles, User, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { CyberOracleDialog } from '@/components/ui/cyber-oracle-dialog';
 
 interface GuildRegistrationModalProps {
@@ -10,22 +10,37 @@ interface GuildRegistrationModalProps {
 }
 
 export const GuildRegistrationModal: React.FC<GuildRegistrationModalProps> = ({ onComplete }) => {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('Cyber_Hunter_01');
   const [quiz, setQuiz] = useState('code');
 
   useEffect(() => {
+    setMounted(true);
     const registered = localStorage.getItem('deal_guild_registered');
     if (!registered) {
       setIsOpen(true);
     }
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleRegister = () => {
     localStorage.setItem('deal_guild_registered', 'true');
     setIsOpen(false);
     onComplete();
   };
+
+  if (!mounted) return null;
 
   return (
     <AnimatePresence>

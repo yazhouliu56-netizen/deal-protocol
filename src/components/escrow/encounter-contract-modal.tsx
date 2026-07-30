@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Scroll, Sparkles, ShieldCheck, Coins, Lock, X } from 'lucide-react';
+import { Scroll, Sparkles, X } from 'lucide-react';
 
 interface EncounterContractModalProps {
   isOpen: boolean;
@@ -21,6 +21,17 @@ export const EncounterContractModal: React.FC<EncounterContractModalProps> = ({
 }) => {
   const [isCasting, setIsCasting] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleCastMagic = () => {
     setIsCasting(true);
     setTimeout(() => {
@@ -33,7 +44,7 @@ export const EncounterContractModal: React.FC<EncounterContractModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
           <motion.div
             initial={{ scale: 0.85, opacity: 0, rotateX: 15 }}
             animate={{ scale: 1, opacity: 1, rotateX: 0 }}

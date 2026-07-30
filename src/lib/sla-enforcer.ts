@@ -197,7 +197,7 @@ async function enforceSLABreach(
     .insert({
       provider_id: contract.provider_id,
       amount: compensationAmount,
-      type: "sla_release",
+      type: "SLA_RELEASE",
       order_id: order.id,
       description: `SLA auto release penalty: ¥${compensationAmount} for order ${order.id}`,
     })

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Sparkles, Award, CheckCircle2, X, Zap, Shield } from 'lucide-react';
+import { Gift, Sparkles, Award, X, Zap, Shield } from 'lucide-react';
 import { useTheme } from '@/components/theme/theme-provider';
 
 export interface GachaReward {
@@ -29,6 +29,19 @@ export const GachaModal: React.FC<GachaModalProps> = ({ isOpen, onClose }) => {
   const [stage, setStage] = useState<'idle' | 'opening' | 'revealed'>('idle');
   const [reward, setReward] = useState<GachaReward | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      setStage('idle');
+      setReward(null);
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const handleStartUnbox = () => {
     setStage('opening');
     setTimeout(() => {
@@ -47,7 +60,7 @@ export const GachaModal: React.FC<GachaModalProps> = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
+        <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
