@@ -1,0 +1,532 @@
+@import "tailwindcss";
+
+:root {
+  --accent-purple: #7b61ff;
+  --accent-blue: #4b9bff;
+  --accent-cyan: #00f0ff;
+  --accent-magenta: #ff007a;
+  --inlay-bg: rgba(20, 22, 38, 0.55);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --color-brandPurple: #7b61ff;
+  --color-brandCyan: #00f0ff;
+}
+
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* 深色 VisionOS PWA 全局背景：深空靛蓝渐变铺满真实视口 */
+body {
+  background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
+  color: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(123, 97, 255, 0.4);
+  color: #ffffff;
+}
+
+/* 键盘可达性：金色 focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* 免动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 底部安全区工具：给 Dock/工作台留出 Home 指示条空间 */
+.pb-safe {
+  padding-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + 0.5rem
+  ) !important;
+}
+
+/* 内容层自身铺满同款渐变，保证滚动容器内无死黑 */
+.app-env {
+  background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
+}
+
+/* ============ Ambient aurora glows ============ */
+
+/* 大尺度深空星云光团：多层景深的第一层（远层） */
+.nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.nebula-violet {
+  width: 760px;
+  height: 760px;
+  top: -22%;
+  left: -18%;
+  background: radial-gradient(
+    circle,
+    rgba(123, 97, 255, 0.4) 0%,
+    rgba(99, 72, 255, 0.12) 45%,
+    transparent 68%
+  );
+  animation: nebula-pulse 19s ease-in-out infinite;
+}
+@media (min-width: 1024px) {
+  .nebula-violet {
+    width: 1200px;
+    height: 1200px;
+    left: -10%;
+  }
+  .nebula-cyan {
+    width: 1000px;
+    height: 1000px;
+  }
+  .nebula-deep {
+    width: 1300px;
+    height: 1300px;
+  }
+  .aurora-blob {
+    filter: blur(160px);
+  }
+}
+
+.nebula-cyan {
+  width: 640px;
+  height: 640px;
+  top: 18%;
+  right: -24%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 240, 255, 0.26) 0%,
+    rgba(0, 180, 255, 0.08) 42%,
+    transparent 66%
+  );
+  animation: nebula-pulse 23s ease-in-out infinite reverse;
+}
+
+.nebula-deep {
+  width: 820px;
+  height: 820px;
+  bottom: -32%;
+  left: 8%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 0, 122, 0.16) 0%,
+    rgba(120, 40, 200, 0.1) 40%,
+    transparent 66%
+  );
+  animation: nebula-pulse 27s ease-in-out infinite;
+}
+
+@keyframes nebula-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+/* 3 个自然弥散日光晕，漂浮在真实屏幕背景中（中景层） */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.aurora-violet {
+  background: rgba(123, 97, 255, 0.4);
+  animation: aurora-breathe 11s ease-in-out infinite;
+}
+
+.aurora-cyan {
+  background: rgba(0, 240, 255, 0.28);
+  animation: aurora-drift 16s ease-in-out infinite;
+}
+
+.aurora-magenta {
+  background: rgba(255, 0, 122, 0.22);
+  animation: aurora-breathe 14s ease-in-out infinite reverse;
+}
+
+@keyframes aurora-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-42px, 32px);
+  }
+}
+
+/* 全局微粒噪点蒙版 */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
+}
+
+/* 散落远方微光星粒 */
+.starfield {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 22%, rgba(255, 255, 255, 0.9), transparent 60%),
+    radial-gradient(1px 1px at 28% 64%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 41% 12%, rgba(0, 240, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 55% 78%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 67% 34%, rgba(255, 255, 255, 0.85), transparent 60%),
+    radial-gradient(1px 1px at 78% 58%, rgba(123, 97, 255, 0.9), transparent 60%),
+    radial-gradient(1.5px 1.5px at 88% 18%, rgba(75, 155, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 93% 72%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.2px 1.2px at 18% 88%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 72% 92%, rgba(0, 240, 255, 0.65), transparent 60%),
+    radial-gradient(1px 1px at 49% 45%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1.3px 1.3px at 7% 50%, rgba(123, 97, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 34% 36%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 61% 88%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(1.4px 1.4px at 84% 44%, rgba(75, 155, 255, 0.85), transparent 60%);
+  animation: starfield-twinkle 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes starfield-twinkle {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============ True glass material ============ */
+
+/* 通透毛玻璃：顶部受光高光 + 纵向渐变通透 + 霓虹光晕溢出 */
+.glass-panel {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(123, 97, 255, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    0 0 30px -8px rgba(123, 97, 255, 0.5),
+    0 26px 60px -14px rgba(0, 0, 0, 0.6),
+    0 10px 26px -10px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  transform: translateZ(0);
+}
+
+/* 可交互卡片：hover 渐变发光边缘 + 立体悬浮 */
+.glass-panel-interactive {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(123, 97, 255, 0.32);
+  border-top-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 0 24px -10px rgba(123, 97, 255, 0.45),
+    0 20px 45px -14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  will-change: transform;
+}
+.glass-panel-interactive:hover {
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))
+      padding-box,
+    linear-gradient(
+        135deg,
+        rgba(123, 97, 255, 0.9),
+        rgba(0, 240, 255, 0.5),
+        rgba(255, 255, 255, 0.35)
+      )
+      border-box;
+  box-shadow:
+    0 0 60px -10px rgba(123, 97, 255, 0.7),
+    0 32px 70px -16px rgba(123, 97, 255, 0.45),
+    0 14px 30px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: translateY(-6px) scale(1.015);
+}
+
+/* 选中态渐变发光边缘 */
+.glass-panel-active {
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))
+      padding-box,
+    linear-gradient(
+        135deg,
+        rgba(123, 97, 255, 0.9),
+        rgba(0, 240, 255, 0.5),
+        rgba(255, 255, 255, 0.35)
+      )
+      border-box;
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow:
+    0 32px 70px -16px rgba(123, 97, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 图片卡片底部半透明玻璃内衬条 */
+.card-inlay {
+  background: linear-gradient(
+    180deg,
+    rgba(20, 22, 38, 0.35) 0%,
+    rgba(10, 12, 26, 0.72) 100%
+  );
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ============ Accent buttons ============ */
+
+.btn-primary {
+  background: linear-gradient(45deg, #7b61ff, #4b9bff);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px -10px rgba(123, 97, 255, 0.55);
+}
+
+/* ============ Volumetric float ============ */
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@keyframes float-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.animate-float-up {
+  animation: float-up 3s ease-in-out infinite;
+}
+
+/* ============ Glows ============ */
+
+.glow-purple {
+  box-shadow: 0 0 35px rgba(123, 97, 255, 0.4);
+}
+.glow-cyan {
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.4);
+}
+.glow-purple-strong {
+  box-shadow: 0 0 40px rgba(123, 97, 255, 0.6);
+}
+.glow-cyan-strong {
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.6);
+}
+
+/* 图片加载骨架 shimmer */
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* 隐藏原生滚动条 */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============ P5: Low-power degradation (html[data-low-power="1"]) ============ */
+
+html[data-low-power="1"] .aurora-violet,
+html[data-low-power="1"] .aurora-cyan,
+html[data-low-power="1"] .aurora-magenta,
+html[data-low-power="1"] .nebula {
+  animation: none;
+}
+
+html[data-low-power="1"] .starfield {
+  animation: none;
+  opacity: 0.55;
+}
+
+html[data-low-power="1"] .noise-overlay {
+  display: none;
+}
+
+html[data-low-power="1"] .animate-float-slow,
+html[data-low-power="1"] .animate-float-up {
+  animation: none;
+}
+
+html[data-low-power="1"] .shimmer {
+  animation: none;
+}
+
+/* backdrop-filter is the heaviest effect on mobile — drop it for a solid tint.
+   NOTE: use blur(0), not `none` — LightningCSS strips the standard `none`
+   value and keeps only -webkit-, which Chrome 150+ no longer honors. */
+html[data-low-power="1"] .glass-panel,
+html[data-low-power="1"] .glass-panel-interactive,
+html[data-low-power="1"] .glass-panel-active,
+html[data-low-power="1"] .card-inlay {
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  background: rgba(20, 22, 38, 0.82);
+}
+
+/* 单屏 SPA 页面切换入场动画 */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.page-enter {
+  animation: page-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* AI 对话流式输出光标 */
+.typing-caret {
+  display: inline-block;
+  width: 7px;
+  height: 13px;
+  margin-left: 3px;
+  vertical-align: -2px;
+  border-radius: 2px;
+  background: rgba(123, 97, 255, 0.9);
+  animation: caret-blink 0.85s steps(2) infinite;
+}
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* AR 取景网格 */
+.scene-grid {
+  background-image:
+    linear-gradient(rgba(123, 97, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123, 97, 255, 0.12) 1px, transparent 1px);
+  background-size: 36px 36px;
+  transform: perspective(320px) rotateX(58deg) scale(1.6);
+  transform-origin: 50% 0%;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 85%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 85%);
+}
+
+/* AR 锚点单次脉冲 */
+@keyframes ping-once-kf {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+.animate-ping-once {
+  position: relative;
+}
+.animate-ping-once::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: inherit;
+  animation: ping-once-kf 1.8s ease-out infinite;
+}
