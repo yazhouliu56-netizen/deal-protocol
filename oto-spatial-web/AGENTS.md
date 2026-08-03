@@ -11,11 +11,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ### ./
 | ID | Type | Title | Date |
 |----|------|-------|------|
+| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
 | e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
 | e796720a-5b3d-4487-a891-6ed3d8436abc | ✅ change | M6.3 完成：撮合端到端测试（单测 12/12 + 浏览器 E2E 全链路 PASS） | 2026-08-03 |
 | e64d8c69-6022-40ba-9512-13ae96e87801 | ⚖️ decision | oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略 | 2026-08-03 |
 
-**Key concepts:** llm-engine, gemini, openai-compat, proxy, pluggable-engine, directive-protocol, fallback, matchmaking, e2e, playwright-core
+**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
 
 **Recent decisions:** oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略
 
@@ -101,6 +102,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ### src\components\chat/
 | ID | Type | Title | Date |
 |----|------|-------|------|
+| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
 | e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
 | 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
 | d7fd32ea-16d1-4266-b6a9-636e3be47656 | ✅ change | M6.2 完成：撮合结果解释行（六维评分 breakdown 面板） | 2026-08-03 |
@@ -110,7 +112,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | cabc528f-3f51-42cd-a7c7-f51b99c1ad18 | ✅ change | M2 完成：生成式卡片流（时段/服务者/确认单/成功）+ 点卡预订本地闭环 | 2026-08-03 |
 | 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
 
-**Key concepts:** llm-engine, gemini, openai-compat, proxy, pluggable-engine, directive-protocol, fallback, dual-view, migration, search
+**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
 
 ### src\components\profile/
 | ID | Type | Title | Date |
@@ -157,6 +159,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ### src\lib\chat/
 | ID | Type | Title | Date |
 |----|------|-------|------|
+| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
 | e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
 | 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
 | 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
@@ -165,7 +168,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | cabc528f-3f51-42cd-a7c7-f51b99c1ad18 | ✅ change | M2 完成：生成式卡片流（时段/服务者/确认单/成功）+ 点卡预订本地闭环 | 2026-08-03 |
 | 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
 
-**Key concepts:** llm-engine, gemini, openai-compat, proxy, pluggable-engine, directive-protocol, fallback, service-worker, precache, multi-provider
+**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
 
 ### src\store/
 | ID | Type | Title | Date |

@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OTO Spatial Web
 
-## Getting Started
+空间化本地线下面基服务 PWA：AI 撮合对话 + 六维评分 + 双视角闭环 + AR 场景 + 全息玻璃 UI。
 
-First, run the development server:
+## 快速开始
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # 开发（http://localhost:3000）
+npm run build        # 生产构建（Turbopack）
+npm run start        # 生产运行
+npm run restart:prod # 一键重启生产（taskkill /T 杀进程树 + 就绪轮询）
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 对话引擎（可插拔双引擎）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **MockEngine**：本地确定性规则引擎（离线 / 无 key 兜底），默认
+- **LlmEngine**：Gemini 驱动（`gemini-2.5-flash`），需 `.env.local`：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+GEMINI_API_KEY=AIza...
+GEMINI_MODEL=gemini-2.5-flash
+NEXT_PUBLIC_LLM_PROVIDER=gemini
+```
 
-## Learn More
+架构：LLM 只负责意图抽取 / 追问 / 文案（严格 JSON 指令协议，见 `src/lib/chat/llmDirective.ts`）；时段卡、六维撮合评分、确认单全部走本地确定性代码（`lib/match.ts`）。key 只在服务端 `/api/chat` 代理中使用，客户端零泄漏。LLM 连续失败 2 次自动降级回 MockEngine。不配 key 则整个引擎回退 Mock。
 
-To learn more about Next.js, take a look at the following resources:
+## 测试
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test:units       # 纯函数单测（撮合/时段/LLM 指令解析）
+npm run test:e2e         # 撮合全链路（排序/徽章/评分/预订/双视角/取消）
+npm run test:e2e:app     # 分支 E2E（热卡/搜索/心愿单/工作台/AR 锚点）
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> `test:e2e*` 需先 `npm run start`。配置了 Gemini key 时 E2E 走真 LLM（追问语料放宽）；CI 无 key 自动走 Mock（确定性）。
 
-## Deploy on Vercel
+## 测试自动化
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`.github/workflows/ci.yml`：lint + test:units + build（Node 24）。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 撮合算法（六维 100 分制，src/lib/match.ts）
+
+budget 25 / level 20 / style 20 / rating 15 / distance 10 / availability 10；同分按 rating→distance 决胜；4 人以上组局场地获 groupBonus；`slots.ts` 动态生成本周六/日时段。

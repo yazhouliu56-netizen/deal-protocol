@@ -18,6 +18,30 @@ import { NEED_KEYS, parseDirective, type LlmDirective } from "./llmDirective";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Build recent user/assistant turns from the global store so the model can
+ * follow-up on earlier questions. Greetings + generated cards are dropped,
+ * and the in-flight current user message (already appended by ChatPage) is
+ * set aside to avoid repeating it.
+ */
+function buildHistory(
+  currentUser: string
+): Array<{ role: "user" | "assistant"; content: string }> {
+  const msgs = useAppStore.getState().chatMessages;
+  const turns: Array<{ role: "user" | "assistant"; content: string }> = [];
+  let droppedCurrent = false;
+  for (const m of msgs) {
+    if (m.id === "greeting") continue;
+    if (!m.content || m.content.length === 0) continue;
+    if (!droppedCurrent && m.role === "user" && m.content === currentUser) {
+      droppedCurrent = true;
+      continue;
+    }
+    turns.push({ role: m.role, content: m.content });
+  }
+  return turns.slice(-8);
+}
+
 const SYSTEM_PROMPT = `你是 OTO（本地线下面基服务）撮合助手，负责理解用户需求并推进撮合流程。
 可提供服务分类（category）：
 - badminton 羽毛球约局
@@ -193,61 +217,70 @@ export class LlmEngine implements ChatEngine {
   /** Call Gemini via the server proxy; parse the strict JSON directive. */
   private async askLlm(userMessage: string): Promise<LlmDirective> {
     const summary = this.summary();
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: summary
-              ? `[已收集需求] ${summary}\n[用户新消息] ${userMessage}`
-              : userMessage,
-          },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      let detail = `HTTP ${res.status}`;
-      try {
-        const j = await res.json();
-        detail = j?.error ?? detail;
-      } catch {
-        /* ignore */
-      }
-      throw new Error(`LLM upstream failed: ${detail}`);
-    }
-    if (!res.body) throw new Error("LLM stream empty");
-
-    let full = "";
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split("\n\n");
-      buffer = events.pop() ?? "";
-      for (const evt of events) {
-        const line = evt.trim();
-        if (!line.startsWith("data:")) continue;
-        const payload = line.slice(5).trim();
-        if (payload === "[DONE]") continue;
+    const history = buildHistory(userMessage);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            ...history,
+            {
+              role: "user",
+              content: summary
+                ? `[已收集需求] ${summary}\n[用户新消息] ${userMessage}`
+                : userMessage,
+            },
+          ],
+        }),
+      });
+      if (!res.ok) {
+        let detail = `HTTP ${res.status}`;
         try {
-          const json = JSON.parse(payload);
-          const delta: string | undefined = json?.choices?.[0]?.delta?.content;
-          if (delta) full += delta;
+          const j = await res.json();
+          detail = j?.error ?? detail;
         } catch {
-          /* skip malformed SSE frame */
+          /* ignore */
+        }
+        throw new Error(`LLM upstream failed: ${detail}`);
+      }
+      if (!res.body) throw new Error("LLM stream empty");
+
+      let full = "";
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+        for (const evt of events) {
+          const line = evt.trim();
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (payload === "[DONE]") continue;
+          try {
+            const json = JSON.parse(payload);
+            const delta: string | undefined = json?.choices?.[0]?.delta?.content;
+            if (delta) full += delta;
+          } catch {
+            /* skip malformed SSE frame */
+          }
         }
       }
-    }
 
-    const directive = parseDirective(full);
-    if (!directive) throw new Error("LLM directive parse failed");
-    return directive;
+      const directive = parseDirective(full);
+      if (!directive) throw new Error("LLM directive parse failed");
+      return directive;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   private summary(): string {

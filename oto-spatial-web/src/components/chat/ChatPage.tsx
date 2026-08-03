@@ -40,12 +40,18 @@ export default function ChatPage() {
   const updateChatCards = useAppStore((s) => s.updateChatCards);
   const addBooking = useAppStore((s) => s.addBooking);
 
-  // Pluggable engine (M1): Gemini-backed LLMEngine when configured,
+  // Pluggable engine (M1/M7): Gemini-backed LLMEngine when configured,
   // MockEngine (local rules) otherwise. Card flows stay deterministic.
-  const engine = useMemo(
-    () => (process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" ? new LlmEngine() : new MockEngine()),
-    []
-  );
+  // session increments on "新对话" to fully reset engine state;
+  // llmFallback switches to MockEngine permanently after repeated LLM failures.
+  const [session, setSession] = useState(0);
+  const [llmFallback, setLlmFallback] = useState(false);
+  const [llmFailures, setLlmFailures] = useState(0);
+  const useLlm = process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" && !llmFallback;
+  const engine = useMemo(() => {
+    void session; // 重建触发器：新对话/降级时强制新建引擎实例
+    return useLlm ? new LlmEngine() : new MockEngine();
+  }, [session, useLlm]);
   const [input, setInput] = useState("");
   const composingRef = useRef(false);
   const [streaming, setStreaming] = useState(false);
@@ -97,11 +103,28 @@ export default function ChatPage() {
       await runStream(engine.send(trimmed), assistantId);
     } catch (err) {
       console.error("[chat] send failed", err);
-      updateChatMessage(
-        assistantId,
-        "刚刚处理开小差了，输入框已恢复原文，直接点发送重试～"
-      );
       setInput(trimmed);
+      if (useLlm) {
+        const next = llmFailures + 1;
+        setLlmFailures(next);
+        if (next >= 2) {
+          setLlmFallback(true);
+          updateChatMessage(
+            assistantId,
+            "AI 服务连续抽风，已自动切换到本地撮合引擎，功能不受影响～"
+          );
+        } else {
+          updateChatMessage(
+            assistantId,
+            "刚刚处理开小差了，输入框已恢复原文，直接点发送重试～"
+          );
+        }
+      } else {
+        updateChatMessage(
+          assistantId,
+          "刚刚处理开小差了，输入框已恢复原文，直接点发送重试～"
+        );
+      }
     } finally {
       setStreaming(false);
     }
@@ -168,7 +191,10 @@ export default function ChatPage() {
           </p>
         </div>
         <button
-          onClick={() => useAppStore.getState().clearChat()}
+          onClick={() => {
+            useAppStore.getState().clearChat();
+            setSession((s) => s + 1);
+          }}
           className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
         >
           新对话
