@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:match": "node --experimental-strip-types --test src/lib/match.test.ts",
-    "test:units": "node --experimental-strip-types --test src/lib/match.test.ts src/lib/chat/slots.test.ts src/lib/chat/llmEngine.test.ts",
+    "test:units": "node --experimental-strip-types --test src/lib/match.test.ts src/lib/chat/slots.test.ts src/lib/chat/llmEngine.test.ts src/lib/chat/llmGuard.test.ts src/lib/booking.test.ts",
     "test:e2e": "node scripts/e2e-match.mjs",
     "test:e2e:app": "node scripts/e2e-app.mjs",
     "restart:prod": "node scripts/restart-prod.mjs",

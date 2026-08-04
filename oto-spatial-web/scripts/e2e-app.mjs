@@ -17,7 +17,11 @@ async function waitUntil(page, fn, timeout = 15000, label = "条件") {
   throw new Error(`等待超时: ${label}`);
 }
 
-const browser = await chromium.launch({ channel: "chrome", headless: true });
+const browser = await chromium.launch(
+  process.env.PLAYWRIGHT_CHANNEL === "chromium"
+    ? { headless: true }
+    : { channel: "chrome", headless: true }
+);
 
 try {
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });

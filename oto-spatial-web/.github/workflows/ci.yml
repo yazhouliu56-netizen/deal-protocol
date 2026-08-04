@@ -18,3 +18,32 @@ jobs:
       - run: npm run lint
       - run: npm run test:units
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Bundled chromium for headless runs (local scripts default to channel "chrome").
+      - run: npx playwright-core install chromium
+      - run: npm run build
+      - name: Start server and run E2E suites
+        run: |
+          npm run start > /tmp/next.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000 > /dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -sf http://localhost:3000 > /dev/null
+          export PLAYWRIGHT_CHANNEL=chromium
+          npm run test:e2e
+          npm run test:e2e:app
+        env:
+          # No NEXT_PUBLIC_LLM_PROVIDER → MockEngine (deterministic) path.
+          CI: "true"

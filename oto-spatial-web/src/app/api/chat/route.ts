@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cacheKey, guardedFetch, llmCache } from "@/lib/chat/llmGuard";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -8,27 +9,51 @@ const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream; charset=utf-8",
+  "Cache-Control": "no-cache, no-transform",
+};
+
+interface ChatBody {
+  messages?: Array<{ role?: string; content?: unknown }>;
+}
+
 /**
  * Server-side proxy for the Gemini OpenAI-compatible chat completions API.
  * Keeps the API key out of the client bundle and streams SSE back.
- * Fails fast (non-200) so the client can fall back to MockEngine.
+ *
+ * Rate-limit hardening (see llmGuard.ts):
+ *  - identical intents (same last user message, which embeds collected-demand
+ *    summary + history) are answered from an in-memory cache — zero upstream
+ *    cost on repeat asks and retries
+ *  - upstream calls are serialized + min-gapped to stay under free-tier RPM
+ *  - one bounded 429/5xx retry with jitter instead of failing fast
  */
 export async function POST(req: Request) {
   if (!API_KEY) {
     return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 503 });
   }
 
-  let body: { messages?: unknown } = {};
+  let body: ChatBody = {};
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad request" }, { status: 400 });
   }
-  if (!Array.isArray(body.messages)) {
+  const messages = body.messages;
+  if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages required" }, { status: 400 });
   }
 
-  const upstream = await fetch(GEMINI_ENDPOINT, {
+  // 1) Intent-level cache hit: replay the stored SSE verbatim.
+  const key = cacheKey(messages);
+  const cached = key ? llmCache.get(key) : null;
+  if (cached) {
+    return new NextResponse(cached, { status: 200, headers: SSE_HEADERS });
+  }
+
+  // 2) Miss: serialized upstream call with one bounded retry.
+  const upstream = await guardedFetch(GEMINI_ENDPOINT, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${API_KEY}`,
@@ -36,7 +61,7 @@ export async function POST(req: Request) {
     },
     body: JSON.stringify({
       model: MODEL,
-      messages: body.messages,
+      messages,
       temperature: 0.4,
       stream: true,
     }),
@@ -54,12 +79,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "no stream body" }, { status: 502 });
   }
 
-  // Pipe the SSE stream straight through (text/event-stream).
-  return new NextResponse(upstream.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-    },
-  });
+  // 3) Pipe the SSE stream through; a tee'd side channel collects the raw
+  //    bytes so a later identical intent replays from cache (no upstream call).
+  const [passthrough, collector] = upstream.body.tee();
+  void (async () => {
+    const reader = collector.getReader();
+    const decoder = new TextDecoder();
+    let sse = "";
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        sse += decoder.decode(value, { stream: true });
+      }
+      sse += decoder.decode();
+      llmCache.set(key, sse);
+    } catch {
+      /* partial/cancelled stream: skip caching, passthrough already served */
+    }
+  })();
+
+  return new NextResponse(passthrough, { status: 200, headers: SSE_HEADERS });
 }

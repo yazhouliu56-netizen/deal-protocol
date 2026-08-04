@@ -46,3 +46,7 @@ next-env.d.ts
 
 # Playwright MCP debug artifacts
 .playwright-mcp/
+
+# local dev/prod debug artifacts (screenshots, run logs)
+/*.png
+/*.log

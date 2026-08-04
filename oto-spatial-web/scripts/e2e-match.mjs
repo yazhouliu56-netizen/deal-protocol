@@ -28,10 +28,11 @@ async function grabRows(page) {
   );
 }
 
-const browser = await chromium.launch({
-  channel: "chrome",
-  headless: true,
-});
+const browser = await chromium.launch(
+  process.env.PLAYWRIGHT_CHANNEL === "chromium"
+    ? { headless: true }
+    : { channel: "chrome", headless: true }
+);
 
 try {
   const ctx = await browser.newContext({

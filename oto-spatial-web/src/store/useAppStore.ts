@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { applyBooking, applyCancel } from "@/lib/booking";
 import type { DockPage } from "@/components/ui/FloatingDock";
 import type { ChatMessage, GenCard } from "@/lib/chat/types";
 import { otoExperiences, type OTOCategory, type OTOExperience } from "@/lib/mockData";
@@ -203,32 +204,12 @@ clearChat: () =>
           ],
         }),
       addBooking: (booking) =>
-        set((s) => {
-          // 双视角闭环：用户下单 → 同步为服务者工作台待接单新单
-          const icon = /羽毛球/.test(booking.title)
-            ? "🏸"
-            : /摄影|约拍|写真/.test(booking.title)
-              ? "📷"
-              : /保洁/.test(booking.title)
-                ? "🧹"
-                : "✨";
-          const workerOrder: WorkerOrder = {
-            id: booking.id,
-            service: booking.title,
-            icon,
-            client: "我（Alex）",
-            time: booking.time,
-            price: booking.price,
-            status: "pending",
-            createdAt: booking.createdAt,
-            providerId: "kail",
-          };
-          const already = s.workerOrders.some((o) => o.id === booking.id);
-          return {
-            bookings: [booking, ...s.bookings],
-            workerOrders: already ? s.workerOrders : [workerOrder, ...s.workerOrders],
-          };
-        }),
+        set((s) =>
+          applyBooking(
+            { bookings: s.bookings, workerOrders: s.workerOrders },
+            booking
+          )
+        ),
       addReview: (review) =>
         set((s) => ({ reviews: [...s.reviews, review] })),
       updateBookingStatus: (id, status) =>
@@ -236,12 +217,12 @@ clearChat: () =>
           bookings: s.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
         })),
       cancelBooking: (id) =>
-        set((s) => ({
-          bookings: s.bookings.map((b) =>
-            b.id === id ? { ...b, status: "cancelled" as const } : b
-          ),
-          workerOrders: s.workerOrders.filter((o) => o.id !== id),
-        })),
+        set((s) =>
+          applyCancel(
+            { bookings: s.bookings, workerOrders: s.workerOrders },
+            id
+          )
+        ),
       setSelectedBooking: (selectedBookingId) => set({ selectedBookingId }),
       setAiDraft: (aiDraft) => set({ aiDraft }),
       setWorkerOnline: (workerOnline) => set({ workerOnline }),
