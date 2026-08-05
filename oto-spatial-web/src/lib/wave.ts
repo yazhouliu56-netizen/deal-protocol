@@ -10,6 +10,11 @@
  *   - direct claim (甲): responder hits accept, wave locks immediately.
  *   - negotiation (丙): each pair (demander ↔ responder) gets 3 offer/counter
  *     rounds; beyond that the offer is locked to accept / withdraw.
+ *   - 开放局 (open match, capacity ≥ 2): responders 拼位 (joinSeat) instead of
+ *     claiming the whole wave. Each joiner holds one seat as a "joined" claim;
+ *     once the table fills (joiners = capacity − 1, the demander counts first)
+ *     the wave auto-assembles (status assembled, joined → accepted). The
+ *     demander can also assemble early once at least one seat is taken.
  *   - 鸽子险 (deposit): when wave.deposit is set, the locking claim carries a
  *     DepositPhase — held on lock, released / paid out / refunded at verdict.
  */
@@ -40,6 +45,7 @@ export type WaveStatus =
   | "active"
   | "claimed"
   | "locked"
+  | "assembled"
   | "closed"
   | "expired";
 
@@ -56,11 +62,12 @@ export interface Wave {
   deposit?: boolean;
   /** 平台下架标记 — removed by moderation; hidden from the feed. */
   removed?: boolean;
-  /** How many people this demand expects (1 = solo). */
+  /** How many people this demand expects (1 = solo, ≥2 = 开放局 open match). */
   capacity: number;
   expiresAt: number;
   createdAt: number;
   status: WaveStatus;
+  /** 1:1 claim owner (solo waves only). Open-match waves track seats, not one owner. */
   claimedById?: string;
   /** Virtual interest counter (hotness-source; physics kept separate). */
   hotness?: number;
@@ -69,6 +76,7 @@ export interface Wave {
 export type ClaimStatus =
   | "offered"
   | "negotiating"
+  | "joined"
   | "accepted"
   | "withdrawn"
   | "breached";
@@ -169,6 +177,9 @@ export function claimDirect(
 ): { wave: Wave; claim: Claim } {
   if (wave.status !== "active") {
     throw new Error("wave.not-active");
+  }
+  if (isOpenMatch(wave)) {
+    throw new Error("wave.open-match-use-join");
   }
   const claim: Claim = {
     id: claimId,
@@ -283,4 +294,111 @@ export function withdrawClaim(claim: Claim): Claim {
 /** Mark a claim breached (didn't fulfil the order). */
 export function breachClaim(claim: Claim): Claim {
   return { ...claim, status: "breached" };
+}
+
+/* ---------------------------------------------------------------------------
+ * 开放局 / 拼位 (Open Match, Playtomic-style)
+ *
+ * capacity ≥ 2 → the demander counts as the first seat; the wave needs
+ * capacity − 1 joiners. Each joiner reserves a seat via `joinSeat` (claim
+ * status "joined"); the wave does NOT lock until the table fills. When the
+ * last seat is taken the wave assembles: status "assembled" and every joined
+ * claim becomes "accepted" (then the normal fulfilment/review loop applies).
+ * The demander may also assemble early once at least one seat is taken.
+ * ------------------------------------------------------------------------- */
+
+/** Open match when the demander wants a group (capacity ≥ 2). */
+export function isOpenMatch(wave: Pick<Wave, "capacity">): boolean {
+  return wave.capacity >= 2;
+}
+
+/** How many joiners (seats besides the demander) an open match needs. */
+export function neededJoiners(wave: Pick<Wave, "capacity">): number {
+  return Math.max(0, wave.capacity - 1);
+}
+
+/** Per-seat price = budget ÷ capacity (each participant pays their share). */
+export function perSeatPrice(wave: Pick<Wave, "budget" | "capacity">): number {
+  return Math.max(1, Math.round(wave.budget / Math.max(1, wave.capacity)));
+}
+
+/**
+ * 拼位: a responder reserves one seat of an open match. Requires an active
+ * open match (capacity ≥ 2) with a free seat. Returns the wave (still active
+ * until the table fills, assembled once the last seat is taken) and the new
+ * claim (status "joined", or "accepted" when this join completes the table).
+ * Throws instead of mutating on invalid states.
+ */
+export function joinSeat(
+  wave: Wave,
+  responderId: string,
+  claimId: string,
+  joinedCount: number,
+  createdAt = Date.now()
+): { wave: Wave; claim: Claim } {
+  if (!isOpenMatch(wave)) {
+    throw new Error("wave.not-open-match");
+  }
+  if (wave.status !== "active" && wave.status !== "assembled") {
+    throw new Error("wave.not-active");
+  }
+  if (wave.status === "assembled") {
+    throw new Error("wave.assembled");
+  }
+  if (joinedCount >= neededJoiners(wave)) {
+    throw new Error("wave.full");
+  }
+  const price = perSeatPrice(wave);
+  const full = joinedCount + 1 >= neededJoiners(wave);
+  const claim: Claim = {
+    id: claimId,
+    waveId: wave.id,
+    responderId,
+    status: full ? "accepted" : "joined",
+    rounds: 0,
+    price,
+    createdAt,
+    depositPhase: full && wave.deposit ? "held" : undefined,
+  };
+  return {
+    wave: {
+      ...wave,
+      status: full ? "assembled" : "active",
+    },
+    claim,
+  };
+}
+
+/**
+ * 成局: the demander closes the open match early (at least one seat taken).
+ * All joined claims become accepted; the wave locks to the current roster.
+ * Returns the updated wave + the list of claims that transitioned.
+ */
+export function assembleWave(
+  wave: Wave,
+  claims: Claim[]
+): { wave: Wave; claims: Claim[] } {
+  if (!isOpenMatch(wave)) {
+    throw new Error("wave.not-open-match");
+  }
+  if (wave.status !== "active") {
+    throw new Error("wave.not-active");
+  }
+  const joined = claims.filter(
+    (c) => c.waveId === wave.id && c.status === "joined"
+  );
+  if (joined.length === 0) {
+    throw new Error("wave.no-seats");
+  }
+  const joinedIds = new Set(joined.map((j) => j.id));
+  const locked: Claim[] = claims.map((c) =>
+    joinedIds.has(c.id)
+      ? {
+          ...c,
+          status: "accepted",
+          depositPhase: wave.deposit ? "held" : c.depositPhase,
+        }
+      : c
+  );
+  return { wave: { ...wave, status: "assembled" }, claims: locked };
 }

@@ -11,6 +11,7 @@ import { CATEGORY_EMOJI } from "./WaveCard";
  * 发布需求 = 发出一个信号波。
  * 基本要素先快速填（硬过滤），定制条件可选（软加权 + 递增加价），
  * 磋商对话框"内容即开关"。
+ * 开放局（人数 ≥ 2）：C 端互相组队拼位 —— 满员成局，人均 = 预算 ÷ 人数。
  */
 export default function PublishSheet({
   open,
@@ -30,6 +31,7 @@ export default function PublishSheet({
   const [customs, setCustoms] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [deposit, setDeposit] = useState(false);
+  const [people, setPeople] = useState(1);
   const [ttl, setTtl] = useState<number>(2 * 3600_000);
   const [error, setError] = useState("");
 
@@ -44,6 +46,7 @@ export default function PublishSheet({
     setCustoms([]);
     setNote("");
     setDeposit(false);
+    setPeople(1);
     setError("");
   }
 
@@ -68,6 +71,7 @@ export default function PublishSheet({
       negotiable: note.trim().length > 0,
       negotiableNote: note.trim() || undefined,
       deposit,
+      capacity: people,
       expiresAt: Date.now() + ttl,
       hotness: 2 + Math.floor(Math.random() * 2),
     });
@@ -212,6 +216,43 @@ export default function PublishSheet({
           label="磋商留言（可留空）"
           placeholder="想告诉响应者什么？填了就开放磋商，留空则直接接单"
         />
+
+        {/* 开放局：人数 ≥ 2 = 拼位组队（C 端互相找搭子） */}
+        <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-white/85 flex items-center gap-1.5">
+              🎯 开放局 · 拼位组队
+            </span>
+            {people >= 2 && (
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple">
+                满 {people} 人成局 · 人均约 ¥{Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))}
+              </span>
+            )}
+          </div>
+          <p className="text-[9px] text-white/40 mb-2">
+            1 人 = 普通服务需求；≥ 2 人 = 开放局，你算第 1 位，拼满成局（如羽毛球约局、拼车、拼饭）
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPeople(Math.max(1, people - 1))}
+              aria-label="减少人数"
+              className="w-8 h-8 rounded-xl glass-panel-interactive text-white/70 font-bold text-sm shrink-0"
+            >
+              −
+            </button>
+            <span className="flex-1 text-center text-[13px] font-extrabold text-white/90">
+              {people}
+              <span className="text-[9px] text-white/40 ml-1 font-normal">人（含你）</span>
+            </span>
+            <button
+              onClick={() => setPeople(Math.min(8, people + 1))}
+              aria-label="增加人数"
+              className="w-8 h-8 rounded-xl glass-panel-interactive text-white/70 font-bold text-sm shrink-0"
+            >
+              ＋
+            </button>
+          </div>
+        </div>
 
         {/* 鸽子险：履约保证金 */}
         <button

@@ -21,6 +21,7 @@ export default function WaveFeed() {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
   const openClaim = useWaveStore((s) => s.openClaim);
+  const joinSeat = useWaveStore((s) => s.joinSeat);
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
@@ -43,10 +44,23 @@ export default function WaveFeed() {
     const active = waves.filter(
       (w) => w.status === "active" && !w.removed && w.authorId !== identity.id
     );
+    const joinedIds = new Set(
+      claims
+        .filter(
+          (c) =>
+            c.responderId === identity.id &&
+            (c.status === "joined" || c.status === "accepted")
+        )
+        .map((c) => c.waveId)
+    );
     const list = active
+      // 我已拼位的开放局不再出现在 feed（去我的接单里看进度）
+      .filter((w) => !joinedIds.has(w.id))
       .map((w) => ({
         wave: w,
         interest: claims.filter((c) => c.waveId === w.id).length,
+        joined: claims.filter((c) => c.waveId === w.id && c.status === "joined").length,
+        joinedByMe: joinedIds.has(w.id),
         hits: broadcastMatches(sigs, w),
       }))
       // 硬筛不过（未认证进家/封禁/离线/品类不符）→ 不出现在 feed
@@ -151,12 +165,20 @@ export default function WaveFeed() {
             <WaveCard
               wave={f.wave}
               interests={f.interest}
+              joined={f.joined}
+              joinedByMe={f.joinedByMe}
               onClaim={({ price, note }) =>
                 openClaim({
                   waveId: f.wave.id,
                   responderId: identity.id,
                   note: note?.trim() || undefined,
                   price,
+                })
+              }
+              onJoin={() =>
+                joinSeat({
+                  waveId: f.wave.id,
+                  responderId: identity.id,
                 })
               }
             />

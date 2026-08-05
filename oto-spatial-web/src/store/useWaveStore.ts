@@ -7,7 +7,17 @@ import type {
   Wave,
   CreateWaveInput,
 } from "@/lib/wave";
-import { claimDirect, closeWave, counterOffer, createWave, lockNegotiation, openNegotiation, withdrawClaim } from "@/lib/wave";
+import {
+  assembleWave as assembleWaveLogic,
+  claimDirect,
+  closeWave,
+  counterOffer,
+  createWave,
+  joinSeat as joinSeatLogic,
+  lockNegotiation,
+  openNegotiation,
+  withdrawClaim,
+} from "@/lib/wave";
 import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/lib/fulfilment";
 import type { Review } from "@/lib/review";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
@@ -68,6 +78,7 @@ interface WaveStore extends WaveBundle {
   /**
    * Responder side: open a claim. When the wave is negotiable AND a
    * negotiation note is provided → 丙磋商; otherwise → 甲 direct claim.
+   * (Open-match waves must use joinSeat instead.)
    */
   openClaim: (p: {
     waveId: string;
@@ -75,6 +86,16 @@ interface WaveStore extends WaveBundle {
     price: number;
     note?: string;
   }) => { claim?: Claim; error?: string };
+  /**
+   * 开放局拼位: reserve one seat of an open match (capacity ≥ 2). When the
+   * last seat is taken the wave assembles automatically.
+   */
+  joinSeat: (p: {
+    waveId: string;
+    responderId: string;
+  }) => { claim?: Claim; assembled?: boolean; error?: string };
+  /** 开放局: demander closes the table early (at least one seat taken). */
+  assembleWave: (waveId: string) => void;
   /** One more counter-offer round (每对独立 3 轮；lastBy 交替制由纯函数强制). */
   counterOffer: (p: {
     claimId: string;
@@ -249,6 +270,9 @@ export const useWaveStore = create<WaveStore>()(
         const s = get();
         const wave = s.waves.find((w) => w.id === waveId);
         if (!wave) return { error: "wave-not-found" };
+        if (wave.capacity >= 2) {
+          return { error: "wave-open-match-use-join" };
+        }
         const claimId = nextId("claim");
         if (wave.negotiable && note?.trim()) {
           const claim = openNegotiation(wave, responderId, claimId, price ?? wave.budget);
@@ -266,6 +290,65 @@ export const useWaveStore = create<WaveStore>()(
           claims: [...st.claims, claim],
         }));
         return { claim };
+      },
+
+      joinSeat: ({ waveId, responderId }) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return { error: "wave-not-found" };
+        if (wave.status !== "active") return { error: "wave-not-active" };
+        // 一个响应者最多占一个位
+        const already = s.claims.some(
+          (c) =>
+            c.waveId === waveId &&
+            c.responderId === responderId &&
+            (c.status === "joined" || c.status === "accepted")
+        );
+        if (already) return { error: "already-joined" };
+        const joinedCount = s.claims.filter(
+          (c) => c.waveId === waveId && c.status === "joined"
+        ).length;
+        if (joinedCount >= Math.max(0, wave.capacity - 1)) {
+          return { error: "wave-full" };
+        }
+        try {
+          const claimId = nextId("claim");
+          const out = joinSeatLogic(
+            wave,
+            responderId,
+            claimId,
+            joinedCount
+          );
+          // 满员成局：把该局其余 joined 一并转 accepted（押金联动由
+          // MyClaims 的幂等 syncDeposit effect 按 claim phase 自动记账）
+          const lockedClaims = s.claims.map((c) =>
+            c.waveId === waveId && c.status === "joined" && out.claim.status === "accepted"
+              ? { ...c, status: "accepted" as const, depositPhase: wave.deposit ? ("held" as const) : c.depositPhase }
+              : c
+          );
+          set((st) => ({
+            waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
+            claims: [...lockedClaims, out.claim],
+          }));
+          return { claim: out.claim, assembled: out.wave.status === "assembled" };
+        } catch (e) {
+          return { error: e instanceof Error ? e.message : "join-failed" };
+        }
+      },
+
+      assembleWave: (waveId) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return;
+        try {
+          const out = assembleWaveLogic(wave, s.claims);
+          set((st) => ({
+            waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
+            claims: out.claims,
+          }));
+        } catch {
+          // 无座位 / 非开放局 / 已锁定 → 忽略
+        }
       },
 
       counterOffer: ({ claimId, price, message, actor }) => {

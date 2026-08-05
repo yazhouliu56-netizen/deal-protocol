@@ -12,6 +12,7 @@
     "test:e2e": "node scripts/e2e-match.mjs",
     "test:e2e:app": "node scripts/e2e-app.mjs",
     "test:e2e:wave": "node scripts/e2e-wave.mjs",
+    "test:e2e:openmatch": "node scripts/e2e-openmatch.mjs",
     "test:e2e:review": "node scripts/e2e-review.mjs",
   "test:e2e:push": "node scripts/e2e-push.mjs",
   "test:e2e:fulfil": "node scripts/e2e-fulfil.mjs",

@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquareText, Send, XCircle } from "lucide-react";
+import { MessageSquareText, Send, XCircle, Users } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { yuan } from "@/lib/customPricing";
-import { MAX_ROUNDS, nextSpeaker, type Claim, type Wave } from "@/lib/wave";
+import { MAX_ROUNDS, neededJoiners, nextSpeaker, type Claim, type Wave } from "@/lib/wave";
 import { ACTION_LABEL } from "@/lib/moderation";
 import type { DepositPhase } from "@/lib/deposit";
 import DialCard from "./DialCard";
@@ -14,6 +14,7 @@ import ReviewSection from "./ReviewSection";
  * 响应者视角：我接的单（claim story）。
  * 磋商线：等待需求方还价 / 回应还价（counterOffer actor=responder）/ 放弃。
  * 锁定后：一次性虚拟线路拨号卡。
+ * 开放局：拼位后等待满员成局（joined），成局后与锁定单同链路。
  */
 export default function MyClaims() {
   const waves = useWaveStore((s) => s.waves);
@@ -70,7 +71,14 @@ export default function MyClaims() {
         {mine.map(({ claim, wave }) => {
           const turn = nextSpeaker(claim);
           const exhausted = claim.rounds >= MAX_ROUNDS;
-          const isLocked = wave.status === "claimed" && claim.status !== "withdrawn";
+          const isLocked =
+            (wave.status === "claimed" || wave.status === "assembled") &&
+            claim.status !== "withdrawn" &&
+            claim.status !== "joined";
+          const isJoined = claim.status === "joined";
+          const joinedTotal = claims.filter(
+            (c) => c.waveId === wave.id && c.status === "joined"
+          ).length;
 
           return (
             <div key={claim.id} className="glass-panel rounded-3xl p-4 space-y-2.5">
@@ -79,16 +87,62 @@ export default function MyClaims() {
                 <div className="min-w-0">
                   <h3 className="text-[13px] font-extrabold truncate">
                     {wave.basics.category}
+                    {wave.capacity >= 2 && (
+                      <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple align-middle">
+                        🎯 开放局
+                      </span>
+                    )}
                   </h3>
                   <p className="text-[10px] text-white/50 mt-0.5 truncate">
-                    {wave.basics.time} · {wave.basics.area} · 商议价{" "}
+                    {wave.basics.time} · {wave.basics.area} ·{" "}
                     {claim.price ? yuan(claim.price) : yuan(wave.budget)}
+                    {wave.capacity >= 2 && "/人"}
                   </p>
                 </div>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-brandCyan/15 border-brandCyan/40 text-brandCyan">
-                  第 {claim.rounds}/{MAX_ROUNDS} 轮
-                </span>
+                {claim.status === "negotiating" && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-brandCyan/15 border-brandCyan/40 text-brandCyan">
+                    第 {claim.rounds}/{MAX_ROUNDS} 轮
+                  </span>
+                )}
+                {isJoined && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-brandPurple/15 border-brandPurple/40 text-brandPurple">
+                    已拼位
+                  </span>
+                )}
               </div>
+
+              {/* 拼位等待态：等满员成局（可退出） */}
+              {isJoined && (
+                <div className="rounded-2xl bg-brandPurple/10 border border-brandPurple/25 p-3 space-y-2">
+                  <p className="text-[10.5px] font-bold text-brandPurple flex items-center gap-1.5">
+                    <Users size={11} /> 已拼位 · 等待满员成局
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-brandCyan to-brandPurple"
+                        style={{
+                          width: `${Math.min(100, (joinedTotal / Math.max(1, neededJoiners(wave))) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[9px] text-white/50 shrink-0">
+                      {Math.min(joinedTotal, neededJoiners(wave))}/{neededJoiners(wave)}
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-white/40">
+                    {wave.status === "assembled"
+                      ? "需求方已提前成局"
+                      : "满员后自动成局；需求方也可提前成局。成局前可随时退出。"}
+                  </p>
+                  <button
+                    onClick={() => withdraw(claim.id)}
+                    className="flex items-center gap-1 text-[9.5px] text-white/40 hover:text-red-300 transition-colors"
+                  >
+                    <XCircle size={10} /> 退出拼位
+                  </button>
+                </div>
+              )}
 
               {/* 磋商线 */}
               {claim.status === "negotiating" && (

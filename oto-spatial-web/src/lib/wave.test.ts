@@ -1,15 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  assembleWave,
   breachClaim,
   claimDirect,
   closeWave,
   counterOffer,
   createWave,
+  isOpenMatch,
   isWaveExpired,
+  joinSeat,
   lockNegotiation,
+  neededJoiners,
   nextSpeaker,
   openNegotiation,
+  perSeatPrice,
   withdrawClaim,
   MAX_ROUNDS,
   type Wave,
@@ -131,4 +136,76 @@ test("counterOffer enforces alternation (lastBy / same-side throws)", () => {
     () => counterOffer(claim, 85, "还不行吗", "demander"),
     /claim\.rounds-exhausted/
   );
+});
+
+/* ------------------------- 开放局 / 拼位 ------------------------- */
+
+test("open match: capacity ≥ 2, per-seat price = budget ÷ capacity", () => {
+  const wave = baseWave({ capacity: 4, budget: 200 });
+  assert.equal(isOpenMatch(wave), true);
+  assert.equal(isOpenMatch(baseWave()), false);
+  assert.equal(neededJoiners(wave), 3);
+  assert.equal(perSeatPrice(wave), 50);
+  // 发单人自己算一个位：预算 100 / 2 人局 → 人均 50
+  const duo = baseWave({ capacity: 2, budget: 100 });
+  assert.equal(perSeatPrice(duo), 50);
+});
+
+test("joinSeat reserves a seat without locking the wave", () => {
+  const wave = baseWave({ capacity: 4, budget: 200 });
+  const first = joinSeat(wave, "r1", "c1", 0, now);
+  assert.equal(first.claim.status, "joined");
+  assert.equal(first.claim.price, 50);
+  assert.equal(first.wave.status, "active", "未满员不锁局");
+});
+
+test("joinSeat fills the table → wave assembles (last seat)", () => {
+  const wave = baseWave({ capacity: 3, budget: 150 });
+  // 需求方自己 1 个位，需 2 位拼位者
+  const first = joinSeat(wave, "r1", "c1", 0, now);
+  const second = joinSeat(first.wave, "r2", "c2", 1, now);
+  assert.equal(second.claim.status, "accepted", "最后一位直接 accepted");
+  assert.equal(second.claim.depositPhase, undefined, "无鸽子险不冻结");
+  assert.equal(second.wave.status, "assembled", "满员成局");
+});
+
+test("joinSeat rejects: solo wave / full table / non-active wave", () => {
+  const solo = baseWave();
+  assert.throws(() => joinSeat(solo, "r1", "c1", 0, now), /not-open-match/);
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  // 满员（需求方 1 位 + 拼位 1 位已满）
+  const joined = joinSeat(wave, "r1", "c1", 0, now);
+  assert.equal(joined.wave.status, "assembled");
+  assert.throws(() => joinSeat(joined.wave, "r2", "c2", 1, now), /assembled/);
+  const closed = closeWave(wave);
+  assert.throws(() => joinSeat(closed, "r2", "c2", 0, now), /not-active/);
+});
+
+test("claimDirect refuses open-match waves (拼位专用)", () => {
+  const wave = baseWave({ capacity: 4 });
+  assert.throws(() => claimDirect(wave, "r1", "c1", 120, now), /open-match-use-join/);
+});
+
+test("joinSeat with 鸽子险 holds deposit on the filling seat", () => {
+  const wave = baseWave({ capacity: 2, budget: 100, deposit: true });
+  const out = joinSeat(wave, "r1", "c1", 0, now);
+  assert.equal(out.claim.status, "accepted");
+  assert.equal(out.claim.depositPhase, "held", "满员成局即冻结押金");
+});
+
+test("assembleWave locks early when ≥1 seat taken", () => {
+  const wave = baseWave({ capacity: 4, budget: 200, deposit: true });
+  const seat = joinSeat(wave, "r1", "c1", 0, now);
+  const out = assembleWave(seat.wave, [seat.claim]);
+  assert.equal(out.wave.status, "assembled");
+  assert.equal(out.claims[0].status, "accepted");
+  assert.equal(out.claims[0].depositPhase, "held", "成局即冻结");
+});
+
+test("assembleWave refuses: no seats / not open match / not active", () => {
+  const wave = baseWave({ capacity: 4, budget: 200 });
+  assert.throws(() => assembleWave(wave, []), /no-seats/);
+  assert.throws(() => assembleWave(baseWave(), []), /not-open-match/);
+  const closed = closeWave(wave);
+  assert.throws(() => assembleWave(closed, []), /not-active/);
 });
