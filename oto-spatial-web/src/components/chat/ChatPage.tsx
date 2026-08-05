@@ -48,7 +48,10 @@ export default function ChatPage() {
   const [llmFallback, setLlmFallback] = useState(false);
   const [llmFailures, setLlmFailures] = useState(0);
   const [pendingRetry, setPendingRetry] = useState<string | null>(null);
-  const useLlm = process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" && !llmFallback;
+  const useLlm =
+    (process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" ||
+      process.env.NEXT_PUBLIC_LLM_PROVIDER === "zhipu") &&
+    !llmFallback;
   const engine = useMemo(() => {
     void session; // 重建触发器：新对话/降级时强制新建引擎实例
     return useLlm ? new LlmEngine() : new MockEngine();

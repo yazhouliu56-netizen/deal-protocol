@@ -5,9 +5,9 @@ import { mockClusterTags } from "@/lib/cluster";
  * LLM 聚类标签抽取 — POST { category, customs, negotiableNote } →
  * { tags: string[] }.
  *
- * Uses the Gemini API when GEMINI_API_KEY is set (server-only), otherwise
- * falls back to the deterministic mock extractor. The store calls this
- * fire-and-forget after publishing a signal wave.
+ * Provider chain: Zhipu GLM-4-Flash (free, JSON-stable) → Gemini → the
+ * deterministic mock extractor. The store calls this fire-and-forget after
+ * publishing a signal wave, so any upstream failure degrades gracefully.
  */
 
 const CLUSTER_PROMPT = (
@@ -42,59 +42,82 @@ function parseTags(text: string): string[] {
   return [];
 }
 
+/** OpenAI-compatible chat completion (Zhipu v4 / Gemini v1beta both speak it). */
+async function openAiTags(
+  endpoint: string,
+  apiKey: string,
+  model: string,
+  prompt: string
+): Promise<string[]> {
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      max_tokens: 512,
+      // GLM-4.7-Flash is a hybrid-thinking model: with thinking enabled the
+      // final answer lands in `content` only at stream end and non-stream
+      // replies can come back with an empty content — disable it for the
+      // small structured-extraction task so the JSON is returned directly.
+      ...(endpoint.includes("bigmodel.cn") ? { thinking: { type: "disabled" } } : {}),
+    }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  return parseTags(data.choices?.[0]?.message?.content ?? "");
+}
+
 export async function POST(req: Request) {
   const payload = (await req.json().catch(() => ({}))) as ClusterPayload;
-  const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+  const prompt = CLUSTER_PROMPT(
+    JSON.stringify({
+      category: payload.category,
+      customs: payload.customs,
+      negotiableNote: payload.negotiableNote,
+    })
+  );
 
-  if (apiKey) {
+  // 1) Zhipu GLM-4-Flash first (free + mainland-reachable).
+  if (process.env.ZHIPU_API_KEY) {
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  {
-                    text: CLUSTER_PROMPT(
-                      JSON.stringify({
-                        category: payload.category,
-                        customs: payload.customs,
-                        negotiableNote: payload.negotiableNote,
-                      })
-                    ),
-                  },
-                ],
-              },
-            ],
-            generationConfig: { temperature: 0.2 },
-          }),
-          signal: AbortSignal.timeout(8000),
-        }
+      const tags = await openAiTags(
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        process.env.ZHIPU_API_KEY,
+        process.env.ZHIPU_MODEL ?? "glm-4-flash",
+        prompt
       );
-      if (res.ok) {
-        const data = (await res.json()) as {
-          candidates?: Array<{
-            content?: { parts?: Array<{ text?: string }> };
-          }>;
-        };
-        const text =
-          data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-        const tags = parseTags(text);
-        if (tags.length > 0) return NextResponse.json({ tags });
-      }
+      if (tags.length > 0) return NextResponse.json({ tags, source: "zhipu" });
     } catch {
-      // fall through to mock
+      // fall through
     }
   }
 
+  // 2) Gemini (v1beta OpenAI-compatible endpoint).
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiModel = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+  if (geminiKey) {
+    try {
+      const tags = await openAiTags(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        geminiKey,
+        geminiModel,
+        prompt
+      );
+      if (tags.length > 0) return NextResponse.json({ tags, source: "gemini" });
+    } catch {
+      // fall through
+    }
+  }
+
+  // 3) Deterministic mock extractor.
   const tags = mockClusterTags(payload);
   return NextResponse.json({ tags, source: "mock" });
 }
