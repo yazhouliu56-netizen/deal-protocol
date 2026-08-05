@@ -197,6 +197,7 @@ function ProceduralSpatialCanvas() {
     const onPointerUp = () => {
       isDragging = false;
     };
+    if (!container) return;
     container.addEventListener("pointerdown", onPointerDown);
     container.addEventListener("pointermove", onPointerMove);
     container.addEventListener("pointerup", onPointerUp);

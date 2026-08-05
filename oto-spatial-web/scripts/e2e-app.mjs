@@ -89,8 +89,13 @@ try {
     return m ? m[1] : full.slice(0, 6);
   });
   assert.ok(destName, "应找到目的地卡");
-  // HoloCard 常驻动画 → force click（跳过稳定性判定）
-  await page.locator("button", { hasText: destName }).first().click({ force: true, timeout: 10000 });
+  // HoloCard 常驻动画 → force click（跳过稳定性判定）；首页雷达 Feed 把
+  // 目的地卡推到了首屏下方，原生滚动进视口后点击（evaluate 绕开
+  // Playwright 的 actionability 等待，避免 3D 动画导致 scroll 判定卡死）。
+  const destCard = page.locator("button", { hasText: destName }).first();
+  await destCard.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.waitForTimeout(300);
+  await destCard.click({ force: true, timeout: 10000 });
   await page.waitForTimeout(800);
   // AR 默认场景模式，先切"体验预览"才有收藏按钮
   await page.getByRole("button", { name: "✨ 体验预览" }).click();

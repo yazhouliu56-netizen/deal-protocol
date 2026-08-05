@@ -78,6 +78,7 @@ export default function FurnitureScene() {
       state.dragging = false;
     };
 
+    if (!el) return;
     el.addEventListener("pointerdown", onPointerDown);
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", onPointerUp);

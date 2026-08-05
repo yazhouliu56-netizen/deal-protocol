@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import WorkerWorkbench from "./WorkerWorkbench";
+import WalletView from "@/components/waves/WalletView";
+import CapabilityPanel from "@/components/waves/CapabilityPanel";
+import MyClaims from "@/components/waves/MyClaims";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   羽毛球约局: "🏸",
@@ -119,6 +122,15 @@ export default function ProfilePage() {
         </div>
         <span className="text-white/30 text-lg shrink-0">›</span>
       </button>
+
+      {/* P2P 钱包与信用前台 */}
+      <WalletView />
+
+      {/* 能力声明编辑 */}
+      <CapabilityPanel />
+
+      {/* 我的接单（响应者视角） */}
+      <MyClaims />
 
       {/* 我的订单 */}
       <div>

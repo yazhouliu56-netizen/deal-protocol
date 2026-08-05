@@ -11,6 +11,9 @@ import GlassIconButton from "@/components/ui/GlassIconButton";
 import Badge from "@/components/ui/Badge";
 import CategoryPill from "@/components/ui/CategoryPill";
 import SearchBar from "@/components/ui/SearchBar";
+import WaveFeed from "@/components/waves/WaveFeed";
+import MyWaves from "@/components/waves/MyWaves";
+import SafetyKit from "@/components/waves/SafetyKit";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower, isLowPower } from "@/lib/performance";
 import {
@@ -203,9 +206,9 @@ function HomePage() {
           )}
         </button>
       </div>
-      <h1 className="text-[24px] leading-tight font-extrabold mt-2 bg-clip-text text-transparent bg-linear-to-r from-white via-purple-200 to-brandPurple tracking-tight">
-        在增强现实中探索本地体验
-      </h1>
+
+      {/* 雷达 Feed：主导首页 */}
+      <WaveFeed />
 
       {/* AI 对话条：常驻需求入口 */}
       <button
@@ -339,6 +342,11 @@ function HomePage() {
           />
         ))}
       </motion.div>
+
+      {/* 安全四件套入口 */}
+      <div className="mt-5">
+        <SafetyKit />
+      </div>
 
       {/* 心愿单面板 */}
       <AnimatePresence>
@@ -929,6 +937,9 @@ function TripPage() {
 
   return (
     <div className="pointer-events-auto">
+      {/* 我的需求：需求方视角（信号波 + 接单 + 磋商 + 违约） */}
+      <MyWaves />
+
       {/* 我的预订：AI 对话产生的订单汇入行程 */}
       {bookings.length > 0 && (
         <div className="mt-3">

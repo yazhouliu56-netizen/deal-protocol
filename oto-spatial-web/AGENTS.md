@@ -11,177 +11,87 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ### ./
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
-| e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
-| e796720a-5b3d-4487-a891-6ed3d8436abc | ✅ change | M6.3 完成：撮合端到端测试（单测 12/12 + 浏览器 E2E 全链路 PASS） | 2026-08-03 |
-| e64d8c69-6022-40ba-9512-13ae96e87801 | ⚖️ decision | oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略 | 2026-08-03 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
-
-**Recent decisions:** oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略
+**Key concepts:** llm-cache, rate-limit-429, serialized-queue, sse-tee, pure-function, ci-e2e, playwright-channel
 
 ### .github\workflows/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
+| 60bc9845-48d6-4603-b707-6e422f000482 | ✅ change | P4 评价体系闭环：72h 默认好评 + 脱敏衰减 + 信用驱动额度扩容 + 三态状态总闸 | 2026-08-04 |
+| d0085501-22c7-4b0c-822d-8a3d45cf93d9 | ✅ change | P1 waves 完成：P2P 广播双 tab 闭环 + 三条 E2E 全绿 | 2026-08-04 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** dual-view, migration, search, wishlist, ime, cancel-order, party-size, a11y, restart-script
-
-### public/
-| ID | Type | Title | Date |
-|----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| bbf76d86-f73b-4a76-aff3-fc93f8a3c8bf | ✅ change | P5 完成：低功耗降级策略 + manifest 精调 + SW v3（P0–P5 收官） | 2026-08-03 |
-| 1711a06a-b54c-4fa9-ac5b-6d821576cadb | ✅ change | P1 完成：R3F 重构 + GLTF 资产管线 + Lightformer 环境反射 + LOD + SW 模型预缓存 | 2026-08-03 |
-| 5eae0030-09dd-4443-9b1f-f668125d341e | 🔴 bugfix | 毛玻璃重构：LightningCSS 吃掉 backdrop-filter + SW 离线回退命中旧缓存 | 2026-08-03 |
-| e64d8c69-6022-40ba-9512-13ae96e87801 | ⚖️ decision | oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略 | 2026-08-03 |
-
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, pwa, low-power, performance, degradation
-
-**Recent decisions:** oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略
+**Key concepts:** review-system, default-review-72h, masked-review, credit-from-reviews, quota-expansion, status-gate, tag-limit-3, p2p-broadcast, cross-tab-sync, window.name-identity
 
 ### scripts/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| e796720a-5b3d-4487-a891-6ed3d8436abc | ✅ change | M6.3 完成：撮合端到端测试（单测 12/12 + 浏览器 E2E 全链路 PASS） | 2026-08-03 |
-| 1711a06a-b54c-4fa9-ac5b-6d821576cadb | ✅ change | P1 完成：R3F 重构 + GLTF 资产管线 + Lightformer 环境反射 + LOD + SW 模型预缓存 | 2026-08-03 |
+| 60bc9845-48d6-4603-b707-6e422f000482 | ✅ change | P4 评价体系闭环：72h 默认好评 + 脱敏衰减 + 信用驱动额度扩容 + 三态状态总闸 | 2026-08-04 |
+| cbad46dd-69bc-4ed8-b23c-0fbb04d58c5c | ✅ change | P3 鸽子险闭环：押金冻结/履约解冻/违约赔付 + 平台服务费 | 2026-08-04 |
+| b3fbc691-efc3-4aee-9d78-93f3d214ef57 | ✅ change | P2 四件套完成：磋商交替制闭环 + 能力声明 + 钱包流水前台 + 虚拟拨号 | 2026-08-04 |
+| d0085501-22c7-4b0c-822d-8a3d45cf93d9 | ✅ change | P1 waves 完成：P2P 广播双 tab 闭环 + 三条 E2E 全绿 | 2026-08-04 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, dual-view, migration, search, ime
-
-### src\app/
-| ID | Type | Title | Date |
-|----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| fce2cb8e-ddb3-404a-a179-5b2d56f3f0dc | ✅ change | M4 完成：AR 场景探索（取景框 + 本地服务锚点 + 点锚撮合直达 AI）+ pointer-events 继承修复 | 2026-08-03 |
-| 1b553d97-6f47-4272-b0bd-383240d73470 | ✅ change | M3 完成：订单列表/详情/星级评价 + 个人中心 + 行程联动 + Home 热卡自动撮合 | 2026-08-03 |
-| 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
-| 513dfe29-ee8c-44e6-9c08-2bc969824a4e | ✅ change | V5 桌面微调收官：2xl 5 列 + Dock 滑入动画 + Trip 滚动约束 + 5 尺寸矩阵验证 | 2026-08-03 |
-| 04cdc74a-b74f-486c-9879-bd003591b545 | ✅ change | V4 桌面铺满：max-w-md 拆除 + 4 列网格 + 右侧垂直 Dock + 地球自适应 + Trip 并排 | 2026-08-03 |
-| 111e1805-8a29-46ef-8007-323a8b0b5b09 | ✅ change | V3 微调：地球移至顶部 + safe-area + 霓虹包围 + 价格分级 + 白模消除 | 2026-08-03 |
-| 7109f187-64a5-4913-9ee6-903d77091337 | ✅ change | V2 视觉大改：HoloCard 全息卡牌 + 低模地球 + 霓虹玻璃 + 全站中文化（hydration 坑） | 2026-08-03 |
-| d26cd1fe-b8b8-407e-b8a5-b061bcc9236b | ✅ change | V1 视觉专项：深空多层景深 + 通透玻璃升级 + 3D 悬浮光影（ContactShadows + swatch lerp） | 2026-08-03 |
-
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, dual-view, migration, search, ime
+**Key concepts:** review-system, default-review-72h, masked-review, credit-from-reviews, quota-expansion, status-gate, tag-limit-3, pigeon-insurance, deposit-escrow, idempotent-accounting
 
 ### src\app\api\chat/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** llm-engine, gemini, openai-compat, proxy, pluggable-engine, directive-protocol, fallback
+**Key concepts:** llm-cache, rate-limit-429, serialized-queue, sse-tee, pure-function, ci-e2e, playwright-channel
 
 ### src\components/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| e64d8c69-6022-40ba-9512-13ae96e87801 | ⚖️ decision | oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略 | 2026-08-03 |
+| d0085501-22c7-4b0c-822d-8a3d45cf93d9 | ✅ change | P1 waves 完成：P2P 广播双 tab 闭环 + 三条 E2E 全绿 | 2026-08-04 |
 
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, pwa, nextjs-16, pointer-events, threejs
-
-**Recent decisions:** oto-spatial-web PWA 升级：Next16 行为差异 + 3D 事件穿透 + SW 策略
-
-### src\components\3d/
-| ID | Type | Title | Date |
-|----|------|-------|------|
-| fce2cb8e-ddb3-404a-a179-5b2d56f3f0dc | ✅ change | M4 完成：AR 场景探索（取景框 + 本地服务锚点 + 点锚撮合直达 AI）+ pointer-events 继承修复 | 2026-08-03 |
-| 04cdc74a-b74f-486c-9879-bd003591b545 | ✅ change | V4 桌面铺满：max-w-md 拆除 + 4 列网格 + 右侧垂直 Dock + 地球自适应 + Trip 并排 | 2026-08-03 |
-| 111e1805-8a29-46ef-8007-323a8b0b5b09 | ✅ change | V3 微调：地球移至顶部 + safe-area + 霓虹包围 + 价格分级 + 白模消除 | 2026-08-03 |
-| 7109f187-64a5-4913-9ee6-903d77091337 | ✅ change | V2 视觉大改：HoloCard 全息卡牌 + 低模地球 + 霓虹玻璃 + 全站中文化（hydration 坑） | 2026-08-03 |
-| d26cd1fe-b8b8-407e-b8a5-b061bcc9236b | ✅ change | V1 视觉专项：深空多层景深 + 通透玻璃升级 + 3D 悬浮光影（ContactShadows + swatch lerp） | 2026-08-03 |
-| bbf76d86-f73b-4a76-aff3-fc93f8a3c8bf | ✅ change | P5 完成：低功耗降级策略 + manifest 精调 + SW v3（P0–P5 收官） | 2026-08-03 |
-| ed9fe0a7-5fcb-4df6-9310-57a12a655858 | ✅ change | P2 完成：UI 设计系统组件化 + stagger 动效 + 图片懒加载骨架屏（含选择器坑） | 2026-08-03 |
-| 1711a06a-b54c-4fa9-ac5b-6d821576cadb | ✅ change | P1 完成：R3F 重构 + GLTF 资产管线 + Lightformer 环境反射 + LOD + SW 模型预缓存 | 2026-08-03 |
-| 03ffa1a8-9f91-4845-ac6f-733a90de1455 | ✅ change | P0 完成：Zustand 全局状态 + Framer Motion 动效（含 AR 页 flex-1 布局塌缩修复） | 2026-08-03 |
-| 1c106bb6-db48-497e-86b8-6d3ff7e6f166 | 🔄 refactor | 移除假手机壳：重构为满屏响应式 PWA（移动端 100% 视口 + 桌面居中） | 2026-08-03 |
-
-**Key concepts:** ar, generative-ui, chat-engine, viewport-pattern, pointer-events, responsive, desktop-pwa, grid-cols, side-dock, breakpoint
-
-### src\components\chat/
-| ID | Type | Title | Date |
-|----|------|-------|------|
-| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
-| e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| d7fd32ea-16d1-4266-b6a9-636e3be47656 | ✅ change | M6.2 完成：撮合结果解释行（六维评分 breakdown 面板） | 2026-08-03 |
-| 5411a3f0-cb4b-44b4-b47a-42ff9f95bd6e | ✅ change | M6.1 完成：时段密度 + 距离权重扩展（六维撮合评分 100 分制） | 2026-08-03 |
-| d13373f6-b9d7-4863-bb29-a640e0148c4e | ✅ change | M6 完成：撮合算法（level/budget 过滤 + provider 排序）纯函数评分 | 2026-08-03 |
-| 1b553d97-6f47-4272-b0bd-383240d73470 | ✅ change | M3 完成：订单列表/详情/星级评价 + 个人中心 + 行程联动 + Home 热卡自动撮合 | 2026-08-03 |
-| cabc528f-3f51-42cd-a7c7-f51b99c1ad18 | ✅ change | M2 完成：生成式卡片流（时段/服务者/确认单/成功）+ 点卡预订本地闭环 | 2026-08-03 |
-| 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
-
-**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
+**Key concepts:** p2p-broadcast, cross-tab-sync, window.name-identity, strip-types, playwright-storage-event, e2e-wave
 
 ### src\components\profile/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| 0b124207-ae1d-4c93-9837-5685d1587ea0 | ✅ change | M5 完成：服务者端工作台（接单/履约/收益 + 在线开关）双视角闭环 | 2026-08-03 |
-| 1b553d97-6f47-4272-b0bd-383240d73470 | ✅ change | M3 完成：订单列表/详情/星级评价 + 个人中心 + 行程联动 + Home 热卡自动撮合 | 2026-08-03 |
+| b3fbc691-efc3-4aee-9d78-93f3d214ef57 | ✅ change | P2 四件套完成：磋商交替制闭环 + 能力声明 + 钱包流水前台 + 虚拟拨号 | 2026-08-04 |
 
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, dual-view, migration, search, ime
+**Key concepts:** negotiation-alternation, lastBy-actor, virtual-dial-code, capability-panel, wallet-ledger, e2e-nego-loop
 
-### src\components\ui/
+### src\components\waves/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| 1b553d97-6f47-4272-b0bd-383240d73470 | ✅ change | M3 完成：订单列表/详情/星级评价 + 个人中心 + 行程联动 + Home 热卡自动撮合 | 2026-08-03 |
-| 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
-| 513dfe29-ee8c-44e6-9c08-2bc969824a4e | ✅ change | V5 桌面微调收官：2xl 5 列 + Dock 滑入动画 + Trip 滚动约束 + 5 尺寸矩阵验证 | 2026-08-03 |
-| 04cdc74a-b74f-486c-9879-bd003591b545 | ✅ change | V4 桌面铺满：max-w-md 拆除 + 4 列网格 + 右侧垂直 Dock + 地球自适应 + Trip 并排 | 2026-08-03 |
-| 111e1805-8a29-46ef-8007-323a8b0b5b09 | ✅ change | V3 微调：地球移至顶部 + safe-area + 霓虹包围 + 价格分级 + 白模消除 | 2026-08-03 |
-| 7109f187-64a5-4913-9ee6-903d77091337 | ✅ change | V2 视觉大改：HoloCard 全息卡牌 + 低模地球 + 霓虹玻璃 + 全站中文化（hydration 坑） | 2026-08-03 |
-| ed9fe0a7-5fcb-4df6-9310-57a12a655858 | ✅ change | P2 完成：UI 设计系统组件化 + stagger 动效 + 图片懒加载骨架屏（含选择器坑） | 2026-08-03 |
-| 1c106bb6-db48-497e-86b8-6d3ff7e6f166 | 🔄 refactor | 移除假手机壳：重构为满屏响应式 PWA（移动端 100% 视口 + 桌面居中） | 2026-08-03 |
-| 3381a123-0918-4608-b4d7-f2337ac8eaa6 | ✅ change | VisionOS 空间手机窗口：1:1 英文样机重构（全息地球 + 悬浮容器 + 阳光摄影） | 2026-08-03 |
+| 60bc9845-48d6-4603-b707-6e422f000482 | ✅ change | P4 评价体系闭环：72h 默认好评 + 脱敏衰减 + 信用驱动额度扩容 + 三态状态总闸 | 2026-08-04 |
+| cbad46dd-69bc-4ed8-b23c-0fbb04d58c5c | ✅ change | P3 鸽子险闭环：押金冻结/履约解冻/违约赔付 + 平台服务费 | 2026-08-04 |
+| b3fbc691-efc3-4aee-9d78-93f3d214ef57 | ✅ change | P2 四件套完成：磋商交替制闭环 + 能力声明 + 钱包流水前台 + 虚拟拨号 | 2026-08-04 |
 
-**Key concepts:** dual-view, migration, search, wishlist, ime, cancel-order, party-size, a11y, restart-script, generative-ui
+**Key concepts:** review-system, default-review-72h, masked-review, credit-from-reviews, quota-expansion, status-gate, tag-limit-3, pigeon-insurance, deposit-escrow, idempotent-accounting
 
 ### src\lib/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| e796720a-5b3d-4487-a891-6ed3d8436abc | ✅ change | M6.3 完成：撮合端到端测试（单测 12/12 + 浏览器 E2E 全链路 PASS） | 2026-08-03 |
-| d7fd32ea-16d1-4266-b6a9-636e3be47656 | ✅ change | M6.2 完成：撮合结果解释行（六维评分 breakdown 面板） | 2026-08-03 |
-| 5411a3f0-cb4b-44b4-b47a-42ff9f95bd6e | ✅ change | M6.1 完成：时段密度 + 距离权重扩展（六维撮合评分 100 分制） | 2026-08-03 |
-| d13373f6-b9d7-4863-bb29-a640e0148c4e | ✅ change | M6 完成：撮合算法（level/budget 过滤 + provider 排序）纯函数评分 | 2026-08-03 |
-| 7109f187-64a5-4913-9ee6-903d77091337 | ✅ change | V2 视觉大改：HoloCard 全息卡牌 + 低模地球 + 霓虹玻璃 + 全站中文化（hydration 坑） | 2026-08-03 |
-| bbf76d86-f73b-4a76-aff3-fc93f8a3c8bf | ✅ change | P5 完成：低功耗降级策略 + manifest 精调 + SW v3（P0–P5 收官） | 2026-08-03 |
-| 1c106bb6-db48-497e-86b8-6d3ff7e6f166 | 🔄 refactor | 移除假手机壳：重构为满屏响应式 PWA（移动端 100% 视口 + 桌面居中） | 2026-08-03 |
-| 3381a123-0918-4608-b4d7-f2337ac8eaa6 | ✅ change | VisionOS 空间手机窗口：1:1 英文样机重构（全息地球 + 悬浮容器 + 阳光摄影） | 2026-08-03 |
-| 5eae0030-09dd-4443-9b1f-f668125d341e | 🔴 bugfix | 毛玻璃重构：LightningCSS 吃掉 backdrop-filter + SW 离线回退命中旧缓存 | 2026-08-03 |
+| 60bc9845-48d6-4603-b707-6e422f000482 | ✅ change | P4 评价体系闭环：72h 默认好评 + 脱敏衰减 + 信用驱动额度扩容 + 三态状态总闸 | 2026-08-04 |
+| cbad46dd-69bc-4ed8-b23c-0fbb04d58c5c | ✅ change | P3 鸽子险闭环：押金冻结/履约解冻/违约赔付 + 平台服务费 | 2026-08-04 |
+| b3fbc691-efc3-4aee-9d78-93f3d214ef57 | ✅ change | P2 四件套完成：磋商交替制闭环 + 能力声明 + 钱包流水前台 + 虚拟拨号 | 2026-08-04 |
+| d0085501-22c7-4b0c-822d-8a3d45cf93d9 | ✅ change | P1 waves 完成：P2P 广播双 tab 闭环 + 三条 E2E 全绿 | 2026-08-04 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** dual-view, migration, search, wishlist, ime, cancel-order, party-size, a11y, restart-script, matchmaking
+**Key concepts:** review-system, default-review-72h, masked-review, credit-from-reviews, quota-expansion, status-gate, tag-limit-3, pigeon-insurance, deposit-escrow, idempotent-accounting
 
 ### src\lib\chat/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 1cda8b4a-fb80-475a-b4ef-2d0eaeb2ff87 | ✅ change | LLM 引擎体检修复：新对话重置 + 对话历史 + 超时 + 自动降级 | 2026-08-03 |
-| e512940f-7e95-4984-b32b-98c9b8d8eed4 | ✅ change | LLMEngine 接入完成：Gemini 驱动对话 + 本地确定性撮合（双引擎可插拔） | 2026-08-03 |
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| 5411a3f0-cb4b-44b4-b47a-42ff9f95bd6e | ✅ change | M6.1 完成：时段密度 + 距离权重扩展（六维撮合评分 100 分制） | 2026-08-03 |
-| d13373f6-b9d7-4863-bb29-a640e0148c4e | ✅ change | M6 完成：撮合算法（level/budget 过滤 + provider 排序）纯函数评分 | 2026-08-03 |
-| cabc528f-3f51-42cd-a7c7-f51b99c1ad18 | ✅ change | M2 完成：生成式卡片流（时段/服务者/确认单/成功）+ 点卡预订本地闭环 | 2026-08-03 |
-| 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** llm-engine, session-reset, chat-history, fallback, rate-limit-429, degradation, gemini, openai-compat, proxy, pluggable-engine
+**Key concepts:** llm-cache, rate-limit-429, serialized-queue, sse-tee, pure-function, ci-e2e, playwright-channel
 
 ### src\store/
 | ID | Type | Title | Date |
 |----|------|-------|------|
-| 51c0ae71-470e-461d-8c72-3871987ad758 | ✅ change | P 批次收尾：SW v4 + 多服务者身份 + AR 锚点重置 + 心愿单直达 + 分支 E2E | 2026-08-03 |
-| 13d690ee-9fda-4bdb-9c9a-2eab30189ee1 | ✅ change | 全面体检修复完成：P0-P4 十六项（闭环/迁移/搜索/心愿单/IME/取消单/算法/A11y/重启脚本） | 2026-08-03 |
-| 0b124207-ae1d-4c93-9837-5685d1587ea0 | ✅ change | M5 完成：服务者端工作台（接单/履约/收益 + 在线开关）双视角闭环 | 2026-08-03 |
-| 1b553d97-6f47-4272-b0bd-383240d73470 | ✅ change | M3 完成：订单列表/详情/星级评价 + 个人中心 + 行程联动 + Home 热卡自动撮合 | 2026-08-03 |
-| cabc528f-3f51-42cd-a7c7-f51b99c1ad18 | ✅ change | M2 完成：生成式卡片流（时段/服务者/确认单/成功）+ 点卡预订本地闭环 | 2026-08-03 |
-| 9a8295ca-600c-45c3-a093-997ca8dc47e8 | ✅ change | M1 完成：可插拔对话引擎 + MockEngine 追问链 + AI 对话屏（流式打字） | 2026-08-03 |
-| 03ffa1a8-9f91-4845-ac6f-733a90de1455 | ✅ change | P0 完成：Zustand 全局状态 + Framer Motion 动效（含 AR 页 flex-1 布局塌缩修复） | 2026-08-03 |
+| 60bc9845-48d6-4603-b707-6e422f000482 | ✅ change | P4 评价体系闭环：72h 默认好评 + 脱敏衰减 + 信用驱动额度扩容 + 三态状态总闸 | 2026-08-04 |
+| cbad46dd-69bc-4ed8-b23c-0fbb04d58c5c | ✅ change | P3 鸽子险闭环：押金冻结/履约解冻/违约赔付 + 平台服务费 | 2026-08-04 |
+| d0085501-22c7-4b0c-822d-8a3d45cf93d9 | ✅ change | P1 waves 完成：P2P 广播双 tab 闭环 + 三条 E2E 全绿 | 2026-08-04 |
+| 26cae55f-cdeb-4c74-a3f1-b19e941e8eb7 | ✅ change | LLM 加固 + 工程卫生：意图缓存 + 串行限速 + 429 重试 + 双视角纯逻辑 + E2E 进 CI | 2026-08-04 |
 
-**Key concepts:** service-worker, precache, multi-provider, wishlist, e2e, ar-anchor, dual-view, migration, search, ime
+**Key concepts:** review-system, default-review-72h, masked-review, credit-from-reviews, quota-expansion, status-gate, tag-limit-3, pigeon-insurance, deposit-escrow, idempotent-accounting
 
 💡 *Use `mem-find` to search full details. Use `mem-create` to save important decisions.*
 <!-- /open-mem-context -->

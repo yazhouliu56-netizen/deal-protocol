@@ -44,6 +44,12 @@ jobs:
           export PLAYWRIGHT_CHANNEL=chromium
           npm run test:e2e
           npm run test:e2e:app
+          npm run test:e2e:wave
+          npm run test:e2e:review
+          npm run test:e2e:push
+          npm run test:e2e:fulfil
+          npm run test:e2e:governance
+          npm run test:e2e:trust
         env:
           # No NEXT_PUBLIC_LLM_PROVIDER → MockEngine (deterministic) path.
           CI: "true"

@@ -40,7 +40,7 @@ export default function PwaServiceWorker() {
         });
         // New build deployed → new SW takes over → surface a refresh prompt.
         let reloading = false;
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
+        navigator.serviceWorker?.addEventListener("controllerchange", () => {
           if (reloading) return;
           reloading = true;
           setUpdateReady(true);
