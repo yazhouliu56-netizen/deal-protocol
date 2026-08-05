@@ -5,6 +5,7 @@ import { Send, Sparkles } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
+import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
 
 /**
@@ -20,7 +21,9 @@ export default function PublishSheet({
   open: boolean;
   onClose: () => void;
 }) {
-  const publishWave = useWaveStore((s) => s.publishWave);
+const publishWave = useWaveStore((s) => s.publishWave);
+  const createPendingWave = useWaveStore((s) => s.createPendingWave);
+  const payWave = useWaveStore((s) => s.payWave);
   const identity = useIdentityStore((s) => s.identity);
 
   const [category, setCategory] = useState("");
@@ -34,6 +37,7 @@ export default function PublishSheet({
   const [people, setPeople] = useState(1);
   const [ttl, setTtl] = useState<number>(2 * 3600_000);
   const [error, setError] = useState("");
+  const [paying, setPaying] = useState<null | { id: string; amount: number }>(null);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
@@ -60,7 +64,12 @@ export default function PublishSheet({
       setError("预算需为有效金额");
       return;
     }
-    const id = publishWave({
+    // 随单支付：1:1 服务 = 付全款；开放局 = 发起人付自己那份(人均价)。
+    const payAmount =
+      people >= 2
+        ? Math.max(1, Math.round(budgetNum / people))
+        : budgetNum;
+    const out = createPendingWave({
       authorId: identity.id,
       basics: { category: category.trim(), time: time.trim(), area: area.trim(), radiusKm: 5 },
       budget: budgetNum,
@@ -72,21 +81,23 @@ export default function PublishSheet({
       negotiableNote: note.trim() || undefined,
       deposit,
       capacity: people,
+      payAmount,
       expiresAt: Date.now() + ttl,
       hotness: 2 + Math.floor(Math.random() * 2),
     });
-    if (id === null) {
+    if (out === null) {
       setError("发布被拒：账号已被平台限制（限流/封禁），请稍后或申诉");
       return;
     }
-    if (id && useWaveStore.getState().waves.find((w) => w.id === id)?.removed) {
-      // 命中违禁词：内容转入平台审核（弹层关闭，feed 不展示）
+    if (out.removed) {
+      // 命中违禁词：内容转入平台审核（不支付、不上线）
+      setError("内容命中违禁词，已转入平台审核");
       reset();
       onClose();
       return;
     }
-    reset();
-    onClose();
+    // 进入模拟收银台：支付成功才激活广播
+    setPaying({ id: out.id, amount: out.amount });
   }
 
   return (
@@ -317,6 +328,21 @@ export default function PublishSheet({
       </motion.div>
         </>
       )}
+
+      {/* 模拟收银台：随单支付，钱到位才激活广播 */}
+      <PaySheet
+        open={!!paying}
+        amount={paying?.amount ?? 0}
+        title={people >= 2 ? "支付你的拼位份额" : "支付全款"}
+        desc={people >= 2 ? `开放局：你算第 1 位，先付自己那份（人均 ${Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))} 元）` : "服务单：全款托管，验收后放款"}
+        onCancel={() => setPaying(null)}
+        onPaid={() => {
+          if (paying) payWave(paying.id);
+          setPaying(null);
+          reset();
+          onClose();
+        }}
+      />
     </>
   );
 }

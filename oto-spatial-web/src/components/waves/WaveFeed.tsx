@@ -6,10 +6,12 @@ import {
   broadcastMatches,
   type ResponderCapability,
 } from "@/lib/broadcast";
+import { perSeatPrice } from "@/lib/wave";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import WaveCard from "./WaveCard";
 import PublishSheet from "./PublishSheet";
+import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 
 /**
@@ -26,6 +28,8 @@ export default function WaveFeed() {
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
   const [publishOpen, setPublishOpen] = useState(false);
+  // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
+  const [joinPay, setJoinPay] = useState<null | { waveId: string; amount: number }>(null);
 
   const feed = useMemo(() => {
     // current identity as a responder (only if it declares capability + online)
@@ -176,15 +180,30 @@ export default function WaveFeed() {
                 })
               }
               onJoin={() =>
-                joinSeat({
+                setJoinPay({
                   waveId: f.wave.id,
-                  responderId: identity.id,
+                  amount: perSeatPrice(f.wave),
                 })
               }
             />
           </motion.div>
         ))}
       </div>
+
+      {/* 拼位收银台：支付成功 = 占位（未付不加名额） */}
+      <PaySheet
+        open={!!joinPay}
+        amount={joinPay?.amount ?? 0}
+        title="支付拼位份额"
+        desc="支付成功即占位；未支付不占名额"
+        onCancel={() => setJoinPay(null)}
+        onPaid={() => {
+          if (joinPay) {
+            joinSeat({ waveId: joinPay.waveId, responderId: identity.id });
+          }
+          setJoinPay(null);
+        }}
+      />
 
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
     </div>

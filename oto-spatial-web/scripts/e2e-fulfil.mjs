@@ -71,7 +71,7 @@ try {
   await pageA.getByRole("button", { name: "＋" }).click();
   await pageA.getByLabel("开启鸽子险").click(); // 含险
   await pageA.getByRole("button", { name: /广播出去/ }).click();
-  await pageA.waitForTimeout(500);
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
 
   // --- 3. B 接单（进家品类 → 先实名认证）→ 押金冻结 ---
   await pageB.getByLabel("我的").click();
@@ -90,7 +90,13 @@ try {
   );
   await pageB.getByLabel("实名认证模拟").click();
   await pageB.getByLabel("首页").click();
-  await pageB.waitForTimeout(400);
+  await pageB.waitForTimeout(800);
+  await waitUntil(
+    pageB,
+    () => document.body.textContent?.includes("谁正在附近发需求"),
+    10000,
+    "B 首页挂载"
+  );
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("厨师 · 上门做饭"),
@@ -126,7 +132,25 @@ try {
 
   // --- 4. A：未申报前不能验收（Airtasker 放款闸门） ---
   await pageA.reload({ waitUntil: "domcontentloaded" });
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("在线 · 正在接收信号"),
+    10000,
+    "A reload 挂载"
+  );
+  await waitUntil(
+    pageA,
+    () => Array.from(document.querySelectorAll("button")).some(b => b.textContent?.includes("行程")),
+    5000,
+    "A 行程按钮就绪"
+  );
   await pageA.getByLabel("行程").click();
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("我的 OTO 之旅"),
+    10000,
+    "A 行程页挂载"
+  );
   await waitUntil(
     pageA,
     () =>
@@ -154,7 +178,25 @@ try {
   await pageB.waitForTimeout(400);
 
   await pageA.reload({ waitUntil: "domcontentloaded" });
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("在线 · 正在接收信号"),
+    10000,
+    "A reload 挂载 2"
+  );
+  await waitUntil(
+    pageA,
+    () => Array.from(document.querySelectorAll("button")).some(b => b.textContent?.includes("行程")),
+    5000,
+    "A 行程按钮就绪 2"
+  );
   await pageA.getByLabel("行程").click();
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("我的 OTO 之旅"),
+    10000,
+    "A 行程页挂载 2"
+  );
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("服务方已申报完成"),

@@ -89,6 +89,7 @@ try {
   await pageA.getByRole("button", { name: "＋" }).click();
   await pageA.getByLabel("磋商留言（可留空）").fill("生日宴，上门做饭");
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(800);
 
   // --- 4. Tab B 雷达收到聚类推送（展开 → 适配理由 + 标签） ---

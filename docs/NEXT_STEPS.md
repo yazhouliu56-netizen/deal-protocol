@@ -1,42 +1,69 @@
-# Next Steps — 明日复工 Checkpoint
+# Next Steps — 随单支付迭代 Checkpoint
 
-## 今日完成（2026-07-22）
+> 最近一次更新：2026-08-05
 
-### 核心工作
+## 当前状态（2026-08-05）
+
 | 模块 | 状态 | 说明 |
 |------|------|------|
-| Playwright Chromium 安装 | ✅ | `npx playwright install chromium` 完成 |
-| Vercel 环境变量同步 | ✅ | `NEXT_PUBLIC_SITE_URL` 新增至 Production |
-| Supabase Realtime 发布配置 | ✅ | `demands`/`orders` 已在 `supabase_realtime` 中 |
-| 自动化脚本 | ✅ | `scripts/setup-supabase-realtime.ts` 可复用 |
-| git commit + push | ✅ | `0ce8219` 已推至 origin/master |
-
-### 文件变动
-- **新增** `scripts/setup-supabase-realtime.ts` — Supabase Realtime publication 配置脚本
-
-### 代码状态
-- 分支: `master`（与 `origin/master` 同步）
-- 未提交变更: 无（工作区干净）
-- 类型检查: `npx tsc --noEmit` 应 0 错误
+| P1-P7 waves 撮合闭环 | ✅ 已提交 `11f703e` | P2P 广播/磋商/鸽子险/评价/治理/信任加固 + 6 条 E2E 进 CI |
+| 开放局/拼位（Open Match） | ✅ 已提交 `44aabe2` | 组装式撮合 A 模式：拼位/满员成局/人均价 + 三 tab E2E 进 CI |
+| 竞品对标矩阵 | ✅ `docs/oto-competitor-matrix.md` | 全景 5 维度 + 开放局缺口 + P8 对标结论 |
 
 ---
 
-## 明日开工建议
+## 支付模型定稿（2026-08-05 用户拍板）
 
-1. **完成推送确认**（如未执行）：
-   ```bash
-   cd D:\Users\Administrator\Desktop\deal-protocol && git push origin master
-   ```
+> 核心：**随单支付** —— 钱跟"单子"走，钱包只是留存工具，不做发单门槛。
 
-2. **验证生产部署**：
-   - 确认 `https://deal-protocol-phi.vercel.app` 最新部署已生效
-   - 运行冒烟测试：`npm run test:smoke`
+### 三条总纲
+1. **不设初始余额、不做余额门槛**：多大的单都能发，但**必须支付单上金额才能发布上线**（跳转即时支付，demo 用 PaySheet 模拟）。
+2. **钱包 = 留存工具**：退款/补偿/赔付由用户选择 **原路退回 或 进钱包**；余额用于后续下单（不设限）。
+3. **钱不到位，动作不生效**：拼位者即时支付成功才算占位（joined）；未付不加名额。
 
-3. **Supabase Auth 重定向配置**：
-   - 前往 https://supabase.com/dashboard/project/eixqnwaxcnwtxiizmdfs/auth/settings
-   - 在 Redirect URLs 中添加 `https://deal-protocol-phi.vercel.app/**`
+### 场景 1 · 服务型（1:1，如保洁上门）
+```
+需求方 填单 → PaySheet 支付全款 → 上线广播（余额不够也能发，但要付得出来）
+响应者 抢单 → 锁单（暂不收质保金 —— 见「验收模块拆分」记录）
+履约 → 验收/扣费标准 = 独立模块，单独定档 → 达标放款 / 不达标按标准扣
+退款：原路退回 或 进钱包（用户选择）
+```
 
-4. **后续开发高优项**（来自 `TODO.md` / `UIUX_TODO.md`）：
-   - 生产环境 Stripe Webhook 接入
-   - 支付回调端到端验证
-   - PWA Service Worker 离线支持
+### 场景 2 · 组局型（开放局，如麻将三缺一）
+```
+发起人 填局 → PaySheet 支付自己那份 → 上线
+拼位者 点加入 → PaySheet 支付自己那份 → 支付成功=joined / 未付=不加名额
+   · MVP 只做 A（即时全款占位）；B（定金锁单+限时补款）状态机预留建模，不开放界面
+满员 → 成局；no-show → 款不退 → 补偿在场玩家 / 发起人下次成局面降标准
+```
+
+### 已确认代执行记录
+- 🗒️ **验收/扣费 = 分阶段独立模块**：暂定场景 1 响应者锁单不收质保金；质检维度、扣费档位、申诉在验收模块单独确认后落地。
+- 🗒️ **24h 阶梯取消 = 独立建项**：依赖 `startsAt` 时间戳（发布时录入，老数据退化"成局后不可退"），待支付闭环稳定后单独立项。
+
+---
+
+## 本轮排期（支付闭环）
+
+```
+M1 支付层基础设施
+   src/lib/pay.ts       模拟即时支付（PaySheet + 支付记录 + 原路/进钱包退款语义）
+   store                单状态机接入：pending(待支付) → active(已上线)
+M2 两场景接入
+   服务型：发布付全款 → 抢单 → 达标放款/验收模块(后置) → 退款入口
+   组局型：发起人付自己那份 → 拼位即付占位 → no-show 不退+补偿/降标准
+   单测全量 + E2E 3 条链路（保洁放款 / 拼位成局 / no-show 补偿）
+M3 验收模块拆分立项（只出任务清单，不动手）
+```
+
+### 后续迭代（已确认方向，未排期）
+- **动态锚点 + 场景模板**：场景探索页锚点由活跃 waves 实时生成；地图做全景（同一数据）；体验预览按「空间类型」进模板（家居→lounge.glb / 球局→半场网格 / 摄影→取景光场 / 默认→星尘）。场景模板 MVP 做 **5 个**。
+- **社交层三件套**：S1 匿名光点热力图（地图）· S2 AI 主动诊断（超半时长无响应 → 补标签/扩半径）· S3 关系沉淀（24h 归档 + 双向转好友 + 72h 静默撤回）。
+- **更远**：灵感漩涡 / 响应方商业化 / 短信兜底 / 组局者订阅 / 拼位裂变 / P8（账号漫游 + 真通知捆绑 → 公开竞价学 Airtasker 佣金）。
+
+---
+
+## 备注
+- 备份目录：`oto-spatial-web/.opencode/backups/p8-openmatch-20260805/`
+- 竞品矩阵：`docs/oto-competitor-matrix.md`
+- 调试残留文件（根目录截图/`.playwright-mcp/`）不入库

@@ -77,6 +77,8 @@ try {
   // 鸽子险：双方履约保障（响应者冻结 ¥5 押金）
   await pageA.getByLabel("开启鸽子险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  // 随单支付：钱到位才激活上线
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(500);
 
   const sharedWave = await pageA.evaluate(() =>

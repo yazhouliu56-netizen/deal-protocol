@@ -70,6 +70,7 @@ try {
   await pageA.getByLabel("基础预算").fill("60");
   await pageA.getByLabel("开启鸽子险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(500);
 
   // --- 3. Tab B 直接接单（默认推荐价，留空 = 直接接单） ---

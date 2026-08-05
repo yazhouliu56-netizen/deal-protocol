@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  activateWave,
   assembleWave,
   breachClaim,
   claimDirect,
@@ -15,6 +16,7 @@ import {
   nextSpeaker,
   openNegotiation,
   perSeatPrice,
+  resolveNoShow,
   withdrawClaim,
   MAX_ROUNDS,
   type Wave,
@@ -208,4 +210,49 @@ test("assembleWave refuses: no seats / not open match / not active", () => {
   assert.throws(() => assembleWave(baseWave(), []), /not-open-match/);
   const closed = closeWave(wave);
   assert.throws(() => assembleWave(closed, []), /not-active/);
+});
+test("�浥֧����pending �����������Ӧ��activateWave ��� active", () => {
+  const pendingWave = baseWave({ pending: true });
+  assert.equal(pendingWave.status, "pending");
+  assert.throws(() => claimDirect(pendingWave, "r1", "c1"), /not-active/);
+  const live = activateWave(pendingWave);
+  assert.equal(live.status, "active");
+  assert.throws(() => activateWave(baseWave()), /not-pending/);
+});
+
+test("startsAt �ṹ����ʼʱ������ wave �ϣ�24h ����ȡ���Ļ�����", () => {
+  const w = baseWave({ startsAt: now + 24 * 3600_000 });
+  assert.equal(w.startsAt, now + 24 * 3600_000);
+  assert.equal(baseWave().startsAt, undefined);
+});
+
+test("resolveNoShow: no-show ��� �� ��̯�����ڳ���� + ������ buff", () => {
+  const wave: Wave = { ...baseWave({ capacity: 3, budget: 300 }), status: "assembled" };
+  const mk = (id: string) => ({
+    id, waveId: wave.id, responderId: id, status: "accepted" as const,
+    rounds: 0, price: 100, createdAt: now,
+  });
+  const claimA = mk("rA");   // no-show ��λ
+  const claimB = mk("rB");   // �ڳ�
+  const claimC = mk("rC");   // �ڳ�
+  const out = resolveNoShow({
+    wave,
+    claim: claimA,
+    attendees: [claimA, claimB, claimC],
+    paidAmount: 100,
+  });
+  assert.equal(out.breachClaim.status, "breached");
+  assert.equal(out.compensations["rB"], 50); // floor(100/2)
+  assert.equal(out.compensations["rC"], 50);
+  assert.equal(out.initiatorBuff, 1);       // �´� neededJoiners -1
+});
+
+test("resolveNoShow �ܾ�δ�ɾ� / �� accepted ��λ", () => {
+  const wave = baseWave({ capacity: 3, budget: 300 });
+  const mk = (id: string) => ({
+    id, waveId: wave.id, responderId: id, status: "joined" as const,
+    rounds: 0, price: 100, createdAt: now,
+  });
+  const claimA = mk("rA");
+  assert.throws(() => resolveNoShow({ wave, claim: claimA, attendees: [], paidAmount: 100 }), /not-assembled/);
 });

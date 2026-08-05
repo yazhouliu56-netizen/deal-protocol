@@ -114,6 +114,7 @@ try {
   await pageA.getByLabel("需求地点").fill("幸福家园 1 公里");
   await pageA.getByLabel("基础预算").fill("50");
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(400);
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();

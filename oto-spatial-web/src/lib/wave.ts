@@ -42,6 +42,7 @@ export interface WaveCustom {
 
 /** Wave lifecycle. claimed = someone accepted; locked = negotiation closed. */
 export type WaveStatus =
+  | "pending"
   | "active"
   | "claimed"
   | "locked"
@@ -64,7 +65,11 @@ export interface Wave {
   removed?: boolean;
   /** How many people this demand expects (1 = solo, ≥2 = 开放局 open match). */
   capacity: number;
+  /** 发起人 no-show buff：该局所需拼位数减 N（成局面降标准）。 */
+  buffSeats?: number;
   expiresAt: number;
+  /** Structured service start time (epoch) — powers 24h tiered cancellation. */
+  startsAt?: number;
   createdAt: number;
   status: WaveStatus;
   /** 1:1 claim owner (solo waves only). Open-match waves track seats, not one owner. */
@@ -122,9 +127,16 @@ export interface CreateWaveInput {
   negotiableNote?: string;
   /** 鸽子险: responder holds a deposit when the deal locks. */
   deposit?: boolean;
+  /** 开放局: demander counts as first seat, capacity ≥ 2 = open match. */
   capacity?: number;
+  /** 发起人 no-show buff 抵扣拼位数（成局面降标准）。 */
+  buffSeats?: number;
   /** TTL in ms from now, or absolute epoch — after it the wave expires. */
   expiresAt: number;
+  /** Structured service start time (epoch) — powers 24h tiered cancellation. */
+  startsAt?: number;
+  /** 随单支付：true = 建单即 pending(待支付)，支付完成才 active。 */
+  pending?: boolean;
   createdAt: number;
   hotness?: number;
 }
@@ -148,11 +160,24 @@ export function createWave(input: CreateWaveInput): Wave {
     negotiableNote: input.negotiableNote,
     deposit: input.deposit ?? false,
     capacity: input.capacity ?? 1,
+    buffSeats: input.buffSeats,
     expiresAt: input.expiresAt,
+    startsAt: input.startsAt,
     createdAt: input.createdAt,
-    status: "active",
+    status: input.pending ? "pending" : "active",
     hotness: input.hotness ?? 0,
   };
+}
+
+/**
+ * 支付完成：pending(未付/待支付) → active(已上线、进入广播)。
+ * 随单支付规则：单子的钱到位才激活；否则永远是 pending（不广播、不可响应）。
+ */
+export function activateWave(wave: Wave): Wave {
+  if (wave.status !== "pending") {
+    throw new Error(`wave.not-pending: ${wave.status}`);
+  }
+  return { ...wave, status: "active" };
 }
 
 export function isWaveExpired(wave: Wave, now: number): boolean {
@@ -312,9 +337,11 @@ export function isOpenMatch(wave: Pick<Wave, "capacity">): boolean {
   return wave.capacity >= 2;
 }
 
-/** How many joiners (seats besides the demander) an open match needs. */
-export function neededJoiners(wave: Pick<Wave, "capacity">): number {
-  return Math.max(0, wave.capacity - 1);
+/** How many joiners an open match needs (buff −1 per no-show compensation). */
+export function neededJoiners(
+  wave: Pick<Wave, "capacity" | "buffSeats">
+): number {
+  return Math.max(0, wave.capacity - 1 - (wave.buffSeats ?? 0));
 }
 
 /** Per-seat price = budget ÷ capacity (each participant pays their share). */
@@ -401,4 +428,47 @@ export function assembleWave(
       : c
   );
   return { wave: { ...wave, status: "assembled" }, claims: locked };
+}
+
+/**
+ * 开放局 no-show（付了全款没来）：款不退，改为——
+ *   ① 分摊补偿给在场其他玩家（每人 = floor(noShow金额 ÷ 在场人数)）
+ *   ② 发起人获得「下次成局面降标准」buff（neededJoiners −1）
+ * 纯函数：只计算分摊名单与是否发 buff，钱的实际移动由调用方（store）
+ * 通过 payOrders 记账。
+ */
+export function resolveNoShow(input: {
+  wave: Wave;
+  /** The breached claim (no-show seat). */
+  claim: Claim;
+  /** Other accepted claims that did show up (beneficiaries). */
+  attendees: Claim[];
+  /** no-show 已支付金额（= 该座位人均价）。 */
+  paidAmount: number;
+}): {
+  breachClaim: Claim;
+  /** claimId → 补偿金额（进钱包）。 */
+  compensations: Record<string, number>;
+  /** 发起人下次发局立减所需拼位数（buff）。 */
+  initiatorBuff: number;
+} {
+  const { wave, claim, attendees, paidAmount } = input;
+  if (wave.status !== "assembled") {
+    throw new Error("wave.not-assembled");
+  }
+  if (claim.status !== "accepted") {
+    throw new Error("claim.not-accepted");
+  }
+  const recipients = attendees.filter((a) => a.id !== claim.id);
+  const perShare =
+    recipients.length > 0 ? Math.floor(paidAmount / recipients.length) : 0;
+  const compensations: Record<string, number> = {};
+  for (const r of recipients) {
+    compensations[r.id] = perShare;
+  }
+  return {
+    breachClaim: { ...claim, status: "breached" },
+    compensations,
+    initiatorBuff: 1,
+  };
 }

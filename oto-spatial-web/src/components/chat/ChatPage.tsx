@@ -47,6 +47,7 @@ export default function ChatPage() {
   const [session, setSession] = useState(0);
   const [llmFallback, setLlmFallback] = useState(false);
   const [llmFailures, setLlmFailures] = useState(0);
+  const [pendingRetry, setPendingRetry] = useState<string | null>(null);
   const useLlm = process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" && !llmFallback;
   const engine = useMemo(() => {
     void session; // 重建触发器：新对话/降级时强制新建引擎实例
@@ -105,13 +106,19 @@ export default function ChatPage() {
       console.error("[chat] send failed", err);
       setInput(trimmed);
       if (useLlm) {
+        // 上游 429/5xx = 服务不可用 → 直接降级本地引擎（不等 2 次），
+        // 保持撮合可用性；仅非上游故障（解析/本地错误）才提示重试。
+        const upstreamDown =
+          err instanceof Error &&
+          /upstream (429|5\d\d)|fetch failed|Failed to fetch/i.test(err.message);
         const next = llmFailures + 1;
         setLlmFailures(next);
-        if (next >= 2) {
+        if (upstreamDown || next >= 2) {
           setLlmFallback(true);
+          setPendingRetry(trimmed);
           updateChatMessage(
             assistantId,
-            "AI 服务连续抽风，已自动切换到本地撮合引擎，功能不受影响～"
+            "AI 服务暂时不可用，已自动切换到本地撮合引擎，功能不受影响～"
           );
         } else {
           updateChatMessage(
@@ -129,6 +136,17 @@ export default function ChatPage() {
       setStreaming(false);
     }
   }
+
+  // 降级后用户无需重发：上次输入直接交给本地引擎重跑一遍（无感续答）。
+  useEffect(() => {
+    if (!llmFallback || !pendingRetry) return;
+    const text = pendingRetry;
+    setPendingRetry(null);
+    if (!streaming) {
+      void handleSend(text);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [llmFallback]);
 
   async function handleCardSelect(cardId: string) {
     if (streaming) return;

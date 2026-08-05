@@ -9,17 +9,23 @@ import type {
 } from "@/lib/wave";
 import {
   assembleWave as assembleWaveLogic,
+  activateWave,
   claimDirect,
   closeWave,
   counterOffer,
   createWave,
   joinSeat as joinSeatLogic,
   lockNegotiation,
+  neededJoiners,
   openNegotiation,
+  perSeatPrice,
+  resolveNoShow as resolveNoShowLogic,
   withdrawClaim,
 } from "@/lib/wave";
 import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/lib/fulfilment";
 import type { Review } from "@/lib/review";
+import type { PayOrder } from "@/lib/pay";
+import { capturePayOrder, createPayOrder } from "@/lib/pay";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
 import { getP2pTransport } from "@/lib/p2p/transport";
 import type { PushItem } from "@/lib/cluster";
@@ -51,6 +57,8 @@ import {
 export interface WaveBundle {
   waves: Wave[];
   claims: Claim[];
+  /** 随单支付流水（共享空间）— 支付/放款/退款全程留痕。 */
+  payOrders: PayOrder[];
   /** Capability-declared responders (real identities + mock atmosphere). */
   responders: ResponderCapability[];
   /** 评价（脱敏展示，共享空间）— credit tier derives from these. */
@@ -60,6 +68,10 @@ export interface WaveBundle {
   /** 治理：举报流水 + 封禁表（平台级）。 */
   reports: Report[];
   bans: Record<string, BanRecord>;
+  /** 开放局 no-show 补偿：发起人获得的「成局面降标准」buff（跨会话累计） */
+  initiatorBuffs: Record<string, number>;
+  /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
+  bundleVer?: number;
 }
 
 interface WaveStore extends WaveBundle {
@@ -68,6 +80,22 @@ interface WaveStore extends WaveBundle {
       authorId: string;
     }
   ) => string | null;
+  /**
+   * 随单支付 · 建单（待支付）：验证 + 建 wave(pending) + 建支付流水(unpaid)。
+   * 返回 { id, amount }（命中违禁词 → removed: true，不支付不激活）。
+   */
+  createPendingWave: (
+    input: Omit<CreateWaveInput, "id" | "authorId" | "createdAt" | "pending"> & {
+      authorId: string;
+      /** 应付金额：服务型 = 全款；开放局 = 发起人自己那份(人均价)。 */
+      payAmount: number;
+    }
+  ) => { id: string; amount: number; removed?: boolean } | null;
+  /**
+   * 随单支付 · 确认支付：capture 流水 → wave pending→active → 进入广播。
+   * 幂等：重复支付同一单返回 ok 但不再重复生效。
+   */
+  payWave: (waveId: string) => { ok: boolean; error?: string };
   /** Subscribe a responder capability (onboarding / capability edit). */
   registerResponder: (cap: ResponderCapability) => void;
   /** Fire-and-forget LLM clustering → radar pushes for best-fit responders. */
@@ -144,6 +172,11 @@ interface WaveStore extends WaveBundle {
   withdraw: (claimId: string) => void;
   /** Entire wave = lock negotiation / close manually. */
   closeWave: (waveId: string) => void;
+  /**
+   * 开放局 no-show：款不退 → 分摊补偿在场玩家（进钱包）+ 发起人获
+   * 「下次成局面降标准」buff（neededJoiners −1）。
+   */
+  resolveNoShow: (waveId: string, claimId: string) => void;
 }
 
 let seq = 0;
@@ -154,11 +187,87 @@ export const useWaveStore = create<WaveStore>()(
     (set, get) => ({
       waves: [],
       claims: [],
-      responders: [],
+      payOrders: [],
+      // 氛围响应者初始内联（客户端静态数据），rehydrate 会用共享空间内容
+      // 覆盖。此前用 onRehydrateStorage seed + setState 注入，会触发 persist
+      // 写回，与另一 tab 的写入形成读-改-写竞态（可见性延迟下互相覆盖，
+      // E2E 间歇失败根因）——改为初始值注入，不产生任何写回。
+      responders: MOCK_RESPONDERS,
       reviews: [],
       pushes: [],
       reports: [],
       bans: {},
+      initiatorBuffs: {},
+      bundleVer: 0,
+
+      createPendingWave: (input) => {
+        if (isBanned(get().bans, input.authorId)) return null;
+        // no-show buff 消费：发起人若有「成局面降标准」buff，本局所需拼位数 −N
+        const buff = Math.min(get().initiatorBuffs[input.authorId] ?? 0, Math.max(0, (input.capacity ?? 1) - 1));
+        const wave = createWave({
+          ...input,
+          id: nextId("wave"),
+          createdAt: Date.now(),
+          expiresAt: input.expiresAt,
+          pending: true,
+          buffSeats: buff,
+        });
+        set((s) => ({
+          initiatorBuffs: buff > 0
+            ? { ...s.initiatorBuffs, [input.authorId]: (s.initiatorBuffs[input.authorId] ?? 0) - buff }
+            : s.initiatorBuffs,
+        }));
+        // 治理闸门 2：敏感词先挡后审 —— pending 单同样过审，违规标记 removed
+        const scan = [
+          wave.basics.category,
+          ...wave.customs.map((c) => c.text),
+          wave.negotiableNote ?? "",
+        ].join(" ");
+        const hit = autoFlag(scan);
+        if (hit) {
+          const autoReport = submitReportLogic(get().reports, {
+            targetId: wave.id,
+            targetType: "wave",
+            reporterId: "system",
+            reason: "sensitive",
+            detail: `命中违禁词：${hit}（${scan.slice(0, 60)}）`,
+            auto: true,
+          });
+          set((s) => ({
+            waves: [{ ...wave, removed: true }, ...s.waves],
+            reports: autoReport.report
+              ? [...s.reports, autoReport.report]
+              : s.reports,
+          }));
+          return { id: wave.id, amount: input.payAmount, removed: true };
+        }
+        const order = createPayOrder({
+          id: nextId("pay"),
+          waveId: wave.id,
+          payerId: input.authorId,
+          amount: input.payAmount,
+        });
+        set((s) => ({ waves: [wave, ...s.waves], payOrders: [order, ...s.payOrders] }));
+        return { id: wave.id, amount: order.amount };
+      },
+
+      payWave: (waveId): { ok: boolean; error?: string } => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return { ok: false, error: "wave-not-found" };
+        if (wave.removed) return { ok: true }; // 违规单不支付不激活（防御）
+        if (wave.status !== "pending") return { ok: true }; // 幂等：已上线
+        const order = s.payOrders.find((o) => o.waveId === waveId && o.payerId === wave.authorId);
+        if (!order) return { ok: false, error: "pay-order-missing" };
+        const paid = capturePayOrder(order);
+        set((st) => ({
+          payOrders: st.payOrders.map((o) => (o.id === order.id ? paid : o)),
+          waves: st.waves.map((w) => (w.id === waveId ? activateWave(w) : w)),
+        }));
+        // 支付到位才进广播（LLM 聚类推送，失败自动降级抽取）
+        void get().clusterPushes({ ...wave, status: "active" });
+        return { ok: true };
+      },
 
       publishWave: (input) => {
         // 治理闸门 1：被封禁/限流中不能发布
@@ -276,7 +385,11 @@ export const useWaveStore = create<WaveStore>()(
         const claimId = nextId("claim");
         if (wave.negotiable && note?.trim()) {
           const claim = openNegotiation(wave, responderId, claimId, price ?? wave.budget);
-          set((st) => ({ claims: [...st.claims, claim] }));
+          set((st) => ({
+            claims: [...st.claims, claim],
+            // 接单后雷达清空：所有推送标记已读
+            pushes: st.pushes.map((p) => ({ ...p, read: true })),
+          }));
           return { claim };
         }
         const { wave: locked, claim } = claimDirect(
@@ -288,6 +401,8 @@ export const useWaveStore = create<WaveStore>()(
         set((st) => ({
           waves: st.waves.map((w) => (w.id === waveId ? locked : w)),
           claims: [...st.claims, claim],
+          // 接单后雷达清空：所有推送标记已读（跨 tab 合并后不残留未读）
+          pushes: st.pushes.map((p) => ({ ...p, read: true })),
         }));
         return { claim };
       },
@@ -308,7 +423,7 @@ export const useWaveStore = create<WaveStore>()(
         const joinedCount = s.claims.filter(
           (c) => c.waveId === waveId && c.status === "joined"
         ).length;
-        if (joinedCount >= Math.max(0, wave.capacity - 1)) {
+        if (joinedCount >= neededJoiners(wave)) {
           return { error: "wave-full" };
         }
         try {
@@ -509,6 +624,53 @@ export const useWaveStore = create<WaveStore>()(
           if (!wave) return {};
           return { waves: s.waves.map((w) => (w.id === waveId ? closeWave(w) : w)) };
         }),
+
+      resolveNoShow: (waveId, claimId) =>
+        set((s) => {
+          const wave = s.waves.find((w) => w.id === waveId);
+          const claim = s.claims.find((c) => c.id === claimId);
+          if (!wave || !claim) return {};
+          const attendees = s.claims.filter(
+            (c) => c.waveId === waveId && c.status === "accepted"
+          );
+          let paidAmount = perSeatPrice(wave);
+          const paid = s.payOrders.find(
+            (o) => o.waveId === waveId && o.payerId === claim.responderId && o.status === "paid"
+          );
+          if (paid) paidAmount = paid.amount;
+          try {
+            const out = resolveNoShowLogic({
+              wave,
+              claim,
+              attendees,
+              paidAmount,
+            });
+            // 补偿记账：受益 claim 各记一条补偿流水（进钱包，标记已入账）
+            const compensations = Object.entries(out.compensations)
+              .filter(([, v]) => v > 0)
+              .map(([responderId, amount]) =>
+                capturePayOrder(
+                  createPayOrder({
+                    id: nextId("pay"),
+                    waveId,
+                    payerId: claim.responderId,
+                    amount,
+                  }),
+                  Date.now()
+                )
+              );
+            return {
+              claims: s.claims.map((c) => (c.id === claimId ? out.breachClaim : c)),
+              payOrders: [...compensations, ...s.payOrders],
+              initiatorBuffs: {
+                ...s.initiatorBuffs,
+                [wave.authorId]: (s.initiatorBuffs[wave.authorId] ?? 0) + out.initiatorBuff,
+              },
+            };
+          } catch {
+            return {};
+          }
+        }),
     }),
     {
       name: "oto-broadcast-v1",
@@ -525,6 +687,8 @@ export const useWaveStore = create<WaveStore>()(
         setItem: (_name, value) => {
           try {
             const sv = value as StorageValue<WaveStore>;
+            // 跨 tab 写回统一走 transport —— transport 内部自带
+            // read-merge-write 原子防护，防止早态快照覆盖新数据。
             getP2pTransport().write(sv.state as unknown as WaveBundle);
           } catch {
             // unparsable write → drop
@@ -534,11 +698,14 @@ export const useWaveStore = create<WaveStore>()(
           getP2pTransport().write({
             waves: [],
             claims: [],
+            payOrders: [],
             responders: [],
             reviews: [],
             pushes: [],
             reports: [],
             bans: {},
+            initiatorBuffs: {},
+            bundleVer: 0,
           } satisfies WaveBundle),
       },
       version: 1,
@@ -546,25 +713,29 @@ export const useWaveStore = create<WaveStore>()(
         ({
           waves: s.waves,
           claims: s.claims,
+          payOrders: s.payOrders,
           responders: s.responders,
           reviews: s.reviews,
           pushes: s.pushes,
           reports: s.reports,
           bans: s.bans,
+          initiatorBuffs: s.initiatorBuffs,
+          bundleVer: s.bundleVer,
         }) as WaveStore,
-      // Seed atmosphere responders once on the client (never during SSR).
-      onRehydrateStorage: () => (state) => {
-        if (state && state.responders.length === 0) {
-          useWaveStore.setState({ responders: MOCK_RESPONDERS });
-        }
-        // Transport updates (other tab / other device) rehydrate the store.
-        getP2pTransport().subscribe(() => {
-          useWaveStore.persist.rehydrate();
-        });
-      },
+      // Transport updates handled by module-level subscribe below.
+      onRehydrateStorage: () => () => {},
     }
   )
 );
+
+// 跨 tab 广播监听：模块级注册，页面一加载即生效——
+// 若挂在 onRehydrateStorage 里，listener 注册依赖 rehydrate 完成，
+// 竞态下会错过另一 tab 在注册前写入的数据（E2E 间歇失败根因）。
+if (typeof window !== "undefined") {
+  getP2pTransport().subscribe(() => {
+    useWaveStore.persist.rehydrate();
+  });
+}
 
 /** In-memory virtual interest calibration (hotness padding) for the feed. */
 export function displayInterest(

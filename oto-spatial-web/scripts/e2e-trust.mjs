@@ -72,6 +72,7 @@ try {
   await pageA.getByLabel("定制条件").fill("需要擦窗");
   await pageA.getByRole("button", { name: "＋" }).click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(400);
 
   // B 未实名 → 进家单不可见（feed 用定制条件指纹判定）

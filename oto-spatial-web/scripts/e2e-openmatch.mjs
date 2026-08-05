@@ -78,6 +78,8 @@ try {
   await pageA.getByLabel("增加人数").click();
   await pageA.getByLabel("开启鸽子险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
+  // 随单支付：发起人付自己那份(人均 50) → 激活上线
+  await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(500);
 
   const published = await readShared(pageA);
@@ -98,6 +100,8 @@ try {
     "Tab B 收到开放局广播"
   );
   await pageB.getByRole("button", { name: /拼位加入/ }).click();
+  // 拼位即付：支付成功才占位
+  await pageB.getByRole("button", { name: /立即支付/ }).click();
   await pageB.waitForTimeout(500);
 
   let shared = await readShared(pageB);
@@ -119,6 +123,7 @@ try {
     "Tab C 收到开放局广播"
   );
   await pageC.getByRole("button", { name: /拼位加入/ }).click();
+  await pageC.getByRole("button", { name: /立即支付/ }).click();
   await pageC.waitForTimeout(500);
 
   shared = await readShared(pageC);
@@ -213,6 +218,43 @@ try {
   });
   assert.ok(dialB, "B 应看到虚拟号码");
   assert.equal(dialA, dialB, "同一局内号码一致");
+
+  // --- 8. no-show 处理（A 标记 C 未到场）→ 款不退 + 补偿 B + A 获 buff ---
+  await pageA.getByRole("button", { name: /未到场/ }).first().click();
+  await pageA.waitForTimeout(600);
+  const idKeyA = await pageA.evaluate(
+    () => `oto-identity-${window.name || "ssr"}`
+  );
+  const authA = await pageA.evaluate((k) =>
+    JSON.parse(localStorage.getItem(k) || "{}"), idKeyA
+  );
+  const aId = authA?.state?.identity?.id ?? "me";
+  shared = await readShared(pageA);
+  const breachedSeats = shared?.state?.claims?.filter(
+    (c) => c.status === "breached"
+  );
+  assert.equal(breachedSeats.length, 1, "no-show 座位标记 breached");
+  assert.ok(
+    shared?.state?.payOrders?.some((o) => o.status === "paid" && o.amount === 50),
+    "no-show 款不退：补偿流水入账(人均 50 分摊)"
+  );
+  const buff = shared?.state?.initiatorBuffs?.[aId] ?? 0;
+  assert.equal(buff, 1, "发起人 A 获得成局面降标准 buff +1");
+// A 的开放局展示「已降标准 −1」
+  await pageA.reload({ waitUntil: "domcontentloaded" });
+  await pageA.getByLabel("行程").click();
+  await pageA.waitForTimeout(500);
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("已成局"),
+    10000,
+    "A reload 后仍看到已成局（rehydrate 完成）"
+  );
+  const aText = await pageA.evaluate(() => document.body.innerText);
+  assert.ok(
+    aText.includes("持有 1 次"),
+    "A 应看到 no-show buff 提示（下次发局自动降标准）"
+  );
 
   console.log("开放局拼位闭环 E2E：全部通过");
 } catch (e) {

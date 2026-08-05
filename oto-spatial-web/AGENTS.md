@@ -15,6 +15,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Key concepts:** open-match, join-seat, assembled-status, per-seat-price, group-matching, p2p-broadcast, e2e-3tab
 
+### docs/
+| ID | Type | Title | Date |
+|----|------|-------|------|
+| b3ca8e1f-32a4-47f6-8355-6cabfd97b075 | ⚖️ decision | 开放局信任闭环三缺口排入下个迭代 + 竞品矩阵落地 | 2026-08-05 |
+
+**Key concepts:** open-match-trust-loop, group-fail-refund, 24h-tiered-cancel, no-show-lockout, competitor-matrix
+
+**Recent decisions:** 开放局信任闭环三缺口排入下个迭代 + 竞品矩阵落地
+
 ### scripts/
 | ID | Type | Title | Date |
 |----|------|-------|------|

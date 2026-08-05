@@ -70,9 +70,15 @@ export function createLocalTransport(): P2pTransport {
     read,
     write: (state) => {
       try {
+        // 原子防护：写盘前与现存内容做 id 级合并（union）。任何 tab 的
+        // 写回（含早态快照）都不会丢失别处已写入的数据；当前业务无删除
+        // 语义，union 安全。早态写回的唯一来源（responders seed）已改为
+        // store 初始值注入，不再产生写回，杜绝读-改-写可见性竞态。
+        const existing = read();
+        const merged = existing ? mergeByIdLevel(existing, state) : state;
         localStorage.setItem(
           BROADCAST_KEY,
-          JSON.stringify({ state, version: 0 })
+          JSON.stringify({ state: merged, version: 0 })
         );
       } catch {
         // storage full / private mode — broadcast degrades gracefully
@@ -85,5 +91,41 @@ export function createLocalTransport(): P2pTransport {
       window.addEventListener("storage", handler);
       return () => window.removeEventListener("storage", handler);
     },
+  };
+}
+
+/**
+ * id 级合并：以 `base` 为底，`next` 的同 id 覆盖 base；`next` 的新 id 追加。
+ * record 字段按 key 合并（next 优先，但保留 base 中 next 未涉及的 key）。
+ * `stale=true`（incoming 是早态快照）时同 id 以 base 为准（不覆盖回退），
+ * 仅追加 base 中没有的新 id。
+ */
+function mergeByIdLevel(
+  base: WaveBundle,
+  next: WaveBundle,
+  stale = false
+): WaveBundle {
+  const byId = <T extends { id: string }>(a: T[], b: T[]): T[] => {
+    const map = new Map<string, T>();
+    if (stale) {
+      for (const item of b) map.set(item.id, item);
+      for (const item of a) map.set(item.id, item); // base 优先，防回退
+    } else {
+      for (const item of a) map.set(item.id, item);
+      for (const item of b) map.set(item.id, item); // next 优先
+    }
+    return [...map.values()];
+  };
+  const baseOver = stale ? { ...next, ...base } : { ...base, ...next };
+  return {
+    waves: byId(base.waves, next.waves),
+    claims: byId(base.claims, next.claims),
+    payOrders: byId(base.payOrders, next.payOrders),
+    responders: byId(base.responders, next.responders),
+    reviews: byId(base.reviews, next.reviews),
+    pushes: byId(base.pushes, next.pushes),
+    reports: byId(base.reports, next.reports),
+    bans: baseOver.bans,
+    initiatorBuffs: baseOver.initiatorBuffs,
   };
 }

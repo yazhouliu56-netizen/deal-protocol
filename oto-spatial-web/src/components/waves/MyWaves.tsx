@@ -26,8 +26,11 @@ export default function MyWaves() {
   const withdraw = useWaveStore((s) => s.withdraw);
   const closeWave = useWaveStore((s) => s.closeWave);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
+  const initiatorBuffs = useWaveStore((s) => s.initiatorBuffs);
   const identity = useIdentityStore((s) => s.identity);
   const [now] = useState(() => Date.now());
+
+  const myBuffs = initiatorBuffs[identity.id] ?? 0;
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）
   useEffect(() => {
@@ -46,6 +49,12 @@ export default function MyWaves() {
     <div className="pointer-events-auto">
       <h2 className="text-[18px] font-extrabold text-white/95">我的需求</h2>
       <p className="text-[10px] text-white/45 mb-3">你发出的信号波 · 谁接单算谁的</p>
+
+      {myBuffs > 0 && (
+        <p className="mb-3 px-3 py-2 rounded-2xl bg-emerald-400/10 border border-emerald-400/35 text-[10px] font-bold text-emerald-300 flex items-center gap-1.5">
+          ✨ 持有 {myBuffs} 次「成局面降标准」：下次开放局发布自动少拼 {myBuffs} 人
+        </p>
+      )}
 
       {mine.length === 0 && (
         <div className="glass-panel rounded-3xl p-6 text-center">
@@ -84,11 +93,16 @@ export default function MyWaves() {
               {/* 概要 */}
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="text-[13px] font-extrabold">
+<h3 className="text-[13px] font-extrabold">
                     {wave.basics.category}
                     {isOpen && wave.status === "active" && (
                       <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple align-middle">
                         🎯 开放局 · {neededJoiners(wave)} 位拼位
+                      </span>
+                    )}
+                    {isOpen && (wave.buffSeats ?? 0) > 0 && (
+                      <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 align-middle">
+                        ✨ 已降标准 −{(wave.buffSeats ?? 0)}
                       </span>
                     )}
                   </h3>
@@ -258,6 +272,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const reports = useWaveStore((s) => s.reports);
   const acceptFulfilment = useWaveStore((s) => s.acceptFulfilment);
   const moveDeposit = useWaveStore((s) => s.moveDeposit);
+  const resolveNoShow = useWaveStore((s) => s.resolveNoShow);
   const settle = useIdentityStore((s) => s.settle);
   const receivePayout = useIdentityStore((s) => s.receivePayout);
   const [breachOpen, setBreachOpen] = useState(false);
@@ -310,12 +325,26 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           <p className="text-[10px] text-white/50">
             等待服务方申报完成（请求放款）…
           </p>
-          <button
-            onClick={() => setBreachOpen(true)}
-            className="shrink-0 px-2.5 py-1.5 rounded-xl glass-panel text-[9.5px] font-bold text-amber-400/90 flex items-center gap-1"
-          >
-            <AlertTriangle size={11} /> 对方违约
-          </button>
+          <div className="flex gap-1.5 shrink-0">
+            {wave.capacity >= 2 && wave.status === "assembled" && (
+              <button
+                onClick={() => {
+                  resolveNoShow(wave.id, claim.id);
+                  setVerdictMsg("已标记未到场：该座位款项不退，已分摊补偿在场玩家，发起人下次成局面降标准");
+                }}
+                aria-label="标记未到场"
+                className="px-2.5 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/40 text-[9.5px] font-bold text-amber-300 hover:brightness-110"
+              >
+                🚫 未到场
+              </button>
+            )}
+            <button
+              onClick={() => setBreachOpen(true)}
+              className="px-2.5 py-1.5 rounded-xl glass-panel text-[9.5px] font-bold text-amber-400/90 flex items-center gap-1"
+            >
+              <AlertTriangle size={11} /> 对方违约
+            </button>
+          </div>
         </div>
       )}
       {claim.serviceDoneAt && !claim.fulfilment && (
