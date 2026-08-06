@@ -43,6 +43,13 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
   const cancelRefundLabel = (wave: Wave) => {
     if (wave.status !== "active") return "";
+    // 无 startsAt（老数据）按 B 方案：无人拼位=全退，已成局=不退
+    if (wave.startsAt === undefined || !Number.isFinite(wave.startsAt)) {
+      const hasSeats = claims.some(
+        (c) => c.waveId === wave.id && c.status === "accepted"
+      );
+      return hasSeats ? "取消不退（已有人拼位）" : "取消 · 未成局全额退";
+    }
     const t = tierRatio(wave.startsAt, now);
     return t.tier === "none" ? "取消不退" : `取消 · ${t.label}`;
   };

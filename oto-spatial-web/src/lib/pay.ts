@@ -22,6 +22,17 @@ export type PayStatus =
   /** Money returned to the payer (cancel / group-fail / partial refund). */
   | "refunded";
 
+/**
+ * 随单里钱的用途：单子金额（定金/全款） vs 平台发布费。
+ * 两者独立存在：发布费一经支付不退（发布动作已发生），退款/取消只作用于 seat。
+ */
+export type PayKind = "seat" | "publish-fee";
+
+/** 每日免费发布次数（超出后每次收 PUBLISH_FEE）。 */
+export const FREE_PUBLISH_PER_DAY = 3;
+/** 超量发布费（独立于单子金额，一经支付不退）。 */
+export const PUBLISH_FEE = 1;
+
 export interface PayOrder {
   id: string;
   /** What this money pays for: the wave it funds (always present). */
@@ -31,6 +42,8 @@ export interface PayOrder {
   /** Amount captured. */
   amount: number;
   status: PayStatus;
+  /** seat = 单子金额（可退）；publish-fee = 平台发布费（不退）。 */
+  kind: PayKind;
   createdAt: number;
   paidAt?: number;
   /** Copy left by release/refund for the audit trail. */
@@ -52,6 +65,7 @@ export function createPayOrder(input: {
   waveId: string;
   payerId: string;
   amount: number;
+  kind?: PayKind;
   createdAt?: number;
 }): PayOrder {
   return {
@@ -60,6 +74,7 @@ export function createPayOrder(input: {
     payerId: input.payerId,
     amount: Math.round(input.amount),
     status: "unpaid",
+    kind: input.kind ?? "seat",
     createdAt: input.createdAt ?? Date.now(),
   };
 }

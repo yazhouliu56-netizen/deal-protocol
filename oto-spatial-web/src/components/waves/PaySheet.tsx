@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { CreditCard, Lock } from "lucide-react";
+import { FREE_PUBLISH_PER_DAY } from "@/lib/pay";
 
 /**
  * PaySheet — 模拟即时支付（随单支付）。
@@ -17,6 +18,7 @@ export default function PaySheet({
   onPaid,
   title = "确认支付",
   desc,
+  fee = 0,
 }: {
   open: boolean;
   amount: number;
@@ -24,6 +26,8 @@ export default function PaySheet({
   onPaid: () => void;
   title?: string;
   desc?: string;
+  /** 发布费（独立于单子金额，一经支付不退）— 展示两笔并列。 */
+  fee?: number;
 }) {
   const [countdown, setCountdown] = useState(300); // 5 分钟占位
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -78,6 +82,11 @@ export default function PaySheet({
           <p className="text-[28px] font-extrabold text-brandCyan leading-none">
             ¥{amount}
           </p>
+          {fee > 0 && (
+            <p className="text-[9.5px] text-white/50 mt-1.5">
+              含发布费 ¥{fee}（超出每日 {FREE_PUBLISH_PER_DAY} 次免费后的固定发布费，一经支付不退） · 单子金额 ¥{amount - fee}
+            </p>
+          )}
         </div>
 
         <button

@@ -16,6 +16,7 @@ import {
 } from "@/lib/deposit";
 import type { Review } from "@/lib/review";
 import { creditFromReviews, dailyQuotaForTier } from "@/lib/review";
+import { FREE_PUBLISH_PER_DAY } from "@/lib/pay";
 
 /**
  * Private identity — one per browser tab (sessionStorage so a second tab
@@ -60,6 +61,10 @@ interface IdentityState {
   claimQuota: number;
   /** Epoch of the last quota reset. */
   lastQuotaAt: number;
+  /** 每日免费发布次数剩余（免费 3 次/天，超出每次收 PUBLISH_FEE）。 */
+  publishQuota: number;
+  /** Epoch of the last publish-quota reset. */
+  lastPublishQuotaAt: number;
   /** 在线状态总闸: online / busy (hold claims, stop new broadcasts) / offline. */
   status: "online" | "busy" | "offline";
   /** Virtual balance ledger — every deduction is visible in the wallet. */
@@ -72,6 +77,9 @@ interface IdentityState {
   setStatus: (status: "online" | "busy" | "offline") => void;
   useQuota: (n?: number) => boolean;
   resetQuotaIfDue: (now?: number) => void;
+  /** 消耗一次免费发布次数：用完返回 false（超出则需付发布费）。 */
+  usePublishQuota: () => boolean;
+  resetPublishQuotaIfDue: (now?: number) => void;
   settle: (claimId: string, verdict: "forgive" | "unforgiven", now?: number) => void;
   /** Credit tier re-derived from received reviews (评价驱动分层). */
   recalcCredit: (reviews: Review[]) => void;
@@ -123,6 +131,8 @@ export const useIdentityStore = create<IdentityState>()(
       creditTier: 3,
       claimQuota: dailyQuotaForTier(3),
       lastQuotaAt: 0,
+      publishQuota: FREE_PUBLISH_PER_DAY,
+      lastPublishQuotaAt: 0,
       status: "online",
       ledger: [],
       deposits: [],
@@ -161,6 +171,19 @@ export const useIdentityStore = create<IdentityState>()(
         const s = get();
         if (s.claimQuota < n) return false;
         set({ claimQuota: s.claimQuota - n });
+        return true;
+      },
+
+      resetPublishQuotaIfDue: (now = Date.now()) =>
+        set((s) => {
+          if (s.lastPublishQuotaAt > now) return {} as Partial<IdentityState>;
+          return { publishQuota: FREE_PUBLISH_PER_DAY, lastPublishQuotaAt: midnight() };
+        }),
+
+      usePublishQuota: () => {
+        const s = get();
+        if (s.publishQuota <= 0) return false;
+        set({ publishQuota: s.publishQuota - 1 });
         return true;
       },
 
@@ -250,6 +273,8 @@ export const useIdentityStore = create<IdentityState>()(
         creditTier: s.creditTier,
         claimQuota: s.claimQuota,
         lastQuotaAt: s.lastQuotaAt,
+        publishQuota: s.publishQuota,
+        lastPublishQuotaAt: s.lastPublishQuotaAt,
         status: s.status,
         ledger: s.ledger,
         deposits: s.deposits,

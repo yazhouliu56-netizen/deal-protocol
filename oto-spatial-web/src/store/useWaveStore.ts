@@ -90,6 +90,11 @@ interface WaveStore extends WaveBundle {
       authorId: string;
       /** 应付金额：服务型 = 全款；开放局 = 发起人自己那份(人均价)。 */
       payAmount: number;
+      /**
+       * 免费发布次数用完 → 需付发布费（独立于单子金额，一经支付不退）。
+       * 为 0 时表示本次发布在免费配额内，不建发布费订单。
+       */
+      publishFee?: number;
     }
   ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" } | null;
   /**
@@ -257,9 +262,24 @@ export const useWaveStore = create<WaveStore>()(
           waveId: wave.id,
           payerId: input.authorId,
           amount: input.payAmount,
+          kind: "seat",
         });
-        set((s) => ({ waves: [wave, ...s.waves], payOrders: [order, ...s.payOrders] }));
-        return { id: wave.id, amount: order.amount };
+        // 发布费独立建单：超出每日免费次数时随这笔单一起支付（提交即扣）
+        const fee = input.publishFee ? Math.max(0, input.publishFee) : 0;
+        const feeOrder = fee > 0
+          ? createPayOrder({
+              id: nextId("pay"),
+              waveId: wave.id,
+              payerId: input.authorId,
+              amount: fee,
+              kind: "publish-fee",
+            })
+          : null;
+        set((s) => ({
+          waves: [wave, ...s.waves],
+          payOrders: feeOrder ? [feeOrder, order, ...s.payOrders] : [order, ...s.payOrders],
+        }));
+        return { id: wave.id, amount: order.amount + fee };
       },
 
       payWave: (waveId): { ok: boolean; error?: string } => {
@@ -268,11 +288,15 @@ export const useWaveStore = create<WaveStore>()(
         if (!wave) return { ok: false, error: "wave-not-found" };
         if (wave.removed) return { ok: true }; // 违规单不支付不激活（防御）
         if (wave.status !== "pending") return { ok: true }; // 幂等：已上线
-        const order = s.payOrders.find((o) => o.waveId === waveId && o.payerId === wave.authorId);
-        if (!order) return { ok: false, error: "pay-order-missing" };
-        const paid = capturePayOrder(order);
+        // 该单所有待付订单（单子金额 seat + 发布费 publish-fee）一并捕获
+        const orders = s.payOrders.filter(
+          (o) => o.waveId === waveId && o.payerId === wave.authorId && o.status === "unpaid"
+        );
+        if (orders.length === 0) return { ok: false, error: "pay-order-missing" };
+        const paid = orders.map((o) => capturePayOrder(o));
+        const paidById = new Map(paid.map((o) => [o.id, o]));
         set((st) => ({
-          payOrders: st.payOrders.map((o) => (o.id === order.id ? paid : o)),
+          payOrders: st.payOrders.map((o) => paidById.get(o.id) ?? o),
           waves: st.waves.map((w) => (w.id === waveId ? activateWave(w) : w)),
         }));
         // 支付到位才进广播（LLM 聚类推送，失败自动降级抽取）
@@ -732,10 +756,15 @@ export const useWaveStore = create<WaveStore>()(
         set((s) => {
           const wave = s.waves.find((w) => w.id === waveId);
           if (!wave || wave.status !== "active") return {};
+          // B 方案判定：无 startsAt 的老数据，看是否已有人正式拼位（accepted）
+          const hasSeats = s.claims.some(
+            (c) => c.waveId === waveId && c.status === "accepted"
+          );
           const out = refundByTier({
             waveId,
             orders: s.payOrders,
             startsAt: wave.startsAt,
+            hasSeats,
           });
           const refundMap = new Map(out.refunded.map((o) => [o.id, o]));
           return {

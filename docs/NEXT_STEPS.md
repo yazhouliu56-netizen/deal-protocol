@@ -8,7 +8,8 @@
 |------|------|------|
 | P1-P7 waves 撮合闭环 | ✅ 已提交 `11f703e` | P2P 广播/磋商/鸽子险/评价/治理/信任加固 + 6 条 E2E 进 CI |
 | 开放局/拼位（Open Match） | ✅ 已提交 `44aabe2` | 组装式撮合 A 模式：拼位/满员成局/人均价 + 三 tab E2E 进 CI |
-| **开放局信任闭环三缺口** | ✅ 已落地 | ① 成团失败自动退款 ② 24h 分级取消 ③ no-show 欠款锁定；单测 114 全绿 + `e2e-trust-open` 三链路 3 连跑绿 |
+| **开放局信任闭环三缺口** | ✅ 已落地 | ① 成团失败自动退款 ② 24h 分级取消 ③ no-show 欠款锁定；单测 118 全绿 + `e2e-trust-open` 三链路绿 |
+| **发布费 + 免费次数** | ✅ 已落地 | 每日免费 3 次，超出每次 ¥1（独立 publish-fee 单，一经支付不退）；取消 B 方案（无 startsAt 老数据按成局判定） |
 | 竞品对标矩阵 | ✅ `docs/oto-competitor-matrix.md` | 全景 5 维度 + 开放局缺口 + P8 对标结论 |
 
 ---
@@ -51,13 +52,16 @@
                  → 该局全部已付订单(发起人+拼位者)原路全额退 → wave=expired
 ② 24h 分级取消   发起人取消(MyWaves「取消发布」) → tierRatio(startsAt,now)
                  ≥24h 退100% / <24h 退80% / 已开始或无 startsAt 退0% → wave=closed
+                 · 无 startsAt 老数据 → B 方案：未成局且无人拼位=全退；已成局=不退
 ③ no-show 欠款锁定 breached 未结(claims.settled=false) 的用户
                  不可发波(createPendingWave/publishWave) 不可拼位(joinSeat)
                  需求方在成局页「已收赔偿·结清违约」→ settled=true 解锁
+④ 发布费独立     每日免费 3 次；超出每次 ¥1（kind=publish-fee，一经支付不退）
+                 提交即扣免费次数，用完随单子两笔并列支付；取消不返还次数
 ```
 - 拼位支付**落流水**：joinSeat 成功即创建已捕获 PayOrder（占位=付自己那份），退款/补偿以此为准。
-- 退款车道 = `opt-in` PayOrder，main 跑 `refundByTier`（原路退回，flag 统一定档）；
-- E2E：`npm run test:e2e:trustopen`（三 tab，含过期注入重读校验兜底写回竞态）。
+- 退款车道 = `opt-in` PayOrder，mand 跑 `refundByTier`（原路退回，flag 统一定档）；**发布费订单被排除在退款外**。
+- E2E：`npm run test:e2e:trustopen`（三 tab，含过期注入重读校验兜底写回竞态 + 第 4 次发布收发布费断言）。
 
 ## 本轮排期（支付闭环）
 

@@ -4,6 +4,7 @@ import {
   FREE_CANCEL_MS,
   PARTIAL_RATIO,
   hasUnsettledBreach,
+  refundByTier,
   settleGroupFail,
   tierRatio,
 } from "./trust.ts";
@@ -30,13 +31,14 @@ function wave(overrides?: Partial<Wave>): Wave {
   return { ...base, ...overrides };
 }
 
-function paidOrder(id: string, waveId: string, payerId: string): PayOrder {
+function paidOrder(id: string, waveId: string, payerId: string, kind: "seat" | "publish-fee" = "seat"): PayOrder {
   return {
     id,
     waveId,
     payerId,
     amount: 50,
     status: "paid",
+    kind,
     createdAt: now,
     paidAt: now,
   };
@@ -94,6 +96,15 @@ test("settleGroupFail: 只退本局已付单（不含其他局/未付/已退）"
   assert.equal(out.refunded[0].id, "p-mine");
 });
 
+test("settleGroupFail: 发布费订单不参与成团失败退款（独立不退）", () => {
+  const w = wave({ expiresAt: now - 1000 });
+  const seat = paidOrder("s1", "w1", "me", "seat");
+  const fee = paidOrder("f1", "w1", "me", "publish-fee");
+  const out = settleGroupFail({ wave: w, orders: [seat, fee], now });
+  assert.equal(out.refunded.length, 1);
+  assert.equal(out.refunded[0].id, "s1");
+});
+
 /* ------------------------- ② 24h 分级取消 ------------------------- */
 
 test("tierRatio: ≥24h → free 全退", () => {
@@ -112,6 +123,49 @@ test("tierRatio: 已开始 / 无 startsAt → none 不退", () => {
   assert.equal(tierRatio(now - 1000, now).tier, "none");
   assert.equal(tierRatio(undefined, now).tier, "none");
   assert.equal(tierRatio(undefined, now).ratio, 0);
+});
+
+/* ----- refundByTier（B 方案：无 startsAt 老数据按是否成局退） ----- */
+
+test("refundByTier: 无 startsAt 且无人拼位 → 全额退 seat", () => {
+  const w = wave({});
+  const out = refundByTier({
+    waveId: w.id,
+    orders: [paidOrder("s1", w.id, "me")],
+    startsAt: undefined,
+    hasSeats: false,
+    now,
+  });
+  assert.equal(out.refunded.length, 1);
+  assert.equal(out.refunds["s1"], 50);
+  assert.match(out.refunded[0].note ?? "", /全额退/);
+});
+
+test("refundByTier: 无 startsAt 且已成局 → 不退 + 跳过发布费", () => {
+  const w = wave({});
+  const seat = paidOrder("s", w.id, "me");
+  const fee = paidOrder("f", w.id, "me", "publish-fee");
+  const out = refundByTier({
+    waveId: w.id,
+    orders: [seat, fee],
+    startsAt: undefined,
+    hasSeats: true,
+    now,
+  });
+  assert.equal(out.refunded.length, 0);
+  assert.ok(!(fee.id in out.refunds));
+});
+
+test("refundByTier: 有 startsAt 走 tierRatio（≥24h 全退）", () => {
+  const w = wave({});
+  const out = refundByTier({
+    waveId: w.id,
+    orders: [paidOrder("s", w.id, "me")],
+    startsAt: now + FREE_CANCEL_MS,
+    hasSeats: true,
+    now,
+  });
+  assert.equal(out.refunds["s"], 50);
 });
 
 /* ------------------------- ③ no-show 欠款锁定 ------------------------- */

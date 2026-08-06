@@ -7,6 +7,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
+import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/lib/pay";
 
 /**
  * 发布需求 = 发出一个信号波。
@@ -25,6 +26,9 @@ const publishWave = useWaveStore((s) => s.publishWave);
   const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const payWave = useWaveStore((s) => s.payWave);
   const identity = useIdentityStore((s) => s.identity);
+  const usePublishQuota = useIdentityStore((s) => s.usePublishQuota);
+  const resetPublishQuotaIfDue = useIdentityStore((s) => s.resetPublishQuotaIfDue);
+  const publishQuota = useIdentityStore((s) => s.publishQuota);
 
   const [category, setCategory] = useState("");
   const [time, setTime] = useState("");
@@ -39,7 +43,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
   /** 服务开始时间（相对 now 的偏移 ms）— 24h 分级取消的依据。null=未设置（取消不退） */
   const [startsIn, setStartsIn] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const [paying, setPaying] = useState<null | { id: string; amount: number }>(null);
+  const [paying, setPaying] = useState<null | { id: string; amount: number; fee: number }>(null);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
@@ -71,6 +75,10 @@ const publishWave = useWaveStore((s) => s.publishWave);
       people >= 2
         ? Math.max(1, Math.round(budgetNum / people))
         : budgetNum;
+    // 提交即扣免费发布次数：每日免费 3 次，用完需另付发布费（独立于单子金额）
+    resetPublishQuotaIfDue();
+    const free = usePublishQuota();
+    const publishFee = free ? 0 : PUBLISH_FEE;
     const out = createPendingWave({
       authorId: identity.id,
       basics: { category: category.trim(), time: time.trim(), area: area.trim(), radiusKm: 5 },
@@ -85,6 +93,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
       capacity: people,
       startsAt: startsIn ? Date.now() + startsIn : undefined,
       payAmount,
+      publishFee,
       expiresAt: Date.now() + ttl,
       hotness: 2 + Math.floor(Math.random() * 2),
     });
@@ -103,8 +112,8 @@ const publishWave = useWaveStore((s) => s.publishWave);
       onClose();
       return;
     }
-    // 进入模拟收银台：支付成功才激活广播
-    setPaying({ id: out.id, amount: out.amount });
+    // 进入模拟收银台：支付成功才激活广播（含发布费则两笔并列展示）
+    setPaying({ id: out.id, amount: out.amount, fee: publishFee });
   }
 
   return (
@@ -353,6 +362,21 @@ const publishWave = useWaveStore((s) => s.publishWave);
           })}
         </div>
 
+        {/* 免费发布次数：每日免费 N 次，用完后每次收发布费 */}
+        <div className="mb-2 flex items-center justify-between rounded-2xl bg-white/[0.04] border border-white/10 px-3 py-2">
+          <span className="text-[10px] font-semibold text-white/70 flex items-center gap-1.5">
+            🎫 免费发布
+            <span className="text-white/40 font-normal">
+              今日剩 {publishQuota} / {FREE_PUBLISH_PER_DAY} 次
+            </span>
+          </span>
+          {publishQuota <= 0 && (
+            <span className="text-[9px] font-bold text-brandCyan">
+              超出将收发布费 ¥{PUBLISH_FEE}/次
+            </span>
+          )}
+        </div>
+
         {error && <p className="text-[10.5px] text-red-400 font-semibold mb-2">{error}</p>}
 
         <button
@@ -371,6 +395,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
         amount={paying?.amount ?? 0}
         title={people >= 2 ? "支付你的拼位份额" : "支付全款"}
         desc={people >= 2 ? `开放局：你算第 1 位，先付自己那份（人均 ${Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))} 元）` : "服务单：全款托管，验收后放款"}
+        fee={paying?.fee ?? 0}
         onCancel={() => setPaying(null)}
         onPaid={() => {
           if (paying) payWave(paying.id);

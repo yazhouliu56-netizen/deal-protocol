@@ -79,6 +79,8 @@ export function settleGroupFail(input: {
   const refunds: Record<string, number> = {};
   for (const order of input.orders) {
     if (order.waveId !== input.wave.id || order.status !== "paid") continue;
+    // 发布费独立：一经支付不退（发布动作已发生），退款只作用于单子金额 seat
+    if (order.kind === "publish-fee") continue;
     const out = refundOrder(order, 1, "成团失败：自动全额退回");
     refunded.push(out.order);
     refunds[order.id] = out.amount;
@@ -130,19 +132,36 @@ export function tierRatio(
 /**
  * 按档位批量退一个局的已付订单（发起人取消用）。
  * 返回订单副本列表（paid → refunded）+ 退金额映射，全部原路退回。
+ *
+ * 档位判定：
+ *   - 有 startsAt → tierRatio（≥24h 全退 / <24h 退 80% / 已开始不退）
+ *   - 无 startsAt（老数据）→ 方案 B：未成局且无人拼位 = 全退（零成本取消）；
+ *     一旦有人拼位/已成局 = 不退（避免被人爽约产生成本）。
+ * 发布费独立：一律不退。
  */
 export function refundByTier(input: {
   waveId: string;
   orders: PayOrder[];
   startsAt: number | undefined;
+  /** 本局已正式成局的座位（accepted），用于无 startsAt 时的 B 方案判定。 */
+  hasSeats: boolean;
   now?: number;
 }): { refunded: PayOrder[]; refunds: Record<string, number> } {
   const now = input.now ?? Date.now();
-  const t = tierRatio(input.startsAt, now);
+  const t: TierRatio =
+    input.startsAt === undefined || !Number.isFinite(input.startsAt)
+      ? input.hasSeats
+        ? { tier: "none", ratio: 0, label: "已成局（老数据）取消：不退" }
+        : { tier: "free", ratio: 1, label: "未成局、无人拼位：全额退" }
+      : tierRatio(input.startsAt, now);
   const refunded: PayOrder[] = [];
   const refunds: Record<string, number> = {};
   for (const order of input.orders) {
     if (order.waveId !== input.waveId || order.status !== "paid") continue;
+    // 发布费独立：一经支付不退
+    if (order.kind === "publish-fee") continue;
+    // 档位为 0（不退）→ 不产生退款记录
+    if (t.ratio <= 0) continue;
     const out = refundOrder(order, t.ratio, `发起人取消：${t.label}`);
     refunded.push(out.order);
     refunds[order.id] = out.amount;

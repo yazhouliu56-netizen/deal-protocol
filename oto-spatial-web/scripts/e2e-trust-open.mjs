@@ -137,10 +137,13 @@ try {
   );
 
   // 把 expiresAt 改成过去 → A 去「行程」（挂载 MyWaves → settleExpiredOpen）
-  // forceExpired 带重读校验，避免被发布局残留的 clusterPushes 异步写回覆盖
+  // 三步防写回竞态：
+  //   1) 先 reload A —— 清掉 A 页面发布后残留的 clusterPushes 异步写
+  //      再看：现在注入一定在 A 之后，A 不再有覆盖来源
+  //   2) forceExpired 注入（B 页写盘 + 重读校验）
+  //   3) 再 reload A 以过期值 hydrate → 行程页触发 settleExpiredOpen
+  await pageA.reload({ waitUntil: "domcontentloaded" });
   await forceExpired(pageB, w1.id, Date.now() - 10_000);
-  // 让 A 可能残留的写回（joinSeat/pushes 通知）先落地，再 reload 以过期值 hydrate
-  await sleep(600);
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
   await pageA.waitForTimeout(800);
@@ -253,6 +256,15 @@ try {
   await pageA.waitForTimeout(400);
   const w4 = (await readShared(pageA))?.state?.waves?.find(
     (w) => w.basics.area === "城市书房"
+  );
+  // 发布费：A 已发布 ① 局 ② 局 ③ 局 = 用完每日免费 3 次，
+  // 局 4 是第 4 次 → 需付发布费（独立 publish-fee 订单，一经支付不退）
+  const w4Orders = (await readShared(pageA))?.state?.payOrders?.filter(
+    (o) => o.waveId === w4.id
+  );
+  assert.ok(
+    w4Orders.some((o) => o.kind === "publish-fee" && o.amount === 1),
+    "第 4 次发布超出免费配额 → 产生发布费订单（¥1，kind=publish-fee）"
   );
 
   await pageC.reload({ waitUntil: "domcontentloaded" });
