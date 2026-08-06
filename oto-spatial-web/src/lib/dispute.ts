@@ -22,6 +22,15 @@ export type DisputeReason =
   | "demander-change" // 需求方变更/取消
   | "force-majeure"; // 不可抗力/模糊
 
+export const DISPUTE_REASONS: Array<{ value: DisputeReason; label: string }> = [
+  { value: "no-show", label: "未到场（no-show）" },
+  { value: "late", label: "迟到/早退（时效违约）" },
+  { value: "result-mismatch", label: "结果/模块不符" },
+  { value: "deliverable-missing", label: "交付物缺失/损坏" },
+  { value: "demander-change", label: "需求方变更/取消" },
+  { value: "force-majeure", label: "不可抗力/说不清" },
+];
+
 export type Responsibility =
   | "responder-full"
   | "responder-partial"
@@ -59,6 +68,8 @@ export function autoVerdict(reason: DisputeReason): AutoVerdict {
 
 /** One dispute event in the audit trail. */
 export interface DisputeRecord {
+  /** Unique id — the claim id (one open dispute per claim). */
+  id: string;
   claimId: string;
   reason: DisputeReason;
   /** Demander's evidence text (required, MVP text-only). */
@@ -87,6 +98,7 @@ export function openDispute(
     throw new Error("dispute.evidence.required");
   }
   return {
+    id: input.claimId,
     claimId: input.claimId,
     reason: input.reason,
     evidence: input.evidence.trim().slice(0, 200),

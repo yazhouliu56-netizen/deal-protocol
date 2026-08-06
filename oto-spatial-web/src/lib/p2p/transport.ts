@@ -125,6 +125,7 @@ function mergeByIdLevel(
     reviews: byId(base.reviews, next.reviews),
     pushes: byId(base.pushes, next.pushes),
     reports: byId(base.reports, next.reports),
+    disputes: byId(base.disputes, next.disputes),
     bans: baseOver.bans,
     initiatorBuffs: baseOver.initiatorBuffs,
   };

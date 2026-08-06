@@ -475,7 +475,12 @@ export const useWaveStore = create<WaveStore>()(
         );
         set((st) => ({
           waves: st.waves.map((w) => (w.id === waveId ? locked : w)),
-          claims: [...st.claims, claim],
+          claims: [
+            ...st.claims,
+            wave.modules && wave.modules.length >= 2
+              ? { ...claim, modules: initModuleStates(wave.modules.length) }
+              : claim,
+          ],
           // 接单后雷达清空：所有推送标记已读（跨 tab 合并后不残留未读）
           pushes: st.pushes.map((p) => ({ ...p, read: true })),
         }));
@@ -584,6 +589,10 @@ export const useWaveStore = create<WaveStore>()(
                     ...c,
                     status: "accepted",
                     depositPhase: wave.deposit ? "held" : c.depositPhase,
+                    modules:
+                      wave.modules && wave.modules.length >= 2 && !c.modules
+                        ? initModuleStates(wave.modules.length)
+                        : c.modules,
                   }
                 : c
             ),

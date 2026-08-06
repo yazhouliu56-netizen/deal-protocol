@@ -75,6 +75,8 @@ export interface Wave {
   status: WaveStatus;
   /** 1:1 claim owner (solo waves only). Open-match waves track seats, not one owner. */
   claimedById?: string;
+  /** 复杂任务：LLM 拆分 + 发起人确认的模块定义（接单后锁定不可增删）。 */
+  modules?: import("./decompose").TaskModule[];
   /** Virtual interest counter (hotness-source; physics kept separate). */
   hotness?: number;
 }
@@ -142,6 +144,8 @@ export interface CreateWaveInput {
   startsAt?: number;
   /** 随单支付：true = 建单即 pending(待支付)，支付完成才 active。 */
   pending?: boolean;
+  /** 复杂任务：发起人确认的模块定义（接单后锁定）。 */
+  modules?: import("./decompose").TaskModule[];
   createdAt: number;
   hotness?: number;
 }
@@ -166,6 +170,7 @@ export function createWave(input: CreateWaveInput): Wave {
     deposit: input.deposit ?? false,
     capacity: input.capacity ?? 1,
     buffSeats: input.buffSeats,
+    modules: input.modules,
     expiresAt: input.expiresAt,
     startsAt: input.startsAt,
     createdAt: input.createdAt,

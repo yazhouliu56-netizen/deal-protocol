@@ -13,6 +13,7 @@ import type { BlindRevealData } from "./BlindReveal";
 import BlindReveal from "./BlindReveal";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
+import AcceptancePanel from "./AcceptancePanel";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
@@ -425,6 +426,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           {claim.fulfilment.note}
         </p>
       )}
+      <AcceptancePanel claim={claim} wave={wave} />
       {claim.status === "breached" && (
         <div className="rounded-2xl bg-red-400/[0.07] border border-red-400/35 p-2.5">
           <p className="text-[9.5px] font-bold text-red-300 flex items-center gap-1.5">

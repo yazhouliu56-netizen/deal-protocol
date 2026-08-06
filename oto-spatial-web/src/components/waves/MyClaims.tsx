@@ -9,6 +9,7 @@ import { ACTION_LABEL } from "@/lib/moderation";
 import type { DepositPhase } from "@/lib/deposit";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
+import { confirmedCount } from "@/lib/moduleFulfilment";
 
 /**
  * 响应者视角：我接的单（claim story）。
@@ -28,6 +29,9 @@ export default function MyClaims() {
   const deposits = useIdentityStore((s) => s.deposits);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
+  const reportModuleDone = useWaveStore((s) => s.reportModuleDone);
+  const settleDispute = useWaveStore((s) => s.settleDispute);
+  const disputes = useWaveStore((s) => s.disputes);
   const reports = useWaveStore((s) => s.reports);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
@@ -228,7 +232,8 @@ export default function MyClaims() {
               {/* 申报完成 → 请求放款（Airtasker 放款闸门） */}
               {isLocked &&
                 claim.status === "accepted" &&
-                !claim.serviceDoneAt && (
+                !claim.serviceDoneAt &&
+                !claim.modules && (
                   <button
                     onClick={() => reportDone(claim.id)}                    aria-label="申报完成"
                     className="w-full py-2.5 rounded-xl bg-emerald-400/12 border border-emerald-400/35 text-[10.5px] font-bold text-emerald-300"
@@ -236,7 +241,35 @@ export default function MyClaims() {
                     🛎 服务完成 · 请求放款
                   </button>
                 )}
-              {claim.serviceDoneAt && !claim.fulfilment && (
+              {isLocked &&
+                claim.status === "accepted" &&
+                claim.modules && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold text-white/70">
+                      🔍 模块化交付（{confirmedCount(claim)}/{claim.modules.length} 已确认）
+                    </p>
+                    {claim.modules.map((m, i) => (
+                      <button
+                        key={i}
+                        onClick={() => m.status === "pending" && reportModuleDone(claim.id, i)}
+                        disabled={m.status !== "pending"}
+                        aria-label={`申报模块 ${wave.modules?.[i]?.name ?? `模块${i + 1}`} 完成`}
+                        className={`w-full py-1.5 rounded-xl border text-[9.5px] font-bold transition-colors ${
+                          m.status === "pending"
+                            ? "bg-emerald-400/12 border-emerald-400/35 text-emerald-300"
+                            : "bg-white/[0.03] border-white/10 text-white/35"
+                        }`}
+                      >
+                        {m.status === "pending"
+                          ? `📦 申报「${wave.modules?.[i]?.name ?? `模块${i + 1}`}」完成`
+                          : m.status === "done"
+                          ? `⏳「${wave.modules?.[i]?.name ?? `模块${i + 1}`}」已申报，待需求方确认`
+                          : `✓「${wave.modules?.[i]?.name ?? `模块${i + 1}`}」已确认放款`}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              {claim.serviceDoneAt && !claim.fulfilment && !claim.modules && (
                 <p className="text-[10px] text-emerald-300/90">
                   ✓ 已申报完成 —— 等待需求方验收（72h 自动放款）
                 </p>
@@ -249,6 +282,7 @@ export default function MyClaims() {
                 myId={identity.id}
                 peerId={wave.authorId}
               />
+              <ResponderDispute claim={claim} />
 
               {/* 终态 */}
               {claim.status === "withdrawn" && (
@@ -401,5 +435,36 @@ function DepositBadge({
     <p className={`text-[9.5px] font-bold px-2.5 py-1.5 rounded-xl border ${s.cls}`}>
       {s.text}
     </p>
+  );
+}
+
+/** 响应者视角的争议处理：看到自动档位，可提出协商比例（响应者发起，需求方决定）。 */
+function ResponderDispute({ claim }: { claim: Claim }) {
+  const disputes = useWaveStore((s) => s.disputes);
+  const settleDispute = useWaveStore((s) => s.settleDispute);
+  const d = disputes.find((x) => x.claimId === claim.id);
+  if (!d || d.outcome) return null;
+  return (
+    <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-2.5 space-y-1.5">
+      <p className="text-[10px] font-bold text-amber-200">
+        ⚖️ 需求方发起了争议：{d.verdict.label}
+      </p>
+      <p className="text-[9px] text-white/40">凭证：{d.evidence}</p>
+      <button
+        onClick={() =>
+          settleDispute({
+            claimId: claim.id,
+            proposedPct: d.verdict.money.type === "negotiate" ? d.verdict.money.maxPct : 0,
+            willAccept: true,
+            note: "响应者提出协商方案",
+          })
+        }
+        className="w-full py-1.5 rounded-xl bg-brandPurple/15 border border-brandPurple/40 text-[9.5px] font-bold text-brandPurple"
+      >
+        {d.verdict.money.type === "negotiate"
+          ? `提出协商：退 ${d.verdict.money.maxPct}% 结案`
+          : "接受判定结案"}
+      </button>
+    </div>
   );
 }

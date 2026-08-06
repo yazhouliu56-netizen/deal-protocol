@@ -8,12 +8,15 @@ import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/lib/pay";
+import type { TaskModule } from "@/lib/decompose";
 
 /**
  * 发布需求 = 发出一个信号波。
  * 基本要素先快速填（硬过滤），定制条件可选（软加权 + 递增加价），
  * 磋商对话框"内容即开关"。
  * 开放局（人数 ≥ 2）：C 端互相组队拼位 —— 满员成局，人均 = 预算 ÷ 人数。
+ * 复杂任务（一句话需求）：AI 拆解成独立模块 → 发起人确认（可增删/改价）→
+ * 接单前自由调整，接单后锁定。
  */
 export default function PublishSheet({
   open,
@@ -44,6 +47,9 @@ const publishWave = useWaveStore((s) => s.publishWave);
   const [startsIn, setStartsIn] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [paying, setPaying] = useState<null | { id: string; amount: number; fee: number }>(null);
+  /** AI 拆解出的模块草案（发起人确认后随单发布，接单后锁定）。 */
+  const [modules, setModules] = useState<TaskModule[] | null>(null);
+  const [decomposing, setDecomposing] = useState(false);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
@@ -58,6 +64,45 @@ const publishWave = useWaveStore((s) => s.publishWave);
     setDeposit(false);
     setPeople(1);
     setError("");
+    setModules(null);
+  }
+
+  /** AI 拆解：一句话需求 → 独立模块清单（含建议价权重）→ 发起人确认。 */
+  async function decompose() {
+    if (!category.trim()) {
+      setError("先填品类，再让 AI 拆解");
+      return;
+    }
+    setDecomposing(true);
+    setError("");
+    try {
+      const res = await fetch("/api/decompose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: category.trim(),
+          time: time.trim() || undefined,
+          note: note.trim() || undefined,
+          budget: parseInt(budget, 10) || 0,
+        }),
+      });
+      const data = await res.json();
+      if (data.modules && data.modules.length >= 2) {
+        setModules(data.modules);
+      } else {
+        setError("AI 拆解失败（已降级）—— 稍后重试，或直接广播按简单任务处理");
+      }
+    } catch {
+      setError("AI 拆解失败（网络）—— 稍后重试，或直接广播按简单任务处理");
+    } finally {
+      setDecomposing(false);
+    }
+  }
+
+  /** 模块编辑：删除 / 改权重。 */
+  function editModule(i: number, patch: Partial<TaskModule>) {
+    if (!modules) return;
+    setModules(modules.map((m, j) => (j === i ? { ...m, ...patch } : m)));
   }
 
   function publish() {
@@ -69,6 +114,14 @@ const publishWave = useWaveStore((s) => s.publishWave);
     if (!Number.isFinite(budgetNum) || budgetNum <= 0) {
       setError("预算需为有效金额");
       return;
+    }
+    // 模块化任务：权重必须和为 100%（否则按等分兜底）
+    if (modules && modules.length >= 2) {
+      const total = modules.reduce((s, m) => s + (Number(m.weight) || 0), 0);
+      if (total !== 100) {
+        setError(`模块权重之和必须为 100%（当前 ${total}%）—— 请调整或重拆`);
+        return;
+      }
     }
     // 随单支付：1:1 服务 = 付全款；开放局 = 发起人付自己那份(人均价)。
     const payAmount =
@@ -92,6 +145,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
       deposit,
       capacity: people,
       startsAt: startsIn ? Date.now() + startsIn : undefined,
+      modules: modules ?? undefined,
       payAmount,
       publishFee,
       expiresAt: Date.now() + ttl,
@@ -243,6 +297,73 @@ const publishWave = useWaveStore((s) => s.publishWave);
           label="磋商留言（可留空）"
           placeholder="想告诉响应者什么？填了就开放磋商，留空则直接接单"
         />
+
+        {/* AI 拆解：复杂任务 → 独立模块（接单前可增删/改价，接单后锁定） */}
+        <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-bold text-white/85 flex items-center gap-1.5">
+              🤖 AI 拆解复杂任务
+            </span>
+            {modules && modules.length >= 2 && (
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple">
+                已拆 {modules.length} 个独立模块
+              </span>
+            )}
+          </div>
+          <p className="text-[9px] text-white/40 mb-2">
+            一句话太笼统（如"清理整个房间"）？AI 拆成可单独验收的模块 + 建议价权重，你确认后发布；接单前可增删改，接单后锁定
+          </p>
+          {!modules || modules.length < 2 ? (
+            <button
+              onClick={decompose}
+              disabled={decomposing}
+              className="w-full py-2 rounded-xl bg-brandPurple/15 border border-brandPurple/40 text-[10.5px] font-bold text-brandPurple disabled:opacity-50"
+            >
+              {decomposing ? "拆解中…" : "✨ 一键拆解（含价格权重建议）"}
+            </button>
+          ) : (
+            <div className="space-y-1.5">
+              {modules.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-brandPurple/10 border border-brandPurple/30"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-white/85 truncate">
+                        {m.name}
+                      </span>
+                      <input
+                        value={m.weight}
+                        onChange={(e) =>
+                          editModule(i, { weight: parseInt(e.target.value, 10) || 0 })
+                        }
+                        aria-label={`模块 ${m.name} 权重`}
+                        inputMode="numeric"
+                        className="w-12 rounded-lg bg-white/[0.06] border border-white/10 px-1.5 py-0.5 text-[9px] text-brandPurple font-bold text-center outline-none"
+                      />
+                      <span className="text-[8.5px] text-white/35">%</span>
+                    </div>
+                    <p className="text-[8.5px] text-white/40 truncate">{m.acceptance}</p>
+                  </div>
+                  <button
+                    onClick={() => setModules(modules.filter((_, j) => j !== i))}
+                    aria-label={`删除模块 ${m.name}`}
+                    className="text-white/40 hover:text-white text-[10px] shrink-0"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setModules(null)}
+                className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[9px] font-bold text-white/50"
+              >
+                撤销拆解（按简单任务广播）
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* 开放局：人数 ≥ 2 = 拼位组队（C 端互相找搭子） */}
         <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
