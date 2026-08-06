@@ -118,14 +118,14 @@ function mergeByIdLevel(
   };
   const baseOver = stale ? { ...next, ...base } : { ...base, ...next };
   return {
-    waves: byId(base.waves, next.waves),
-    claims: byId(base.claims, next.claims),
-    payOrders: byId(base.payOrders, next.payOrders),
-    responders: byId(base.responders, next.responders),
-    reviews: byId(base.reviews, next.reviews),
-    pushes: byId(base.pushes, next.pushes),
-    reports: byId(base.reports, next.reports),
-    disputes: byId(base.disputes, next.disputes),
+    waves: byId(base.waves ?? [], next.waves ?? []),
+    claims: byId(base.claims ?? [], next.claims ?? []),
+    payOrders: byId(base.payOrders ?? [], next.payOrders ?? []),
+    responders: byId(base.responders ?? [], next.responders ?? []),
+    reviews: byId(base.reviews ?? [], next.reviews ?? []),
+    pushes: byId(base.pushes ?? [], next.pushes ?? []),
+    reports: byId(base.reports ?? [], next.reports ?? []),
+    disputes: byId(base.disputes ?? [], next.disputes ?? []),
     bans: baseOver.bans,
     initiatorBuffs: baseOver.initiatorBuffs,
   };

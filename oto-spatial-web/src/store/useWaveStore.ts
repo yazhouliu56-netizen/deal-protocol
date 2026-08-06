@@ -461,7 +461,13 @@ export const useWaveStore = create<WaveStore>()(
         if (wave.negotiable && note?.trim()) {
           const claim = openNegotiation(wave, responderId, claimId, price ?? wave.budget);
           set((st) => ({
-            claims: [...st.claims, claim],
+            claims: [
+              ...st.claims,
+              // 模块随协商锁定（发起人拆解确认后，协商开始即不可改）
+              wave.modules && wave.modules.length >= 2
+                ? { ...claim, modules: initModuleStates(wave.modules.length) }
+                : claim,
+            ],
             // 接单后雷达清空：所有推送标记已读
             pushes: st.pushes.map((p) => ({ ...p, read: true })),
           }));
