@@ -3,7 +3,7 @@
  * 用法：node scripts/restart-prod.mjs
  */
 import { spawn, execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, openSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -40,16 +40,25 @@ try {
 
 await new Promise((r) => setTimeout(r, 1500));
 
-// 3. start fresh
-const child = spawn("cmd.exe", ["/c", "npm run start > prod-server.log 2> prod-server-err.log"], {
-  cwd: root,
-  detached: true,
-  stdio: "ignore",
-  windowsHide: true,
-});
+// 3. start fresh — 直接 spawn node + next CLI，不经 cmd.exe：
+//    cmd /c npm run start 在 detached/无控制台场景会弹出「终止批处理操作吗(Y/N)?」
+//    并永久挂起等待 stdin（stdio ignore 后无人应答）→ 每次 restart 都有概率假死，
+//    且下游 E2E/build 撞上死掉的 3000 端口表现为「卡住」。node 直启无此问题。
+const out = openSync(path.join(root, "prod-server.log"), "a");
+const err = openSync(path.join(root, "prod-server-err.log"), "a");
+const child = spawn(
+  process.execPath,
+  [path.join(root, "node_modules", "next", "dist", "bin", "next"), "start", "-p", "3000"],
+  {
+    cwd: root,
+    detached: true,
+    stdio: ["ignore", out, err],
+    windowsHide: true,
+  }
+);
 child.unref();
 writeFileSync(pidFile, String(child.pid));
-console.log(`[restart] started (wrapper pid ${child.pid})`);
+console.log(`[restart] started (pid ${child.pid})`);
 
 // 4. poll until 200
 let ready = false;
