@@ -23,6 +23,20 @@ import {
   withdrawClaim,
 } from "@/lib/wave";
 import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/lib/fulfilment";
+import {
+  confirmModule,
+  initModuleStates,
+  reportModule,
+  type TaskModuleState,
+} from "@/lib/moduleFulfilment";
+import {
+  creditDeltaFor,
+  negotiate,
+  openDispute,
+  resolveAuto,
+  type DisputeReason,
+  type DisputeRecord,
+} from "@/lib/dispute";
 import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/lib/trust";
 import type { Review } from "@/lib/review";
 import type { PayOrder } from "@/lib/pay";
@@ -71,6 +85,8 @@ export interface WaveBundle {
   bans: Record<string, BanRecord>;
   /** 开放局 no-show 补偿：发起人获得的「成局面降标准」buff（跨会话累计） */
   initiatorBuffs: Record<string, number>;
+  /** 履约争议审计（reason-first）— UI 全程可查。 */
+  disputes: DisputeRecord[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -152,6 +168,27 @@ interface WaveStore extends WaveBundle {
   acceptFulfilment: (claimId: string, note: string) => void;
   /** Auto-release: resolve any 72h-overdue reported fulfilments (idempotent). */
   runAutoFulfilments: () => void;
+  /** 复杂任务：为 claim 初始化模块状态（接单后调用）。 */
+  attachModules: (claimId: string, count: number) => void;
+  /** 复杂任务 · 响应者：申报某模块完成。 */
+  reportModuleDone: (claimId: string, moduleIdx: number) => void;
+  /** 复杂任务 · 需求方：单独确认某模块验收。 */
+  approveModule: (claimId: string, moduleIdx: number) => void;
+  /** 争议 · 需求方：按原因开争议（自动判责 + 48h 申诉窗）。 */
+  openDispute: (p: {
+    claimId: string;
+    reason: DisputeReason;
+    evidence: string;
+  }) => void;
+  /** 争议 · 协商结算（响应者出比例，需求方决定）。 */
+  settleDispute: (p: {
+    claimId: string;
+    proposedPct: number;
+    willAccept: boolean;
+    note: string;
+  }) => void;
+  /** 争议 · 自动终局（48h 无人申诉）。 */
+  autoResolveDisputes: () => void;
   /** Demand side: breach verdict moves the deposit (forfeit / refund). */
   moveDeposit: (claimId: string, phase: "forfeited" | "refunded") => void;
   /** Add a review (idempotent per reviewer per claim). */
@@ -210,6 +247,7 @@ export const useWaveStore = create<WaveStore>()(
       reports: [],
       bans: {},
       initiatorBuffs: {},
+      disputes: [],
       bundleVer: 0,
 
       createPendingWave: (input) => {
@@ -575,6 +613,58 @@ export const useWaveStore = create<WaveStore>()(
         if (changed) set({ claims: next });
       },
 
+      attachModules: (claimId, count) =>
+        set((s) => ({
+          claims: s.claims.map((c) =>
+            c.id === claimId && !c.modules
+              ? { ...c, modules: initModuleStates(count) }
+              : c
+          ),
+        })),
+
+      reportModuleDone: (claimId, moduleIdx) =>
+        set((s) => ({
+          claims: s.claims.map((c) =>
+            c.id === claimId ? reportModule(c, moduleIdx) : c
+          ),
+        })),
+
+      approveModule: (claimId, moduleIdx) =>
+        set((s) => ({
+          claims: s.claims.map((c) =>
+            c.id === claimId ? confirmModule(c, moduleIdx) : c
+          ),
+        })),
+
+      openDispute: (p) =>
+        set((s) => {
+          const d = openDispute(p);
+          const already = s.disputes.some((x) => x.claimId === p.claimId && !x.outcome);
+          if (already) return { disputes: s.disputes };
+          return { disputes: [...s.disputes, d] };
+        }),
+
+      settleDispute: (p) =>
+        set((s) => ({
+          disputes: s.disputes.map((d) =>
+            d.claimId === p.claimId && !d.outcome
+              ? negotiate(d, p.proposedPct, p.willAccept, p.note)
+              : d
+          ),
+        })),
+
+      autoResolveDisputes: () => {
+        const s = get();
+        const now = Date.now();
+        const next = s.disputes.map((d) =>
+          !d.outcome && now >= d.appealDeadline
+            ? resolveAuto(d, "48h 未申诉，自动按档位终局", now)
+            : d
+        );
+        const changed = next.some((d, i) => d !== s.disputes[i]);
+        if (changed) set({ disputes: next });
+      },
+
       addReview: (review) =>
         set((s) => {
           const claim = s.claims.find((c) => c.id === review.claimId);
@@ -815,6 +905,7 @@ export const useWaveStore = create<WaveStore>()(
             reports: [],
             bans: {},
             initiatorBuffs: {},
+            disputes: [],
             bundleVer: 0,
           } satisfies WaveBundle),
       },
@@ -830,6 +921,7 @@ export const useWaveStore = create<WaveStore>()(
           reports: s.reports,
           bans: s.bans,
           initiatorBuffs: s.initiatorBuffs,
+          disputes: s.disputes,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.
