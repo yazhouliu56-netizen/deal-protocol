@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   MIN_MODULES,
   equalWeights,
+  mockDecompose,
   moduleAmounts,
   normalizeModules,
 } from "./decompose.ts";
@@ -63,4 +64,17 @@ test("moduleAmounts: 按权重分钱，末模块吃尾差", () => {
 
 test("MIN_MODULES 暴露为 2", () => {
   assert.equal(MIN_MODULES, 2);
+});
+
+test("mockDecompose: 上门保洁 → 到场+交付 2 模块，权重和=100", () => {
+  const mods = mockDecompose({ category: "保洁", note: "清理整个房间", budget: 200 });
+  assert.ok(mods.length >= 2);
+  assert.equal(mods.reduce((s, m) => s + m.weight, 0), 100);
+  assert.ok(mods.every((m) => m.name && m.acceptance));
+});
+
+test("mockDecompose: 非上门类 → 3 模块兜底", () => {
+  const mods = mockDecompose({ category: "设计", note: "做个海报", budget: 300 });
+  assert.equal(mods.length, 3);
+  assert.equal(mods.reduce((s, m) => s + m.weight, 0), 100);
 });

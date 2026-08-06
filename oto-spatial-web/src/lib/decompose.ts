@@ -83,3 +83,29 @@ export function moduleAmounts(
   });
   return out;
 }
+
+/**
+ * Deterministic mock splitter (LLM-free fallback). Splits a demand into
+ * generic independent modules — the UI shows these as "待补充" placeholders
+ * the demander edits before confirming. Never returns < MIN_MODULES.
+ */
+export function mockDecompose(input: {
+  category: string;
+  note?: string;
+  budget: number;
+}): TaskModule[] {
+  const text = `${input.category} ${input.note ?? ""}`;
+  // 上门服务类天然可拆：上门 + 交付
+  const isOnsite = /上门|到家|保洁|清理|整理|打扫|搬家|安装|维修|通|修/i.test(text);
+  if (isOnsite) {
+    return [
+      { name: "到场服务", acceptance: "按时到场并完成主要服务", weight: 60 },
+      { name: "交付验收", acceptance: "结果符合需求方描述（如房间清理干净）", weight: 40 },
+    ];
+  }
+  return [
+    { name: "准备与沟通", acceptance: "与需求方确认细节与材料", weight: 30 },
+    { name: "核心执行", acceptance: "按约定完成主要工作", weight: 50 },
+    { name: "交付确认", acceptance: "结果验收通过", weight: 20 },
+  ];
+}
