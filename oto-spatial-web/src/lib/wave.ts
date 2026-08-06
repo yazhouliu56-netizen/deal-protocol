@@ -21,6 +21,7 @@
 
 import type { DepositPhase } from "./deposit";
 import type { Fulfilment } from "./fulfilment";
+import type { TaskModuleState } from "./moduleFulfilment";
 
 export interface WaveBasics {
   /** Service category, e.g. "厨师 · 上门做饭" / "羽毛球". Hard-filter key. */
@@ -108,6 +109,8 @@ export interface Claim {
   serviceDoneAt?: number;
   /** 验收记录 — demander confirmed (or auto-released after 72h). */
   fulfilment?: Fulfilment;
+  /** 模块化履约（复杂任务）：独立模块各自的 申报/确认 状态。 */
+  modules?: TaskModuleState[];
   /** Fulfilment confirmed by the demander (starts the 72h review window). */
   fulfilledAt?: number;
   /** Who already reviewed this claim (idempotency). */
