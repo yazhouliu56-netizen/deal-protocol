@@ -7,6 +7,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { ACTION_LABEL } from "@/lib/moderation";
 import { raiseSuggestion, yuan } from "@/lib/customPricing";
 import { MAX_ROUNDS, neededJoiners, nextSpeaker, perSeatPrice, type Claim, type Wave } from "@/lib/wave";
+import { tierRatio } from "@/lib/trust";
 import { autoFulfilmentRemaining } from "@/lib/fulfilment";
 import type { BlindRevealData } from "./BlindReveal";
 import BlindReveal from "./BlindReveal";
@@ -21,21 +22,38 @@ export default function MyWaves() {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
   const acceptClaim = useWaveStore((s) => s.acceptClaim);
-  const assembleWave = useWaveStore((s) => s.assembleWave);
+const assembleWave = useWaveStore((s) => s.assembleWave);
   const counterOffer = useWaveStore((s) => s.counterOffer);
   const withdraw = useWaveStore((s) => s.withdraw);
   const closeWave = useWaveStore((s) => s.closeWave);
+  const cancelOpenWave = useWaveStore((s) => s.cancelOpenWave);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
+  const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const initiatorBuffs = useWaveStore((s) => s.initiatorBuffs);
   const identity = useIdentityStore((s) => s.identity);
   const [now] = useState(() => Date.now());
 
   const myBuffs = initiatorBuffs[identity.id] ?? 0;
 
-  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）
+  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
   useEffect(() => {
     runAutoFulfilments();
-  }, [runAutoFulfilments]);
+    settleExpiredOpen();
+  }, [runAutoFulfilments, settleExpiredOpen]);
+
+  const cancelRefundLabel = (wave: Wave) => {
+    if (wave.status !== "active") return "";
+    const t = tierRatio(wave.startsAt, now);
+    return t.tier === "none" ? "取消不退" : `取消 · ${t.label}`;
+  };
+
+  function onCancel(wave: Wave) {
+    if (wave.capacity >= 2) {
+      cancelOpenWave(wave.id);
+    } else {
+      closeWave(wave.id);
+    }
+  }
 
   const mine = useMemo(
     () =>
@@ -72,8 +90,12 @@ export default function MyWaves() {
           );
           const isOpen = wave.capacity >= 2;
           const joinedSeats = waveClaims.filter((c) => c.status === "joined");
+          // 开放局成局后，每位拼位者各自走拨号/验收/互评流程；
+          // breached（no-show 违约未结清）的座位保留在局内 → 发起人可结清解锁
           const assembledClaims = isOpen
-            ? waveClaims.filter((c) => c.status === "accepted")
+            ? waveClaims.filter(
+                (c) => c.status === "accepted" || c.status === "breached"
+              )
             : [];
           const revealData: BlindRevealData | undefined = accepted
             ? acceptedReveal(accepted)
@@ -120,12 +142,13 @@ export default function MyWaves() {
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <StatusBadge status={wave.status} />
-                  {(wave.status === "active" || wave.status === "claimed") && (
+                  {wave.status === "active" && (
                     <button
-                      onClick={() => closeWave(wave.id)}
+                      onClick={() => onCancel(wave)}
+                      title={cancelRefundLabel(wave)}
                       className="text-[9px] text-white/40 hover:text-white"
                     >
-                      手动关闭
+                      取消发布{isOpen ? " · " + cancelRefundLabel(wave) : ""}
                     </button>
                   )}
                 </div>
@@ -242,7 +265,7 @@ function StatusBadge({ status }: { status: string }) {
     locked: { label: "已锁定", cls: "bg-purple-400/15 border-purple-400/40 text-purple-200" },
     assembled: { label: "已成局", cls: "bg-emerald-400/15 border-emerald-400/40 text-emerald-300" },
     closed: { label: "已关闭", cls: "bg-white/10 border-white/15 text-white/40" },
-    expired: { label: "已失效", cls: "bg-white/10 border-white/15 text-white/40" },
+    expired: { label: "已失效·已退款", cls: "bg-white/10 border-white/15 text-white/40" },
   };
   const s = map[status] ?? map.active!;
   return (
@@ -273,6 +296,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const acceptFulfilment = useWaveStore((s) => s.acceptFulfilment);
   const moveDeposit = useWaveStore((s) => s.moveDeposit);
   const resolveNoShow = useWaveStore((s) => s.resolveNoShow);
+  const settleBreach = useWaveStore((s) => s.settleBreach);
   const settle = useIdentityStore((s) => s.settle);
   const receivePayout = useIdentityStore((s) => s.receivePayout);
   const [breachOpen, setBreachOpen] = useState(false);
@@ -393,6 +417,22 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           {claim.fulfilment.confirmedBy === "auto" && "（自动放款）"}：
           {claim.fulfilment.note}
         </p>
+      )}
+      {claim.status === "breached" && (
+        <div className="rounded-2xl bg-red-400/[0.07] border border-red-400/35 p-2.5">
+          <p className="text-[9.5px] font-bold text-red-300 flex items-center gap-1.5">
+            🚫 该座位 no-show 违约{claim.settled ? " · 已结清" : " · 未结清"}
+          </p>
+          {!claim.settled && (
+            <button
+              onClick={() => settleBreach(claim.id)}
+              aria-label="结清违约"
+              className="mt-2 w-full py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-[10px] font-bold text-emerald-300"
+            >
+              已收赔偿 · 结清违约（解锁对方拼位/发波）
+            </button>
+          )}
+        </div>
       )}
       {verdictMsg && (
         <p className="text-[10px] font-bold text-emerald-300">✓ 已裁决：{verdictMsg}</p>

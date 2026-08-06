@@ -30,6 +30,8 @@ export default function WaveFeed() {
   const [publishOpen, setPublishOpen] = useState(false);
   // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
   const [joinPay, setJoinPay] = useState<null | { waveId: string; amount: number }>(null);
+  // 拼位被拒（如 no-show 欠款锁定）的提示
+  const [joinError, setJoinError] = useState("");
 
   const feed = useMemo(() => {
     // current identity as a responder (only if it declares capability + online)
@@ -199,11 +201,20 @@ export default function WaveFeed() {
         onCancel={() => setJoinPay(null)}
         onPaid={() => {
           if (joinPay) {
-            joinSeat({ waveId: joinPay.waveId, responderId: identity.id });
+            const out = joinSeat({ waveId: joinPay.waveId, responderId: identity.id });
+            // no-show 欠款未结 → 拼位被锁定：告知用户去「我的」结清
+            if (out?.error === "debt-unsettled") {
+              setJoinError("你还有未结清的 no-show 违约，先去「我的」结清欠款再拼位");
+            }
           }
           setJoinPay(null);
         }}
       />
+      {joinError && (
+        <p className="mt-2 px-3 py-2 rounded-2xl bg-red-400/10 border border-red-400/35 text-[10px] font-bold text-red-300">
+          ⚠ {joinError}
+        </p>
+      )}
 
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
     </div>

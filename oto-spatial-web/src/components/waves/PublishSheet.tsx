@@ -36,6 +36,8 @@ const publishWave = useWaveStore((s) => s.publishWave);
   const [deposit, setDeposit] = useState(false);
   const [people, setPeople] = useState(1);
   const [ttl, setTtl] = useState<number>(2 * 3600_000);
+  /** 服务开始时间（相对 now 的偏移 ms）— 24h 分级取消的依据。null=未设置（取消不退） */
+  const [startsIn, setStartsIn] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [paying, setPaying] = useState<null | { id: string; amount: number }>(null);
 
@@ -81,12 +83,17 @@ const publishWave = useWaveStore((s) => s.publishWave);
       negotiableNote: note.trim() || undefined,
       deposit,
       capacity: people,
+      startsAt: startsIn ? Date.now() + startsIn : undefined,
       payAmount,
       expiresAt: Date.now() + ttl,
       hotness: 2 + Math.floor(Math.random() * 2),
     });
     if (out === null) {
       setError("发布被拒：账号已被平台限制（限流/封禁），请稍后或申诉");
+      return;
+    }
+    if (out.blocked === "debt") {
+      setError("发布被拒：你还有未结清的 no-show 违约，先到「我的」结清欠款再发");
       return;
     }
     if (out.removed) {
@@ -309,6 +316,35 @@ const publishWave = useWaveStore((s) => s.publishWave);
                   active
                     ? "btn-primary glow-purple-strong"
                     : "glass-panel text-white/60 hover:text-white"
+                }`}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 服务开始时间：驱动 24h 分级取消（≥24h 全退 / <24h 部分退） */}
+        <span className="text-[9px] font-semibold text-white/40 flex items-center gap-1 mb-1.5">
+          ⏰ 服务开始时间（决定取消退款档位）
+        </span>
+        <div className="flex gap-1.5">
+          {[
+            { label: "未设置", ms: null },
+            { label: "2 小时后", ms: 2 * 3600_000 },
+            { label: "明天", ms: 24 * 3600_000 },
+            { label: "3 天后", ms: 3 * 24 * 3600_000 },
+          ].map((o) => {
+            const active = startsIn === o.ms;
+            return (
+              <button
+                key={o.label}
+                onClick={() => setStartsIn(o.ms)}
+                aria-label={`开始时间 ${o.label}`}
+                className={`flex-1 py-1.5 rounded-xl text-[9.5px] font-bold transition-all ${
+                  active
+                    ? "bg-brandCyan/25 border border-brandCyan/50 text-brandCyan"
+                    : "glass-panel text-white/50 hover:text-white"
                 }`}
               >
                 {o.label}

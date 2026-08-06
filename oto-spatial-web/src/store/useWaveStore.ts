@@ -23,6 +23,7 @@ import {
   withdrawClaim,
 } from "@/lib/wave";
 import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/lib/fulfilment";
+import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/lib/trust";
 import type { Review } from "@/lib/review";
 import type { PayOrder } from "@/lib/pay";
 import { capturePayOrder, createPayOrder } from "@/lib/pay";
@@ -90,7 +91,7 @@ interface WaveStore extends WaveBundle {
       /** 应付金额：服务型 = 全款；开放局 = 发起人自己那份(人均价)。 */
       payAmount: number;
     }
-  ) => { id: string; amount: number; removed?: boolean } | null;
+  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" } | null;
   /**
    * 随单支付 · 确认支付：capture 流水 → wave pending→active → 进入广播。
    * 幂等：重复支付同一单返回 ok 但不再重复生效。
@@ -173,10 +174,16 @@ interface WaveStore extends WaveBundle {
   /** Entire wave = lock negotiation / close manually. */
   closeWave: (waveId: string) => void;
   /**
-   * 开放局 no-show：款不退 → 分摊补偿在场玩家（进钱包）+ 发起人获
-   * 「下次成局面降标准」buff（neededJoiners −1）。
-   */
+ * 开放局 no-show：款不退 → 分摊补偿在场玩家（进钱包）+ 发起人获
+ * 「下次成局面降标准」buff（neededJoiners −1）。
+ */
   resolveNoShow: (waveId: string, claimId: string) => void;
+  /** 结算到期未成局的开放局 → 该局所有已付订单全额自动退回（幂等）。 */
+  settleExpiredOpen: (now?: number) => void;
+  /** 需求方取消开放局：≤24h 分级退款（≥24h 全退 / <24h 部分 / 已开始不退）。 */
+  cancelOpenWave: (waveId: string) => void;
+  /** 结清 no-show 违约 → 解除该位置的发波/拼位锁定。 */
+  settleBreach: (claimId: string) => void;
 }
 
 let seq = 0;
@@ -202,6 +209,10 @@ export const useWaveStore = create<WaveStore>()(
 
       createPendingWave: (input) => {
         if (isBanned(get().bans, input.authorId)) return null;
+        // no-show 欠款锁定：违约未结不能发波
+        if (hasUnsettledBreach(get().claims, input.authorId)) {
+          return { id: "", amount: 0, blocked: "debt" };
+        }
         // no-show buff 消费：发起人若有「成局面降标准」buff，本局所需拼位数 −N
         const buff = Math.min(get().initiatorBuffs[input.authorId] ?? 0, Math.max(0, (input.capacity ?? 1) - 1));
         const wave = createWave({
@@ -272,6 +283,8 @@ export const useWaveStore = create<WaveStore>()(
       publishWave: (input) => {
         // 治理闸门 1：被封禁/限流中不能发布
         if (isBanned(get().bans, input.authorId)) return null;
+        // no-show 欠款锁定：违约未结不能发波
+        if (hasUnsettledBreach(get().claims, input.authorId)) return null;
         const wave = createWave({
           ...input,
           id: nextId("wave"),
@@ -412,6 +425,10 @@ export const useWaveStore = create<WaveStore>()(
         const wave = s.waves.find((w) => w.id === waveId);
         if (!wave) return { error: "wave-not-found" };
         if (wave.status !== "active") return { error: "wave-not-active" };
+        // no-show 欠款锁定：违约未结不能拼位
+        if (hasUnsettledBreach(s.claims, responderId)) {
+          return { error: "debt-unsettled" };
+        }
         // 一个响应者最多占一个位
         const already = s.claims.some(
           (c) =>
@@ -441,9 +458,19 @@ export const useWaveStore = create<WaveStore>()(
               ? { ...c, status: "accepted" as const, depositPhase: wave.deposit ? ("held" as const) : c.depositPhase }
               : c
           );
+          // 拼位支付落流水：占位即付自己的那份（人均价），成团失败/取消退款以此为准
+          const seatPaid = capturePayOrder(
+            createPayOrder({
+              id: nextId("pay"),
+              waveId,
+              payerId: responderId,
+              amount: out.claim.price ?? perSeatPrice(wave),
+            })
+          );
           set((st) => ({
             waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
             claims: [...lockedClaims, out.claim],
+            payOrders: [seatPaid, ...st.payOrders],
           }));
           return { claim: out.claim, assembled: out.wave.status === "assembled" };
         } catch (e) {
@@ -671,6 +698,60 @@ export const useWaveStore = create<WaveStore>()(
             return {};
           }
         }),
+
+      settleExpiredOpen: (now = Date.now()) =>
+        set((s) => {
+          // 幂等：只处理 active 的开放局；成团失败结算后 wave 置 expired，
+          // 已退订单不会再退（settleGroupFail 只认 paid）。
+          const settledWaves = s.waves.filter(
+            (w) => w.status === "active" && w.capacity >= 2
+          );
+          if (settledWaves.length === 0) return {};
+          const expireIds = new Set<string>();
+          const refundedOrders: PayOrder[] = [];
+          const refunds: Record<string, number> = {};
+          for (const w of settledWaves) {
+            const out = settleGroupFail({ wave: w, orders: s.payOrders, now });
+            if (out.settled) {
+              expireIds.add(w.id);
+              refundedOrders.push(...out.refunded);
+              Object.assign(refunds, out.refunds);
+            }
+          }
+          if (expireIds.size === 0) return {};
+          const refundMap = new Map(refundedOrders.map((o) => [o.id, o]));
+          return {
+            waves: s.waves.map((w) =>
+              expireIds.has(w.id) ? { ...w, status: "expired" as const } : w
+            ),
+            payOrders: s.payOrders.map((o) => refundMap.get(o.id) ?? o),
+          };
+        }),
+
+      cancelOpenWave: (waveId) =>
+        set((s) => {
+          const wave = s.waves.find((w) => w.id === waveId);
+          if (!wave || wave.status !== "active") return {};
+          const out = refundByTier({
+            waveId,
+            orders: s.payOrders,
+            startsAt: wave.startsAt,
+          });
+          const refundMap = new Map(out.refunded.map((o) => [o.id, o]));
+          return {
+            waves: s.waves.map((w) => (w.id === waveId ? { ...w, status: "closed" as const } : w)),
+            payOrders: s.payOrders.map((o) => refundMap.get(o.id) ?? o),
+          };
+        }),
+
+      settleBreach: (claimId) =>
+        set((s) => ({
+          claims: s.claims.map((c) =>
+            c.id === claimId && c.status === "breached" && !c.settled
+              ? { ...c, settled: true }
+              : c
+          ),
+        })),
     }),
     {
       name: "oto-broadcast-v1",

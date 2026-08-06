@@ -27,12 +27,14 @@ export default function MyClaims() {
   const syncDeposit = useIdentityStore((s) => s.syncDeposit);
   const deposits = useIdentityStore((s) => s.deposits);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
+  const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const reports = useWaveStore((s) => s.reports);
 
-  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）
+  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
   useEffect(() => {
     runAutoFulfilments();
-  }, [runAutoFulfilments]);
+    settleExpiredOpen();
+  }, [runAutoFulfilments, settleExpiredOpen]);
 
   const mine = useMemo(
     () =>
@@ -133,7 +135,9 @@ export default function MyClaims() {
                   <p className="text-[9px] text-white/40">
                     {wave.status === "assembled"
                       ? "需求方已提前成局"
-                      : "满员后自动成局；需求方也可提前成局。成局前可随时退出。"}
+                      : wave.status === "expired"
+                        ? "本局已失效（拼满前过期）—— 已自动全额退回拼位费"
+                        : "满员后自动成局；需求方也可提前成局。成局前可随时退出。"}
                   </p>
                   <button
                     onClick={() => withdraw(claim.id)}

@@ -112,6 +112,8 @@ export interface Claim {
   fulfilledAt?: number;
   /** Who already reviewed this claim (idempotency). */
   reviewedBy?: string[];
+  /** no-show 欠款已结清（解除发波/拼位锁定）。 */
+  settled?: boolean;
   createdAt: number;
 }
 
