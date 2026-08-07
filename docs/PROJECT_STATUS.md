@@ -51,14 +51,14 @@
 | 单测 | **142/142 全绿**（21 套，`npm run test:units`） |
 | Lint | ESLint exit 0 |
 | TypeScript | tsc 全绿（根 + 子项目） |
-| E2E 脚本 | 13 个就绪；**CI 挂 9 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch） |
+| E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音） |
-| 生产服务器 | ⚠️ 未运行（端口 3000 空闲，prod-pid 陈旧） |
+| 生产服务器 | ✅ 运行中（pid 15900，端口 3000，HTTP 200，`restart-prod.mjs`） |
 
 ## 五、遗留缺口
 
-1. **CI 少挂 2 条 E2E**：`e2e-trustopen`、`e2e-acceptance` 本地绿但未进 CI，与 ADR-0002「进 CI」声明不符
-2. **生产服务器未运行**：端口 3000 空闲，`.opencode/prod-pid.txt`(16708) 陈旧
+1. ~~CI 少挂 2 条 E2E~~ ✅ 已修复：`e2e-trustopen`、`e2e-acceptance` 已挂入 CI（11 条）
+2. ~~生产服务器未运行~~ ✅ 已启动：pid 15900，HTTP 200，重启脚本验证通过
 3. 1 个本地未推 commit（AGENTS.md 精简）
 4. P3 地图 / P5 PWA 深化 / Supabase 全量数据化 仍在设计稿
 
@@ -84,3 +84,4 @@
 | 日期 | HEAD | 摘要 |
 |------|------|------|
 | 2026-08-07 | `2748a36` | 建立状态档案体系（PROJECT_STATUS.md 替代 NEXT_STEPS，AGENTS.md 挂 sync 规则），已推送 origin |
+| 2026-08-07 | `6262c42` | CI 补挂 trustopen/acceptance（11 条 E2E）+ 生产服务器启动验证（pid 15900，HTTP 200） |
