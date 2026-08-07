@@ -18,6 +18,8 @@ import {
 import * as THREE from "three";
 import StarDust from "./StarDust";
 import FurnitureScene from "./FurnitureScene";
+import TemplateStage from "./SceneTemplate";
+import { templateForCategory } from "@/lib/sceneTemplate";
 import { useAppStore } from "@/store/useAppStore";
 import { isLowPower, webglSupported } from "@/lib/performance";
 
@@ -112,6 +114,7 @@ export default function Stage() {
   const [webgl, setWebgl] = useState(false);
   const lowPower = useMemo(() => isLowPower(), []);
   const screen = useAppStore((s) => s.screen);
+  const experience = useAppStore((s) => s.selectedExperience);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setWebgl(webglSupported()));
@@ -138,7 +141,11 @@ export default function Stage() {
           <StarDust />
           {!lowPower && screen !== "ar" && <LowPolyEarth />}
           <Suspense fallback={null}>
-            <FurnitureScene />
+            {screen !== "ar" ? null : templateForCategory(experience?.category ?? "") === "lounge" ? (
+              <FurnitureScene />
+            ) : (
+              <TemplateStage />
+            )}
             {/* Floating contact shadow grounds the sofa (skipped on low power) */}
             {!lowPower && (
               <ContactShadows

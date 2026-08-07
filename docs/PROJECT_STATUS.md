@@ -43,34 +43,39 @@
 | M3 验收/争议模块 | ✅ Slices 1-7 全落地，E2E 绿 | ADR-0002 / acceptance-module-tasks.md |
 | Dev 进程守护 / 生产重启脚本 | ✅ `6de131a` / `af375da` | |
 | 4 UI 死按钮接真实行为 | ✅ `ee4ea35` | |
+| P3 数据化前置（lat/lng 建模） | ✅ `src/lib/geo.ts`（Haversine/附近排序/确定性兜底坐标）+ Wave 接口 `geo` 字段 + 5 单测 | |
+| S1 匿名光点热力图 | ✅ `SpatialHeatMap.tsx`（活跃 waves 投影 CSS 网格地图，热度光点匿名聚合，浏览器实测 3 信号波渲染）+ 挂载 radar feed | |
+| 场景模板 ×4 | ✅ `sceneTemplate.ts` 映射 + `SceneTemplate.tsx` 程序化舞台（球局→半场网格/约拍→取景光场/城市历史→室内起居，lounge.glb 保留）+ 浏览器实测 | |
+| 拼位裂变 ShareKit | ✅ 分享文案复制 + 伪二维码 + `fissionIncrement` 防自刷计数（回应/成交才 +1，按人去重）+ 分享链接 `?wave=` 直达置顶 | |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **142/142 全绿**（21 套，`npm run test:units`） |
+| 单测 | **153/153 全绿**（24 套，`npm run test:units`，含 geo/sceneTemplate/fission） |
 | Lint | ESLint exit 0 |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音） |
-| 生产服务器 | ✅ 运行中（pid 15900，端口 3000，HTTP 200，`restart-prod.mjs`） |
+| 生产服务器 | ✅ 运行中（pid 8084，端口 3000，HTTP 200，`restart-prod.mjs`） |
 
 ## 五、遗留缺口
 
 1. ~~CI 少挂 2 条 E2E~~ ✅ 已修复：`e2e-trustopen`、`e2e-acceptance` 已挂入 CI（11 条）
-2. ~~生产服务器未运行~~ ✅ 已启动：pid 15900，HTTP 200，重启脚本验证通过
-3. 1 个本地未推 commit（AGENTS.md 精简）
-4. P3 地图 / Supabase 全量数据化 仍在设计稿（P5 已实测验证 ✅）
+2. ~~生产服务器未运行~~ ✅ 已启动：pid 8084，HTTP 200，重启脚本验证通过
+3. 本地未推 commit（本次 4 项功能惯改，待 push）
+4. P3 地图 仍在设计稿（数据化前置已落地 ✅，接 Leaflet+OSM 是关键下步；Supabase 全量数据化仍设计稿）
 
 ## 六、下一步（待办）
 
-- [ ] **数据化先行**（P3 地图的前置）：为地点补 lat/lng 地理字段 + 真实成交数据落 Supabase（地图有真数据可画后再接）
-- [ ] P3 真实地图（**Leaflet + OSM 免费方案**，替代原 Mapbox；保留 CSS 地图为降级）
-- [ ] Supabase 全量数据化（在线真实数据 + 离线 mock 兜底，接口形态不变）
+- [ ] **P3 真实地图**（**Leaflet + OSM 免费方案**，数据化前置已完成：lat/lng 建模 + 附近排序就绪，可绘真数据）
+- [x] S1 匿名光点热力图 ✅（本批完成）
+- [ ] **S2 AI 主动诊断** · **S3 关系沉淀**（社交层剩余两件）
+- [x] 场景模板 ×4 ✅（本批完成）
+- [ ] **Supabase 全量数据化**（在线真实数据 + 离线 mock 兜底，接口形态不变）
+- [x] 拼位裂变 ✅（本批完成：分享 + 防自刷计数 + 二维码）
 - [ ] **P8 商业化**：账号漫游（防多开风控）+ PWA 真通知（转介绍杠杆）+ 公开竞价（佣金）
-- [ ] 社交层三件套：S1 匿名光点热力图 · S2 AI 主动诊断 · S3 关系沉淀（24h 归档/双向转好友/72h 静默撤回）
-- [ ] 动态锚点 + 场景模板（家居→lounge.glb / 球局→半场网格 / 摄影→取景光场，MVP 5 个）
-- [ ] 更远：灵感漩涡 / 响应方商业化 / 短信兜底 / 组局者订阅 / 拼位裂变
+- [ ] 更远：灵感漩涡 / 响应方商业化 / 短信兜底 / 组局者订阅
 
 ## 七、支付模型定稿（2026-08-05，已落地，历史参考）
 
@@ -89,3 +94,4 @@
 | 2026-08-07 | `1f118be` | CI 补挂 trustopen/acceptance（11 条 E2E）+ 生产服务器启动验证（pid 15900，HTTP 200） |
 | 2026-08-07 | `bdfda92` | 调整 P3 路线：数据化先行（lat/lng + 真实成交）→ Leaflet+OSM 免费接图，保留 CSS 降级 |
 | 2026-08-07 | `ae10c5d` | P5 实测验证通过：deviceMemory 沉浸降级 + 离线全流程 5 屏 + lounge.glb 预缓存命中 → P5 标 ✅ |
+| 2026-08-07 | `1f2e9a1` | 本地批次四件套：P3 数据化前置(geo.ts) + S1 匿名热力图 + 场景模板 ×4 + 拼位裂变 ShareKit（防自刷计数）→ 单测 153 绿，浏览器实测通过 |

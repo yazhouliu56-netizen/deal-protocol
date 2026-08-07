@@ -13,6 +13,7 @@ import WaveCard from "./WaveCard";
 import PublishSheet from "./PublishSheet";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
+import SpatialHeatMap from "./SpatialHeatMap";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -32,6 +33,12 @@ export default function WaveFeed() {
   const [joinPay, setJoinPay] = useState<null | { waveId: string; amount: number }>(null);
   // 拼位被拒（如 no-show 欠款锁定）的提示
   const [joinError, setJoinError] = useState("");
+
+  // 分享链接携带的受邀 wave id（/?wave=xxx&via=yyy）
+  const invitedWaveId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("wave") ?? "";
+  }, []);
 
   const feed = useMemo(() => {
     // current identity as a responder (only if it declares capability + online)
@@ -75,8 +82,17 @@ export default function WaveFeed() {
         (a, b) =>
           (b.hits[0]?.score ?? 0) - (a.hits[0]?.score ?? 0)
       );
+    // 受邀拼位：分享链接直达的 wave 置顶（即便得分一般）
+    const invited = invitedWaveId;
+    if (invited) {
+      const i = list.findIndex((a) => a.wave.id === invited);
+      if (i >= 0) {
+        const [hit] = list.splice(i, 1);
+        list.unshift(hit);
+      }
+    }
     return list;
-  }, [waves, claims, identity, creditTier]);
+  }, [waves, claims, identity, creditTier, invitedWaveId]);
 
   return (
     <div className="pointer-events-auto relative">
@@ -137,6 +153,9 @@ export default function WaveFeed() {
           发送
         </span>
       </button>
+
+      {/* S1 匿名光点热力图：附近活跃信号波 */}
+      <SpatialHeatMap />
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">

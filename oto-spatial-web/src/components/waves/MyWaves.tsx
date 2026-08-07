@@ -14,6 +14,7 @@ import BlindReveal from "./BlindReveal";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
+import ShareKit from "./ShareKit";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
@@ -170,14 +171,17 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       <Users size={11} className="text-brandPurple" />
                       已拼 {joinedSeats.length}/{neededJoiners(wave)} 位
                     </span>
-                    <button
-                      onClick={() => assembleWave(wave.id)}
-                      disabled={joinedSeats.length === 0}
-                      className="px-2.5 py-1 rounded-xl btn-primary text-[9.5px] font-bold glow-purple-strong disabled:opacity-40 disabled:cursor-not-allowed"
-                      aria-label="提前成局"
-                    >
-                      人够了，提前成局 ⚡
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <ShareKit wave={wave} />
+                      <button
+                        onClick={() => assembleWave(wave.id)}
+                        disabled={joinedSeats.length === 0}
+                        className="px-2.5 py-1 rounded-xl btn-primary text-[9.5px] font-bold glow-purple-strong disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="提前成局"
+                      >
+                        人够了，提前成局 ⚡
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {Array.from({ length: neededJoiners(wave) }, (_, i) => (

@@ -32,6 +32,8 @@ export interface WaveBasics {
   area: string;
   /** Coverage radius the demander is willing to travel, km. */
   radiusKm: number;
+  /** Optional explicit geo point (P3 map). Absent → deterministic fallback. */
+  geo?: { lat: number; lng: number };
 }
 
 export interface WaveCustom {
@@ -79,6 +81,10 @@ export interface Wave {
   modules?: import("./decompose").TaskModule[];
   /** Virtual interest counter (hotness-source; physics kept separate). */
   hotness?: number;
+  /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
+  fissionCount?: number;
+  /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
+  fissionBy?: string[];
 }
 
 export type ClaimStatus =

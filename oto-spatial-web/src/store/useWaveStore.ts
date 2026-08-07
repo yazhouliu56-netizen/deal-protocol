@@ -39,6 +39,7 @@ import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/lib/trust";
 import type { Review } from "@/lib/review";
 import type { PayOrder } from "@/lib/pay";
 import { capturePayOrder, createPayOrder } from "@/lib/pay";
+import { fissionIncrement } from "@/lib/fission";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
 import { getP2pTransport } from "@/lib/p2p/transport";
 import type { PushItem } from "@/lib/cluster";
@@ -458,7 +459,15 @@ export const useWaveStore = create<WaveStore>()(
         const claimId = nextId("claim");
         if (wave.negotiable && note?.trim()) {
           const claim = openNegotiation(wave, responderId, claimId, price ?? wave.budget);
-          set((st) => ({
+set((st) => ({
+            waves: st.waves.map((w) =>
+              w.id === waveId
+                ? {
+                    ...w,
+                    ...fissionIncrement(w, responderId),
+                  }
+                : w
+            ),
             claims: [
               ...st.claims,
               // 模块随协商锁定（发起人拆解确认后，协商开始即不可改）
@@ -478,7 +487,15 @@ export const useWaveStore = create<WaveStore>()(
           price ?? wave.budget
         );
         set((st) => ({
-          waves: st.waves.map((w) => (w.id === waveId ? locked : w)),
+          waves: st.waves.map((w) =>
+            w.id === waveId
+              ? {
+                  ...locked,
+                  // 拼位裂变：真实回应（接单/磋商）计数一次，按人去重
+                  ...fissionIncrement(w, responderId),
+                }
+              : w
+          ),
           claims: [
             ...st.claims,
             wave.modules && wave.modules.length >= 2
@@ -539,7 +556,15 @@ export const useWaveStore = create<WaveStore>()(
             })
           );
           set((st) => ({
-            waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
+            waves: st.waves.map((w) =>
+              w.id === waveId
+                ? {
+                    ...out.wave,
+                    // 拼位裂变：新拼位者（非发起人）计数一次，按人去重
+                    ...fissionIncrement(w, responderId),
+                  }
+                : w
+            ),
             claims: [...lockedClaims, out.claim],
             payOrders: [seatPaid, ...st.payOrders],
           }));
