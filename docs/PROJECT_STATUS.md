@@ -83,4 +83,4 @@
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
-| 2026-08-07 | `ee4ea354` | 建立状态档案（并入 NEXT_STEPS），基线=mvp 闭环 · 142 单测绿 · CI 9/13 |
+| 2026-08-07 | `2748a36` | 建立状态档案体系（PROJECT_STATUS.md 替代 NEXT_STEPS，AGENTS.md 挂 sync 规则），已推送 origin |
