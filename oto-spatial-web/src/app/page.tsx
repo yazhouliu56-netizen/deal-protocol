@@ -158,6 +158,7 @@ function HomePage() {
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
+  const destinationsRef = useRef<HTMLDivElement>(null);
 
   const visibleExperiences = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -323,11 +324,15 @@ function HomePage() {
             ? `${CATEGORY_LABELS[activeCategory]}热门目的地`
             : "热门目的地"}
         </span>
-        <span className="flex items-center gap-0.5 text-[11px] text-brandPurple font-medium cursor-pointer">
+        <button
+          onClick={() => destinationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className="flex items-center gap-0.5 text-[11px] text-brandPurple font-medium hover:brightness-125 transition-[filter]"
+        >
           查看全部 <ChevronRight size={12} />
-        </span>
+        </button>
       </div>
       <motion.div
+        ref={destinationsRef}
         variants={listContainer}
         initial="hidden"
         animate="show"
@@ -651,6 +656,7 @@ function ARPage() {
   const setActiveSwatch = useAppStore((s) => s.setActiveSwatch);
   const showInfo = useAppStore((s) => s.showInfo);
   const toggleShowInfo = useAppStore((s) => s.toggleShowInfo);
+  const resetView = useAppStore((s) => s.resetView);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -768,13 +774,13 @@ function ARPage() {
 
             {/* 右侧控制列 */}
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20 pointer-events-auto">
-              <GlassIconButton size="sm" className="text-brandCyan font-bold text-[10px] glow-cyan">
+              <GlassIconButton size="sm" aria-label="重置视角" onClick={resetView} className="text-brandCyan font-bold text-[10px] glow-cyan">
                 360
               </GlassIconButton>
-              <GlassIconButton size="sm" onClick={toggleShowInfo}>
+              <GlassIconButton size="sm" aria-label="查看详情" onClick={toggleShowInfo}>
                 <Info size={14} />
               </GlassIconButton>
-              <GlassIconButton size="sm">
+              <GlassIconButton size="sm" aria-label="拍照留影">
                 <Camera size={14} />
               </GlassIconButton>
             </div>
@@ -869,9 +875,12 @@ function ARPage() {
               </div>
 
               <div className="flex gap-3">
-                <button className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]">
-                  预约工作坊
-                </button>
+<button
+                onClick={() => goMatch(`想预约 ${selectedExperience.title} · ${selectedExperience.location} 的体验工作坊`)}
+                className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
+              >
+                预约工作坊
+              </button>
                 <button
                   onClick={() => toggleCart(selectedExperience.id)}
                   className={`flex-1 py-2.5 rounded-2xl glass-panel font-bold text-xs transition-colors ${
@@ -918,6 +927,7 @@ function ARPage() {
 function TripPage() {
   const tabs = ["行程", "AR 指南", "地图视图", "分享行程"];
   const [activeTab, setActiveTab] = useState("行程");
+  const [shareCopied, setShareCopied] = useState(false);
   const bookings = useAppStore((s) => s.bookings);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -933,6 +943,10 @@ function TripPage() {
   function openOrder(bookingId: string) {
     setSelectedBooking(bookingId);
     setScreen("profile");
+  }
+
+  function goTripHome() {
+    setActiveTab("行程");
   }
 
   return (
@@ -1075,23 +1089,115 @@ function TripPage() {
         ))}
       </div>
 
-      {/* 即将开展的活动 */}
-      <span className="text-[11px] font-semibold text-white/50 mt-4 mb-2 block">
-        即将开展的活动
-      </span>
+      {/* Tab 内容 */}
+      {activeTab === "行程" && (
+        <>
+          <span className="text-[11px] font-semibold text-white/50 mt-4 mb-2 block">
+            即将开展的活动
+          </span>
+          <div className="relative">
+            <div className="absolute left-[19px] top-2 bottom-2 w-px bg-linear-to-b from-brandPurple/60 via-white/20 to-brandCyan/50" />
+            <div className="space-y-3">
+              {sortedActivities.map((act) => (
+                <ActivityRow key={act.id} activity={act} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
-      {/* 时间线活动列表 */}
-      <div className="relative">
-        <div className="absolute left-[19px] top-2 bottom-2 w-px bg-linear-to-b from-brandPurple/60 via-white/20 to-brandCyan/50" />
-        <div className="space-y-3">
-          {sortedActivities.map((act) => (
-            <ActivityRow key={act.id} activity={act} />
+      {activeTab === "AR 指南" && (
+        <div className="mt-4 space-y-2.5">
+          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
+            🥽 落地即开 · 每站一条 AR 指南
+          </span>
+          {sortedActivities.map((act, i) => (
+            <div
+              key={act.id}
+              className="flex items-center gap-3 glass-panel rounded-2xl p-3"
+            >
+              <div className="w-10 h-10 rounded-2xl glass-panel flex items-center justify-center text-lg shrink-0">
+                {act.type === "adventure" ? "🤿" : act.type === "cruise" ? "🚤" : act.type === "dining" ? "🍽️" : "🏝️"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-bold truncate">{act.title}</h4>
+                <p className="text-[10px] text-white/50 truncate">
+                  {formatActivityTime(act.time)} · {act.location}
+                </p>
+              </div>
+              <span className="text-[9px] font-bold px-2 py-1 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan shrink-0">
+                AR 导航 {i + 1}/{sortedActivities.length}
+              </span>
+            </div>
           ))}
+          <p className="text-[9px] text-white/35 pt-1">
+            到站后打开相机，光点会引导你找到集合点与向导 🤖
+          </p>
         </div>
-      </div>
+      )}
+
+      {activeTab === "地图视图" && (
+        <div className="mt-4">
+          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
+            🗺️ 全览地图 · 马尔代夫 ⇄ 巴厘岛
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {sortedActivities.map((act, i) => (
+              <div
+                key={act.id}
+                className="glass-panel rounded-2xl p-2.5 text-center"
+              >
+                <span className="text-base">{act.type === "adventure" ? "🤿" : act.type === "cruise" ? "🚤" : act.type === "dining" ? "🍽️" : "🏝️"}</span>
+                <p className="text-[10px] font-bold text-white/85 mt-1 truncate">{act.title}</p>
+                <p className="text-[9px] text-white/40">{act.location}</p>
+                <span className="inline-block mt-1.5 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/40 text-brandPurple">
+                  Pin {i + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2.5 flex items-center gap-1.5 text-[9.5px] text-white/45">
+            <MapPin size={10} className="text-brandPurple" />
+            共 {sortedActivities.length} 站 · 直线距离 1,200 km · 全程 3 天
+          </div>
+        </div>
+      )}
+
+      {activeTab === "分享行程" && (
+        <div className="mt-4">
+          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
+            📤 分享给同行人
+          </span>
+          <div className="glass-panel rounded-2xl p-3.5">
+            <p className="text-[11px] font-bold text-white/90">
+              我的 OTO 之旅 · 马尔代夫 ⇄ 巴厘岛
+            </p>
+            <p className="text-[9.5px] text-white/45 mt-0.5">
+              3 天 4 站 · {sortedActivities[0] ? formatActivityTime(sortedActivities[0].time) : ""} 出发
+            </p>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setShareCopied(true)}
+                className="flex-1 py-2 rounded-xl btn-primary text-[10.5px] font-bold glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
+              >
+                {shareCopied ? "✓ 已复制" : "复制行程链接"}
+              </button>
+              <button
+                onClick={() => goTripHome()}
+                className="flex-1 py-2 rounded-xl glass-panel text-[10.5px] font-bold text-white/80 hover:text-white transition-colors"
+              >
+                ✈️ 继续安排
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 探索更多 */}
-      <button className="mt-5 w-full py-2.5 rounded-2xl glass-panel text-xs font-semibold text-white/80 flex items-center justify-center gap-1.5 hover:border-brandPurple/50 transition-colors">
+      <button
+        onClick={() => setScreen("ai")}
+        className="mt-5 w-full py-2.5 rounded-2xl glass-panel text-xs font-semibold text-white/80 flex items-center justify-center gap-1.5 hover:border-brandPurple/50 transition-colors"
+      >
         <Sparkles size={13} className="text-brandPurple" /> 预约更多线下体验
       </button>
       </div>

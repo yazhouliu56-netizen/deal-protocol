@@ -32,6 +32,7 @@ export default function FurnitureScene() {
 
   const screen = useAppStore((s) => s.screen);
   const color = useAppStore((s) => s.activeSwatch);
+  const viewResetSignal = useAppStore((s) => s.viewResetSignal);
   const gltf = useGLTF("/models/lounge.glb");
 
   const matRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
@@ -90,6 +91,16 @@ export default function FurnitureScene() {
       el.removeEventListener("pointercancel", onPointerUp);
     };
   }, [gl]);
+
+  // 360 reset: snap rotation back to the resting pose
+  useEffect(() => {
+    if (viewResetSignal === 0) return;
+    const s = dragState.current;
+    s.targetY = 0;
+    s.targetX = 0;
+    s.rotY = 0;
+    s.rotX = 0;
+  }, [viewResetSignal]);
 
   useFrame((_state, delta) => {
     const group = groupRef.current;

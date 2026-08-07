@@ -46,6 +46,8 @@
   ],
   "exclude": [
     "node_modules",
+    "oto-spatial-web",
+    "oto-spatial-web/**/*",
     "mobile",
     "mobile/**/*",
     "tests",

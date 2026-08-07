@@ -144,10 +144,12 @@ export default function ChatPage() {
   useEffect(() => {
     if (!llmFallback || !pendingRetry) return;
     const text = pendingRetry;
-    setPendingRetry(null);
     if (!streaming) {
       void handleSend(text);
     }
+    // Defer the reset out of the synchronous effect body (avoids cascading renders).
+    const raf = requestAnimationFrame(() => setPendingRetry(null));
+    return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [llmFallback]);
 

@@ -52,6 +52,15 @@ dev.db
 # local dev logs
 dev-server.log
 
+# Playwright MCP debug artifacts
+.playwright-mcp/
+
+# local dev/prod debug artifacts (screenshots, snapshots, run logs)
+oto-spa-*.png
+oto-spatial*.png
+oto-spatial-snapshot.md
+opencode-plugin-cache-check.md
+
 # supabase temp files
 supabase/.temp/
 

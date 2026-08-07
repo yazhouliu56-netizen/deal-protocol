@@ -6,7 +6,10 @@ import {
   bookingWorkerOrder,
   iconFor,
   type BookingInput,
+  type WorkerOrderInput,
 } from "./booking.ts";
+
+type BookingRow = BookingInput & { status?: "cancelled" };
 
 const booking: BookingInput = {
   id: "b1",
@@ -34,7 +37,10 @@ test("bookingWorkerOrder mirrors the booking onto the bench", () => {
 });
 
 test("applyBooking prefills both slices without dupes", () => {
-  let s = { bookings: [] as BookingInput[], workerOrders: [] };
+  let s: { bookings: BookingInput[]; workerOrders: WorkerOrderInput[] } = {
+    bookings: [],
+    workerOrders: [],
+  };
   s = applyBooking(s, booking);
   assert.equal(s.bookings.length, 1);
   assert.equal(s.workerOrders.length, 1);
@@ -45,7 +51,10 @@ test("applyBooking prefills both slices without dupes", () => {
 });
 
 test("applyCancel marks cancelled and removes the bench order", () => {
-  let s = { bookings: [booking] as BookingInput[], workerOrders: [bookingWorkerOrder(booking)] };
+  let s: { bookings: BookingRow[]; workerOrders: WorkerOrderInput[] } = {
+    bookings: [booking],
+    workerOrders: [bookingWorkerOrder(booking)],
+  };
   s = applyCancel(s, booking.id);
   assert.equal(s.bookings[0].status, "cancelled");
   assert.equal(s.workerOrders.length, 0);

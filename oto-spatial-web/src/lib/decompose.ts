@@ -71,7 +71,6 @@ export function moduleAmounts(
   modules: TaskModule[],
   budget: number
 ): Array<{ name: string; amount: number }> {
-  const weights = modules.map((m) => m.weight);
   let allocated = 0;
   const out = modules.map((m, i) => {
     const amount =

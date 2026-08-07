@@ -35,7 +35,6 @@ export default function AcceptancePanel({
     if (myDispute) return <DisputeVerdictView dispute={myDispute} claimId={claim.id} />;
     return (
       <DisputeForm
-        claimId={claim.id}
         reason={reason}
         evidence={evidence}
         setReason={setReason}
@@ -104,7 +103,6 @@ export default function AcceptancePanel({
         <DisputeVerdictView dispute={myDispute} claimId={claim.id} />
       ) : (
         <DisputeForm
-          claimId={claim.id}
           reason={reason}
           evidence={evidence}
           setReason={setReason}
@@ -122,14 +120,12 @@ export default function AcceptancePanel({
 
 /** 争议发起表单：原因拆分（公平公正公开）+ 凭证。 */
 function DisputeForm({
-  claimId,
   reason,
   evidence,
   setReason,
   setEvidence,
   onOpen,
 }: {
-  claimId: string;
   reason: DisputeReason | "";
   evidence: string;
   setReason: (r: DisputeReason | "") => void;
@@ -186,6 +182,9 @@ function DisputeVerdictView({
 }) {
   const settleDispute = useWaveStore((s) => s.settleDispute);
   const [proposed, setProposed] = useState("30");
+  // Capture now once per mount (steady-clock friendly); avoids impure Date.now()
+  // calls in the render body.
+  const [now] = useState(() => Date.now());
   const outcome = dispute.outcome;
 
   return (
@@ -195,7 +194,7 @@ function DisputeVerdictView({
       </p>
       <p className="text-[9px] text-white/40">
         凭证：{dispute.evidence} ·{" "}
-        {dispute.appealDeadline > Date.now()
+        {dispute.appealDeadline > now
           ? "响应方 48h 内可申诉"
           : "申诉窗已过，自动按档位终局"}
       </p>

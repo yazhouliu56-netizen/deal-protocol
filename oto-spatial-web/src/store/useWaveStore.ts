@@ -27,10 +27,8 @@ import {
   confirmModule,
   initModuleStates,
   reportModule,
-  type TaskModuleState,
 } from "@/lib/moduleFulfilment";
 import {
-  creditDeltaFor,
   negotiate,
   openDispute,
   resolveAuto,
@@ -673,7 +671,7 @@ export const useWaveStore = create<WaveStore>()(
         const now = Date.now();
         const next = s.disputes.map((d) =>
           !d.outcome && now >= d.appealDeadline
-            ? resolveAuto(d, "48h 未申诉，自动按档位终局", now)
+            ? resolveAuto(d, "48h 未申诉，自动按档位终局")
             : d
         );
         const changed = next.some((d, i) => d !== s.disputes[i]);
@@ -804,7 +802,7 @@ export const useWaveStore = create<WaveStore>()(
             // 补偿记账：受益 claim 各记一条补偿流水（进钱包，标记已入账）
             const compensations = Object.entries(out.compensations)
               .filter(([, v]) => v > 0)
-              .map(([responderId, amount]) =>
+              .map(([, amount]) =>
                 capturePayOrder(
                   createPayOrder({
                     id: nextId("pay"),

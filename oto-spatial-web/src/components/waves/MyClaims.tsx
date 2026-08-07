@@ -30,8 +30,6 @@ export default function MyClaims() {
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const reportModuleDone = useWaveStore((s) => s.reportModuleDone);
-  const settleDispute = useWaveStore((s) => s.settleDispute);
-  const disputes = useWaveStore((s) => s.disputes);
   const reports = useWaveStore((s) => s.reports);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款

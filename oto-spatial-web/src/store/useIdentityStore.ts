@@ -78,7 +78,7 @@ interface IdentityState {
   useQuota: (n?: number) => boolean;
   resetQuotaIfDue: (now?: number) => void;
   /** 消耗一次免费发布次数：用完返回 false（超出则需付发布费）。 */
-  usePublishQuota: () => boolean;
+  consumePublishQuota: () => boolean;
   resetPublishQuotaIfDue: (now?: number) => void;
   settle: (claimId: string, verdict: "forgive" | "unforgiven", now?: number) => void;
   /** Credit tier re-derived from received reviews (评价驱动分层). */
@@ -180,7 +180,7 @@ export const useIdentityStore = create<IdentityState>()(
           return { publishQuota: FREE_PUBLISH_PER_DAY, lastPublishQuotaAt: midnight() };
         }),
 
-      usePublishQuota: () => {
+      consumePublishQuota: () => {
         const s = get();
         if (s.publishQuota <= 0) return false;
         set({ publishQuota: s.publishQuota - 1 });

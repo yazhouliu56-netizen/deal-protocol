@@ -73,7 +73,7 @@ export function applyBooking<S extends BookingInput>(
 export function applyCancel<S extends BookingInput>(
   state: { bookings: S[]; workerOrders: WorkerOrderInput[] },
   id: string
-): { bookings: S[]; workerOrders: WorkerOrderInput[] } {
+): { bookings: (S & { status?: "cancelled" })[]; workerOrders: WorkerOrderInput[] } {
   return {
     bookings: state.bookings.map((b) =>
       b.id === id ? { ...b, status: "cancelled" as const } : b

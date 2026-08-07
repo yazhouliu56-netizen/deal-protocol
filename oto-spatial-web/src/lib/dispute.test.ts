@@ -38,23 +38,23 @@ test("openDispute: reason+evidence → DisputeRecord + 48h deadline", () => {
 
 test("negotiate: 部分责任协商 → 同意则按比例", () => {
   const d = openDispute({ claimId: "c1", reason: "late", evidence: "迟到了" }, 0);
-  const out = negotiate(d, 30, true, "接受", 5000);
+  const out = negotiate(d, 30, true, "接受");
   assert.equal(out.outcome?.kind, "negotiated");
   if (out.outcome?.kind === "negotiated") assert.equal(out.outcome.agreedAmount, 30);
 });
 
 test("negotiate: 全责原因不可协商", () => {
   const d = openDispute({ claimId: "c1", reason: "no-show", evidence: "没来" }, 0);
-  const out = negotiate(d, 50, true, "想退款", 100);
+  const out = negotiate(d, 50, true, "想退款");
   assert.equal(out.outcome?.kind, "auto");
 });
 
 test("creditDeltaFor: 全责 −2 / 部分责任按占比−1..−3 / 需求方 0", () => {
   const full = openDispute({ claimId: "c1", reason: "no-show", evidence: "没来" }, 0);
-  assert.equal(creditDeltaFor(resolveAuto(full, "auto", 1)), -2);
+  assert.equal(creditDeltaFor(resolveAuto(full, "auto")), -2);
 
   const late = openDispute({ claimId: "c2", reason: "late", evidence: "迟到了" }, 0);
-  const settled = negotiate(late, 30, true, "接受", 1000);
+  const settled = negotiate(late, 30, true, "接受");
   assert.equal(creditDeltaFor(settled), -2); // round(30/20)=2 → −2
 
   const demander = openDispute({ claimId: "c3", reason: "demander-change", evidence: "不做了" }, 0);

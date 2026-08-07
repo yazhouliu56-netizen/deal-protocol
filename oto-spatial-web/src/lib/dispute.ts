@@ -111,8 +111,7 @@ export function openDispute(
 /** Resolve without negotiation (auto path or appeal timeout). */
 export function resolveAuto(
   record: DisputeRecord,
-  note: string,
-  now = Date.now()
+  note: string
 ): DisputeRecord {
   if (record.outcome) throw new Error("dispute.already-resolved");
   return { ...record, outcome: { kind: "auto", note }, agreedAmount: 0 };
@@ -127,8 +126,7 @@ export function negotiate(
   record: DisputeRecord,
   proposedPct: number,
   willAccept: boolean,
-  note: string,
-  now = Date.now()
+  note: string
 ): DisputeRecord {
   if (record.outcome) throw new Error("dispute.already-resolved");
   const v = record.verdict;
@@ -136,7 +134,7 @@ export function negotiate(
     return { ...record, outcome: { kind: "auto", note: "全责原因不可协商" }, agreedAmount: 0 };
   }
   const pct = Math.round(Math.max(0, Math.min(proposedPct, v.money.maxPct)));
-  if (!willAccept) return resolveAuto(record, "协商被拒，回到自动档位", now);
+  if (!willAccept) return resolveAuto(record, "协商被拒，回到自动档位");
   return {
     ...record,
     outcome: { kind: "negotiated", note, agreedAmount: pct },

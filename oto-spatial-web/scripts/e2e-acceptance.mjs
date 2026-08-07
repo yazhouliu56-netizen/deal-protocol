@@ -148,7 +148,6 @@ try {
     30000,
     "A 拆解完成"
   );
-  const sB0 = await state(pageA);
   // 发布时 wave.modules 落库
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { CreditCard, Lock } from "lucide-react";
@@ -30,21 +30,19 @@ export default function PaySheet({
   fee?: number;
 }) {
   const [countdown, setCountdown] = useState(300); // 5 分钟占位
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  if (!open) {
-    if (timer.current) {
-      clearInterval(timer.current);
-      timer.current = null;
-    }
-    return null;
-  }
-
-  if (!timer.current) {
-    timer.current = setInterval(() => {
+  // Timer lifecycle lives in an effect (refs are not safe during render).
+  // The parent keys <PaySheet> on the payment session, so each open mounts
+  // fresh with countdown already at 300 — no reset needed inside the effect.
+  useEffect(() => {
+    if (!open) return;
+    const timer = setInterval(() => {
       setCountdown((c) => (c > 0 ? c - 1 : 0));
     }, 1000);
-  }
+    return () => clearInterval(timer);
+  }, [open]);
+
+  if (!open) return null;
 
   const mm = String(Math.floor(countdown / 60)).padStart(2, "0");
   const ss = String(countdown % 60).padStart(2, "0");
@@ -90,13 +88,7 @@ export default function PaySheet({
         </div>
 
         <button
-          onClick={() => {
-            if (timer.current) {
-              clearInterval(timer.current);
-              timer.current = null;
-            }
-            onPaid();
-          }}
+          onClick={onPaid}
           aria-label={`立即支付 ${amount} 元`}
           className="w-full py-3 rounded-2xl btn-primary font-extrabold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
         >

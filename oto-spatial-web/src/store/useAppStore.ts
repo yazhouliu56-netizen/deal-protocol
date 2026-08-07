@@ -105,6 +105,8 @@ interface AppState {
   activeSwatch: string;
   selectedExperience: OTOExperience;
   showInfo: boolean;
+  /** Incremented by the AR "360" reset button; FurnitureScene resets rotation on change. */
+  viewResetSignal: number;
   // Cart / wishlist (future backend sync)
   cart: string[];
   // AI assistant conversation (survives screen switches)
@@ -124,6 +126,7 @@ interface AppState {
   setActiveCategory: (category: OTOCategory | null) => void;
   setActiveSwatch: (color: string) => void;
   toggleShowInfo: () => void;
+  resetView: () => void;
   toggleCart: (id: string) => void;
   clearCart: () => void;
   addChatMessage: (message: ChatMessage) => void;
@@ -149,6 +152,7 @@ export const useAppStore = create<AppState>()(
       activeSwatch: DEFAULT_SWATCH,
       selectedExperience: otoExperiences[0],
       showInfo: false,
+      viewResetSignal: 0,
       cart: [],
       chatMessages: [
         {
@@ -171,6 +175,7 @@ export const useAppStore = create<AppState>()(
       setActiveCategory: (activeCategory) => set({ activeCategory }),
       setActiveSwatch: (activeSwatch) => set({ activeSwatch }),
       toggleShowInfo: () => set((s) => ({ showInfo: !s.showInfo })),
+      resetView: () => set((s) => ({ viewResetSignal: s.viewResetSignal + 1 })),
       toggleCart: (id) =>
         set((s) => ({
           cart: s.cart.includes(id)

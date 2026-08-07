@@ -143,8 +143,7 @@ export function refundAmount(
  */
 export function splitNoShow(
   order: PayOrder,
-  beneficiaryCount: number,
-  at = Date.now()
+  beneficiaryCount: number
 ): number {
   if (order.status !== "paid") {
     throw new Error("pay.not-paid");

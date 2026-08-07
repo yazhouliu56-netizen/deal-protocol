@@ -25,11 +25,10 @@ export default function PublishSheet({
   open: boolean;
   onClose: () => void;
 }) {
-const publishWave = useWaveStore((s) => s.publishWave);
-  const createPendingWave = useWaveStore((s) => s.createPendingWave);
+const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const payWave = useWaveStore((s) => s.payWave);
   const identity = useIdentityStore((s) => s.identity);
-  const usePublishQuota = useIdentityStore((s) => s.usePublishQuota);
+  const consumePublishQuota = useIdentityStore((s) => s.consumePublishQuota);
   const resetPublishQuotaIfDue = useIdentityStore((s) => s.resetPublishQuotaIfDue);
   const publishQuota = useIdentityStore((s) => s.publishQuota);
 
@@ -130,7 +129,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
         : budgetNum;
     // 提交即扣免费发布次数：每日免费 3 次，用完需另付发布费（独立于单子金额）
     resetPublishQuotaIfDue();
-    const free = usePublishQuota();
+    const free = consumePublishQuota();
     const publishFee = free ? 0 : PUBLISH_FEE;
     const out = createPendingWave({
       authorId: identity.id,
@@ -311,7 +310,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
             )}
           </div>
           <p className="text-[9px] text-white/40 mb-2">
-            一句话太笼统（如"清理整个房间"）？AI 拆成可单独验收的模块 + 建议价权重，你确认后发布；接单前可增删改，接单后锁定
+            一句话太笼统（如“清理整个房间”）？AI 拆成可单独验收的模块 + 建议价权重，你确认后发布；接单前可增删改，接单后锁定
           </p>
           {!modules || modules.length < 2 ? (
             <button
@@ -512,6 +511,7 @@ const publishWave = useWaveStore((s) => s.publishWave);
 
       {/* 模拟收银台：随单支付，钱到位才激活广播 */}
       <PaySheet
+        key={paying ? paying.id : "idle"}
         open={!!paying}
         amount={paying?.amount ?? 0}
         title={people >= 2 ? "支付你的拼位份额" : "支付全款"}
