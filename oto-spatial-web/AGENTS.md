@@ -21,9 +21,10 @@ The single source of truth for this project's stage/status is `../docs/PROJECT_S
 ### docs/
 | ID | Type | Title | Date |
 |----|------|-------|------|
+| eeeb18d5-a455-42e7-88ae-da3ce0d0576f | ✅ change | oto-spatial-web 本地批次四件套：P3 数据化 + S1 热力图 + 场景模板 ×4 + 拼位裂变（2026-08-07） | 2026-08-07 |
 | cc67b85f-54da-4a50-a304-dd5154f3ec9a | ✅ change | oto-spatial-web 全面审计：MVP 功能完整、撮合经济闭环达成（2026-08-07） | 2026-08-07 |
 
-**Key concepts:** oto-spatial-web, mvp, waves-economy, project-stage, ci-e2e-gap, zhipu-llm, trust-loop, acceptance-modules
+**Key concepts:** oto-spatial-web, geo-modeling, s1-heatmap, scene-template, seat-fission, anti-self-boost, last-sync, node-test, mvp, waves-economy
 
 💡 *Use `mem-find` to search full details. Use `mem-create` to save important decisions.*
 <!-- /open-mem-context -->
