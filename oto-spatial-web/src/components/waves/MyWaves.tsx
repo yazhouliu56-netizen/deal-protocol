@@ -5,7 +5,7 @@ import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users } from 
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ACTION_LABEL } from "@/lib/moderation";
-import { raiseSuggestion, yuan } from "@/lib/customPricing";
+import { yuan } from "@/lib/customPricing";
 import { MAX_ROUNDS, neededJoiners, nextSpeaker, perSeatPrice, type Claim, type Wave } from "@/lib/wave";
 import { tierRatio } from "@/lib/trust";
 import { autoFulfilmentRemaining } from "@/lib/fulfilment";
@@ -15,6 +15,7 @@ import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
 import ShareKit from "./ShareKit";
+import DiagnosisCard from "./DiagnosisCard";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
@@ -247,20 +248,11 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                   <LockedSeatFlow key={seat.id} wave={wave} claim={seat} />
                 ))}
 
-              {/* 无人响应 → LLM 诊断建议 */}
+              {/* 无人响应 ≥2min → S2 AI 主动诊断（LLM 链 → mock 降级） */}
               {wave.status === "active" &&
                 waveClaims.length === 0 &&
                 wave.createdAt < now - 2 * 60_000 && (
-                  <div className="rounded-2xl bg-brandPurple/10 border border-brandPurple/30 p-3">
-                    <p className="text-[10px] font-bold text-brandPurple flex items-center gap-1">
-                      <MessageSquareText size={11} /> AI 建议
-                    </p>
-                    <p className="text-[10px] text-white/60 mt-1 leading-relaxed">
-                      这条需求还没人响应。可考虑：① 把报价提到{" "}
-                      {yuan(raiseSuggestion(wave.budget, wave.customs.length))}
-                      ；② 补充更清晰的定制条件；③ 扩大 5km 搜寻半径。
-                    </p>
-                  </div>
+                  <DiagnosisCard wave={wave} />
                 )}
             </div>
           );

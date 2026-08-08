@@ -50,3 +50,7 @@ next-env.d.ts
 # local dev/prod debug artifacts (screenshots, run logs)
 /*.png
 /*.log
+
+# contract-pipeline S2 backups
+*.ts.bak-*
+

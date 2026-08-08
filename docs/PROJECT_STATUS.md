@@ -46,13 +46,15 @@
 | P3 数据化前置（lat/lng 建模） | ✅ `src/lib/geo.ts`（Haversine/附近排序/确定性兜底坐标）+ Wave 接口 `geo` 字段 + 5 单测 | |
 | S1 匿名光点热力图 | ✅ `SpatialHeatMap.tsx`（活跃 waves 投影 CSS 网格地图，热度光点匿名聚合，浏览器实测 3 信号波渲染）+ 挂载 radar feed | |
 | 场景模板 ×4 | ✅ `sceneTemplate.ts` 映射 + `SceneTemplate.tsx` 程序化舞台（球局→半场网格/约拍→取景光场/城市历史→室内起居，lounge.glb 保留）+ 浏览器实测 | |
+| S2 AI 主动诊断 | ✅ 发布后无人响应 ≥2min 诊断卡（`diagnostic.ts` 纯函数 + `/api/diagnose` 复用 cluster 三级降级，Zhipu 实测生效）+ `DiagnosisCard.tsx` 挂载 MyWaves，浏览器实测 | |
+| S3 关系沉淀（转友） | ✅ 72h 自动撤回转友状态机（`friends.ts` 纯函数）+ `FriendKit`/`FriendList` 挂载 ProfilePage/MyWaves/履约区，双 tab 实测：发布→接单→履约→72h 评价窗→转友→接受 | |
 | 拼位裂变 ShareKit | ✅ 分享文案复制 + 伪二维码 + `fissionIncrement` 防自刷计数（回应/成交才 +1，按人去重）+ 分享链接 `?wave=` 直达置顶 | |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **153/153 全绿**（24 套，`npm run test:units`，含 geo/sceneTemplate/fission） |
+| 单测 | **175/175 全绿**（27 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport） |
 | Lint | ESLint exit 0 |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
@@ -70,7 +72,7 @@
 
 - [ ] **P3 真实地图**（**Leaflet + OSM 免费方案**，数据化前置已完成：lat/lng 建模 + 附近排序就绪，可绘真数据）
 - [x] S1 匿名光点热力图 ✅（本批完成）
-- [ ] **S2 AI 主动诊断** · **S3 关系沉淀**（社交层剩余两件）
+- [x] **S2 AI 主动诊断** · **S3 关系沉淀** ✅（本批完成，社交层闭环）
 - [x] 场景模板 ×4 ✅（本批完成）
 - [ ] **Supabase 全量数据化**（在线真实数据 + 离线 mock 兜底，接口形态不变）
 - [x] 拼位裂变 ✅（本批完成：分享 + 防自刷计数 + 二维码）
@@ -95,3 +97,4 @@
 | 2026-08-07 | `bdfda92` | 调整 P3 路线：数据化先行（lat/lng + 真实成交）→ Leaflet+OSM 免费接图，保留 CSS 降级 |
 | 2026-08-07 | `ae10c5d` | P5 实测验证通过：deviceMemory 沉浸降级 + 离线全流程 5 屏 + lounge.glb 预缓存命中 → P5 标 ✅ |
 | 2026-08-07 | `356d794` | 本地批次四件套：P3 数据化前置(geo.ts) + S1 匿名热力图 + 场景模板 ×4 + 拼位裂变 ShareKit（防自刷计数）→ 单测 153 绿，浏览器实测通过 |
+| 2026-08-08 | （本批未推送） | S2 AI 主动诊断（无人响应 ≥2min 实时建议，Zhipu 真降级实测）+ S3 关系沉淀（72h 自动撤回转友状态机，双 tab 全链路实测）+ 修复两缺陷：DiagnosisCard 建议列表 key 兜底、friendRequests union 合并墓碑化（删除跨 tab 落盘）→ 单测 175 绿 |

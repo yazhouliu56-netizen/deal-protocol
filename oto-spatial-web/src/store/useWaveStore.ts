@@ -40,6 +40,13 @@ import type { Review } from "@/lib/review";
 import type { PayOrder } from "@/lib/pay";
 import { capturePayOrder, createPayOrder } from "@/lib/pay";
 import { fissionIncrement } from "@/lib/fission";
+import {
+  acceptFriendRequest as acceptFriendRequestLogic,
+  expireFriendRequests as expireFriendRequestsLogic,
+  sendFriendRequest as sendFriendRequestLogic,
+  type FriendRequest,
+  type Friendship,
+} from "@/lib/friends";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
 import { getP2pTransport } from "@/lib/p2p/transport";
 import type { PushItem } from "@/lib/cluster";
@@ -86,6 +93,16 @@ export interface WaveBundle {
   initiatorBuffs: Record<string, number>;
   /** 履约争议审计（reason-first）— UI 全程可查。 */
   disputes: DisputeRecord[];
+  /** S3 关系沉淀：待确认的转友请求（72h 未处理自动撤回）。 */
+  friendRequests: FriendRequest[];
+  /** S3 关系沉淀：已互认的好友（pair 规范化，双向一条）。 */
+  friendships: Friendship[];
+  /**
+   * 已撤回/已消费的请求 id（tombstone）。transport 合并对集合使用 union
+   * 语义（base 还保留旧 id），带删除语义的 friendRequests 必须靠墓碑
+   * 才能让「接受/忽略/过期」的移除跨 tab 落盘生效。
+   */
+  friendRequestRemovals: string[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -225,6 +242,18 @@ interface WaveStore extends WaveBundle {
   cancelOpenWave: (waveId: string) => void;
   /** 结清 no-show 违约 → 解除该位置的发波/拼位锁定。 */
   settleBreach: (claimId: string) => void;
+  /** S3 · 发起转友（幂等：已好友/已有待确认/自我 → error）。 */
+  sendFriendRequest: (p: {
+    fromId: string;
+    toId: string;
+    claimId: string;
+  }) => { ok: boolean; error?: string };
+  /** S3 · 收方接受 → 互认好友（幂等重放）。 */
+  acceptFriendRequest: (requestId: string) => { accepted: boolean };
+  /** S3 · 收方忽略 → 请求移除。 */
+  ignoreFriendRequest: (requestId: string) => void;
+  /** S3 · 72h 到期扫描 → 静默撤回过期请求。 */
+  sweepFriendRequests: () => void;
 }
 
 let seq = 0;
@@ -247,6 +276,9 @@ export const useWaveStore = create<WaveStore>()(
       bans: {},
       initiatorBuffs: {},
       disputes: [],
+      friendRequests: [],
+      friendships: [],
+      friendRequestRemovals: [],
       bundleVer: 0,
 
       createPendingWave: (input) => {
@@ -909,6 +941,55 @@ set((st) => ({
               : c
           ),
         })),
+
+      sendFriendRequest: ({ fromId, toId, claimId }) => {
+        const out = sendFriendRequestLogic(
+          get().friendRequests,
+          get().friendships,
+          {
+            id: `fr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+            fromId,
+            toId,
+            claimId,
+          }
+        );
+        if (out.error || !out.request) return { ok: false, error: out.error };
+        set((s) => ({ friendRequests: [...s.friendRequests, out.request!] }));
+        return { ok: true };
+      },
+
+      acceptFriendRequest: (requestId) => {
+        const out = acceptFriendRequestLogic(
+          get().friendRequests,
+          get().friendships,
+          requestId
+        );
+        if (out.requests !== get().friendRequests) {
+          set((s) => ({
+            friendRequests: out.requests,
+            friendships: out.friendships,
+            friendRequestRemovals: [...new Set([...s.friendRequestRemovals, requestId])],
+          }));
+        }
+        return { accepted: out.accepted };
+      },
+
+      ignoreFriendRequest: (requestId) =>
+        set((s) => ({
+          friendRequests: s.friendRequests.filter((r) => r.id !== requestId),
+          friendRequestRemovals: [...new Set([...s.friendRequestRemovals, requestId])],
+        })),
+
+      sweepFriendRequests: () =>
+        set((s) => {
+          const swept = expireFriendRequestsLogic(s.friendRequests);
+          if (swept.length === s.friendRequests.length) return {};
+          const removed = s.friendRequests.filter((r) => !swept.includes(r)).map((r) => r.id);
+          return {
+            friendRequests: swept,
+            friendRequestRemovals: [...new Set([...s.friendRequestRemovals, ...removed])],
+          };
+        }),
     }),
     {
       name: "oto-broadcast-v1",
@@ -940,12 +1021,15 @@ set((st) => ({
             responders: [],
             reviews: [],
             pushes: [],
-            reports: [],
-            bans: {},
-            initiatorBuffs: {},
-            disputes: [],
-            bundleVer: 0,
-          } satisfies WaveBundle),
+          reports: [],
+          bans: {},
+          initiatorBuffs: {},
+          disputes: [],
+          friendRequests: [],
+          friendships: [],
+          friendRequestRemovals: [],
+          bundleVer: 0,
+        } satisfies WaveBundle),
       },
       version: 1,
       partialize: (s) =>
@@ -960,6 +1044,9 @@ set((st) => ({
           bans: s.bans,
           initiatorBuffs: s.initiatorBuffs,
           disputes: s.disputes,
+          friendRequests: s.friendRequests,
+          friendships: s.friendships,
+          friendRequestRemovals: s.friendRequestRemovals,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.

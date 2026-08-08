@@ -14,6 +14,7 @@ import WorkerWorkbench from "./WorkerWorkbench";
 import WalletView from "@/components/waves/WalletView";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
 import MyClaims from "@/components/waves/MyClaims";
+import FriendList from "@/components/waves/FriendList";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   羽毛球约局: "🏸",
@@ -131,6 +132,9 @@ export default function ProfilePage() {
 
       {/* 我的接单（响应者视角） */}
       <MyClaims />
+
+      {/* S3 关系沉淀：好友 + 待确认的转友请求 */}
+      <FriendList />
 
       {/* 我的订单 */}
       <div>

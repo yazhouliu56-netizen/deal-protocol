@@ -5,6 +5,7 @@ import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { createReview, decayLabel, type ReviewDimensions } from "@/lib/review";
 import type { Claim, Wave } from "@/lib/wave";
+import FriendKit from "./FriendKit";
 
 /**
  * 互评入口 — shown on a fulfilled claim (72h window). Structured 3-dim
@@ -152,6 +153,9 @@ export default function ReviewSection({
           </button>
         </motion.div>
       )}
+
+      {/* S3 关系沉淀：一次成功后，双方可自愿转友（72h 未确认自动撤回） */}
+      <FriendKit claim={claim} myId={myId} peerId={peerId} />
     </div>
   );
 }

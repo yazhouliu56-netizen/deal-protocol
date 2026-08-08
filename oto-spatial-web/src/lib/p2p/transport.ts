@@ -100,7 +100,7 @@ export function createLocalTransport(): P2pTransport {
  * `stale=true`（incoming 是早态快照）时同 id 以 base 为准（不覆盖回退），
  * 仅追加 base 中没有的新 id。
  */
-function mergeByIdLevel(
+export function mergeByIdLevel(
   base: WaveBundle,
   next: WaveBundle,
   stale = false
@@ -117,6 +117,20 @@ function mergeByIdLevel(
     return [...map.values()];
   };
   const baseOver = stale ? { ...next, ...base } : { ...base, ...next };
+  // friendships are keyed by the normalized pair, not by id
+  const friendKey = (f: { aId: string; bId: string }) =>
+    f.aId < f.bId ? `${f.aId}|${f.bId}` : `${f.bId}|${f.aId}`;
+  const friendMap = new Map<string, { aId: string; bId: string; since: number }>();
+  for (const f of [...(stale ? next.friendships ?? [] : base.friendships ?? []), ...(stale ? base.friendships ?? [] : next.friendships ?? [])]) {
+    friendMap.set(friendKey(f), f);
+  }
+  // friendRequests have delete semantics: union is safe only for collections
+  // that never remove items. tombstone the removed ids so a consumed/expired
+  // request does not resurface from an older base snapshot on the next merge.
+  const removedIds = new Set<string>([
+    ...(base.friendRequestRemovals ?? []),
+    ...(next.friendRequestRemovals ?? []),
+  ]);
   return {
     waves: byId(base.waves ?? [], next.waves ?? []),
     claims: byId(base.claims ?? [], next.claims ?? []),
@@ -126,6 +140,11 @@ function mergeByIdLevel(
     pushes: byId(base.pushes ?? [], next.pushes ?? []),
     reports: byId(base.reports ?? [], next.reports ?? []),
     disputes: byId(base.disputes ?? [], next.disputes ?? []),
+    friendRequests: byId(base.friendRequests ?? [], next.friendRequests ?? []).filter(
+      (r) => !removedIds.has(r.id)
+    ),
+    friendRequestRemovals: [...removedIds],
+    friendships: [...friendMap.values()],
     bans: baseOver.bans,
     initiatorBuffs: baseOver.initiatorBuffs,
   };
