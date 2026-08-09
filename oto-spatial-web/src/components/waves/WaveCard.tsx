@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Clock3, MapPin, Zap, Users, Flag, UserPlus } from "lucide-react";
+import { Clock3, MapPin, Zap, Users, Flag, UserPlus, Heart } from "lucide-react";
 import type { Wave } from "@/lib/wave";
 import { neededJoiners, perSeatPrice } from "@/lib/wave";
 import { suggestedPrice, yuan } from "@/lib/customPricing";
@@ -37,9 +37,13 @@ export default function WaveCard({
   const identity = useIdentityStore((s) => s.identity);
   const submitReport = useWaveStore((s) => s.submitReport);
   const reports = useWaveStore((s) => s.reports);
+  const favorites = useWaveStore((s) => s.favorites);
+  const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   const [note, setNote] = useState("");
   const [committed, setCommitted] = useState(false);
   const [now] = useState(() => Date.now());
+
+  const isFav = favorites.includes(wave.id);
 
   const isOpen = (wave.capacity ?? 1) >= 2;
   const needed = neededJoiners(wave);
@@ -89,8 +93,18 @@ export default function WaveCard({
           <span className="flex items-center gap-1 text-[10px] font-bold text-white/70">
             <Users size={10} className="text-brandPurple" /> {heat} 人感兴趣
           </span>
-          <span className="flex items-center gap-1 text-[9.5px] text-white/40">
-            <Clock3 size={9} /> {expireLabel}后失效
+          <span className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-[9.5px] text-white/40">
+              <Clock3 size={9} /> {expireLabel}后失效
+            </span>
+            <button
+              type="button"
+              onClick={() => toggleFavorite(wave.id)}
+              aria-label={isFav ? `取消关注 ${wave.basics.category}` : `关注 ${wave.basics.category}`}
+              className={`transition-colors ${isFav ? "text-amber-400" : "text-white/30 hover:text-amber-400"}`}
+            >
+              <Heart size={10} className={isFav ? "fill-amber-400" : ""} />
+            </button>
           </span>
         </div>
       </div>

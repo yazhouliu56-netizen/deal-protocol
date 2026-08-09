@@ -29,6 +29,7 @@ function bundle(over: Partial<Parameters<typeof mergeByIdLevel>[0]> = {}) {
     pushes: [],
     reports: [],
     bans: {},
+    favorites: [],
     initiatorBuffs: {},
     disputes: [],
     friendRequests: [],

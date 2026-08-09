@@ -146,6 +146,7 @@ export function mergeByIdLevel(
     friendRequestRemovals: [...removedIds],
     friendships: [...friendMap.values()],
     bans: baseOver.bans,
+    favorites: baseOver.favorites,
     initiatorBuffs: baseOver.initiatorBuffs,
   };
 }

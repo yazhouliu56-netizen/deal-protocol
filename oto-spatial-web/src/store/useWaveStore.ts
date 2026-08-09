@@ -89,6 +89,8 @@ export interface WaveBundle {
   /** 治理：举报流水 + 封禁表（平台级）。 */
   reports: Report[];
   bans: Record<string, BanRecord>;
+  /** 我关注的局（雷达心愿单）— 幂等 toggle，不参与撮合。 */
+  favorites: string[];
   /** 开放局 no-show 补偿：发起人获得的「成局面降标准」buff（跨会话累计） */
   initiatorBuffs: Record<string, number>;
   /** 履约争议审计（reason-first）— UI 全程可查。 */
@@ -240,6 +242,8 @@ interface WaveStore extends WaveBundle {
   settleExpiredOpen: (now?: number) => void;
   /** 需求方取消开放局：≤24h 分级退款（≥24h 全退 / <24h 部分 / 已开始不退）。 */
   cancelOpenWave: (waveId: string) => void;
+  /** 关注/取消关注一个局（雷达心愿单，幂等 toggle）。 */
+  toggleFavorite: (waveId: string) => void;
   /** 结清 no-show 违约 → 解除该位置的发波/拼位锁定。 */
   settleBreach: (claimId: string) => void;
   /** S3 · 发起转友（幂等：已好友/已有待确认/自我 → error）。 */
@@ -274,6 +278,7 @@ export const useWaveStore = create<WaveStore>()(
       pushes: [],
       reports: [],
       bans: {},
+      favorites: [],
       initiatorBuffs: {},
       disputes: [],
       friendRequests: [],
@@ -942,6 +947,13 @@ set((st) => ({
           ),
         })),
 
+      toggleFavorite: (waveId) =>
+        set((s) => ({
+          favorites: s.favorites.includes(waveId)
+            ? s.favorites.filter((id) => id !== waveId)
+            : [waveId, ...s.favorites],
+        })),
+
       sendFriendRequest: ({ fromId, toId, claimId }) => {
         const out = sendFriendRequestLogic(
           get().friendRequests,
@@ -1023,6 +1035,7 @@ set((st) => ({
             pushes: [],
           reports: [],
           bans: {},
+          favorites: [],
           initiatorBuffs: {},
           disputes: [],
           friendRequests: [],
@@ -1042,6 +1055,7 @@ set((st) => ({
           pushes: s.pushes,
           reports: s.reports,
           bans: s.bans,
+          favorites: s.favorites,
           initiatorBuffs: s.initiatorBuffs,
           disputes: s.disputes,
           friendRequests: s.friendRequests,

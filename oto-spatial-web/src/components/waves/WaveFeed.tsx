@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Wifi, WifiOff } from "lucide-react";
+import { Plus, Wifi, WifiOff, Heart } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
@@ -16,6 +16,7 @@ import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
 import OrganizerBoostCard from "./OrganizerBoostCard";
 import BiddingSandboxCard from "./BiddingSandboxCard";
+import FavoritesSheet from "./FavoritesSheet";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -31,6 +32,9 @@ export default function WaveFeed() {
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [favOpen, setFavOpen] = useState(false);
+  const favorites = useWaveStore((s) => s.favorites);
+  const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
   const [joinPay, setJoinPay] = useState<null | { waveId: string; amount: number }>(null);
   // 拼位被拒（如 no-show 欠款锁定）的提示
@@ -131,9 +135,19 @@ export default function WaveFeed() {
       <h1 className="text-[23px] leading-tight font-extrabold mt-3 bg-clip-text text-transparent bg-linear-to-r from-white via-purple-200 to-brandPurple tracking-tight">
         谁正在附近发需求
       </h1>
-      <p className="text-[11px] text-white/50 mt-0.5">
-        广播式撮合 · 谁合适谁来 · 谁接单算谁的
-      </p>
+      <div className="mt-0.5 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-white/50">
+          广播式撮合 · 谁合适谁来 · 谁接单算谁的
+        </p>
+        <button
+          onClick={() => setFavOpen(true)}
+          aria-label={`查看我关注的局，共 ${favorites.length} 个`}
+          className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/[0.05] border border-white/15 text-[9.5px] font-bold text-white/55 hover:border-brandCyan/50 hover:text-white transition-colors shrink-0"
+        >
+          <Heart size={10} className={favorites.length ? "text-brandCyan fill-brandCyan/30" : ""} />
+          关注 {favorites.length > 0 ? favorites.length : ""}
+        </button>
+      </div>
 
       {/* 发布 CTA */}
       <button
@@ -244,6 +258,15 @@ export default function WaveFeed() {
       )}
 
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
+
+      {/* 关注的局（雷达心愿单） */}
+      <FavoritesSheet
+        open={favOpen}
+        onClose={() => setFavOpen(false)}
+        waves={waves}
+        favoriteIds={favorites}
+        onToggle={toggleFavorite}
+      />
     </div>
   );
 }
