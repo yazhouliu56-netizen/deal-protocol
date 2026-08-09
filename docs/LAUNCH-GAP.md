@@ -13,8 +13,12 @@
 | 离线降级 E2E（生产构建 + SW shell 五屏兜底） | commit d1ce09b |
 | verify-prod 编排（build→生产 start→全 E2E） | commit d1ce09b |
 | 心愿单收藏入口（AR 详情卡 toggleCart 已带） | 已存在 |
+| 目的地中心（筛选抽屉 + 全部列表） | commit cbfdd36（G-1/G-2） |
+| 通知中心（铃铛 + 角标 + 已读持久） | commit 254a9fd（G-3） |
+| PWA 安装引导 + 数据源徽章 | commit b08f406（G-4） |
+| 未登录 Profile guest 引导 | commit f3c1dc5（G-5） |
 
-## G 组：纯本地占位（成本低，任一可本地做）
+## G 组：纯本地占位（已全部清零）
 
 | 缺口 | 说明 | 估算 |
 |---|---|---|
