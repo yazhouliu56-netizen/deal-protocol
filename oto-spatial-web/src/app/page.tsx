@@ -16,6 +16,7 @@ import DestinationHub from "@/components/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
+import NotificationCenter from "@/components/waves/NotificationCenter";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/lib/performance";
 import {
@@ -188,18 +189,21 @@ function HomePage() {
         <p className="text-[13px] text-white/75 font-medium flex-1">
           Hello, Alex! 👋
         </p>
-        <button
-          onClick={() => setShowCart(true)}
-          aria-label={`心愿单，共 ${cart.length} 项`}
-          className="relative w-9 h-9 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
-        >
-          <ShoppingBag size={15} className="text-white/80" />
-          {cart.length > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
-              {cart.length}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <NotificationCenter />
+          <button
+            onClick={() => setShowCart(true)}
+            aria-label={`心愿单，共 ${cart.length} 项`}
+            className="relative w-9 h-9 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+          >
+            <ShoppingBag size={15} className="text-white/80" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
+                {cart.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* 雷达 Feed：主导首页 */}
