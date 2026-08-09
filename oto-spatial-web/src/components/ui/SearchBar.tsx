@@ -10,12 +10,14 @@ export default function SearchBar({
   onChange,
   onSearch,
   onScan,
+  onFilter,
 }: {
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
   onSearch?: () => void;
   onScan?: () => void;
+  onFilter?: () => void;
 }) {
   const composingRef = useRef(false);
   return (
@@ -53,7 +55,7 @@ export default function SearchBar({
       <GlassIconButton aria-label="扫码识别" tone="cyan" onClick={onScan}>
         <QrCode size={15} />
       </GlassIconButton>
-      <GlassIconButton aria-label="筛选体验">
+      <GlassIconButton aria-label="筛选体验" onClick={onFilter}>
         <SlidersHorizontal size={15} />
       </GlassIconButton>
     </div>

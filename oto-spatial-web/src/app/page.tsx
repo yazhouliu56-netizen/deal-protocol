@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Stage from "@/components/3d/Stage";
-import HoloCard, { HoloBoundary } from "@/components/3d/HoloCard";
 import ChatPage from "@/components/chat/ChatPage";
 import ProfilePage from "@/components/profile/ProfilePage";
 import FloatingDock from "@/components/ui/FloatingDock";
@@ -12,11 +11,13 @@ import Badge from "@/components/ui/Badge";
 import CategoryPill from "@/components/ui/CategoryPill";
 import SearchBar from "@/components/ui/SearchBar";
 import ScanMockSheet from "@/components/ui/ScanMockSheet";
+import DestinationCard from "@/components/destinations/DestinationCard";
+import DestinationHub from "@/components/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
 import { useAppStore } from "@/store/useAppStore";
-import { initLowPower, isLowPower } from "@/lib/performance";
+import { initLowPower } from "@/lib/performance";
 import {
   CATEGORY_LABELS,
   OTO_CATEGORIES,
@@ -25,7 +26,6 @@ import {
   otoExperiences,
   type OTOActivity,
   type OTOCategory,
-  type OTOExperience,
 } from "@/lib/mockData";
 import {
   Bot,
@@ -84,15 +84,6 @@ const screenVariants = {
 const listContainer = {
   hidden: {},
   show: { transition: { staggerChildren: 0.06 } },
-};
-
-const listItem = {
-  hidden: { opacity: 0, y: 16 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const },
-  },
 };
 
 export default function Home() {
@@ -157,6 +148,7 @@ function HomePage() {
   const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [hubOpen, setHubOpen] = useState(false);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
@@ -265,6 +257,7 @@ function HomePage() {
           value={search}
           onChange={setSearch}
           onScan={() => setScanOpen(true)}
+          onFilter={() => setHubOpen(true)}
           onSearch={() => {
             const q = search.trim();
             if (!q) return;
@@ -328,7 +321,8 @@ function HomePage() {
             : "热门目的地"}
         </span>
         <button
-          onClick={() => destinationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          onClick={() => setHubOpen(true)}
+          aria-label="打开目的地中心进行筛选和浏览全部"
           className="flex items-center gap-0.5 text-[11px] text-brandPurple font-medium hover:brightness-125 transition-[filter]"
         >
           查看全部 <ChevronRight size={12} />
@@ -341,11 +335,10 @@ function HomePage() {
         animate="show"
         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5"
       >
-        {visibleExperiences.map((item, i) => (
+        {visibleExperiences.map((item) => (
           <DestinationCard
             key={item.id}
             item={item}
-            index={i}
             onOpen={() => openExperience(item)}
           />
         ))}
@@ -358,6 +351,9 @@ function HomePage() {
 
       {/* 扫码识别（本地模拟：扫分享 → 直达拼位局） */}
       {scanOpen && <ScanMockSheet onClose={() => setScanOpen(false)} />}
+
+      {/* 目的地中心（筛选抽屉 + 全部列表） */}
+      <DestinationHub open={hubOpen} onClose={() => setHubOpen(false)} />
 
       {/* 心愿单面板 */}
       <AnimatePresence>
@@ -467,154 +463,6 @@ function HomePage() {
   );
 }
 
-/** 3D holographic destination card with 2D lazy fallback (low power / offline / no WebGL). */
-function DestinationCard({
-  item,
-  index,
-  onOpen,
-}: {
-  item: OTOExperience;
-  index: number;
-  onOpen: () => void;
-}) {
-  const [hover, setHover] = useState(false);
-  const [holoFailed, setHoloFailed] = useState(false);
-  const [photoReady, setPhotoReady] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const lowPower = useMemo(() => isLowPower(), []);
-  // Mounted first so SSR and first client frame both render the 2D fallback
-  // (isLowPower() differs on server vs client — avoids hydration mismatch).
-  // 3D mounts only after the 2D photo is ready: texture loads from browser
-  // cache instantly, so there is never a white/blank 3D card on slow networks.
-  const use3D = mounted && !lowPower && !holoFailed && photoReady;
-  const priceParts = useMemo(() => {
-    const idx = item.price.indexOf("/");
-    return idx > 0
-      ? [item.price.slice(0, idx), item.price.slice(idx)]
-      : [item.price, ""];
-  }, [item.price]);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  return (
-    <motion.div
-      variants={listItem}
-      className="animate-float-slow"
-      style={{ animationDelay: `${(index % 2) * 0.9}s` }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <motion.button
-        onClick={onOpen}
-        whileHover={{ y: -6 }}
-        transition={{ type: "spring", stiffness: 320, damping: 22 }}
-        className="relative w-full h-44 md:h-48 lg:h-56 rounded-3xl overflow-hidden glass-panel-interactive text-left"
-      >
-        {use3D ? (
-          <HoloBoundary onFail={() => setHoloFailed(true)}>
-            <HoloCard url={item.imageUrl} hover={hover} />
-          </HoloBoundary>
-        ) : (
-          <DestinationCardImage
-            url={item.imageUrl}
-            onReady={() => setPhotoReady(true)}
-          />
-        )}
-        <div className="absolute inset-x-0 bottom-0 card-inlay p-2.5 rounded-b-3xl">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[13px] font-extrabold truncate">
-              {item.title}
-            </span>
-            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-400 bg-white/10 backdrop-blur-sm rounded-full px-1.5 py-0.5 shrink-0">
-              <Star size={9} className="fill-yellow-400" />
-              {item.rating}
-            </span>
-          </div>
-          <span className="text-[10px] text-white/60 block truncate">
-            {item.subtitle}
-          </span>
-          <span className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-[11px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
-              {priceParts[0]}
-            </span>
-            <span className="text-[9px] font-light text-white/50">
-              {priceParts[1]}
-            </span>
-          </span>
-        </div>
-        {item.hasAR && (
-          <Badge className="absolute top-2.5 right-2.5">AR</Badge>
-        )}
-      </motion.button>
-    </motion.div>
-  );
-}
-
-/** IntersectionObserver-powered lazy loader. */
-function useInView<T extends HTMLElement>(margin = "200px") {
-  const ref = useRef<T>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ob = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          ob.disconnect();
-        }
-      },
-      { rootMargin: margin }
-    );
-    ob.observe(el);
-    return () => ob.disconnect();
-  }, [margin]);
-  return { ref, inView };
-}
-
-/** Lazy-loaded sunny destination photo with shimmer skeleton + fade-in. */
-function DestinationCardImage({
-  url,
-  onReady,
-}: {
-  url: string;
-  onReady?: () => void;
-}) {
-  const { ref, inView } = useInView<HTMLDivElement>();
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    if (!inView) return;
-    const img = new Image();
-    img.onload = () => {
-      setLoaded(true);
-      onReady?.();
-    };
-    img.onerror = () => setFailed(true);
-    img.src = url;
-  }, [inView, url, onReady]);
-
-  return (
-    <div ref={ref} className="absolute inset-0">
-      {!loaded && !failed && <div className="absolute inset-0 shimmer" />}
-      {failed && (
-        <div className="absolute inset-0 bg-linear-to-b from-brandPurple/30 to-[#0d1030]" />
-      )}
-      {inView && (
-        <div
-          className={`absolute inset-0 bg-cover bg-center [mask-image:linear-gradient(to_top,black_45%,transparent_100%)] [mask-size:100%_100%] transition-opacity duration-500 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ backgroundImage: `url(${url})` }}
-        />
-      )}
-    </div>
-  );
-}
 
 /* ============================ AR ============================ */
 const AR_SCENE_POINTS = [
