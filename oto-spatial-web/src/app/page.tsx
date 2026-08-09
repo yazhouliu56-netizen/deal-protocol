@@ -11,6 +11,7 @@ import GlassIconButton from "@/components/ui/GlassIconButton";
 import Badge from "@/components/ui/Badge";
 import CategoryPill from "@/components/ui/CategoryPill";
 import SearchBar from "@/components/ui/SearchBar";
+import ScanMockSheet from "@/components/ui/ScanMockSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
@@ -155,6 +156,7 @@ function HomePage() {
   const setAiDraft = useAppStore((s) => s.setAiDraft);
   const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
@@ -262,6 +264,7 @@ function HomePage() {
           placeholder="搜索 OTO 体验或线下门店……"
           value={search}
           onChange={setSearch}
+          onScan={() => setScanOpen(true)}
           onSearch={() => {
             const q = search.trim();
             if (!q) return;
@@ -352,6 +355,9 @@ function HomePage() {
       <div className="mt-5">
         <SafetyKit />
       </div>
+
+      {/* 扫码识别（本地模拟：扫分享 → 直达拼位局） */}
+      {scanOpen && <ScanMockSheet onClose={() => setScanOpen(false)} />}
 
       {/* 心愿单面板 */}
       <AnimatePresence>

@@ -9,11 +9,13 @@ export default function SearchBar({
   value,
   onChange,
   onSearch,
+  onScan,
 }: {
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
   onSearch?: () => void;
+  onScan?: () => void;
 }) {
   const composingRef = useRef(false);
   return (
@@ -48,7 +50,7 @@ export default function SearchBar({
           </button>
         )}
       </form>
-      <GlassIconButton aria-label="扫码识别" tone="cyan">
+      <GlassIconButton aria-label="扫码识别" tone="cyan" onClick={onScan}>
         <QrCode size={15} />
       </GlassIconButton>
       <GlassIconButton aria-label="筛选体验">
