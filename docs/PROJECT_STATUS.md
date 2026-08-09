@@ -107,4 +107,7 @@
 | 2026-08-09 | `6871005` | 纯本地批次④（商业化前哨）：账号漫游 + 多开风控（roamGuard 设备指纹矩阵纯函数：1 安全 / 2 家庭共机关注 / ≥3 冻结建议 + useRoamStore persist + SafetyKit 内 RoamGuardPanel 演示）→ 单测 207 绿（+8），浏览器实测多开升级/漫游回落/刷新持久、无报错 |
 | 2026-08-09 | `dc22594` | 收尾①雷达局收藏：favorites 心形 + FavoritesSheet「我关注的局」面板（store persist + p2p transport 对齐）→ 单测 207 保持绿，浏览器实测收藏/计数/面板/移除 |
 | 2026-08-09 | `05ec324` | 收尾②扫码识别：ScanMockSheet（模拟相机横线扫描 → 识别分享的开放局 → 加入拼位直达 /?wave&via=scan）挂接 SearchBar onScan → tsc/lint 绿，浏览器实测扫→识别→加入拼位 |
-| 2026-08-09 | `d1ce09b` + 本档 | 收尾④模拟上线：e2e-offline（生产 SW shell 五屏兜底 + 恢复在线）实测 PASS；verify-prod 编排（build → 生产 start → 12 条 E2E，一键父演练）；上线前缺口清单落档 `docs/LAUNCH-GAP.md`（G 本地可做 4 / D 依赖数据化 5 / E 外部 4）⇒ 本地侧已全部闭环 |
+| 2026-08-09 | `d1ce09b` + 本档 | 收尾③模拟上线：e2e-offline（生产 SW shell 五屏兜底 + 恢复在线）实测 PASS；verify-prod 编排（build → 生产 start → 12 条 E2E，一键演练）；上线前缺口清单落档 `docs/LAUNCH-GAP.md`（G 本地可做 4 / D 依赖数据化 5 / E 外部 4）⇒ 本地侧已全部闭环 |
+| 2026-08-09 | `cbfdd36` | G-1/G-2 目的地中心：筛选抽屉（价位档 / 仅 AR / 评分 / 价格↑↓ / 离我最近）+ 全部列表；HoloCard 卡片抽为共享组件；destFilter 纯函数层 → 单测 217 绿（+10），浏览器实测档位过滤与升降序 |
+| 2026-08-09 | `254a9fd` | G-3 通知中心：铃铛 + 未读角标 + 聚合动态（报价/正式接单/雷达推送/好友/举报回执），已读本地持久化（notify 纯函数 8 单测）→ 单测 225 全绿，浏览器实测开合/空态 |
+| 2026-08-09 | `b08f406` + 本档 | G-4 数据源徽章 + PWA 安装引导（本地沙盒/离线双态 + beforeinstallprompt 一键安装实测可用）→ LAUNCH-GAP G 组 4 项全部清零；本地无占位缺口，D 组（数据化）待命 |
