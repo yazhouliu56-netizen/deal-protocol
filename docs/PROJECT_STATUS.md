@@ -100,3 +100,4 @@
 | 2026-08-08 | `1cb0408` | S2 AI 主动诊断（无人响应 ≥2min 实时建议，Zhipu 真降级实测）+ S3 关系沉淀（72h 自动撤回转友状态机，双 tab 全链路实测）+ 修复两缺陷：DiagnosisCard 建议列表 key 兜底、friendRequests union 合并墓碑化（删除跨 tab 落盘）→ 单测 175 绿 |
 | 2026-08-09 | `11d141d` | ADR-0004 落档：P3 地图选型定为 MapLibre GL JS + OpenFreeMap（免费无 Key，初期 3D 透视层次 + 点渲染，游戏化后置留口，瓦片源可切换） |
 | 2026-08-09 | `f11e8cb` | P3 地图首批落地：MapView（MapLibre+OpenFreeMap 动态引入、pitch 25°、建筑立体、wave 光点、点击 FlyTo）+ mapConfig 纯函数层（tier/点数据）+ 低配降级 → 单测 181 绿（+6），tsc/lint 全绿，浏览器实测瓦片加载、3D 面板渲染 |
+| 2026-08-09 | `9b993cb` | fix: tier 探针改用 useSyncExternalStore（server 快照=false）消除 SSR/客户端不一致 hydration 错误；mapConfig.test 纳入 test:units → 单测 181 绿，浏览器 CSS 降级 + 3D 双分支实测无报错 |
