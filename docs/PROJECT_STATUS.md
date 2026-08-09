@@ -101,3 +101,5 @@
 | 2026-08-09 | `11d141d` | ADR-0004 落档：P3 地图选型定为 MapLibre GL JS + OpenFreeMap（免费无 Key，初期 3D 透视层次 + 点渲染，游戏化后置留口，瓦片源可切换） |
 | 2026-08-09 | `f11e8cb` | P3 地图首批落地：MapView（MapLibre+OpenFreeMap 动态引入、pitch 25°、建筑立体、wave 光点、点击 FlyTo）+ mapConfig 纯函数层（tier/点数据）+ 低配降级 → 单测 181 绿（+6），tsc/lint 全绿，浏览器实测瓦片加载、3D 面板渲染 |
 | 2026-08-09 | `9b993cb` | fix: tier 探针改用 useSyncExternalStore（server 快照=false）消除 SSR/客户端不一致 hydration 错误；mapConfig.test 纳入 test:units → 单测 181 绿，浏览器 CSS 降级 + 3D 双分支实测无报错 |
+| 2026-08-09 | `068a4cb` | 纯本地批次①（地图观感）：地图 3D/CSS 手动切换（mapPref localStorage 持久，SSR 安全 useSyncExternalStore）+ 冷启动氛围 POI 密度层（3D 灰点 source + CSS 18 点）→ 单测 184 绿，浏览器实测循环切换/持久/无错 |
+| 2026-08-09 | `8d9a401` | 纯本地批次②（商业化前哨）：组局者订阅状态机（organizerSubscription 纯函数 + zustand persist + 两段式模拟收银台 OrganizerBoostCard）→ 单测 189 绿（+5），浏览器实测开通→生效→刷新持久、无 hydration 报错 |
