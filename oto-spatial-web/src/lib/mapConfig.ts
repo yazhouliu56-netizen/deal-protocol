@@ -36,6 +36,17 @@ export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
 export type MapTier = "css" | "3d";
 
+/** User-facing map preference: auto (follow device) or forced tier. */
+export type MapOverride = "auto" | MapTier;
+
+/**
+ * Merges the auto-computed tier with the user's stored preference.
+ * "auto" = follow device probes; otherwise the override always wins.
+ */
+export function resolveMapTier(auto: MapTier, override: MapOverride): MapTier {
+  return override === "auto" ? auto : override;
+}
+
 /**
  * Rendering tier via explicit capability flags (caller injects the browser
  * probes — keeps this module import-free). Low power or no WebGL falls all
@@ -67,3 +78,28 @@ export function buildMapDots(waves: MapPointInput[]): MapDot[] {
       category: w.category ?? "未分类",
     }));
 }
+
+/**
+ * 冷启动氛围数据（纯本地 demo）：一批静态「附近生活点」让城市不空 ——
+ * 视觉密度，不参与撮合。坐标围绕 MAP_CENTER ±0.05°（成都城区网格）。
+ */
+export const AMBIENT_POIS: GeoPoint[] = [
+  { lat: 30.5743, lng: 104.0624 },
+  { lat: 30.5712, lng: 104.0699 },
+  { lat: 30.5768, lng: 104.0661 },
+  { lat: 30.5691, lng: 104.0632 },
+  { lat: 30.5772, lng: 104.0718 },
+  { lat: 30.5801, lng: 104.0587 },
+  { lat: 30.5678, lng: 104.0598 },
+  { lat: 30.5823, lng: 104.0759 },
+  { lat: 30.5682, lng: 104.0731 },
+  { lat: 30.5796, lng: 104.0798 },
+  { lat: 30.5723, lng: 104.077 },
+  { lat: 30.5761, lng: 104.0821 },
+  { lat: 30.5666, lng: 104.0666 },
+  { lat: 30.5814, lng: 104.0688 },
+  { lat: 30.5705, lng: 104.0812 },
+  { lat: 30.5739, lng: 104.0837 },
+  { lat: 30.5784, lng: 104.0549 },
+  { lat: 30.5652, lng: 104.0717 },
+];

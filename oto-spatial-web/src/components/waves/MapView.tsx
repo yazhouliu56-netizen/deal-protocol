@@ -10,6 +10,7 @@ import {
   MAP_PITCH,
   MAP_STYLE_URL,
   MAP_ZOOM,
+  type GeoPoint,
   type MapDot,
 } from "@/lib/mapConfig";
 
@@ -25,6 +26,18 @@ const toFeatureCollection = (dots: MapDot[]) => ({
   })),
 });
 
+const toAmbientCollection = (points: GeoPoint[]) => ({
+  type: "FeatureCollection" as const,
+  features: points.map((p, i) => ({
+    type: "Feature" as const,
+    geometry: {
+      type: "Point" as const,
+      coordinates: [p.lng, p.lat],
+    },
+    properties: { id: `ambient-${i}` },
+  })),
+});
+
 /**
  * P3 real map pane (ADR-0004): MapLibre GL JS + OpenFreeMap free vector tiles.
  * 3D perspective (pitch) + volumetric buildings (style extrusion layers) +
@@ -36,17 +49,24 @@ const toFeatureCollection = (dots: MapDot[]) => ({
  */
 export default function MapView({
   dots,
+  ambient = [],
   className = "",
 }: {
   dots: MapDot[];
+  /** Static "city life" points (visual density, no interaction). */
+  ambient?: GeoPoint[];
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const dotsRef = useRef<MapDot[]>(dots);
+  const ambientRef = useRef<GeoPoint[]>(ambient);
   useEffect(() => {
     dotsRef.current = dots;
   }, [dots]);
+  useEffect(() => {
+    ambientRef.current = ambient;
+  }, [ambient]);
 
   useEffect(() => {
     let disposed = false;
@@ -62,6 +82,24 @@ export default function MapView({
       });
       mapRef.current = map;
       map.on("load", () => {
+        const ambientPoints = ambientRef.current;
+        if (ambientPoints.length) {
+          map!.addSource("ambient-dots", {
+            type: "geojson",
+            data: toAmbientCollection(ambientPoints),
+          });
+          map!.addLayer({
+            id: "wave-ambient",
+            type: "circle",
+            source: "ambient-dots",
+            paint: {
+              "circle-radius": 3.5,
+              "circle-color": "#3a4380",
+              "circle-opacity": 0.35,
+              "circle-stroke-width": 0,
+            },
+          });
+        }
         map!.addSource("wave-dots", {
           type: "geojson",
           data: { type: "FeatureCollection", features: [] },

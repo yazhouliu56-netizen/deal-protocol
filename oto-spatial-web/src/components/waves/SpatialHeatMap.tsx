@@ -1,11 +1,20 @@
 "use client";
 import { useMemo, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
-import { MapPin } from "lucide-react";
+import { MapPin, RotateCw } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/lib/geo";
 import { isLowPower, webglSupported } from "@/lib/performance";
 import { useWaveStore } from "@/store/useWaveStore";
-import { buildMapDots, mapTier, MAP_CENTER, type MapTier } from "@/lib/mapConfig";
+import {
+  AMBIENT_POIS,
+  buildMapDots,
+  mapTier,
+  MAP_CENTER,
+  resolveMapTier,
+  type MapOverride,
+  type MapTier,
+} from "@/lib/mapConfig";
+import { cycleMapPref, useMapPref } from "@/lib/mapPref";
 import MapView from "./MapView";
 
 /**
@@ -29,6 +38,36 @@ const LOCALITIES: { x: number; y: number; label: string }[] = [
   { x: 0.7, y: 0.65, label: "龙泉驿" },
 ];
 
+/** 模式切换开关（自动 → 强制 3D → 强制简约网格）。 */
+function ModeToggle({
+  count,
+  pref,
+}: {
+  count: number;
+  pref: MapOverride;
+}) {
+  return (
+    <span className="ml-auto flex items-center gap-2">
+      <span className="text-[10px] text-white/35">{count} 条 · 位置模糊</span>
+      <button
+        type="button"
+        onClick={() => cycleMapPref()}
+        title={
+          pref === "auto"
+            ? "跟随设备性能（可点击切换）"
+            : pref === "3d"
+              ? "强制 3D 地图（点击切换）"
+              : "强制简约网格（点击切换）"
+        }
+        aria-label="地图显示模式切换"
+        className="rounded-full border border-white/10 p-1 hover:bg-white/10"
+      >
+        <RotateCw size={10} className="text-white/60" />
+      </button>
+    </span>
+  );
+}
+
 export default function SpatialHeatMap() {
   const waves = useWaveStore((s) => s.waves);
 
@@ -40,8 +79,12 @@ export default function SpatialHeatMap() {
     () => true,
     () => false
   );
+const pref = useMapPref();
   const tier: MapTier | null = mounted
-    ? mapTier({ lowPower: isLowPower(), webgl: webglSupported() })
+    ? resolveMapTier(
+        mapTier({ lowPower: isLowPower(), webgl: webglSupported() }),
+        pref
+      )
     : null;
 
   const cssDots = useMemo(
@@ -59,6 +102,11 @@ export default function SpatialHeatMap() {
           };
         }),
     [waves]
+  );
+  const ambientCss = useMemo(
+    () =>
+      AMBIENT_POIS.map((p) => toMapXy(p, MAP_ORIGIN, SPAN_LNG, SPAN_LAT)),
+    []
   );
   const dots = useMemo(
     () =>
@@ -92,12 +140,10 @@ export default function SpatialHeatMap() {
           <span className="text-[10px] font-bold text-white/60">
             附近信号 · 3D 地图
           </span>
-          <span className="ml-auto text-[10px] text-white/35">
-            {dots.length} 条 · 位置模糊
-          </span>
+          <ModeToggle count={dots.length} pref={pref} />
         </div>
         <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80">
-          <MapView dots={dots} className="absolute inset-0" />
+          <MapView dots={dots} ambient={AMBIENT_POIS} className="absolute inset-0" />
         </div>
       </div>
     );
@@ -113,9 +159,7 @@ export default function SpatialHeatMap() {
         <span className="text-[10px] font-bold text-white/60">
           匿名热力 · 附近活跃信号波
         </span>
-        <span className="ml-auto text-[10px] text-white/35">
-          {cssDots.length} 条 · 位置模糊
-        </span>
+        <ModeToggle count={cssDots.length} pref={pref} />
       </div>
       <div className="relative h-28 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80">
         {/* city grid */}
@@ -140,6 +184,20 @@ export default function SpatialHeatMap() {
           >
             {l.label}
           </span>
+        ))}
+        {/* ambient city-life dots (cold-start density, no identity) */}
+        {ambientCss.map((p, i) => (
+          <span
+            key={`amb-${i}`}
+            className="absolute rounded-full bg-white/20"
+            style={{
+              left: `${p.x * 100}%`,
+              top: `${p.y * 100}%`,
+              width: 3,
+              height: 3,
+              transform: "translate(-50%, -50%)",
+            }}
+          />
         ))}
         {/* heat dots — anonymous: size/intensity only, no identity */}
         {cssDots.map((d) => (

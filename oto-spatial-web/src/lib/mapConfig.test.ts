@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildMapDots, mapTier, type MapPointInput } from "./mapConfig.ts";
+import {
+  AMBIENT_POIS,
+  buildMapDots,
+  mapTier,
+  resolveMapTier,
+  type MapPointInput,
+} from "./mapConfig.ts";
 
 const base: MapPointInput = {
   id: "w-1",
@@ -46,4 +52,22 @@ test("buildMapDots: heat clamped to 0..1", () => {
 test("buildMapDots: missing category → 未分类", () => {
   const [d] = buildMapDots([{ ...base, status: "active" }]);
   assert.equal(d.category, "未分类");
+});
+
+test("resolveMapTier: auto follows device probes", () => {
+  assert.equal(resolveMapTier("3d", "auto"), "3d");
+  assert.equal(resolveMapTier("css", "auto"), "css");
+});
+
+test("resolveMapTier: explicit override wins over probes", () => {
+  assert.equal(resolveMapTier("css", "3d"), "3d");
+  assert.equal(resolveMapTier("3d", "css"), "css");
+});
+
+test("AMBIENT_POIS: cold-start density stays inside MAP_CENTER box", () => {
+  assert.ok(AMBIENT_POIS.length >= 15, "density matters for a non-empty city");
+  AMBIENT_POIS.forEach((p) => {
+    assert.ok(Math.abs(p.lat - 30.574) <= 0.012, `lat drift ${p.lat}`);
+    assert.ok(Math.abs(p.lng - 104.066) <= 0.03, `lng drift ${p.lng}`);
+  });
 });
