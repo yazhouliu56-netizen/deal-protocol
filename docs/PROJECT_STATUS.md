@@ -105,3 +105,6 @@
 | 2026-08-09 | `8d9a401` | 纯本地批次②（商业化前哨）：组局者订阅状态机（organizerSubscription 纯函数 + zustand persist + 两段式模拟收银台 OrganizerBoostCard）→ 单测 189 绿（+5），浏览器实测开通→生效→刷新持久、无 hydration 报错 |
 | 2026-08-09 | `e3400df` | 纯本地批次③（商业化前哨）：公开竞价沙盒（bidding 纯函数状态机：保留价/覆盖出价/低价排序/8% 佣金结算包 + BiddingSandboxCard 演示完整闭环）→ 单测 199 绿（+10），浏览器实测出价¥61→中标→佣金¥4.88→净得¥56.12 |
 | 2026-08-09 | `6871005` | 纯本地批次④（商业化前哨）：账号漫游 + 多开风控（roamGuard 设备指纹矩阵纯函数：1 安全 / 2 家庭共机关注 / ≥3 冻结建议 + useRoamStore persist + SafetyKit 内 RoamGuardPanel 演示）→ 单测 207 绿（+8），浏览器实测多开升级/漫游回落/刷新持久、无报错 |
+| 2026-08-09 | `dc22594` | 收尾①雷达局收藏：favorites 心形 + FavoritesSheet「我关注的局」面板（store persist + p2p transport 对齐）→ 单测 207 保持绿，浏览器实测收藏/计数/面板/移除 |
+| 2026-08-09 | `05ec324` | 收尾②扫码识别：ScanMockSheet（模拟相机横线扫描 → 识别分享的开放局 → 加入拼位直达 /?wave&via=scan）挂接 SearchBar onScan → tsc/lint 绿，浏览器实测扫→识别→加入拼位 |
+| 2026-08-09 | `d1ce09b` + 本档 | 收尾④模拟上线：e2e-offline（生产 SW shell 五屏兜底 + 恢复在线）实测 PASS；verify-prod 编排（build → 生产 start → 12 条 E2E，一键父演练）；上线前缺口清单落档 `docs/LAUNCH-GAP.md`（G 本地可做 4 / D 依赖数据化 5 / E 外部 4）⇒ 本地侧已全部闭环 |
