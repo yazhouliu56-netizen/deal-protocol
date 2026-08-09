@@ -1,11 +1,11 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/lib/geo";
 import { isLowPower, webglSupported } from "@/lib/performance";
 import { useWaveStore } from "@/store/useWaveStore";
-import { buildMapDots, mapTier, MAP_CENTER } from "@/lib/mapConfig";
+import { buildMapDots, mapTier, MAP_CENTER, type MapTier } from "@/lib/mapConfig";
 import MapView from "./MapView";
 
 /**
@@ -32,10 +32,18 @@ const LOCALITIES: { x: number; y: number; label: string }[] = [
 export default function SpatialHeatMap() {
   const waves = useWaveStore((s) => s.waves);
 
-  const tier = useMemo(
-    () => mapTier({ lowPower: isLowPower(), webgl: webglSupported() }),
-    []
+  // tier 依赖浏览器探针（deviceMemory / WebGL / reduced-motion），SSR 与
+  // 首帧客户端不一致会触发 React hydration 错误 —— mounted 用官方推荐的
+  // useSyncExternalStore（server 快照 = false）达到同构，浏览器挂载后再判定。
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
   );
+  const tier: MapTier | null = mounted
+    ? mapTier({ lowPower: isLowPower(), webgl: webglSupported() })
+    : null;
+
   const cssDots = useMemo(
     () =>
       waves
@@ -66,6 +74,15 @@ export default function SpatialHeatMap() {
       ),
     [waves]
   );
+
+  if (tier === null) {
+    // SSR/首帧同构占位（等高容器，避免水合错位 + 布局跳动）
+    return (
+      <div className="mt-3">
+        <div className="h-56 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80" />
+      </div>
+    );
+  }
 
   if (tier === "3d") {
     return (
