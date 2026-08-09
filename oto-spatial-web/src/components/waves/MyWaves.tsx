@@ -75,6 +75,22 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
   return (
     <div className="pointer-events-auto">
+      {/* G-5 访客引导：演示身份说明 + 数据模式入口（EnvBadge 由全局事件唤起） */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25 mb-3">
+        <span className="text-[10px]">💠</span>
+        <p className="flex-1 min-w-0 text-[9.5px] text-white/55 leading-snug">
+          访客演示模式 · 身份<span className="text-white/85 font-bold">{identity.nickname}</span>
+          ，数据存本机浏览器
+        </p>
+        <button
+          onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
+          aria-label="了解数据模式"
+          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
+        >
+          数据模式
+        </button>
+      </div>
+
       <h2 className="text-[18px] font-extrabold text-white/95">我的需求</h2>
       <p className="text-[10px] text-white/45 mb-3">你发出的信号波 · 谁接单算谁的</p>
 

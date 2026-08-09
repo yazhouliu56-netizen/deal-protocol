@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Gavel, Trophy } from "lucide-react";
+import { Gavel, Trophy, Layers } from "lucide-react";
+import { useWaveStore } from "@/store/useWaveStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 import {
   award,
   openBidding,
@@ -11,32 +13,72 @@ import {
 } from "@/lib/bidding";
 
 const SEED = [
-  { bidderId: "ps-1", bidderName: "微笑保洁", price: 88, note: "含基础工具" },
-  { bidderId: "ps-2", bidderName: "轻喜到家", price: 72, note: "两小时全屋" },
-  { bidderId: "ps-3", bidderName: "顺子家政", price: 95, note: "老店口碑" },
+  { bidderId: "ps-1", bidderName: "微笑保洁", delta: 0, note: "保底报价" },
+  { bidderId: "ps-2", bidderName: "轻喜到家", delta: 8, note: "两小时全屋" },
+  { bidderId: "ps-3", bidderName: "顺子家政", delta: 15, note: "老店口碑" },
 ] as const;
 
-/** 初始/重置：保留价 ¥60 + 3 个模拟响应者报价，让演示一打开就有气氛。 */
-function seedSession(): BiddingSession {
-  let s = openBidding("demo-clean", "小区保洁 · 名额 1", 60);
+/** 初始/重置：保留价 + 3 个模拟响应者报价（跟随保留价），一打开就有气氛。 */
+function seedSession(title = "小区保洁 · 名额 1", reserve = 60): BiddingSession {
+  let s = openBidding("demo-clean", title, reserve);
   SEED.forEach((b) => {
-    const r = placeBid(s, { ...b, placedAt: "2026-08-09T08:05:00Z" });
+    const r = placeBid(s, {
+      bidderId: b.bidderId,
+      bidderName: b.bidderName,
+      price: reserve + b.delta,
+      note: b.note,
+      placedAt: "2026-08-09T08:05:00Z",
+    });
     if (r.ok) s = r.session;
   });
   return s;
 }
 
 /**
- * 公开竞价演示（P8 商业化前哨，纯本地沙盒）—— 不接入真实 wave，
- * 跑通完整闭环：3 个模拟响应者报价 → 你也可出价(≥保留价) → 低价排序
- * → 开标抽佣结算（平台佣金 8% 下限 ¥2）。
+ * 公开竞价（P8 商业化前哨，本地沙盒）—— 现在接入真实需求局：
+ * 从「我发出的开放局」里选一个作为拍品（保留价 = 局的人均价），
+ * 模拟响应者报价 + 你也能参与。开标仅演示结算，不写回真实局。
  */
 export default function BiddingSandboxCard() {
-  const [session, setSession] = useState<BiddingSession>(() =>
-    seedSession()
+  const waves = useWaveStore((s) => s.waves);
+  const identity = useIdentityStore((s) => s.identity);
+  // 我发出的活跃开放局（拍卖品候选）
+  const myActive = useMemo(
+    () =>
+      waves.filter(
+        (w) =>
+          w.authorId === identity.id &&
+          !w.removed &&
+          (w.status === "active" || w.status === "pending")
+      ),
+    [waves, identity.id]
   );
+  const [session, setSession] = useState<BiddingSession>(() => seedSession());
   const [myPrice, setMyPrice] = useState("66");
   const [error, setError] = useState("");
+  // 当前拍品来自真实局？（null = 演示局）
+  const [pickedWaveId, setPickedWaveId] = useState<string | null>(null);
+
+  const picked = pickedWaveId
+    ? myActive.find((w) => w.id === pickedWaveId) ?? null
+    : null;
+
+  const startFor = (waveId: string) => {
+    const w = myActive.find((x) => x.id === waveId);
+    if (!w) return;
+    const reserve = w.budget || 60;
+    setSession(seedSession(`${w.basics.category} · 名额 ${w.capacity ?? 1}`, reserve));
+    setPickedWaveId(waveId);
+    setMyPrice(String(Math.round(reserve)));
+    setError("");
+  };
+
+  const reset = () => {
+    setSession(seedSession());
+    setPickedWaveId(null);
+    setMyPrice("66");
+    setError("");
+  };
 
 const open = session.status === "open";
   const ranked = rankBids(session);
@@ -56,7 +98,7 @@ const open = session.status === "open";
       placedAt: new Date().toISOString(),
     });
     if (!r.ok) {
-      setError(r.error === "below-reserve" ? "报价低于保留价 ¥60" : "竞价已结束");
+      setError(r.error === "below-reserve" ? `报价低于保留价 ¥${session.reserveYuan}` : "竞价已结束");
       return;
     }
     setError("");
@@ -73,12 +115,6 @@ const open = session.status === "open";
     setSession(next);
   };
 
-  const reset = () => {
-    setSession(seedSession());
-    setMyPrice("66");
-    setError("");
-  };
-
   return (
     <div className="mt-3 rounded-2xl border border-brandPurple/25 bg-gradient-to-r from-brandPurple/10 via-[#151230]/80 to-brandPurple/10 p-3">
       <div className="flex items-center gap-2.5">
@@ -86,11 +122,20 @@ const open = session.status === "open";
           <Gavel size={14} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-extrabold text-white/90">
-            公开竞价 · 演示
+          <p className="text-[11px] font-extrabold text-white/90 flex items-center gap-1.5">
+            公开竞价
+            {picked ? (
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-[8.5px] text-emerald-300 font-extrabold">
+                你的真实需求局
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded-full bg-white/5 border border-white/15 text-[8.5px] text-white/45 font-bold">
+                演示局
+              </span>
+            )}
           </p>
           <p className="text-[9px] text-white/45 truncate">
-            小区保洁 · 名额 1 · 保留价 ¥60 · 已收到 {ranked.length} 个报价
+            {session.title} · 保留价 ¥{session.reserveYuan} · 已收到 {ranked.length} 个报价
           </p>
         </div>
         {!open && (
@@ -103,6 +148,32 @@ const open = session.status === "open";
           </button>
         )}
       </div>
+
+      {/* 真实局选择：我发出的活跃开放局即拍品候选 */}
+      {myActive.length > 0 && (
+        <div className="mt-2.5 flex items-center gap-2">
+          <Layers size={10} className="text-brandCyan shrink-0" />
+          <select
+            value={pickedWaveId ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v) startFor(v);
+              else reset();
+            }}
+            aria-label="选择要竞价的真实需求局"
+            className="flex-1 min-w-0 rounded-xl bg-white/5 border border-white/15 px-2 py-1.5 text-[9.5px] font-bold text-white/80 outline-none focus:border-brandPurple/60"
+          >
+            <option value="" className="bg-[#0b0e22]">
+              演示局 · 小区保洁
+            </option>
+            {myActive.map((w) => (
+              <option key={w.id} value={w.id} className="bg-[#0b0e22]">
+                {w.basics.category} · ¥{w.budget}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* 报价板（低价优先） */}
       <div className="mt-2.5 space-y-1.5">

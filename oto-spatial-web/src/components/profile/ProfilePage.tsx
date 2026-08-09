@@ -10,6 +10,7 @@ import {
   Star,
 } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 import WorkerWorkbench from "./WorkerWorkbench";
 import WalletView from "@/components/waves/WalletView";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
@@ -24,13 +25,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 /**
  * 个人中心（M3）：资料 + 我的订单列表 → 订单详情 → 星级评价。
+ * G-5：未登录即访客本地模式 —— 顶部常驻数据来源说明，本地功能全可用。
  */
-export default function ProfilePage() {
+export default function ProfilePage({
+  onGoHome,
+}: { onGoHome?: () => void } = {}) {
   const bookings = useAppStore((s) => s.bookings);
   const reviews = useAppStore((s) => s.reviews);
   const selectedBookingId = useAppStore((s) => s.selectedBookingId);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const cancelBooking = useAppStore((s) => s.cancelBooking);
+  const identity = useIdentityStore((s) => s.identity);
 
   const [showReviewFor, setShowReviewFor] = useState<string | null>(null);
   const [view, setView] = useState<"profile" | "workbench">("profile");
@@ -64,6 +69,29 @@ export default function ProfilePage() {
 
   return (
     <div className="pointer-events-auto flex flex-col gap-4">
+      {/* G-5 访客引导：数据来源 + 本地模式入口（登录后提示云端，由数据化替换） */}
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25">
+        <span className="text-[11px]">💠</span>
+        <p className="flex-1 min-w-0 text-[9.5px] text-white/55">
+          访客 · 本地演示身份「{identity.nickname}」 · 数据存本机浏览器
+        </p>
+        <button
+          onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
+          aria-label="了解数据模式"
+          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
+        >
+          数据模式
+        </button>
+        {onGoHome && (
+          <button
+            onClick={onGoHome}
+            className="shrink-0 px-2 py-1 rounded-full btn-primary text-[9px] font-bold"
+          >
+            去雷达
+          </button>
+        )}
+      </div>
+
       {/* 资料卡 */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}

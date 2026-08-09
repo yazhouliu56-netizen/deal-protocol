@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Wifi, WifiOff, Heart } from "lucide-react";
+import { Plus, Wifi, WifiOff, Heart, Rocket } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
@@ -9,6 +9,8 @@ import {
 import { perSeatPrice } from "@/lib/wave";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { useOrganizerSubStore } from "@/store/useOrganizerSubStore";
+import { subStatus } from "@/lib/organizerSubscription";
 import WaveCard from "./WaveCard";
 import PublishSheet from "./PublishSheet";
 import PaySheet from "./PaySheet";
@@ -31,6 +33,7 @@ export default function WaveFeed() {
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
+  const sub = useOrganizerSubStore((s) => s.sub);
   const [publishOpen, setPublishOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
   const favorites = useWaveStore((s) => s.favorites);
@@ -99,6 +102,12 @@ export default function WaveFeed() {
     }
     return list;
   }, [waves, claims, identity, creditTier, invitedWaveId]);
+
+  // 组局加速联动（G-5 真实数据）：订阅 active 时自己活跃需求在雷达区优先曝光
+  const boosting = subStatus(sub) === "active";
+  const myActiveCount = waves.filter(
+    (w) => w.authorId === identity.id && w.status === "active" && !w.removed
+  ).length;
 
   return (
     <div className="pointer-events-auto relative">
@@ -176,7 +185,19 @@ export default function WaveFeed() {
       {/* 组局者订阅（商业化前哨，纯本地 demo） */}
       <OrganizerBoostCard />
 
-      {/* 公开竞价演示（P8 前哨，纯本地沙盒） */}
+      {/* 订阅已生效：自己的活跃需求在雷达区优先曝光 */}
+      {boosting && myActiveCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-2 px-3 py-2 rounded-2xl bg-emerald-400/10 border border-emerald-400/35 text-[10px] font-bold text-emerald-300 flex items-center gap-1.5"
+        >
+          <Rocket size={11} />
+          组局加速已生效 · 你的 {myActiveCount} 个需求正优先曝光（「我的」跟进）
+        </motion.div>
+      )}
+
+      {/* 公开竞价（P8 前哨，接入真实需求局） */}
       <BiddingSandboxCard />
 
       {/* Feed */}

@@ -90,6 +90,7 @@ const listContainer = {
 
 export default function Home() {
   const screen = useAppStore((s) => s.screen);
+  const setScreen = useAppStore((s) => s.setScreen);
 
   useEffect(() => {
     initLowPower();
@@ -129,13 +130,16 @@ export default function Home() {
             {screen === "ai" && <ChatPage />}
             {screen === "ar" && <ARPage />}
             {screen === "trip" && <TripPage />}
-            {screen === "profile" && <ProfilePage />}
+            {screen === "profile" && <ProfilePage onGoHome={() => setScreen("home")} />}
           </div>
         </motion.div>
       </AnimatePresence>
 
       {/* 底部悬浮 Dock：固定在真实屏幕底部（store 驱动） */}
       <FloatingDock />
+
+      {/* 数据源徽章：全屏面常驻（HomePage 内不再单独挂） */}
+      <EnvBadge />
     </main>
   );
 }
@@ -190,7 +194,6 @@ function HomePage() {
         <p className="text-[13px] text-white/75 font-medium flex-1">
           Hello, Alex! 👋
         </p>
-        <EnvBadge />
         <div className="flex items-center gap-2 shrink-0">
           <NotificationCenter />
           <button
