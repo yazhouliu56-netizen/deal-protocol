@@ -103,3 +103,4 @@
 | 2026-08-09 | `9b993cb` | fix: tier 探针改用 useSyncExternalStore（server 快照=false）消除 SSR/客户端不一致 hydration 错误；mapConfig.test 纳入 test:units → 单测 181 绿，浏览器 CSS 降级 + 3D 双分支实测无报错 |
 | 2026-08-09 | `068a4cb` | 纯本地批次①（地图观感）：地图 3D/CSS 手动切换（mapPref localStorage 持久，SSR 安全 useSyncExternalStore）+ 冷启动氛围 POI 密度层（3D 灰点 source + CSS 18 点）→ 单测 184 绿，浏览器实测循环切换/持久/无错 |
 | 2026-08-09 | `8d9a401` | 纯本地批次②（商业化前哨）：组局者订阅状态机（organizerSubscription 纯函数 + zustand persist + 两段式模拟收银台 OrganizerBoostCard）→ 单测 189 绿（+5），浏览器实测开通→生效→刷新持久、无 hydration 报错 |
+| 2026-08-09 | `e3400df` | 纯本地批次③（商业化前哨）：公开竞价沙盒（bidding 纯函数状态机：保留价/覆盖出价/低价排序/8% 佣金结算包 + BiddingSandboxCard 演示完整闭环）→ 单测 199 绿（+10），浏览器实测出价¥61→中标→佣金¥4.88→净得¥56.12 |
