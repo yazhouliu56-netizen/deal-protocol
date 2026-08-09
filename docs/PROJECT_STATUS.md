@@ -70,7 +70,7 @@
 
 ## 六、下一步（待办）
 
-- [ ] **P3 真实地图**（选型已定 ADR-0004：**MapLibre GL JS + OpenFreeMap** 免费矢量方案；初期只做 3D 透视层次 + 数据点渲染，游戏化叠加层后置留接口；数据化前置已完成：lat/lng 建模 + 附近排序就绪）
+- [x] **P3 真实地图** ✅（本批完成 ADR-0004：**MapLibre GL JS + OpenFreeMap** 免费矢量瓦片（liberty 含 3D 建筑）+ 3D 透视（pitch 25°）+ 活动 wave 光点 + 点击 FlyTo；游戏化层后置留口；低配/无 WebGL 自动降级回 CSS 网格；瓦片源单点可切）
 - [x] S1 匿名光点热力图 ✅（本批完成）
 - [x] **S2 AI 主动诊断** · **S3 关系沉淀** ✅（本批完成，社交层闭环）
 - [x] 场景模板 ×4 ✅（本批完成）
@@ -98,4 +98,5 @@
 | 2026-08-07 | `ae10c5d` | P5 实测验证通过：deviceMemory 沉浸降级 + 离线全流程 5 屏 + lounge.glb 预缓存命中 → P5 标 ✅ |
 | 2026-08-07 | `356d794` | 本地批次四件套：P3 数据化前置(geo.ts) + S1 匿名热力图 + 场景模板 ×4 + 拼位裂变 ShareKit（防自刷计数）→ 单测 153 绿，浏览器实测通过 |
 | 2026-08-08 | `1cb0408` | S2 AI 主动诊断（无人响应 ≥2min 实时建议，Zhipu 真降级实测）+ S3 关系沉淀（72h 自动撤回转友状态机，双 tab 全链路实测）+ 修复两缺陷：DiagnosisCard 建议列表 key 兜底、friendRequests union 合并墓碑化（删除跨 tab 落盘）→ 单测 175 绿 |
-| 2026-08-09 | `11d141d` | ADR-0004 落档：P3 地图选型定为 MapLibre GL JS + OpenFreeMap（免费无 Key，初期 3D 透视层次 + 点渲染，游戏化后置留口，地址源可切换） |
+| 2026-08-09 | `11d141d` | ADR-0004 落档：P3 地图选型定为 MapLibre GL JS + OpenFreeMap（免费无 Key，初期 3D 透视层次 + 点渲染，游戏化后置留口，瓦片源可切换） |
+| 2026-08-09 | `(待填)` | P3 地图首批落地：MapView（MapLibre+OpenFreeMap 动态引入、pitch 25°、建筑立体、wave 光点、点击 FlyTo）+ mapConfig 纯函数层（tier/点数据）+ 低配降级 → 单测 181 绿（+6），tsc/lint 全绿，浏览器实测瓦片加载、3D 面板渲染 |

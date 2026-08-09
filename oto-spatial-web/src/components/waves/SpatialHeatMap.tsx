@@ -3,15 +3,21 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/lib/geo";
+import { isLowPower, webglSupported } from "@/lib/performance";
 import { useWaveStore } from "@/store/useWaveStore";
+import { buildMapDots, mapTier, MAP_CENTER } from "@/lib/mapConfig";
+import MapView from "./MapView";
 
 /**
- * S1 匿名光点热力图 — "live city signal" panel on the radar feed.
- * Active waves are projected onto a CSS-grid map as anonymous glowing dots
- * (aggregate view — own signal included, no identity revealed). Dot
- * size/intensity scales with hotness, so "hot spots" read at a glance.
+ * S1→P3 匿名光点热力图升级面板 — "live city signal" on the radar feed.
+ *
+ * - Strong devices (WebGL + memory OK): real map (MapLibre + OpenFreeMap,
+ *   3D perspective, ADR-0004) with anonymous glowing dots for active waves.
+ * - Low power / no WebGL: falls back to the S1 CSS-grid city signal (same
+ *   anonymity semantics, zero third-party tiles). Never a blank card.
  */
-const MAP_ORIGIN: GeoPoint = { lat: 30.5728, lng: 104.0668 };
+
+const MAP_ORIGIN: GeoPoint = { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng };
 const SPAN_LNG = 0.5;
 const SPAN_LAT = 0.35;
 
@@ -26,18 +32,62 @@ const LOCALITIES: { x: number; y: number; label: string }[] = [
 export default function SpatialHeatMap() {
   const waves = useWaveStore((s) => s.waves);
 
-  const dots = useMemo(() => {
-    return waves
-      .filter((w) => w.status === "active" && !w.removed)
-      .map((w) => {
-        const p = geoOf(w, MAP_ORIGIN);
-        const xy = toMapXy(p, MAP_ORIGIN, SPAN_LNG, SPAN_LAT);
-        const hot = Math.max(0, Math.min(1, (w.hotness ?? 0) / 8));
-        return { id: w.id, x: xy.x, y: xy.y, hot, category: w.basics.category };
-      });
-  }, [waves]);
+  const tier = useMemo(
+    () => mapTier({ lowPower: isLowPower(), webgl: webglSupported() }),
+    []
+  );
+  const cssDots = useMemo(
+    () =>
+      waves
+        .filter((w) => w.status === "active" && !w.removed)
+        .map((w) => {
+          const p = geoOf(w, MAP_ORIGIN);
+          return {
+            id: w.id,
+            x: toMapXy(p, MAP_ORIGIN, SPAN_LNG, SPAN_LAT).x,
+            y: toMapXy(p, MAP_ORIGIN, SPAN_LNG, SPAN_LAT).y,
+            hot: Math.max(0, Math.min(1, (w.hotness ?? 0) / 8)),
+            category: w.basics.category,
+          };
+        }),
+    [waves]
+  );
+  const dots = useMemo(
+    () =>
+      buildMapDots(
+        waves.map((w) => ({
+          id: w.id,
+          status: w.status,
+          removed: w.removed,
+          hotness: w.hotness,
+          category: w.basics?.category,
+          position: geoOf(w, MAP_ORIGIN),
+        }))
+      ),
+    [waves]
+  );
 
-  if (dots.length === 0) return null;
+  if (tier === "3d") {
+    return (
+      <div className="mt-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <MapPin size={12} className="text-brandCyan" />
+          <span className="text-[10px] font-bold text-white/60">
+            附近信号 · 3D 地图
+          </span>
+          <span className="ml-auto text-[10px] text-white/35">
+            {dots.length} 条 · 位置模糊
+          </span>
+        </div>
+        <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80">
+          <MapView dots={dots} className="absolute inset-0" />
+        </div>
+      </div>
+    );
+  }
+
+  // CSS-grid fallback (S1 original) — no map engine, no network tiles
+  if (cssDots.length === 0) return null;
 
   return (
     <div className="mt-3">
@@ -47,7 +97,7 @@ export default function SpatialHeatMap() {
           匿名热力 · 附近活跃信号波
         </span>
         <span className="ml-auto text-[10px] text-white/35">
-          {dots.length} 条 · 位置模糊
+          {cssDots.length} 条 · 位置模糊
         </span>
       </div>
       <div className="relative h-28 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80">
@@ -75,7 +125,7 @@ export default function SpatialHeatMap() {
           </span>
         ))}
         {/* heat dots — anonymous: size/intensity only, no identity */}
-        {dots.map((d) => (
+        {cssDots.map((d) => (
           <motion.button
             key={d.id}
             initial={{ scale: 0, opacity: 0 }}
