@@ -1,10 +1,11 @@
 "use client";
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
-import { MapPin, RotateCw } from "lucide-react";
+import { MapPin, RotateCw, Clock, Users, Map as MapIcon, Heart, Share2 } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/lib/geo";
 import { isLowPower, webglSupported } from "@/lib/performance";
 import { useWaveStore } from "@/store/useWaveStore";
+import { perSeatPrice, type Wave } from "@/lib/wave";
 import {
   AMBIENT_POIS,
   buildMapDots,
@@ -70,6 +71,9 @@ function ModeToggle({
 
 export default function SpatialHeatMap() {
   const waves = useWaveStore((s) => s.waves);
+  const favorites = useWaveStore((s) => s.favorites);
+  const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // tier 依赖浏览器探针（deviceMemory / WebGL / reduced-motion），SSR 与
   // 首帧客户端不一致会触发 React hydration 错误 —— mounted 用官方推荐的
@@ -123,6 +127,11 @@ const pref = useMapPref();
     [waves]
   );
 
+  const selected =
+    selectedId != null
+      ? waves.find((w) => w.id === selectedId && w.status === "active" && !w.removed) ?? null
+      : null;
+
   if (tier === null) {
     // SSR/首帧同构占位（等高容器，避免水合错位 + 布局跳动）
     return (
@@ -143,8 +152,19 @@ const pref = useMapPref();
           <ModeToggle count={dots.length} pref={pref} />
         </div>
         <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 bg-[#0d1025]/80">
-          <MapView dots={dots} ambient={AMBIENT_POIS} className="absolute inset-0" />
+          <MapView
+            dots={dots}
+            ambient={AMBIENT_POIS}
+            className="absolute inset-0"
+            onDotClick={(id) => setSelectedId(id)}
+          />
         </div>
+        <WaveMiniSheet
+          wave={selected}
+          favorited={selected ? favorites.includes(selected.id) : false}
+          onToggleFavorite={(id) => toggleFavorite(id)}
+          onClose={() => setSelectedId(null)}
+        />
       </div>
     );
   }
@@ -212,6 +232,7 @@ const pref = useMapPref();
             }}
             title={d.category}
             aria-label={`活跃信号波：${d.category}`}
+            onClick={() => setSelectedId(d.id)}
             className="absolute rounded-full pointer-events-auto"
             style={{
               left: `${d.x * 100}%`,
@@ -231,6 +252,99 @@ const pref = useMapPref();
           />
         ))}
       </div>
+
+      <WaveMiniSheet
+        wave={selected}
+        favorited={selected ? favorites.includes(selected.id) : false}
+        onToggleFavorite={(id) => toggleFavorite(id)}
+        onClose={() => setSelectedId(null)}
+      />
+    </div>
+  );
+}
+
+/**
+ * 光点详情卡：点地图信号点 → 该局的密度信息 + 关注/分享引导。
+ * 纯展示（不在此下单，去雷达走正式撮合闭环）。
+ */
+function WaveMiniSheet({
+  wave,
+  favorited,
+  onToggleFavorite,
+  onClose,
+}: {
+  wave: Wave | null;
+  favorited: boolean;
+  onToggleFavorite: (id: string) => void;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  if (!wave) return null;
+
+  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/?wave=${wave.id}`;
+  const price = perSeatPrice(wave);
+
+  const handleShare = () => {
+    void navigator.clipboard?.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <div className="mt-2 rounded-2xl glass-panel p-3">
+      <div className="flex items-start gap-2.5">
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] font-extrabold text-white/90 truncate">
+            {wave.basics.category}
+          </p>
+          <p className="text-[9px] text-white/45 mt-0.5 flex items-center gap-1 truncate">
+            <Clock size={9} /> {wave.basics.time} · {wave.basics.area}
+          </p>
+        </div>
+        <div className="flex gap-1 shrink-0">
+          <button
+            onClick={() => onToggleFavorite(wave.id)}
+            aria-label={favorited ? "取消关注" : "关注该局"}
+            className={`p-1.5 rounded-full border transition-colors ${
+              favorited
+                ? "border-brandCyan/50 text-brandCyan"
+                : "border-white/15 text-white/45 hover:text-white"
+            }`}
+          >
+            <Heart size={12} className={favorited ? "fill-brandCyan/40" : ""} />
+          </button>
+          <button
+            onClick={onClose}
+            aria-label="关闭详情"
+            className="p-1.5 rounded-full border border-white/15 text-white/50 hover:text-white transition-colors"
+          >
+            <MapIcon size={12} />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-2.5 flex items-center gap-1.5 text-[9.5px] font-bold text-white/70">
+        <span className="px-2 py-1 rounded-full bg-white/[0.06] border border-white/10">
+          ¥{price}
+        </span>
+        <span className="px-2 py-1 rounded-full bg-white/[0.06] border border-white/10 flex items-center gap-1">
+          <Users size={9} className="text-brandCyan" /> 名额 {wave.capacity ?? 1}
+        </span>
+        <span className="px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/25 text-emerald-300">
+          活跃局
+        </span>
+        <span className="ml-auto">
+          {copied ? "已复制分享链接" : "点地图外信号点可切换"}
+        </span>
+      </div>
+
+      <button
+        onClick={handleShare}
+        aria-label="复制分享链接，直达该局拼位"
+        className="mt-2 w-full py-2 rounded-xl bg-white/5 border border-white/15 text-[10px] font-bold text-white/70 flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors active:scale-[0.99]"
+      >
+        <Share2 size={11} /> {copied ? "链接已复制" : "复制分享链接 · 直达拼位"}
+      </button>
     </div>
   );
 }

@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import DataPortCard from "./DataPortCard";
+import CockpitDemoCard from "./CockpitDemoCard";
 import WorkerWorkbench from "./WorkerWorkbench";
 import WalletView from "@/components/waves/WalletView";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
@@ -154,6 +156,12 @@ export default function ProfilePage({
 
       {/* P2P 钱包与信用前台 */}
       <WalletView />
+
+      {/* 演示座舱：三视角一键切换 */}
+      <CockpitDemoCard />
+
+      {/* 本地数据备份 */}
+      <DataPortCard />
 
       {/* 能力声明编辑 */}
       <CapabilityPanel />

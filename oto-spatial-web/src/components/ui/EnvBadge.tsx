@@ -38,6 +38,13 @@ export default function EnvBadge() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // 允许页面其它入口（如「我的」访客条）唤起数据模式说明
+  useEffect(() => {
+    const on = () => setOpen(true);
+    window.addEventListener("oto:env-info", on);
+    return () => window.removeEventListener("oto:env-info", on);
+  }, []);
+
   const mode = useMemo(() => {
     if (!online)
       return { id: "offline", label: "离线", desc: "离线中 · 本地缓存可用" };

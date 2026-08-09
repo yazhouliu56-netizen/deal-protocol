@@ -51,16 +51,20 @@ export default function MapView({
   dots,
   ambient = [],
   className = "",
+  onDotClick,
 }: {
   dots: MapDot[];
   /** Static "city life" points (visual density, no interaction). */
   ambient?: GeoPoint[];
   className?: string;
+  /** Fired when an active-wave glow dot is clicked (id = wave id). */
+  onDotClick?: (id: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const dotsRef = useRef<MapDot[]>(dots);
   const ambientRef = useRef<GeoPoint[]>(ambient);
+  const onDotClickRef = useRef(onDotClick);
   useEffect(() => {
     dotsRef.current = dots;
   }, [dots]);
@@ -137,12 +141,15 @@ export default function MapView({
         src.setData(toFeatureCollection(dotsRef.current));
       });
       map.on("click", "wave-glow", (e: MapLayerMouseEvent) => {
+        const id = e.features?.[0]?.properties?.id;
         const g = e.features?.[0]?.geometry;
-        if (!g || g.type !== "Point") return;
-        map!.flyTo({
-          center: g.coordinates as [number, number],
-          zoom: Math.max(map!.getZoom(), 14),
-        });
+        if (g && g.type === "Point") {
+          map!.flyTo({
+            center: g.coordinates as [number, number],
+            zoom: Math.max(map!.getZoom(), 14),
+          });
+        }
+        if (typeof id === "string" && onDotClickRef.current) onDotClickRef.current(id);
       });
       map.on("mouseenter", "wave-glow", () => {
         map!.getCanvas().style.cursor = "pointer";
