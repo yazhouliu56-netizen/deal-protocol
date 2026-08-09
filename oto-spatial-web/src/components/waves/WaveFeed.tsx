@@ -15,6 +15,7 @@ import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
 import OrganizerBoostCard from "./OrganizerBoostCard";
+import BiddingSandboxCard from "./BiddingSandboxCard";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -160,6 +161,9 @@ export default function WaveFeed() {
 
       {/* 组局者订阅（商业化前哨，纯本地 demo） */}
       <OrganizerBoostCard />
+
+      {/* 公开竞价演示（P8 前哨，纯本地沙盒） */}
+      <BiddingSandboxCard />
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">
