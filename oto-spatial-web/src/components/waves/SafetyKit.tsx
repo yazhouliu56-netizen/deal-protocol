@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, ShieldCheck, Gavel, Eye } from "lucide-react";
 import AdminPanel from "@/components/admin/AdminPanel";
+import RoamGuardPanel from "@/components/waves/RoamGuardPanel";
 
 /**
  * 安全四件套 — the platform safety floor for stranger meetups:
@@ -157,6 +158,9 @@ export default function SafetyKit() {
                 </button>
               ))}
             </div>
+
+            {/* 漫游 · 多开风控（P8 商业化前哨） */}
+            <RoamGuardPanel />
 
             {/* 5. 平台治理后台（管理角色入口） */}
             <button
