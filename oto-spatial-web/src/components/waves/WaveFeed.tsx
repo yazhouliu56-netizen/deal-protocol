@@ -14,6 +14,7 @@ import PublishSheet from "./PublishSheet";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
+import OrganizerBoostCard from "./OrganizerBoostCard";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -156,6 +157,9 @@ export default function WaveFeed() {
 
       {/* S1 匿名光点热力图：附近活跃信号波 */}
       <SpatialHeatMap />
+
+      {/* 组局者订阅（商业化前哨，纯本地 demo） */}
+      <OrganizerBoostCard />
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">
