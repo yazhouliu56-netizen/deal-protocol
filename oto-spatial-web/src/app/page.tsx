@@ -11,6 +11,7 @@ import Badge from "@/components/ui/Badge";
 import CategoryPill from "@/components/ui/CategoryPill";
 import SearchBar from "@/components/ui/SearchBar";
 import ScanMockSheet from "@/components/ui/ScanMockSheet";
+import EnvBadge from "@/components/ui/EnvBadge";
 import DestinationCard from "@/components/destinations/DestinationCard";
 import DestinationHub from "@/components/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
@@ -189,6 +190,7 @@ function HomePage() {
         <p className="text-[13px] text-white/75 font-medium flex-1">
           Hello, Alex! 👋
         </p>
+        <EnvBadge />
         <div className="flex items-center gap-2 shrink-0">
           <NotificationCenter />
           <button
