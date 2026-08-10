@@ -46,7 +46,7 @@ export default function FloatingDock() {
       animate={isDesktop ? { opacity: 1, x: 0 } : {}}
       transition={{ delay: 0.5, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] left-1/2 -translate-x-1/2 z-50 pb-[env(safe-area-inset-bottom)] lg:left-auto lg:right-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:translate-x-0 lg:pb-0">
+      <div className="fixed o-safe-bottom o-safe-pb left-1/2 -translate-x-1/2 z-50 lg:left-auto lg:right-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:translate-x-0">
         <div className="glass-panel rounded-full px-6 py-2.5 flex items-center justify-between gap-8 md:gap-12 shadow-2xl glow-purple lg:flex-col lg:px-3 lg:py-4 lg:gap-6">
           {NAVS.map((nav) => {
             const Icon = nav.icon;

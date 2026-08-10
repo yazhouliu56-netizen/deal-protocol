@@ -65,6 +65,21 @@ body {
   ) !important;
 }
 
+/* Dock 底部定位（同 safe-area 工具，避开 arbitrary value 解析坑） */
+.o-safe-bottom {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px) !important;
+}
+
+/* Dock 底部安全留白（lg 桌面固位时归零） */
+.o-safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media (min-width: 1024px) {
+  .o-safe-pb {
+    padding-bottom: 0;
+  }
+}
+
 /* 内容层自身铺满同款渐变，保证滚动容器内无死黑 */
 .app-env {
   background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);

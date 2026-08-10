@@ -11,6 +11,7 @@ import Badge from "@/components/ui/Badge";
 import CategoryPill from "@/components/ui/CategoryPill";
 import SearchBar from "@/components/ui/SearchBar";
 import ScanMockSheet from "@/components/ui/ScanMockSheet";
+import IdentityAvatar from "@/components/ui/IdentityAvatar";
 import EnvBadge from "@/components/ui/EnvBadge";
 import DestinationCard from "@/components/destinations/DestinationCard";
 import DestinationHub from "@/components/destinations/DestinationHub";
@@ -188,9 +189,7 @@ function HomePage() {
     <div className="pointer-events-auto">
       {/* 问候语 + 标题 */}
       <div className="flex items-center gap-2.5 mb-1">
-        <div className="w-9 h-9 rounded-full btn-primary flex items-center justify-center text-sm font-extrabold shadow-lg glow-purple-strong">
-          A
-        </div>
+        <IdentityAvatar />
         <p className="text-[13px] text-white/75 font-medium flex-1">
           Hello, Alex! 👋
         </p>

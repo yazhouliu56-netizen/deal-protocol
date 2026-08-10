@@ -6,6 +6,8 @@
 
 ## 已闭环（本轮，无需再动）
 
+> **08-10 追加**：真机扫码已本地闭环（getUserMedia + jsQR，零服务端依赖；无摄像头环境自动降级回模拟演示）。
+
 | 项 | 状态 |
 |---|---|
 | 雷达局收藏（心形 + 关注局面板 BMP） | commit dc22594 |
@@ -17,6 +19,7 @@
 | 通知中心（铃铛 + 角标 + 已读持久） | commit 254a9fd（G-3） |
 | PWA 安装引导 + 数据源徽章 | commit b08f406（G-4） |
 | 未登录 Profile guest 引导 | commit f3c1dc5（G-5） |
+| 真机扫码（getUserMedia + jsQR 解码，无摄像头自动降级模拟） | 本批（08-10） |
 
 ## G 组：纯本地占位（已全部清零）
 
@@ -34,7 +37,6 @@
 |---|---|
 | 多设备实时一致性 | localStorage/persist → Postgres + Realtime（bundleVer 守卫已有注释） |
 | 多租户隔离 | 每用户私有（claims/钱包/收藏/订阅/竞价）→ RLS 策略 |
-| 真机扫码 | getUserMedia + 二维码解码替换 ScanMock |
 | 存量迁移引导 | localStorage 首登 → 云端 merge（一性提升档） |
 | 漫游风控真实化 | 指纹绑定 → 设备表 + 登录事件（roamGuard 已是纯函数，直接迁移） |
 

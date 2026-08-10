@@ -29,6 +29,8 @@ export interface Identity {
   id: string;
   nickname: string;
   emoji: string;
+  /** 本地上传头像（dataURL）。nil → 用 emoji 兜底。 */
+  avatar?: string;
   categories: string[];
   tags: string[];
   distanceKm: number;
@@ -73,6 +75,7 @@ interface IdentityState {
   deposits: DepositRecord[];
 
   setCapability: (patch: Partial<Pick<Identity, "categories" | "tags" | "distanceKm" | "verified">>) => void;
+  setAvatar: (dataUrl: string) => void;
   setOnline: (online: boolean) => void;
   setStatus: (status: "online" | "busy" | "offline") => void;
   useQuota: (n?: number) => boolean;
@@ -139,6 +142,9 @@ export const useIdentityStore = create<IdentityState>()(
 
       setCapability: (patch) =>
         set((s) => ({ identity: { ...s.identity, ...patch } })),
+
+      setAvatar: (dataUrl) =>
+        set((s) => ({ identity: { ...s.identity, avatar: dataUrl } })),
 
       setOnline: (online) =>
         set((s) => ({

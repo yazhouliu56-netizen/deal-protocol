@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -7,11 +7,17 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { ACTION_LABEL } from "@/lib/moderation";
 import {
   buildNotifyItems,
-  loadReadSet,
-  persistReadSet,
   type NotifyItem,
   type NotifyKind,
 } from "@/lib/notify";
+import { markAllRead, useReadKeys } from "@/lib/readKeys";
+import {
+  diffNotifEvents,
+  notify,
+  requestNotifyPermission,
+  type NotifyPermission,
+  type NotifDiffInput,
+} from "@/lib/systemNotify";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
   offer: ["bg-brandCyan/15 border-brandCyan/40", "text-brandCyan"],
@@ -47,11 +53,41 @@ export default function NotificationCenter() {
   const reports = useWaveStore((s) => s.reports);
   const identity = useIdentityStore((s) => s.identity);
   const [open, setOpen] = useState(false);
-  // SSR 安全：首帧空集，挂载后载入持久已读（badge 才准确）
-  const [readKeys, setReadKeys] = useState<Set<string>>(new Set());
+  const [notifPerm, setNotifPerm] = useState<NotifyPermission>("default");
+  const readKeys = useReadKeys();
+
+  // 本地系统通知：跨帧 diff 出增量事件（成局/新报价/拼位/接单/好友申请），
+  // 授权后弹系统通知。identity 切换或首帧只做基线，不弹。
+  const prevRef = useRef<NotifDiffInput | null>(null);
   useEffect(() => {
-    setReadKeys(loadReadSet());
-  }, []);
+    const cur: NotifDiffInput = {
+      meId: identity.id,
+      waves: waves.map((w) => ({
+        id: w.id,
+        authorId: w.authorId,
+        status: w.status,
+        capacity: w.capacity,
+        basics: { category: w.basics.category },
+      })),
+      claims: claims.map((c) => ({
+        id: c.id,
+        waveId: c.waveId,
+        status: c.status,
+        price: c.price,
+      })),
+      friendRequests: friendRequests.map((f) => ({
+        id: f.id,
+        toId: f.toId,
+        fromId: f.fromId,
+      })),
+    };
+    const prev = prevRef.current;
+    prevRef.current = cur;
+    if (!prev || prev.meId !== cur.meId) return;
+    for (const n of diffNotifEvents(prev, cur)) {
+      notify(n.title, n.body);
+    }
+  }, [identity, waves, claims, friendRequests]);
 
   const items = useMemo(() => {
     const me = identity.id;
@@ -76,9 +112,7 @@ export default function NotificationCenter() {
   const openSheet = () => {
     setOpen(true);
     if (unread > 0) {
-      const keys = new Set([...readKeys, ...items.map((i) => i.key)]);
-      setReadKeys(keys);
-      persistReadSet(keys);
+      markAllRead(new Set([...readKeys, ...items.map((i) => i.key)]));
     }
   };
 
@@ -143,6 +177,19 @@ export default function NotificationCenter() {
                   </button>
                 </div>
               )}
+              <button
+                onClick={async () => {
+                  setNotifPerm(await requestNotifyPermission());
+                }}
+                disabled={notifPerm !== "default"}
+                className="w-full mt-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[9.5px] text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {notifPerm === "granted"
+                  ? "🔔 系统通知已开启"
+                  : notifPerm === "denied"
+                    ? "🔕 通知被浏览器拒绝（设置中开启）"
+                    : "🔔 开启系统通知（成局/报价/好友本地提醒）"}
+              </button>
             </motion.div>
           </>
         )}

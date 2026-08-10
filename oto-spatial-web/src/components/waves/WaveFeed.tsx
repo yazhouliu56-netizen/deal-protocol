@@ -19,6 +19,7 @@ import SpatialHeatMap from "./SpatialHeatMap";
 import OrganizerBoostCard from "./OrganizerBoostCard";
 import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
+import IdentityAvatar from "@/components/ui/IdentityAvatar";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -116,9 +117,7 @@ export default function WaveFeed() {
 
       {/* 顶部条：身份 + 在线开关 + 发布 */}
       <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-full btn-primary flex items-center justify-center text-sm font-extrabold shadow-lg glow-purple-strong">
-          {identity.emoji}
-        </div>
+        <IdentityAvatar />
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-extrabold text-white/95 truncate">
             雷达 {identity.nickname}

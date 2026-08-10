@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { usePrefStore } from "@/store/usePrefStore";
+import { PREF_KEYS } from "@/lib/prefs";
+import { fileToAvatarDataUrl } from "@/lib/avatar";
+import IdentityAvatar from "@/components/ui/IdentityAvatar";
 import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";
 import WorkerWorkbench from "./WorkerWorkbench";
@@ -38,9 +42,21 @@ export default function ProfilePage({
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const cancelBooking = useAppStore((s) => s.cancelBooking);
   const identity = useIdentityStore((s) => s.identity);
+  const prefs = usePrefStore((s) => s.prefs);
+  const cycle = usePrefStore((s) => s.cycle);
+  const resetPrefs = usePrefStore((s) => s.resetPrefs);
 
   const [showReviewFor, setShowReviewFor] = useState<string | null>(null);
   const [view, setView] = useState<"profile" | "workbench">("profile");
+  const setAvatar = useIdentityStore((s) => s.setAvatar);
+
+  const onPickAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const dataUrl = await fileToAvatarDataUrl(file);
+    if (dataUrl) setAvatar(dataUrl);
+  };
 
   const selected = bookings.find((b) => b.id === selectedBookingId) ?? null;
 
@@ -101,9 +117,22 @@ export default function ProfilePage({
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="glass-panel rounded-3xl p-4 flex items-center gap-3"
       >
-        <div className="w-14 h-14 rounded-2xl btn-primary flex items-center justify-center text-xl font-extrabold shadow-lg glow-purple-strong">
-          A
-        </div>
+        <label
+          className="relative cursor-pointer group"
+          title="点击上传本地头像（自动压缩为 96×96）"
+        >
+          <IdentityAvatar size="lg" />
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brandPurple border border-white/30 flex items-center justify-center text-[9px] shadow-md group-hover:scale-110 transition-transform">
+            ✎
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            aria-label="上传本地头像"
+            onChange={onPickAvatar}
+          />
+        </label>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-extrabold">Alex</span>
@@ -197,23 +226,32 @@ export default function ProfilePage({
         )}
       </div>
 
-      {/* 偏好（静态占位） */}
+      {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
       <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-[11px] font-bold text-white/70 mb-2">
+        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
           撮合偏好
+          <button
+            onClick={() => resetPrefs()}
+            className="ml-auto text-[9px] text-white/30 hover:text-white/70 transition-colors"
+          >
+            重置
+          </button>
         </h3>
         <div className="flex flex-wrap gap-1.5">
-          {["活动范围 5 公里内", "预算 ¥50/局", "业余水平", "周末出行"].map(
-            (p) => (
-              <span
-                key={p}
-                className="text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/60"
-              >
-                {p}
-              </span>
-            )
-          )}
+          {PREF_KEYS.map((key) => (
+            <button
+              key={key}
+              onClick={() => cycle(key)}
+              title="点击切换"
+              className="text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/60 hover:border-brandPurple/50 hover:text-white/80 active:scale-95 transition-all"
+            >
+              {prefs[key]}
+            </button>
+          ))}
         </div>
+        <p className="text-[9px] text-white/25 mt-2">
+          点击标签切换偏好，将用于撮合匹配排序（本地保存）
+        </p>
       </div>
     </div>
   );

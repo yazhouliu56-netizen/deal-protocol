@@ -28,3 +28,10 @@ The single source of truth for this project's stage/status is `../docs/PROJECT_S
 
 💡 *Use `mem-find` to search full details. Use `mem-create` to save important decisions.*
 <!-- /open-mem-context -->
+
+<!-- BEGIN:browser-testing-env -->
+# 浏览器验证环境（本机事实，勿违反）
+
+- **Chrome Beta**（`C:\Program Files\Google\Chrome Beta\Application\chrome.exe`）= 用户日常使用，**禁止启动/停止/复用其窗口与 profile**。
+- **Chrome 正式版**（`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`）= 调试专用。浏览器实测一律用它 + 独立 `--user-data-dir`（如 `%TEMP%\opencode\chrome-debug`）+ `--remote-debugging-port=9222` 启动；收尾清理进程时按 `--user-data-dir` 特征匹配，**禁止**按 exe 路径（`Path -like "*Chrome*"`）杀进程，否则会误杀 Beta。
+<!-- END:browser-testing-env -->

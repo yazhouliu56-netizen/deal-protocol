@@ -1,27 +1,111 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { QrCode, ScanLine, CheckCircle2 } from "lucide-react";
+import jsQR from "jsqr";
 import { useWaveStore } from "@/store/useWaveStore";
+import { parseWaveUrl } from "@/lib/scan";
+
+type Phase = "requesting" | "scanning" | "mock" | "result";
 
 /**
- * 扫码识别（本地 demo 模拟）：
- * 上线时接 getUserMedia + 二维码解码；本地先模拟「扫到分享的局」 →
- * 展示局信息 + 「加入拼位」直达（/?wave=xxx&via=scan）。
+ * 扫码识别：
+ * 真摄像头（getUserMedia 环境后置）+ jsQR 逐帧解码 → 识别 ShareKit 分享链接
+ * → 展示局信息 + 「加入拼位」直达（/?wave=xxx&via=scan）。
+ * 降级链：无摄像头 / 无权限 / 解码库异常 → 回退本地模拟扫码（演示可用）。
  */
 export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
-  // 父层条件渲染（scanOpen && <ScanMockSheet/>）→ 挂载即一次扫码会话。
-  const [phase, setPhase] = useState<"scanning" | "result">("scanning");
+  const [phase, setPhase] = useState<Phase>("requesting");
+  const [scannedId, setScannedId] = useState<string | null>(null);
   const waves = useWaveStore((s) => s.waves);
 
-  const wave = waves.find(
-    (w) => w.status === "active" && !w.removed && (w.capacity ?? 1) >= 2
-  ) ?? waves.find((w) => w.status === "active" && !w.removed);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
 
+  // 模拟兜底：约 1.4s 后「扫到」一个活跃开放局。
   useEffect(() => {
+    if (phase !== "mock") return;
     const t = setTimeout(() => setPhase("result"), 1400);
     return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    let alive = true;
+    let stream: MediaStream | null = null;
+
+    const decodeLoop = () => {
+      const v = videoRef.current;
+      const c = canvasRef.current;
+      if (!v || !c || v.readyState < 2) {
+        rafRef.current = requestAnimationFrame(decodeLoop);
+        return;
+      }
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      c.width = v.videoWidth;
+      c.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0);
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const code = jsQR(img.data, img.width, img.height, {
+        inversionAttempts: "dontInvert",
+      });
+      if (code?.data) {
+        const id = parseWaveUrl(code.data);
+        if (id) {
+          setPhase("result");
+          setScannedId(id);
+          return;
+        }
+      }
+      rafRef.current = requestAnimationFrame(decodeLoop);
+    };
+
+    const start = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        if (alive) setPhase("mock");
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false,
+        });
+        if (!alive) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        const v = videoRef.current;
+        if (v) {
+          v.srcObject = stream;
+          await v.play().catch(() => {});
+        }
+        if (alive) {
+          setPhase("scanning");
+          rafRef.current = requestAnimationFrame(decodeLoop);
+        }
+      } catch {
+        if (alive) setPhase("mock");
+      }
+    };
+
+    start();
+    return () => {
+      alive = false;
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
   }, []);
+
+  // 真扫码命中的局（不在本地 store 时回退到没有任何局 → 显示「码内局已结束」）。
+  const wave = scannedId
+    ? (waves.find((w) => w.id === scannedId) ?? null)
+    : (waves.find(
+        (w) => w.status === "active" && !w.removed && (w.capacity ?? 1) >= 2
+      ) ?? waves.find((w) => w.status === "active" && !w.removed));
 
   const join = () => {
     if (!wave) return;
@@ -55,7 +139,38 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {phase === "scanning" ? (
+        {phase === "requesting" ? (
+          <div className="py-6 flex flex-col items-center gap-3">
+            <div className="relative w-24 h-24">
+              <div className="absolute inset-0 border-2 border-brandCyan/40 rounded-2xl" />
+              <ScanLine
+                size={30}
+                className="absolute inset-0 m-auto text-brandCyan animate-pulse"
+              />
+            </div>
+            <p className="text-[11px] text-white/55">正在调起摄像头…</p>
+          </div>
+        ) : phase === "scanning" ? (
+          <div className="relative overflow-hidden rounded-2xl border border-brandCyan/40 aspect-[4/3] bg-black">
+            {/* 后置摄像头预览（镜像翻转，对准即扫） */}
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              className="w-full h-full object-cover -scale-x-100"
+            />
+            <div className="absolute inset-x-5 inset-y-[20%] border-2 border-brandCyan/50 rounded-xl pointer-events-none">
+              <motion.div
+                animate={{ y: [0, "calc(100%)", 0] }}
+                transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                className="absolute left-0 right-0 h-0.5 rounded-full bg-brandCyan/80"
+              />
+            </div>
+            <p className="absolute bottom-2.5 inset-x-0 text-center text-[10px] text-white/60">
+              对准对方屏幕上的二维码，自动识别
+            </p>
+          </div>
+        ) : phase === "mock" ? (
           <div className="py-6 flex flex-col items-center gap-3">
             <div className="relative w-24 h-24">
               <div className="absolute inset-0 border-2 border-brandCyan/40 rounded-2xl" />
@@ -68,6 +183,9 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
             </div>
             <p className="text-[11px] text-white/55">
               正在调起摄像头（本地模拟）…
+            </p>
+            <p className="text-[9.5px] text-white/30">
+              摄像头不可用，已回退模拟演示
             </p>
           </div>
         ) : (

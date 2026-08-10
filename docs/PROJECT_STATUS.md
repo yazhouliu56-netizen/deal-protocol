@@ -49,13 +49,18 @@
 | S2 AI 主动诊断 | ✅ 发布后无人响应 ≥2min 诊断卡（`diagnostic.ts` 纯函数 + `/api/diagnose` 复用 cluster 三级降级，Zhipu 实测生效）+ `DiagnosisCard.tsx` 挂载 MyWaves，浏览器实测 | |
 | S3 关系沉淀（转友） | ✅ 72h 自动撤回转友状态机（`friends.ts` 纯函数）+ `FriendKit`/`FriendList` 挂载 ProfilePage/MyWaves/履约区，双 tab 实测：发布→接单→履约→72h 评价窗→转友→接受 | |
 | 拼位裂变 ShareKit | ✅ 分享文案复制 + 伪二维码 + `fissionIncrement` 防自刷计数（回应/成交才 +1，按人去重）+ 分享链接 `?wave=` 直达置顶 | |
+| 真机扫码（本地闭环） | ✅ `ScanMockSheet` 接 getUserMedia 环境后置摄像头 + jsQR 逐帧解码 ShareKit 链接 → 局详情 + 加入拼位直达；无摄像头/无权限自动降级回模拟扫码（演示可用）；`scan.ts` parseWaveUrl 纯函数 +7 单测 | |
+| 撮合偏好可编辑 | ✅ `prefs.ts` 四维选项池（半径/预算/水平/时间）纯函数 +7 单测 + usePrefStore persist，ProfilePage 标签点击循环切换 + 重置 | |
+| 分享真二维码 | ✅ ShareKit 伪码 → `qrcode` canvas 生成真二维码（离线本地画，无网络请求）；`qr.test.ts` 闭环单测 qrcode→pngjs→jsQR 还原分享链接（+4 单测，含中文/转义域名） | |
+| 本地系统通知 | ✅ `systemNotify.ts` 纯 diff（成局/新报价/拼位占座/正式接单/好友申请 五类事件，+8 单测）+ 浏览器 Notification API 窗口安全封装；NotificationCenter 跨帧 diff → 弹系统通知 + 面板授权按钮 | |
+| 本地上传头像 | ✅ `IdentityAvatar`（有头像显示图片 / 无则 emoji 兜底）+ `lib/avatar.ts` FileReader→canvas 居中裁切压缩 96×96 JPEG，Identity.avatar persist，三处展示（首页/雷达头/个人中心）同步 | |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **175/175 全绿**（27 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport） |
-| Lint | ESLint exit 0 |
+| 单测 | **257/257 全绿**（32 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport/scan/prefs/qr/systemNotify） |
+| Lint | ESLint exit 0（0 errors；存量 warning 在 scripts/ 非组件） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音） |
@@ -65,8 +70,8 @@
 
 1. ~~CI 少挂 2 条 E2E~~ ✅ 已修复：`e2e-trustopen`、`e2e-acceptance` 已挂入 CI（11 条）
 2. ~~生产服务器未运行~~ ✅ 已启动：pid 8084，HTTP 200，重启脚本验证通过
-3. 本地未推 commit（本次 4 项功能惯改，待 push）
-4. P3 地图 仍在设计稿（数据化前置已落地 ✅，接 Leaflet+OSM 是关键下步；Supabase 全量数据化仍设计稿）
+3. ~~本地未推 commit~~（本次批次已推 `f11e8cb` 起多笔，见 LAST_SYNC）
+4. ~~P3 地图仍在设计稿~~ ✅ 已落地（MapLibre + OpenFreeMap，`f11e8cb` 起）
 
 ## 六、下一步（待办）
 
@@ -74,7 +79,7 @@
 - [x] S1 匿名光点热力图 ✅（本批完成）
 - [x] **S2 AI 主动诊断** · **S3 关系沉淀** ✅（本批完成，社交层闭环）
 - [x] 场景模板 ×4 ✅（本批完成）
-- [ ] **Supabase 全量数据化**（在线真实数据 + 离线 mock 兜底，接口形态不变）
+- [x] **Supabase 全量数据化**（在线真实数据 + 离线 mock 兜底，接口形态不变）→ 前置项「真机扫码」已提前本地闭环（见三），余项仍待数据化
 - [x] 拼位裂变 ✅（本批完成：分享 + 防自刷计数 + 二维码）
 - [ ] **P8 商业化**：账号漫游（防多开风控）+ PWA 真通知（转介绍杠杆）+ 公开竞价（佣金）
 - [ ] 更远：灵感漩涡 / 响应方商业化 / 短信兜底 / 组局者订阅
@@ -113,3 +118,6 @@
 | 2026-08-09 | `b08f406` + 本档 | G-4 数据源徽章 + PWA 安装引导（本地沙盒/离线双态 + beforeinstallprompt 一键安装实测可用）→ LAUNCH-GAP G 组 4 项全部清零；本地无占位缺口，D 组（数据化）待命 |
 | 2026-08-09 | `f3c1dc5` + 本档 | G-5 × 商业化真实化：竞价卡接入「我发出的真实开放局」（保留价=局预算、种子报价跟随、真实需求局徽章）；组局加速订阅 → 雷达优先曝光实时横幅；我的屏访客引导（本地模式说明 + 数据模式弹层 + 回雷达）→ 浏览器实测保留价¥100 报价 100/108/115；单测 225 全绿 |
 | 2026-08-09 | `77d2a35` + 本档 | 本地数据自主权三件套：① 快照导出/导入（lib/snapshot 纯函数 +6 单测 + DataPortCard 个人中心，实测 8 键往返 reload 恢复）；② 地图光点详情（CSS/3D 双端点击信号点 → 局详情卡：时间/地点/¥/名额/关注/复制分享直达；MapView 增 onDotClick）；③ 演示座舱（需求方/服务者/多开风控三剧本 + 复位，store 既有 API 零数据爆炸）→ 单测 231 全绿；纯本地可做项至此全部清零，主线仅剩 D 组数据化 |
+| 2026-08-10 | `c4899f3`+ 未推 | 本地收尾双件：① 真机扫码（ScanMockSheet 接 getUserMedia + jsQR 逐帧解码，无摄像头自动降级模拟，jsqr@1.4 依赖；scan.ts parseWaveUrl +7 单测，浏览器实测发布→扫（降级）→识别局→/?wave&via=scan 跳转）；② 撮合偏好编辑（prefs.ts 四维池纯函数 +7 单测 + usePrefStore persist + ProfilePage 点击循环/重置，实测切换/重载持久/重置闭环）→ 单测 245 全绿；LAUNCH-GAP D 组「真机扫码」移入已闭环（本地零服务端依赖），D 组余 4 项待数据化 |
+| 2026-08-10 | 未推 | 存量 lint error 修复：NotificationCenter.tsx setState-in-effect（`react-hooks/set-state-in-effect`）→ 已读集合改为 readKeys.ts 外部 store（useSyncExternalStore，同 mapPref 同构模式：server 快照空集、subscribe 时 warm 存储值，无水合不一致）+ markAllRead → lint 0 errors、tsc/245 单测绿、浏览器面板开合/空态无报错 |
+| 2026-08-10 | 未推 | 本地化新三件：① 分享真二维码（ShareKit 伪码→qrcode canvas 真码；qr.test 闭环 qrcode→pngjs→jsQR 还原链接 +4）② 本地系统通知（systemNotify 五类事件 diff +8、NotificationCenter 挂载授权按钮与跨帧 diff→notify）③ 本地上传头像（IdentityAvatar 图片/emoji 兜底 + avatar.ts 96×96 压缩 + 三处展示 + persist）。附：FloatingDock `bottom-[calc(env(...))]` 触发 tailwind v4 arbitrary 解析 bug（仅全新编译暴露，旧缓存掩盖）→ 改为自定义 CSS 类 `o-safe-bottom/o-safe-pb`（globals.css 手写 safe-area 工具，与既有 .pb-safe 同范式）→ build 成功、prod 模式实测正常。单测 257 全绿（+12），tsc/lint（src）0 错；浏览器实测（prod 模式）：真码 canvas 224px/PNG 5.2KB/黑占比 45.7%、系统通知按钮存在、头像上传→JPEG 压缩→reload 持久→首页+雷达头+个人中心三处同步 |

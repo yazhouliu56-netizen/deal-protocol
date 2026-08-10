@@ -1,28 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Check, Users } from "lucide-react";
+import QRCode from "qrcode";
 import type { Wave } from "@/lib/wave";
 
 /**
  * 拼位裂变 ShareKit — 纯本地实现。
  * - 复制分享文案（URL 带 wave 参数 + 邀请口令）
- * - 伪二维码（确定性 grid，离线可用；真码 P8 接第三方库）
+ * - 真二维码（qrcode 本地 canvas 生成，离线可用；扫码直达 /?wave=&via=）
  * - 展示真实裂变数 fissionCount（仅"回应/成局"计，防自刷）
  */
-function fakeQr(seed: string, size = 21): boolean[] {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
-  let x = 0x811c9dc5;
-  const cells: boolean[] = [];
-  for (let i = 0; i < size * size; i++) {
-    x ^= (h >> (i % 17)) & 1;
-    x = Math.imul(x, 0x01000193) >>> 0;
-    cells.push((x >>> 0) % 97 < 46);
-  }
-  return cells;
-}
-
 function shareUrl(wave: Wave): string {
   const base = typeof window !== "undefined" ? window.location.origin : "";
   return `${base}/?wave=${encodeURIComponent(wave.id)}&via=${encodeURIComponent(wave.authorId)}`;
@@ -35,7 +23,18 @@ function shareText(wave: Wave): string {
 export default function ShareKit({ wave }: { wave: Wave }) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
+  const [qrFailed, setQrFailed] = useState(false);
   const count = wave.fissionCount ?? 0;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 打开时在本地 canvas 生成真二维码（无网络请求，离线可用）。
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!open || !c) return;
+    setQrFailed(false);
+    QRCode.toCanvas(c, shareUrl(wave), { width: 224, margin: 1 })
+      .catch(() => setQrFailed(true));
+  }, [open, wave]);
 
   const copy = async () => {
     try {
@@ -83,23 +82,20 @@ export default function ShareKit({ wave }: { wave: Wave }) {
             <span className="text-brandCyan">（分享本身不计，防自刷）</span>。
           </p>
 
-          {/* 伪二维码 */}
+          {/* 真二维码：扫码直达分享局 */}
           <div className="flex justify-center">
-            <svg
-              viewBox="0 0 21 21"
-              className="w-28 h-28 rounded-lg bg-white p-1.5"
-              role="img"
-              aria-label="拼位邀请二维码（模拟）"
-            >
-              {fakeQr(wave.id).map((on, i) => {
-                const x = i % 21;
-                const y = Math.floor(i / 21);
-                if (!on) return null;
-                return (
-                  <rect key={i} x={x} y={y} width={1} height={1} fill="#0d1025" />
-                );
-              })}
-            </svg>
+            {qrFailed ? (
+              <span className="w-28 h-28 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[9px] text-white/40 px-2 text-center">
+                二维码生成失败，请用「复制分享文案」
+              </span>
+            ) : (
+              <canvas
+                ref={canvasRef}
+                className="w-28 h-28 rounded-lg bg-white p-1.5"
+                role="img"
+                aria-label="拼位邀请二维码"
+              />
+            )}
           </div>
 
           <button
