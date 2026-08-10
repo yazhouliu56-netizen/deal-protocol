@@ -1,13 +1,22 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Bot, Check, Send, Sparkles, Star } from "lucide-react";
+import { Bot, Check, Send, Sparkles, Star, Volume2, VolumeX } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { MockEngine } from "@/lib/chat/mockEngine";
 import { LlmEngine } from "@/lib/chat/llmEngine";
 import type { ChatMessage, ChatEvent, GenCard, ProviderItem } from "@/lib/chat/types";
 import { ChevronDown } from "lucide-react";
 import type { ScoreBreakdown } from "@/lib/match";
+import VoiceBar from "@/components/ui/VoiceBar";
+import { speak } from "@/lib/voice/ttsClient";
+import { useWaveStore } from "@/store/useWaveStore";
+import {
+  parseVoiceIntent,
+  mockVoiceIntent,
+  describeIntent,
+} from "@/lib/voice/voiceIntent";
+import type { VoiceIntent } from "@/lib/voice/types";
 
 const SUGGESTIONS = [
   "周日下午想找人打羽毛球",
@@ -60,7 +69,13 @@ export default function ChatPage() {
   const composingRef = useRef(false);
   const [streaming, setStreaming] = useState(false);
   const [thinking, setThinking] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const ttsOnRef = useRef(true);
+  useEffect(() => {
+    ttsOnRef.current = ttsEnabled;
+  }, [ttsEnabled]);
   const listRef = useRef<HTMLDivElement>(null);
+  const waves = useWaveStore((s) => s.waves);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -89,6 +104,68 @@ export default function ChatPage() {
       } else if (event.type === "done") {
         setThinking(false);
       }
+    }
+    // L1 播报：流式完成后自动朗读完整回复（TTS 开关控制）。
+    if (acc.trim() && ttsOnRef.current) {
+      void speak(acc);
+    }
+  }
+
+  /**
+   * L2 意图层：语音文本 → /api/voice-intent（LLM 结构化）→ 本地校验。
+   * - publish-wave：合成自然语言需求走现有撮合链路（确认卡 → 支付闭环），并播报确认文案。
+   * - query-waves：直接读 store 播报局势。
+   * - chat：直通现有对话。
+   * 无 LLM（503）→ mockVoiceIntent 本地关键词降级。
+   */
+  async function handleVoiceText(text: string) {
+    let intent: VoiceIntent = { kind: "chat" };
+    try {
+      const res = await fetch("/api/voice-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.slice(0, 400) }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { intent?: unknown };
+        intent = parseVoiceIntent(data.intent);
+      } else {
+        intent = mockVoiceIntent(text);
+      }
+    } catch {
+      intent = mockVoiceIntent(text);
+    }
+
+    if (intent.kind === "publish-wave") {
+      const w = intent.wave;
+      const demand = `帮我发布：${w.category}，${w.time}，${w.area}，预算 ${w.budget} 元${
+        w.capacity >= 2 ? `，${w.capacity} 人拼位` : ""
+      }`;
+      await handleSend(demand);
+      const ack = describeIntent(intent);
+      if (ttsOnRef.current) void speak(ack);
+    } else if (intent.kind === "query-waves") {
+      const active = waves.filter((w) => w.status === "active" && !w.removed).length;
+      const reply =
+        active > 0
+          ? `雷达上有 ${active} 个活跃局，去「雷达」看看有没有合适的。`
+          : "当前没有活跃的局，可以说句话我帮你发布一个。";
+      addChatMessage({ id: crypto.randomUUID(), role: "assistant", content: reply });
+      if (ttsOnRef.current) void speak(reply);
+    } else {
+      await handleSend(text);
+    }
+  }
+
+  function handleVoiceEvent(e: { type: "text" | "tts" | "error"; text?: string }) {
+    if (e.type === "text" && e.text) {
+      void handleVoiceText(e.text);
+    } else if (e.type === "error" && e.text) {
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `🎙 ${e.text}`,
+      });
     }
   }
 
@@ -214,6 +291,16 @@ export default function ChatPage() {
           </p>
         </div>
         <button
+          onClick={() => setTtsEnabled((v) => !v)}
+          aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
+          className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
+            ttsEnabled ? "text-brandCyan" : "text-white/40"
+          }`}
+        >
+          {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
+          语音
+        </button>
+        <button
           onClick={() => {
             useAppStore.getState().clearChat();
             setSession((s) => s + 1);
@@ -284,6 +371,7 @@ export default function ChatPage() {
         >
           <Send size={16} />
         </button>
+        <VoiceBar onEvent={handleVoiceEvent} disabled={streaming} />
       </form>
     </div>
   );
@@ -327,6 +415,15 @@ function ChatBubble({
           </div>
         )}
       </div>
+      {!isUser && message.content && !isLatest && (
+        <button
+          onClick={() => void speak(message.content ?? "")}
+          aria-label="重播语音"
+          className="ml-9 mt-1 rounded-full px-2 py-0.5 glass-panel text-[9px] text-brandCyan hover:text-white flex items-center gap-1 transition-colors"
+        >
+          <Volume2 size={9} /> 重播
+        </button>
+      )}
       {message.cards?.map((card) => (
         <GenCardView
           key={card.id}

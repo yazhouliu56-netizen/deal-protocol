@@ -59,11 +59,12 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **257/257 全绿**（32 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport/scan/prefs/qr/systemNotify） |
+| 单测 | **275/275 全绿**（35 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport/scan/prefs/qr/systemNotify/voice） |
 | Lint | ESLint exit 0（0 errors；存量 warning 在 scripts/ 非组件） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音） |
+| 语音链路实测 | ⚠️ 部分：voice-intent 真 LLM 识别 / IDB 留存 / 无麦克风降级 ✅；**录音→ASR 真链、TTS 出声留待真机验证**（本机无麦克风；智谱 TTS 余额不足 429） |
 | 生产服务器 | ✅ 运行中（pid 8084，端口 3000，HTTP 200，`restart-prod.mjs`） |
 
 ## 五、遗留缺口
@@ -121,3 +122,4 @@
 | 2026-08-10 | `c4899f3`+ 未推 | 本地收尾双件：① 真机扫码（ScanMockSheet 接 getUserMedia + jsQR 逐帧解码，无摄像头自动降级模拟，jsqr@1.4 依赖；scan.ts parseWaveUrl +7 单测，浏览器实测发布→扫（降级）→识别局→/?wave&via=scan 跳转）；② 撮合偏好编辑（prefs.ts 四维池纯函数 +7 单测 + usePrefStore persist + ProfilePage 点击循环/重置，实测切换/重载持久/重置闭环）→ 单测 245 全绿；LAUNCH-GAP D 组「真机扫码」移入已闭环（本地零服务端依赖），D 组余 4 项待数据化 |
 | 2026-08-10 | 未推 | 存量 lint error 修复：NotificationCenter.tsx setState-in-effect（`react-hooks/set-state-in-effect`）→ 已读集合改为 readKeys.ts 外部 store（useSyncExternalStore，同 mapPref 同构模式：server 快照空集、subscribe 时 warm 存储值，无水合不一致）+ markAllRead → lint 0 errors、tsc/245 单测绿、浏览器面板开合/空态无报错 |
 | 2026-08-10 | 未推 | 本地化新三件：① 分享真二维码（ShareKit 伪码→qrcode canvas 真码；qr.test 闭环 qrcode→pngjs→jsQR 还原链接 +4）② 本地系统通知（systemNotify 五类事件 diff +8、NotificationCenter 挂载授权按钮与跨帧 diff→notify）③ 本地上传头像（IdentityAvatar 图片/emoji 兜底 + avatar.ts 96×96 压缩 + 三处展示 + persist）。附：FloatingDock `bottom-[calc(env(...))]` 触发 tailwind v4 arbitrary 解析 bug（仅全新编译暴露，旧缓存掩盖）→ 改为自定义 CSS 类 `o-safe-bottom/o-safe-pb`（globals.css 手写 safe-area 工具，与既有 .pb-safe 同范式）→ build 成功、prod 模式实测正常。单测 257 全绿（+12），tsc/lint（src）0 错；浏览器实测（prod 模式）：真码 canvas 224px/PNG 5.2KB/黑占比 45.7%、系统通知按钮存在、头像上传→JPEG 压缩→reload 持久→首页+雷达头+个人中心三处同步 |
+| 2026-08-11 | 未推 | 语音闭环三件套（L1 输入/输出 + L2 意图 + 留证）：① `lib/voice/` 纯函数层（audioStore IndexedDB 留存 + queryClips/summarizeEvidence 取证；voiceIntent 结构化意图校验/关键词 mock 降级/播报文案；asrClient GLM-ASR→Web Speech 降级；ttsClient GLM-TTS→speechSynthesis 降级 + 文本哈希 IndexedDB 缓存）② `/api/asr`+`/api/tts`（智谱音频代理，无 key 503，不留服务端缓存）+ `/api/voice-intent`（zhipu→gemini 结构化 JSON，围栏容错）③ VoiceBar（按住说话→MediaRecorder→ASR→语音留证）、ChatPage 语音入口（L2 意图→发布局走既有确认卡支付闭环/查局势/对话 + 回复自动播报 TTS 开关 + 气泡重播）→ 单测 275 全绿（+18），tsc/lint 0 错（src），build 通过；浏览器实测：voice-intent 真 LLM 识别 publish-wave 字段全对齐、IDB 留存冒烟、无麦克风降级 Web Speech 错误提示不崩溃；本机无麦克风+智谱 TTS 无余额（429）故录音真链/播报出声留待真机验证 |
