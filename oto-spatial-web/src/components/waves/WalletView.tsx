@@ -134,8 +134,12 @@ export default function WalletView() {
                 className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/[0.03] border border-white/10"
               >
                 <span className="text-[9.5px] text-white/60 truncate">{e.note}</span>
-                <span className="text-[10px] font-bold text-red-300 shrink-0 ml-2">
-                  -¥{Math.abs(e.amount)}
+                <span
+                  className={`text-[10px] font-bold shrink-0 ml-2 ${
+                    e.amount >= 0 ? "text-emerald-300" : "text-red-300"
+                  }`}
+                >
+                  {e.amount >= 0 ? "+" : "-"}¥{Math.abs(e.amount)}
                 </span>
               </motion.div>
             ))}

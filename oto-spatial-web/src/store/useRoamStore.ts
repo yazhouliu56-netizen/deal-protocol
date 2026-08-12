@@ -104,7 +104,7 @@ export const useRoamStore = create<RoamState>()(
     }),
     {
       name: "oto-roam-v1",
-      partialize: (s) => ({ deviceId: s.deviceId, bindings: s.bindings }),
+      partialize: (s) => ({ deviceId: s.deviceId, bindings: s.bindings, events: s.events }),
     }
   )
 );

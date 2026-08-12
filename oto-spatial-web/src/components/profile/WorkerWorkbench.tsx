@@ -7,6 +7,7 @@ import {
   WORKER_PROFILES,
   type WorkerOrder,
 } from "@/store/useAppStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 
 function priceToNumber(price: string): number {
   const m = price.match(/(\d+)/);
@@ -153,7 +154,13 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 key={o.id}
                 order={o}
                 actionLabel="完成服务"
-                onAction={() => completeWorkerOrder(o.id)}
+                onAction={() => {
+                  completeWorkerOrder(o.id);
+                  // 响应方商业化：完成后收益入钱包（虚拟结算）
+                  useIdentityStore
+                    .getState()
+                    .book("income", priceToNumber(o.price), `服务收益 · ${o.service}（${o.client}）`);
+                }}
               />
             ))}
           </div>

@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { VirtualAccount } from "@/lib/violation";
 import { INITIAL_BALANCE, settleBreach } from "@/lib/violation";
+import { applyLedger, makeLedgerEntry, type LedgerEntry } from "@/lib/ledger";
 import type { CreditTier } from "@/lib/reputation";
 import { applyCreditDelta } from "@/lib/reputation";
 import type { DepositPhase } from "@/lib/deposit";
@@ -38,15 +39,7 @@ export interface Identity {
   online: boolean;
 }
 
-export interface LedgerEntry {
-  id: string;
-  /** "penalty" (breach) / "payout" (鸽子险赔付) / "deposit" (押金动账). */
-  kind: "penalty" | "payout" | "deposit";
-  /** Negative = money left the wallet; positive = money in. */
-  amount: number;
-  note: string;
-  at: number;
-}
+export type { LedgerEntry } from "@/lib/ledger";
 
 export interface DepositRecord {
   claimId: string;
@@ -90,6 +83,8 @@ interface IdentityState {
   syncDeposit: (claimId: string, phase: DepositPhase, amount?: number) => void;
   /** Idempotent payout received (demander side, breach unforgiven). */
   receivePayout: (claimId: string, amount?: number) => void;
+  /** 通用入账：竞价佣金/订阅扣款/服务收益走同一账本（负数出、正数进）。 */
+  book: (kind: LedgerEntry["kind"], amount: number, note: string) => void;
 }
 
 function makeIdentity(): Identity {
@@ -268,6 +263,15 @@ export const useIdentityStore = create<IdentityState>()(
             account: payDepositPayout(s.account, amount),
             ledger: [payoutEntry, ...s.ledger].slice(0, 50),
           };
+        }),
+
+      book: (kind, amount, note) =>
+        set((s) => {
+          const now = Date.now();
+          // 负数出账不下穿 0；正数入账即时可用
+          const account = applyLedger(s.account, amount);
+          const entry = makeLedgerEntry(kind, amount, note, now);
+          return { account, ledger: [entry, ...s.ledger].slice(0, 50) };
         }),
     }),
     {

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Rocket, Check } from "lucide-react";
 import { useOrganizerSubStore } from "@/store/useOrganizerSubStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 import {
   ORGANIZER_PLAN,
   subDaysLeft,
@@ -24,6 +25,8 @@ export default function OrganizerBoostCard() {
   const active = status === "active";
 
   const handleConfirm = () => {
+    // 订阅 → 钱包联动：¥9.9/月 模拟扣款入账（余额不足则扣至 0）
+    useIdentityStore.getState().book("subscription", -ORGANIZER_PLAN.priceYuan, "组局加速订阅 · 30 天");
     activate();
     setConfirming(false);
   };

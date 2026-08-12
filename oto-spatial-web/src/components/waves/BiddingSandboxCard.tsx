@@ -124,6 +124,16 @@ const open = session.status === "open";
         netYuan: next.award.netYuan,
         at: Date.now(),
       });
+      // 竞价服务费入账：发起人钱包按成交额 8% 记平台佣金支出（幂等：已记过不再记）
+      if (!useIdentityStore.getState().ledger.some(
+        (e) => e.kind === "commission" && e.note.includes(picked.id)
+      )) {
+        useIdentityStore.getState().book(
+          "commission",
+          -next.award.feeYuan,
+          `竞价服务费 · ${picked.basics.category} 成交 ¥${next.award.price}（局 ${picked.id.slice(-6)}）`
+        );
+      }
     }
   };
 

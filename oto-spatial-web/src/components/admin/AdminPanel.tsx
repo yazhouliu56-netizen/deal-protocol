@@ -3,6 +3,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Gavel, ShieldCheck, X, Flag, TrendingUp } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
+import { useRoamStore } from "@/store/useRoamStore";
+import { riskOf } from "@/lib/roamGuard";
 import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/lib/moderation";
 
 /**
@@ -21,6 +23,9 @@ export default function AdminPanel({
   const claims = useWaveStore((s) => s.claims);
   const reports = useWaveStore((s) => s.reports);
   const resolveReport = useWaveStore((s) => s.resolveReport);
+  const deviceId = useRoamStore((s) => s.deviceId);
+  const bindings = useRoamStore((s) => s.bindings);
+  const roamEvents = useRoamStore((s) => s.events);
   const [pending, setPending] = useState<Record<string, ModerationAction>>({});
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({});
 
@@ -169,6 +174,40 @@ export default function AdminPanel({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* 漫游风控监控（P8） */}
+          <div>
+            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+              <ShieldCheck size={11} className="text-brandCyan" /> 漫游安全监控
+            </h3>
+            {(() => { const r = riskOf(bindings, deviceId); const cls = r.risk === "high" ? "text-red-300" : r.risk === "watch" ? "text-amber-300" : "text-emerald-300"; return (
+            <p className={`text-[9.5px] font-bold mb-2 ${cls}`}>
+              本设备 {deviceId ?? "…"} · 同设备 {r.count} 个身份 · {r.reason}
+            </p>
+            ); })()}
+            {roamEvents.length === 0 ? (
+              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+                暂无漫游事件
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {roamEvents.slice(0, 8).map((e, i) => (
+                  <div
+                    key={`${e.at}-${i}`}
+                    className="flex items-center justify-between gap-2 text-[9.5px] px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                  >
+                    <span className="text-white/70 truncate">
+                      {e.kind === "alert" ? "⚠ " : ""}
+                      {e.note}
+                    </span>
+                    <span className="text-white/35 shrink-0">
+                      {new Date(e.at).toLocaleTimeString("zh-CN")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 审计记录 */}
