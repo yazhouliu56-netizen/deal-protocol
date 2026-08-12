@@ -116,21 +116,21 @@ const open = session.status === "open";
   };
 
   return (
-    <div className="mt-3 rounded-2xl border border-brandPurple/25 bg-gradient-to-r from-brandPurple/10 via-[#151230]/80 to-brandPurple/10 p-3">
+    <div className="mt-3 rounded-2xl glass-panel p-3 border-dashed border-white/15">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl btn-primary glow-purple-strong flex items-center justify-center shrink-0">
-          <Gavel size={14} />
+        <div className="w-8 h-8 rounded-xl glass-panel-interactive flex items-center justify-center shrink-0">
+          <Gavel size={14} className="text-white/60" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[11px] font-extrabold text-white/90 flex items-center gap-1.5">
-            公开竞价
+            公开竞价 · 演示沙盒
             {picked ? (
               <span className="px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-[8.5px] text-emerald-300 font-extrabold">
                 你的真实需求局
               </span>
             ) : (
               <span className="px-1.5 py-0.5 rounded-full bg-white/5 border border-white/15 text-[8.5px] text-white/45 font-bold">
-                演示局
+                演示局 · 无真实资金
               </span>
             )}
           </p>
@@ -229,14 +229,14 @@ const open = session.status === "open";
           <button
             type="button"
             onClick={handleBid}
-            className="flex-1 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-[10px] font-extrabold hover:bg-brandPurple/30 transition-colors"
+            className="flex-1 min-h-10 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-[10px] font-extrabold hover:bg-brandPurple/30 transition-colors"
           >
             {myLowest ? "保持最低价 · 稳住榜一" : "出价"}
           </button>
           <button
             type="button"
             onClick={handleAward}
-            className="shrink-0 px-3 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold hover:bg-emerald-400/25 transition-colors"
+            className="shrink-0 min-h-10 px-3.5 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold hover:bg-emerald-400/25 transition-colors"
           >
             立即开标
           </button>

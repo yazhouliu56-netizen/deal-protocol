@@ -849,7 +849,9 @@ function TripPage() {
         我的 OTO 之旅
       </h2>
       <p className="text-[11px] text-white/60 mt-1">
-        马尔代夫 · 巴厘岛 · 3 天行程
+        {bookings.length > 0
+          ? `${bookings.length} 个真实预订已入行程 · 演示活动补充`
+          : "马尔代夫 · 巴厘岛 · 3 天行程"}
       </p>
       {/* 3D 路线地图卡片 + 活动时间线：移动端纵向堆叠，桌面端左右并排 */}
       <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
@@ -960,6 +962,40 @@ function TripPage() {
           <div className="relative">
             <div className="absolute left-[19px] top-2 bottom-2 w-px bg-linear-to-b from-brandPurple/60 via-white/20 to-brandCyan/50" />
             <div className="space-y-3">
+              {/* 真实预订优先入时间线（AI 撮合 / waves 成局产生） */}
+              {bookings
+                .filter((b) => b.status === "upcoming")
+                .map((b) => (
+                  <div key={b.id} className="flex items-start gap-3">
+                    <div className="relative shrink-0 mt-0.5">
+                      <div className="w-10 h-10 rounded-2xl glass-panel flex items-center justify-center">
+                        <span className="text-base">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openOrder(b.id)}
+                      className="flex-1 glass-panel p-3 rounded-2xl text-left hover:border-brandCyan/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold text-brandCyan tracking-wide">
+                          {b.time}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] text-white/50">
+                          <Check size={10} className="text-emerald-400" />
+                          <span className="truncate max-w-[120px]">已确认</span>
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold mt-1.5 truncate">{b.title}</h4>
+                      <p className="text-[10px] text-white/50 truncate">{b.providerName}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold">
+                          {b.price}
+                        </span>
+                        <span className="text-[10px] text-white/40">点按查看订单</span>
+                      </div>
+                    </button>
+                  </div>
+                ))}
               {sortedActivities.map((act) => (
                 <ActivityRow key={act.id} activity={act} />
               ))}

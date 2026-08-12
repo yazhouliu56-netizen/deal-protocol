@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Wifi, WifiOff, Heart, Rocket } from "lucide-react";
+import { Plus, Wifi, WifiOff, Heart, Rocket, Sparkles } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
@@ -20,6 +20,7 @@ import OrganizerBoostCard from "./OrganizerBoostCard";
 import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
 import IdentityAvatar from "@/components/ui/IdentityAvatar";
+import { toast } from "@/lib/toast";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -37,6 +38,10 @@ export default function WaveFeed() {
   const sub = useOrganizerSubStore((s) => s.sub);
   const [publishOpen, setPublishOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
+  // P1-3 空态引导链：首次进入（未点过「知道了」）才显示三步引导
+  const [showOnboard, setShowOnboard] = useState(
+    () => typeof window !== "undefined" && !localStorage.getItem("oto-onboard-dismissed")
+  );
   const favorites = useWaveStore((s) => s.favorites);
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
@@ -119,10 +124,15 @@ export default function WaveFeed() {
       <div className="flex items-center gap-2.5">
         <IdentityAvatar />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-extrabold text-white/95 truncate">
-            雷达 {identity.nickname}
+          <p className="text-[15px] font-extrabold text-white/95 truncate leading-tight">
+            雷达 · {identity.nickname}
           </p>
-          <p className="text-[10px] text-white/45 truncate">
+          <p className="text-[10.5px] text-white/50 truncate mt-0.5 flex items-center gap-1">
+            <span
+              className={`inline-block w-1.5 h-1.5 rounded-full ${
+                identity.online ? "bg-emerald-400" : "bg-white/30"
+              }`}
+            />
             {identity.online ? "在线 · 正在接收信号" : "隐身 · 暂停接收"}
           </p>
         </div>
@@ -157,26 +167,53 @@ export default function WaveFeed() {
         </button>
       </div>
 
-      {/* 发布 CTA */}
-      <button
+      {/* 发布 CTA（主视觉）：核心漏斗动作，渐变 + 光晕 + 入场 */}
+      <motion.button
         onClick={() => setPublishOpen(true)}
-        className="mt-4 w-full flex items-center gap-2.5 px-4 py-3.5 rounded-2xl glass-panel-interactive text-left group hover:border-brandPurple/50 transition-colors"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileTap={{ scale: 0.98 }}
+        className="mt-4 w-full flex items-center gap-3 px-4 py-4 rounded-2xl btn-primary glow-purple-strong hover:brightness-110 transition-[filter] text-left group"
       >
-        <div className="w-9 h-9 rounded-xl btn-primary glow-purple-strong flex items-center justify-center shrink-0">
-          <Plus size={16} />
+        <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+          <Plus size={18} className="text-white" />
         </div>
         <span className="flex-1 min-w-0">
-          <span className="block text-xs font-extrabold text-white/90">
+          <span className="block text-sm font-extrabold text-white">
             发出你的需求
           </span>
-          <span className="block text-[10px] text-white/45 truncate">
-            一句话说清 时间/地点/品类 · 可选加定制
+          <span className="block text-[10px] text-white/70 truncate">
+            时间 / 地点 / 品类一句话说清 · 可选 AI 拆解定制
           </span>
         </span>
-        <span className="text-[10px] text-brandPurple font-bold shrink-0 px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
-          发送
+        <span className="text-[10px] font-bold text-white shrink-0 px-2.5 py-1 rounded-full bg-white/15 border border-white/25 group-hover:bg-white/25 transition-colors">
+          发送 📡
         </span>
-      </button>
+      </motion.button>
+
+      {/* P1-3 空态引导链：首次进入且无需求时，解释「发出→接单→履约」三步 */}
+      {showOnboard && feed.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-2 px-3 py-2.5 rounded-2xl bg-brandCyan/10 border border-brandCyan/30 text-[10px] text-white/70 flex items-start gap-2"
+        >
+          <Sparkles size={12} className="text-brandCyan shrink-0 mt-0.5" />
+          <p className="leading-relaxed">
+            三步开始：<span className="font-bold text-white/90">① 上面发出需求</span>
+            <span className="text-white/40"> → </span>
+            <span className="font-bold text-white/90">② 响应者接单</span>
+            <span className="text-white/40"> → </span>
+            <span className="font-bold text-white/90">③ 履约评价</span>
+            <button
+              onClick={() => { localStorage.setItem("oto-onboard-dismissed", "1"); setShowOnboard(false); }}
+              className="ml-1 text-[9px] text-white/40 hover:text-white underline underline-offset-2"
+            >
+              知道了
+            </button>
+          </p>
+        </motion.div>
+      )}
 
       {/* S1 匿名光点热力图：附近活跃信号波 */}
       <SpatialHeatMap />
@@ -266,6 +303,9 @@ export default function WaveFeed() {
             // no-show 欠款未结 → 拼位被锁定：告知用户去「我的」结清
             if (out?.error === "debt-unsettled") {
               setJoinError("你还有未结清的 no-show 违约，先去「我的」结清欠款再拼位");
+              toast("拼位失败：no-show 欠款未结", "error");
+            } else if (out && !out.error) {
+              toast("拼位成功 · 已占位", "success");
             }
           }
           setJoinPay(null);

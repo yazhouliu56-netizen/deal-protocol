@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Bot, Check, Send, Sparkles, Star, Volume2, VolumeX } from "lucide-react";
+import { Bot, Check, Mic, Send, Sparkles, Star, Volume2, VolumeX } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { MockEngine } from "@/lib/chat/mockEngine";
 import { LlmEngine } from "@/lib/chat/llmEngine";
@@ -76,6 +76,10 @@ export default function ChatPage() {
   }, [ttsEnabled]);
   const listRef = useRef<HTMLDivElement>(null);
   const waves = useWaveStore((s) => s.waves);
+  // P2-4 语音入口提示：首次进入显示「按住说话」气泡，点过一次后不再出现
+  const [showVoiceHint, setShowVoiceHint] = useState(
+    () => typeof window !== "undefined" && !localStorage.getItem("oto-voice-hint-seen")
+  );
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -352,7 +356,7 @@ export default function ChatPage() {
           if (composingRef.current) return;
           handleSend(input);
         }}
-        className="mt-3 flex items-center gap-2"
+        className="mt-3 flex items-center gap-2 relative"
       >
         <input
           value={input}
@@ -372,6 +376,26 @@ export default function ChatPage() {
           <Send size={16} />
         </button>
         <VoiceBar onEvent={handleVoiceEvent} disabled={streaming} />
+        {/* P2-4 首次语音提示气泡 */}
+        {showVoiceHint && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-brandPurple/30 border border-brandPurple/50 text-[9.5px] font-bold text-white/90 flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+          >
+            <Mic size={10} className="text-brandCyan" />
+            按住说话 · 自动发布/查局
+            <button
+              onClick={() => {
+                localStorage.setItem("oto-voice-hint-seen", "1");
+                setShowVoiceHint(false);
+              }}
+              className="ml-1 pointer-events-auto text-white/50 hover:text-white underline underline-offset-2"
+            >
+              知道了
+            </button>
+          </motion.div>
+        )}
       </form>
     </div>
   );

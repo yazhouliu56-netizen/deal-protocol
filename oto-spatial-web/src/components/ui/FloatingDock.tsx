@@ -63,11 +63,18 @@ export default function FloatingDock() {
                 }`}
               >
                 <div
-                  className={`p-2 rounded-full transition-colors duration-300 ${
-                    isActive ? "bg-brandPurple/20 glow-purple" : ""
+                  className={`relative p-2 rounded-full transition-colors duration-300 ${
+                    isActive ? "bg-brandPurple/20" : ""
                   }`}
                 >
-                  <Icon size={20} />
+                  {isActive && (
+                    <motion.div
+                      layoutId="dock-active-halo"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      className="absolute inset-0 rounded-full glow-purple"
+                    />
+                  )}
+                  <Icon size={20} className="relative" />
                 </div>
                 <span className="text-[10px] font-semibold tracking-wide">
                   {nav.label}

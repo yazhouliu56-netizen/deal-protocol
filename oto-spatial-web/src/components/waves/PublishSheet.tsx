@@ -8,6 +8,7 @@ import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/lib/pay";
+import { toast } from "@/lib/toast";
 import type { TaskModule } from "@/lib/decompose";
 
 /**
@@ -523,6 +524,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           setPaying(null);
           reset();
           onClose();
+          toast(
+            people >= 2 ? `需求已上线 · 已付拼位份额 ¥${paying?.amount ?? 0}` : "需求已上线 · 正在雷达广播",
+            "success"
+          );
         }}
       />
     </>
