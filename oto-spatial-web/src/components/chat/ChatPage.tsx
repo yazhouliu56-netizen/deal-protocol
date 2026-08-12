@@ -17,6 +17,7 @@ import {
   describeIntent,
 } from "@/lib/voice/voiceIntent";
 import type { VoiceIntent } from "@/lib/voice/types";
+import { voiceHint } from "@/lib/clientFlags";
 
 const SUGGESTIONS = [
   "周日下午想找人打羽毛球",
@@ -77,9 +78,8 @@ export default function ChatPage() {
   const listRef = useRef<HTMLDivElement>(null);
   const waves = useWaveStore((s) => s.waves);
   // P2-4 语音入口提示：首次进入显示「按住说话」气泡，点过一次后不再出现
-  const [showVoiceHint, setShowVoiceHint] = useState(
-    () => typeof window !== "undefined" && !localStorage.getItem("oto-voice-hint-seen")
-  );
+  const { useFlag: useVoiceHintSeen, markSeen: markVoiceSeen } = voiceHint;
+  const showVoiceHint = !useVoiceHintSeen();
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -386,11 +386,8 @@ export default function ChatPage() {
             <Mic size={10} className="text-brandCyan" />
             按住说话 · 自动发布/查局
             <button
-              onClick={() => {
-                localStorage.setItem("oto-voice-hint-seen", "1");
-                setShowVoiceHint(false);
-              }}
-              className="ml-1 pointer-events-auto text-white/50 hover:text-white underline underline-offset-2"
+              onClick={markVoiceSeen}
+              className="ml-1 px-2 py-1 min-h-8 pointer-events-auto text-white/50 hover:text-white underline underline-offset-2"
             >
               知道了
             </button>

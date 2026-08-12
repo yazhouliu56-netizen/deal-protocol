@@ -50,6 +50,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   /** AI 拆解出的模块草案（发起人确认后随单发布，接单后锁定）。 */
   const [modules, setModules] = useState<TaskModule[] | null>(null);
   const [decomposing, setDecomposing] = useState(false);
+  /** P2-6 弹层分组：可选配置（定制/拆解/开放局/鸽子险/有效期/配额）默认折叠，核心表单常显 */
+  const [showMore, setShowMore] = useState(false);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
@@ -206,7 +208,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             <button
               key={h}
               onClick={() => setCategory(h)}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
+              className={`px-2.5 min-h-8 rounded-full text-[10px] font-bold transition-colors ${
                 category === h
                   ? "btn-primary glow-purple-strong"
                   : "glass-panel-interactive text-white/60 hover:text-white"
@@ -249,6 +251,18 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-[11px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-3"
         />
 
+        {/* 可选配置折叠开关：核心要素常显，可选件收起 */}
+        <button
+          onClick={() => setShowMore(!showMore)}
+          aria-expanded={showMore}
+          className="w-full mb-3 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-[10.5px] font-bold text-white/65 hover:text-white transition-colors"
+        >
+          <span>更多选项（定制 / 磋商留言 / AI 拆解 / 开放局 / 鸽子险）</span>
+          <span className="text-[9px] text-white/40">{showMore ? "收起 ▴" : "展开 ▾"}</span>
+        </button>
+
+        {showMore && (
+          <div className="space-y-2">
         {/* 定制条件：可选 + 递增加价提示 */}
         <span className="text-[10px] font-semibold text-white/40 flex items-center gap-1 mb-1.5">
           <Sparkles size={10} className="text-brandPurple" /> 定制条件（可选，逐个 +15%）
@@ -497,6 +511,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             </span>
           )}
         </div>
+        </div>
+        )}
 
         {error && <p className="text-[10.5px] text-red-400 font-semibold mb-2">{error}</p>}
 

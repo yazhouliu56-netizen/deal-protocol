@@ -58,7 +58,7 @@ export default function OrganizerBoostCard() {
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className={`shrink-0 px-2.5 py-1.5 rounded-full text-[10px] font-bold transition-colors ${
+            className={`shrink-0 px-3 py-2 min-h-10 rounded-full text-[10px] font-bold transition-colors ${
               active
                 ? "bg-white/5 border border-white/15 text-white/60"
                 : "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-extrabold hover:bg-brandPurple/30"

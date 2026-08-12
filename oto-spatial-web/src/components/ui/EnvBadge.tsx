@@ -74,7 +74,7 @@ export default function EnvBadge() {
       <button
         onClick={() => setOpen(true)}
         aria-label={`数据模式：${mode.label}`}
-        className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/50 hover:text-white transition-colors shrink-0"
+        className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/50 hover:text-white transition-colors shrink-0"
       >
         <ModeIcon size={9} className={iconColor} />
         {mode.label}

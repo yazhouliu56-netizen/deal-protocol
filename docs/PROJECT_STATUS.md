@@ -61,7 +61,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **287/287 全绿**（36 套，`npm run test:units`，含 geo/sceneTemplate/fission/diagnostic/friends/p2p-transport/scan/prefs/qr/systemNotify/voice/gateway） |
+| 单测 | **287/287 全绿**（36 套，`npm run test:units`；UI/UX 第二批无纯函数新增，保持绿） |
 | Lint | ESLint exit 0（0 errors；存量 warning 在 scripts/ 非组件） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
@@ -127,3 +127,4 @@
 | 2026-08-11 | `21c4e0e` | LLM Gateway（ADR-0005）全部落地：provider 表单一来源 + llmGuard per-provider 配额 + /api/gateway 聚合入口 + **五路由全薄层化（cluster/decompose/diagnose 手写链收敛，completeText 非流式统一链/超时/降级）** + 修复存量孤儿依赖（qrcode/jsqr/pngjs 补声明+@types）+ TTS edge-tts 兜底 → 单测 287 全绿，tsc/lint 0 错，六端点实测全 200（cluster/decompose/diagnose source=zhipu 真 LLM） |
 | 2026-08-11 | `d356f02` | 语音闭环三件套（L1 输入/输出 + L2 意图 + 留证）：① `lib/voice/` 纯函数层（audioStore IndexedDB 留存 + queryClips/summarizeEvidence 取证；voiceIntent 结构化意图校验/关键词 mock 降级/播报文案；asrClient GLM-ASR→Web Speech 降级；ttsClient GLM-TTS→speechSynthesis 降级 + 文本哈希 IndexedDB 缓存）② `/api/asr`+`/api/tts`（智谱音频代理，无 key 503，不留服务端缓存）+ `/api/voice-intent`（zhipu→gemini 结构化 JSON，围栏容错）③ VoiceBar（按住说话→MediaRecorder→ASR→语音留证）、ChatPage 语音入口（L2 意图→发布局走既有确认卡支付闭环/查局势/对话 + 回复自动播报 TTS 开关 + 气泡重播）→ 单测 275 全绿（+18），tsc/lint 0 错（src），build 通过；浏览器实测：voice-intent 真 LLM 识别 publish-wave 字段全对齐、IDB 留存冒烟、无麦克风降级 Web Speech 错误提示不崩溃；本机无麦克风+智谱 TTS 无余额（429）故录音真链/播报出声留待真机验证 |
 | 2026-08-12 | `8b8cfc4` | UI/UX 打磨九件套（`docs/UI-UX-BACKLOG.md` 建档全清零）：P1 ①发布 CTA 主视觉（渐变+光晕+入场）②竞价卡虚线玻璃+「演示沙盒·无真实资金」降权 ③空态三步引导（localStorage 记忆）；P2 ④AI 屏语音入口气泡（首次+持久）⑤行程屏真实 bookings 优先入时间线+副标题动态 ⑥头部昵称层级+状态圆点；P3 ⑦Dock layoutId 光晕滑块 ⑧竞价按钮 min-h-10 触控 ⑨全局 Toast（lib/toast zustand + ToastHost layout 挂载 + 发布/拼位接入）→ tsc/lint 0 错、单测 287 保持绿；浏览器实测：CTA 渐变/引导条/竞价卡降权/语音气泡/localStorage 持久/Dock 光晕/发布成功 toast（MutationObserver 捕获「需求已上线·正在雷达广播」）| |
+| 2026-08-12 | 未推（工作区） | UI/UX 第二批 8 项（`docs/UI-UX-BACKLOG.md` 重写为第二批清单 + React #418 根因落档）：P1 ①触控尺寸全面达标 ②hydration 修复（根因：useState 直读 localStorage 水合不一致 → `lib/clientFlags.ts` useSyncExternalStore 同构 server 快照恒 false + subscribe warm；顺带修 readKeys.ts getServerSnapshot 未缓存 warning→常量 EMPTY）③在线切换 toast + 文案去重；P2 ④行程屏英文残留中文化（otoActivities.location Maldives→马尔代夫/Bali→巴厘岛 4 处）⑤AR 取景框角标 AR VIEWFINDER→「AR 取景框」⑥发布弹层分组（核心表单常显 +「更多选项」折叠：定制/磋商留言/AI 拆解/开放局/鸽子险/有效期/开始时间/配额）；P3 ⑦行程屏导航按钮 ⑧发布品类 chips min-h-8 → tsc/lint 0 错、单测 287 绿、浏览器实测：行程屏/AR 指南全中文、发布弹层折叠展开完整、0 console error、无触控不达标按钮 | |

@@ -4,8 +4,8 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Size = "sm" | "md";
 
 const SIZE_CLASS: Record<Size, string> = {
-  sm: "w-9 h-9 rounded-full",
-  md: "w-10 h-10 rounded-2xl",
+  sm: "w-10 h-10 rounded-full",
+  md: "w-11 h-11 rounded-2xl",
 };
 
 /** Small circular glass icon button (search actions, AR control column). */

@@ -39,7 +39,7 @@ export default function SearchBar({
           onCompositionEnd={() => (composingRef.current = false)}
           placeholder={placeholder}
           aria-label="搜索 OTO 体验"
-          className="bg-transparent text-xs outline-none w-full placeholder:text-white/30"
+          className="bg-transparent text-xs py-2.5 min-h-10 outline-none w-full placeholder:text-white/30"
         />
         {value && (
           <button

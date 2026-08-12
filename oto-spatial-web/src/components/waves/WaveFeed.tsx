@@ -21,6 +21,7 @@ import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
 import IdentityAvatar from "@/components/ui/IdentityAvatar";
 import { toast } from "@/lib/toast";
+import { onboardGuide } from "@/lib/clientFlags";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -39,9 +40,8 @@ export default function WaveFeed() {
   const [publishOpen, setPublishOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
   // P1-3 空态引导链：首次进入（未点过「知道了」）才显示三步引导
-  const [showOnboard, setShowOnboard] = useState(
-    () => typeof window !== "undefined" && !localStorage.getItem("oto-onboard-dismissed")
-  );
+  const { useFlag: useOnboardSeen, markSeen } = onboardGuide;
+  const showOnboard = !useOnboardSeen();
   const favorites = useWaveStore((s) => s.favorites);
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
@@ -133,13 +133,16 @@ export default function WaveFeed() {
                 identity.online ? "bg-emerald-400" : "bg-white/30"
               }`}
             />
-            {identity.online ? "在线 · 正在接收信号" : "隐身 · 暂停接收"}
+            {identity.online ? "正在接收信号" : "暂停接收信号"}
           </p>
         </div>
         <button
-          onClick={() => setOnline(!identity.online)}
+          onClick={() => {
+            setOnline(!identity.online);
+            toast(identity.online ? "已切换为隐身 · 暂停接收信号" : "已切换为在线 · 正在接收信号", "success");
+          }}
           aria-label={`在线状态：${identity.online ? "在线" : "隐身"}`}
-          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold transition-colors ${
+          className={`flex items-center gap-1 px-3 py-2 min-h-10 rounded-full text-[10px] font-bold transition-colors ${
             identity.online
               ? "bg-emerald-400/15 border border-emerald-400/40 text-emerald-300"
               : "bg-white/5 border border-white/15 text-white/50"
@@ -160,7 +163,7 @@ export default function WaveFeed() {
         <button
           onClick={() => setFavOpen(true)}
           aria-label={`查看我关注的局，共 ${favorites.length} 个`}
-          className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/[0.05] border border-white/15 text-[9.5px] font-bold text-white/55 hover:border-brandCyan/50 hover:text-white transition-colors shrink-0"
+          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/[0.05] border border-white/15 text-[9.5px] font-bold text-white/55 hover:border-brandCyan/50 hover:text-white transition-colors shrink-0"
         >
           <Heart size={10} className={favorites.length ? "text-brandCyan fill-brandCyan/30" : ""} />
           关注 {favorites.length > 0 ? favorites.length : ""}
@@ -206,8 +209,8 @@ export default function WaveFeed() {
             <span className="text-white/40"> → </span>
             <span className="font-bold text-white/90">③ 履约评价</span>
             <button
-              onClick={() => { localStorage.setItem("oto-onboard-dismissed", "1"); setShowOnboard(false); }}
-              className="ml-1 text-[9px] text-white/40 hover:text-white underline underline-offset-2"
+              onClick={markSeen}
+              className="ml-1 px-2 py-1 min-h-8 text-[10px] text-white/40 hover:text-white underline underline-offset-2"
             >
               知道了
             </button>

@@ -9,6 +9,8 @@ import { loadReadSet, persistReadSet } from "@/lib/notify";
  */
 let cached: Set<string> = new Set();
 const listeners = new Set<() => void>();
+/** server 快照恒为空集；固定引用避免 React #418「getServerSnapshot 未缓存」warning */
+const EMPTY = new Set<string>();
 
 function subscribe(cb: () => void): () => void {
   listeners.add(cb);
@@ -27,7 +29,7 @@ function getSnapshot(): Set<string> {
 }
 
 function getServerSnapshot(): Set<string> {
-  return new Set();
+  return EMPTY;
 }
 
 export function useReadKeys(): Set<string> {

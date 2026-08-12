@@ -121,7 +121,7 @@ export default function NotificationCenter() {
       <button
         onClick={openSheet}
         aria-label={`通知中心，${unread > 0 ? `${unread} 条未读` : "无未读"}`}
-        className="relative w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
+        className="relative w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
       >
         <Bell size={13} />
         {unread > 0 && (

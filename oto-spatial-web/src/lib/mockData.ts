@@ -187,7 +187,7 @@ export const otoActivities: OTOActivity[] = [
     title: "珊瑚礁浮潜",
     subtitle: "海龟潟湖 · 全套装备",
     time: "2026-08-05T09:00",
-    location: "Maldives",
+    location: "马尔代夫",
     imageUrl:
       "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=70",
   },
@@ -197,7 +197,7 @@ export const otoActivities: OTOActivity[] = [
     title: "潟湖日落巡航",
     subtitle: "香槟与现场弹唱",
     time: "2026-08-05T17:30",
-    location: "Bali",
+    location: "巴厘岛",
     imageUrl:
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=300&q=70",
   },
@@ -207,7 +207,7 @@ export const otoActivities: OTOActivity[] = [
     title: "私人海滩晚宴",
     subtitle: "7 道岛屿品鉴菜单",
     time: "2026-08-06T19:00",
-    location: "Maldives",
+    location: "马尔代夫",
     imageUrl:
       "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=300&q=70",
   },
@@ -217,7 +217,7 @@ export const otoActivities: OTOActivity[] = [
     title: "跳岛一日游",
     subtitle: "沙洲与隐秘海湾",
     time: "2026-08-07T10:00",
-    location: "Bali",
+    location: "巴厘岛",
     imageUrl:
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=70",
   },

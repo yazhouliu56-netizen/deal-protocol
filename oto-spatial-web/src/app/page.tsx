@@ -198,7 +198,7 @@ function HomePage() {
           <button
             onClick={() => setShowCart(true)}
             aria-label={`心愿单，共 ${cart.length} 项`}
-            className="relative w-9 h-9 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+            className="relative w-11 h-11 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
           >
             <ShoppingBag size={15} className="text-white/80" />
             {cart.length > 0 && (
@@ -331,7 +331,7 @@ function HomePage() {
         <button
           onClick={() => setHubOpen(true)}
           aria-label="打开目的地中心进行筛选和浏览全部"
-          className="flex items-center gap-0.5 text-[11px] text-brandPurple font-medium hover:brightness-125 transition-[filter]"
+          className="flex items-center gap-0.5 px-2.5 py-2 min-h-10 text-[11px] text-brandPurple font-medium hover:brightness-125 transition-[filter]"
         >
           查看全部 <ChevronRight size={12} />
         </button>
@@ -575,7 +575,7 @@ function ARPage() {
             {/* 取景框角标 */}
             <div className="absolute inset-x-6 top-4 bottom-6 rounded-2xl border border-white/15 pointer-events-none">
               <span className="absolute -top-[7px] left-3 px-1 text-[8px] tracking-[0.3em] text-white/40 bg-black/30 rounded">
-                AR VIEWFINDER
+                AR 取景框
               </span>
             </div>
             {/* 场景锚点 */}
@@ -1127,7 +1127,7 @@ function ActivityRow({ activity }: { activity: OTOActivity }) {
         <h4 className="text-xs font-bold mt-1.5 truncate">{activity.title}</h4>
         <p className="text-[10px] text-white/50 truncate">{activity.subtitle}</p>
         <div className="flex items-center gap-2 mt-2">
-          <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold hover:bg-brandCyan/10 transition-colors">
+          <button className="flex items-center gap-1 px-2.5 min-h-8 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold hover:bg-brandCyan/10 transition-colors">
             <Navigation size={10} /> 导航
           </button>
           <span className="text-[10px] text-white/40">{activity.location}</span>

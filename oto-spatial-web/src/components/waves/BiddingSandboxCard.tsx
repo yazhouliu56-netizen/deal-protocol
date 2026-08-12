@@ -142,7 +142,7 @@ const open = session.status === "open";
           <button
             type="button"
             onClick={reset}
-            className="shrink-0 px-2.5 py-1.5 rounded-full bg-white/5 border border-white/15 text-white/60 text-[10px] font-bold hover:bg-white/10 transition-colors"
+            className="shrink-0 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/15 text-white/60 text-[10px] font-bold hover:bg-white/10 transition-colors"
           >
             再开一局
           </button>
@@ -161,7 +161,7 @@ const open = session.status === "open";
               else reset();
             }}
             aria-label="选择要竞价的真实需求局"
-            className="flex-1 min-w-0 rounded-xl bg-white/5 border border-white/15 px-2 py-1.5 text-[9.5px] font-bold text-white/80 outline-none focus:border-brandPurple/60"
+            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2 py-1.5 text-[9.5px] font-bold text-white/80 outline-none focus:border-brandPurple/60"
           >
             <option value="" className="bg-[#0b0e22]">
               演示局 · 小区保洁
@@ -224,7 +224,7 @@ const open = session.status === "open";
             onChange={(e) => setMyPrice(e.target.value)}
             inputMode="numeric"
             aria-label="我的报价"
-            className="w-20 rounded-xl bg-white/5 border border-white/15 px-2.5 py-2 text-[10px] font-mono text-white/90 outline-none focus:border-brandPurple/60"
+            className="w-20 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2.5 py-2 text-[10px] font-mono text-white/90 outline-none focus:border-brandPurple/60"
           />
           <button
             type="button"

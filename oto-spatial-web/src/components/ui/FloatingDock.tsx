@@ -63,7 +63,7 @@ export default function FloatingDock() {
                 }`}
               >
                 <div
-                  className={`relative p-2 rounded-full transition-colors duration-300 ${
+                  className={`relative p-2.5 rounded-full transition-colors duration-300 ${
                     isActive ? "bg-brandPurple/20" : ""
                   }`}
                 >
