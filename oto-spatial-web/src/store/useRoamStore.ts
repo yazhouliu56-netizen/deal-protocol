@@ -81,7 +81,9 @@ export const useRoamStore = create<RoamState>()(
       },
       simulateMultiOpen: (identityId) => {
         const s = get();
-        const altId = `${identityId}-alt`;
+        // 同一设备已有 N 个身份 → 追加第 N+1 个模拟身份（连点 → 升至 high）
+        const n = s.bindings.filter((b) => b.deviceId === s.deviceId).length + 1;
+        const altId = `${identityId}-alt${n}`;
         const out = extraLogin(s.bindings, s.deviceId, altId, now());
         set({
           bindings: out.bindings,

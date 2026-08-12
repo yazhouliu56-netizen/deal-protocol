@@ -85,6 +85,17 @@ export interface Wave {
   fissionCount?: number;
   /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
   fissionBy?: string[];
+  /** 裂变最后一次真实增量时间（系统通知 diff 用；无增量时 undefined）。 */
+  fissionUpdatedAt?: number;
+  /** 公开竞价结算（P8 商业化）：组局主开标后写回真实局，持久可见。 */
+  biddingSettled?: {
+    winnerId: string;
+    winnerName: string;
+    price: number;
+    feeYuan: number;
+    netYuan: number;
+    at: number;
+  };
 }
 
 export type ClaimStatus =

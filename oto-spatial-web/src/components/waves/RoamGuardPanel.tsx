@@ -55,6 +55,11 @@ export default function RoamGuardPanel() {
 
       <p className="text-[9.5px] text-white/40 break-all mb-2">
         本设备 {mounted ? deviceId : "…"} · 同设备 {risk.count} 个身份 · {risk.reason}
+        {risk.risk === "high" && (
+          <span className="block mt-0.5 text-red-300/90 font-bold">
+            高危已生效：发布需求将被拦截（到 PublishSheet 验证）
+          </span>
+        )}
       </p>
 
       <div className="flex gap-1.5">

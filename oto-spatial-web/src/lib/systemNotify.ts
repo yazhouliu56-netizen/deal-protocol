@@ -18,6 +18,8 @@ export interface NotifDiffInput {
     status: string;
     capacity?: number;
     basics: { category: string };
+    /** 拼位裂变：最后一次真实增量时间戳（变化 → “邀请裂变 +1”）。 */
+    fissionUpdatedAt?: number;
   }[];
   claims: {
     id: string;
@@ -49,6 +51,22 @@ export function diffNotifEvents(
         id: `assembled:${w.id}`,
         title: `🎉 ${w.basics.category} 拼满成局`,
         body: "人齐了，去「我的」看看队伍并开始履约",
+      });
+    }
+  }
+
+  // 裂变回报（转介绍杠杆）：我的局的 fissionUpdatedAt 前进 → 有人经分享回应。
+  for (const w of next.waves) {
+    if (w.authorId !== next.meId) continue;
+    const was = prevWave.get(w.id);
+    const curAt = w.fissionUpdatedAt ?? 0;
+    const prevAt = was?.fissionUpdatedAt ?? 0;
+    if (!was || !curAt) continue;
+    if (curAt > prevAt) {
+      out.push({
+        id: `fission:${w.id}:${curAt}`,
+        title: `🪃 ${w.basics.category} 邀请裂变 +1`,
+        body: "有人通过你的分享加入并回应，分享发力了",
       });
     }
   }

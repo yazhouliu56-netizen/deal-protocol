@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users } from "lucide-react";
+import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ACTION_LABEL } from "@/lib/moderation";
@@ -154,6 +154,14 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       </span>
                     )}
                   </h3>
+                  {wave.biddingSettled && (
+                    <p className="mt-1 text-[9px] font-bold text-emerald-300 flex items-center gap-1">
+                      <Gavel size={9} className="shrink-0" />
+                      公开竞价已结算 · {wave.biddingSettled.winnerName} 中标 ¥
+                      {wave.biddingSettled.price} · 佣金 ¥{wave.biddingSettled.feeYuan} · 净得 ¥
+                      {wave.biddingSettled.netYuan}
+                    </p>
+                  )}
                   <p className="text-[10px] text-white/50 mt-0.5">
                     {wave.basics.time} · {wave.basics.area} · {isOpen ? `人均 ${yuan(perSeatPrice(wave))}` : `预算 ${yuan(wave.budget)}`}
                   </p>

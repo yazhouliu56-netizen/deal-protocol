@@ -14,3 +14,19 @@ export function fissionIncrement(
   }
   return { fissionCount: (wave.fissionCount ?? 0) + 1, fissionBy: [...by, newcomerId] };
 }
+
+/**
+ * 裂变计数 + 通知时间戳：仅在真实增量（新分享对象首回应）时刷新
+ * fissionUpdatedAt，供系统通知 diff 检测「裂变 +1」；重复回应不刷新。
+ */
+export function fissionStamp(
+  wave: { fissionCount?: number; fissionBy?: string[]; fissionUpdatedAt?: number },
+  newcomerId: string,
+  now: number
+): { fissionCount: number; fissionBy: string[]; fissionUpdatedAt?: number } {
+  const inc = fissionIncrement(wave, newcomerId);
+  if (inc.fissionCount <= (wave.fissionCount ?? 0)) {
+    return { ...inc, fissionUpdatedAt: wave.fissionUpdatedAt };
+  }
+  return { ...inc, fissionUpdatedAt: now };
+}

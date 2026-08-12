@@ -3,12 +3,13 @@ import assert from "node:assert/strict";
 import { diffNotifEvents, type NotifDiffInput } from "./systemNotify.ts";
 
 const me = "me-1";
-const wave = (id: string, status: string, capacity = 2) => ({
+const wave = (id: string, status: string, capacity = 2, fissionUpdatedAt?: number) => ({
   id,
   authorId: me,
   status,
   capacity,
   basics: { category: "羽毛球约局" },
+  ...(fissionUpdatedAt ? { fissionUpdatedAt } : {}),
 });
 
 function frame(
@@ -111,4 +112,27 @@ test("diff: 同一帧多类事件 → 全部产出且 id 稳定", () => {
   const out = diffNotifEvents(prev, next);
   assert.equal(out.length, 3);
   assert.equal(out[0].id, "assembled:w1");
+});
+
+test("diff: 我的局裂变 +1 → 邀请裂变通知；只对发起人", () => {
+  const prev = frame({ waves: [wave("w1", "active")] });
+  const next = frame({
+    waves: [wave("w1", "active", 2, 1700000000000)],
+  });
+  const out = diffNotifEvents(prev, next);
+  assert.equal(out.length, 1);
+  assert.match(out[0].title, /裂变/);
+  assert.match(out[0].id, /^fission:w1:/);
+
+  const otherPrev = frame({ waves: [{ ...wave("w9", "active"), authorId: "other" }] });
+  const otherNext = frame({
+    waves: [{ ...wave("w9", "active"), authorId: "other", fissionUpdatedAt: 1700000000000 }],
+  });
+  assert.deepEqual(diffNotifEvents(otherPrev, otherNext), []);
+});
+
+test("diff: 时间戳未前进 → 不重复弹裂变通知", () => {
+  const prev = frame({ waves: [wave("w1", "active", 2, 1000)] });
+  const next = frame({ waves: [wave("w1", "active", 2, 1000)] });
+  assert.deepEqual(diffNotifEvents(prev, next), []);
 });

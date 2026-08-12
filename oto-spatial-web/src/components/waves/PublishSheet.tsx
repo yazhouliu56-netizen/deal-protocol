@@ -161,6 +161,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       setError("发布被拒：你还有未结清的 no-show 违约，先到「我的」结清欠款再发");
       return;
     }
+    if (out.blocked === "roam") {
+      setError("发布被拒：本设备检测到高危多开（≥3 个身份共用），请到「安全中心」重置漫游风控");
+      return;
+    }
     if (out.removed) {
       // 命中违禁词：内容转入平台审核（不支付、不上线）
       setError("内容命中违禁词，已转入平台审核");

@@ -41,6 +41,7 @@ function seedSession(title = "小区保洁 · 名额 1", reserve = 60): BiddingS
  */
 export default function BiddingSandboxCard() {
   const waves = useWaveStore((s) => s.waves);
+  const settleBidding = useWaveStore((s) => s.settleBidding);
   const identity = useIdentityStore((s) => s.identity);
   // 我发出的活跃开放局（拍卖品候选）
   const myActive = useMemo(
@@ -113,6 +114,17 @@ const open = session.status === "open";
     }
     setError("");
     setSession(next);
+    // P8 商业化：开标结算写回真实局（中标者/佣金/净得持久落库，我的局可见）
+    if (picked && next.award) {
+      settleBidding(picked.id, {
+        winnerId: next.award.winnerId,
+        winnerName: next.award.winnerName,
+        price: next.award.price,
+        feeYuan: next.award.feeYuan,
+        netYuan: next.award.netYuan,
+        at: Date.now(),
+      });
+    }
   };
 
   return (

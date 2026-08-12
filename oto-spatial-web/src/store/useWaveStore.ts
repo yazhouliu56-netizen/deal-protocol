@@ -39,7 +39,9 @@ import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/lib/trust";
 import type { Review } from "@/lib/review";
 import type { PayOrder } from "@/lib/pay";
 import { capturePayOrder, createPayOrder } from "@/lib/pay";
-import { fissionIncrement } from "@/lib/fission";
+import { fissionIncrement, fissionStamp } from "@/lib/fission";
+import { useRoamStore } from "@/store/useRoamStore";
+import { riskOf } from "@/lib/roamGuard";
 import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
@@ -130,7 +132,7 @@ interface WaveStore extends WaveBundle {
        */
       publishFee?: number;
     }
-  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" } | null;
+  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" | "roam" } | null;
   /**
    * 随单支付 · 确认支付：capture 流水 → wave pending→active → 进入广播。
    * 幂等：重复支付同一单返回 ok 但不再重复生效。
@@ -246,6 +248,11 @@ interface WaveStore extends WaveBundle {
   toggleFavorite: (waveId: string) => void;
   /** 结清 no-show 违约 → 解除该位置的发波/拼位锁定。 */
   settleBreach: (claimId: string) => void;
+  /** 公开竞价结算（P8 商业化）：开标结果写回真实局（中标者/佣金/净得）。 */
+  settleBidding: (
+    waveId: string,
+    settled: NonNullable<Wave["biddingSettled"]>
+  ) => void;
   /** S3 · 发起转友（幂等：已好友/已有待确认/自我 → error）。 */
   sendFriendRequest: (p: {
     fromId: string;
@@ -286,9 +293,14 @@ export const useWaveStore = create<WaveStore>()(
       friendRequestRemovals: [],
       bundleVer: 0,
 
-      createPendingWave: (input) => {
-        if (isBanned(get().bans, input.authorId)) return null;
-        // no-show 欠款锁定：违约未结不能发波
+createPendingWave: (input) => {
+    if (isBanned(get().bans, input.authorId)) return null;
+    // P8 商业化 · 多开风控闸门：本设备高危多开（同设备 ≥3 身份）→ 发布冷拒
+    const roam = useRoamStore.getState();
+    if (riskOf(roam.bindings, roam.deviceId).risk === "high") {
+      return { id: "", amount: 0, blocked: "roam" };
+    }
+    // no-show 欠款锁定：违约未结不能发波
         if (hasUnsettledBreach(get().claims, input.authorId)) {
           return { id: "", amount: 0, blocked: "debt" };
         }
@@ -501,7 +513,7 @@ set((st) => ({
               w.id === waveId
                 ? {
                     ...w,
-                    ...fissionIncrement(w, responderId),
+                    ...fissionStamp(w, responderId, Date.now()),
                   }
                 : w
             ),
@@ -529,7 +541,7 @@ set((st) => ({
               ? {
                   ...locked,
                   // 拼位裂变：真实回应（接单/磋商）计数一次，按人去重
-                  ...fissionIncrement(w, responderId),
+                  ...fissionStamp(w, responderId, Date.now()),
                 }
               : w
           ),
@@ -598,7 +610,7 @@ set((st) => ({
                 ? {
                     ...out.wave,
                     // 拼位裂变：新拼位者（非发起人）计数一次，按人去重
-                    ...fissionIncrement(w, responderId),
+                    ...fissionStamp(w, responderId, Date.now()),
                   }
                 : w
             ),
@@ -944,6 +956,13 @@ set((st) => ({
             c.id === claimId && c.status === "breached" && !c.settled
               ? { ...c, settled: true }
               : c
+          ),
+        })),
+
+      settleBidding: (waveId, settled) =>
+        set((s) => ({
+          waves: s.waves.map((w) =>
+            w.id === waveId ? { ...w, biddingSettled: settled } : w
           ),
         })),
 

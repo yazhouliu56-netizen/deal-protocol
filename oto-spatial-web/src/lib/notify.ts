@@ -10,7 +10,8 @@ export type NotifyKind =
   | "push"
   | "friend"
   | "report"
-  | "wave";
+  | "wave"
+  | "fission";
 
 export interface NotifyItem {
   /** 稳定 id（已读去重键：kind:key） */
@@ -37,6 +38,9 @@ interface WaveLike {
   authorId: string;
   basics: { category: string };
   status: string;
+  /** 裂变真实增量时间戳（有值且 count>0 → 出「邀请裂变」条目）。 */
+  fissionUpdatedAt?: number;
+  fissionCount?: number;
 }
 interface ClaimLike {
   id: string;
@@ -125,6 +129,18 @@ export function buildNotifyItems(src: NotifySource): NotifyItem[] {
       title: "新的好友申请",
       desc: `来自 ${f.fromId}`,
       at: f.at,
+    });
+  }
+  // 裂变回报（转介绍杠杆）：我的局 fissionUpdatedAt 有值 → 邀请生效一条
+  for (const w of myWaves) {
+    if (!w.fissionUpdatedAt || !(w.fissionCount ?? 0)) continue;
+    items.push({
+      key: `fission:${w.id}:${w.fissionUpdatedAt}`,
+      kind: "fission",
+      emoji: "🪃",
+      title: `${w.basics.category} 邀请裂变 +1`,
+      desc: "有人通过你的分享加入并回应，分享发力了",
+      at: w.fissionUpdatedAt,
     });
   }
 

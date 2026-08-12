@@ -26,6 +26,7 @@ const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
   friend: ["bg-amber-400/15 border-amber-400/40", "text-amber-300"],
   report: ["bg-white/5 border-white/10", "text-white/60"],
   wave: ["bg-white/5 border-white/10", "text-white/60"],
+  fission: ["bg-cyan-400/15 border-cyan-400/40", "text-cyan-300"],
 };
 
 function NotifyRow({ item }: { item: NotifyItem }) {
@@ -68,6 +69,7 @@ export default function NotificationCenter() {
         status: w.status,
         capacity: w.capacity,
         basics: { category: w.basics.category },
+        fissionUpdatedAt: w.fissionUpdatedAt,
       })),
       claims: claims.map((c) => ({
         id: c.id,

@@ -84,7 +84,8 @@
 - [x] 场景模板 ×4 ✅（本批完成）
 - [x] **Supabase 全量数据化**（在线真实数据 + 离线 mock 兜底，接口形态不变）→ 前置项「真机扫码」已提前本地闭环（见三），余项仍待数据化
 - [x] 拼位裂变 ✅（本批完成：分享 + 防自刷计数 + 二维码）
-- [ ] **P8 商业化**：账号漫游（防多开风控）+ PWA 真通知（转介绍杠杆）+ 公开竞价（佣金）
+- [x] **P8 商业化本地闭环** ✅（本批完成：多开风控阻断发布 + 裂变回报入通知中心 + 竞价佣金结算写回真实局）
+- [ ] P8 商业化线上化：漫游入设备表 / PWA 真推（VAPID）/ 竞价接入真实支付（LAUNCH-GAP E 组）
 - [ ] 更远：灵感漩涡 / 响应方商业化 / 短信兜底 / 组局者订阅
 
 ## 七、支付模型定稿（2026-08-05，已落地，历史参考）
@@ -128,3 +129,4 @@
 | 2026-08-11 | `d356f02` | 语音闭环三件套（L1 输入/输出 + L2 意图 + 留证）：① `lib/voice/` 纯函数层（audioStore IndexedDB 留存 + queryClips/summarizeEvidence 取证；voiceIntent 结构化意图校验/关键词 mock 降级/播报文案；asrClient GLM-ASR→Web Speech 降级；ttsClient GLM-TTS→speechSynthesis 降级 + 文本哈希 IndexedDB 缓存）② `/api/asr`+`/api/tts`（智谱音频代理，无 key 503，不留服务端缓存）+ `/api/voice-intent`（zhipu→gemini 结构化 JSON，围栏容错）③ VoiceBar（按住说话→MediaRecorder→ASR→语音留证）、ChatPage 语音入口（L2 意图→发布局走既有确认卡支付闭环/查局势/对话 + 回复自动播报 TTS 开关 + 气泡重播）→ 单测 275 全绿（+18），tsc/lint 0 错（src），build 通过；浏览器实测：voice-intent 真 LLM 识别 publish-wave 字段全对齐、IDB 留存冒烟、无麦克风降级 Web Speech 错误提示不崩溃；本机无麦克风+智谱 TTS 无余额（429）故录音真链/播报出声留待真机验证 |
 | 2026-08-12 | `8b8cfc4` | UI/UX 打磨九件套（`docs/UI-UX-BACKLOG.md` 建档全清零）：P1 ①发布 CTA 主视觉（渐变+光晕+入场）②竞价卡虚线玻璃+「演示沙盒·无真实资金」降权 ③空态三步引导（localStorage 记忆）；P2 ④AI 屏语音入口气泡（首次+持久）⑤行程屏真实 bookings 优先入时间线+副标题动态 ⑥头部昵称层级+状态圆点；P3 ⑦Dock layoutId 光晕滑块 ⑧竞价按钮 min-h-10 触控 ⑨全局 Toast（lib/toast zustand + ToastHost layout 挂载 + 发布/拼位接入）→ tsc/lint 0 错、单测 287 保持绿；浏览器实测：CTA 渐变/引导条/竞价卡降权/语音气泡/localStorage 持久/Dock 光晕/发布成功 toast（MutationObserver 捕获「需求已上线·正在雷达广播」）| |
 | 2026-08-12 | 未推（工作区） | UI/UX 第二批 8 项（`docs/UI-UX-BACKLOG.md` 重写为第二批清单 + React #418 根因落档）：P1 ①触控尺寸全面达标 ②hydration 修复（根因：useState 直读 localStorage 水合不一致 → `lib/clientFlags.ts` useSyncExternalStore 同构 server 快照恒 false + subscribe warm；顺带修 readKeys.ts getServerSnapshot 未缓存 warning→常量 EMPTY）③在线切换 toast + 文案去重；P2 ④行程屏英文残留中文化（otoActivities.location Maldives→马尔代夫/Bali→巴厘岛 4 处）⑤AR 取景框角标 AR VIEWFINDER→「AR 取景框」⑥发布弹层分组（核心表单常显 +「更多选项」折叠：定制/磋商留言/AI 拆解/开放局/鸽子险/有效期/开始时间/配额）；P3 ⑦行程屏导航按钮 ⑧发布品类 chips min-h-8 → tsc/lint 0 错、单测 287 绿、浏览器实测：行程屏/AR 指南全中文、发布弹层折叠展开完整、0 console error、无触控不达标按钮 | |
+| 2026-08-12 | 未推（工作区） | **P8 商业化本地全流程闭环三支柱打通**：① 多开风控阻断业务——`createPendingWave` 增加高危闸门（同设备 ≥3 身份 `blocked:"roam"`）+ PublishSheet 联动拒检提示；`simulateMultiOpen` 递增序号身份（连点 2 次即 high，修复演示叠不到 3 身份的缺陷）+ RoamGuardPanel 高危生效提示 ② 裂变回报入通知——`fissionStamp`（真实增量才刷时间戳）+ Wave.fissionUpdatedAt + useWaveStore 三处换用 + systemNotify diff「邀请裂变 +1」+ notify.buildNotifyItems fission 条目（🪃 样式）+ NotificationCenter 传字段 ③ 竞价佣金结算写回真实局——Wave.biddingSettled + useWaveStore.settleBidding + BiddingSandboxCard 开标真写回 + MyWaves 结算徽章 → 单测 292 全绿（+5：fissionStamp 3 + systemNotify 裂变 diff 2）、tsc/lint 0 错；浏览器实测：多开高危→发布被拒文案、真实开放局竞价开标→写回「微笑保洁中标 ¥100 · 佣金 ¥8 · 净得 ¥92」、my 屏需求卡结算徽章、另一身份拼位→fissionCount=1→发起人通知中心「🪃 羽毛球约局 邀请裂变 +1」 | |
