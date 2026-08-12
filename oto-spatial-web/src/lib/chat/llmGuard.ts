@@ -106,3 +106,128 @@ export function guardedFetch(url: string, init: RequestInit): Promise<Response> 
 
 /** Cache lookup/insert helpers used by the route handler. */
 export const llmCache = { get: cacheGet, set: cacheSet };
+
+// ---------------------------------------------------------------------------
+// Per-provider quota layer (ADR-0005): each provider gets its own serialized
+// chain, min-gap, 429 cooldown and health streak, so one provider's
+// Retry-After / outage never starves the others.
+// ---------------------------------------------------------------------------
+
+interface ProviderQuota {
+  chain: Promise<void>;
+  lastAt: number;
+  cooldownUntil: number;
+  failStreak: number;
+}
+
+const QUOTA_KEY = "__llmQuota";
+
+function quotaMap(): Map<string, ProviderQuota> {
+  const g = globalThis as unknown as Record<string, Map<string, ProviderQuota> | undefined>;
+  if (!g[QUOTA_KEY]) g[QUOTA_KEY] = new Map();
+  return g[QUOTA_KEY]!;
+}
+
+function quota(name: string): ProviderQuota {
+  const map = quotaMap();
+  let q = map.get(name);
+  if (!q) {
+    q = { chain: Promise.resolve(), lastAt: 0, cooldownUntil: 0, failStreak: 0 };
+    map.set(name, q);
+  }
+  return q;
+}
+
+/** Per-provider serialized invocation with its own min-gap. */
+export function serializedFor<T>(
+  name: string,
+  minGapMs: number,
+  fn: () => Promise<T>
+): Promise<T> {
+  const q = quota(name);
+  const previous = q.chain;
+  let release!: () => void;
+  q.chain = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return (async () => {
+    await previous;
+    const elapsed = Date.now() - q.lastAt;
+    const wait = Math.max(0, minGapMs - elapsed);
+    if (wait > 0) await sleep(wait);
+    try {
+      return await fn();
+    } finally {
+      q.lastAt = Date.now();
+      release();
+    }
+  })();
+}
+
+/** Cooling while true — route skips this provider this round. */
+export function isCooling(name: string): boolean {
+  return Date.now() < quota(name).cooldownUntil;
+}
+
+/** Report an ok upstream response: resets the health streak and lifts cooldown. */
+export function markOk(name: string): void {
+  const q = quota(name);
+  q.failStreak = 0;
+  q.cooldownUntil = 0;
+}
+
+/**
+ * Report a failure: a second consecutive failure arms the cooldown window
+ * (429 quota exhausted / persistent 5xx). cooldownMs comes from the table.
+ */
+export function markFail(name: string, cooldownMs: number): void {
+  const q = quota(name);
+  q.failStreak += 1;
+  if (q.failStreak >= 2) {
+    q.cooldownUntil = Date.now() + cooldownMs;
+    q.failStreak = 0;
+  }
+}
+
+/** Per-provider guarded fetch: own queue + gap + bounded retry + health. */
+export function guardedFetchFor(
+  name: string,
+  minGapMs: number,
+  cooldownMs: number,
+  url: string,
+  init: RequestInit
+): Promise<Response> {
+  return serializedFor(name, minGapMs, () =>
+    fetchUpstreamFor(name, url, init, cooldownMs)
+  );
+}
+
+async function fetchUpstreamFor(
+  name: string,
+  url: string,
+  init: RequestInit,
+  cooldownMs: number
+): Promise<Response> {
+  const res = await fetch(url, init);
+  if (res.ok) {
+    markOk(name);
+    return res;
+  }
+  const retryable = res.status === 429 || (res.status >= 500 && res.status < 600);
+  if (!retryable) {
+    markFail(name, cooldownMs);
+    return res;
+  }
+  const retryAfter = Number(res.headers.get("retry-after"));
+  const backoff = retryAfter > 0 ? Math.min(retryAfter, 3000) : 700 + Math.random() * 500;
+  await sleep(backoff);
+  // 429 coil: skip the retry entirely (quota is gone); 5xx gets one retry.
+  if (res.status === 429) {
+    markFail(name, cooldownMs);
+    return res;
+  }
+  const retry = await fetch(url, init);
+  if (!retry.ok) markFail(name, cooldownMs);
+  else markOk(name);
+  return retry;
+}

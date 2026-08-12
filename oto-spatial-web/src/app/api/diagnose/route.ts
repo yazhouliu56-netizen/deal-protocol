@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { mockDiagnose, type DiagnosisAdvice } from "@/lib/diagnostic";
+import { completeText } from "@/lib/gateway/engine";
 
 /**
  * S2 AI 主动诊断 — POST { id, budget, basics, customs, negotiable, createdAt }
  * → { advice: DiagnosisAdvice[] }.
  *
- * Provider chain (same shape as /api/cluster): Zhipu GLM-4-Flash → Gemini →
- * the deterministic mock engine. Called from MyWaves when an active wave has
- * sat unclaimed past the 2-minute threshold; every failure degrades to the
- * local rule engine, so the demander always gets actionable advice.
+ * 薄层（ADR-0005）：prompt/解析/mock 兜底留在业务层，provider 链与配额
+ * 走 Gateway（diagnose 任务，zhipu JSON 稳定优先）。任何上游失败 → 本地
+ * 规则引擎，需求方始终拿到可执行建议。
  */
 
 const DIAGNOSE_PROMPT = (payload: string) =>
@@ -55,36 +55,6 @@ function parseAdvice(text: string): DiagnosisAdvice[] {
   return [];
 }
 
-/** OpenAI-compatible chat completion (Zhipu v4 / Gemini v1beta both speak it). */
-async function openAiDiagnose(
-  endpoint: string,
-  apiKey: string,
-  model: string,
-  prompt: string
-): Promise<DiagnosisAdvice[]> {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
-      max_tokens: 1024,
-      // GLM hybrid-thinking quirk — see /api/cluster.
-      ...(endpoint.includes("bigmodel.cn") ? { thinking: { type: "disabled" } } : {}),
-    }),
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  return parseAdvice(data.choices?.[0]?.message?.content ?? "");
-}
-
 export async function POST(req: Request) {
   const payload = (await req.json().catch(() => ({}))) as Partial<DiagnosePayload>;
 
@@ -95,41 +65,21 @@ export async function POST(req: Request) {
 
   const prompt = DIAGNOSE_PROMPT(JSON.stringify(payload));
 
-  // 1) Zhipu GLM-4-Flash first (free + mainland-reachable).
-  if (process.env.ZHIPU_API_KEY) {
-    try {
-      const advice = await openAiDiagnose(
-        "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-        process.env.ZHIPU_API_KEY,
-        process.env.ZHIPU_MODEL ?? "glm-4-flash",
-        prompt
-      );
-      if (advice.length > 0)
-        return NextResponse.json({ advice, source: "zhipu" });
-    } catch {
-      // fall through
+  const outcome = await completeText({
+    task: "diagnose",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.4,
+    maxTokens: 1024,
+    timeoutMs: 10_000,
+  });
+  if (outcome.ok) {
+    const advice = parseAdvice(outcome.content);
+    if (advice.length > 0) {
+      return NextResponse.json({ advice, source: outcome.provider });
     }
   }
 
-  // 2) Gemini (v1beta OpenAI-compatible endpoint).
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const geminiModel = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
-  if (geminiKey) {
-    try {
-      const advice = await openAiDiagnose(
-        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        geminiKey,
-        geminiModel,
-        prompt
-      );
-      if (advice.length > 0)
-        return NextResponse.json({ advice, source: "gemini" });
-    } catch {
-      // fall through
-    }
-  }
-
-  // 3) Deterministic local rule engine.
+  // Deterministic local rule engine.
   const advice = mockDiagnose(payload as Required<DiagnosePayload>);
   return NextResponse.json({ advice, source: "mock" });
 }

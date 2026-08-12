@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { mockDecompose } from "@/lib/decompose";
+import { completeText } from "@/lib/gateway/engine";
 
 /**
  * LLM 任务拆解 — POST { category, time, note, budget } →
  * { modules: [{ name, acceptance, weight }], source }.
  *
- * Turns a fuzzy one-sentence demand ("我要清理整个房间" — too vague) into
- * independent, individually-acceptable task modules with suggested price
- * weights (sum 100%). The demander confirms / edits the list before publish.
- *
- * Provider chain (same as /api/cluster): Zhipu → Gemini → deterministic mock.
+ * 薄层（ADR-0005）：prompt/解析/权重归一/mock 兜底留在业务层，provider
+ * 链与配额走 Gateway（decompose 任务，zhipu JSON 稳定优先）。
  */
 
 const DECOMPOSE_PROMPT = (payload: string) => `你是 OTO 本地服务任务拆解引擎。用户用一句话描述需求，你要把它拆成 2-5 个【相互独立、可单独验收】的任务模块。
@@ -78,35 +76,6 @@ function normalizeWeights(
   return out;
 }
 
-/** OpenAI-compatible chat completion (Zhipu v4 / Gemini v1beta both speak it). */
-async function openAiDecompose(
-  endpoint: string,
-  apiKey: string,
-  model: string,
-  prompt: string
-): Promise<Array<{ name: string; acceptance: string; weight: number }>> {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
-      max_tokens: 1024,
-      ...(endpoint.includes("bigmodel.cn") ? { thinking: { type: "disabled" } } : {}),
-    }),
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  return parseModules(data.choices?.[0]?.message?.content ?? "");
-}
-
 export async function POST(req: Request) {
   const payload = (await req.json().catch(() => ({}))) as DecomposePayload;
   const prompt = DECOMPOSE_PROMPT(
@@ -117,45 +86,21 @@ export async function POST(req: Request) {
     })
   );
 
-  // 1) Zhipu GLM-4-Flash first (free + mainland-reachable).
-  if (process.env.ZHIPU_API_KEY) {
-    try {
-      const mods = await openAiDecompose(
-        "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-        process.env.ZHIPU_API_KEY,
-        process.env.ZHIPU_MODEL ?? "glm-4-flash",
-        prompt
-      );
-      const normalized = normalizeWeights(mods);
-      if (normalized.length >= 2) {
-        return NextResponse.json({ modules: normalized, source: "zhipu" });
-      }
-    } catch {
-      // fall through
+  const outcome = await completeText({
+    task: "decompose",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3,
+    maxTokens: 1024,
+    timeoutMs: 15_000,
+  });
+  if (outcome.ok) {
+    const normalized = normalizeWeights(parseModules(outcome.content));
+    if (normalized.length >= 2) {
+      return NextResponse.json({ modules: normalized, source: outcome.provider });
     }
   }
 
-  // 2) Gemini (v1beta OpenAI-compatible endpoint).
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const geminiModel = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
-  if (geminiKey) {
-    try {
-      const mods = await openAiDecompose(
-        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        geminiKey,
-        geminiModel,
-        prompt
-      );
-      const normalized = normalizeWeights(mods);
-      if (normalized.length >= 2) {
-        return NextResponse.json({ modules: normalized, source: "gemini" });
-      }
-    } catch {
-      // fall through
-    }
-  }
-
-  // 3) Deterministic mock splitter.
+  // Deterministic mock splitter.
   const modules = mockDecompose({
     category: payload.category,
     note: payload.note,
