@@ -52,6 +52,9 @@ dev.db
 # local dev logs
 dev-server.log
 
+# codegraph local index cache
+/.codegraph/
+
 # Playwright MCP debug artifacts
 .playwright-mcp/
 
