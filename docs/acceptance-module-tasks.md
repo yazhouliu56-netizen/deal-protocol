@@ -133,9 +133,9 @@
 
 ### 第三部分 · 账本与信用
 
-**D1 ⏳ · 账本**
-- [ ] 复用 PayOrder：全退 `decideRefund(1)` / 部分 `decideRefund(ratio)`（已有）
-- [ ] 新增 `DisputeRecord` 独立存争议审计
+**D1 ✅ · 账本**（2026-08-12 标记：代码早已落地 `8b8cfc4` 前各批，文档未同步）
+- [x] 复用 PayOrder：全退 `decideRefund(1)` / 部分 `decideRefund(ratio)`（已有，`lib/pay.ts:109` + pay.test）
+- [x] 新增 `DisputeRecord` 独立存争议审计（`lib/dispute.ts:70` + dispute.test）
 
 **D2 ✅ · 信用联动：按责任联动，两档（用户拍板）**
 - **判"响应者责任"**（no-show / 交付物缺失全责）→ breach 语义信用降低（同 unforgiven）
