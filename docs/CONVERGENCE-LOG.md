@@ -17,3 +17,4 @@
 | 2026-08-13 | `004bb23` | ADR-0009 Sentinel：发布闸门 + 事件流接入 store | #9 多防线一体 / #10 降级设计 | 反欺诈从 roam 单点拦截收敛为多因子聚合 + 缺因子降级 |
 | 2026-08-13 | `4da1c5e` | 0010-0015 批次：`lib/chat/` → `base/ai/chat/` rename；transport union 新字段；useWaveStore 多域状态扩充 | #1 / #2 / #4 弹药可插拔 | chat 引擎从业务目录 lib/ 收敛归位 base/ai；IM/隐私号/表单/geo 适配全部底座化 |
 | 2026-08-13 | `a6edc57` | RPG 哲学原文从桌面断链 → docs/ 入仓 | §5 出处闭合 | 宪法出处文档从「仓库外引用」收敛为「仓库内 git 跟踪」 |
+| 2026-08-13 | 待提交 | ADR-0016：`base/safe/ageGate.ts` + `base/platform/quietHours.ts` + `ammo/risk-rule` age-required 引信 | #8 隐私血液 / #4 弹药可插拔 / #10 降级 | 未成年人合规从「未定义」收敛为分级模式（法规对齐）；推送从「无免打扰」收敛为用户自主静音（不绑付费） |

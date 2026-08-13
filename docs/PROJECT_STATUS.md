@@ -39,6 +39,7 @@
 | ADR-0013 危机+脱敏/遗忘 | ✅ 第五圈：`base/safe/crisis.ts`（级别 0-3 + EPA 通知递增：联系人→平台值班→警方通道 + 去重/处置闭环/SMS 模板）+ `base/safe/privacy.ts`（五类掩码 + 遗忘权请求幂等 + 按域匿名化）+5 单测 | 2026-08-13 |
 | ADR-0014 韧性四件套 | ✅ 第六圈：`base/platform/offlineQueue.ts`（幂等入队/重放/指数退避）+ `circuit.ts`（熔断 3 次→open→冷却→half-open 探测 + 供需杠杆信号）+ `resilience.ts`（degrades 降级链 + 数据湖哈希链存证/全链校验 + AB 分流/胜负判定）+7 单测 | 2026-08-13 |
 | ADR-0015 表单+geo 适配 | ✅ 第一圈：`base/form/dynamicForm.ts`（六类型字段/校验/渲染描述器/submittable，弹药填表即出表单）+ `base/geo/geoAdapter.ts`（GeoSrc 接口 + Mock 演示 + 注入点，mobile location.ts 消费方声明）+3 单测 | 2026-08-13 |
+| ADR-0016 未成年人分级+免打扰 | ✅ 第五/六圈（对标 deep-research 吸收）：`base/safe/ageGate.ts`（分级 adult/teen/child：14 岁下监护人同意、18 岁下资金闸全拦且不因 guardMode=false 解除——法规对齐《未保条例》§31/§43 +《未保法》§72/§76，非法禁）+ `base/platform/quietHours.ts`（用户自主静音窗口、urgent 危机永推、合并/拆分窗口，不绑付费）+ `ammo/risk-rule` 新增 age-required 引信（全局默认开 + 夜骑/夜爬类目成人专属）+16 单测 | 2026-08-13 |
 | P0 工程化（Zustand/Framer） | ✅ | 08-03 |
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
@@ -154,3 +155,4 @@
 | 2026-08-13 | 已推（4da1c5e 起多笔） | **ADR-0011 宪法 #7 合规补记**：语义推荐（N3）与 BI（N6）评估过 LLM 接入并记录不接入理由（延迟敏感需即时反馈 / 可解释可审计优于向量黑箱 / 封闭域规则可穷尽 / 零外部依赖免断供），真实 embedding API 与 LLM 意图改写留后续 ADR；ADR-0011 命中条文补 #7 + 单独「LLM 介入点评估」小节，符合宪法 §4 两栏强制 | |
 | 2026-08-13 | 已推（a6edc57） | **宪法出处文档外链修复**：RPG 哲学原文从桌面断链 → `docs/RPG设计哲学与生命力.md` 入仓 git 跟踪（700 行），宪法 §5 引用路径同步修正 | |
 | 2026-08-13 | 已推（08d6305） | **宪法收敛门禁落地**：`docs/CONVERGENCE-LOG.md` 登记表（追认 6 笔历史 rename）+ `scripts/convergence-check.mjs` 机器拦截（未提交 rename 即时拦截、已提交未登记 rename 报错、登记 commit 存在性校验，实测抓出 4da1c5e/7754884 两笔）+ root package.json `check:convergence` + 根/sub AGENTS.md 强制规则（修复 Windows 下 cmd 管道吞 `|` 误报通过的隐患） | |
+| 2026-08-13 | 待提交 | **ADR-0016 对标 deep-research 吸收（未成年人分级 + 推送免打扰）**：年龄策略由「一刀切禁」修正为「分级模式」（ageGate：<14 须监护人同意、<18 资金闸全拦且不因 guardMode=false 解除——法规对齐《未成年人网络保护条例》§31/§43 +《未保法》§72/§76）；每日上限定位为防骚扰而非付费玩法；废弃 C 端置顶（伪需求）仅留 B 端推广；免打扰 quietHours 用户自主静音窗口不绑付费、urgent 危机永推；`ammo/risk-rule` 新增 age-required 引信（全局默认开 + 夜骑/夜爬类目成人专属）；单测 365→**381 全绿**、tsc 0 错 | |

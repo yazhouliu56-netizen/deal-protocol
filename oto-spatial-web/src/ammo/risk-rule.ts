@@ -7,7 +7,8 @@ export type RiskRuleName =
   | "anti-self-boost" // 防自刷（分享/回应计数按人去重）
   | "roam-guard" // 多开风控（同设备多身份）
   | "home-access-verification" // 进家品类实名硬门槛
-  | "publish-fee-quota"; // 发布费 + 每日免费配额
+  | "publish-fee-quota" // 发布费 + 每日免费配额
+  | "age-required"; // 未成年人分级模式（儿童监护人同意 + 青少年资金闸）
 
 export interface RiskRule {
   rule: RiskRuleName;
@@ -22,6 +23,8 @@ export const GLOBAL_RISK_RULES: RiskRule[] = [
   { rule: "roam-guard", enabled: true, params: { freeBindings: 1, warnThreshold: 2, freezeThreshold: 3 } },
   { rule: "home-access-verification", enabled: true },
   { rule: "publish-fee-quota", enabled: true, params: { freePerDay: 3, publishFee: 2 } },
+  // §未成年人网络保护条例(2024) — 平台默认开启未成年人分级保护（宪法 #8 血液规则）
+  { rule: "age-required", enabled: true, params: { guardianConsentUnder14: true, moneyActionBlockedUnder18: true } },
 ];
 
 /** 类目级覆盖（可配风险偏好差异：如高风险类目开启更严引信）。 */
@@ -30,6 +33,9 @@ export const CATEGORY_RISK: Record<string, RiskRuleName[]> = {
   "家政保洁": ["home-access-verification"],
   // Phase 3：遛狗需进门取狗，进家引信开启
   "遛狗遛弯": ["home-access-verification"],
+  // 成人专属/涉险类目：需成年才能参与（弹药化 age-required 引信）
+  "夜骑巡航": ["age-required"],
+  "夜爬登山": ["age-required"],
 };
 
 export function riskRulesFor(category: string): RiskRule[] {
