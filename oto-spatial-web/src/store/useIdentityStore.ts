@@ -37,6 +37,10 @@ export interface Identity {
   distanceKm: number;
   verified: boolean;
   online: boolean;
+  /** 出生年份（未成年人分级依据）。nil → 视为未设置（ADR-0016）。 */
+  birthYear?: number;
+  /** 14 岁以下监护人同意（《未保法》§72）。nil → false。 */
+  guardianConsent?: boolean;
 }
 
 export type { LedgerEntry } from "@/base/money/ledger";
@@ -70,6 +74,8 @@ interface IdentityState {
   setCapability: (patch: Partial<Pick<Identity, "categories" | "tags" | "distanceKm" | "verified">>) => void;
   setAvatar: (dataUrl: string) => void;
   setOnline: (online: boolean) => void;
+  /** 设置出生年份（+14 岁以下监护人同意），驱动 ADR-0016 未成年人分级。 */
+  setAge: (birthYear?: number, guardianConsent?: boolean) => void;
   setStatus: (status: "online" | "busy" | "offline") => void;
   useQuota: (n?: number) => boolean;
   resetQuotaIfDue: (now?: number) => void;
@@ -140,6 +146,18 @@ export const useIdentityStore = create<IdentityState>()(
 
       setAvatar: (dataUrl) =>
         set((s) => ({ identity: { ...s.identity, avatar: dataUrl } })),
+
+      setAge: (birthYear, guardianConsent) =>
+        set((s) => ({
+          identity: {
+            ...s.identity,
+            birthYear: birthYear ?? undefined,
+            guardianConsent:
+              typeof guardianConsent === "boolean"
+                ? guardianConsent
+                : s.identity.guardianConsent,
+          },
+        })),
 
       setOnline: (online) =>
         set((s) => ({

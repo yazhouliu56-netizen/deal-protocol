@@ -18,6 +18,8 @@ import {
   type NotifyPermission,
   type NotifDiffInput,
 } from "@/base/notify/systemNotify";
+import { shouldNotify, minuteOfWeek } from "@/base/platform/quietHours";
+import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
   offer: ["bg-brandCyan/15 border-brandCyan/40", "text-brandCyan"],
@@ -53,9 +55,18 @@ export default function NotificationCenter() {
   const friendRequests = useWaveStore((s) => s.friendRequests);
   const reports = useWaveStore((s) => s.reports);
   const identity = useIdentityStore((s) => s.identity);
+  const quietPref = useQuietPrefStore((s) => s.pref);
   const [open, setOpen] = useState(false);
   const [notifPerm, setNotifPerm] = useState<NotifyPermission>("default");
   const readKeys = useReadKeys();
+
+  // ADR-0016 免打扰：urgent（报价/接单/好友/裂变 → 履约关键）不受静音影响；
+  // normal（成局/拼位提醒）走用户设置的静音窗口。
+  const isUrgent = (notifId: string): boolean => {
+    if (notifId.startsWith("offer:") || notifId.startsWith("accepted:") ||
+        notifId.startsWith("friend:") || notifId.startsWith("fission:")) return true;
+    return false;
+  };
 
   // 本地系统通知：跨帧 diff 出增量事件（成局/新报价/拼位/接单/好友申请），
   // 授权后弹系统通知。identity 切换或首帧只做基线，不弹。
@@ -86,10 +97,15 @@ export default function NotificationCenter() {
     const prev = prevRef.current;
     prevRef.current = cur;
     if (!prev || prev.meId !== cur.meId) return;
+    const weekStart = new Date().setHours(0, 0, 0, 0) - 7 * 24 * 3600_000;
+    const nowMinute = minuteOfWeek(Date.now(), weekStart);
     for (const n of diffNotifEvents(prev, cur)) {
+      // ADR-0016：urgent 永推；normal 在静音窗口内跳过
+      const cls = isUrgent(n.id) ? "urgent" : "normal";
+      if (!shouldNotify(cls, quietPref, nowMinute)) continue;
       notify(n.title, n.body);
     }
-  }, [identity, waves, claims, friendRequests]);
+  }, [identity, waves, claims, friendRequests, quietPref]);
 
   const items = useMemo(() => {
     const me = identity.id;

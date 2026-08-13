@@ -8,6 +8,7 @@ import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
+import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import type { TaskModule } from "@/base/ai/decompose";
 
@@ -117,6 +118,25 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       setError("预算需为有效金额");
       return;
     }
+    // ADR-0016 未成年人分级：发布前先过年龄闸（监护人同意 / 资金动作受限）
+    const birthYear = identity.birthYear;
+    const age = birthYear == null ? null : ageFromBirthYear(birthYear, new Date().getFullYear());
+    if (age != null && age < 18) {
+      const gate = ageGate({
+        age,
+        action: "publish",
+        guardianConsent: identity.guardianConsent,
+      });
+      if (gate.blocked) {
+        setError(`发布被拒：${gate.reason}`);
+        return;
+      }
+      // 青少年可发免费局，但不能加鸽子险（资金动作）
+      if (deposit) {
+        setError(`发布被拒：${ageGate({ age, action: "deposit", guardianConsent: identity.guardianConsent }).reason}`);
+        return;
+      }
+    }
     // 模块化任务：权重必须和为 100%（否则按等分兜底）
     if (modules && modules.length >= 2) {
       const total = modules.reduce((s, m) => s + (Number(m.weight) || 0), 0);
@@ -131,8 +151,15 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         ? Math.max(1, Math.round(budgetNum / people))
         : budgetNum;
     // 提交即扣免费发布次数：每日免费 3 次，用完需另付发布费（独立于单子金额）
+    // ADR-0016：青少年免费次数内可发；用尽后超发需付发布费（资金动作）→ 未成年拦截
     resetPublishQuotaIfDue();
     const free = consumePublishQuota();
+    if (!free && age != null && age < 18) {
+      setError(
+        `发布被拒：每日免费发布次数已用完（${FREE_PUBLISH_PER_DAY} 次）。未成年人模式不支持付费发布，请明日再来`
+      );
+      return;
+    }
     const publishFee = free ? 0 : PUBLISH_FEE;
     const out = createPendingWave({
       authorId: identity.id,

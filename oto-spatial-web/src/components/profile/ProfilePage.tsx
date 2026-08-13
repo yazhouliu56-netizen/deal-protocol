@@ -22,6 +22,8 @@ import WalletView from "@/components/waves/WalletView";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
 import MyClaims from "@/components/waves/MyClaims";
 import FriendList from "@/components/waves/FriendList";
+import { ageFromBirthYear, ageGate, modeOfAge } from "@/base/safe/ageGate";
+import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   羽毛球约局: "🏸",
@@ -49,6 +51,15 @@ export default function ProfilePage({
   const [showReviewFor, setShowReviewFor] = useState<string | null>(null);
   const [view, setView] = useState<"profile" | "workbench">("profile");
   const setAvatar = useIdentityStore((s) => s.setAvatar);
+  const setAge = useIdentityStore((s) => s.setAge);
+  const quietPref = useQuietPrefStore((s) => s.pref);
+  const setQuietEnabled = useQuietPrefStore((s) => s.setEnabled);
+  const toggleQuietWindow = useQuietPrefStore((s) => s.toggleWindow);
+
+  /** 出生年本地输入状态（回填现有值）。 */
+  const [birthYearInput, setBirthYearInput] = useState<string>(
+    identity.birthYear != null ? String(identity.birthYear) : ""
+  );
 
   const onPickAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -251,6 +262,126 @@ export default function ProfilePage({
         </div>
         <p className="text-[9px] text-white/25 mt-2">
           点击标签切换偏好，将用于撮合匹配排序（本地保存）
+        </p>
+      </div>
+
+      {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
+      <div className="glass-panel rounded-2xl p-3.5">
+        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+          未成年人分级
+          <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
+            合规
+          </span>
+        </h3>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1970}
+            max={new Date().getFullYear()}
+            value={birthYearInput}
+            onChange={(e) => setBirthYearInput(e.target.value)}
+            placeholder="出生年份（如 2008）"
+            className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[11px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
+          />
+          <button
+            onClick={() => {
+              const by = parseInt(birthYearInput, 10);
+              if (!Number.isFinite(by) || by < 1970 || by > new Date().getFullYear()) {
+                return;
+              }
+              setAge(by);
+            }}
+            className="px-3 py-1.5 rounded-lg btn-primary text-[10px] font-bold"
+          >
+            保存
+          </button>
+        </div>
+        {identity.birthYear != null && (
+          <div className="mt-2 text-[9.5px] text-white/45 leading-relaxed">
+            {(() => {
+              const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
+              const mode = modeOfAge(age);
+              const label =
+                mode === "adult"
+                  ? "成年用户，完整功能"
+                  : mode === "teen"
+                    ? "青少年模式（14-17）：可发免费局/响应，涉资金功能受限"
+                    : "儿童模式（<14）：须监护人同意，仅浏览";
+              const moneyCheck = ageGate({ age, action: "publish-fee" });
+              return (
+                <>
+                  <p className="font-bold text-white/70">
+                    {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
+                  </p>
+                  {age < 18 && (
+                    <p className="mt-1 text-white/40">
+                      资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
+                      —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
+                    </p>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
+        {ageFromBirthYear(
+          identity.birthYear ?? new Date().getFullYear(),
+          new Date().getFullYear()
+        ) < 14 && (
+          <label className="mt-2 flex items-center gap-2 text-[10px] text-white/55 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={identity.guardianConsent ?? false}
+              onChange={(e) => setAge(identity.birthYear, e.target.checked)}
+              className="accent-brandPurple"
+            />
+            监护人已同意我使用本平台（《未保法》§72）
+          </label>
+        )}
+      </div>
+
+      {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
+      <div className="glass-panel rounded-2xl p-3.5">
+        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+          推送免打扰
+          <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+            自主设置 · 不绑付费
+          </span>
+        </h3>
+        <label className="flex items-center justify-between gap-2 text-[10.5px] text-white/70 cursor-pointer">
+          <span>开启免打扰</span>
+          <input
+            type="checkbox"
+            checked={quietPref.enabled}
+            onChange={(e) => setQuietEnabled(e.target.checked)}
+            className="accent-brandPurple"
+          />
+        </label>
+        {quietPref.enabled && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {[
+              { label: "00:00–06:00", start: 0, end: 360 },
+              { label: "22:00–07:00", start: 1320, end: 420 },
+            ].map((w) => {
+              const on = quietPref.windows.some((x) => x.start === w.start && x.end === w.end);
+              return (
+                <button
+                  key={w.label}
+                  onClick={() => toggleQuietWindow(w.start, w.end)}
+                  className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
+                    on
+                      ? "bg-brandPurple/25 border-brandPurple/50 text-brandPurple-foreground"
+                      : "bg-white/[0.06] border-white/10 text-white/60"
+                  }`}
+                >
+                  {on ? "✓ " : ""}{w.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <p className="text-[9px] text-white/25 mt-2">
+          静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
         </p>
       </div>
     </div>

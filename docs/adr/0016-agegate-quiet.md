@@ -44,5 +44,6 @@
 
 ## Consequences
 - 新增 `base/safe/ageGate.ts`、`base/platform/quietHours.ts`、`ageGate.test.ts`（+16 单测）；
-- 单测 365 → **381 全绿**、tsc 0 错；
-- 后续（单独 ADR）：identity 补 birthYear 字段 + ProfilePage 出生年输入 + PublishSheet 发布路径接入 ageGate 分派 + 免打扰 UI 设置页 + NotificationCenter 接入 shouldNotify。
+- 接线完成：`useIdentityStore` 补 `birthYear`/`guardianConsent` + `setAge`；`PublishSheet` 发布路径接入 ageGate 分派（免费局可发、鸽子险拦、超发付费拦）；`useQuietPrefStore` + ProfilePage「未成年人分级」与「推送免打扰」设置区块；`NotificationCenter` 系统通知按 urgent/normal 走 shouldNotify（urgent 永推）；
+- 单测 365 → **381 全绿**、tsc/lint 0 错、build 通过；
+- 后续（单独 ADR）：真实实名认证（人脸/证件）接入 age 核验兜底、免打扰跨设备同步（Supabase transport）。
