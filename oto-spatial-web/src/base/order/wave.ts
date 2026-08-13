@@ -87,6 +87,10 @@ export interface Wave {
   fissionBy?: string[];
   /** 裂变最后一次真实增量时间（系统通知 diff 用；无增量时 undefined）。 */
   fissionUpdatedAt?: number;
+  /** 组织者把关层（Request to spot，对标 Meetup 成员审批）：true 时拼位须先申请、发起人审批后才占座。 */
+  needApproval?: boolean;
+  /** 待审批的拼位申请（responderId → 申请时刻）。审批通过才占用座位。 */
+  joinRequests?: Array<{ responderId: string; at: number }>;
   /** 公开竞价结算（P8 商业化）：组局主开标后写回真实局，持久可见。 */
   biddingSettled?: {
     winnerId: string;
@@ -155,6 +159,8 @@ export interface CreateWaveInput {
   capacity?: number;
   /** 发起人 no-show buff 抵扣拼位数（成局面降标准）。 */
   buffSeats?: number;
+  /** 组织者把关层：true = 拼位需申请并获发起人审批（开放局可用）。 */
+  needApproval?: boolean;
   /** TTL in ms from now, or absolute epoch — after it the wave expires. */
   expiresAt: number;
   /** Structured service start time (epoch) — powers 24h tiered cancellation. */
@@ -187,6 +193,8 @@ export function createWave(input: CreateWaveInput): Wave {
     deposit: input.deposit ?? false,
     capacity: input.capacity ?? 1,
     buffSeats: input.buffSeats,
+    needApproval: input.needApproval ?? false,
+    joinRequests: input.needApproval ? [] : undefined,
     modules: input.modules,
     expiresAt: input.expiresAt,
     startsAt: input.startsAt,
@@ -420,6 +428,91 @@ export function joinSeat(
       status: full ? "assembled" : "active",
     },
     claim,
+  };
+}
+
+/**
+ * 组织者把关层（Request to spot）：开放局发起人开启审批制（needApproval）后，
+ * 拼位者先提交申请（入 joinRequests），不占实际座位、不付钱；发起人审批通过
+ * 才走 joinSeat 占座 + 押金。幂等：同人重复申请不叠加。
+ */
+export function requestSeat(
+  wave: Wave,
+  responderId: string,
+  now = Date.now()
+): { wave: Wave } {
+  if (!wave.needApproval) {
+    throw new Error("wave.approval-off");
+  }
+  if (wave.status !== "active") {
+    throw new Error("wave.not-active");
+  }
+  const exists = (wave.joinRequests ?? []).some(
+    (r) => r.responderId === responderId
+  );
+  if (exists) {
+    return { wave };
+  }
+  return {
+    wave: {
+      ...wave,
+      joinRequests: [...(wave.joinRequests ?? []), { responderId, at: now }],
+    },
+  };
+}
+
+/**
+ * 审批某申请：通过 → 复用 joinSeatLogic 占座（满员即成局）；拒绝 → 从申请列表移除。
+ * 返回当前申请的 claim（如已占座/成局）、更新后的 wave。
+ */
+export function approveRequest(
+  wave: Wave,
+  responderId: string,
+  claimId: string,
+  joinedCount: number,
+  now = Date.now()
+): { wave: Wave; claim?: Claim; error?: string } {
+  if (!wave.needApproval) {
+    return { error: "wave.approval-off", wave };
+  }
+  const requested = (wave.joinRequests ?? []).some(
+    (r) => r.responderId === responderId
+  );
+  if (!requested) {
+    return { error: "wave.no-request", wave };
+  }
+  const remaining = (wave.joinRequests ?? []).filter(
+    (r) => r.responderId !== responderId
+  );
+  // 审批就是占座：座位被占满/已成局时拒绝该请求。
+  if (wave.status !== "active" || joinedCount >= neededJoiners(wave)) {
+    return { error: "wave.full", wave: { ...wave, joinRequests: remaining } };
+  }
+  try {
+    const out = joinSeat(wave, responderId, claimId, joinedCount, now);
+    return {
+      wave: { ...out.wave, joinRequests: remaining },
+      claim: out.claim,
+    };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "approve-failed", wave: { ...wave, joinRequests: remaining } };
+  }
+}
+
+/**
+ * 拒绝某申请（或收回已批准）：只从申请列表移除，不占座、无副作用。
+ */
+export function rejectRequest(
+  wave: Wave,
+  responderId: string
+): { wave: Wave } {
+  return {
+    wave: {
+      ...wave,
+      joinRequests: (wave.joinRequests ?? []).filter(
+        (r) => r.responderId !== responderId
+      ),
+    },
   };
 }
 

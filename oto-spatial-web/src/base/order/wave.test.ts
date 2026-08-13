@@ -17,6 +17,9 @@ import {
   openNegotiation,
   perSeatPrice,
   resolveNoShow,
+  requestSeat,
+  approveRequest,
+  rejectRequest,
   withdrawClaim,
   MAX_ROUNDS,
   type Wave,
@@ -256,3 +259,59 @@ test("resolveNoShow �ܾ�δ�ɾ� / �� accepted ��λ", () => {
   const claimA = mk("rA");
   assert.throws(() => resolveNoShow({ wave, claim: claimA, attendees: [], paidAmount: 100 }), /not-assembled/);
 });
+
+// --- Request to spot（组织者把关层，对标 Meetup 成员审批） ---
+
+test("requestSeat: 开启审批制的开放局可提交申请，未开启拒绝", () => {
+  const plain = baseWave({ capacity: 3 });
+  assert.throws(() => requestSeat(plain, "r1", now), /approval-off/);
+  const open = baseWave({ capacity: 3, needApproval: true });
+  const out = requestSeat(open, "r1", now);
+  assert.equal(out.wave.joinRequests?.length, 1);
+});
+
+test("requestSeat 同人重复申请不叠加", () => {
+  const open = baseWave({ capacity: 3, needApproval: true });
+  const r1 = requestSeat(open, "r1", now);
+  const r2 = requestSeat(r1.wave, "r1", now + 100);
+  assert.equal(r2.wave.joinRequests?.length, 1);
+  assert.equal(r2.wave.joinRequests?.[0].responderId, "r1");
+});
+
+test("approveRequest: 审批通过 → 占座（满员即成局），并清掉该申请", () => {
+  const open = baseWave({ capacity: 2, needApproval: true });
+  const req = requestSeat(open, "r1", now);
+  const out = approveRequest(req.wave, "r1", "c1", 0, now);
+  assert.equal(out.error, undefined);
+  assert.ok(out.claim);
+  assert.equal(out.claim.status, "accepted"); // 2 人局，发起人 + r1 = 满员
+  assert.equal(out.wave.status, "assembled");
+  assert.equal(out.wave.joinRequests?.length, 0);
+});
+
+test("approveRequest: 未申请者/未开启审批拒绝", () => {
+  const open = baseWave({ capacity: 3, needApproval: true });
+  assert.equal(approveRequest(open, "ghost", "c9", 0, now).error, "wave.no-request");
+  const plain = baseWave({ capacity: 3 });
+  assert.equal(approveRequest(plain, "r1", "c1", 0, now).error, "wave.approval-off");
+});
+
+test("approveRequest: 座位满时审批返回 wave.full 并清申请", () => {
+  const open = baseWave({ capacity: 2, needApproval: true });
+  const req = requestSeat(open, "r1", now);
+  // 发起人自己先占一席（capacity 2 → 剩 1 席）
+  const first = joinSeat(req.wave, "initiator-join", "c0", 0, now);
+  // r1 的申请此时只剩 0 席 → 满
+  const out = approveRequest(first.wave, "r1", "c1", 1, now);
+  assert.equal(out.error, "wave.full");
+  assert.equal(out.wave.joinRequests?.length, 0);
+});
+
+test("rejectRequest: 拒绝仅移除申请，无占座副作用", () => {
+  const open = baseWave({ capacity: 3, needApproval: true });
+  const req = requestSeat(open, "r1", now);
+  const out = rejectRequest(req.wave, "r1");
+  assert.equal(out.wave.joinRequests?.length, 0);
+  assert.equal(out.wave.status, "active");
+});
+

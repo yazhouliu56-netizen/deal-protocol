@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel } from "lucide-react";
+import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ACTION_LABEL } from "@/base/risk/moderation";
@@ -26,6 +26,7 @@ export default function MyWaves() {
   const claims = useWaveStore((s) => s.claims);
   const acceptClaim = useWaveStore((s) => s.acceptClaim);
 const assembleWave = useWaveStore((s) => s.assembleWave);
+  const decideRequest = useWaveStore((s) => s.decideRequest);
   const counterOffer = useWaveStore((s) => s.counterOffer);
   const withdraw = useWaveStore((s) => s.withdraw);
   const closeWave = useWaveStore((s) => s.closeWave);
@@ -187,6 +188,70 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                   )}
                 </div>
               </div>
+
+              {/* 组织者把关层：审批制开放局的待审批申请（发起人批/拒） */}
+              {isOpen && wave.status === "active" && wave.needApproval && (
+                <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/25 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-amber-200/80 flex items-center gap-1.5">
+                      <Shield size={11} /> 待你审批的拼位申请
+                    </span>
+                    <span className="text-[9.5px] text-white/40">
+                      {(wave.joinRequests ?? []).length} 人等待
+                    </span>
+                  </div>
+                  {(wave.joinRequests ?? []).length === 0 ? (
+                    <p className="text-[9.5px] text-white/35">
+                      暂无申请 —— 审批制已开启，响应者申请后会在这里等你批准
+                    </p>
+                  ) : (
+                    (wave.joinRequests ?? []).map((r) => (
+                      <div
+                        key={r.responderId}
+                        className="flex items-center justify-between gap-2 rounded-xl bg-white/[0.04] border border-white/10 px-2.5 py-1.5"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[10.5px] font-bold text-white/80 truncate">
+                            用户 {r.responderId.slice(0, 4)} · 申请拼位
+                          </p>
+                          <p className="text-[8.5px] text-white/35">
+                            {new Date(r.at).toLocaleTimeString("zh-CN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })} 提交申请
+                          </p>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            onClick={() =>
+                              decideRequest({
+                                waveId: wave.id,
+                                responderId: r.responderId,
+                                approve: true,
+                              })
+                            }
+                            className="px-2 py-1 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[9.5px] font-bold hover:brightness-110"
+                          >
+                            批准入局
+                          </button>
+                          <button
+                            onClick={() =>
+                              decideRequest({
+                                waveId: wave.id,
+                                responderId: r.responderId,
+                                approve: false,
+                              })
+                            }
+                            className="px-2 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-white/50 text-[9.5px] font-bold hover:text-red-300"
+                          >
+                            拒绝
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
 
               {/* 开放局：拼位队列 + 提前成局 */}
               {isOpen && wave.status === "active" && (

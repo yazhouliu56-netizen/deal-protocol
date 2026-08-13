@@ -15,6 +15,7 @@ import {
   counterOffer,
   createWave,
   joinSeat as joinSeatLogic,
+  approveRequest as approveRequestLogic,
   lockNegotiation,
   neededJoiners,
   openNegotiation,
@@ -179,6 +180,14 @@ interface WaveStore extends WaveBundle {
   joinSeat: (p: {
     waveId: string;
     responderId: string;
+  }) => { claim?: Claim; assembled?: boolean; error?: string };
+  /** 组织者把关层：审批制开放局提交拼位申请（幂等，不占座不付钱）。 */
+  requestSeat: (p: { waveId: string; responderId: string }) => { ok: boolean; error?: string };
+  /** 发起人审批拼位申请：通过 → 占座（满员即成局）；拒绝 → 移除申请。 */
+  decideRequest: (p: {
+    waveId: string;
+    responderId: string;
+    approve: boolean;
   }) => { claim?: Claim; assembled?: boolean; error?: string };
   /** 开放局: demander closes the table early (at least one seat taken). */
   assembleWave: (waveId: string) => void;
@@ -625,6 +634,8 @@ set((st) => ({
         const wave = s.waves.find((w) => w.id === waveId);
         if (!wave) return { error: "wave-not-found" };
         if (wave.status !== "active") return { error: "wave-not-active" };
+        // 组织者把关层：审批制开放局禁止直接拼位，必须先 requestSeat 申请
+        if (wave.needApproval) return { error: "approval-required" };
         // no-show 欠款锁定：违约未结不能拼位
         if (hasUnsettledBreach(s.claims, responderId)) {
           return { error: "debt-unsettled" };
@@ -684,6 +695,115 @@ set((st) => ({
         } catch (e) {
           return { error: e instanceof Error ? e.message : "join-failed" };
         }
+      },
+
+      requestSeat: ({ waveId, responderId }) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return { ok: false, error: "wave-not-found" };
+        if (!wave.needApproval) return { ok: false, error: "approval-off" };
+        if (wave.status !== "active") return { ok: false, error: "wave-not-active" };
+        const exists = (wave.joinRequests ?? []).some(
+          (r) => r.responderId === responderId
+        );
+        if (exists) return { ok: true };
+        set((st) => ({
+          waves: st.waves.map((w) =>
+            w.id === waveId
+              ? {
+                  ...w,
+                  joinRequests: [
+                    ...(w.joinRequests ?? []),
+                    { responderId, at: Date.now() },
+                  ],
+                }
+              : w
+          ),
+        }));
+        return { ok: true };
+      },
+
+      decideRequest: ({ waveId, responderId, approve }) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return { error: "wave-not-found" };
+        if (!wave.needApproval) return { error: "approval-off" };
+        if (!approve) {
+          set((st) => ({
+            waves: st.waves.map((w) =>
+              w.id === waveId
+                ? {
+                    ...w,
+                    joinRequests: (w.joinRequests ?? []).filter(
+                      (r) => r.responderId !== responderId
+                    ),
+                  }
+                : w
+            ),
+          }));
+          return {};
+        }
+        const requested = (wave.joinRequests ?? []).some(
+          (r) => r.responderId === responderId
+        );
+        if (!requested) return { error: "no-request" };
+        // 复用纯函数审批：占座 + 满员成局（绕过 store 层 needApproval 拦截）
+        const joined = s.claims.filter(
+          (c) => c.waveId === waveId && c.status === "joined"
+        ).length;
+        const claimId = nextId("claim");
+        const out = approveRequestLogic(
+          wave,
+          responderId,
+          claimId,
+          joined
+        );
+        if (out.error || !out.claim) {
+          set((st) => ({
+            waves: st.waves.map((w) =>
+              w.id === waveId
+                ? {
+                    ...w,
+                    joinRequests: (w.joinRequests ?? []).filter(
+                      (r) => r.responderId !== responderId
+                    ),
+                  }
+                : w
+            ),
+          }));
+          return { error: out.error ?? "approve-failed" };
+        }
+        // 拼位支付落流水：占位即付（同 joinSeat）
+        const seatPaid = capturePayOrder(
+          createPayOrder({
+            id: nextId("pay"),
+            waveId,
+            payerId: responderId,
+            amount: out.claim.price ?? perSeatPrice(wave),
+          })
+        );
+        // 满员成局：其余 joined 一并转 accepted
+        const lockedClaims = s.claims.map((c) =>
+          c.waveId === waveId && c.status === "joined" && out.claim!.status === "accepted"
+            ? { ...c, status: "accepted" as const, depositPhase: wave.deposit ? ("held" as const) : c.depositPhase }
+            : c
+        );
+        set((st) => ({
+          waves: st.waves.map((w) =>
+            w.id === waveId
+              ? {
+                  ...out.wave,
+                  ...fissionStamp(w, responderId, Date.now()),
+                  joinRequests: (out.wave.joinRequests ?? []).filter(
+                    (r) => r.responderId !== responderId
+                  ),
+                }
+              : w
+          ),
+          claims: [...lockedClaims, out.claim!],
+          payOrders: [seatPaid, ...st.payOrders],
+        }));
+        return { claim: out.claim, assembled: out.wave.status === "assembled" };
       },
 
       assembleWave: (waveId) => {

@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Clock3, MapPin, Zap, Users, Flag, UserPlus, Heart } from "lucide-react";
+import { Clock, Clock3, MapPin, Zap, Users, Flag, UserPlus, Heart } from "lucide-react";
 import type { Wave } from "@/base/order/wave";
 import { neededJoiners, perSeatPrice } from "@/base/order/wave";
 import { suggestedPrice, yuan } from "@/base/money/customPricing";
@@ -21,8 +21,11 @@ export default function WaveCard({
   interests,
   joined,
   joinedByMe,
+  requested,
+  requestedByMe,
   onClaim,
   onJoin,
+  onRequestJoin,
 }: {
   wave: Wave;
   /** Real claim count for this wave. */
@@ -31,8 +34,14 @@ export default function WaveCard({
   joined?: number;
   /** 开放局：我是否已占座。 */
   joinedByMe?: boolean;
+  /** 审批制开放局：待审批申请数。 */
+  requested?: number;
+  /** 审批制开放局：我是否已提交申请（待审批）。 */
+  requestedByMe?: boolean;
   onClaim: (p: { price: number; note?: string }) => void;
   onJoin?: () => void;
+  /** 审批制开放局：提交拼位申请。 */
+  onRequestJoin?: () => void;
 }) {
   const identity = useIdentityStore((s) => s.identity);
   const submitReport = useWaveStore((s) => s.submitReport);
@@ -46,6 +55,7 @@ export default function WaveCard({
   const isFav = favorites.includes(wave.id);
 
   const isOpen = (wave.capacity ?? 1) >= 2;
+  const needsApproval = !!wave.needApproval;
   const needed = neededJoiners(wave);
   const ownSeat = joinedByMe || committed;
   const full = (joined ?? 0) >= needed;
@@ -125,6 +135,11 @@ export default function WaveCard({
           <div className="flex items-center justify-between text-[9.5px] mb-1">
             <span className="text-white/50">
               已拼 {Math.min(joined ?? 0, needed)}/{needed} 位
+              {needsApproval && (requested ?? 0) > 0 && (
+                <span className="text-amber-300/80">
+                  {" "}· 待审批 {(requested ?? 0)}
+                </span>
+              )}
             </span>
             <span className="text-brandPurple font-bold">
               {full ? "已满员" : `还差 ${needed - (joined ?? 0)} 人成局`}
@@ -192,13 +207,36 @@ export default function WaveCard({
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  onJoin?.();
-                  setCommitted(true);
+                  if (needsApproval) {
+                    onRequestJoin?.();
+                    setCommitted(true);
+                  } else {
+                    onJoin?.();
+                    setCommitted(true);
+                  }
                 }}
-                disabled={full}
+                disabled={full || requestedByMe}
                 className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <UserPlus size={12} /> {full ? "已满员" : "拼位加入"}
+                {needsApproval ? (
+                  requestedByMe ? (
+                    <>
+                      <Clock size={12} /> 待发起人审批
+                    </>
+                  ) : full ? (
+                    "已满员"
+                  ) : (
+                    <>
+                      <UserPlus size={12} /> 申请加入
+                    </>
+                  )
+                ) : full ? (
+                  "已满员"
+                ) : (
+                  <>
+                    <UserPlus size={12} /> 拼位加入
+                  </>
+                )}
               </button>
               <button
                 onClick={() => {

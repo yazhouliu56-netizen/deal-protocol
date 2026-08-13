@@ -40,6 +40,7 @@
 | ADR-0014 韧性四件套 | ✅ 第六圈：`base/platform/offlineQueue.ts`（幂等入队/重放/指数退避）+ `circuit.ts`（熔断 3 次→open→冷却→half-open 探测 + 供需杠杆信号）+ `resilience.ts`（degrades 降级链 + 数据湖哈希链存证/全链校验 + AB 分流/胜负判定）+7 单测 | 2026-08-13 |
 | ADR-0015 表单+geo 适配 | ✅ 第一圈：`base/form/dynamicForm.ts`（六类型字段/校验/渲染描述器/submittable，弹药填表即出表单）+ `base/geo/geoAdapter.ts`（GeoSrc 接口 + Mock 演示 + 注入点，mobile location.ts 消费方声明）+3 单测 | 2026-08-13 |
 | ADR-0016 未成年人分级+免打扰 | ✅ 第五/六圈（对标 deep-research 吸收）：`base/safe/ageGate.ts`（分级 adult/teen/child：14 岁下监护人同意、18 岁下资金闸全拦且不因 guardMode=false 解除——法规对齐《未保条例》§31/§43 +《未保法》§72/§76，非法禁）+ `base/platform/quietHours.ts`（用户自主静音窗口、urgent 危机永推、合并/拆分窗口，不绑付费）+ `ammo/risk-rule` 新增 age-required 引信（全局默认开 + 夜骑/夜爬类目成人专属）+16 单测 | 2026-08-13 |
+| ADR-0017 组织者把关层 | ✅ 第二圈（Meetup 吸收项①）：`base/order/wave.ts` 加 `needApproval`/`joinRequests` + 纯函数 `requestSeat`/`approveRequest`/`rejectRequest`（不扩 ClaimStatus 状态机，宪法 #2 接口保守）+ store `joinSeat` 审批拦截 + `requestSeat`/`decideRequest` + UI（WaveCard「申请加入/待审批」态、WaveFeed 申请接线、MyWaves 发起人审批面板批/拒、PublishSheet 开放局审批开关）+5 单测 → 387 全绿 | 2026-08-13 |
 | P0 工程化（Zustand/Framer） | ✅ | 08-03 |
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
@@ -99,7 +100,7 @@
 - [x] **P8 钱包账本闭环** ✅（本批完成：竞价服务费/订阅扣费/服务收益统一入 identity.ledger + WalletView 正负分色）
 - [ ] P8 商业化线上化：漫游入设备表 / PWA 真推（VAPID）/ 竞价接入真实支付（LAUNCH-GAP E 组）
 - [ ] 更远：灵感漩涡（概念模糊未定 · 当前理解=发现功能：刷灵感 → 一段话生成新需求局，类「AI 帮你变出局」） / 短信兜底 / 组局者订阅线上支付
-- [ ] **Meetup 吸收项（5，2026-08-13 用户裁决入 backlog）**：①组织者把关层 Request-to-spot（开放局发起人审批开关，复用 judge/fulfilment）★优先 ②waitlist 候补转正（满员进候补、退出按序/信用分补位，配合 release）③review 低分强制解释（≤3 星必填理由）④organizer 出勤档案视图（复用 no-show/violation 数据）⑤guest +1 携伴（携伴者实名登记对齐 ageGate/privacyNumber）
+- [ ] **Meetup 吸收项（5，2026-08-13 用户裁决入 backlog）**：~~①组织者把关层 Request-to-spot~~ ✅ ADR-0017 已落地；②waitlist 候补转正（满员进候补、退出按序/信用分补位，配合 release）③review 低分强制解释（≤3 星必填理由）④organizer 出勤档案视图（复用 no-show/violation 数据）⑤guest +1 携伴（携伴者实名登记对齐 ageGate/privacyNumber）
 - [ ] **Meetup 裁决记录（2026-08-13）**：Meetup+ 付费解锁通讯/成员名单 = ⏸️ 现阶段不上 · 记录为潜在赢利点（若启用走宪法 §3 冲突上报拍板）；群 dues（组织者向成员收会费）= 🚫 C 端不抄，归 B 端/场地商家销售场景；静态兴趣搜索 = 🚫 落后不抄（类微信群，与 match.ts 即时撮合冲突）
 - [x] **ADR-0006 O2O 万能底座蓝图定稿** ✅（本批完成文档层：RPG 设计哲学 → 六层防御圈 22 模块 + 本地现状映射（🟢8 / 🟡11 / 🔴7）+ 融合顺序定策 = 先蓝图定稿 → 再融合 web/mobile 按圈切分底座 → 再功能层迭代；后续融合期任务按圈/模块粒度排布）
 - [x] **ADR-0007 底座融合执行（第一批）** ✅（本批完成：嫁接映射表定稿（web 83 lib 文件切割归属 + C1-C5 接口契约）→ **`src/base/` 共享层落地**：money 11（ledger/pay/deposit/bidding/customPricing/organizerSubscription）× trust 12（reputation/trust/starRank/review/violation/friends）× order 10（wave/booking/fulfilment/moduleFulfilment/dispute）× dispatch 4 × risk 6 × geo 8 × notify 4 × platform 22（含 p2p）× ai 23（含 gateway/voice 目录）→ 全量 git mv 保历史 + 调用方 import 全改；**`src/ammo/` 弹药属性表落地**（scene-template/prefs 迁入 + pricing-formula/dispatch-rule/risk-rule 新建，C3/C4/C5 契约兑现，新增类目只填表）→ 单测 303 全绿（+5 ammo）、tsc/lint 0 错、build 通过（8 API 路由正常）
@@ -162,3 +163,4 @@
 | 2026-08-13 | 待提交 | **对齐审计补记：CONVERGENCE-LOG 追溯登记 3 笔历史 SW rename**（`382663d` sw.ts→sw.js / `0a64fbd` sw.js→root / `7f868c3` sw.js→sw.ts，07-23 PWA 构建修复，宪法定稿前 §2 历史遗留）——深扫门禁 `--since` 全历史验证：登记前 exit=1 精确抓出 3 笔、登记后 exit=0 放行；登记册「唯一事实来源」闭环 | |
 | 2026-08-13 | 待提交 | **Meetup 实地调研对标**：基于 Meetup 官方 Help Center + Blog 一手资料，将 `docs/oto-competitor-matrix.md` 深化为 §五 Meetup 专项对标（12 维度现状对照 + 结论）——确认我方 5 项更强（签到 signInsure/fulfilment、缺席治理、反欺诈 Sentinel、匹配即时性 match.ts、合规 ageGate/quietHours/privacyNumber）；梳理 5 项吸收进 backlog（组织者审批 Request to spot、waitlist 候补转正、低分强制解释、organizer 出勤档案、guest +1 携伴）；3 项不抄（Meetup+ 付费解锁通讯/群 dues/静态兴趣搜索，均与宪法 #10 冲突） | |
 | 2026-08-13 | 待提交 | **Meetup 对标用户裁决落地**：5 项吸收项正式登记 PROJECT_STATUS backlog（组织者审批★优先 + 候补转正 + 低分强制解释 + 出勤档案 + guest+1）；3 项裁决定调写入矩阵 §5.2 记录在案——Meetup+ 付费解锁 = ⏸️ 现阶段不上·潜在赢利点（若启用走宪法 §3 冲突上报）；群 dues = 🚫 C 端不抄·归 B 端/场地商家销售场景；静态兴趣搜索 = 🚫 落后不抄（类微信群） | |
+| 2026-08-13 | 待提交 | **ADR-0017 组织者把关层（Meetup 吸收项①★落地）**：`base/order/wave.ts` needApproval/joinRequests 字段 + 纯函数 requestSeat/approveRequest/rejectRequest（不扩 ClaimStatus 状态机，宪法 #2 接口保守）+ store joinSeat 审批拦截 + requestSeat/decideRequest + UI（WaveCard 申请/待审批态、WaveFeed 接线、MyWaves 发起人审批面板、PublishSheet 开放局审批开关）；单测 381→**387 全绿**、tsc/lint/build 通过；竞品矩阵 §5.2 ①勾销、backlog 同步 | |

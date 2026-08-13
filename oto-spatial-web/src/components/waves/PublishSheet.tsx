@@ -43,6 +43,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [note, setNote] = useState("");
   const [deposit, setDeposit] = useState(false);
   const [people, setPeople] = useState(1);
+  /** 组织者把关层：开放局开启审批制后，拼位需申请并由发起人批准。 */
+  const [needApproval, setNeedApproval] = useState(false);
   const [ttl, setTtl] = useState<number>(2 * 3600_000);
   /** 服务开始时间（相对 now 的偏移 ms）— 24h 分级取消的依据。null=未设置（取消不退） */
   const [startsIn, setStartsIn] = useState<number | null>(null);
@@ -66,6 +68,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     setNote("");
     setDeposit(false);
     setPeople(1);
+    setNeedApproval(false);
     setError("");
     setModules(null);
   }
@@ -172,6 +175,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       negotiable: note.trim().length > 0,
       negotiableNote: note.trim() || undefined,
       deposit,
+      needApproval: people >= 2 ? needApproval : undefined,
       capacity: people,
       startsAt: startsIn ? Date.now() + startsIn : undefined,
       modules: modules ?? undefined,
@@ -449,6 +453,17 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               ＋
             </button>
           </div>
+          {people >= 2 && (
+            <label className="mt-2.5 flex items-center gap-2 text-[9.5px] text-white/55 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={needApproval}
+                onChange={(e) => setNeedApproval(e.target.checked)}
+                className="accent-brandPurple"
+              />
+              需我审批加入（组织者把关，对标 Meetup 成员审批 —— 响应者申请后由你批准才占座）
+            </label>
+          )}
         </div>
 
         {/* 鸽子险：履约保证金 */}

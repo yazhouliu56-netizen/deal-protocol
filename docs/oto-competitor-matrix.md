@@ -140,7 +140,7 @@
 ### 5.2 对标结论（吸收 5 项 / 3 项裁决记录）
 
 **✅ 吸收（已确认进 backlog，2026-08-13 用户裁决）**：
-1. **组织者把关层（Request to spot）**——对应竞品矩阵 §2 缺口 #6（Playtomic Request a spot）+ Meetup 成员审批：给「开放局」加可选的「发起人审批制」开关（默认自动，高级局可开审批），复用 judge/fulfilment 治理。★优先
+1. **组织者把关层（Request to spot）**——对应竞品矩阵 §2 缺口 #6（Playtomic Request a spot）+ Meetup 成员审批：给「开放局」加可选的「发起人审批制」开关（默认自动，高级局可开审批），复用 judge/fulfilment 治理。★优先 ✅ **已落地 ADR-0017**（wave.ts needApproval/joinRequests + requestSeat/approveRequest/rejectRequest + store decideRequest + WaveCard/WaveFeed/MyWaves/PublishSheet UI，+5 单测 387 全绿）
 2. **waitlist 候补转正**——满员后进候补，有人退出按顺序/按信用分补位，配合现有 release 机制。
 3. **低分强制解释**——review 打 ≤3 星必须填理由（防恶意差评 + 提信息量），改动小。
 4. **organizer 出勤档案**——复用现有 no-show/violation 数据，补一个「发起人看本局成员出勤史」视图。

@@ -33,6 +33,7 @@ export default function WaveFeed() {
   const claims = useWaveStore((s) => s.claims);
   const openClaim = useWaveStore((s) => s.openClaim);
   const joinSeat = useWaveStore((s) => s.joinSeat);
+  const requestSeat = useWaveStore((s) => s.requestSeat);
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
@@ -89,6 +90,10 @@ export default function WaveFeed() {
         interest: claims.filter((c) => c.waveId === w.id).length,
         joined: claims.filter((c) => c.waveId === w.id && c.status === "joined").length,
         joinedByMe: joinedIds.has(w.id),
+        requested: (w.joinRequests ?? []).length,
+        requestedByMe: (w.joinRequests ?? []).some(
+          (r) => r.responderId === identity.id
+        ),
         hits: broadcastMatches(sigs, w),
       }))
       // 硬筛不过（未认证进家/封禁/离线/品类不符）→ 不出现在 feed
@@ -274,6 +279,8 @@ export default function WaveFeed() {
               interests={f.interest}
               joined={f.joined}
               joinedByMe={f.joinedByMe}
+              requested={f.requested}
+              requestedByMe={f.requestedByMe}
               onClaim={({ price, note }) =>
                 openClaim({
                   waveId: f.wave.id,
@@ -288,6 +295,15 @@ export default function WaveFeed() {
                   amount: perSeatPrice(f.wave),
                 })
               }
+              onRequestJoin={() => {
+                const out = requestSeat({ waveId: f.wave.id, responderId: identity.id });
+                if (out.error) {
+                  setJoinError(out.error === "approval-off" ? "该局未开启审批制" : "申请失败，请重试");
+                  toast("申请失败", "error");
+                } else {
+                  toast("已提交拼位申请，等待发起人审批", "success");
+                }
+              }}
             />
           </motion.div>
         ))}
