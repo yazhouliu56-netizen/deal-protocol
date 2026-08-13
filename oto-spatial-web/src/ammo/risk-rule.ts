@@ -1,0 +1,43 @@
+/**
+ * 弹药属性表 · 风控引信（C5）— 勾选即生效的规则开关。
+ * 底座 risk 模块按此表决定启用哪些探针；新增风控规则先在此注册。
+ */
+
+export type RiskRuleName =
+  | "anti-self-boost" // 防自刷（分享/回应计数按人去重）
+  | "roam-guard" // 多开风控（同设备多身份）
+  | "home-access-verification" // 进家品类实名硬门槛
+  | "publish-fee-quota"; // 发布费 + 每日免费配额
+
+export interface RiskRule {
+  rule: RiskRuleName;
+  enabled: boolean;
+  /** 规则参数，如 roam 阈值 / 免费配额数。 */
+  params?: Record<string, number | string | boolean>;
+}
+
+/** 全局引信表 — 所有弹药共享；业务类目级覆盖见 CATEGORY_RISK。 */
+export const GLOBAL_RISK_RULES: RiskRule[] = [
+  { rule: "anti-self-boost", enabled: true },
+  { rule: "roam-guard", enabled: true, params: { freeBindings: 1, warnThreshold: 2, freezeThreshold: 3 } },
+  { rule: "home-access-verification", enabled: true },
+  { rule: "publish-fee-quota", enabled: true, params: { freePerDay: 3, publishFee: 2 } },
+];
+
+/** 类目级覆盖（可配风险偏好差异：如高风险类目开启更严引信）。 */
+export const CATEGORY_RISK: Record<string, RiskRuleName[]> = {
+  "水电维修": ["home-access-verification"],
+  "家政保洁": ["home-access-verification"],
+};
+
+export function riskRulesFor(category: string): RiskRule[] {
+  const extra = CATEGORY_RISK[category] ?? [];
+  const names = new Set<RiskRuleName>([...extra]);
+  return GLOBAL_RISK_RULES.map((r) =>
+    names.has(r.rule) ? { ...r, enabled: true } : r
+  );
+}
+
+export function isRuleEnabled(rules: RiskRule[], name: RiskRuleName): boolean {
+  return rules.find((r) => r.rule === name)?.enabled ?? false;
+}

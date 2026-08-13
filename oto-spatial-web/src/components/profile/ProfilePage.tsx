@@ -12,8 +12,8 @@ import {
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { usePrefStore } from "@/store/usePrefStore";
-import { PREF_KEYS } from "@/lib/prefs";
-import { fileToAvatarDataUrl } from "@/lib/avatar";
+import { PREF_KEYS } from "@/ammo/prefs";
+import { fileToAvatarDataUrl } from "@/base/platform/avatar";
 import IdentityAvatar from "@/components/ui/IdentityAvatar";
 import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";

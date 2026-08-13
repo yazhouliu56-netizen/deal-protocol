@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock3 } from "lucide-react";
-import { maskName } from "@/lib/reputation";
+import { maskName } from "@/base/trust/reputation";
 
 export interface BlindRevealData {
   nickname: string;

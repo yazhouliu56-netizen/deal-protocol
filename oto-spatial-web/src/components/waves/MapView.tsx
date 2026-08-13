@@ -12,7 +12,7 @@ import {
   MAP_ZOOM,
   type GeoPoint,
   type MapDot,
-} from "@/lib/mapConfig";
+} from "@/base/geo/mapConfig";
 
 const toFeatureCollection = (dots: MapDot[]) => ({
   type: "FeatureCollection" as const,

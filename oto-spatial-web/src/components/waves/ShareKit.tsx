@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Check, Users } from "lucide-react";
 import QRCode from "qrcode";
-import type { Wave } from "@/lib/wave";
+import type { Wave } from "@/base/order/wave";
 
 /**
  * 拼位裂变 ShareKit — 纯本地实现。

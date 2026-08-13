@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { Gavel, ShieldCheck, X, Flag, TrendingUp } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useRoamStore } from "@/store/useRoamStore";
-import { riskOf } from "@/lib/roamGuard";
-import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/lib/moderation";
+import { riskOf } from "@/base/risk/roamGuard";
+import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/base/risk/moderation";
 
 /**
  * 平台治理后台 — moderation desk (trust & safety dashboard).

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { CreditCard, Lock } from "lucide-react";
-import { FREE_PUBLISH_PER_DAY } from "@/lib/pay";
+import { FREE_PUBLISH_PER_DAY } from "@/base/money/pay";
 
 /**
  * PaySheet — 模拟即时支付（随单支付）。

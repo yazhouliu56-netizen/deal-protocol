@@ -6,7 +6,7 @@ import {
   markFail,
   markOk,
   serializedFor,
-} from "../chat/llmGuard.ts";
+} from "../../../lib/chat/llmGuard.ts";
 
 test("serializedFor keeps per-provider queues independent", async () => {
   const overlap: Array<[number, number]> = [];

@@ -7,17 +7,17 @@ import { MockEngine } from "@/lib/chat/mockEngine";
 import { LlmEngine } from "@/lib/chat/llmEngine";
 import type { ChatMessage, ChatEvent, GenCard, ProviderItem } from "@/lib/chat/types";
 import { ChevronDown } from "lucide-react";
-import type { ScoreBreakdown } from "@/lib/match";
+import type { ScoreBreakdown } from "@/base/dispatch/match";
 import VoiceBar from "@/components/ui/VoiceBar";
-import { speak } from "@/lib/voice/ttsClient";
+import { speak } from "@/base/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
 import {
   parseVoiceIntent,
   mockVoiceIntent,
   describeIntent,
-} from "@/lib/voice/voiceIntent";
-import type { VoiceIntent } from "@/lib/voice/types";
-import { voiceHint } from "@/lib/clientFlags";
+} from "@/base/ai/voice/voiceIntent";
+import type { VoiceIntent } from "@/base/ai/voice/types";
+import { voiceHint } from "@/base/platform/clientFlags";
 
 const SUGGESTIONS = [
   "周日下午想找人打羽毛球",

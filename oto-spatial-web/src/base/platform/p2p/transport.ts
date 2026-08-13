@@ -42,7 +42,7 @@ function createTransport(): P2pTransport {
     // dynamic require keeps the bundle free of supabase on the local path
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mod = require("@/lib/p2p/supabase");
+      const mod = require("@/base/platform/p2p/supabase");
       return mod.createSupabaseTransport(url, key);
     } catch {
       // supabase dependency not installed → local fallback

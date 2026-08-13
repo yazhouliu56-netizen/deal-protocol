@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Square } from "lucide-react";
-import { recognizeSpeech } from "@/lib/voice/asrClient";
-import { clipMeta, saveClip } from "@/lib/voice/audioStore";
-import type { VoiceBarEvent, VoicePhase } from "@/lib/voice/types";
+import { recognizeSpeech } from "@/base/ai/voice/asrClient";
+import { clipMeta, saveClip } from "@/base/ai/voice/audioStore";
+import type { VoiceBarEvent, VoicePhase } from "@/base/ai/voice/types";
 
 /**
  * VoiceBar：按住说话 → MediaRecorder 录音 → ASR（GLM-ASR → Web Speech）

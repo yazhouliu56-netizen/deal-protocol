@@ -10,7 +10,7 @@ import {
   placeBid,
   rankBids,
   type BiddingSession,
-} from "@/lib/bidding";
+} from "@/base/money/bidding";
 
 const SEED = [
   { bidderId: "ps-1", bidderName: "微笑保洁", delta: 0, note: "保底报价" },

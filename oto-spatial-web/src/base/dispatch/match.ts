@@ -1,4 +1,4 @@
-import type { MatchResult, ProviderItem } from "./chat/types";
+import type { MatchResult, ProviderItem } from "../../lib/chat/types";
 
 /**
  * M6 matchmaking: pure, unit-testable provider scoring.

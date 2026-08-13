@@ -3,8 +3,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
-import { createReview, decayLabel, type ReviewDimensions } from "@/lib/review";
-import type { Claim, Wave } from "@/lib/wave";
+import { createReview, decayLabel, type ReviewDimensions } from "@/base/trust/review";
+import type { Claim, Wave } from "@/base/order/wave";
 import FriendKit from "./FriendKit";
 
 /**

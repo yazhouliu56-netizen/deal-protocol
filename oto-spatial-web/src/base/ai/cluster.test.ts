@@ -6,9 +6,9 @@ import {
   mockClusterTags,
   pushReason,
 } from "./cluster.ts";
-import { broadcastMatches } from "./broadcast.ts";
-import type { ResponderCapability } from "./broadcast.ts";
-import type { Wave } from "./wave.ts";
+import { broadcastMatches } from "../dispatch/broadcast.ts";
+import type { ResponderCapability } from "../dispatch/broadcast.ts";
+import type { Wave } from "../order/wave.ts";
 
 const cook: ResponderCapability = {
   id: "r-cook",

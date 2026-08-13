@@ -7,7 +7,7 @@ import {
   starWeight,
 } from "./starRank.ts";
 import type { Review } from "./review.ts";
-import type { Claim } from "./wave.ts";
+import type { Claim } from "../order/wave.ts";
 
 const review = (over: Partial<Review> = {}): Review =>
   ({

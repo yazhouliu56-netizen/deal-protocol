@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Radar, Zap, X } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { yuan } from "@/lib/customPricing";
+import { yuan } from "@/base/money/customPricing";
 
 /**
  * 雷达收件箱 — LLM 聚类推送 for THIS device's identity.

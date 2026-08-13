@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 import {
   renewSubscription,
   type OrganizerSubscription,
-} from "@/lib/organizerSubscription";
+} from "@/base/money/organizerSubscription";
 
 type OrganizerSubState = {
   sub: OrganizerSubscription;

@@ -7,9 +7,9 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { CATEGORY_EMOJI } from "./WaveCard";
-import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/lib/pay";
-import { toast } from "@/lib/toast";
-import type { TaskModule } from "@/lib/decompose";
+import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
+import { toast } from "@/base/platform/toast";
+import type { TaskModule } from "@/base/ai/decompose";
 
 /**
  * 发布需求 = 发出一个信号波。

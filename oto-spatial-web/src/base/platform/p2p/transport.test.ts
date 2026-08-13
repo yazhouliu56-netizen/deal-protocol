@@ -9,7 +9,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mergeByIdLevel } from "./transport.ts";
-import type { FriendRequest } from "@/lib/friends";
+import type { FriendRequest } from "@/base/trust/friends";
 
 const req = (id: string): FriendRequest => ({
   id,

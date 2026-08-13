@@ -1,8 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
 import { Heart, MapPin, CheckCircle2 } from "lucide-react";
-import { yuan } from "@/lib/customPricing";
-import type { Wave } from "@/lib/wave";
+import { yuan } from "@/base/money/customPricing";
+import type { Wave } from "@/base/order/wave";
 import { CATEGORY_EMOJI } from "./WaveCard";
 
 /**

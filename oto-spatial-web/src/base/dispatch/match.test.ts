@@ -8,7 +8,7 @@ import {
   scoreProvider,
   type MatchNeed,
 } from "./match.ts";
-import type { ProviderItem } from "./chat/types.ts";
+import type { ProviderItem } from "../../lib/chat/types.ts";
 
 const kai: ProviderItem = {
   id: "p2",

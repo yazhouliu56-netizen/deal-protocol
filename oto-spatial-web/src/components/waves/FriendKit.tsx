@@ -7,8 +7,8 @@ import {
   areFriends,
   requestTtlLeft,
   FRIEND_REQUEST_TTL_MS,
-} from "@/lib/friends";
-import type { Claim } from "@/lib/wave";
+} from "@/base/trust/friends";
+import type { Claim } from "@/base/order/wave";
 
 /**
  * S3 关系沉淀 — 转友入口，挂在一次成功后履约（互评区）尾部。

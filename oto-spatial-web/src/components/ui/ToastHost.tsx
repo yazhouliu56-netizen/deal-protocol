@@ -1,7 +1,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Info, XCircle } from "lucide-react";
-import { useToastStore, type ToastTone } from "@/lib/toast";
+import { useToastStore, type ToastTone } from "@/base/platform/toast";
 
 const TONE_STYLE: Record<ToastTone, string> = {
   info: "border-brandCyan/40 text-brandCyan",

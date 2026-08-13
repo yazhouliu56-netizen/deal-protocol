@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart, Users } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { requestTtlLeft } from "@/lib/friends";
+import { requestTtlLeft } from "@/base/trust/friends";
 
 /**
  * S3 关系沉淀 · 好友列表 — 已互认的好友 + 待我确认的转友请求。

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Smartphone, Shuffle } from "lucide-react";
 import { useRoamStore } from "@/store/useRoamStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { riskOf, type RiskLevel } from "@/lib/roamGuard";
+import { riskOf, type RiskLevel } from "@/base/risk/roamGuard";
 
 const BADGE: Record<RiskLevel, { label: string; cls: string }> = {
   safe: { label: "安全", cls: "bg-emerald-400/15 text-emerald-300 border-emerald-400/40" },

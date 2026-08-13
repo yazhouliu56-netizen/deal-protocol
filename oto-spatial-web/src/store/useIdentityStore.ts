@@ -1,12 +1,12 @@
 "use client";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { VirtualAccount } from "@/lib/violation";
-import { INITIAL_BALANCE, settleBreach } from "@/lib/violation";
-import { applyLedger, makeLedgerEntry, type LedgerEntry } from "@/lib/ledger";
-import type { CreditTier } from "@/lib/reputation";
-import { applyCreditDelta } from "@/lib/reputation";
-import type { DepositPhase } from "@/lib/deposit";
+import type { VirtualAccount } from "@/base/trust/violation";
+import { INITIAL_BALANCE, settleBreach } from "@/base/trust/violation";
+import { applyLedger, makeLedgerEntry, type LedgerEntry } from "@/base/money/ledger";
+import type { CreditTier } from "@/base/trust/reputation";
+import { applyCreditDelta } from "@/base/trust/reputation";
+import type { DepositPhase } from "@/base/money/deposit";
 import {
   DEPOSIT_AMOUNT,
   PLATFORM_FEE,
@@ -14,10 +14,10 @@ import {
   payDepositPayout,
   refundDeposit,
   releaseDeposit,
-} from "@/lib/deposit";
-import type { Review } from "@/lib/review";
-import { creditFromReviews, dailyQuotaForTier } from "@/lib/review";
-import { FREE_PUBLISH_PER_DAY } from "@/lib/pay";
+} from "@/base/money/deposit";
+import type { Review } from "@/base/trust/review";
+import { creditFromReviews, dailyQuotaForTier } from "@/base/trust/review";
+import { FREE_PUBLISH_PER_DAY } from "@/base/money/pay";
 
 /**
  * Private identity — one per browser tab (sessionStorage so a second tab
@@ -39,7 +39,7 @@ export interface Identity {
   online: boolean;
 }
 
-export type { LedgerEntry } from "@/lib/ledger";
+export type { LedgerEntry } from "@/base/money/ledger";
 
 export interface DepositRecord {
   claimId: string;

@@ -19,9 +19,9 @@ import * as THREE from "three";
 import StarDust from "./StarDust";
 import FurnitureScene from "./FurnitureScene";
 import TemplateStage from "./SceneTemplate";
-import { templateForCategory } from "@/lib/sceneTemplate";
+import { templateForCategory } from "@/ammo/scene-template";
 import { useAppStore } from "@/store/useAppStore";
-import { isLowPower, webglSupported } from "@/lib/performance";
+import { isLowPower, webglSupported } from "@/base/platform/performance";
 
 /** Low-poly deep-space planet with additive halo rings — background tech vibe (non-AR screens). */
 function LowPolyEarth() {

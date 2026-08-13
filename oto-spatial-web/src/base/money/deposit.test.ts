@@ -9,7 +9,7 @@ import {
   refundDeposit,
   releaseDeposit,
 } from "./deposit.ts";
-import type { VirtualAccount } from "./violation.ts";
+import type { VirtualAccount } from "../trust/violation.ts";
 
 const acct = (balance: number): VirtualAccount => ({ balance });
 

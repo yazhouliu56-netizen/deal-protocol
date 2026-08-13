@@ -13,7 +13,7 @@
  */
 
 import type { Review } from "./review";
-import type { Claim } from "./wave";
+import type { Claim } from "../order/wave";
 
 export interface StarStats {
   count: number;

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { templateForCategory } from "./sceneTemplate.ts";
+import { templateForCategory } from "./scene-template.ts";
 
 test("Beach/Mountains -> view, Adventure -> court, City/Historical -> interior", () => {
   assert.equal(templateForCategory("Beach"), "view");

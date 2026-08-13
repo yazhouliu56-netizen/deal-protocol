@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import HoloCard, { HoloBoundary } from "@/components/3d/HoloCard";
 import Badge from "@/components/ui/Badge";
-import { isLowPower } from "@/lib/performance";
+import { isLowPower } from "@/base/platform/performance";
 import type { OTOExperience } from "@/lib/mockData";
 
 /** IntersectionObserver-powered lazy loader (photo above-the-fold). */

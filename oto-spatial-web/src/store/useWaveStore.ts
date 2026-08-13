@@ -1,12 +1,12 @@
 "use client";
 import { create } from "zustand";
 import { persist, type StorageValue } from "zustand/middleware";
-import type { ResponderCapability } from "@/lib/broadcast";
+import type { ResponderCapability } from "@/base/dispatch/broadcast";
 import type {
   Claim,
   Wave,
   CreateWaveInput,
-} from "@/lib/wave";
+} from "@/base/order/wave";
 import {
   assembleWave as assembleWaveLogic,
   activateWave,
@@ -21,40 +21,40 @@ import {
   perSeatPrice,
   resolveNoShow as resolveNoShowLogic,
   withdrawClaim,
-} from "@/lib/wave";
-import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/lib/fulfilment";
+} from "@/base/order/wave";
+import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/base/order/fulfilment";
 import {
   confirmModule,
   initModuleStates,
   reportModule,
-} from "@/lib/moduleFulfilment";
+} from "@/base/order/moduleFulfilment";
 import {
   negotiate,
   openDispute,
   resolveAuto,
   type DisputeReason,
   type DisputeRecord,
-} from "@/lib/dispute";
-import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/lib/trust";
-import type { Review } from "@/lib/review";
-import type { PayOrder } from "@/lib/pay";
-import { capturePayOrder, createPayOrder } from "@/lib/pay";
-import { fissionIncrement, fissionStamp } from "@/lib/fission";
+} from "@/base/order/dispute";
+import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/base/trust/trust";
+import type { Review } from "@/base/trust/review";
+import type { PayOrder } from "@/base/money/pay";
+import { capturePayOrder, createPayOrder } from "@/base/money/pay";
+import { fissionIncrement, fissionStamp } from "@/base/risk/fission";
 import { useRoamStore } from "@/store/useRoamStore";
-import { riskOf } from "@/lib/roamGuard";
+import { riskOf } from "@/base/risk/roamGuard";
 import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
   sendFriendRequest as sendFriendRequestLogic,
   type FriendRequest,
   type Friendship,
-} from "@/lib/friends";
+} from "@/base/trust/friends";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
-import { getP2pTransport } from "@/lib/p2p/transport";
-import type { PushItem } from "@/lib/cluster";
-import { buildPushes, mockClusterTags } from "@/lib/cluster";
-import { broadcastMatches } from "@/lib/broadcast";
-import { completionRate, reviewStats } from "@/lib/starRank";
+import { getP2pTransport } from "@/base/platform/p2p/transport";
+import type { PushItem } from "@/base/ai/cluster";
+import { buildPushes, mockClusterTags } from "@/base/ai/cluster";
+import { broadcastMatches } from "@/base/dispatch/broadcast";
+import { completionRate, reviewStats } from "@/base/trust/starRank";
 import {
   applyPenalty,
   autoFlag,
@@ -65,7 +65,7 @@ import {
   submitReport as submitReportLogic,
   type BanRecord,
   type Report,
-} from "@/lib/moderation";
+} from "@/base/risk/moderation";
 
 /**
  * The shared broadcast space — one zustand store persisted under a single

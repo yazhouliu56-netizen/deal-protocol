@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { streamChat } from "@/lib/gateway/engine";
+import { streamChat } from "@/base/ai/gateway/engine";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

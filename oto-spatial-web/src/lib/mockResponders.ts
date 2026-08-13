@@ -1,4 +1,4 @@
-import type { ResponderCapability } from "@/lib/broadcast";
+import type { ResponderCapability } from "@/base/dispatch/broadcast";
 
 /**
  * Atmosphere responders (B 方案) — seeded into the shared pool so the radar

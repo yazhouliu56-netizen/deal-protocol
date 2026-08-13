@@ -2,10 +2,10 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MapPin, RotateCw, Clock, Users, Map as MapIcon, Heart, Share2 } from "lucide-react";
-import { geoOf, toMapXy, type GeoPoint } from "@/lib/geo";
-import { isLowPower, webglSupported } from "@/lib/performance";
+import { geoOf, toMapXy, type GeoPoint } from "@/base/geo/geo";
+import { isLowPower, webglSupported } from "@/base/platform/performance";
 import { useWaveStore } from "@/store/useWaveStore";
-import { perSeatPrice, type Wave } from "@/lib/wave";
+import { perSeatPrice, type Wave } from "@/base/order/wave";
 import {
   AMBIENT_POIS,
   buildMapDots,
@@ -14,8 +14,8 @@ import {
   resolveMapTier,
   type MapOverride,
   type MapTier,
-} from "@/lib/mapConfig";
-import { cycleMapPref, useMapPref } from "@/lib/mapPref";
+} from "@/base/geo/mapConfig";
+import { cycleMapPref, useMapPref } from "@/base/geo/mapPref";
 import MapView from "./MapView";
 
 /**

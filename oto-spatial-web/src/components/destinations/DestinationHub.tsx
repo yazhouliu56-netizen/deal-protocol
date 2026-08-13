@@ -7,7 +7,7 @@ import { otoExperiences } from "@/lib/mockData";
 import {
   PRICE_BANDS,
   filterDestinations,
-} from "@/lib/destFilter";
+} from "@/base/geo/destFilter";
 import DestinationCard from "./DestinationCard";
 
 /**

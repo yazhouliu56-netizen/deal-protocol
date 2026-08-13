@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, MessageSquareText } from "lucide-react";
-import { mockDiagnose, type DiagnosisAdvice } from "@/lib/diagnostic";
-import type { Wave } from "@/lib/wave";
+import { mockDiagnose, type DiagnosisAdvice } from "@/base/ai/diagnostic";
+import type { Wave } from "@/base/order/wave";
 
 /**
  * S2 AI 主动诊断卡 — an active wave with zero claims (published ≥ 2min)

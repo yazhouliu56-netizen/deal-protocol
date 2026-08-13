@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { cyclePref, DEFAULT_PREFS, type PrefKey, type Prefs } from "@/lib/prefs";
+import { cyclePref, DEFAULT_PREFS, type PrefKey, type Prefs } from "@/ammo/prefs";
 
 type PrefState = {
   prefs: Prefs;

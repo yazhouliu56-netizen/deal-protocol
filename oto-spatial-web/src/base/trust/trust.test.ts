@@ -8,8 +8,8 @@ import {
   settleGroupFail,
   tierRatio,
 } from "./trust.ts";
-import { createWave, type Wave } from "./wave.ts";
-import type { PayOrder } from "./pay.ts";
+import { createWave, type Wave } from "../order/wave.ts";
+import type { PayOrder } from "../money/pay.ts";
 
 const now = 1_700_000_000_000;
 

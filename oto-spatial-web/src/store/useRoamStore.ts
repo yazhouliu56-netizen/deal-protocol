@@ -9,7 +9,7 @@ import {
   riskOf,
   type DeviceBinding,
   type RoamEvent,
-} from "@/lib/roamGuard";
+} from "@/base/risk/roamGuard";
 
 type RoamState = {
   /** 本设备指纹（localStorage 持久化，同设备跨会话稳定）。 */

@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { Check, Plus, Timer, Wifi, WifiOff } from "lucide-react";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
-import { completionRate, rankLabel, reviewStats } from "@/lib/starRank";
-import { requiresVerification } from "@/lib/broadcast";
+import { completionRate, rankLabel, reviewStats } from "@/base/trust/starRank";
+import { requiresVerification } from "@/base/dispatch/broadcast";
 
 /**
  * 能力声明 — the responder's capability statement (the core match input).

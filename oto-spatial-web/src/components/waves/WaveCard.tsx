@@ -1,10 +1,10 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Clock3, MapPin, Zap, Users, Flag, UserPlus, Heart } from "lucide-react";
-import type { Wave } from "@/lib/wave";
-import { neededJoiners, perSeatPrice } from "@/lib/wave";
-import { suggestedPrice, yuan } from "@/lib/customPricing";
-import { ACTION_LABEL } from "@/lib/moderation";
+import type { Wave } from "@/base/order/wave";
+import { neededJoiners, perSeatPrice } from "@/base/order/wave";
+import { suggestedPrice, yuan } from "@/base/money/customPricing";
+import { ACTION_LABEL } from "@/base/risk/moderation";
 import { displayInterest, useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";

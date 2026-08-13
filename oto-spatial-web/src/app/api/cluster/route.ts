@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { mockClusterTags } from "@/lib/cluster";
-import { completeText } from "@/lib/gateway/engine";
+import { mockClusterTags } from "@/base/ai/cluster";
+import { completeText } from "@/base/ai/gateway/engine";
 
 /**
  * LLM 聚类标签抽取 — POST { category, customs, negotiableNote } →

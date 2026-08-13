@@ -13,7 +13,7 @@
  * server-side escrow will keep.
  */
 
-import type { VirtualAccount } from "./violation";
+import type { VirtualAccount } from "../trust/violation";
 
 export const DEPOSIT_AMOUNT = 5;
 export const PLATFORM_FEE = 0.5;

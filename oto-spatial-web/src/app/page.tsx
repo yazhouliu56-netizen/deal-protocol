@@ -20,7 +20,7 @@ import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
 import NotificationCenter from "@/components/waves/NotificationCenter";
 import { useAppStore } from "@/store/useAppStore";
-import { initLowPower } from "@/lib/performance";
+import { initLowPower } from "@/base/platform/performance";
 import {
   CATEGORY_LABELS,
   OTO_CATEGORIES,

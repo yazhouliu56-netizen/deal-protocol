@@ -8,7 +8,7 @@ import {
   ORGANIZER_PLAN,
   subDaysLeft,
   subStatus,
-} from "@/lib/organizerSubscription";
+} from "@/base/money/organizerSubscription";
 
 /**
  * 组局加速卡 —— 商业化前哨（纯本地 demo）。

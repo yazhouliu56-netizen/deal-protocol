@@ -5,7 +5,7 @@ import type {
   ProviderItem,
   TimeslotSlot,
 } from "./types";
-import { matchProviders, type MatchedProvider } from "@/lib/match";
+import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
 import { useAppStore } from "@/store/useAppStore";
 import { decorateWeekendLabels } from "./slots";
 import {

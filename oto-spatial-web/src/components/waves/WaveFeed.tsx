@@ -5,12 +5,12 @@ import { Plus, Wifi, WifiOff, Heart, Rocket, Sparkles } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
-} from "@/lib/broadcast";
-import { perSeatPrice } from "@/lib/wave";
+} from "@/base/dispatch/broadcast";
+import { perSeatPrice } from "@/base/order/wave";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useOrganizerSubStore } from "@/store/useOrganizerSubStore";
-import { subStatus } from "@/lib/organizerSubscription";
+import { subStatus } from "@/base/money/organizerSubscription";
 import WaveCard from "./WaveCard";
 import PublishSheet from "./PublishSheet";
 import PaySheet from "./PaySheet";
@@ -20,8 +20,8 @@ import OrganizerBoostCard from "./OrganizerBoostCard";
 import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
 import IdentityAvatar from "@/components/ui/IdentityAvatar";
-import { toast } from "@/lib/toast";
-import { onboardGuide } from "@/lib/clientFlags";
+import { toast } from "@/base/platform/toast";
+import { onboardGuide } from "@/base/platform/clientFlags";
 
 /**
  * 雷达 Feed — the flipped-primary home.

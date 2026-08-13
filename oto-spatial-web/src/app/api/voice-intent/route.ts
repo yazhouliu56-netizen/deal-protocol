@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { intentPrompt } from "@/lib/voice/voiceIntent";
-import { jsonChat } from "@/lib/gateway/engine";
+import { intentPrompt } from "@/base/ai/voice/voiceIntent";
+import { jsonChat } from "@/base/ai/gateway/engine";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

@@ -19,7 +19,7 @@
  *     DepositPhase — held on lock, released / paid out / refunded at verdict.
  */
 
-import type { DepositPhase } from "./deposit";
+import type { DepositPhase } from "../money/deposit";
 import type { Fulfilment } from "./fulfilment";
 import type { TaskModuleState } from "./moduleFulfilment";
 
@@ -78,7 +78,7 @@ export interface Wave {
   /** 1:1 claim owner (solo waves only). Open-match waves track seats, not one owner. */
   claimedById?: string;
   /** 复杂任务：LLM 拆分 + 发起人确认的模块定义（接单后锁定不可增删）。 */
-  modules?: import("./decompose").TaskModule[];
+  modules?: import("../ai/decompose").TaskModule[];
   /** Virtual interest counter (hotness-source; physics kept separate). */
   hotness?: number;
   /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
@@ -162,7 +162,7 @@ export interface CreateWaveInput {
   /** 随单支付：true = 建单即 pending(待支付)，支付完成才 active。 */
   pending?: boolean;
   /** 复杂任务：发起人确认的模块定义（接单后锁定）。 */
-  modules?: import("./decompose").TaskModule[];
+  modules?: import("../ai/decompose").TaskModule[];
   createdAt: number;
   hotness?: number;
 }

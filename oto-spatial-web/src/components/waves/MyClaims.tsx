@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText, Send, XCircle, Users } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { yuan } from "@/lib/customPricing";
-import { MAX_ROUNDS, neededJoiners, nextSpeaker, type Claim, type Wave } from "@/lib/wave";
-import { ACTION_LABEL } from "@/lib/moderation";
-import type { DepositPhase } from "@/lib/deposit";
+import { yuan } from "@/base/money/customPricing";
+import { MAX_ROUNDS, neededJoiners, nextSpeaker, type Claim, type Wave } from "@/base/order/wave";
+import { ACTION_LABEL } from "@/base/risk/moderation";
+import type { DepositPhase } from "@/base/money/deposit";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
-import { confirmedCount } from "@/lib/moduleFulfilment";
+import { confirmedCount } from "@/base/order/moduleFulfilment";
 
 /**
  * 响应者视角：我接的单（claim story）。

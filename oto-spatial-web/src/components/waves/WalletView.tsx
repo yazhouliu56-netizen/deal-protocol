@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { Wallet, ShieldCheck, Star, Zap } from "lucide-react";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
-import { quotaHalved } from "@/lib/violation";
-import { decayLabel, dailyQuotaForTier } from "@/lib/review";
+import { quotaHalved } from "@/base/trust/violation";
+import { decayLabel, dailyQuotaForTier } from "@/base/trust/review";
 
 /**
  * 钱包与信用前台 — virtual balance / credit tier / daily claim quota /

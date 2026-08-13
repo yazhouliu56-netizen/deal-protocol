@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { mockDiagnose, type DiagnosisAdvice } from "@/lib/diagnostic";
-import { completeText } from "@/lib/gateway/engine";
+import { mockDiagnose, type DiagnosisAdvice } from "@/base/ai/diagnostic";
+import { completeText } from "@/base/ai/gateway/engine";
 
 /**
  * S2 AI 主动诊断 — POST { id, budget, basics, customs, negotiable, createdAt }

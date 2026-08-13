@@ -18,7 +18,7 @@ import type {
   BroadcastHit,
   ResponderCapability,
   WaveLike,
-} from "./broadcast";
+} from "../dispatch/broadcast";
 
 export type MatchFn = (
   responders: ResponderCapability[],

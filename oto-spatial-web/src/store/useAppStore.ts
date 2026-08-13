@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { applyBooking, applyCancel } from "@/lib/booking";
+import { applyBooking, applyCancel } from "@/base/order/booking";
 import type { DockPage } from "@/components/ui/FloatingDock";
 import type { ChatMessage, GenCard } from "@/lib/chat/types";
 import { otoExperiences, type OTOCategory, type OTOExperience } from "@/lib/mockData";

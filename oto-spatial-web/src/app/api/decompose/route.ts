@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { mockDecompose } from "@/lib/decompose";
-import { completeText } from "@/lib/gateway/engine";
+import { mockDecompose } from "@/base/ai/decompose";
+import { completeText } from "@/base/ai/gateway/engine";
 
 /**
  * LLM 任务拆解 — POST { category, time, note, budget } →

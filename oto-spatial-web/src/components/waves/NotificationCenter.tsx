@@ -4,20 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { ACTION_LABEL } from "@/lib/moderation";
+import { ACTION_LABEL } from "@/base/risk/moderation";
 import {
   buildNotifyItems,
   type NotifyItem,
   type NotifyKind,
-} from "@/lib/notify";
-import { markAllRead, useReadKeys } from "@/lib/readKeys";
+} from "@/base/notify/notify";
+import { markAllRead, useReadKeys } from "@/base/platform/readKeys";
 import {
   diffNotifEvents,
   notify,
   requestNotifyPermission,
   type NotifyPermission,
   type NotifDiffInput,
-} from "@/lib/systemNotify";
+} from "@/base/notify/systemNotify";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
   offer: ["bg-brandCyan/15 border-brandCyan/40", "text-brandCyan"],

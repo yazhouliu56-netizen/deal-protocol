@@ -5,7 +5,7 @@ import {
   applySnapshot,
   collectSnapshot,
   packSnapshot,
-} from "@/lib/snapshot";
+} from "@/base/platform/snapshot";
 
 /** 本地数据备份（数据自主权）：导出全库 JSON / 导入回灌后整页重载。 */
 export default function DataPortCard() {

@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
-import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/lib/dispute";
-import { confirmedCount } from "@/lib/moduleFulfilment";
-import type { Claim, Wave } from "@/lib/wave";
+import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/base/order/dispute";
+import { confirmedCount } from "@/base/order/moduleFulfilment";
+import type { Claim, Wave } from "@/base/order/wave";
 
 /**
  * 验收 + 争议面板（需求方视角）：模块化验收（复杂任务）逐模块确认；

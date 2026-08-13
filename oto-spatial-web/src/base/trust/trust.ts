@@ -14,8 +14,8 @@
  * pay.ts:decideRefund 一致（调用方 store 负责持久化/联动）。
  */
 
-import type { Wave, Claim } from "./wave";
-import type { PayOrder } from "./pay";
+import type { Wave, Claim } from "../order/wave";
+import type { PayOrder } from "../money/pay";
 
 /** 24h 免费取消窗口（standards: ≥24h lead 全额退）。 */
 export const FREE_CANCEL_MS = 24 * 3600_000;
