@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/base/order/dispute";
 import JudgePanel from "./JudgePanel";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import type { Claim, Wave } from "@/base/order/wave";
+import { checkTextEvidence } from "@/base/ai/forgery";
 
 /**
  * 验收 + 争议面板（需求方视角）：模块化验收（复杂任务）逐模块确认；
@@ -47,6 +48,7 @@ export default function AcceptancePanel({
         evidence={evidence}
         setReason={setReason}
         setEvidence={setEvidence}
+        claimId={claim.id}
         onOpen={(r, e) => {
           openDispute({ claimId: claim.id, reason: r, evidence: e });
           setReason("");
@@ -115,6 +117,7 @@ export default function AcceptancePanel({
           evidence={evidence}
           setReason={setReason}
           setEvidence={setEvidence}
+          claimId={claim.id}
           onOpen={(r, e) => {
             openDispute({ claimId: claim.id, reason: r, evidence: e });
             setReason("");
@@ -133,13 +136,23 @@ function DisputeForm({
   setReason,
   setEvidence,
   onOpen,
+  claimId,
 }: {
   reason: DisputeReason | "";
   evidence: string;
   setReason: (r: DisputeReason | "") => void;
   setEvidence: (e: string) => void;
   onOpen: (reason: DisputeReason, evidence: string) => void;
+  claimId: string;
 }) {
+  // AIGC 伪造鉴真（ADR-0012，N4 接线）：凭证文本与历史凭证比对，识别复用/异常
+  const pastEvidence = useWaveStore((s) =>
+    s.disputes.filter((d) => d.claimId === claimId).map((d) => d.evidence)
+  );
+  const forgery = useMemo(
+    () => (evidence.trim() ? checkTextEvidence([...pastEvidence, evidence.trim()]) : null),
+    [evidence, pastEvidence]
+  );
   return (
     <div className="rounded-2xl bg-amber-400/[0.05] border border-amber-400/25 p-2.5 space-y-2">
       <p className="text-[10px] font-bold text-amber-300/90 flex items-center gap-1">
@@ -167,6 +180,21 @@ function DisputeForm({
         aria-label="争议凭证"
         className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-[10px] outline-none focus:border-amber-400/50"
       />
+      {forgery && (
+        <p
+          className={`text-[8.5px] font-bold rounded-lg px-2 py-1 ${
+            forgery.level === "highly-suspicious"
+              ? "bg-red-400/10 border border-red-400/40 text-red-300"
+              : forgery.level === "suspicious"
+                ? "bg-amber-400/10 border border-amber-400/40 text-amber-300"
+                : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-300"
+          }`}
+        >
+          {forgery.level === "clean"
+            ? "✅ 凭证鉴真：未见异常（规则分 0）"
+            : `⚠️ 凭证鉴真：${forgery.level === "highly-suspicious" ? "高度疑似伪造" : "疑似复用/异常"}（疑点分 ${forgery.score}）`}
+        </p>
+      )}
       <button
         onClick={() => {
           if (!reason || !evidence.trim()) return;

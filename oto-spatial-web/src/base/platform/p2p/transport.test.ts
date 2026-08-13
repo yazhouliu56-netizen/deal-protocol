@@ -39,6 +39,8 @@ function bundle(over: Partial<Parameters<typeof mergeByIdLevel>[0]> = {}) {
     privacySessions: [],
     imThreads: [],
     imMessages: [],
+    crisisRecords: [],
+    forgetRequests: [],
     ...over,
   };
 }

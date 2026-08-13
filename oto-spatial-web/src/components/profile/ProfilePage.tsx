@@ -24,6 +24,9 @@ import MyClaims from "@/components/waves/MyClaims";
 import FriendList from "@/components/waves/FriendList";
 import { ageFromBirthYear, ageGate, modeOfAge } from "@/base/safe/ageGate";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
+import { useWaveStore } from "@/store/useWaveStore";
+import { crisisSms, type CrisisLevel } from "@/base/safe/crisis";
+import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   羽毛球约局: "🏸",
@@ -55,6 +58,19 @@ export default function ProfilePage({
   const quietPref = useQuietPrefStore((s) => s.pref);
   const setQuietEnabled = useQuietPrefStore((s) => s.setEnabled);
   const toggleQuietWindow = useQuietPrefStore((s) => s.toggleWindow);
+  const crisisRecords = useWaveStore((s) => s.crisisRecords);
+  const forgetRequests = useWaveStore((s) => s.forgetRequests);
+  const raiseCrisis = useWaveStore((s) => s.raiseCrisis);
+  const resolveCrisis = useWaveStore((s) => s.resolveCrisis);
+  const requestForget = useWaveStore((s) => s.requestForget);
+  const myCrisis = crisisRecords.filter(
+    (c) => c.userId === identity.id && !c.resolved
+  );
+  const [crisisLevel, setCrisisLevel] = useState<CrisisLevel>(1);
+  const [crisisNote, setCrisisNote] = useState("");
+  const [crisisTargets, setCrisisTargets] = useState<string[]>([]);
+  const [crisisSmsText, setCrisisSmsText] = useState("");
+  const [lastForget, setLastForget] = useState<ForgetKind | null>(null);
 
   /** 出生年本地输入状态（回填现有值）。 */
   const [birthYearInput, setBirthYearInput] = useState<string>(
@@ -383,6 +399,178 @@ export default function ProfilePage({
         <p className="text-[9px] text-white/25 mt-2">
           静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
         </p>
+      </div>
+
+      {/* ADR-0013 安全中心：SOS 危机干预 + 数据脱敏/遗忘权（N8/N10 接线） */}
+      <div className="glass-panel rounded-2xl p-3.5">
+        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+          安全中心
+          <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+            危机干预 · 数据主权
+          </span>
+        </h3>
+        {/* SOS 危机干预 */}
+        <div className="rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
+          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
+            紧急求助（EPA 递增通知：紧急联系人 → 平台值班 → 警方通道）
+          </p>
+          <div className="flex gap-1.5">
+            {([
+              { lv: 1, label: "轻微不适" },
+              { lv: 2, label: "危险信号" },
+              { lv: 3, label: "极端紧急" },
+            ] as const).map((o) => (
+              <button
+                key={o.lv}
+                onClick={() => setCrisisLevel(o.lv)}
+                className={`flex-1 px-2 py-1.5 rounded-lg text-[9.5px] font-bold border transition-all ${
+                  crisisLevel === o.lv
+                    ? o.lv === 3
+                      ? "bg-red-400/25 border-red-400/60 text-red-300"
+                      : o.lv === 2
+                        ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
+                        : "bg-white/[0.1] border-white/25 text-white/85"
+                    : "bg-white/[0.04] border-white/10 text-white/50"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <input
+            value={crisisNote}
+            onChange={(e) => setCrisisNote(e.target.value)}
+            placeholder="备注（如：山野迷路，沿步道 2 号点等待）"
+            className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-red-400/50"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const out = raiseCrisis({
+                  level: crisisLevel,
+                  note: crisisNote.trim() || "求助（无备注）",
+                  contacts: ["妈妈", "爸爸"],
+                });
+                setCrisisTargets(out.targets);
+                if (out.record) {
+                  setCrisisSmsText(crisisSms(out.record, "妈妈"));
+                }
+              }}
+              className="flex-1 px-3 py-2 rounded-lg bg-red-400/20 border border-red-400/50 text-red-300 text-[10px] font-extrabold hover:bg-red-400/30 active:scale-95 transition-all"
+            >
+              发起求助
+            </button>
+            {myCrisis.length > 0 && (
+              <button
+                onClick={() => resolveCrisis(myCrisis[0].id)}
+                className="px-3 py-2 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold hover:bg-emerald-400/25 active:scale-95 transition-all"
+              >
+                已平安，结束
+              </button>
+            )}
+          </div>
+          {crisisTargets.length > 0 && (
+            <div className="space-y-1">
+              <div className="flex flex-wrap gap-1">
+                {crisisTargets.map((t) => (
+                  <span
+                    key={t}
+                    className="px-2 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-[8.5px] font-bold text-red-300"
+                  >
+                    📢 已通知 {t}
+                  </span>
+                ))}
+              </div>
+              {crisisSmsText && (
+                <p className="text-[8.5px] text-white/45 bg-white/[0.03] rounded-lg px-2 py-1.5 leading-relaxed">
+                  {crisisSmsText}
+                </p>
+              )}
+            </div>
+          )}
+          {myCrisis.length > 0 && (
+            <p className="text-[8.5px] text-red-300/80">
+              处置中：{myCrisis[0].note}（登记于{" "}
+              {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+              ）
+            </p>
+          )}
+        </div>
+        {/* 数据脱敏预览（掩码效果演示） */}
+        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-1">
+          <p className="text-[9.5px] font-bold text-white/60">
+            数据脱敏（对外展示即掩码）
+          </p>
+          {(
+            [
+              { kind: "phone", v: "138-0000-0001" },
+              { kind: "name", v: "张三" },
+              { kind: "address", v: "幸福家园小区 3 栋" },
+              { kind: "email", v: "zhangsan@oto.app" },
+              { kind: "id", v: "110101199001011234" },
+            ] as const
+          ).map((r) => (
+            <div key={r.kind} className="flex items-center justify-between text-[9px]">
+              <span className="text-white/35">{r.kind}</span>
+              <span className="text-white/50 font-mono">
+                {mask(r.kind as SensitiveKind, r.v)}
+              </span>
+            </div>
+          ))}
+        </div>
+        {/* 遗忘权 */}
+        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
+          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
+            遗忘权（《个保法》§47：删除或匿名化）
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {(
+              [
+                { kind: "profile", label: "资料" },
+                { kind: "wallet", label: "钱包" },
+                { kind: "waves", label: "需求/接单" },
+                { kind: "reviews", label: "评价" },
+                { kind: "all", label: "全部" },
+              ] as const
+            ).map((o) => (
+              <button
+                key={o.kind}
+                onClick={() => {
+                  const out = requestForget(o.kind);
+                  setLastForget(out.fresh ? o.kind : null);
+                }}
+                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] text-white/60 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {lastForget && (
+            <p className="text-[8.5px] text-emerald-300/80">
+              ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
+            </p>
+          )}
+          {forgetRequests.length > 0 && (
+            <div className="space-y-1">
+              {forgetRequests.map((r) => (
+                <div key={r.id} className="flex items-center justify-between text-[8.5px]">
+                  <span className="text-white/45">
+                    {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
+                  </span>
+                  <span
+                    className={`px-1.5 py-px rounded-full font-bold ${
+                      r.status === "anonymized"
+                        ? "bg-emerald-400/15 text-emerald-300"
+                        : "bg-amber-400/15 text-amber-300"
+                    }`}
+                  >
+                    {r.status === "anonymized" ? "已匿名化" : "处理中"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

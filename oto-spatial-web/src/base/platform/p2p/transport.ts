@@ -158,5 +158,7 @@ export function mergeByIdLevel(
     ].filter((s, i, arr) => arr.findIndex((x) => x.waveId === s.waveId) === i),
     imThreads: byId(base.imThreads ?? [], next.imThreads ?? []),
     imMessages: byId(base.imMessages ?? [], next.imMessages ?? []),
+    crisisRecords: byId(base.crisisRecords ?? [], next.crisisRecords ?? []),
+    forgetRequests: byId(base.forgetRequests ?? [], next.forgetRequests ?? []),
   };
 }

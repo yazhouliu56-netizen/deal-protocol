@@ -11,6 +11,7 @@ import type { ScoreBreakdown } from "@/base/dispatch/match";
 import VoiceBar from "@/components/ui/VoiceBar";
 import { speak } from "@/base/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
+import { recommend, type SemMatch } from "@/base/ai/embed";
 import {
   parseVoiceIntent,
   mockVoiceIntent,
@@ -77,6 +78,28 @@ export default function ChatPage() {
   }, [ttsEnabled]);
   const listRef = useRef<HTMLDivElement>(null);
   const waves = useWaveStore((s) => s.waves);
+  const askBi = useWaveStore((s) => s.askBi);
+  const setScreen = useAppStore((s) => s.setScreen);
+  // 语义推荐（ADR-0011，N3 接线）：输入时对活跃局做余弦相似推荐
+  const [semHits, setSemHits] = useState<SemMatch[]>([]);
+  useEffect(() => {
+    const q = input.trim();
+    const timer = window.setTimeout(() => {
+      if (q.length < 2 || streaming) {
+        setSemHits([]);
+        return;
+      }
+      const candidates = waves
+        .filter((w) => w.status === "active" && !w.removed)
+        .map((w) => ({
+          id: w.id,
+          text: `${w.basics.category} ${w.basics.time} ${w.basics.area}`,
+          label: w.basics.category,
+        }));
+      setSemHits(recommend(q, candidates, 3));
+    }, 280);
+    return () => window.clearTimeout(timer);
+  }, [input, streaming, waves]);
   // P2-4 语音入口提示：首次进入显示「按住说话」气泡，点过一次后不再出现
   const { useFlag: useVoiceHintSeen, markSeen: markVoiceSeen } = voiceHint;
   const showVoiceHint = !useVoiceHintSeen();
@@ -179,6 +202,18 @@ export default function ChatPage() {
     // While streaming, keep the typed text in the box instead of silently
     // discarding it — user presses Enter again once the reply lands.
     if (streaming) return;
+    // 本地自然语言 BI（ADR-0011，N6 接线）：统计类问题本地引擎直答，不耗 LLM
+    const bi = askBi(trimmed);
+    if (bi) {
+      setInput("");
+      addChatMessage({ id: crypto.randomUUID(), role: "user", content: trimmed });
+      addChatMessage({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `📊 ${bi.label}（${bi.since}）：${bi.value}（${bi.rows} 条样本）`,
+      });
+      return;
+    }
     setInput("");
     addChatMessage({ id: crypto.randomUUID(), role: "user", content: trimmed });
     const assistantId = crypto.randomUUID();
@@ -343,6 +378,25 @@ export default function ChatPage() {
             >
               <Sparkles size={11} className="text-brandPurple" />
               {s}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 语义推荐（ADR-0011）：输入过程中实时推荐雷达上语义最相关的局 */}
+      {semHits.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {semHits.map((h) => (
+            <button
+              key={h.candidate.id}
+              onClick={() => setScreen("home")}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/30 text-[10px] text-brandCyan hover:bg-brandCyan/20 transition-colors"
+            >
+              <Sparkles size={9} />
+              {h.candidate.label} · {h.candidate.text.split(" ")[1]}
+              <span className="text-[8.5px] text-white/40">
+                {Math.round(h.score * 100)}%
+              </span>
             </button>
           ))}
         </div>

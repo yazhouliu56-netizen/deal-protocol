@@ -65,6 +65,15 @@ import { getP2pTransport } from "@/base/platform/p2p/transport";
 import type { PushItem } from "@/base/ai/cluster";
 import { buildPushes, mockClusterTags } from "@/base/ai/cluster";
 import { broadcastMatches } from "@/base/dispatch/broadcast";
+import { parseBiQuery, runBi, type BiResult, type BiRow } from "@/base/ai/bi";
+import {
+  notifyFor as notifyForLogic,
+  raiseCrisis as raiseCrisisLogic,
+  resolveCrisis as resolveCrisisLogic,
+  type CrisisLevel,
+  type CrisisRecord,
+} from "@/base/safe/crisis";
+import { requestForget as requestForgetLogic, type ForgetKind, type ForgetRequest } from "@/base/safe/privacy";
 import { completionRate, reviewStats } from "@/base/trust/starRank";
 import {
   applyPenalty,
@@ -135,6 +144,10 @@ export interface WaveBundle {
   /** ADR-0010：IM 私信线程与消息（N15）。 */
   imThreads: ImThread[];
   imMessages: ImMsg[];
+  /** ADR-0013：极端危机干预记录（N8）。 */
+  crisisRecords: CrisisRecord[];
+  /** ADR-0013：遗忘权请求登记（N10）。 */
+  forgetRequests: ForgetRequest[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -311,6 +324,19 @@ interface WaveStore extends WaveBundle {
   sendIm: (fromId: string, toId: string, text: string, waveId?: string) => void;
   /** ADR-0010：IM 标记已读。 */
   markImRead: (threadId: string, whoId: string) => void;
+  /** ADR-0013：SOS 危机干预 —— 登记 + EPA 通知 + 处置闭环（幂等）。 */
+  raiseCrisis: (p: {
+    level: CrisisLevel;
+    note: string;
+    waveId?: string;
+    /** 紧急联系人名单（通知对象展示用）。 */
+    contacts: string[];
+  }) => { record?: CrisisRecord; targets: string[] };
+  resolveCrisis: (id: string) => void;
+  /** ADR-0013：遗忘权申请（幂等合并 pending）。 */
+  requestForget: (kind: ForgetKind) => { req?: ForgetRequest; fresh: boolean };
+  /** ADR-0011：自然语言 BI —— 本地解析中文统计查询（聊天页接线）。 */
+  askBi: (text: string) => BiResult | null;
 }
 
 let seq = 0;
@@ -341,6 +367,8 @@ export const useWaveStore = create<WaveStore>()(
       friendRequests: [],
       friendships: [],
       friendRequestRemovals: [],
+      crisisRecords: [],
+      forgetRequests: [],
       bundleVer: 0,
 
 createPendingWave: (input) => {
@@ -1281,6 +1309,81 @@ set((st) => ({
           };
         }),
 
+      raiseCrisis: ({ level, note, waveId, contacts }) => {
+        const s = get();
+        const { record } = raiseCrisisLogic(
+          s.crisisRecords,
+          useIdentityStore.getState().identity.id,
+          level,
+          note,
+          Date.now(),
+          waveId
+        );
+        const { record: notified, targets } = notifyForLogic(record, contacts);
+        set((st) => ({
+          crisisRecords: [...st.crisisRecords.map((r) => (r.id === record.id ? notified : r)), notified],
+        }));
+        return { record: notified, targets };
+      },
+
+      resolveCrisis: (id) =>
+        set((s) => ({ crisisRecords: resolveCrisisLogic(s.crisisRecords, id, Date.now()) })),
+
+      requestForget: (kind) => {
+        const s = get();
+        const out = requestForgetLogic(
+          s.forgetRequests,
+          useIdentityStore.getState().identity.id,
+          kind,
+          Date.now()
+        );
+        if (out.fresh) set({ forgetRequests: out.requests });
+        return { req: out.req, fresh: out.fresh };
+      },
+
+      askBi: (text) => {
+        const s = get();
+        if (!/违约|收益|收入|流水|评价|评分|裂变|争议|成交|统计|汇总|数据情况|多少单|几个需求|几个局/.test(text)) {
+          return null;
+        }
+        const rows: BiRow[] = [];
+        for (const w of s.waves) {
+          rows.push({
+            authorId: w.authorId,
+            category: w.basics.category,
+            createdAt: w.createdAt,
+            fissionCount: w.fissionCount,
+          });
+        }
+        for (const c of s.claims) {
+          const w = s.waves.find((x) => x.id === c.waveId);
+          rows.push({
+            authorId: c.responderId,
+            category: w?.basics.category ?? "其他",
+            createdAt: c.createdAt,
+            amount: c.fulfilledAt ? (c.price ?? 0) : undefined,
+            violation: c.status === "breached",
+          });
+        }
+        for (const r of s.reviews) {
+          rows.push({
+            authorId: r.fromId,
+            category: "评价",
+            createdAt: r.at,
+            reviewStar: r.score,
+          });
+        }
+        for (const d of s.disputes) {
+          const w = s.waves.find((x) => x.id === d.claimId || s.claims.some((c) => c.id === d.claimId && c.waveId === x.id));
+          rows.push({
+            authorId: w?.authorId ?? "争议",
+            category: "争议",
+            createdAt: d.createdAt,
+          });
+        }
+        return runBi(parseBiQuery(text), rows, Date.now());
+      },
+
       allocatePrivacy: (waveId, aId, bId) =>
         set((s) => {
           const r = allocatePair(s.privacySessions, DEMO_POOL, waveId, aId, bId, Date.now());
@@ -1341,6 +1444,8 @@ set((st) => ({
           friendRequests: [],
           friendships: [],
           friendRequestRemovals: [],
+          crisisRecords: [],
+          forgetRequests: [],
           bundleVer: 0,
         } satisfies WaveBundle),
       },
@@ -1364,6 +1469,8 @@ set((st) => ({
           privacySessions: s.privacySessions,
           imThreads: s.imThreads,
           imMessages: s.imMessages,
+          crisisRecords: s.crisisRecords,
+          forgetRequests: s.forgetRequests,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.
