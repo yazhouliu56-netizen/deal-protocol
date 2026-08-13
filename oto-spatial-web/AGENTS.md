@@ -24,6 +24,7 @@ Root repo single source of truth: `../docs/DESIGN_CONSTITUTION.md` (deal-protoco
 - Conflicts with a constitution article: NEVER decide silently — file a 「⚠️ 宪法冲突上报」 (§3) and let the USER rule. Feature cannot merge without the ruling.
 - Structural refactors must converge one legacy violation per change and annotate 「宪法收敛：条文 #n」.
 - 本项目的 `src/base/`（九域共享层）与 `src/ammo/`（弹药属性表）是宪法第 1-5 条的落地物：新增业务先填 ammo 表，禁止写死业务字段进 base/组件。
+- **宪法收敛门禁（必执行）**：任何结构性改动（文件 rename/抽层/契约修订）提交前，先在该 commit 的说明里写「宪法收敛：条文 #n」并到 docs/CONVERGENCE-LOG.md 登记该 commit，再运行 npm run check:convergence（或 node scripts/convergence-check.mjs），exit 0 才能 commit。门禁检测 git rename，未登记即拦截。
 <!-- END:design-constitution -->
 
 

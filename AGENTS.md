@@ -23,6 +23,7 @@ The single source of truth is `docs/DESIGN_CONSTITUTION.md`.
 - Every new ADR / feature design MUST contain the two mandatory fields from §4: 「六圈定位声明」 and 「宪法条文对照」.
 - Conflicts with a constitution article: NEVER decide silently — file a 「⚠️ 宪法冲突上报」 (§3) and let the USER rule. Feature cannot merge without the ruling.
 - Structural refactors must converge one legacy violation per change and annotate 「宪法收敛：条文 #n」.
+- **宪法收敛门禁（必执行）**：任何结构性改动（文件 rename/抽层/契约修订）提交前，先在该 commit 的说明里写「宪法收敛：条文 #n」并到 docs/CONVERGENCE-LOG.md 登记该 commit，再运行 npm run check:convergence（或 node scripts/convergence-check.mjs），exit 0 才能 commit。门禁检测 git rename，未登记即拦截。
 <!-- END:design-constitution -->
 
 
