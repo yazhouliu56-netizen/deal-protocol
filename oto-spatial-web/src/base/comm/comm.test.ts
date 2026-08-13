@@ -34,8 +34,13 @@ test("不同 wave 分配不同号码对", () => {
   assert.notEqual(r2.session.aNumber, r1.session.aNumber);
 });
 
-test("掩码：中间四位星号", () => {
-  assert.equal(maskNumber("101-0001"), "101****0001");
+test("掩码：11 位号隐藏中间四位（138****0001）", () => {
+  assert.equal(maskNumber("138-0000-0001"), "138****0001");
+  assert.equal(maskNumber("138-0000-0002"), "138****0002");
+});
+
+test("掩码：短号（≤6 位）原样返回", () => {
+  assert.equal(maskNumber("1234"), "1234");
 });
 
 test("拨入方向：a 打给 b 用 bNumber，反向用 aNumber", () => {

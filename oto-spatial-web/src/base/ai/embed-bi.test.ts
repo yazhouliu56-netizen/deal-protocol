@@ -54,3 +54,15 @@ test("BI：聚合统计", () => {
   assert.equal(r.rows, 2);
   assert.equal(r.since, "近 7 天");
 });
+
+test("BI：违约统计只数违约行，不数全部行", () => {
+  const now = Date.now();
+  const rows: BiRow[] = [
+    { authorId: "a", category: "家政", createdAt: now - 86400_000 * 2, violation: true },
+    { authorId: "a", category: "家政", createdAt: now - 86400_000, violation: false },
+    { authorId: "a", category: "家政", createdAt: now - 86400_000 * 3, violation: true },
+  ];
+  const r = runBi({ metric: "violations", raw: "最近违约几次" }, rows, now);
+  assert.equal(r.value, "2 次");
+  assert.equal(r.rows, 2);
+});

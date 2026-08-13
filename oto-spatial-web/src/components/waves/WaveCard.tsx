@@ -38,7 +38,7 @@ export default function WaveCard({
   requested?: number;
   /** 审批制开放局：我是否已提交申请（待审批）。 */
   requestedByMe?: boolean;
-  onClaim: (p: { price: number; note?: string }) => void;
+  onClaim: (p: { price: number; note?: string }) => { error?: string } | void;
   onJoin?: () => void;
   /** 审批制开放局：提交拼位申请。 */
   onRequestJoin?: () => void;
@@ -207,12 +207,12 @@ export default function WaveCard({
             <div className="flex gap-2">
               <button
                 onClick={() => {
+                  // 审批局：待审批态由 store 的 requestedByMe 驱动（被拒自动回退可重试）；
+                  // 非审批局：由 PaySheet 支付弹窗接管，成功后才经 joinedByMe 反映。
                   if (needsApproval) {
                     onRequestJoin?.();
-                    setCommitted(true);
                   } else {
                     onJoin?.();
-                    setCommitted(true);
                   }
                 }}
                 disabled={full || requestedByMe}
@@ -270,8 +270,9 @@ export default function WaveCard({
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    setCommitted(true);
-                    onClaim({ price: recommend, note });
+                    // 单人局：接单成功（无 error）才置乐观态，失败不污染 UI
+                    const out = onClaim({ price: recommend, note });
+                    if (!out?.error) setCommitted(true);
                   }}
                   className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
                 >

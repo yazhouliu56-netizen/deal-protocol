@@ -28,8 +28,10 @@ test("ageGate 儿童(<14)无监护人同意全拦含浏览", () => {
   assert.equal(r.mode, "child");
 });
 
-test("ageGate 儿童有监护人同意 → 免费放行、资金仍拦", () => {
+test("ageGate 儿童有监护人同意 → 仅浏览放行、发布/响应/资金全拦", () => {
   assert.equal(ageGate({ age: 12, action: "browse", guardianConsent: true }).blocked, false);
+  assert.equal(ageGate({ age: 12, action: "publish", guardianConsent: true }).blocked, true);
+  assert.equal(ageGate({ age: 12, action: "respond", guardianConsent: true }).blocked, true);
   assert.equal(ageGate({ age: 12, action: "deposit", guardianConsent: true }).blocked, true);
 });
 

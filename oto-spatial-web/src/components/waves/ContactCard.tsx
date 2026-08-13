@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MessageSquare, Phone, PhoneCall } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -28,7 +28,12 @@ export default function ContactCard({
   const [text, setText] = useState("");
   const [dialed, setDialed] = useState(false);
 
-  const [now] = useState(() => Date.now());
+  // 会话倒计时/过期判定实时刷新（30s 周期，避免挂载后冻结）
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const found = findSession(sessions, waveId, me, now);
   const session = found?.session;
   const live = found?.live ?? false;

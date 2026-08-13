@@ -24,19 +24,19 @@ export const PRIVACY_SESSION_MS = 48 * 3600_000;
 export type NumberPool = string[];
 
 export const DEMO_POOL: NumberPool = [
-  "101-0001",
-  "101-0002",
-  "101-0003",
-  "101-0004",
-  "101-0005",
-  "101-0006",
-  "101-0007",
-  "101-0008",
-  "101-0009",
-  "101-0010",
+  "138-0000-0001",
+  "138-0000-0002",
+  "138-0000-0003",
+  "138-0000-0004",
+  "138-0000-0005",
+  "138-0000-0006",
+  "138-0000-0007",
+  "138-0000-0008",
+  "138-0000-0009",
+  "138-0000-0010",
 ];
 
-/** 掩码：138****5678（隐私号对外展示）。 */
+/** 掩码：138****0001（隐私号对外展示，隐藏中间四位）。 */
 export function maskNumber(n: string): string {
   const digits = n.replace(/\D/g, "");
   if (digits.length <= 6) return n;
@@ -60,8 +60,10 @@ export function allocatePair(
 
   const used = new Set(sessions.filter((s) => !s.revokedAt).flatMap((s) => [s.aNumber, s.bNumber]));
   const avail = pool.filter((n) => !used.has(n));
-  const aNumber = avail[0] ?? `101-${9000 + sessions.length}`;
-  const bNumber = avail[1] ?? `101-${9000 + sessions.length + 1}`;
+  // 池耗尽兜底：续 11 位占位号（格式与池一致，掩码契约仍成立）
+  const fallback = (n: number) => `138-9000-${String(n).padStart(4, "0")}`;
+  const aNumber = avail[0] ?? fallback(9000 + sessions.length);
+  const bNumber = avail[1] ?? fallback(9000 + sessions.length + 1);
   const session: PrivacySession = {
     waveId,
     aId,

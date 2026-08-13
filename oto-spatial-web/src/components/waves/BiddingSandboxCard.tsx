@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Gavel, Trophy, Layers } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import {
   award,
   openBidding,
@@ -86,6 +87,18 @@ const open = session.status === "open";
   const myLowest = open && ranked.length > 0 && ranked[0].bidderId === "me";
 
   const handleBid = () => {
+    // 未成年人资金闸：竞价出价涉及资金，青少年/儿童拦截
+    if (identity.birthYear) {
+      const gate = ageGate({
+        age: ageFromBirthYear(identity.birthYear, new Date().getFullYear()),
+        action: "bidding",
+        guardianConsent: identity.guardianConsent,
+      });
+      if (gate.blocked) {
+        setError(gate.reason);
+        return;
+      }
+    }
     const price = Number(myPrice);
     if (!Number.isFinite(price) || price <= 0) {
       setError("请输入有效报价");

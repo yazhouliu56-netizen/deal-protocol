@@ -228,6 +228,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                                 waveId: wave.id,
                                 responderId: r.responderId,
                                 approve: true,
+                                initiatorId: identity.id,
                               })
                             }
                             className="px-2 py-1 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[9.5px] font-bold hover:brightness-110"
@@ -240,6 +241,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                                 waveId: wave.id,
                                 responderId: r.responderId,
                                 approve: false,
+                                initiatorId: identity.id,
                               })
                             }
                             className="px-2 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-white/50 text-[9.5px] font-bold hover:text-red-300"

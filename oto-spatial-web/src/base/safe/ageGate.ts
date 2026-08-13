@@ -100,7 +100,18 @@ export function ageGate(input: AgeGateInput): AgeGateResult {
   if (isMoney(input.action)) {
     return { mode, blocked: true, reason: MONEY_REASONS[input.action] };
   }
-  // 免费动作：儿童（有同意）与青少年均放行。
+  // 免费动作：儿童（有同意）仅可浏览围观，不可发布/响应（分级 §43）；
+  // 青少年免费动作（发布/响应/浏览）放行。
+  if (mode === "child") {
+    if (input.action !== "browse") {
+      return {
+        mode,
+        blocked: true,
+        reason: "儿童账号仅可浏览围观，不可发布或响应（分级模式 §43）",
+      };
+    }
+    return { mode, blocked: false, reason: "浏览已放行（儿童账号，监护人同意在册）" };
+  }
   return { mode, blocked: false, reason: "免费动作已放行（未成年人模式：资金功能受限）" };
 }
 

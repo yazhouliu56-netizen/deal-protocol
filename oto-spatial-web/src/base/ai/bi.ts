@@ -78,7 +78,11 @@ export function runBi(query: BiQuery, rows: BiRow[], now: number): BiResult {
   switch (query.metric) {
     case "waves": value = `${n} 条`; break;
     case "claims": value = `${n} 单`; break;
-    case "violations": value = `${n} 次`; break;
+    case "violations": {
+      const violations = filtered.filter((r) => r.violation).length;
+      value = `${violations} 次`;
+      return { metric: query.metric, label: METRIC_LABEL[query.metric], value, rows: violations, since: sinceLabel };
+    }
     case "disputes": value = `${n} 件`; break;
     case "revenue": value = `¥${filtered.reduce((s, r) => s + (r.amount ?? 0), 0)}`; break;
     case "reviews": value = n ? `${(filtered.reduce((s, r) => s + (r.reviewStar ?? 0), 0) / n).toFixed(1)} ★` : "—"; break;

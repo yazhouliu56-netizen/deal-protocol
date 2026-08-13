@@ -45,6 +45,7 @@ import { useRoamStore } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { ageFromBirthYear, ageGate, type MoneyAction } from "@/base/safe/ageGate";
 import {
   allocatePair,
   revokeSession,
@@ -76,6 +77,16 @@ import {
   type BanRecord,
   type Report,
 } from "@/base/risk/moderation";
+
+/** 未成年人资金闸（ADR-0016）：响应/拼位/竞价等真实资金入口按 ageGate 拦截。
+ * 与 PublishSheet 分派一致：未填出生年（age=null）不拦截，已填则按分级判定。 */
+function gateMoneyAction(action: MoneyAction): string | undefined {
+  const identity = useIdentityStore.getState().identity;
+  if (!identity.birthYear) return undefined;
+  const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
+  const gate = ageGate({ age, action, guardianConsent: identity.guardianConsent });
+  return gate.blocked ? gate.reason : undefined;
+}
 
 /**
  * The shared broadcast space — one zustand store persisted under a single
@@ -188,6 +199,8 @@ interface WaveStore extends WaveBundle {
     waveId: string;
     responderId: string;
     approve: boolean;
+    /** 审批发起者（须为该局发起人，防自批自申）。 */
+    initiatorId: string;
   }) => { claim?: Claim; assembled?: boolean; error?: string };
   /** 开放局: demander closes the table early (at least one seat taken). */
   assembleWave: (waveId: string) => void;
@@ -577,6 +590,11 @@ createPendingWave: (input) => {
         if (wave.capacity >= 2) {
           return { error: "wave-open-match-use-join" };
         }
+        // 未成年人资金闸：带鸽子险（押金）的局未成年人不能接
+        if (wave.deposit) {
+          const gate = gateMoneyAction("deposit");
+          if (gate) return { error: gate };
+        }
         const claimId = nextId("claim");
         if (wave.negotiable && note?.trim()) {
           const claim = openNegotiation(wave, responderId, claimId, price ?? wave.budget);
@@ -639,6 +657,11 @@ set((st) => ({
         // no-show 欠款锁定：违约未结不能拼位
         if (hasUnsettledBreach(s.claims, responderId)) {
           return { error: "debt-unsettled" };
+        }
+        // 未成年人资金闸：带鸽子险（押金）的局未成年人不能拼位
+        if (wave.deposit) {
+          const gate = gateMoneyAction("deposit");
+          if (gate) return { error: gate };
         }
         // 一个响应者最多占一个位
         const already = s.claims.some(
@@ -723,11 +746,13 @@ set((st) => ({
         return { ok: true };
       },
 
-      decideRequest: ({ waveId, responderId, approve }) => {
+      decideRequest: ({ waveId, responderId, approve, initiatorId }) => {
         const s = get();
         const wave = s.waves.find((w) => w.id === waveId);
         if (!wave) return { error: "wave-not-found" };
         if (!wave.needApproval) return { error: "approval-off" };
+        // 发起人身份校验：只有局发起人能审批（防自批自申/越权审批）
+        if (initiatorId !== wave.authorId) return { error: "not-initiator" };
         if (!approve) {
           set((st) => ({
             waves: st.waves.map((w) =>
@@ -747,6 +772,17 @@ set((st) => ({
           (r) => r.responderId === responderId
         );
         if (!requested) return { error: "no-request" };
+        // 与 joinSeat 同防线：no-show 欠款锁定 + 一人一位
+        if (hasUnsettledBreach(s.claims, responderId)) {
+          return { error: "debt-unsettled" };
+        }
+        const already = s.claims.some(
+          (c) =>
+            c.waveId === waveId &&
+            c.responderId === responderId &&
+            (c.status === "joined" || c.status === "accepted")
+        );
+        if (already) return { error: "already-joined" };
         // 复用纯函数审批：占座 + 满员成局（绕过 store 层 needApproval 拦截）
         const joined = s.claims.filter(
           (c) => c.waveId === waveId && c.status === "joined"
@@ -879,12 +915,19 @@ set((st) => ({
           ),
         })),
 
-      acceptFulfilment: (claimId, note) =>
-        set((s) => ({
-          claims: s.claims.map((c) =>
+      acceptFulfilment: (claimId, note) => {
+        const s = get();
+        const claim = s.claims.find((c) => c.id === claimId);
+        set((st) => ({
+          claims: st.claims.map((c) =>
             c.id === claimId ? acceptFulfilment(c, note) : c
           ),
-        })),
+          // 订单完成 → 隐私号会话终局回收
+          privacySessions: claim
+            ? revokeSession(st.privacySessions, claim.waveId, Date.now())
+            : st.privacySessions,
+        }));
+      },
 
       runAutoFulfilments: () => {
         const s = get();
@@ -925,14 +968,25 @@ set((st) => ({
           return { disputes: [...s.disputes, d] };
         }),
 
-      settleDispute: (p) =>
-        set((s) => ({
-          disputes: s.disputes.map((d) =>
-            d.claimId === p.claimId && !d.outcome
-              ? negotiate(d, p.proposedPct, p.willAccept, p.note)
-              : d
-          ),
-        })),
+      settleDispute: (p) => {
+        const s = get();
+        const claim = s.claims.find((c) => c.id === p.claimId);
+        let toTerminal = false;
+        const disputes = s.disputes.map((d) => {
+          if (d.claimId !== p.claimId || d.outcome) return d;
+          const next = negotiate(d, p.proposedPct, p.willAccept, p.note);
+          if (next.outcome) toTerminal = true;
+          return next;
+        });
+        set((st) => ({
+          disputes,
+          // 争议终局（有 outcome）→ 隐私号会话回收
+          privacySessions:
+            claim && toTerminal
+              ? revokeSession(st.privacySessions, claim.waveId, Date.now())
+              : st.privacySessions,
+        }));
+      },
 
       autoResolveDisputes: () => {
         const s = get();
@@ -971,10 +1025,17 @@ set((st) => ({
           ),
         })),
 
-      withdraw: (claimId) =>
-        set((s) => ({
-          claims: s.claims.map((c) => (c.id === claimId ? withdrawClaim(c) : c)),
-        })),
+      withdraw: (claimId) => {
+        const s = get();
+        const claim = s.claims.find((c) => c.id === claimId);
+        set((st) => ({
+          claims: st.claims.map((c) => (c.id === claimId ? withdrawClaim(c) : c)),
+          // 撤单 → 协商未成，隐私号会话回收
+          privacySessions: claim
+            ? revokeSession(st.privacySessions, claim.waveId, Date.now())
+            : st.privacySessions,
+        }));
+      },
 
       submitReport: (p) =>
         set((s) => {
@@ -1044,7 +1105,11 @@ set((st) => ({
         set((s) => {
           const wave = s.waves.find((w) => w.id === waveId);
           if (!wave) return {};
-          return { waves: s.waves.map((w) => (w.id === waveId ? closeWave(w) : w)) };
+          return {
+            waves: s.waves.map((w) => (w.id === waveId ? closeWave(w) : w)),
+            // 需求取消 → 已分配隐私号会话回收
+            privacySessions: revokeSession(s.privacySessions, waveId, Date.now()),
+          };
         }),
 
       resolveNoShow: (waveId, claimId) =>
@@ -1296,6 +1361,9 @@ set((st) => ({
           friendRequests: s.friendRequests,
           friendships: s.friendships,
           friendRequestRemovals: s.friendRequestRemovals,
+          privacySessions: s.privacySessions,
+          imThreads: s.imThreads,
+          imMessages: s.imMessages,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.
