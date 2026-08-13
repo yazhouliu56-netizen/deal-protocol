@@ -73,3 +73,6 @@ supabase/.temp/
 # open-mem: Auto-generated folder context files.
 # Uncomment to exclude from version control (recommended for large projects):
 # **/AGENTS.md
+
+# 规则文件改动前备份（AGENTS.md.bak-* 等）
+*.bak-*

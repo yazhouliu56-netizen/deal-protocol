@@ -29,6 +29,7 @@
 | 期 | 状态 | 附证 |
 |----|------|------|
 | M1-M4 架构 | ✅ 超额完成（已演进为 waves 经济） | oto-ai-platform-design.md |
+| 设计宪法定稿 | ✅ `docs/DESIGN_CONSTITUTION.md`（10 条文 + §3 冲突上报用户拍板 + §4 ADR 模板两栏）+ 根/子 AGENTS.md 挂指针 + `docs/adr/TEMPLATE.md` + ADR-0006/0007 标注派生 | 2026-08-13 |
 | P0 工程化（Zustand/Framer） | ✅ | 08-03 |
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
@@ -136,3 +137,4 @@
 | 2026-08-12 | `824e00e` | **P8 商业化本地闭环（2/2）：钱包账本统一 + 漫游落盘 + 治理可见 + 响应方收益**——① `lib/ledger.ts`（applyLedger 出账不下穿 0 / makeLedgerEntry 防撞 id，+6 单测）+ useIdentityStore.book 通用入账（kind 扩 commission/subscription/income）② BiddingSandboxCard 开标按成交价 8% 记「竞价服务费」（幂等 note 含局 id）③ OrganizerBoostCard 开通/续费扣 ¥9.9 「组局加速订阅」④ WorkerWorkbench 完成订单按 service 金额入账「服务收益」（响应方商业化）⑤ 漫游过滤掉 persist 补 events（刷新不丢）+ AdminPanel 新增「漫游安全监控」区块（风险等级 + ⚠ 事件流）⑥ WalletView 流水改正负分色（入绿 +¥ / 出红 −¥，修旧统一 −¥ 缺陷）→ 单测 298 全绿（+6）、tsc/lint 0 错；浏览器实测：开标→账面 −¥8（余额 92）→开通订阅 −¥9.9（82.1）→工作台完成 2 单 +¥499/+¥80（661.1）、流水正负分色、漫游事件 3 条刷新生效 + 治理后台高危监控展示、复位后方复安全；生产 build + restart-prod（PID 22156）实测订阅入账通过 | |
 | 2026-08-13 | 未推 | **ADR-0006 定稿（文档层）**：O2O 万能底座六层防御圈蓝图（RPG 设计哲学 → 22 模块分层：①触达 ②业务核心 ③AI 神经 ④生态网关 ⑤安全风控 ⑥生存基建）+ 本地现状映射（🟢8 已实现可复用 / 🟡11 需抽象 / 🔴7 未实现）+ 融合顺序定策（蓝图定稿 → 融合 web/mobile 按圈切分底座 → 功能层迭代）+ 阶段建议（MVP 融二圈/A 轮砸三圈五圈/B 轮补六圈）→ 详见 `docs/adr/0006-universal-base.md` | |
 | 2026-08-13 | 未推 | **ADR-0007 底座融合执行（第一批落地）**：嫁接映射表 + C1-C5 接口契约定稿 → `src/base/` 共享层全量落地（money/trust/order/dispatch/risk/geo/notify/platform/ai 九域 100 文件 git mv 保历史 + 调用方 import 全改 + 测试路径同步）→ `src/ammo/` 弹药属性表（scene-template/prefs 迁入 + pricing-formula/dispatch-rule/risk-rule 新建 + ammo.test +5）→ 单测 303 全绿、tsc/lint 0 错、build 通过；lib/ 仅剩业务保留（mockData/mockResponders/chat/dial/scan/qr）→ 详见 `docs/adr/0007-base-merge-map.md` | |
+| 2026-08-13 | 未推 | **设计宪法定稿（最高指导思想固化）**：`docs/DESIGN_CONSTITUTION.md` 落档（哲学出处 + 10 条文可裁定判据 + §2 效力分层 + §3 冲突上报用户拍板禁静默 + §4 ADR 模板两栏 + 修订记录）；根 `AGENTS.md` 与 `oto-spatial-web/AGENTS.md` 各挂 `<BEGIN:design-constitution>` 指针节（改前备份 .bak-20260813）；新增 `docs/adr/TEMPLATE.md`（六圈定位声明 + 宪法条文对照强制字段）；ADR-0006/0007 标注「派生自宪法 #n」→ 后续新设计/新 ADR 必须先读宪法、冲突必上报由用户裁决 | |
