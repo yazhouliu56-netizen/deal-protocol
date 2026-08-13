@@ -28,6 +28,8 @@ export const GLOBAL_RISK_RULES: RiskRule[] = [
 export const CATEGORY_RISK: Record<string, RiskRuleName[]> = {
   "水电维修": ["home-access-verification"],
   "家政保洁": ["home-access-verification"],
+  // Phase 3：遛狗需进门取狗，进家引信开启
+  "遛狗遛弯": ["home-access-verification"],
 };
 
 export function riskRulesFor(category: string): RiskRule[] {

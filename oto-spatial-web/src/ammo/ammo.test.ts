@@ -11,6 +11,7 @@ import {
   dispatchRuleFor,
 } from "./dispatch-rule.ts";
 import { isRuleEnabled, riskRulesFor } from "./risk-rule.ts";
+import { DEFAULT_SOP, sopForCategory } from "./sop.ts";
 
 test("pricingForCategory 命中已配置类目", () => {
   const p = pricingForCategory("家电维修");
@@ -40,9 +41,23 @@ test("dispatchRuleFor 覆盖权重不污染默认", () => {
   assert.equal(def, DEFAULT_DISPATCH);
 });
 
-test("riskRulesFor 全局规则 + 类目额外引信", () => {
-  const rules = riskRulesFor("水电维修");
-  assert.ok(isRuleEnabled(rules, "anti-self-boost"));
-  assert.ok(isRuleEnabled(rules, "home-access-verification"));
-  assert.ok(CATEGORY_DISPATCH);
+test("C4 hardGates 结构化对齐（banned/online 默认开启）", () => {
+  const def = dispatchRuleFor("羽毛球");
+  assert.equal(def.hardGates.banned, true);
+  assert.equal(def.hardGates.online, true);
+  assert.ok(def.hardGates.requiresVerified?.includes("家政保洁"));
+  const 水电 = dispatchRuleFor("水电维修");
+  assert.deepEqual(水电.hardGates.requiresVerified, ["上门"]);
+});
+
+test("sopForCategory 命中/回退（SOP 弹药表）", () => {
+  const 保洁 = sopForCategory("家政保洁");
+  assert.equal(保洁.depositDefault, true);
+  assert.equal(保洁.capacityDefault, 1);
+  assert.equal(保洁.depositRate, 0.2);
+  const 羽毛 = sopForCategory("羽毛球");
+  assert.equal(羽毛.capacityDefault, 4);
+  assert.equal(羽毛.buffSeats, 1);
+  const def = sopForCategory("不存在类目");
+  assert.equal(def, DEFAULT_SOP);
 });

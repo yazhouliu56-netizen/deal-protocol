@@ -6,4 +6,5 @@ export * from "./scene-template";
 export * from "./pricing-formula";
 export * from "./dispatch-rule";
 export * from "./risk-rule";
+export * from "./sop";
 export * from "./prefs";

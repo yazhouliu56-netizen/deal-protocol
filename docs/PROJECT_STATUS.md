@@ -30,6 +30,7 @@
 |----|------|------|
 | M1-M4 架构 | ✅ 超额完成（已演进为 waves 经济） | oto-ai-platform-design.md |
 | 设计宪法定稿 | ✅ `docs/DESIGN_CONSTITUTION.md`（10 条文 + §3 冲突上报用户拍板 + §4 ADR 模板两栏）+ 根/子 AGENTS.md 挂指针 + `docs/adr/TEMPLATE.md` + ADR-0006/0007 标注派生 | 2026-08-13 |
+| ADR-0007 v2 契约全兑现 | ✅ C1 OrderCore（`base/order/orderCore.ts` 投影桥，22 调用方零改动）+ ammo 补 sop.ts + C4 hardGates 对齐 + e2e「填表即新弹药」（遛狗遛弯四表读全/引擎消费/零 base 修改）+ mobile 归属登记 → 单测 314 全绿、tsc/lint 0 错、build/冒烟通过 | 2026-08-13 |
 | P0 工程化（Zustand/Framer） | ✅ | 08-03 |
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
@@ -138,3 +139,4 @@
 | 2026-08-13 | 未推 | **ADR-0006 定稿（文档层）**：O2O 万能底座六层防御圈蓝图（RPG 设计哲学 → 22 模块分层：①触达 ②业务核心 ③AI 神经 ④生态网关 ⑤安全风控 ⑥生存基建）+ 本地现状映射（🟢8 已实现可复用 / 🟡11 需抽象 / 🔴7 未实现）+ 融合顺序定策（蓝图定稿 → 融合 web/mobile 按圈切分底座 → 功能层迭代）+ 阶段建议（MVP 融二圈/A 轮砸三圈五圈/B 轮补六圈）→ 详见 `docs/adr/0006-universal-base.md` | |
 | 2026-08-13 | 未推 | **ADR-0007 底座融合执行（第一批落地）**：嫁接映射表 + C1-C5 接口契约定稿 → `src/base/` 共享层全量落地（money/trust/order/dispatch/risk/geo/notify/platform/ai 九域 100 文件 git mv 保历史 + 调用方 import 全改 + 测试路径同步）→ `src/ammo/` 弹药属性表（scene-template/prefs 迁入 + pricing-formula/dispatch-rule/risk-rule 新建 + ammo.test +5）→ 单测 303 全绿、tsc/lint 0 错、build 通过；lib/ 仅剩业务保留（mockData/mockResponders/chat/dial/scan/qr）→ 详见 `docs/adr/0007-base-merge-map.md` | |
 | 2026-08-13 | 未推 | **设计宪法定稿（最高指导思想固化）**：`docs/DESIGN_CONSTITUTION.md` 落档（哲学出处 + 10 条文可裁定判据 + §2 效力分层 + §3 冲突上报用户拍板禁静默 + §4 ADR 模板两栏 + 修订记录）；根 `AGENTS.md` 与 `oto-spatial-web/AGENTS.md` 各挂 `<BEGIN:design-constitution>` 指针节（改前备份 .bak-20260813）；新增 `docs/adr/TEMPLATE.md`（六圈定位声明 + 宪法条文对照强制字段）；ADR-0006/0007 标注「派生自宪法 #n」→ 后续新设计/新 ADR 必须先读宪法、冲突必上报由用户裁决 | |
+| 2026-08-13 | 未推 | **ADR-0007 v2 契约全兑现（执行手册收口）**：v2 重写为执行手册（§0 范围防发散 + §1 现状盘点 diff G1-G5 + §2 C1-C5 契约 + §3 Phase 0-5 + §5 缺口清单 N1-N16）；Phase 1 C1 OrderCore（`base/order/orderCore.ts` 投影桥 OrderStatus↔WaveStatus，Wave 语义零改动、22 调用方零回归，+5 单测）→ Phase 2 ammo/sop.ts 补建 + dispatch-rule hardGates 结构化对齐（+1 单测）→ Phase 3 e2e「填表即新弹药」：遛狗遛弯四表登记（pricing/dispatch/risk/sop）全读 + base 引擎消费 + 零 base 修改（+5 单测）→ Phase 4 mobile 归属登记（location→base/geo RN 候选/api→家政弹药/types→弹药类型/DynamicForm→N2；mobile tsc 存量 slider 依赖错单独排期）→ Phase 5 总验收：单测 **314 全绿**（303+11）、tsc/lint 0 错、build 通过、生产模式浏览器冒烟 0 console error；C1-C5 全部有落地 anchor 文件 | |

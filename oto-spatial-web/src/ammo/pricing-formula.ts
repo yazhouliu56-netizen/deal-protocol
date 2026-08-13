@@ -76,6 +76,16 @@ export const CATEGORY_PRICING: Record<string, PricingFormula> = {
     minPriceYuan: 100,
     warrantyText: "短期待 - 满意度保障，非传统保修",
   },
+  // Phase 3 端到端验证：只填这一行配置，即成为「新弹药」。
+  "遛狗遛弯": {
+    baseRateYuan: 25,
+    hourlyRates: { 1: 55, 2: 45, 3: 35 },
+    multipliers: { big_dog: 1.4 },
+    distanceFeePerKm: 3,
+    timeFactors: { normal: 1.0, peak: 1.2, urgent: 1.4 },
+    minPriceYuan: 35,
+    warrantyText: "遛狗无忧",
+  },
 };
 
 /** 未配置类目 → 需求局默认公式（含 customPricing 兜底）。 */

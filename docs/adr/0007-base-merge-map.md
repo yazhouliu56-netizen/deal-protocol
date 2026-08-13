@@ -1,115 +1,87 @@
-# ADR-0007: 万能底座融合映射表（web ↔ base ↔ 弹药）
-日期：2026-08-13
-状态：Accepted（作为 ADR-0006 融合期第一阶段执行地图；代码归位单独排期）
+# ADR-0007: 万能底座融合执行手册 v2（web ↔ base ↔ ammo ↔ mobile）
 
-> **宪法声明**：本 ADR 派生自 `docs/DESIGN_CONSTITUTION.md`（条文 #3 先配表后写码、
-> #4 弹药可插拔、#5 引信跟弹药走）——本文的 base/ammo 切割即宪法这三条的落地执行图。
+日期：2026-08-13（v2 重写；v1 = 映射表 + 粗步骤，已执行完毕）
+状态：Accepted（作为融合期唯一执行手册；执行与验收严格按 §3 Phase 0-5 推进）
 
-## Context
+> **宪法声明**：本 ADR 派生自 `docs/DESIGN_CONSTITUTION.md`（条文 #1 底座优先、#2 接口保守、
+> #3 先配表后写码、#4 弹药可插拔、#5 引信跟弹药走）。
+> 本手册每一阶段的验收标准都附带「宪法对照」，执行即验收、验收即收敛。
 
-ADR-0006 定稿六层防御圈蓝图，融合顺序为「先定接口再搬代码」。
-本 ADR 落地第一阶段产出：**全量文件归属映射表 + 第一批接口契约定义**，
-作为 `base/`（发射管）与「弹药属性表」（业务配置）的切割依据。
+---
 
-## Decision
+## §0 范围与边界（先划死，防发散）
 
-### 一、目标目录形态
+**本手册只管一件事**：把本地两项目（web `oto-spatial-web` + RN `mobile`）的现状
+收敛为「base/ 发射管 + ammo/ 弹药表」形态，并兑现 C1-C5 接口契约，端到端验收全绿。
 
-```
-src/base/             ← 发射管（共享层，web/mobile 两端复用，禁止业务字段）
-  order/              ← 状态机（发布→匹配→履约→验收→结算）
-  money/              ← 统一清结算（账本/支付/保证金/竞价/计价公式）
-  dispatch/           ← 双模分发（派单/抢单打分）
-  trust/              ← 双向信用（评级/信任/星级/评价/违规/关系）
-  ai/                 ← LLM 神经（gateway 多 Provider + 语义/拆解/诊断/语音）
-  risk/               ← 可插拔风控（防自刷/多开/治理，规则表驱动）
-  geo/                ← LBS 时空（geo/map/热度）
-  notify/             ← IM 与通知中枢
-  platform/           ← 生存基建（SSR 安全/降级/快照/p2p transport）
-src/ammo/             ← 弹药属性表（每类目一行配置，前端按配置渲染）
-  scene-template.ts   ← 类目 → AR/表单场景模板
-  pricing-formula.ts  ← 类目 → 计价公式与费率
-  dispatch-rule.ts    ← 类目 → 分发权重
-  risk-rule.ts        ← 类目 → 风控勾选（引信表）
-  sop.ts              ← 类目 → SOP 参数（鸽子险/有效期/容量默认值）
-```
+**不在本手册范围（只记录、不做，见 §5 缺口清单）**：
 
-### 二、web 侧 `src/lib/` 83 个文件归属
+| 缺口 | 说明 |
+|------|------|
+| 🔴 虚拟号/隐私号中枢 | 圈② IM 模块（mobile 也未做） |
+| 🔴 AIGC 伪造鉴真 | 圈③ |
+| 🔴 智能争议小法官（LLM 定责） | 圈③（现有 dispute 仅状态机） |
+| 🔴 自然语言 BI | 圈③ |
+| 🔴 电子签章 / 保险对接 | 圈④ 生态网关 |
+| 🔴 极端危机干预协议 | 圈⑤（SOS 屏仅在 mobile 是壳） |
+| 🔴 智能运力熔断 / 供需杠杆 | 圈⑥ |
+| 🔴 多云多活 / 数据湖 / 哈希存证 | 圈⑥ |
 
-| 文件 | 归属 | 依据 |
-|------|------|------|
-| `wave.ts` | → base/order（接口需泛化） | Wave 接口含需求局业务字段（capacity/buffSeats/fission*），抽 `OrderCore` 泛化骨架 |
-| `booking.ts` | → base/order | 预约状态机，业务无关 |
-| `fulfilment.ts` | → base/order | 履约确认状态机 |
-| `moduleFulfilment.ts` | → base/order | 复杂任务模块履约 |
-| `dispute.ts` | → base/order | 争议状态机/证据链 |
-| `ledger.ts` | → base/money（✅ 已通用，原样搬） | applyLedger/makeLedgerEntry 无业务字段 |
-| `pay.ts` | → base/money | 支付网关壳 |
-| `deposit.ts` | → base/money | 鸽子险保证金 |
-| `bidding.ts` | → base/money（佣金率参数化） | COMMISSION_RATE/MIN_FEE_YUAN 常量 → 弹药配置 |
-| `customPricing.ts` | → base/money（公式 schema 化） | 计价公式 → 可配公式引擎输入 |
-| `organizerSubscription.ts` | → base/money | 订阅状态机 |
-| `match.ts` | → base/dispatch | 派单打分 |
-| `broadcast.ts` | → base/dispatch（权重弹药化） | DISTANCE/CREDIT/CUSTOM_WEIGHT 常量 → 分发规则表 |
-| `reputation.ts` | → base/trust | 五维评级 |
-| `trust.ts` | → base/trust | 信任闭环（成团退款/取消分级/no-show） |
-| `starRank.ts` | → base/trust | 星级/完成率 |
-| `review.ts` | → base/trust | 评价（3 维 + 72h 窗 + 默认好评） |
-| `violation.ts` | → base/trust | 违规扣分 |
-| `friends.ts` | → base/trust | 关系沉淀状态机 |
-| `cluster.ts` | → base/ai | LLM 聚类（已薄层化） |
-| `decompose.ts` | → base/ai | 任务拆解（已薄层化） |
-| `diagnostic.ts` | → base/ai | AI 主动诊断 |
-| `gateway/` | → base/ai | 多 Provider 网关（ADR-0005） |
-| `voice/` | → base/ai | 语音意图/ASR/TTS/取证 |
-| `fission.ts` | → base/risk | 防自刷计数 |
-| `roamGuard.ts` | → base/risk | 多开风控矩阵 |
-| `moderation.ts` | → base/risk | 内容治理/下架 |
-| `geo.ts` | → base/geo | Haversine/排序/兜底坐标 |
-| `mapConfig.ts` | → base/geo | 地图 tier/点数据 |
-| `mapPref.ts` | → base/geo | 地图偏好持久化 |
-| `destFilter.ts` | → base/geo | 目的地筛选 |
-| `systemNotify.ts` | → base/notify | 五类事件 diff |
-| `notify.ts` | → base/notify | 通知聚合中心 |
-| `chat/` | → base/notify | 即时通讯 |
-| `clientFlags.ts` | → base/platform | useSyncExternalStore SSR 安全 |
-| `readKeys.ts` | → base/platform | 已读集合外部 store |
-| `performance.ts` | → base/platform | 低配降级 |
-| `snapshot.ts` | → base/platform | 数据导出/导入 |
-| `p2p/` | → base/platform | 跨 tab transport |
-| `avatar.ts` | → base/platform | 头像压缩 |
-| `toast.ts` | → base/platform | 全局 toast |
-| `sceneTemplate.ts` | → ammo/scene-template（样板） | 类目→模板映射，正是弹药属性表形态 |
-| `prefs.ts` | → ammo（撮合偏好四维池属业务配置） | 半径/预算/水平/时间 |
-| `mockData.ts` | 保留业务侧（演示数据） | 需求局专属 |
-| `mockResponders.ts` | 保留业务侧（演示数据） | 需求局专属 |
-| `dial.ts` | 保留（拨号壳，待虚拟号设计） | 圈② 隐私号未做 |
-| `qr.test.ts`/`scan.ts` | 保留业务侧 | 扫码为需求局裂变入口 |
-| 其余 `*.test.ts` | 跟随源码迁移 | — |
+这些已立项单列，不在 Phase 0-5 内执行；执行途中新发现的缺口 → 追加进 §5，不发散。
 
-### 三、mobile 侧归属
+---
 
-| 文件 | 归属 | 依据 |
-|------|------|------|
-| `src/services/api.ts` | 弹药实例（家政） | 纯 mock，待接 base 后端/共享契约 |
-| `src/utils/location.ts` | → base/geo（RN 适配候选） | 位置工具 |
-| `src/types/index.ts` | 弹药类型（家政订单） | OrderItem 家政字段 |
-| `src/components/DynamicForm.tsx` | 弹药 UI（圈① 动态表单雏形参考） | 家政表单，web 可反哺通用化 |
-| 其余 screens/components | 弹药 UI | 家政专属 |
+## §1 现状基线（盘点 diff，2026-08-13 实测钉死）
 
-### 四、第一批接口契约定义（先定接口再搬代码）
+### 1.1 已完成（v1 执行结果，验收过）
 
-**C1 通用订单状态机（base/order）** — 从 Wave 抽象：
+- `src/base/` 九域 100 文件已 git mv 归位（money 11 / trust 12 / order 10 / dispatch 4 /
+  risk 6 / geo 8 / notify 4 / platform 22 / ai 23），调用方 import 全改，测试路径同步。
+- `src/ammo/` 已建：scene-template / pricing-formula / dispatch-rule / risk-rule / prefs + index。
+- 单测 303 全绿 · tsc/lint 0 错 · build 通过 · 浏览器冒烟无错。
+
+### 1.2 契约兑现 diff（v1 与 C1-C5 的差距 —— 本手册要消灭的清单）
+
+| # | 契约要求 | 现状实测 | 处置 |
+|---|----------|----------|------|
+| G1 | C1：wave 泛化抽 `OrderCore`，业务字段（capacity/buffSeats/fission*）走弹药 ext | `base/order/wave.ts` 仍是需求局业务接口（capacity/buffSeats/fission* 直挂） | **Phase 1** |
+| G2 | §一 目标形态：`ammo/sop.ts`（鸽子险/有效期/容量默认值） | 不存在（只有 4 表 + prefs） | **Phase 2** |
+| G3 | C4：`hardGates: { requiresVerified?, banned?, online? }` 结构化 | `dispatch-rule.ts` 用顶层 `requiresVerified` 直写，无 banned/online | **Phase 2** |
+| G4 | §二 映射：`chat/` → base/notify | `lib/chat/` 9 文件仍在原地 | **已裁决为映射修正**（见 §1.3） |
+| G5 | §三：mobile 侧归属（api.ts→弹药、location.ts→base/geo、types→弹药类型、DynamicForm→动态表单雏形） | mobile/src 全原地未动 | **Phase 4** |
+
+### 1.3 映射修正（v1 执行中的一次有意偏离，现正式裁决）
+
+- **chat/ 映射修正**：原映射「chat/ → base/notify」改为「保留业务侧 `lib/chat/`」。
+  理由：chat engine 引用 `useAppStore`（业务 store），搬入 base 会引入 base → store 反向
+  依赖，污染共享层；IM 真正归位应等「隐私号 + IM 中枢」独立立项（§0 🔴）时一并设计
+  （宪法 #2 接口保守：IM 协议语义一旦定义不可改，值得单独立项设计而不是力学搬迁）。
+  此修正不纠结于力学搬迁，符合宪法意图。已讨论、用户认可。
+
+### 1.4 mobile 侧现状登记（Phase 4 落地，只登记不迁码）
+
+mobile（RN Expo，`mobile/`）当前为独立家政演示壳，尚未接 base。按 v1 §三映射登记：
+
+| mobile 文件 | 契约归属登记 | 状态 |
+|-------------|--------------|------|
+| `src/utils/location.ts` | → base/geo 的 **RN 适配层候选**（expo-location 封装，职责=地理能力，抽契约后与 web geo.ts 共用接口） | 登记为缺口 N16，代码融合单独排期 |
+| `src/services/api.ts` | **弹药实例（家政）**——纯 mock，待接 base 后端/共享契约；服务端就绪后按「弹药属性表」接入 | 登记，代码不动 |
+| `src/types/index.ts`（OrderItem/User 等） | **弹药类型（家政订单）**——钉在实际订单字段，底座通用骨架走 C1 OrderCore | 登记，代码不动 |
+| `src/components/DynamicForm.tsx` | 圈① 动态表单**雏形反哺源**（web 通用化时参考心智模型） | 登记为缺口 N2 |
+| 其余 screens/components | 弹药 UI（家政专属） | 登记，代码不动 |
+
+mobile tsc 存在存量依赖错误（`@react-native-community/slider` 缺声明）—— 与本手册无关，
+属 mobile 工程自身问题，单独排期，不挡融合主线。
+
+---
+
+## §2 接口契约（v1 定稿保留，G3 对齐后为终版）
+
+### C1 通用订单状态机（base/order）— Phase 1 兑现
 ```ts
 type OrderStatus =
-  | "pending"    // 待接（已发布）
-  | "matched"    // 已匹配（单对单 claimed / 组局 partial）
-  | "locked"     // 锁定（磋商关闭，不可再抢）
-  | "assembled"  // 成局（容量满，仅组局）
-  | "fulfilling" // 履约中
-  | "reviewing"  // 验收/评价窗
-  | "settled"    // 结算完成
-  | "cancelled" | "expired";
+  | "pending" | "matched" | "locked" | "assembled"
+  | "fulfilling" | "reviewing" | "settled" | "cancelled" | "expired";
 type OrderCore = {
   id: string; ownerId: string;
   status: OrderStatus;
@@ -120,31 +92,26 @@ type OrderCore = {
   createdAt: number; lockedAt?: number;
   settledAt?: number;
 };
-// 业务扩展 = 弹药：ammo 字段通过 sealed `ext` 挂载，底座不感知
+// 业务扩展 = 弹药：业务字段走 sealed `ext` 蒙层，底座不感知
 ```
 
-**C2 统一账本分录（base/money）** — 现状已通用，直接沉淀：
+### C2 统一账本分录（base/money）— 已兑现
 ```ts
-type LedgerKind =
-  | "penalty" | "payout" | "deposit"
-  | "commission" | "subscription" | "income";   // 新增业务分录 → 扩展枚举（向后兼容）
-// applyLedger / makeLedgerEntry 原样进 base
+type LedgerKind = "penalty" | "payout" | "deposit" | "commission" | "subscription" | "income";
+// 新增业务分录 → 扩展枚举（向后兼容）
 ```
 
-**C3 计价公式 schema（base/money）** — customPricing 参数化：
+### C3 计价公式 schema（base/money / ammo 表）— 已兑现
 ```ts
 type PricingFormula = {
-  baseRateYuan?: number;          // 起步价
-  hourlyRates?: Record<number, number>;   // 城市档 → 时薪
-  multipliers?: Record<string, number>;   // 复杂度因子
-  distanceFeePerKm?: number;      // 距离费
+  baseRateYuan?: number; hourRates?: Record<number, number>;
+  multipliers?: Record<string, number>; distanceFeePerKm?: number;
   timeFactors?: Record<"normal"|"peak"|"urgent", number>;
-  minPriceYuan?: number;          // 地板价
+  minPriceYuan?: number;
 };
-// 弹药表每类目一行：pricingFormula + warrantyText
 ```
 
-**C4 分发权重表（base/dispatch）** — broadcast/match 常量弹药化：
+### C4 分发权重表（ammo/dispatch-rule）— Phase 2 对齐终版
 ```ts
 type DispatchRule = {
   weights: { distance: number; credit: number; custom: number; verifiedBonus: number };
@@ -153,26 +120,76 @@ type DispatchRule = {
 };
 ```
 
-**C5 风控引信表（base/risk）** — 勾选即生效：
+### C5 风控引信表（ammo/risk-rule）— 已兑现
 ```ts
-type RiskRule = {
-  rule: "anti-self-boost" | "roam-guard" | "home-access-verification" | string;
-  enabled: boolean;
-  params?: Record<string, number | string | boolean>;   // e.g. roam threshold=3
-};
+type RiskRule = { rule: string; enabled: boolean; params?: Record<string, number|string|boolean> };
 ```
 
-### 五、迁移顺序（每步可验证）
+---
 
-1. 建 `src/base/` 空目录 + 目录级 `index.ts` 空壳（tsc 绿）
-2. **base/money**（ledger/pay/deposit/bidding/customPricing 原样搬 + 改 import）→ 单测绿
-3. **base/trust**（reputation/trust/starRank/review/violation/friends）→ 单测绿
-4. **base/order**（wave 泛化抽 `OrderCore`，业务字段留弹药层）→ 单测绿
-5. **base/dispatch + base/risk + base/geo + base/notify + base/platform + base/ai** 分批归位
-6. `ammo/` 弹药属性表首例（scene-template + pricing-formula + dispatch-rule + risk-rule）→ 端到端验证「填配置即出新类目」
+## §3 执行阶段（唯一入口，每阶段验收全绿才进入下一阶段）
+
+| Phase | 目标 | 动作 | 验收 | 宪法对照 |
+|-------|------|------|------|----------|
+| **0** | 冻结基线 | 跑全量 tsc / 单测 303 / lint 快照 | tsc 0 错 · 单测 303 绿 · lint 0 error | （基线，无条文） |
+| **1** | C1 兑现 | `wave.ts` 抽 `OrderCore`（见 §2 C1）；业务字段（capacity/buffSeats/fission*）经 `ext` 蒙层保留于 Wave；既有 22 调用方/测试全部改型 | tsc 0 错 · 新增 OrderCore 单测 · 既有 wave 单测全绿 | #2 接口保守（只加抽象不改语义）、#1 底座优先 |
+| **2** | ammo 补表 | 新建 `ammo/sop.ts`（类目 → 鸽子险/有效期/容量默认值）；`dispatch-rule.ts` 对齐 C4 `hardGates` 结构；ammo.test 扩展 | tsc 0 错 · ammo.test 全绿 · 单测 303+ 绿 | #3 先配表后写码、#5 引信跟弹药走 |
+| **3** | 弹药端到端 | 用 ammo 表驱动一次性输出「新类目」验证：pricing/dispatch/risk/sop 四表填家政新类目 → 从 ammo/test 断言新类目配置可被 base 引擎消费 | 新类目四表读全 · base 引擎消费测试绿 · 无任何 base 代码修改 | #4 弹药可插拔（填表即新业务）、#3 |
+| **4** | mobile 归属 | 按 §三 v1 映射执行：`mobile/src/utils/location.ts` → 抽 base/geo 契约（RN 适配候选，不物理搬代码，只登记适配接口）；`services/api.ts` 登记为「弹药实例（家政）」；`types/index.ts` 登记为弹药类型；DynamicForm 反哺动态表单需求进 §5 缺口清单 | 映射表登记完成 · mobile 编译不受影响（Expo tsc 快照） | #1 底座优先（mobile 侧先归位登记，代码融合单独排期） |
+| **5** | 总验收 | §4 总验收清单全跑；更新 `docs/PROJECT_STATUS.md` LAST_SYNC | 单测/tsc/lint/build/浏览器冒烟全绿 | 全条文收口 |
+
+**铁律**（沿用 v1 Consequences）：搬代码阶段禁止顺手重构逻辑；每个结构性改动收敛一处历史遗留并标注「宪法收敛：条文 #n」；执行中发现的缺口只进 §5，不中途展开。
+
+---
+
+## §4 总验收清单（Phase 5 运行完毕）
+
+> 验收日期：2026-08-13（ADR-0007 v2 发布执行；Phase 0-5 全部通过）
+
+- [x] `npx tsc --noEmit` → 0 错
+- [x] `npm run test:units` → **314 全绿**（基线 303 + orderCore 5 + e2e-ammo 5 + sop 1）
+- [x] `npx eslint` → 0 error（8 warnings 存量）
+- [x] `npm run build` → 成功，API 路由齐全（含 /api/gateway /api/tts /api/voice-intent）
+- [x] 浏览器冒烟：首页渲染 + 雷达/发布/竞价主链路正常，0 console error
+- [x] C1-C5 契约全部有落地文件：C1 `base/order/orderCore.ts`（新增）、C2 `base/money/ledger.ts`、
+      C3 `ammo/pricing-formula.ts`、C4 `ammo/dispatch-rule.ts`（hardGates 已对齐）、C5 `ammo/risk-rule.ts`
+- [x] `ammo/sop.ts` 补建完成（§五 G2 关闭）
+- [x] §5 缺口清单为最终盘点（新增 N2/N15/N16 已入列）
+- [x] `docs/PROJECT_STATUS.md` LAST_SYNC 行 + 达成表更新（见下文）
+
+---
+
+## §5 缺口清单（本轮不执行，后续立项）
+
+> 新增发现一律追加此表；项目按宪法 §1「先定位六圈再立项」逐项排期（A 轮前优先
+> 第三圈 + 第五圈：AIGC 鉴真 / 智能小法官 / 反欺诈探针）。
+
+| # | 缺口 | 所属圈 | 来源 |
+|---|------|--------|------|
+| N1 | 虚拟号/隐私号中枢（双向） | ② | 0006 映射 |
+| N2 | 动态表单渲染引擎通用化（web 侧反哺自 mobile DynamicForm） | ① | 0006 + **Phase 4 新增** |
+| N3 | 语义向量匹配推荐 | ③ | 0006 映射 |
+| N4 | AIGC 伪造鉴真 | ③ | 0006 映射 |
+| N5 | 智能争议小法官（LLM 定责） | ③ | 0006 映射 |
+| N6 | 自然语言 BI | ③ | 0006 映射 |
+| N7 | 电子签章 / 保险对接 | ④ | 0006 映射 |
+| N8 | 极端危机干预协议（web 侧；SOS 壳在 mobile） | ⑤ | 0006 映射 |
+| N9 | 多因子反欺诈探针（设备指纹/GPS 欺骗） | ⑤ | 0006 映射 |
+| N10 | 数据全生命周期脱敏 / 遗忘权统一 | ⑤ | 0006 映射 |
+| N11 | 弱网离线队列 | ⑥ | 0006 映射 |
+| N12 | 智能运力熔断 / 供需杠杆 | ⑥ | 0006 映射 |
+| N13 | 多云多活 / 优雅降级四部曲 | ⑥ | 0006 映射 |
+| N14 | 数据湖 / AB 平台 / 哈希存证 | ⑥ | 0006 映射 |
+| N15 | IM 中枢独立立项（chat/ 归位设计，含隐私号联动） | ② | **§1.3 映射修正** |
+| N16 | base/geo 的 RN 适配层（mobile location.ts 接入） | ① | **Phase 4** |
+
+---
 
 ## Consequences
 
-- 融合期进度按「目录落位 + 单测绿」双指标记入 `docs/PROJECT_STATUS.md`。
-- 搬代码阶段禁止顺手重构逻辑：先原样搬 + 改 import，接口泛化单独排期（避免一次动刀两个变量）。
-- 🔴 未实现模块（虚拟号/鉴真/小法官 LLM/BI/签章/危机协议/运力熔断/数据湖）不进本轮，立项单列。
+- **执行状态：v2 已执行完毕（2026-08-13），C1-C5 契约全部兑现**，
+  结果记录见 §4 总验收清单；融合主线以此收口。
+- 本手册是融合期唯一执行入口：任何人（含 agent）推进融合只认 Phase 0-5 与两条铁律。
+- 每 Phase 完成即更新 `docs/PROJECT_STATUS.md`（目录落位 + 单测计数双指标）。
+- C1-C5 契约存在即争议裁决依据：改契约 = 走宪法 §3 冲突上报，由用户拍板。
+- v1 已执行的映射与搬迁不返工；v2 从 G1-G5 的差距处继续（已全部兑现）。
