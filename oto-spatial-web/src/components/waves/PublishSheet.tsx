@@ -165,6 +165,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       setError("发布被拒：本设备检测到高危多开（≥3 个身份共用），请到「安全中心」重置漫游风控");
       return;
     }
+    if (out.blocked === "sentinel") {
+      setError("发布被拒：反欺诈探针甄检到高危信号（多开/新号大额/高频低完成），请到「安全中心」查看详情");
+      return;
+    }
     if (out.removed) {
       // 命中违禁词：内容转入平台审核（不支付、不上线）
       setError("内容命中违禁词，已转入平台审核");

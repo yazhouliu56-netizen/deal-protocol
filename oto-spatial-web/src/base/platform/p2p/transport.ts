@@ -148,5 +148,9 @@ export function mergeByIdLevel(
     bans: baseOver.bans,
     favorites: baseOver.favorites,
     initiatorBuffs: baseOver.initiatorBuffs,
+    sentinelEvents: [
+      ...(base.sentinelEvents ?? []),
+      ...(next.sentinelEvents ?? []),
+    ].sort((a, b) => a.at - b.at),
   };
 }

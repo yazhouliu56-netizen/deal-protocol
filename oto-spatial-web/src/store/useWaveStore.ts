@@ -42,6 +42,8 @@ import { capturePayOrder, createPayOrder } from "@/base/money/pay";
 import { fissionIncrement, fissionStamp } from "@/base/risk/fission";
 import { useRoamStore } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
+import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
+import { useIdentityStore } from "@/store/useIdentityStore";
 import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
@@ -107,6 +109,8 @@ export interface WaveBundle {
    * 才能让「接受/忽略/过期」的移除跨 tab 落盘生效。
    */
   friendRequestRemovals: string[];
+  /** 多因子反欺诈探针事件流（ADR-0009）：发布前甄检记录。 */
+  sentinelEvents: SentinelEvent[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -132,7 +136,7 @@ interface WaveStore extends WaveBundle {
        */
       publishFee?: number;
     }
-  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" | "roam" } | null;
+  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" | "roam" | "sentinel" } | null;
   /**
    * 随单支付 · 确认支付：capture 流水 → wave pending→active → 进入广播。
    * 幂等：重复支付同一单返回 ok 但不再重复生效。
@@ -288,6 +292,7 @@ export const useWaveStore = create<WaveStore>()(
       favorites: [],
       initiatorBuffs: {},
       disputes: [],
+      sentinelEvents: [],
       friendRequests: [],
       friendships: [],
       friendRequestRemovals: [],
@@ -295,10 +300,45 @@ export const useWaveStore = create<WaveStore>()(
 
 createPendingWave: (input) => {
     if (isBanned(get().bans, input.authorId)) return null;
-    // P8 商业化 · 多开风控闸门：本设备高危多开（同设备 ≥3 身份）→ 发布冷拒
+    // ADR-0009 多因子反欺诈探针：设备/信用/行为/图 四路聚合 → 统一闸门
+    // （替代原 roam 单点拦截；high 拒绝发布，watch 放行 + watchlisted 标记）
     const roam = useRoamStore.getState();
-    if (riskOf(roam.bindings, roam.deviceId).risk === "high") {
-      return { id: "", amount: 0, blocked: "roam" };
+    const ident = useIdentityStore.getState();
+    const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
+    const recentPublishes = myWaves.filter(
+      (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
+    ).length;
+    const check = sentinelCheck({
+      deviceRisk: riskOf(roam.bindings, roam.deviceId).risk,
+      creditScore: (ident.creditTier ?? 3) * 200,
+      amountYuan: input.budget ?? 0,
+      publishCount: recentPublishes,
+      completionRate: undefined,
+      graphIdentityCount: riskOf(roam.bindings, roam.deviceId).count,
+      graphFission:
+        myWaves.some((w) => (w.fissionCount ?? 0) > 0) || undefined,
+      category: input.basics?.category,
+    });
+    if (check.level === "high") {
+      set((s) => ({
+        sentinelEvents: recordSentinel(
+          s.sentinelEvents,
+          check,
+          input.authorId,
+          Date.now()
+        ),
+      }));
+      return { id: "", amount: 0, blocked: "sentinel" };
+    }
+    if (check.level === "watch") {
+      set((s) => ({
+        sentinelEvents: recordSentinel(
+          s.sentinelEvents,
+          check,
+          input.authorId,
+          Date.now()
+        ),
+      }));
     }
     // no-show 欠款锁定：违约未结不能发波
         if (hasUnsettledBreach(get().claims, input.authorId)) {
@@ -1055,7 +1095,8 @@ set((st) => ({
           reports: [],
           bans: {},
           favorites: [],
-          initiatorBuffs: {},
+      initiatorBuffs: {},
+      sentinelEvents: [],
           disputes: [],
           friendRequests: [],
           friendships: [],

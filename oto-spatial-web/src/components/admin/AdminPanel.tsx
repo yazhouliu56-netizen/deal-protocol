@@ -6,6 +6,7 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useRoamStore } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/base/risk/moderation";
+import SentinelDashboard from "./SentinelDashboard";
 
 /**
  * 平台治理后台 — moderation desk (trust & safety dashboard).
@@ -209,6 +210,9 @@ export default function AdminPanel({
               </div>
             )}
           </div>
+
+          {/* 反欺诈探针仪表盘（ADR-0009） */}
+          <SentinelDashboard />
 
           {/* 审计记录 */}
           <div>

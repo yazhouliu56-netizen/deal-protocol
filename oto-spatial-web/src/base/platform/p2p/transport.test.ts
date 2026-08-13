@@ -35,6 +35,7 @@ function bundle(over: Partial<Parameters<typeof mergeByIdLevel>[0]> = {}) {
     friendRequests: [],
     friendships: [],
     friendRequestRemovals: [],
+    sentinelEvents: [],
     ...over,
   };
 }
