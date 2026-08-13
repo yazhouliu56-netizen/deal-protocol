@@ -27,6 +27,33 @@ import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { crisisSms, type CrisisLevel } from "@/base/safe/crisis";
 import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
+import DynamicFormView, { type FormField, type FormValues } from "@/components/ui/DynamicFormView";
+
+/** 紧急联系人登记 schema（ADR-0015 动态表单 N2 接线；SOS 发起时读取）。 */
+const CONTACT_SCHEMA: FormField[] = [
+  { key: "name", label: "姓名", type: "text", required: true, placeholder: "如：妈妈" },
+  {
+    key: "relation",
+    label: "关系",
+    type: "select",
+    required: true,
+    options: [
+      { label: "家人", value: "家人" },
+      { label: "挚友", value: "挚友" },
+      { label: "同事", value: "同事" },
+      { label: "邻居", value: "邻居" },
+    ],
+  },
+  {
+    key: "phone",
+    label: "电话",
+    type: "text",
+    required: true,
+    pattern: "^[0-9-]{7,}$",
+    placeholder: "11 位手机号",
+    hint: "仅用于紧急求助通知，脱敏存储",
+  },
+];
 
 const CATEGORY_EMOJI: Record<string, string> = {
   羽毛球约局: "🏸",
@@ -71,6 +98,10 @@ export default function ProfilePage({
   const [crisisTargets, setCrisisTargets] = useState<string[]>([]);
   const [crisisSmsText, setCrisisSmsText] = useState("");
   const [lastForget, setLastForget] = useState<ForgetKind | null>(null);
+  /** 紧急联系人（动态表单 schema 驱动，localState 持有）。 */
+  const [contactsSaved, setContactsSaved] = useState(false);
+  const [contactForm, setContactForm] = useState<FormValues>({ name: "妈妈", relation: "家人", phone: "138-0000-0001" });
+  const [contacts, setContacts] = useState<{ name: string; phone: string }[]>([{ name: "妈妈", phone: "138-0000-0001" }]);
 
   /** 出生年本地输入状态（回填现有值）。 */
   const [birthYearInput, setBirthYearInput] = useState<string>(
@@ -449,11 +480,11 @@ export default function ProfilePage({
                 const out = raiseCrisis({
                   level: crisisLevel,
                   note: crisisNote.trim() || "求助（无备注）",
-                  contacts: ["妈妈", "爸爸"],
+                  contacts: contacts.map((c) => c.name),
                 });
                 setCrisisTargets(out.targets);
                 if (out.record) {
-                  setCrisisSmsText(crisisSms(out.record, "妈妈"));
+                  setCrisisSmsText(crisisSms(out.record, contacts[0]?.name ?? "联系人"));
                 }
               }}
               className="flex-1 px-3 py-2 rounded-lg bg-red-400/20 border border-red-400/50 text-red-300 text-[10px] font-extrabold hover:bg-red-400/30 active:scale-95 transition-all"
@@ -493,6 +524,27 @@ export default function ProfilePage({
               处置中：{myCrisis[0].note}（登记于{" "}
               {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
               ）
+            </p>
+          )}
+        </div>
+        {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
+        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
+          <p className="text-[9.5px] font-bold text-white/60">
+            紧急联系人（SOS 通知对象）
+          </p>
+          <DynamicFormView
+            fields={CONTACT_SCHEMA}
+            values={contactForm}
+            onChange={setContactForm}
+            submitLabel="保存联系人"
+            onSubmit={(v) => {
+              setContacts([{ name: String(v.name), phone: String(v.phone) }]);
+              setContactsSaved(true);
+            }}
+          />
+          {contactsSaved && (
+            <p className="text-[8.5px] text-emerald-300/80">
+              ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}
         </div>

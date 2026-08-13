@@ -160,5 +160,11 @@ export function mergeByIdLevel(
     imMessages: byId(base.imMessages ?? [], next.imMessages ?? []),
     crisisRecords: byId(base.crisisRecords ?? [], next.crisisRecords ?? []),
     forgetRequests: byId(base.forgetRequests ?? [], next.forgetRequests ?? []),
+    // 以下为「本地缓冲/存证链」语义：next 优先，不跨 tab union（哈希链
+    // 顺序敏感，并发 append 会破坏链完整性；弱网队列是本设备缓冲）。
+    offlineQueue: baseOver.offlineQueue,
+    lake: baseOver.lake,
+    signedDocs: baseOver.signedDocs,
+    circuitBreaker: baseOver.circuitBreaker,
   };
 }

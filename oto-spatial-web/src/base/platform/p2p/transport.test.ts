@@ -41,6 +41,10 @@ function bundle(over: Partial<Parameters<typeof mergeByIdLevel>[0]> = {}) {
     imMessages: [],
     crisisRecords: [],
     forgetRequests: [],
+    circuitBreaker: { state: "closed", failures: 0, probes: 0, openedAt: 0 } as const,
+    offlineQueue: [],
+    lake: [],
+    signedDocs: [],
     ...over,
   };
 }

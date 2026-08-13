@@ -7,6 +7,7 @@ import JudgePanel from "./JudgePanel";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import type { Claim, Wave } from "@/base/order/wave";
 import { checkTextEvidence } from "@/base/ai/forgery";
+import { verifyDoc } from "@/base/platform/signInsure";
 
 /**
  * 验收 + 争议面板（需求方视角）：模块化验收（复杂任务）逐模块确认；
@@ -219,11 +220,15 @@ function DisputeVerdictView({
   amountYuan: number;
 }) {
   const settleDispute = useWaveStore((s) => s.settleDispute);
+  const signedDocs = useWaveStore((s) => s.signedDocs);
   const [proposed, setProposed] = useState("30");
   // Capture now once per mount (steady-clock friendly); avoids impure Date.now()
   // calls in the render body.
   const [now] = useState(() => Date.now());
   const outcome = dispute.outcome;
+  // ADR-0012 签章（N7 接线）：验收后生成的签章存根 → 验签展示
+  const signed = signedDocs[signedDocs.length - 1];
+  const sealCheck = signed ? verifyDoc(signed) : null;
 
   return (
     <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-3 space-y-2">
@@ -236,6 +241,17 @@ function DisputeVerdictView({
           ? "响应方 48h 内可申诉"
           : "申诉窗已过，自动按档位终局"}
       </p>
+      {sealCheck && (
+        <p
+          className={`text-[8.5px] font-bold rounded-lg px-2 py-1 border ${
+            sealCheck.ok
+              ? "bg-emerald-400/10 border-emerald-400/30 text-emerald-300"
+              : "bg-red-400/10 border-red-400/40 text-red-300"
+          }`}
+        >
+          🔏 验收签章：{sealCheck.note}
+        </p>
+      )}
       {!outcome && (
         <>
           <JudgePanel

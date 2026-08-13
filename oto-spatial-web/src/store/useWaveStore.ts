@@ -74,6 +74,10 @@ import {
   type CrisisRecord,
 } from "@/base/safe/crisis";
 import { requestForget as requestForgetLogic, type ForgetKind, type ForgetRequest } from "@/base/safe/privacy";
+import { allow as breakerAllow, trip as breakerTrip, type Breaker } from "@/base/platform/circuit";
+import { due as queueDue, enqueue as enqueueOp, markPlayed as markQueuePlayed, type QueuedOp } from "@/base/platform/offlineQueue";
+import { lakeAppend, type LakeRecord } from "@/base/platform/resilience";
+import { signDoc, type SignedDoc } from "@/base/platform/signInsure";
 import { completionRate, reviewStats } from "@/base/trust/starRank";
 import {
   applyPenalty,
@@ -148,6 +152,14 @@ export interface WaveBundle {
   crisisRecords: CrisisRecord[];
   /** ADR-0013：遗忘权请求登记（N10）。 */
   forgetRequests: ForgetRequest[];
+  /** ADR-0014：LLM 聚类熔断器（N12 接线）。 */
+  circuitBreaker: Breaker;
+  /** ADR-0014：弱网离线队列（N11 接线，sendIm 离线缓冲）。 */
+  offlineQueue: QueuedOp[];
+  /** ADR-0014：数据湖哈希存证链（N14 接线，关键终局事件 append）。 */
+  lake: LakeRecord[];
+  /** ADR-0012：验收签章存根（N7 接线，验收时签名可验签）。 */
+  signedDocs: SignedDoc[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -337,6 +349,8 @@ interface WaveStore extends WaveBundle {
   requestForget: (kind: ForgetKind) => { req?: ForgetRequest; fresh: boolean };
   /** ADR-0011：自然语言 BI —— 本地解析中文统计查询（聊天页接线）。 */
   askBi: (text: string) => BiResult | null;
+  /** ADR-0014：重放离线队列（在线恢复/手动触发）。 */
+  replayQueue: () => void;
 }
 
 let seq = 0;
@@ -369,6 +383,10 @@ export const useWaveStore = create<WaveStore>()(
       friendRequestRemovals: [],
       crisisRecords: [],
       forgetRequests: [],
+      circuitBreaker: { state: "closed", failures: 0, probes: 0, openedAt: 0 },
+      offlineQueue: [],
+      lake: [],
+      signedDocs: [],
       bundleVer: 0,
 
 createPendingWave: (input) => {
@@ -546,7 +564,26 @@ createPendingWave: (input) => {
       },
 
       clusterPushes: async (wave) => {
+        // 智能熔断（ADR-0014 N12 接线）：持续失败 → open → 冷却后半开探测。
+        // 熔断期间跳过上游直接本地抽取（降级链第一步），成功回执 trip(true) 恢复。
+        const now = Date.now();
+        const gate = breakerAllow(get().circuitBreaker, now);
+        if (!gate.ok) {
+          set({ circuitBreaker: gate.breaker });
+          const tags = mockClusterTags({
+            category: wave.basics.category,
+            customs: wave.customs,
+            negotiableNote: wave.negotiableNote,
+          });
+          const pushes = buildPushes(wave, get().responders, tags, broadcastMatches);
+          if (pushes.length > 0) {
+            set((s) => ({ pushes: [...pushes, ...s.pushes].slice(0, 60) }));
+          }
+          return;
+        }
+        set({ circuitBreaker: gate.breaker });
         let tags: string[] = [];
+        let upstreamOk = false;
         try {
           const res = await fetch("/api/cluster", {
             method: "POST",
@@ -557,6 +594,7 @@ createPendingWave: (input) => {
               negotiableNote: wave.negotiableNote,
             }),
           });
+          upstreamOk = res.ok;
           if (res.ok) {
             const data = (await res.json()) as { tags?: string[] };
             tags = data.tags ?? [];
@@ -564,6 +602,10 @@ createPendingWave: (input) => {
         } catch {
           // offline → local mock extraction
         }
+        // 回执进熔断器：失败次数累计到阈值 → open；成功清零。
+        set((s) => ({
+          circuitBreaker: breakerTrip(s.circuitBreaker, upstreamOk, Date.now()),
+        }));
         if (tags.length === 0) {
           tags = mockClusterTags({
             category: wave.basics.category,
@@ -946,6 +988,10 @@ set((st) => ({
       acceptFulfilment: (claimId, note) => {
         const s = get();
         const claim = s.claims.find((c) => c.id === claimId);
+        // ADR-0012 验收签章（N7 接线）：验收即签章，内容哈希存证可验签
+        const signed = claim
+          ? signDoc(`验收 ${claimId} · ${note || "验收通过"}`, claim.responderId, Date.now())
+          : null;
         set((st) => ({
           claims: st.claims.map((c) =>
             c.id === claimId ? acceptFulfilment(c, note) : c
@@ -954,6 +1000,9 @@ set((st) => ({
           privacySessions: claim
             ? revokeSession(st.privacySessions, claim.waveId, Date.now())
             : st.privacySessions,
+          // ADR-0014 数据湖存证（N14 接线）：验收终局事件 append 哈希链
+          lake: claim ? lakeAppend(st.lake, "fulfilment", { claimId, note }, Date.now()) : st.lake,
+          signedDocs: signed ? [...st.signedDocs, signed] : st.signedDocs,
         }));
       },
 
@@ -993,7 +1042,11 @@ set((st) => ({
           const d = openDispute(p);
           const already = s.disputes.some((x) => x.claimId === p.claimId && !x.outcome);
           if (already) return { disputes: s.disputes };
-          return { disputes: [...s.disputes, d] };
+          return {
+            disputes: [...s.disputes, d],
+            // ADR-0014 数据湖存证：争议开启事件
+            lake: lakeAppend(s.lake, "dispute", { claimId: p.claimId, reason: p.reason }, Date.now()),
+          };
         }),
 
       settleDispute: (p) => {
@@ -1013,6 +1066,10 @@ set((st) => ({
             claim && toTerminal
               ? revokeSession(st.privacySessions, claim.waveId, Date.now())
               : st.privacySessions,
+          // ADR-0014 数据湖存证：争议终局事件
+          lake: toTerminal
+            ? lakeAppend(st.lake, "dispute-settled", { claimId: p.claimId, pct: p.proposedPct }, Date.now())
+            : st.lake,
         }));
       },
 
@@ -1393,11 +1450,44 @@ set((st) => ({
       revokePrivacy: (waveId) =>
         set((s) => ({ privacySessions: revokeSession(s.privacySessions, waveId, Date.now()) })),
 
-      sendIm: (fromId, toId, text, waveId) =>
+      sendIm: (fromId, toId, text, waveId) => {
+        // 弱网离线队列（ADR-0014 N11 接线）：离线时消息入队缓冲，恢复后重放。
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          set((s) => {
+            const payload = JSON.stringify({ fromId, toId, text, waveId: waveId ?? null });
+            const out = enqueueOp(s.offlineQueue, { kind: "sendIm", payload }, Date.now());
+            return { offlineQueue: out.q };
+          });
+          return;
+        }
         set((s) => {
           const r = sendMsg(s.imThreads, s.imMessages, fromId, toId, text, Date.now(), waveId);
           return { imThreads: r.threads, imMessages: r.messages };
-        }),
+        });
+      },
+
+      replayQueue: () => {
+        const s = get();
+        const items = queueDue(s.offlineQueue, Date.now());
+        if (items.length === 0) return;
+        let queue = s.offlineQueue;
+        const stillOffline =
+          typeof navigator !== "undefined" && navigator.onLine === false;
+        for (const item of items) {
+          const ok = !stillOffline;
+          if (ok) {
+            const payload = JSON.parse(item.op.payload) as {
+              fromId: string;
+              toId: string;
+              text: string;
+              waveId: string | null;
+            };
+            get().sendIm(payload.fromId, payload.toId, payload.text, payload.waveId ?? undefined);
+          }
+          queue = markQueuePlayed(queue, item.id, ok, Date.now());
+        }
+        set({ offlineQueue: queue });
+      },
 
       markImRead: (threadId, whoId) =>
         set((s) => ({ imThreads: markRead(s.imThreads, threadId, whoId) })),
@@ -1446,6 +1536,10 @@ set((st) => ({
           friendRequestRemovals: [],
           crisisRecords: [],
           forgetRequests: [],
+          circuitBreaker: { state: "closed", failures: 0, probes: 0, openedAt: 0 },
+          offlineQueue: [],
+          lake: [],
+          signedDocs: [],
           bundleVer: 0,
         } satisfies WaveBundle),
       },
@@ -1471,6 +1565,10 @@ set((st) => ({
           imMessages: s.imMessages,
           crisisRecords: s.crisisRecords,
           forgetRequests: s.forgetRequests,
+          circuitBreaker: s.circuitBreaker,
+          offlineQueue: s.offlineQueue,
+          lake: s.lake,
+          signedDocs: s.signedDocs,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.

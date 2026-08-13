@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Gavel, ShieldCheck, X, Flag, TrendingUp } from "lucide-react";
+import { Gavel, ShieldCheck, X, Flag, TrendingUp, Database } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useRoamStore } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/base/risk/moderation";
+import { lakeVerify } from "@/base/platform/resilience";
 import SentinelDashboard from "./SentinelDashboard";
 
 /**
@@ -24,11 +25,14 @@ export default function AdminPanel({
   const claims = useWaveStore((s) => s.claims);
   const reports = useWaveStore((s) => s.reports);
   const resolveReport = useWaveStore((s) => s.resolveReport);
+  const lake = useWaveStore((s) => s.lake);
   const deviceId = useRoamStore((s) => s.deviceId);
   const bindings = useRoamStore((s) => s.bindings);
   const roamEvents = useRoamStore((s) => s.events);
   const [pending, setPending] = useState<Record<string, ModerationAction>>({});
   const [pendingNote, setPendingNote] = useState<Record<string, string>>({});
+  /** 数据湖存证链校验（ADR-0014 N14 接线展示）。 */
+  const lakeCheck = useMemo(() => lakeVerify(lake), [lake]);
 
   if (!open) return null;
 
@@ -213,6 +217,51 @@ export default function AdminPanel({
 
           {/* 反欺诈探针仪表盘（ADR-0009） */}
           <SentinelDashboard />
+
+          {/* 数据湖存证（ADR-0014 N14 接线）：哈希链校验 + 最近事件 */}
+          <div>
+            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+              <Database size={11} className="text-brandCyan" /> 数据湖存证（
+              {lake.length} 条 ·{" "}
+              <span
+                className={
+                  lakeCheck.ok
+                    ? "text-emerald-400"
+                    : lake.length > 0
+                      ? "text-red-400"
+                      : "text-white/40"
+                }
+              >
+                {lake.length === 0
+                  ? "空链"
+                  : lakeCheck.ok
+                    ? "链校验通过 ✓"
+                    : `链断裂 @${lakeCheck.brokenAt} ✗`}
+              </span>
+              ）
+            </h3>
+            {lake.length === 0 && (
+              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+                尚无存证事件（验收/争议终局会写入哈希链）
+              </p>
+            )}
+            <div className="space-y-1">
+              {lake.slice(-6).reverse().map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 px-2.5 py-1.5 text-[9px]"
+                >
+                  <span className="font-bold text-brandCyan/90 shrink-0">
+                    {r.kind}
+                  </span>
+                  <span className="text-white/35 font-mono truncate">{r.hash}</span>
+                  <span className="ml-auto text-white/30 shrink-0">
+                    {new Date(r.at).toLocaleTimeString("zh-CN")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* 审计记录 */}
           <div>

@@ -23,10 +23,31 @@ export default function ContactCard({
   const imThreads = useWaveStore((s) => s.imThreads);
   const markImRead = useWaveStore((s) => s.markImRead);
   const imMessages = useWaveStore((s) => s.imMessages);
+  const offlineQueue = useWaveStore((s) => s.offlineQueue);
+  const replayQueue = useWaveStore((s) => s.replayQueue);
 
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [dialed, setDialed] = useState(false);
+  /** 在线状态（online 事件触发重放）。 */
+  const [online, setOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
+  useEffect(() => {
+    const on = () => {
+      setOnline(true);
+      replayQueue();
+    };
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const pendingIm = offlineQueue.filter((q) => !q.done && q.op.kind === "sendIm").length;
 
   // 会话倒计时/过期判定实时刷新（30s 周期，避免挂载后冻结）
   const [now, setNow] = useState(() => Date.now());
@@ -62,6 +83,20 @@ export default function ContactCard({
 
   return (
     <div className="rounded-2xl bg-brandCyan/[0.05] border border-brandCyan/25 p-3 space-y-2">
+      {/* 弱网离线队列（ADR-0014 N11 接线）：离线消息已缓冲，恢复自动重放 */}
+      {!online && pendingIm > 0 && (
+        <div className="flex items-center justify-between rounded-lg bg-amber-400/10 border border-amber-400/40 px-2 py-1.5">
+          <span className="text-[8.5px] font-bold text-amber-300">
+            📡 离线中 · {pendingIm} 条消息已入队，联网后自动发送
+          </span>
+          <button
+            onClick={() => replayQueue()}
+            className="text-[8.5px] text-white/60 hover:text-white underline underline-offset-2"
+          >
+            手动重发
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-extrabold text-brandCyan flex items-center gap-1.5">
           <Phone size={11} /> 隐私通话（ADR-0010）
