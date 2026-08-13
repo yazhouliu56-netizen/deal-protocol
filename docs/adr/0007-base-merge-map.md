@@ -170,7 +170,7 @@ type RiskRule = { rule: string; enabled: boolean; params?: Record<string, number
 | N2 | 动态表单渲染引擎通用化（web 侧反哺自 mobile DynamicForm） | ① | 0006 + **Phase 4 新增** |
 | N3 | 语义向量匹配推荐 | ③ | 0006 映射 |
 | N4 | AIGC 伪造鉴真 | ③ | 0006 映射 |
-| N5 | 智能争议小法官（LLM 定责） | ③ | 0006 映射 |
+| N5 | ~~智能争议小法官（LLM 定责）~~ | ③ | ~~0006 映射~~ ✅ **已关闭（2026-08-13，ADR-0008）** |
 | N6 | 自然语言 BI | ③ | 0006 映射 |
 | N7 | 电子签章 / 保险对接 | ④ | 0006 映射 |
 | N8 | 极端危机干预协议（web 侧；SOS 壳在 mobile） | ⑤ | 0006 映射 |

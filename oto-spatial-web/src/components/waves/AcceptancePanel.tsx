@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/base/order/dispute";
+import JudgePanel from "./JudgePanel";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import type { Claim, Wave } from "@/base/order/wave";
 
@@ -32,7 +33,14 @@ export default function AcceptancePanel({
 
   if (!modules || modules.length === 0) {
     // 简单任务：只提供争议入口（验收在父组件）
-    if (myDispute) return <DisputeVerdictView dispute={myDispute} claimId={claim.id} />;
+    if (myDispute)
+      return (
+        <DisputeVerdictView
+          dispute={myDispute}
+          claimId={claim.id}
+          amountYuan={claim.price ?? wave.budget}
+        />
+      );
     return (
       <DisputeForm
         reason={reason}
@@ -100,7 +108,7 @@ export default function AcceptancePanel({
       )}
 
       {myDispute ? (
-        <DisputeVerdictView dispute={myDispute} claimId={claim.id} />
+        <DisputeVerdictView dispute={myDispute} claimId={claim.id} amountYuan={claim.price ?? wave.budget} />
       ) : (
         <DisputeForm
           reason={reason}
@@ -176,9 +184,11 @@ function DisputeForm({
 function DisputeVerdictView({
   dispute,
   claimId,
+  amountYuan,
 }: {
   dispute: DisputeRecord;
   claimId: string;
+  amountYuan: number;
 }) {
   const settleDispute = useWaveStore((s) => s.settleDispute);
   const [proposed, setProposed] = useState("30");
@@ -199,7 +209,22 @@ function DisputeVerdictView({
           : "申诉窗已过，自动按档位终局"}
       </p>
       {!outcome && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <>
+          <JudgePanel
+            claimId={claimId}
+            reason={dispute.reason}
+            evidence={dispute.evidence}
+            amountYuan={amountYuan}
+            onSettle={(proposedPct, note) => {
+              settleDispute({
+                claimId,
+                proposedPct,
+                willAccept: true,
+                note,
+              });
+            }}
+          />
+          <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[9.5px] text-white/60 flex-1">协商部分退款比例（%）：</p>
           <button
             onClick={() => setProposed("30")}
@@ -248,6 +273,7 @@ function DisputeVerdictView({
             拒绝回自动
           </button>
         </div>
+        </>
       )}
       {outcome && (
         <p className="text-[9.5px] font-bold text-emerald-300">

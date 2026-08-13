@@ -12,7 +12,8 @@ export type GatewayTask =
   | "voice-intent"
   | "cluster"
   | "decompose"
-  | "diagnose";
+  | "diagnose"
+  | "judge";
 
 export interface ProviderEntry {
   name: string;
@@ -44,13 +45,14 @@ export function allProviders(): ProviderEntry[] {
         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       apiKey: env.GEMINI_API_KEY ?? "",
       model: env.GEMINI_MODEL ?? "gemini-2.5-flash",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose"],
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 0,
         "voice-intent": 1,
         cluster: 1,
         decompose: 1,
         diagnose: 1,
+        judge: 0,
       },
       minGapMs: 900,
       cooldownMs: 30_000,
@@ -60,13 +62,14 @@ export function allProviders(): ProviderEntry[] {
       endpoint: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
       apiKey: env.ZHIPU_API_KEY ?? "",
       model: env.ZHIPU_MODEL ?? "glm-4.7-flash",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose"],
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 1,
         "voice-intent": 0,
         cluster: 0,
         decompose: 0,
         diagnose: 0,
+        judge: 1,
       },
       minGapMs: 900,
       cooldownMs: 15_000,
@@ -89,13 +92,14 @@ export function allProviders(): ProviderEntry[] {
       endpoint: "https://api.groq.com/openai/v1/chat/completions",
       apiKey: env.GROQ_API_KEY ?? "",
       model: env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose"],
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 3,
         "voice-intent": 2,
         cluster: 2,
         decompose: 2,
         diagnose: 2,
+        judge: 2,
       },
       minGapMs: 450,
       cooldownMs: 15_000,
@@ -105,13 +109,14 @@ export function allProviders(): ProviderEntry[] {
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       apiKey: env.OPENROUTER_API_KEY ?? "",
       model: env.OPENROUTER_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose"],
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 99,
         "voice-intent": 99,
         cluster: 99,
         decompose: 99,
         diagnose: 99,
+        judge: 99,
       },
       minGapMs: 900,
       cooldownMs: 30_000,
