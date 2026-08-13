@@ -8,6 +8,7 @@ import { MAX_ROUNDS, neededJoiners, nextSpeaker, type Claim, type Wave } from "@
 import { ACTION_LABEL } from "@/base/risk/moderation";
 import type { DepositPhase } from "@/base/money/deposit";
 import DialCard from "./DialCard";
+import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 
@@ -186,6 +187,11 @@ export default function MyClaims() {
                   demanderId={wave.authorId}
                   lockedAt={claim.createdAt}
                 />
+              )}
+
+              {/* ADR-0010：隐私号 + 私信中枢 */}
+              {isLocked && (
+                <ContactCard waveId={wave.id} peerId={wave.authorId} />
               )}
 
               {/* 平台治理：举报对方（行为举报 + 处理回执） */}

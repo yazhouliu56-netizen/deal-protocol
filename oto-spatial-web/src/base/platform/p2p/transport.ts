@@ -152,5 +152,11 @@ export function mergeByIdLevel(
       ...(base.sentinelEvents ?? []),
       ...(next.sentinelEvents ?? []),
     ].sort((a, b) => a.at - b.at),
+    privacySessions: [
+      ...(base.privacySessions ?? []),
+      ...(next.privacySessions ?? []),
+    ].filter((s, i, arr) => arr.findIndex((x) => x.waveId === s.waveId) === i),
+    imThreads: byId(base.imThreads ?? [], next.imThreads ?? []),
+    imMessages: byId(base.imMessages ?? [], next.imMessages ?? []),
   };
 }

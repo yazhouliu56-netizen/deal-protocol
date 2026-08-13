@@ -7,7 +7,7 @@
  *   同文本零上游开销。
  */
 
-import { cacheKey, guardedFetchFor, isCooling, llmCache, markFail } from "@/lib/chat/llmGuard";
+import { cacheKey, guardedFetchFor, isCooling, llmCache, markFail } from "@/base/ai/chat/llmGuard";
 import {
   activeProviders,
   CHAT_TEMPERATURE,

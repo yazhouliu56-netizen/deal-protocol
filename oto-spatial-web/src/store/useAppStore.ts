@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { applyBooking, applyCancel } from "@/base/order/booking";
 import type { DockPage } from "@/components/ui/FloatingDock";
-import type { ChatMessage, GenCard } from "@/lib/chat/types";
+import type { ChatMessage, GenCard } from "@/base/ai/chat/types";
 import { otoExperiences, type OTOCategory, type OTOExperience } from "@/lib/mockData";
 
 export const DEFAULT_SWATCH = "#7B61FF";

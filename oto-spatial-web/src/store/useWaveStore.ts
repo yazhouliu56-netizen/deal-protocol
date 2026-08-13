@@ -45,6 +45,13 @@ import { riskOf } from "@/base/risk/roamGuard";
 import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import {
+  allocatePair,
+  revokeSession,
+  DEMO_POOL,
+  type PrivacySession,
+} from "@/base/comm/privacyNumber";
+import { markRead, sendMsg, type ImMsg, type ImThread } from "@/base/comm/im";
+import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
   sendFriendRequest as sendFriendRequestLogic,
@@ -111,6 +118,11 @@ export interface WaveBundle {
   friendRequestRemovals: string[];
   /** 多因子反欺诈探针事件流（ADR-0009）：发布前甄检记录。 */
   sentinelEvents: SentinelEvent[];
+  /** ADR-0010：隐私号会话（N1）。 */
+  privacySessions: PrivacySession[];
+  /** ADR-0010：IM 私信线程与消息（N15）。 */
+  imThreads: ImThread[];
+  imMessages: ImMsg[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -269,6 +281,14 @@ interface WaveStore extends WaveBundle {
   ignoreFriendRequest: (requestId: string) => void;
   /** S3 · 72h 到期扫描 → 静默撤回过期请求。 */
   sweepFriendRequests: () => void;
+  /** ADR-0010：隐私号会话分配（订单锁定后，48h 双向）。 */
+  allocatePrivacy: (waveId: string, aId: string, bId: string) => void;
+  /** ADR-0010：订单终局 → 销毁隐私会话。 */
+  revokePrivacy: (waveId: string) => void;
+  /** ADR-0010：IM 私信发送（自动建线程 + 未读）。 */
+  sendIm: (fromId: string, toId: string, text: string, waveId?: string) => void;
+  /** ADR-0010：IM 标记已读。 */
+  markImRead: (threadId: string, whoId: string) => void;
 }
 
 let seq = 0;
@@ -293,6 +313,9 @@ export const useWaveStore = create<WaveStore>()(
       initiatorBuffs: {},
       disputes: [],
       sentinelEvents: [],
+      privacySessions: [],
+      imThreads: [],
+      imMessages: [],
       friendRequests: [],
       friendships: [],
       friendRequestRemovals: [],
@@ -699,6 +722,14 @@ set((st) => ({
         if (!wave) return;
         const out = lockNegotiation(wave, claim, true);
         if (out.wave) {
+          const privacy = allocatePair(
+            s.privacySessions,
+            DEMO_POOL,
+            wave.id,
+            wave.authorId,
+            claim.responderId,
+            Date.now()
+          ).session;
           set((st) => ({
             waves: st.waves.map((w) => (w.id === wave.id ? out.wave! : w)),
             claims: st.claims.map((c) =>
@@ -714,6 +745,9 @@ set((st) => ({
                   }
                 : c
             ),
+            privacySessions: st.privacySessions.some((x) => x.waveId === wave.id)
+              ? st.privacySessions
+              : [...st.privacySessions, privacy],
           }));
         }
       },
@@ -1061,6 +1095,24 @@ set((st) => ({
             friendRequestRemovals: [...new Set([...s.friendRequestRemovals, ...removed])],
           };
         }),
+
+      allocatePrivacy: (waveId, aId, bId) =>
+        set((s) => {
+          const r = allocatePair(s.privacySessions, DEMO_POOL, waveId, aId, bId, Date.now());
+          return { privacySessions: r.sessions };
+        }),
+
+      revokePrivacy: (waveId) =>
+        set((s) => ({ privacySessions: revokeSession(s.privacySessions, waveId, Date.now()) })),
+
+      sendIm: (fromId, toId, text, waveId) =>
+        set((s) => {
+          const r = sendMsg(s.imThreads, s.imMessages, fromId, toId, text, Date.now(), waveId);
+          return { imThreads: r.threads, imMessages: r.messages };
+        }),
+
+      markImRead: (threadId, whoId) =>
+        set((s) => ({ imThreads: markRead(s.imThreads, threadId, whoId) })),
     }),
     {
       name: "oto-broadcast-v1",
@@ -1097,6 +1149,9 @@ set((st) => ({
           favorites: [],
       initiatorBuffs: {},
       sentinelEvents: [],
+      privacySessions: [],
+      imThreads: [],
+      imMessages: [],
           disputes: [],
           friendRequests: [],
           friendships: [],
