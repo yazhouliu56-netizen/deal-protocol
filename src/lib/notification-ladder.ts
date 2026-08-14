@@ -130,11 +130,13 @@ async function rungSms(
   try {
     const smsService = process.env.SMS_PROVIDER ?? 'mock'
 
-    if (smsService === 'mock' || !process.env.ALIYUN_SMS_ACCESS_KEY_ID) {
+    const aliyunAccessKeyId = process.env.ALIYUN_SMS_ACCESS_KEY_ID || process.env.ALIYUN_SMS_ACCESS_KEY
+
+    if (smsService === 'mock' || !aliyunAccessKeyId) {
       console.log(`[SMS MOCK] To: ${input.phone} — ${input.title}: ${input.content}`)
     } else {
       const aliyunParams = new URLSearchParams({
-        AccessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID,
+        AccessKeyId: aliyunAccessKeyId,
         Action: 'SendSms',
         Format: 'JSON',
         PhoneNumbers: input.phone,

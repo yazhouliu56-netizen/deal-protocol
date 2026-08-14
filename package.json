@@ -17,7 +17,7 @@
     "test:smoke": "playwright test e2e/production-smoke.spec.ts",
     "test:verify": "tsx scripts/verify-e2e-flow.ts",
     "db:migrate": "supabase db push",
-    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts",
+    "db:types": "supabase gen types typescript --local > src/types/database.types.ts",
     "db:seed": "tsx scripts/seed-local.ts"
   },
   "dependencies": {

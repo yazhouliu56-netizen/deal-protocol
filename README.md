@@ -1,8 +1,9 @@
 # 🤝 Deal Protocol (去中心化需求撮合与订单履约协议平台)
 
-[![CI - TypeCheck & E2E Verification](https://github.com/yazhouliu56-netizen/deal-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/yazhouliu56-netizen/deal-protocol/actions/workflows/ci.yml)
+[![CI - TypeCheck & Smoke Test](https://github.com/yazhouliu56-netizen/deal-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/yazhouliu56-netizen/deal-protocol/actions/workflows/ci.yml)
 ![Node Version](https://img.shields.io/badge/Node.js-22%2B-brightgreen)
-![Next.js](https://img.shields.io/badge/Next.js-14%2F15-black)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![React](https://img.shields.io/badge/React-19-black)
 ![Supabase](https://img.shields.io/badge/Supabase-Realtime-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
@@ -57,16 +58,18 @@
 
 ## ⚡ Supabase Realtime 实时架构
 
-为了在 Web 端与 Mobile 端实现毫秒级的状态无感更新，平台在 Supabase 数据库层为 **6 大核心表** 启用了 CDC (Change Data Capture) 实时发布：
+为了在 Web 端与 Mobile 端实现毫秒级的状态无感更新，平台在 Supabase 数据库层为 **6 大核心表** 启用了 CDC (Change Data Capture) 实时发布（`supabase/migrations/018_enable_realtime.sql` + `015_notifications_system.sql`）：
 
 | 核心表名 (Table) | 监听事件 (Events) | 业务应用场景 |
 | :--- | :--- | :--- |
-| `demands` | `INSERT`, `UPDATE` | 需求广场大盘新需求实时推送到看板、抢单/接单状态变更 |
 | `orders` | `UPDATE` | 订单履约状态（如推进至 `submitted` / `completed`）全端同步 |
-| `order_timeline_events` | `INSERT` | 履约时间轴节点新增、交付物提交实时提醒 |
-| `dispute_cases` | `INSERT`, `UPDATE` | 维权案件创建、状态更新与裁决结果即时通知 |
-| `financial_records` | `INSERT` | 资金托管锁定、退款、结算流水入账与余额实时刷新 |
-| `messages` / `media` | `INSERT` | 履约过程即时沟通与仲裁举证对话框长连接消息 |
+| `profiles` | `UPDATE` | 用户资料与余额展示实时刷新 |
+| `provider_wallets` | `UPDATE` | 服务商钱包余额与托管冻结资金实时联动 |
+| `demands` | `INSERT`, `UPDATE` | 需求广场大盘新需求实时推送到看板、抢单/接单状态变更 |
+| `withdrawal_requests` | `INSERT`, `UPDATE` | 提现申请创建与审核结果即时通知 |
+| `notifications` | `INSERT` | 通知中心入站提醒实时送达 |
+
+前端对应订阅封装见 `src/hooks/use-order-realtime.ts`、`use-finance-realtime.ts`、`useSupabaseRealtime.ts`。
 
 ### 原生 WebSocket 支持 (Node.js 22+)
 针对 Node.js 环境（如 CI 和后台 E2E 校验脚本），客户端进行了 WebSocket 传导优化：
@@ -82,14 +85,21 @@ deal-protocol/
 │   ├── app/                  # 业务路由 (需求广场、履约页、仲裁页、财务仪表盘)
 │   ├── components/           # UI 视图组件与响应式布局
 │   ├── hooks/                # Supabase Realtime 订阅自定义 Hooks
-│   └── lib/                  # Supabase Client 初始化与状态机工具库
+│   ├── lib/                  # Supabase Client 初始化与状态机工具库
+│   ├── modules/              # 领域模块 (Modular Monolith: m02-m14)
+│   └── types/                # database.types.ts 数据库强类型契约
 ├── mobile/                   # 移动端子工程 (React Native / Expo) - TypeScript 隔离
+├── supabase/migrations/      # 数据库迁移脚本 (001-018 + 日期化补丁)
+├── packages/                 # 内部共享包 (payment-core / credit-formula)
 ├── scripts/                  # 自动化脚本目录
 │   └── verify-e2e-flow.ts    # 四大主线全量 E2E 数据库实测回归脚本
-├── tests/                    # 测试用例与集成测试文件
+├── tests/                    # Vitest 单元/集成测试 (43 个文件)
+├── e2e/                      # Playwright E2E 测试 (full-flow / dispute-flow / new-features / production-smoke)
+├── docs/                     # 架构/方案/ADR 文档
 ├── .github/workflows/        # GitHub Actions CI/CD 流水线配置
-│   └── ci.yml                # 类型检查与 E2E 自动化回归流程
-├── tsconfig.json             # 根 TypeScript 配置 (已排除 mobile/tests/scripts)
+│   ├── ci.yml                # 类型检查 + 部署冒烟
+│   └── db-migration.yml      # 数据库迁移自动推送
+├── tsconfig.json             # 根 TypeScript 配置 (已排除 mobile/tests/scripts/oto-spatial-web)
 └── package.json              # 项目依赖与运行脚本
 ```
 
@@ -102,13 +112,13 @@ deal-protocol/
 * **npm**: `>= 10.0.0`
 
 ### 2. 环境变量配置
-在项目根目录下创建 `.env.local` 文件：
+复制项目根目录下的 `.env.example` 为 `.env.local` 并填写实际值：
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://<your-supabase-project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+```bash
+cp .env.example .env.local
 ```
+
+`.env.example` 中已按业务分组（Supabase / LLM / SMS / 支付渠道 / 推送 / SOS / 实名 / Cron / PII 加密）列出全部键位及说明；`.env.local` 不会提交到版本库。
 
 ### 3. 安装依赖与启动服务
 
@@ -131,10 +141,13 @@ npm run dev
 ### 本地测试命令
 
 ```bash
-# 1. 执行全量 TypeScript 类型检查 (不含 mobile / scripts 子目录干扰)
+# 1. 执行全量 TypeScript 类型检查 (不含 mobile / scripts / oto-spatial-web 子目录干扰)
 npx tsc --noEmit
 
-# 2. 执行四大主线 E2E 端到端真实数据库回归测试
+# 2. 执行 Vitest 单元/集成测试
+npm test
+
+# 3. 执行四大主线 E2E 端到端真实数据库回归测试
 npm run test:verify
 ```
 
@@ -143,8 +156,10 @@ npm run test:verify
 每次向 `master` 分支推送代码或提交 PR 时，GitHub Actions 会自动触发以下校验流程：
 
 1. **Node.js 22 环境构建**：启用原生 WebSocket 引擎。
-2. **TypeScript 静态检查** (`npx tsc --noEmit`)：由于根目录 `tsconfig.json` 已排除 `mobile/`、`tests/` 与 `scripts/`，能够干净无误地进行 Web 源码类型校验。
-3. **E2E 流程自动化回归**：根据环境变量门禁 (`if: env.SUPABASE_SERVICE_ROLE_KEY != ''`) 灵活判断，在配置了 GitHub Secrets 的情况下执行四大主线全量数据库测试，未配置时自动跳过（软告警），保障构建不被误打断。
+2. **TypeScript 静态检查** (`npx tsc --noEmit`)：由于根目录 `tsconfig.json` 已排除 `mobile/`、`tests/`、`scripts/` 与 `oto-spatial-web/`，能够干净无误地进行 Web 源码类型校验。
+3. **Vercel 部署冒烟测试**：当 Vercel 部署状态变为 `success` 时，自动对线上环境执行 Playwright 冒烟测试（`e2e/production-smoke.spec.ts`），通过 `BASE_URL` 指向实际部署地址。
+
+另有 `db-migration.yml`：当 `supabase/migrations/` 有变更推送至 `main` 分支时，自动执行 `supabase db push` 同步云端数据库。
 
 ---
 

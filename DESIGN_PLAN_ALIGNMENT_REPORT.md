@@ -1,6 +1,6 @@
 # 设计方案 ↔ 代码实现深度对齐与偏差分析报告
 
-> **报告日期**: 2026-07-24  
+> **报告日期**: 2026-07-24（2026-08-14 回填：报告 §三 P0-02 / P0-04 / P0-05 已由 `20260724_*` 批次迁移及对应 service 真实闭环并勾销，其余条目仍为 07-24 快照结论）  
 > **分析范围**: `D:\Users\Administrator\Desktop\deal-protocol 设计方案.md` ↔ `D:\Users\Administrator\Desktop\deal-protocol`  
 > **分析方法**: 逐模块对照设计文档 §1-§15 与当前代码库实现
 
@@ -47,7 +47,7 @@
 | Bandit 统计表 `bandit_stats` (物理隔离) | `supabase/migrations/001_schema.sql` | ✅ 100% 对齐 |
 | RLS 行级安全策略 | `supabase/migrations/20260723_fix_admin_rls_rbac.sql` + 各迁移 | ✅ 100% 对齐 |
 | pgvector + PostGIS 扩展 | `supabase/migrations/001_schema.sql` 头部 | ✅ 100% 对齐 |
-| `bandit_reader` 角色权限隔离 | 设计方案要求 CREATE ROLE | ⚠️ 部分实现 — 未在迁移中找到 bandit_reader 角色创建 |
+| `bandit_reader` 角色权限隔离 | 设计方案要求 CREATE ROLE | ✅ 100% 对齐 — `20260724_bandit_reader_isolation.sql` 创建角色 + REVOKE 信用表 + GRANT 只读（2026-08-14 回填） |
 
 ### 2.2 身份认证与资质核验（M02）
 
@@ -141,7 +141,7 @@
 | reward 负反馈权重 >> 正反馈 | `bandit-ranker.ts` | ✅ 100% 对齐 |
 | 样本量 <30 回退静态 Ranker | `matcher.ts:216-238` `maybeActivateBandit()` | ✅ 100% 对齐 |
 | 阶段一不开发 | 默认 StaticRanker | ✅ 100% 对齐 |
-| bandit_reader 物理隔离 | 设计方案 §4.4 | ⚠️ 部分实现 — 代码层面隔离，但 DB role 未创建 |
+| bandit_reader 物理隔离 | 设计方案 §4.4 | ✅ 100% 对齐 — 迁移 `20260724_bandit_reader_isolation.sql` 已创建 DB role（2026-08-14 回填） |
 
 ### 2.9 内容审核流水线（M09）
 
@@ -205,7 +205,7 @@
 | 支付回调验签 | `payment/notify/route.ts` + webhooks | ✅ 100% 对齐 |
 | 支付宝原生支付 | `src/lib/alipay-service.ts` + `AlipayService` | ✅ 100% 对齐 |
 | 微信支付 | 设计方案要求 | ⚠️ 部分实现 — payment.ts 中 WeChat 渠道定义但依赖 `@daviekong/payment-core` |
-| 保险池 (1% 每单) | 设计方案 §12.9 | ❌ 缺失 |
+| 保险池 (1% 每单) | 设计方案 §12.9 | ✅ 100% 对齐 — 迁移 `20260724_insurance_pool.sql` 建表 + `payment-service.ts` / `sla-enforcer.ts` 已接入计提（2026-08-14 回填） |
 | 全品类统一定价引擎 | 设计方案 §12.2 | ⚠️ 部分实现 — pricing-engine.ts 存在但未按工时费公式实现 |
 
 ### 2.14 双端 UI（M14）
@@ -254,10 +254,10 @@
 | ID | 偏差描述 | 设计文档要求 | 当前实现 | 影响 |
 |--------------|-----------|-------------|---------|------|
 | P0-01 | **双代码路径**: `demands`/`orders` vs `protocols`/`contracts` | 单一路径: 协议→订单→履约 | 存在两套并行表及对应路由 | 状态不一致/维护成本翻倍/逻辑分裂 |
-| P0-02 | **Bandit 物理隔离缺失**: `bandit_reader` 数据库角色未创建 | §4.4: `CREATE ROLE bandit_reader; REVOKE ALL ON credit_records` | 代码层面 BanditRanker 不读信用，但无 DB 级权限屏障 | 违反了"结构性地无法读到信用数据"的核心安全要求 |
+| P0-02 | **Bandit 物理隔离缺失**: `bandit_reader` 数据库角色未创建 | §4.4: `CREATE ROLE bandit_reader; REVOKE ALL ON credit_records` | ~~代码层面 BanditRanker 不读信用，但无 DB 级权限屏障~~ ✅ **已闭环**：`20260724_bandit_reader_isolation.sql` 创建角色并对 `credit_records`/`credit_events` REVOKE、对 `orders`/`protocols` GRANT SELECT（2026-08-14 回填） | ~~违反"结构性地无法读到信用数据"的核心安全要求~~ ✅ 已消除 |
 | P0-03 | **阶梯佣金未在结算中实现** | §14.2: 15%→12%→10%→8% 阶梯 | 费率 struct 存在但结算路由未按阶梯计算 | 商业模型未落地 |
-| P0-04 | **保险池缺失** | §12.9: 每单 1% → 保险池（质保/客户险/师傅险/SOS） | 完全未实现 | 安全兜底缺位 |
-| P0-05 | **LLM 调用日志/回归测试缺失** | §4.1: 所有 LLM 调用记录 prompt/response 到日志 | `protocol-generator.ts` 未记录 LLM 请求/响应 | 无法调试/回归/审计 LLM 行为 |
+| P0-04 | **保险池缺失** | §12.9: 每单 1% → 保险池（质保/客户险/师傅险/SOS） | ~~完全未实现~~ ✅ **已闭环**：迁移 `20260724_insurance_pool.sql` 建表，`src/modules/m13-payment/payment-service.ts` 与 `src/lib/sla-enforcer.ts` 已真实计提写入（2026-08-14 回填） | ~~安全兜底缺位~~ ✅ 已消除 |
+| P0-05 | ~~**LLM 调用日志/回归测试缺失**~~ ✅ **已闭环** | §4.1: 所有 LLM 调用记录 prompt/response 到日志 | `20260724_llm_logs.sql` 建表 + `src/lib/llm-adapter.ts` writeLlmLog 脱敏落库（2026-08-14 修复 env 键名兼容 `SUPABASE_SERVICE_ROLE_KEY` 后真实生效） | 审计链路已贯通 |
 
 ### P1 — 体验缺口（影响用户体验/运营效率）
 

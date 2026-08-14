@@ -487,9 +487,10 @@ AI-powered features:
 
 ### 6.1 Test Files
 
-#### Unit Tests (Vitest) — 42 files in `tests/`
+#### Unit Tests (Vitest) — 43 files in `tests/`
 | Test File | Coverage Area |
 |-----------|---------------|
+| `m01-bandit-isolation.test.ts` | Bandit 角色物理隔离（P0-02） |
 | `m02-auth.test.ts` | Authentication flows |
 | `m03-category-config.test.ts` | Category configuration |
 | `m04-protocol-gen.test.ts` | Protocol generation |
@@ -904,6 +905,17 @@ npx tsc --noEmit && pnpm test [相关测试文件路径]
 > **Updated**: 2026-07-30  
 > **Status**: `PRODUCTION_READY / DEPLOYED`  
 > **Target**: Vercel Production Environment (Ready)  
+
+---
+
+## 0. 根仓基线维护声明（2026-08-14）
+
+> 本文件为**父项目（deal-protocol 根）**的状态档案。`oto-spatial-web/` 子项目独立状态档案见 `docs/PROJECT_STATUS.md`（单一真相源），两者互不覆盖。
+
+- **2026-08 起根仓进入基线冻结期**：自 v3.0.0-PROD（2026-07-30）后，根代码除少量维护性修复（LLM 审计 env 键名兼容、阿里云短信键名容错、Vercel credit-decay cron 排程、db:types 输出路径对齐）外无功能性演进；后续功能迭代集中在 `oto-spatial-web/` 子项目。
+- **包管理器收敛**：2026-08-14 删除 `bun.lock` / `pnpm-lock.yaml` / `pnpm-workspace.yaml`，统一以 npm（`package-lock.json`）为准。
+- **仓库卫生清理**：2026-08-14 移除一次性迁移脚本、运行日志与本地 DB 产物（详见根 .gitignore 追加规则）。
+- **已知遗留（未解决，维持现状）**：P0-01 双代码路径（demands/orders ↔ protocols/contracts）仍并存；P0-03 阶梯佣金未在结算中落实；P1 系列体验缺口与 P2 细节偏离——详见 `DESIGN_PLAN_ALIGNMENT_REPORT.md`（P0-02/04/05 已于 2026-08-14 勾销闭环）。
 
 ---
 
