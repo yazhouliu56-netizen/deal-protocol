@@ -6,6 +6,7 @@ import {
   broadcastMatches,
   type ResponderCapability,
 } from "@/base/dispatch/broadcast";
+import { dispatchRuleFor } from "@/ammo/dispatch-rule";
 import { perSeatPrice } from "@/base/order/wave";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -94,7 +95,7 @@ export default function WaveFeed() {
         requestedByMe: (w.joinRequests ?? []).some(
           (r) => r.responderId === identity.id
         ),
-        hits: broadcastMatches(sigs, w),
+        hits: broadcastMatches(sigs, w, dispatchRuleFor(w.basics.category)),
       }))
       // 硬筛不过（未认证进家/封禁/离线/品类不符）→ 不出现在 feed
       .filter((a) => a.hits.length > 0)

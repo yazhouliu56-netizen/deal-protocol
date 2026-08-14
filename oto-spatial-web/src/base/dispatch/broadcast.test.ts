@@ -7,6 +7,7 @@ import {
   type ResponderCapability,
   type WaveLike,
 } from "./broadcast.ts";
+import { dispatchRuleFor } from "../../ammo/dispatch-rule.ts";
 
 const chef = (id: string, over: Partial<ResponderCapability> = {}): ResponderCapability => ({
   id,
@@ -135,4 +136,43 @@ test("no customs → neutral custom credit, sorted by distance/credit", () => {
 test("offline-only pool returns empty", () => {
   const hits = broadcastMatches([chef("o", { online: false })], wave);
   assert.deepEqual(hits, []);
+});
+
+test("ammo rule: 家政 distance 权重抬高 → 近者优势更大，远者罚分更狠", () => {
+  const cleaner = (id: string, over: Partial<ResponderCapability> = {}): ResponderCapability =>
+    chef(id, { categories: ["家政保洁"], ...over });
+  const cleaningWave: WaveLike = {
+    ...wave,
+    basics: { ...wave.basics, category: "家政保洁" },
+  };
+  const near = cleaner("cn", { distanceKm: 1 });
+  const far = cleaner("cf", { distanceKm: 8 });
+  // 调用方取 ammo 表规则注入（真实接线链路）
+  const rule = dispatchRuleFor("家政保洁");
+  const hits = broadcastMatches([far, near], cleaningWave, rule);
+  const base = broadcastMatches([far, near], cleaningWave, dispatchRuleFor("羽毛球约局"));
+  assert.equal(hits[0]!.id, "cn");
+  const nearGap = hits.find((h) => h.id === "cn")!.score - hits.find((h) => h.id === "cf")!.score;
+  const baseGap = base.find((h) => h.id === "cn")!.score - base.find((h) => h.id === "cf")!.score;
+  assert.ok(nearGap > baseGap, "家政类近远差随 distance 权重放大");
+  assert.equal(rule.weights.distance, 40, "ammo 家政 distance=40");
+});
+
+test("ammo rule: hardGates.requiresVerified 可配（新增类目进家 → 未认证拦截）", () => {
+  const dogWave: WaveLike = {
+    ...wave,
+    basics: { ...wave.basics, category: "遛狗遛弯" },
+  };
+  const rule = dispatchRuleFor("遛狗遛弯");
+  // 遛狗在 ammo dispatch 表 requiresVerified: ["遛狗遛弯", "上门"]
+  assert.ok(rule.hardGates.requiresVerified!.includes("遛狗遛弯"));
+  assert.equal(
+    passesHardFilter(chef("d1", { verified: false, categories: ["遛狗遛弯"] }), dogWave, rule).ok,
+    false,
+    "遛狗需认证（ammo 表驱动）"
+  );
+  assert.equal(
+    passesHardFilter(chef("d2", { verified: true, categories: ["遛狗遛弯"] }), dogWave, rule).ok,
+    true
+  );
 });

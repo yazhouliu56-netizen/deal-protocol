@@ -7,7 +7,9 @@ import {
   riskOf,
   roam,
   ROAM_RULES,
+  DEFAULT_ROAM_PARAMS,
   type DeviceBinding,
+  type RoamRuleParams,
 } from "./roamGuard.ts";
 
 const T0 = 1750000000000;
@@ -82,4 +84,31 @@ test("extraLogin: third identity → high alert", () => {
   const third = extraLogin(b, "dev-a", "me-3", T0 + 2);
   assert.equal(third.risk, "high");
   assert.equal(third.event.kind, "alert");
+});
+
+test("ammo 引信参数：收紧 warnThreshold=1 → 2 身份即 high（引信跟弹药走）", () => {
+  const tight: RoamRuleParams = { warnThreshold: 1, freezeThreshold: 2 };
+  const both: DeviceBinding[] = [
+    ...bindings,
+    { deviceId: "dev-a", identityId: "me-2", firstSeen: T0, lastSeen: T0 },
+  ];
+  const r = riskOf(both, "dev-a", tight);
+  assert.equal(r.risk, "high", "收紧阈值后 2 身份即判多开");
+});
+
+test("ammo 引信参数：放松 warnThreshold=4 → 4 身份仍 watch", () => {
+  const loose: RoamRuleParams = { warnThreshold: 4, freezeThreshold: 5 };
+  const many: DeviceBinding[] = [
+    ...bindings,
+    { deviceId: "dev-a", identityId: "me-2", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "me-3", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "me-4", firstSeen: T0, lastSeen: T0 },
+  ];
+  const r = riskOf(many, "dev-a", loose);
+  assert.equal(r.risk, "watch");
+});
+
+test("DEFAULT_ROAM_PARAMS 与 ROAM_RULES 常量等价（历史行为不变）", () => {
+  assert.equal(DEFAULT_ROAM_PARAMS.warnThreshold, ROAM_RULES.maxPerDeviceForFamily);
+  assert.equal(DEFAULT_ROAM_PARAMS.freezeThreshold, ROAM_RULES.freezeAt);
 });

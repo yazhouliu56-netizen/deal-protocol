@@ -10,6 +10,8 @@ import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
+import { pricingForCategory } from "@/ammo/pricing-formula";
+import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
 
 /**
@@ -45,7 +47,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [people, setPeople] = useState(1);
   /** 组织者把关层：开放局开启审批制后，拼位需申请并由发起人批准。 */
   const [needApproval, setNeedApproval] = useState(false);
-  const [ttl, setTtl] = useState<number>(2 * 3600_000);
+  const DEFAULT_TTL = 2 * 3600_000;
+  const [ttl, setTtl] = useState<number>(DEFAULT_TTL);
   /** 服务开始时间（相对 now 的偏移 ms）— 24h 分级取消的依据。null=未设置（取消不退） */
   const [startsIn, setStartsIn] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -57,6 +60,15 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [showMore, setShowMore] = useState(false);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
+
+  /** 选品类 → 应用 SOP 弹药表默认（鸽子险/有效期/容量，宪法 #3：先配表后写码）。 */
+  function applySopDefaults(cat: string) {
+    setCategory(cat);
+    const s = sopForCategory(cat.trim());
+    if (s.depositDefault !== undefined) setDeposit(s.depositDefault);
+    if (s.expiresInMs !== undefined) setTtl(s.expiresInMs);
+    if (s.capacityDefault !== undefined) setPeople(s.capacityDefault);
+  }
 
   function reset() {
     setCategory("");
@@ -246,7 +258,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           {HOT_HINTS.map((h) => (
             <button
               key={h}
-              onClick={() => setCategory(h)}
+              onClick={() => applySopDefaults(h)}
               className={`px-2.5 min-h-8 rounded-full text-[10px] font-bold transition-colors ${
                 category === h
                   ? "btn-primary glow-purple-strong"
@@ -287,8 +299,18 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           placeholder="基础预算 ¥（如 100）"
           aria-label="基础预算"
           inputMode="numeric"
-          className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-[11px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-3"
+          className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-[11px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-1"
         />
+        {/* 定价弹药表建议（ammo/pricing-formula 驱动）：地板价起点 + 服务保修 */}
+        {category.trim() && (
+          <p className="text-[9.5px] text-brandCyan/80 mb-3">
+            该品类建议起价 ¥{pricingForCategory(category.trim()).minPriceYuan ?? "—"}
+            <span className="text-white/35">
+              {" · "}
+              {pricingForCategory(category.trim()).warrantyText ?? "按单协商"}
+            </span>
+          </p>
+        )}
 
         {/* 可选配置折叠开关：核心要素常显，可选件收起 */}
         <button
@@ -491,31 +513,40 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           </span>
         </button>
 
-        {/* 有效期 */}
+        {/* 有效期：首档 SOP 表驱动（ammo/sop expiresInMs），兜底档固定 */}
         <div className="flex gap-1.5 mt-3 mb-3">
-          {[
-            { label: "2 小时", ms: 2 * 3600_000 },
-            { label: "今晚 24 点", ms: 0 },
-            { label: "3 天", ms: 3 * 24 * 3600_000 },
-          ].map((o) => {
-            const active =
-              o.ms === 0
-                ? ttl === 0
-                : ttl === o.ms;
-            return (
-              <button
-                key={o.label}
-                onClick={() => setTtl(o.ms === 0 ? 0 : o.ms)}
-                className={`flex-1 py-2 rounded-xl text-[10px] font-bold transition-all ${
-                  active
-                    ? "btn-primary glow-purple-strong"
-                    : "glass-panel text-white/60 hover:text-white"
-                }`}
-              >
-                {o.label}
-              </button>
-            );
-          })}
+          {(() => {
+            const sopMs = sopForCategory(category.trim()).expiresInMs ?? DEFAULT_TTL;
+            const opts = [
+              {
+                label: sopMs >= 24 * 3600_000
+                  ? `${Math.round(sopMs / 24 / 3600_000)} 天`
+                  : `${Math.round(sopMs / 3600_000)} 小时`,
+                ms: sopMs,
+              },
+              { label: "今晚 24 点", ms: 0 },
+              { label: "3 天", ms: 3 * 24 * 3600_000 },
+            ];
+            return opts.map((o) => {
+              const active =
+                o.ms === 0
+                  ? ttl === 0
+                  : ttl === o.ms;
+              return (
+                <button
+                  key={o.label}
+                  onClick={() => setTtl(o.ms === 0 ? 0 : o.ms)}
+                  className={`flex-1 py-2 rounded-xl text-[10px] font-bold transition-all ${
+                    active
+                      ? "btn-primary glow-purple-strong"
+                      : "glass-panel text-white/60 hover:text-white"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              );
+            });
+          })()}
         </div>
 
         {/* 服务开始时间：驱动 24h 分级取消（≥24h 全退 / <24h 部分退） */}

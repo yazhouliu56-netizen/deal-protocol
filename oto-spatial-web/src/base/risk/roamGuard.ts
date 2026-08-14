@@ -8,6 +8,19 @@
 /** 家庭共机容错：同设备 ≤2 个身份视为可接受（watch 提示不处罚）。 */
 export const ROAM_RULES = { maxPerDeviceForFamily: 2, freezeAt: 3 } as const;
 
+/** 引信参数（与 ammo/risk-rule 的 roam-guard params 结构兼容，缺省 = 现状）。 */
+export interface RoamRuleParams {
+  /** 同设备身份数 ≤ 此值 → watch（家庭共机容忍线）。 */
+  warnThreshold: number;
+  /** 同设备身份数 > 此值 → high（多开刷号冻结线）。 */
+  freezeThreshold: number;
+}
+
+export const DEFAULT_ROAM_PARAMS: RoamRuleParams = {
+  warnThreshold: ROAM_RULES.maxPerDeviceForFamily,
+  freezeThreshold: ROAM_RULES.freezeAt,
+};
+
 export type RiskLevel = "safe" | "watch" | "high";
 
 export type DeviceBinding = {
@@ -35,16 +48,18 @@ export function makeDeviceId(ua: string, seed: string): string {
   return `dev-${h.toString(16).slice(0, 8)}`;
 }
 
-/** 同设备身份数 → 风险分级（count=0 视为未登记，safe）。 */
+/** 同设备身份数 → 风险分级（count=0 视为未登记，safe）。
+ * params 缺省 = 现状阈值；由 ammo/risk-rule 的 roam-guard 引信参数驱动（宪法 #5）。 */
 export function riskOf(
   bindings: DeviceBinding[],
-  deviceId: string
+  deviceId: string,
+  params: RoamRuleParams = DEFAULT_ROAM_PARAMS
 ): { risk: RiskLevel; count: number; reason: string } {
   const count = bindings.filter((b) => b.deviceId === deviceId).length;
   if (count === 0 || count === 1) {
     return { risk: "safe", count, reason: count === 0 ? "未在设备登记" : "单身份使用" };
   }
-  if (count <= ROAM_RULES.maxPerDeviceForFamily) {
+  if (count <= params.warnThreshold) {
     return {
       risk: "watch",
       count,
@@ -109,10 +124,11 @@ export function extraLogin(
   bindings: DeviceBinding[],
   deviceId: string,
   identityId: string,
-  now: number
+  now: number,
+  params: RoamRuleParams = DEFAULT_ROAM_PARAMS
 ): { bindings: DeviceBinding[]; event: RoamEvent; risk: RiskLevel } {
   const { bindings: next, fresh } = bind(bindings, deviceId, identityId, now);
-  const { risk } = riskOf(next, deviceId);
+  const { risk } = riskOf(next, deviceId, params);
   return {
     bindings: next,
     risk,

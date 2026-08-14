@@ -9,7 +9,30 @@ import {
   riskOf,
   type DeviceBinding,
   type RoamEvent,
+  type RoamRuleParams,
 } from "@/base/risk/roamGuard";
+import { isRuleEnabled, riskRulesFor, type RiskRule } from "@/ammo/risk-rule";
+
+/** ammo/risk-rule 的 roam-guard 引信参数 → base 阈值（宪法 #5：引信跟弹药走）。 */
+function roamParams(): RoamRuleParams {
+  const rules = riskRulesFor("");
+  const roam = rules.find((r) => r.rule === "roam-guard");
+  const p = roam?.params ?? {};
+  return {
+    warnThreshold:
+      typeof p.warnThreshold === "number" ? p.warnThreshold : 2,
+    freezeThreshold:
+      typeof p.freezeThreshold === "number" ? p.freezeThreshold : 3,
+  };
+}
+
+/** 引信开关：roam-guard 关闭 → 永不判 high（watch 封顶，防误伤家庭共机）。 */
+function roamEnabled(): boolean {
+  return isRuleEnabled(riskRulesFor(""), "roam-guard");
+}
+
+/** 导出：组件侧 riskOf 显示与 store 判定共用同一套引信参数。 */
+export { roamParams };
 
 type RoamState = {
   /** 本设备指纹（localStorage 持久化，同设备跨会话稳定）。 */
@@ -70,8 +93,10 @@ export const useRoamStore = create<RoamState>()(
             ],
           });
         }
-        const r = riskOf(get().bindings, s.deviceId);
-        return { level: r.risk, count: r.count };
+        const r = riskOf(get().bindings, s.deviceId, roamParams());
+        return roamEnabled()
+          ? { level: r.risk, count: r.count }
+          : { level: r.risk === "high" ? "watch" : r.risk, count: r.count };
       },
       roamDemo: (identityId) => {
         const s = get();
@@ -84,7 +109,7 @@ export const useRoamStore = create<RoamState>()(
         // 同一设备已有 N 个身份 → 追加第 N+1 个模拟身份（连点 → 升至 high）
         const n = s.bindings.filter((b) => b.deviceId === s.deviceId).length + 1;
         const altId = `${identityId}-alt${n}`;
-        const out = extraLogin(s.bindings, s.deviceId, altId, now());
+        const out = extraLogin(s.bindings, s.deviceId, altId, now(), roamParams());
         set({
           bindings: out.bindings,
           events: [out.event, ...s.events],

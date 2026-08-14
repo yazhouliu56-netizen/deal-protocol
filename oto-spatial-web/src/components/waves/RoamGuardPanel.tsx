@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Smartphone, Shuffle } from "lucide-react";
-import { useRoamStore } from "@/store/useRoamStore";
+import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { riskOf, type RiskLevel } from "@/base/risk/roamGuard";
 
@@ -36,7 +36,7 @@ export default function RoamGuardPanel() {
     if (mounted) ensureBinding(identityId);
   }, [mounted, identityId, ensureBinding]);
 
-  const risk = useMemo(() => riskOf(bindings, deviceId), [bindings, deviceId]);
+  const risk = useMemo(() => riskOf(bindings, deviceId, roamParams()), [bindings, deviceId]);
   const badge = BADGE[risk.risk];
 
   return (

@@ -5,6 +5,7 @@ import { Gavel, Trophy, Layers } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
+import { pricingForCategory } from "@/ammo/pricing-formula";
 import {
   award,
   openBidding,
@@ -68,7 +69,9 @@ export default function BiddingSandboxCard() {
   const startFor = (waveId: string) => {
     const w = myActive.find((x) => x.id === waveId);
     if (!w) return;
-    const reserve = w.budget || 60;
+    // 竞价保留价 ≥ 品类地板价（ammo/pricing-formula 驱动，宪法 #4）
+    const floor = pricingForCategory(w.basics.category).minPriceYuan ?? 0;
+    const reserve = Math.max(w.budget || 0, floor) || 60;
     setSession(seedSession(`${w.basics.category} · 名额 ${w.capacity ?? 1}`, reserve));
     setPickedWaveId(waveId);
     setMyPrice(String(Math.round(reserve)));

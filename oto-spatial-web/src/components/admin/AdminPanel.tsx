@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Gavel, ShieldCheck, X, Flag, TrendingUp, Database } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
-import { useRoamStore } from "@/store/useRoamStore";
+import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { ACTION_LABEL, governanceMetrics, type ModerationAction } from "@/base/risk/moderation";
 import { lakeVerify } from "@/base/platform/resilience";
@@ -186,7 +186,7 @@ export default function AdminPanel({
             <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={11} className="text-brandCyan" /> 漫游安全监控
             </h3>
-            {(() => { const r = riskOf(bindings, deviceId); const cls = r.risk === "high" ? "text-red-300" : r.risk === "watch" ? "text-amber-300" : "text-emerald-300"; return (
+            {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-red-300" : r.risk === "watch" ? "text-amber-300" : "text-emerald-300"; return (
             <p className={`text-[9.5px] font-bold mb-2 ${cls}`}>
               本设备 {deviceId ?? "…"} · 同设备 {r.count} 个身份 · {r.reason}
             </p>

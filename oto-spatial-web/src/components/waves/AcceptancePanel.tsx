@@ -146,9 +146,14 @@ function DisputeForm({
   onOpen: (reason: DisputeReason, evidence: string) => void;
   claimId: string;
 }) {
-  // AIGC 伪造鉴真（ADR-0012，N4 接线）：凭证文本与历史凭证比对，识别复用/异常
-  const pastEvidence = useWaveStore((s) =>
-    s.disputes.filter((d) => d.claimId === claimId).map((d) => d.evidence)
+  // AIGC 伪造鉴真（ADR-0012，N4 接线）：凭证文本与历史凭证比对，识别复用/异常。
+  // 注意：selector 只取稳定引用（s.disputes），派生数组放 useMemo —— 避免
+  // 每次渲染新数组引用触发 zustand v5 useSyncExternalStore 无限重渲染（React #185）。
+  const allDisputes = useWaveStore((s) => s.disputes);
+  const pastEvidence = useMemo(
+    () =>
+      allDisputes.filter((d) => d.claimId === claimId).map((d) => d.evidence),
+    [allDisputes, claimId]
   );
   const forgery = useMemo(
     () => (evidence.trim() ? checkTextEvidence([...pastEvidence, evidence.trim()]) : null),

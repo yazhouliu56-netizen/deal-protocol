@@ -53,6 +53,14 @@ export const CATEGORY_SOP: Record<string, Partial<SopParams>> = {
     buffSeats: 1,
     maxRounds: 2,
   },
+  // UI 热词别名：与「羽毛球」同配置（sopForCategory 命中即预填）
+  "羽毛球约局": {
+    depositDefault: false,
+    expiresInMs: 6 * 3600_000,
+    capacityDefault: 4,
+    buffSeats: 1,
+    maxRounds: 2,
+  },
   "麻将": {
     depositDefault: true,
     expiresInMs: 4 * 3600_000,

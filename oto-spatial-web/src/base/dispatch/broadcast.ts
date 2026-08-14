@@ -83,9 +83,33 @@ export function areaToKm(area: string): number | null {
 }
 
 const CREDIT_MAX = 5;
-const CUSTOM_WEIGHT = 25;
-const DISTANCE_WEIGHT = 30;
-const CREDIT_WEIGHT = 30;
+
+/** 分发规则结构（与 ammo/dispatch-rule 的 DispatchRule 结构兼容；缺省 = 需求局默认）。 */
+export interface BroadcastRule {
+  weights: {
+    distance: number;
+    credit: number;
+    custom: number;
+    verifiedBonus: number;
+  };
+  hardGates: {
+    requiresVerified?: string[];
+    banned?: boolean;
+    online?: boolean;
+  };
+  starBonus?: { starMin: number; completionMin: number; bonus: number };
+}
+
+/** 缺省规则 = 现状常量（等价 ammo DEFAULT_DISPATCH）。 */
+export const DEFAULT_BROADCAST_RULE: BroadcastRule = {
+  weights: { distance: 30, credit: 30, custom: 25, verifiedBonus: 5 },
+  hardGates: {
+    requiresVerified: ["陪诊陪护", "家政保洁", "厨师", "上门"],
+    banned: true,
+    online: true,
+  },
+  starBonus: { starMin: 4, completionMin: 0.9, bonus: 5 },
+};
 
 /** Loose keyword overlap — "30 岁左右女性" hits a tag like "女性"/"熟手". */
 export function tagsOverlap(a: string[], b: string[]): number {
@@ -98,31 +122,29 @@ export function tagsOverlap(a: string[], b: string[]): number {
 
 /**
  * 进家高风险品类（对标 Care.com/Thumbtack：面对面+进家门 → 必须先实名验证）。
+ * 由 ammo/dispatch-rule 的 hardGates.requiresVerified 驱动（弹药表可配）。
  * 未 verified 的响应者无法接这些单 —— 硬门槛而非加分项。
  */
-export const HOME_ACCESS_CATEGORIES = [
-  "陪诊陪护",
-  "家政保洁",
-  "厨师",
-  "上门",
-];
-
-export function requiresVerification(category: string): boolean {
-  return HOME_ACCESS_CATEGORIES.some((k) => category.includes(k));
+export function requiresVerification(
+  category: string,
+  rule: BroadcastRule = DEFAULT_BROADCAST_RULE
+): boolean {
+  return (rule.hardGates.requiresVerified ?? []).some((k) => category.includes(k));
 }
 
 /** Hard gate: does this responder's capability cover the wave at all? */
 export function passesHardFilter(
   r: ResponderCapability,
-  wave: WaveLike
+  wave: WaveLike,
+  rule: BroadcastRule = DEFAULT_BROADCAST_RULE
 ): { ok: boolean; why?: string } {
-  if (!r.online) {
+  if (rule.hardGates.online !== false && !r.online) {
     return { ok: false, why: "offline" };
   }
-  if (r.banned) {
+  if (rule.hardGates.banned !== false && r.banned) {
     return { ok: false, why: "banned" };
   }
-  if (requiresVerification(wave.basics.category) && !r.verified) {
+  if (requiresVerification(wave.basics.category, rule) && !r.verified) {
     return { ok: false, why: "unverified" };
   }
   const cat = wave.basics.category;
@@ -132,7 +154,7 @@ export function passesHardFilter(
   if (!categoryHit) {
     return { ok: false, why: "category-miss" };
   }
-  // 距离是软约束：超远仍可见但排后面（DISTANCE_WEIGHT 已在 score 惩罚）。
+  // 距离是软约束：超远仍可见但排后面（distance weight 已在 score 惩罚）。
   return { ok: true };
 }
 
@@ -142,14 +164,17 @@ export function passesHardFilter(
  */
 export function broadcastMatches(
   responders: ResponderCapability[],
-  wave: WaveLike
+  wave: WaveLike,
+  rule: BroadcastRule = DEFAULT_BROADCAST_RULE
 ): BroadcastHit[] {
   const customs = wave.customs ?? [];
   const customTags = customs.flatMap((c) => c.tags ?? []);
   const maxKm = areaToKm(wave.basics.area) ?? wave.basics.radiusKm;
+  const { distance: DISTANCE_WEIGHT, credit: CREDIT_WEIGHT, custom: CUSTOM_WEIGHT, verifiedBonus: VERIFIED_BONUS } = rule.weights;
+  const star = rule.starBonus ?? DEFAULT_BROADCAST_RULE.starBonus!;
 
   return responders
-    .filter((r) => passesHardFilter(r, wave).ok)
+    .filter((r) => passesHardFilter(r, wave, rule).ok)
     .map((r) => {
       const customTotal = customs.length;
       const customHits = tagsOverlap(r.tags, customTags);
@@ -161,9 +186,11 @@ export function broadcastMatches(
 
       const credit =
         ((r.creditLevel ?? 3) / CREDIT_MAX) * CREDIT_WEIGHT +
-        // Star growth bonus: ★≥4 + ≥90% completion → +5 (Airtasker-style).
-        (r.star && r.star >= 4 && (r.completion ?? 1) >= 0.9 ? 5 : 0);
-      const verifiedBonus = r.verified ? 5 : 0;
+        // Star growth bonus: ★≥x + ≥y% completion → +bonus (ammo 可配).
+        (r.star && r.star >= star.starMin && (r.completion ?? 1) >= star.completionMin
+          ? star.bonus
+          : 0);
+      const verifiedBonus = r.verified ? VERIFIED_BONUS : 0;
 
       const km = r.distanceKm ?? (maxKm > 0 ? maxKm * 0.6 : 3);
       let distance: number;

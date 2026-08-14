@@ -41,7 +41,7 @@ import type { Review } from "@/base/trust/review";
 import type { PayOrder } from "@/base/money/pay";
 import { capturePayOrder, createPayOrder } from "@/base/money/pay";
 import { fissionIncrement, fissionStamp } from "@/base/risk/fission";
-import { useRoamStore } from "@/store/useRoamStore";
+import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -65,6 +65,14 @@ import { getP2pTransport } from "@/base/platform/p2p/transport";
 import type { PushItem } from "@/base/ai/cluster";
 import { buildPushes, mockClusterTags } from "@/base/ai/cluster";
 import { broadcastMatches } from "@/base/dispatch/broadcast";
+import { dispatchRuleFor } from "@/ammo/dispatch-rule";
+import type { MatchFn } from "@/base/ai/cluster";
+
+/** 品类化广播匹配（ammo dispatch-rule 驱动，宪法 #4：不写死业务权重）。 */
+function broadcastMatchesFor(category: string): MatchFn {
+  return (responders, wave) =>
+    broadcastMatches(responders, wave, dispatchRuleFor(category));
+}
 import { parseBiQuery, runBi, type BiResult, type BiRow } from "@/base/ai/bi";
 import {
   notifyFor as notifyForLogic,
@@ -395,17 +403,19 @@ createPendingWave: (input) => {
     // （替代原 roam 单点拦截；high 拒绝发布，watch 放行 + watchlisted 标记）
     const roam = useRoamStore.getState();
     const ident = useIdentityStore.getState();
+    const deviceRisk = riskOf(roam.bindings, roam.deviceId, roamParams()).risk;
+    const graphCount = riskOf(roam.bindings, roam.deviceId, roamParams()).count;
     const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
     const recentPublishes = myWaves.filter(
       (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
     ).length;
     const check = sentinelCheck({
-      deviceRisk: riskOf(roam.bindings, roam.deviceId).risk,
+      deviceRisk,
       creditScore: (ident.creditTier ?? 3) * 200,
       amountYuan: input.budget ?? 0,
       publishCount: recentPublishes,
       completionRate: undefined,
-      graphIdentityCount: riskOf(roam.bindings, roam.deviceId).count,
+      graphIdentityCount: graphCount,
       graphFission:
         myWaves.some((w) => (w.fissionCount ?? 0) > 0) || undefined,
       category: input.basics?.category,
@@ -575,7 +585,7 @@ createPendingWave: (input) => {
             customs: wave.customs,
             negotiableNote: wave.negotiableNote,
           });
-          const pushes = buildPushes(wave, get().responders, tags, broadcastMatches);
+          const pushes = buildPushes(wave, get().responders, tags, broadcastMatchesFor(wave.basics.category));
           if (pushes.length > 0) {
             set((s) => ({ pushes: [...pushes, ...s.pushes].slice(0, 60) }));
           }
@@ -617,7 +627,7 @@ createPendingWave: (input) => {
           wave,
           get().responders,
           tags,
-          broadcastMatches
+          broadcastMatchesFor(wave.basics.category)
         );
         if (pushes.length > 0) {
           set((s) => ({ pushes: [...pushes, ...s.pushes].slice(0, 60) }));
@@ -695,6 +705,17 @@ set((st) => ({
           claimId,
           price ?? wave.budget
         );
+        // ADR-0010 N1（接线补齐）：直接接单（甲方案）同样锁定订单 →
+        // 从号码池分配双向虚拟号会话（此前只在磋商 acceptClaim 分配，
+        // 直接接单路径无会话 → ContactCard 永不渲染）。
+        const privacy = allocatePair(
+          s.privacySessions,
+          DEMO_POOL,
+          wave.id,
+          wave.authorId,
+          responderId,
+          Date.now()
+        ).session;
         set((st) => ({
           waves: st.waves.map((w) =>
             w.id === waveId
@@ -713,6 +734,11 @@ set((st) => ({
           ],
           // 接单后雷达清空：所有推送标记已读（跨 tab 合并后不残留未读）
           pushes: st.pushes.map((p) => ({ ...p, read: true })),
+          privacySessions: st.privacySessions.some(
+            (x) => x.waveId === wave.id && !x.revokedAt
+          )
+            ? st.privacySessions
+            : [...st.privacySessions, privacy],
         }));
         return { claim };
       },
