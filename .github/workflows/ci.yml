@@ -18,7 +18,44 @@ jobs:
           node-version: 22
           cache: 'npm'
       - run: npm ci
-      - run: npx tsc --noEmit
+      - name: TypeScript 全量类型检查
+        run: npx tsc --noEmit
+      - name: 生产构建冒烟
+        run: npm run build
+
+  unit-tests-and-lint:
+    if: github.event_name != 'deployment_status'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - name: 全量单元测试（856 项：vitest 426 + node:test 430）
+        run: npm test
+      - name: ESLint
+        run: npm run lint
+
+  e2e-verify:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_CHANNEL: chromium
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - name: 安装 Playwright Chromium
+        run: npx playwright-core install --with-deps chromium
+      - name: 全链 E2E 回归（build → start :3000 → 12 条 e2e-*.mjs）
+        run: npm run test:verify
 
   vercel-smoke-test:
     if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'

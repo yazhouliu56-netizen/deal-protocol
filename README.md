@@ -165,7 +165,7 @@ npm run dev
 
 | 指标 | 数量 |
 | :--- | :--- |
-| 单元测试（vitest 根 426 + node:test 425） | **851** |
+| 单元测试（vitest 根 426 + node:test 430，58 个 node:test 文件） | **856** |
 | E2E 脚本（`scripts/e2e-*.mjs`，playwright-core 驱动） | **12** |
 | API 路由（`src/app/api/**/route.ts` 实测） | **99** |
 | 页面（协议前端 43 + 根入口 + OTO 5 屏） | **44 page.tsx** |
@@ -177,7 +177,7 @@ npm run dev
 # 1. 执行全量 TypeScript 类型检查 (不含 mobile / tests / scripts 子目录干扰)
 npx tsc --noEmit
 
-# 2. 执行全量单元测试 (vitest 426 + node:test 425，一键 851 全绿)
+# 2. 执行全量单元测试 (vitest 426 + node:test 430，一键 856 全绿)
 npm test
 
 # 3. 执行全量生产回归 (build → start :3000 → 12 条 E2E)
@@ -191,12 +191,12 @@ npm run check:convergence
 
 每次向 `master` 分支推送代码或提交 PR 时，GitHub Actions 会自动触发以下校验流程：
 
-1. **Node.js 22 环境构建**：启用原生 WebSocket 引擎。
-2. **TypeScript 静态检查** (`npx tsc --noEmit`)：排除 `mobile/`、`tests/`、`scripts/` 后干净校验 Web 源码。
-3. **全量单元测试**：`npm test`（851 tests）+ `npm run lint`。
-4. **生产构建 + E2E 全链**：`next build` → `next start :3000` → 12 条 `e2e-*.mjs` 全量回归。
+1. **TypeCheck & Build**（PR + push）：`npx tsc --noEmit` 类型检查 → `npm run build` 生产构建冒烟（排除 `mobile/`、`tests/`、`scripts/` 后干净校验）。
+2. **Unit Tests & Lint**（PR + push）：`npm test` 全量单测（856 项）+ `npm run lint` ESLint。
+3. **E2E Regression**（仅 push 至 master）：安装 Playwright Chromium → `npm run test:verify` 全链演练（build → `next start :3000` → 12 条 `e2e-*.mjs` 全量回归）。
+4. **Vercel Smoke**（部署成功后）：对线上 URL 执行 `test:smoke` 冒烟测试。
 
-另有 `db-migration.yml`：当 `supabase/migrations/` 有变更推送至 `main` 分支时，自动执行 `supabase db push` 同步云端数据库。
+另有 `db-migration.yml`：当 `supabase/migrations/` 有变更推送至 `master` 分支时，自动执行 `supabase db push` 同步云端数据库。
 
 ---
 
