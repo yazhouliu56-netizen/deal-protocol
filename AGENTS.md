@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:project-status-sync -->
 # Project Status Sync
 
-The single source of truth for `oto-spatial-web/` status is `docs/PROJECT_STATUS.md`.
+The single source of truth for project status is `docs/PROJECT_STATUS.md`.
 
 - Before starting work: read it first (it replaces a full re-audit).
 - After any change that affects features / test baselines / phase status: update the matching table/line in it AND bump the `LAST_SYNC` row (date + HEAD + summary) in the same change.
