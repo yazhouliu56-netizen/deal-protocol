@@ -64,7 +64,7 @@
 
 | 入口 | 路由 | 说明 |
 | :--- | :--- | :--- |
-| 协议前端（主应用） | `/` 及 `/demands` `/orders` `/disputes` `/finance` 等 | 需求广场、撮合、履约、仲裁、财务全链路（47+ 页面） |
+| 协议前端（主应用） | `/` 及 `/demands` `/orders` `/disputes` `/finance` 等 | 需求广场、撮合、履约、仲裁、财务全链路（43 页面 + 根入口） |
 | **OTO 空间应用** | `/oto` | 5 屏沉浸式空间交互 SPA（home / AI 对话 / AR 预览 / 行程 / 个人中心），Zustand 驱动 + PWA 离线兜底 |
 
 ---
@@ -103,7 +103,7 @@ deal-protocol/
 ├── src/                      # 单体应用主目录 (Next.js App Router)
 │   ├── app/                  # 业务路由 (需求广场/履约/仲裁/财务 + oto/)
 │   │   ├── oto/              # OTO 5 屏空间应用 (SPA + 独立 layout/PWA)
-│   │   └── api/              # 105+ API 路由 (含 /api/gateway /api/asr /api/push/*)
+│   │   └── api/              # 99 API 路由 (含 /api/gateway /api/asr /api/push/*)
 │   ├── base/                 # 共享底座九域 (ai/comm/dispatch/form/geo/money/notify/order/platform/risk/safe/trust)
 │   ├── ammo/                 # 弹药属性表 (dispatch-rule/risk-rule/pricing-formula/sop/scene-template...)
 │   ├── store/                # Zustand 状态机 (useWaveStore 等 7 store)
@@ -167,8 +167,8 @@ npm run dev
 | :--- | :--- |
 | 单元测试（vitest 根 426 + node:test 425） | **851** |
 | E2E 脚本（`scripts/e2e-*.mjs`，playwright-core 驱动） | **12** |
-| API 路由（`src/app/api/**/route.ts`） | **105+** |
-| 页面（协议前端 + OTO 5 屏） | **47 + 5 屏** |
+| API 路由（`src/app/api/**/route.ts` 实测） | **99** |
+| 页面（协议前端 43 + 根入口 + OTO 5 屏） | **44 page.tsx** |
 | 组件（waves + oto-ui + ui） | **100+** |
 
 ### 本地测试命令
