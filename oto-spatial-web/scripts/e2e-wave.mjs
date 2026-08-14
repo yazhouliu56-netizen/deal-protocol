@@ -66,6 +66,8 @@ try {
   // --- 2. Tab A 发出一条带定制 + 磋商入口的信号波 ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("厨师 · 上门做饭");
   await pageA.getByLabel("需求时间").fill("明天 11:00");
   await pageA.getByLabel("需求地点").fill("幸福家园小区");
@@ -96,7 +98,7 @@ try {
   // rehydrate）。此处以 reload 等效"另一 tab 打开/刷新时看到共享广播空间"。
 await pageB.reload({ waitUntil: "domcontentloaded" });
   // P7.1 进家硬筛：B 先声明品类 + 实名认证才能看到家政进家单
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -155,7 +157,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
 
   // --- 5. Tab B 回应（响应者轮次） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
@@ -204,7 +206,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
 
   // B 视角：我的接单里同样拨号卡、同一号码
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
@@ -273,7 +275,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   // B 侧：押金没收（balance 保持 95，deposits 终态 forfeited）
   // reload 后先进"我的"页触发 MyClaims 的幂等账务 effect
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(600);
   const afterB = await pageB.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyB
@@ -293,7 +295,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
     "押金终态为 forfeited"
   );
   // 钱包前台可见流水（我的页）
-  await pageA.getByLabel("我的").click();
+  await pageA.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("最近流水"),

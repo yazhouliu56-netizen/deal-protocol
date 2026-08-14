@@ -64,7 +64,8 @@ try {
     }
   });
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
+  // networkidle 在上游 LLM 流式响应慢时永不达成 → domcontentloaded + 显式断言
+  await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(page, () => !!document.querySelector('button[aria-label="AI 助手"]'), 10000, "Dock 渲染");
   await page.getByRole("button", { name: "AI 助手" }).click();
   await page.getByRole("button", { name: "新对话" }).click();

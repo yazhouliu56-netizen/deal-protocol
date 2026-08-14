@@ -64,6 +64,8 @@ try {
   // --- 2. Tab A 发布（含鸽子险，无磋商 → 直接接单） ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("宠物代遛");
   await pageA.getByLabel("需求时间").fill("明天 19:00");
   await pageA.getByLabel("需求地点").fill("幸福家园小区");
@@ -76,7 +78,7 @@ try {
   // --- 3. Tab B 直接接单（默认推荐价，留空 = 直接接单） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   // 品类硬筛：B 默认品类不含"宠物代遛" → 先加自定义品类
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -108,7 +110,7 @@ try {
   const idKeyB = await pageB.evaluate(
     () => `oto-identity-${window.name || "ssr"}`
   );
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => {
@@ -145,7 +147,7 @@ try {
 
   // B 侧：申报完成 · 请求放款
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
@@ -182,7 +184,7 @@ try {
 
   // B 侧解冻：reload 后进"我的"触发幂等账务
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(600);
   const releasedB = await pageB.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyB
@@ -211,7 +213,7 @@ try {
 
   // --- 7. B 评价 A（三维全 4 → score 4.0） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("评价对方"),
@@ -241,7 +243,7 @@ try {
 
   // --- 8. 信用由评价驱动：B Lv5 / A Lv4 + 脱敏展示 ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(600);
   const creditB = await pageB.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyB
@@ -258,7 +260,7 @@ try {
     () => `oto-identity-${window.name || "ssr"}`
   );
   await pageA.reload({ waitUntil: "domcontentloaded" });
-  await pageA.getByLabel("我的").click();
+  await pageA.getByLabel("我的", { exact: true }).click();
   await pageA.waitForTimeout(600);
   const creditA = await pageA.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyA

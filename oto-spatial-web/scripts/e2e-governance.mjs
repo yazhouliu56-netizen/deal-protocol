@@ -65,6 +65,8 @@ try {
   await pageB.getByLabel("首页").click();
   await pageB.getByRole("button", { name: /发出你的需求/ }).click();
   await pageB.waitForTimeout(400);
+  const moreBtn = await pageB.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageB.getByRole("button", { name: /更多选项/ }).click();
   await pageB.getByLabel("需求品类").fill("家政保洁");
   await pageB.getByLabel("需求时间").fill("明天 09:00");
   await pageB.getByLabel("需求地点").fill("兰山街道 1 公里");

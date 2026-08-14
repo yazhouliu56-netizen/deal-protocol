@@ -63,6 +63,8 @@ try {
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("厨师 · 上门做饭");
   await pageA.getByLabel("需求时间").fill("明天 18:00");
   await pageA.getByLabel("需求地点").fill("幸福家园 1 公里");
@@ -74,7 +76,7 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
 
   // --- 3. B 接单（进家品类 → 先实名认证）→ 押金冻结 ---
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -114,7 +116,7 @@ try {
   const idKeyB = await pageB.evaluate(
     () => `oto-identity-${window.name || "ssr"}`
   );
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () =>
@@ -134,7 +136,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("在线 · 正在接收信号"),
+    () => document.body.textContent?.includes("正在接收信号"),
     10000,
     "A reload 挂载"
   );
@@ -167,7 +169,7 @@ try {
 
   // --- 5. B 申报完成（请求放款）→ A 验收（凭证必填） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
@@ -180,7 +182,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("在线 · 正在接收信号"),
+    () => document.body.textContent?.includes("正在接收信号"),
     10000,
     "A reload 挂载 2"
   );
@@ -233,7 +235,7 @@ try {
 
   // --- 6. B 押金解冻退回（95 → 99.5，平台费 0.5） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => {
@@ -272,7 +274,7 @@ try {
 
   // B 侧：能力面板出现 ★ 星级
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("完成率 100%"),

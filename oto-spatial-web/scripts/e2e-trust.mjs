@@ -65,6 +65,8 @@ try {
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("家政保洁");
   await pageA.getByLabel("需求时间").fill("明天 10:30");
   await pageA.getByLabel("需求地点").fill("兰山街道 1 公里");
@@ -88,7 +90,7 @@ try {
   assert.ok(!feedPre.includes("需要擦窗"), "未认证看不到进家门单");
 
   // B 实名认证 → 单出现且可接
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),

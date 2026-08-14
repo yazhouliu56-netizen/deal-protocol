@@ -49,7 +49,8 @@ try {
     }
   });
   await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
+  // networkidle 在上游 LLM 流式响应慢时永不达成（in-flight 请求不结束）→ 改 domcontentloaded + 显式断言
+  await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(page, () => !!document.querySelector('button[aria-label="AI 助手"]'), 10000, "Dock");
 
   // --- 1. Home 热卡 → AI draft 自动发送 ---

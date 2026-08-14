@@ -59,7 +59,7 @@ try {
   await pageB.goto(BASE, { waitUntil: "domcontentloaded" });
 
   // --- 2. Tab B 已默认声明全品类能力（含厨师）；补充兴趣标签（聚类基础） ---
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.getByLabel("能力声明").click();
   await pageB.waitForTimeout(300);
   await pageB.getByLabel("实名认证模拟").click(); // 进家品类硬门槛
@@ -81,6 +81,8 @@ try {
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("厨师 · 上门做饭");
   await pageA.getByLabel("需求时间").fill("明天 18:00");
   await pageA.getByLabel("需求地点").fill("附近 2 公里");

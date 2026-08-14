@@ -69,6 +69,8 @@ try {
   // --- 2. Tab A 发布 3 人开放局（含自己 = 需 2 位拼位者） + 鸽子险 ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("羽毛球约局");
   await pageA.getByLabel("需求时间").fill("周六 14:00");
   await pageA.getByLabel("需求地点").fill("体育中心");
@@ -144,7 +146,7 @@ try {
 
   // --- 5. B 视角：已拼位 → 成局后拨号卡 + 押金冻结（100 → 95） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(500);
   await waitUntil(
     pageB,
@@ -178,7 +180,7 @@ try {
     () => `oto-identity-${window.name || "ssr"}`
   );
   await pageC.reload({ waitUntil: "domcontentloaded" });
-  await pageC.getByLabel("我的").click();
+  await pageC.getByLabel("我的", { exact: true }).click();
   await pageC.waitForTimeout(500);
   await waitUntil(
     pageC,

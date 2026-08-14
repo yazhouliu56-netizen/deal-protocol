@@ -72,6 +72,8 @@ try {
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
+  const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByLabel("需求品类").fill("羽毛球约局");
   await pageA.getByLabel("需求时间").fill("今天 20:00");
   await pageA.getByLabel("需求地点").fill("幸福家园 2 栋");
@@ -90,7 +92,7 @@ try {
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(400);
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
@@ -112,7 +114,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("在线 · 正在接收信号"),
+    () => document.body.textContent?.includes("正在接收信号"),
     10000,
     "A reload"
   );
@@ -141,6 +143,8 @@ try {
   await pageA.getByLabel("基础预算").fill("300");
   // 不填磋商留言 → 非可议单 → B 直接接单（claimDirect，modules 即附）
   // AI 拆解（LLM 探测→ 超时/失败自动降级 mock；zhipu 优先，mock 兜底确定性）
+  const moreBtn2 = await pageA.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn2) await pageA.getByRole("button", { name: /更多选项/ }).click();
   await pageA.getByRole("button", { name: /一键拆解/ }).click();
   await waitUntil(
     pageA,
@@ -166,7 +170,7 @@ try {
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(400);
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("模块化交付"),
@@ -252,7 +256,7 @@ try {
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(400);
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
@@ -296,7 +300,7 @@ try {
 
   // B 侧见争议 → 提出协商（上限 60%）→ 响应者接受即结案
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("我的").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("需求方发起了争议"),

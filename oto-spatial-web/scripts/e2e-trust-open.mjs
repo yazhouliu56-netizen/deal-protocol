@@ -91,6 +91,8 @@ try {
     await page.getByLabel("首页").click();
     await page.getByRole("button", { name: /发出你的需求/ }).click();
     await page.waitForTimeout(400);
+  const moreBtn = await page.getByRole("button", { name: /更多选项/ }).count();
+  if (moreBtn) await page.getByRole("button", { name: /更多选项/ }).click();
     await page.getByLabel("需求品类").fill(cat);
     await page.getByLabel("需求时间").fill(time);
     await page.getByLabel("需求地点").fill(area);
@@ -239,7 +241,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
   await pageA.waitForTimeout(400);
-  await pageA.getByRole("button", { name: /未到场/ }).nth(1).click();
+  await pageA.getByRole("button", { name: /标记未到场/ }).nth(1).click();
   await pageA.waitForTimeout(500);
 
   shared = await readShared(pageA);
