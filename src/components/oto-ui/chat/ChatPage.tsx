@@ -8,7 +8,7 @@ import { LlmEngine } from "@/base/ai/chat/llmEngine";
 import type { ChatMessage, ChatEvent, GenCard, ProviderItem } from "@/base/ai/chat/types";
 import { ChevronDown } from "lucide-react";
 import type { ScoreBreakdown } from "@/base/dispatch/match";
-import VoiceBar from "@/components/ui/VoiceBar";
+import VoiceBar from "@/components/oto-ui/VoiceBar";
 import { speak } from "@/base/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
 import { recommend, type SemMatch } from "@/base/ai/embed";

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Sparkles, Shield, Zap, Award, X, Check, Backpack } from 'lucide-react';
+import { Package, Sparkles, Shield, Zap, Award, X, Check, Backpack, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
 
@@ -12,7 +12,7 @@ export interface InventoryItem {
   rarity: 'SSR' | 'SR' | 'R';
   type: string;
   count: number;
-  icon: React.ElementType;
+  icon: LucideIcon;
   description: string;
 }
 

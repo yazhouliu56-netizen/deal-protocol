@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Sparkles, Award, X, Zap, Shield } from 'lucide-react';
+import { Gift, Sparkles, Award, X, Zap, Shield, type LucideIcon } from 'lucide-react';
 import { useTheme } from '@/components/theme/theme-provider';
 
 export interface GachaReward {
@@ -10,7 +10,7 @@ export interface GachaReward {
   rarity: 'SSR' | 'SR' | 'R';
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const SAMPLE_REWARDS: GachaReward[] = [

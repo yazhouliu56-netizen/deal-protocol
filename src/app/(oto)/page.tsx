@@ -1,20 +1,20 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Stage from "@/components/3d/Stage";
-import ChatPage from "@/components/chat/ChatPage";
-import ProfilePage from "@/components/profile/ProfilePage";
-import FloatingDock from "@/components/ui/FloatingDock";
-import GlassCard from "@/components/ui/GlassCard";
-import GlassIconButton from "@/components/ui/GlassIconButton";
-import Badge from "@/components/ui/Badge";
-import CategoryPill from "@/components/ui/CategoryPill";
-import SearchBar from "@/components/ui/SearchBar";
-import ScanMockSheet from "@/components/ui/ScanMockSheet";
-import IdentityAvatar from "@/components/ui/IdentityAvatar";
-import EnvBadge from "@/components/ui/EnvBadge";
-import DestinationCard from "@/components/destinations/DestinationCard";
-import DestinationHub from "@/components/destinations/DestinationHub";
+import Stage from "@/components/oto-ui/3d/Stage";
+import ChatPage from "@/components/oto-ui/chat/ChatPage";
+import ProfilePage from "@/components/oto-ui/profile/ProfilePage";
+import FloatingDock from "@/components/oto-ui/FloatingDock";
+import GlassCard from "@/components/oto-ui/GlassCard";
+import GlassIconButton from "@/components/oto-ui/GlassIconButton";
+import OtoBadge from "@/components/oto-ui/OtoBadge";
+import CategoryPill from "@/components/oto-ui/CategoryPill";
+import SearchBar from "@/components/oto-ui/SearchBar";
+import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
+import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
+import EnvBadge from "@/components/oto-ui/EnvBadge";
+import DestinationCard from "@/components/oto-ui/destinations/DestinationCard";
+import DestinationHub from "@/components/oto-ui/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
@@ -98,7 +98,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="app-env h-screen w-full overflow-hidden relative text-white">
+    <div className="oto-stage app-env h-dvh w-full overflow-hidden relative text-white">
       {/* 多层深空景深：远层星云光团（大尺度）+ 中景日光晕 */}
       <div className="nebula nebula-violet" />
       <div className="nebula nebula-cyan" />
@@ -141,7 +141,7 @@ export default function Home() {
 
       {/* 数据源徽章：全屏面常驻（HomePage 内不再单独挂） */}
       <EnvBadge />
-    </main>
+    </div>
   );
 }
 
@@ -921,9 +921,9 @@ function TripPage() {
         </div>
 
         {/* 顶部徽章 */}
-        <Badge tone="cyan" className="absolute top-3 right-3 px-2.5 py-1 text-[10px]">
+        <OtoBadge tone="cyan" className="absolute top-3 right-3 px-2.5 py-1 text-[10px]">
           3D 城市路线图 • 距离 1.2 公里
-        </Badge>
+        </OtoBadge>
 
         {/* 底部标签 */}
         <div className="absolute bottom-0 inset-x-0 p-3 flex items-end justify-between">

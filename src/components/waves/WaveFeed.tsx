@@ -84,7 +84,7 @@ function GeoSourceBadge() {
 }
 import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
-import IdentityAvatar from "@/components/ui/IdentityAvatar";
+import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import { toast } from "@/base/platform/toast";
 import { onboardGuide } from "@/base/platform/clientFlags";
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Scale, AlertCircle, Cpu } from 'lucide-react';
+import { Sparkles, Scale, AlertCircle, Cpu, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type OracleState = 'thinking' | 'excited' | 'judge' | 'fallback';
@@ -21,7 +21,7 @@ const stateConfig: Record<OracleState, {
   borderColor: string;
   glowColor: string;
   badgeBg: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
 }> = {
   thinking: {

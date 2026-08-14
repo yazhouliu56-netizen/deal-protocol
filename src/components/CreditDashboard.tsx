@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  Crown, CircleCheck, Lock, Smartphone, Shield,
+  Crown, CircleCheck, Lock, Smartphone, Shield, type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -13,7 +13,7 @@ interface CreditDashboardProps {
   completedOrders?: number
   satisfactionRate?: string
   orderSummary?: Array<{ label: string; value: string; color?: string }>
-  identityItems?: Array<{ label: string; icon: React.ElementType; done: boolean }>
+  identityItems?: Array<{ label: string; icon: LucideIcon; done: boolean }>
   showHeader?: boolean
 }
 

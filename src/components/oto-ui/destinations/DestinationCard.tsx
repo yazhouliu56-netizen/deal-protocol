@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
-import HoloCard, { HoloBoundary } from "@/components/3d/HoloCard";
-import Badge from "@/components/ui/Badge";
+import HoloCard, { HoloBoundary } from "@/components/oto-ui/3d/HoloCard";
+import OtoBadge from "@/components/oto-ui/OtoBadge";
 import { isLowPower } from "@/base/platform/performance";
 import type { OTOExperience } from "@/lib/mockData";
 
@@ -150,7 +150,7 @@ export default function DestinationCard({
             </span>
           </span>
         </div>
-        {item.hasAR && <Badge className="absolute top-2.5 right-2.5">AR</Badge>}
+        {item.hasAR && <OtoBadge className="absolute top-2.5 right-2.5">AR</OtoBadge>}
       </motion.button>
     </motion.div>
   );

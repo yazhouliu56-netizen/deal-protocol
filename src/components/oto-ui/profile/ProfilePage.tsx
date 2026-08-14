@@ -14,12 +14,12 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { usePrefStore } from "@/store/usePrefStore";
 import { PREF_KEYS } from "@/ammo/prefs";
 import { fileToAvatarDataUrl } from "@/base/platform/avatar";
-import IdentityAvatar from "@/components/ui/IdentityAvatar";
+import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";
 import WorkerWorkbench from "./WorkerWorkbench";
 import WalletView from "@/components/waves/WalletView";
-import PushEnableBar from "@/components/ui/PushEnableBar";
+import PushEnableBar from "@/components/oto-ui/PushEnableBar";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
 import MyClaims from "@/components/waves/MyClaims";
 import FriendList from "@/components/waves/FriendList";
@@ -28,7 +28,7 @@ import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { crisisSms, type CrisisLevel } from "@/base/safe/crisis";
 import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
-import DynamicFormView, { type FormField, type FormValues } from "@/components/ui/DynamicFormView";
+import DynamicFormView, { type FormField, type FormValues } from "@/components/oto-ui/DynamicFormView";
 
 /** 紧急联系人登记 schema（ADR-0015 动态表单 N2 接线；SOS 发起时读取）。 */
 const CONTACT_SCHEMA: FormField[] = [

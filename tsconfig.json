@@ -27,7 +27,7 @@
         "./src/ammo/*"
       ],
       "@/store/*": [
-        "./oto-spatial-web/src/store/*"
+        "./src/store/*"
       ],
       "@/*": [
         "./src/*"

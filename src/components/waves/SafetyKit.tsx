@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, ShieldCheck, Gavel, Eye } from "lucide-react";
-import AdminPanel from "@/components/admin/AdminPanel";
+import AdminPanel from "@/components/oto-ui/admin/AdminPanel";
 import RoamGuardPanel from "@/components/waves/RoamGuardPanel";
 
 /**

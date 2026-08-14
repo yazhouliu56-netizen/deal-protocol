@@ -1,31 +1,26 @@
 @import "tailwindcss";
 
-:root {
-  --accent-purple: #7b61ff;
-  --accent-blue: #4b9bff;
-  --accent-cyan: #00f0ff;
-  --accent-magenta: #ff007a;
-  --inlay-bg: rgba(20, 22, 38, 0.55);
-}
-
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ⚠️ D-10 隔离契约：本文件全部自定义样式作用域化到 .oto-app 容器，
+   变量统一 --oto-* 前缀，严禁覆盖根 shadcn 主题变量（--background 等）。
+   @theme 颜色 token（brandPurple/brandCyan）为 oto 独占命名，与根主题无同名冲突，
+   组件以 text-brandCyan/text-brandPurple 类直接消费。 */
 
 @theme {
   --color-brandPurple: #7b61ff;
   --color-brandCyan: #00f0ff;
 }
 
-html,
-body {
+.oto-app {
+  --oto-accent-purple: #7b61ff;
+  --oto-accent-blue: #4b9bff;
+  --oto-accent-cyan: #00f0ff;
+  --oto-accent-magenta: #ff007a;
+  --oto-inlay-bg: rgba(20, 22, 38, 0.55);
+
   overflow: hidden;
   height: 100%;
-}
 
-/* 深色 VisionOS PWA 全局背景：深空靛蓝渐变铺满真实视口 */
-body {
+  /* 深色 VisionOS PWA 全局背景：深空靛蓝渐变铺满真实视口 */
   background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
   color: #ffffff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display",
@@ -34,28 +29,26 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection {
+.oto-app ::selection {
   background: rgba(123, 97, 255, 0.4);
   color: #ffffff;
 }
 
 /* 键盘可达性：金色 focus ring */
-:focus-visible {
-  outline: 2px solid var(--accent-cyan);
+.oto-app :focus-visible {
+  outline: 2px solid var(--oto-accent-cyan);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* 免动效偏好 */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+/* 免动效偏好（局限在 oto 容器内，根全局动效不受影响） */
+.oto-app ::before,
+.oto-app ::after,
+.oto-app * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* 底部安全区工具：给 Dock/工作台留出 Home 指示条空间 */
@@ -428,7 +421,7 @@ body {
 }
 
 /* 隐藏原生滚动条 */
-::-webkit-scrollbar {
+.oto-app ::-webkit-scrollbar {
   display: none;
 }
 

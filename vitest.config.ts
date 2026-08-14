@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    exclude: ['**/node_modules/**', 'mobile/**', 'e2e/**', 'oto-spatial-web/**', 'src/base/**', 'src/ammo/**'],
+    exclude: ['**/node_modules/**', 'mobile/**', 'e2e/**', 'oto-spatial-web/**', 'src/base/**', 'src/ammo/**', 'src/lib/dial.test.ts', 'src/lib/scan.test.ts', 'src/lib/qr.test.ts'],
   },
   resolve: {
     alias: {

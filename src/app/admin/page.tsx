@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useCountUp } from "@/lib/use-count-up"
 import {
-  FileText, Users, ShieldAlert, AlertTriangle, Settings, Scale, Gavel, Clock,
+  FileText, Users, ShieldAlert, AlertTriangle, Settings, Scale, Gavel, Clock, type LucideIcon,
 } from "lucide-react"
 
 interface DashboardStats {
@@ -21,7 +21,7 @@ interface DashboardStats {
 }
 
 function StatCard({ title, value, desc, href, icon: Icon, accent }: {
-  title: string; value: number; desc: string; href: string; icon: React.ElementType; accent: string
+  title: string; value: number; desc: string; href: string; icon: LucideIcon; accent: string
 }) {
   const count = useCountUp(value)
   return (

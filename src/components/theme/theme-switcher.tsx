@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { useTheme, ThemeMode } from './theme-provider';
-import { Palette, Sparkles, ShieldAlert, Laptop } from 'lucide-react';
+import { Palette, Sparkles, ShieldAlert, Laptop, type LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const themes: { id: ThemeMode; name: string; icon: React.ElementType; badgeBg: string }[] = [
+const themes: { id: ThemeMode; name: string; icon: LucideIcon; badgeBg: string }[] = [
   { id: 'cyber-pop', name: '赛博霓虹 (Cyber)', icon: Sparkles, badgeBg: 'from-purple-500 to-pink-500' },
   { id: 'soft-astral', name: '星空工坊 (Astral)', icon: Palette, badgeBg: 'from-blue-400 to-indigo-500' },
   { id: 'tactical-hud', name: '战术终端 (HUD)', icon: ShieldAlert, badgeBg: 'from-emerald-500 to-amber-500' },
