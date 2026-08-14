@@ -16,6 +16,7 @@ import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
 import ShareKit from "./ShareKit";
 import DiagnosisCard from "./DiagnosisCard";
+import AttendancePanel from "./AttendancePanel";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
@@ -327,6 +328,11 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                     {wave.deposit && " · 押金已按位冻结"}
                   </p>
                 )}
+
+              {/* 组织者出勤档案（Meetup 吸收项 ④）：成局后查看成员跨局出勤历史 */}
+              {isOpen && wave.status === "assembled" && (
+                <AttendancePanel wave={wave} />
+              )}
 
               {/* 已接单 → 见面 / 验收 / 违约 + 一次性虚拟线路 */}
               {!isOpen && wave.status === "claimed" && accepted && (
