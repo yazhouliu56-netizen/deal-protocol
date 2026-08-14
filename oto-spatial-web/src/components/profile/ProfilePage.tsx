@@ -19,6 +19,7 @@ import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";
 import WorkerWorkbench from "./WorkerWorkbench";
 import WalletView from "@/components/waves/WalletView";
+import PushEnableBar from "@/components/ui/PushEnableBar";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
 import MyClaims from "@/components/waves/MyClaims";
 import FriendList from "@/components/waves/FriendList";
@@ -386,6 +387,9 @@ export default function ProfilePage({
           </label>
         )}
       </div>
+
+      {/* LAUNCH-GAP E 组：PWA 真推（VAPID 订阅 + 测试发送） */}
+      <PushEnableBar />
 
       {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
       <div className="glass-panel rounded-2xl p-3.5">
