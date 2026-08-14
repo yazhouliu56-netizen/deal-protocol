@@ -43,12 +43,13 @@ import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/base/trust/
 import type { Review } from "@/base/trust/review";
 import type { PayOrder } from "@/base/money/pay";
 import { capturePayOrder, createPayOrder } from "@/base/money/pay";
-import { fissionIncrement, fissionStamp } from "@/base/risk/fission";
+import { fissionStamp } from "@/base/risk/fission";
 import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
 import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, type MoneyAction } from "@/base/safe/ageGate";
+import { addGuest as addGuestLogic, removeGuest as removeGuestLogic, type GuestInfo } from "@/base/order/guest";
 import {
   allocatePair,
   revokeSession,
@@ -317,6 +318,13 @@ interface WaveStore extends WaveBundle {
   ) => void;
   /** Responder walks away. */
   withdraw: (claimId: string) => void;
+  /** 携伴登记（Meetup 吸收项 ⑤）：座位锁定后可登记 1 位携伴，ageGate 合规校验。 */
+  addGuest: (p: {
+    claimId: string;
+    guest: Omit<GuestInfo, "at">;
+  }) => { ok: boolean; error?: string };
+  /** 携伴移除（幂等）。 */
+  removeGuest: (claimId: string, guestIdx: number) => void;
   /** Entire wave = lock negotiation / close manually. */
   closeWave: (waveId: string) => void;
   /**
@@ -1296,6 +1304,38 @@ set((st) => ({
             : st.pushes,
         }));
       },
+
+      addGuest: ({ claimId, guest }) => {
+        const s = get();
+        const claim = s.claims.find((c) => c.id === claimId);
+        if (!claim) return { ok: false, error: "claim-not-found" };
+        // 携伴者年龄合规：<14 无监护人同意 → 拦截（未保法 §72）；
+        // 儿童仅陪同不可参与任何动作（携伴不涉资金，按免费动作 respond 校验）。
+        if (guest.birthYear != null) {
+          const age = ageFromBirthYear(guest.birthYear, new Date().getFullYear());
+          const gate = ageGate({
+            age,
+            action: "respond",
+            guardianConsent: guest.guardianConsent,
+          });
+          if (gate.blocked) {
+            return { ok: false, error: `guest.age-blocked:${gate.reason}` };
+          }
+        }
+        const r = addGuestLogic(claim, guest);
+        if (!r.ok) return { ok: false, error: r.error };
+        set((st) => ({
+          claims: st.claims.map((c) => (c.id === claimId ? r.claim : c)),
+        }));
+        return { ok: true };
+      },
+
+      removeGuest: (claimId, guestIdx) =>
+        set((st) => ({
+          claims: st.claims.map((c) =>
+            c.id === claimId ? removeGuestLogic(c, guestIdx) : c
+          ),
+        })),
 
       submitReport: (p) =>
         set((s) => {

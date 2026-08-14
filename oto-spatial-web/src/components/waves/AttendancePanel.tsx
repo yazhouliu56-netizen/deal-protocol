@@ -40,15 +40,20 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
         const entry = attendanceLedger(claims, waves, [rid])[rid];
         if (!entry) return null;
         const cap = responders.find((r) => r.id === rid);
+        // 携伴登记（Meetup 吸收项 ⑤）：本局该座位的携伴数
+        const guestCount = claims
+          .filter((c) => c.waveId === wave.id && c.responderId === rid)
+          .reduce((n, c) => n + (c.guests?.length ?? 0), 0);
         return {
           ...entry,
+          guestCount,
           nickname:
             rid === identity.id
               ? identity.nickname
               : cap?.nickname ?? rid.slice(0, 6),
         };
       })
-      .filter(Boolean) as Array<{ nickname: string; joinedWaves: number; shown: number; noShows: number; withdrawn: number; waitlisted: number; showRate: number }>;
+      .filter(Boolean) as Array<{ nickname: string; joinedWaves: number; shown: number; noShows: number; withdrawn: number; waitlisted: number; showRate: number; guestCount: number }>;
   }, [wave, claims, waves, responders, identity]);
 
   if (roster.length === 0) return null;
@@ -101,6 +106,11 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
                 {r.waitlisted > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-[9px] font-bold text-amber-300">
                     候补 {r.waitlisted}
+                  </span>
+                )}
+                {r.guestCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/40 text-[9px] font-bold text-brandPurple">
+                    +1 ×{r.guestCount}
                   </span>
                 )}
               </div>

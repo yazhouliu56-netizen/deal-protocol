@@ -22,6 +22,7 @@
 import type { DepositPhase } from "../money/deposit";
 import type { Fulfilment } from "./fulfilment";
 import type { TaskModuleState } from "./moduleFulfilment";
+import type { GuestInfo } from "./guest";
 
 export interface WaveBasics {
   /** Service category, e.g. "厨师 · 上门做饭" / "羽毛球". Hard-filter key. */
@@ -142,6 +143,8 @@ export interface Claim {
   reviewedBy?: string[];
   /** no-show 欠款已结清（解除发波/拼位锁定）。 */
   settled?: boolean;
+  /** 携伴登记（Meetup 吸收项 ⑤：每座最多 1 位，实名 + ageGate 合规 + 电话脱敏）。 */
+  guests?: GuestInfo[];
   createdAt: number;
 }
 

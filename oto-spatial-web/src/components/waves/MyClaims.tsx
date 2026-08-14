@@ -11,6 +11,7 @@ import DialCard from "./DialCard";
 import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
+import { visibleGuests } from "@/base/order/guest";
 
 /**
  * 响应者视角：我接的单（claim story）。
@@ -33,6 +34,8 @@ export default function MyClaims() {
   const reportModuleDone = useWaveStore((s) => s.reportModuleDone);
   const reports = useWaveStore((s) => s.reports);
   const leaveWaitlist = useWaveStore((s) => s.leaveWaitlist);
+  const addGuest = useWaveStore((s) => s.addGuest);
+  const removeGuest = useWaveStore((s) => s.removeGuest);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
   useEffect(() => {
@@ -267,6 +270,15 @@ export default function MyClaims() {
                     <XCircle size={10} /> 让位退出
                   </button>
                 </div>
+              )}
+
+              {/* Meetup 吸收项 ⑤：+1 携伴登记（实名 + ageGate 合规 + 电话脱敏） */}
+              {isLocked && wave.capacity >= 2 && !claim.serviceDoneAt && (
+                <GuestSection
+                  claim={claim}
+                  onAdd={(guest) => addGuest({ claimId: claim.id, guest })}
+                  onRemove={(idx) => removeGuest(claim.id, idx)}
+                />
               )}
 
               {/* 平台治理：举报对方（行为举报 + 处理回执） */}
@@ -544,6 +556,140 @@ function ResponderDispute({ claim }: { claim: Claim }) {
           ? `提出协商：退 ${d.verdict.money.maxPct}% 结案`
           : "接受判定结案"}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Meetup 吸收项 ⑤：+1 携伴登记（实名 + ageGate 合规 + 电话脱敏展示）。
+ * 座位锁定后（开放局）可登记 1 位携伴；展示一律脱敏（宪法 #8）。
+ */
+function GuestSection({
+  claim,
+  onAdd,
+  onRemove,
+}: {
+  claim: Claim;
+  onAdd: (guest: { name: string; birthYear?: number; guardianConsent?: boolean; phone?: string }) => { ok: boolean; error?: string };
+  onRemove: (idx: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(true);
+  const [err, setErr] = useState("");
+  const guests = visibleGuests(claim);
+
+  const submit = () => {
+    setErr("");
+    const r = onAdd({
+      name,
+      ...(birthYear.trim() ? { birthYear: Number(birthYear) } : {}),
+      ...(phone.trim() ? { phone: phone.trim() } : {}),
+      guardianConsent: consent,
+    });
+    if (!r.ok) {
+      setErr(r.error ?? "guest.add-failed");
+      return;
+    }
+    setName("");
+    setBirthYear("");
+    setPhone("");
+    setConsent(true);
+    setOpen(false);
+  };
+
+  return (
+    <div className="rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full px-2.5 py-2 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
+        aria-expanded={open}
+        aria-label="+1 携伴登记"
+      >
+        <span className="text-[9.5px] font-bold text-white/60 flex items-center gap-1.5">
+          👥 +1 携伴
+          {guests.length > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-[9px] text-brandPurple">
+              {guests.length} 位已登记
+            </span>
+          )}
+        </span>
+        <span className="text-[9px] text-brandPurple">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
+      </button>
+      {guests.length > 0 && (
+        <div className="px-2.5 pb-2 flex items-center justify-between gap-2">
+          <p className="text-[9px] text-white/50 truncate">
+            {guests[0].name}
+            {guests[0].birthYear ? ` · ${guests[0].birthYear} 年生` : ""}
+            {guests[0].phoneMask ? ` · ${guests[0].phoneMask}` : ""}
+            {guests[0].birthYear != null &&
+              new Date().getFullYear() - guests[0].birthYear < 14 && (
+                <span className="text-amber-300"> · 监护人同意在册</span>
+              )}
+          </p>
+          <button
+            onClick={() => onRemove(0)}
+            className="shrink-0 text-[9px] font-bold text-white/40 hover:text-amber-400 transition-colors"
+          >
+            移除
+          </button>
+        </div>
+      )}
+      {open && (
+        <div className="px-2.5 pb-2.5 space-y-1.5 border-t border-white/10 pt-2">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="携伴者称呼（必填）"
+            maxLength={12}
+            className="w-full px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/15 text-[10px] placeholder-white/30 focus:outline-none focus:border-brandPurple/60"
+          />
+          <div className="flex gap-1.5">
+            <input
+              value={birthYear}
+              onChange={(e) => setBirthYear(e.target.value)}
+              placeholder="出生年（可填）"
+              inputMode="numeric"
+              maxLength={4}
+              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/15 text-[10px] placeholder-white/30 focus:outline-none focus:border-brandPurple/60"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="联系方式（脱敏展示）"
+              inputMode="tel"
+              maxLength={11}
+              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/15 text-[10px] placeholder-white/30 focus:outline-none focus:border-brandPurple/60"
+            />
+          </div>
+          <label className="flex items-center gap-1.5 text-[9px] text-white/45">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="accent-brandPurple"
+            />
+            携伴者不满 14 周岁已获监护人同意（《未保法》§72）
+          </label>
+          {err && (
+            <p className="text-[9px] font-bold text-red-300/90">
+              {err.includes("age-blocked")
+                ? err.replace("guest.age-blocked:", "拦截：")
+                : err === "guest.limit-reached"
+                  ? "每位拼位者最多携带 1 位携伴"
+                  : "携伴登记失败，请重试"}
+            </p>
+          )}
+          <button
+            onClick={submit}
+            className="w-full py-1.5 rounded-xl bg-brandPurple/20 border border-brandPurple/50 text-[9.5px] font-bold text-brandPurple hover:bg-brandPurple/30 transition-colors"
+          >
+            登记携伴
+          </button>
+        </div>
+      )}
     </div>
   );
 }
