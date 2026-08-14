@@ -51,6 +51,10 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, type MoneyAction } from "@/base/safe/ageGate";
 import { addGuest as addGuestLogic, removeGuest as removeGuestLogic, type GuestInfo } from "@/base/order/guest";
 import {
+  insure as insureLogic,
+  type InsurePolicy,
+} from "@/base/platform/signInsure";
+import {
   allocatePair,
   revokeSession,
   DEMO_POOL,
@@ -172,6 +176,8 @@ export interface WaveBundle {
   lake: LakeRecord[];
   /** ADR-0012：验收签章存根（N7 接线，验收时签名可验签）。 */
   signedDocs: SignedDoc[];
+  /** ADR-0012：履约保险保单（N7 接线：投保扣保费、违约自动理赔）。 */
+  policies: InsurePolicy[];
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }
@@ -351,6 +357,15 @@ interface WaveStore extends WaveBundle {
     toId: string;
     claimId: string;
   }) => { ok: boolean; error?: string };
+  /**
+   * ADR-0012 履约保险（N7）：座位锁定后可投保（保费 = 座价 10%，保额 = 座价，
+   * 幂等；违约 no-show 时自动理赔给需求方）。
+   */
+  insureClaim: (p: {
+    claimId: string;
+    /** 投保人（须为该座位响应者，防代投）。 */
+    initiatorId: string;
+  }) => { ok: boolean; error?: string; policy?: InsurePolicy };
   /** S3 · 收方接受 → 互认好友（幂等重放）。 */
   acceptFriendRequest: (requestId: string) => { accepted: boolean };
   /** S3 · 收方忽略 → 请求移除。 */
@@ -416,6 +431,7 @@ export const useWaveStore = create<WaveStore>()(
       offlineQueue: [],
       lake: [],
       signedDocs: [],
+      policies: [],
       bundleVer: 0,
 
 createPendingWave: (input) => {
@@ -1337,6 +1353,41 @@ set((st) => ({
           ),
         })),
 
+      insureClaim: ({ claimId, initiatorId }) => {
+        const s = get();
+        const claim = s.claims.find((c) => c.id === claimId);
+        if (!claim) return { ok: false, error: "claim-not-found" };
+        if (claim.responderId !== initiatorId) {
+          return { ok: false, error: "insurance.not-holder" };
+        }
+        if (claim.status !== "accepted" && claim.status !== "joined") {
+          return { ok: false, error: "claim.not-locked" };
+        }
+        const wave = s.waves.find((w) => w.id === claim.waveId);
+        if (!wave) return { ok: false, error: "wave-not-found" };
+        const seatPrice = claim.price ?? perSeatPrice(wave);
+        const premium = Math.max(1, Math.round(seatPrice * 0.1));
+        const r = insureLogic(
+          s.policies,
+          wave.id,
+          claim.responderId,
+          premium,
+          seatPrice,
+          Date.now()
+        );
+        if (!r.fresh || !r.policy) {
+          return { ok: false, error: "insurance.duplicate" };
+        }
+        // 保费从投保人钱包扣（本 tab 身份账本）
+        useIdentityStore.getState().book(
+          "insure",
+          -premium,
+          `履约保险投保 · 订单 ${claimId} · 保额 ¥${seatPrice}`
+        );
+        set(() => ({ policies: r.policies }));
+        return { ok: true, policy: r.policy };
+      },
+
       submitReport: (p) =>
         set((s) => {
           const { report } = submitReportLogic(s.reports, p);
@@ -1446,9 +1497,19 @@ set((st) => ({
                   Date.now()
                 )
               );
+            // 履约保险联动（ADR-0012 N7）：breach 时该 holder 的未理赔保单自动理赔
+            // （保额赔付由需求方端 receivePayout 幂等入账，MVP 沙盒资金池模拟）
+            const claimedPolicies = s.policies.map((p) =>
+              !p.claimed &&
+              p.waveId === waveId &&
+              p.holderId === claim.responderId
+                ? { ...p, claimed: true }
+                : p
+            );
             return {
               claims: s.claims.map((c) => (c.id === claimId ? out.breachClaim : c)),
               payOrders: [...compensations, ...s.payOrders],
+              policies: claimedPolicies,
               initiatorBuffs: {
                 ...s.initiatorBuffs,
                 [wave.authorId]: (s.initiatorBuffs[wave.authorId] ?? 0) + out.initiatorBuff,
@@ -1755,6 +1816,7 @@ set((st) => ({
           offlineQueue: [],
           lake: [],
           signedDocs: [],
+          policies: [],
           bundleVer: 0,
         } satisfies WaveBundle),
       },
@@ -1784,6 +1846,7 @@ set((st) => ({
           offlineQueue: s.offlineQueue,
           lake: s.lake,
           signedDocs: s.signedDocs,
+          policies: s.policies,
           bundleVer: s.bundleVer,
         }) as WaveStore,
       // Transport updates handled by module-level subscribe below.

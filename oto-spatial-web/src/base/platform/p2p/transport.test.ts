@@ -45,6 +45,7 @@ function bundle(over: Partial<Parameters<typeof mergeByIdLevel>[0]> = {}) {
     offlineQueue: [],
     lake: [],
     signedDocs: [],
+    policies: [],
     ...over,
   };
 }

@@ -9,7 +9,8 @@ export type LedgerKind =
   | "deposit"
   | "commission"
   | "subscription"
-  | "income";
+  | "income"
+  | "insure";
 
 export interface LedgerEntry {
   id: string;

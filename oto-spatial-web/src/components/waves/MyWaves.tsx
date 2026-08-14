@@ -392,6 +392,7 @@ function acceptedReveal(claim: Claim): BlindRevealData {
  */
 function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const identity = useIdentityStore((s) => s.identity);
+  const policies = useWaveStore((s) => s.policies);
   const submitReport = useWaveStore((s) => s.submitReport);
   const reports = useWaveStore((s) => s.reports);
   const acceptFulfilment = useWaveStore((s) => s.acceptFulfilment);
@@ -413,6 +414,26 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
         demanderId={identity.id}
         lockedAt={claim.createdAt}
       />
+      {/* 履约保险状态（ADR-0012 N7）：响应者投保后可查，违约理赔后显示到账 */}
+      {(() => {
+        const pol = policies.find(
+          (p) => p.waveId === wave.id && p.holderId === claim.responderId
+        );
+        if (!pol) return null;
+        return (
+          <p
+            className={`text-[9px] font-bold px-2.5 py-1.5 rounded-xl border ${
+              pol.claimed
+                ? "bg-cyan-400/10 border-cyan-400/40 text-cyan-300"
+                : "bg-brandPurple/10 border-brandPurple/40 text-brandPurple"
+            }`}
+          >
+            🛡️ 履约保险：{pol.claimed
+              ? `已理赔 ¥${pol.amount}（违约赔付到账）`
+              : `响应者已投保 · 保额 ¥${pol.amount}（违约自动理赔）`}
+          </p>
+        );
+      })()}
       {(() => {
         const myRep = reports.find(
           (r) => r.reporterId === identity.id && r.targetId === claim.responderId
@@ -573,8 +594,19 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
                 settle(claim.id, "unforgiven");
                 moveDeposit(claim.id, "forfeited");
                 receivePayout(claim.id);
+                // 履约保险联动（ADR-0012 N7）：resolveNoShow 已把保单标记 claimed，
+                // 此处理赔金入需求方钱包（幂等）
+                const pol = policies.find(
+                  (p) =>
+                    p.waveId === wave.id &&
+                    p.holderId === claim.responderId &&
+                    p.claimed
+                );
+                if (pol) receivePayout(claim.id, pol.amount, "insurance");
                 setVerdictMsg(
-                  "不谅解 · 扣 ¥30 + 信用降级 + 额度减半，押金 ¥5 赔付到账"
+                  `不谅解 · 扣 ¥30 + 信用降级 + 额度减半，押金 ¥5 赔付到账${
+                    pol ? `，履约保险理赔 ¥${pol.amount} 到账` : ""
+                  }`
                 );
                 setBreachOpen(false);
               }}

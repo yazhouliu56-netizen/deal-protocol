@@ -18,6 +18,70 @@ import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
 import OrganizerBoostCard from "./OrganizerBoostCard";
+import { setGeoSrc, WebGeoSrc, type GeoSrc } from "@/base/geo/geoAdapter";
+
+/** ADR-0015 N16 消费方：Web 真实定位开关（按需授权，降级演示坐标）。 */
+function GeoSourceBadge() {
+  const [state, setState] = useState<"mock" | "granted" | "denied" | "asking">(
+    "mock"
+  );
+  const [src, setSrc] = useState<GeoSrc | null>(null);
+  const [tooltip, setTooltip] = useState("");
+
+  const enable = async () => {
+    setState("asking");
+    const web = new WebGeoSrc();
+    const p = await web.current();
+    if (p) {
+      setGeoSrc(web);
+      setSrc(web);
+      setState("granted");
+      setTooltip(`浏览器定位已启用 · ${p.lat.toFixed(3)}, ${p.lng.toFixed(3)}`);
+    } else {
+      setState("denied");
+      setTooltip("未授权或定位不可用，保持演示坐标");
+    }
+  };
+
+  if (src) {
+    return (
+      <span
+        data-geo-src="web"
+        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-400/12 border border-emerald-400/35 text-[9px] font-bold text-emerald-300 cursor-help"
+        title={tooltip}
+      >
+        📍 真实定位
+      </span>
+    );
+  }
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[9px] font-bold text-white/40"
+      title={
+        state === "denied"
+          ? tooltip
+          : "未启用浏览器定位时使用演示坐标（隐私优先，按需授权）"
+      }
+    >
+      {state === "asking" ? (
+        "📍 请求定位中…"
+      ) : state === "denied" ? (
+        "📍 定位未授权 · 演示坐标"
+      ) : (
+        <>
+          📍 演示坐标
+          <button
+            onClick={enable}
+            className="ml-0.5 text-brandCyan hover:text-brandCyan/80 transition-colors"
+            aria-label="启用浏览器定位"
+          >
+            启用 ›
+          </button>
+        </>
+      )}
+    </span>
+  );
+}
 import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
 import IdentityAvatar from "@/components/ui/IdentityAvatar";
@@ -145,6 +209,7 @@ export default function WaveFeed() {
 
       {/* 顶部条：身份 + 在线开关 + 发布 */}
       <div className="flex items-center gap-2.5">
+        <GeoSourceBadge />
         <IdentityAvatar />
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-extrabold text-white/95 truncate leading-tight">

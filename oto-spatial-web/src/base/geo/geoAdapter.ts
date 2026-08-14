@@ -39,6 +39,56 @@ export class MockGeoSrc implements GeoSrc {
   }
 }
 
+/**
+ * Web 真实定位实现（ADR-0015 N16 消费方）：navigator.geolocation 封装。
+ * 未授权/超时/无能力 → current() 返回 null（调用方降级到 mock/演示坐标，
+ * 宪法 #10：壳即降级，永不裸奔）。同源 geocode 与 Mock 一致（web 无系统地理编码）。
+ */
+export class WebGeoSrc implements GeoSrc {
+  readonly platform = "web" as const;
+  private cached: GeoPoint | null = null;
+  private dead = false;
+
+  async current(): Promise<GeoPoint | null> {
+    if (this.cached) return this.cached;
+    if (this.dead || typeof navigator === "undefined" || !navigator.geolocation) {
+      return null;
+    }
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 8000,
+          maximumAge: 60_000,
+        });
+      });
+      const p: GeoPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      this.cached = p;
+      return p;
+    } catch {
+      this.dead = true;
+      return null;
+    }
+  }
+
+  async permission(): Promise<"granted" | "denied" | "undetermined"> {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return "denied";
+    try {
+      const status = await navigator.permissions.query({ name: "geolocation" });
+      if (status.state === "granted") return "granted";
+      if (status.state === "denied") return "denied";
+      return "undetermined";
+    } catch {
+      return (await this.current()) ? "granted" : "undetermined";
+    }
+  }
+
+  async geocode(name: string): Promise<GeoPoint | null> {
+    const { geoFromName } = await import("./geo.ts");
+    const origin = (await this.current()) ?? { lat: 30.57, lng: 104.06 };
+    return name ? geoFromName(name, origin) : null;
+  }
+}
+
 /** 统一入口：mobile location.ts 应接线到 setGeoSrc；web 默认 mock。 */
 let src: GeoSrc = new MockGeoSrc();
 

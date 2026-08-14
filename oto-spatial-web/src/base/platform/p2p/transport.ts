@@ -165,6 +165,12 @@ export function mergeByIdLevel(
     offlineQueue: baseOver.offlineQueue,
     lake: baseOver.lake,
     signedDocs: baseOver.signedDocs,
+    // 保单键是 waveId+holderId（同 holder 可跨局各保一份）：按保单 id 去重合并且
+    // 本地侧（base）最新状态优先（理赔标记 claimed 不可被 stale 快照回退）。
+    policies: byId(
+      [...(base.policies ?? [])],
+      [...(next.policies ?? [])]
+    ).sort((a, b) => a.issuedAt - b.issuedAt),
     circuitBreaker: baseOver.circuitBreaker,
   };
 }

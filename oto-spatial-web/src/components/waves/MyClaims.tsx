@@ -281,6 +281,11 @@ export default function MyClaims() {
                 />
               )}
 
+              {/* ADR-0012 履约保险（N7）：投保 ¥X · 违约自动理赔给需求方 */}
+              {isLocked && !claim.serviceDoneAt && (
+                <InsureBar claim={claim} wave={wave} />
+              )}
+
               {/* 平台治理：举报对方（行为举报 + 处理回执） */}
               {isLocked &&
                 (() => {
@@ -690,6 +695,57 @@ function GuestSection({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * ADR-0012 履约保险（N7）：座位锁定后可投保（保费 = 座价 10%，保额 = 座价）。
+ * 投保扣保费走本人钱包账本；违约 no-show 时保单自动理赔给需求方。
+ */
+function InsureBar({ claim, wave }: { claim: Claim; wave: Wave }) {
+  const policies = useWaveStore((s) => s.policies);
+  const insureClaim = useWaveStore((s) => s.insureClaim);
+  const identity = useIdentityStore((s) => s.identity);
+  const [msg, setMsg] = useState("");
+  const pol = policies.find(
+    (p) => p.waveId === wave.id && p.holderId === claim.responderId
+  );
+  const seatPrice = claim.price ?? 0;
+
+  if (pol) {
+    return (
+      <p
+        className={`text-[9px] font-bold px-2.5 py-1.5 rounded-xl border ${
+          pol.claimed
+            ? "bg-cyan-400/10 border-cyan-400/40 text-cyan-300"
+            : "bg-brandPurple/10 border-brandPurple/40 text-brandPurple"
+        }`}
+      >
+        🛡️ 履约保险：{pol.claimed
+          ? `已理赔 ¥${pol.amount}（违约赔付已给需求方）`
+          : `保单有效 · 保费 ¥${pol.premium} · 保额 ¥${pol.amount}`}
+      </p>
+    );
+  }
+  const premium = Math.max(1, Math.round(seatPrice * 0.1));
+  return (
+    <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-2.5">
+      <p className="text-[9px] text-white/35 mb-1.5">
+        🛡️ 履约保险：投保 ¥{premium} · 违约自动赔需求方 ¥{seatPrice}
+        （护航出勤承诺，双方安心）
+      </p>
+      <button
+        onClick={() => {
+          setMsg("");
+          const r = insureClaim({ claimId: claim.id, initiatorId: identity.id });
+          if (!r.ok) setMsg("投保失败（可能已投保或座位未锁定）");
+        }}
+        className="w-full py-1.5 rounded-xl bg-brandPurple/15 border border-brandPurple/50 text-[9.5px] font-bold text-brandPurple hover:bg-brandPurple/25 transition-colors"
+      >
+        投保履约保险
+      </button>
+      {msg && <p className="text-[9px] font-bold text-red-300/90 mt-1">{msg}</p>}
     </div>
   );
 }

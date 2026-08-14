@@ -87,8 +87,8 @@ interface IdentityState {
   recalcCredit: (reviews: Review[]) => void;
   /** Idempotent 鸽子险 accounting driven by the shared claim phase. */
   syncDeposit: (claimId: string, phase: DepositPhase, amount?: number) => void;
-  /** Idempotent payout received (demander side, breach unforgiven). */
-  receivePayout: (claimId: string, amount?: number) => void;
+  /** Idempotent payout received (demander side, breach unforgiven / 履约险理赔). */
+  receivePayout: (claimId: string, amount?: number, kind?: "deposit" | "insurance") => void;
   /** 通用入账：竞价佣金/订阅扣款/服务收益走同一账本（负数出、正数进）。 */
   book: (kind: LedgerEntry["kind"], amount: number, note: string) => void;
 }
@@ -264,9 +264,19 @@ export const useIdentityStore = create<IdentityState>()(
           };
         }),
 
-      receivePayout: (claimId, amount = 5) =>
+      receivePayout: (claimId, amount = 5, kind = "deposit") =>
         set((s) => {
-          if (s.ledger.some((e) => e.kind === "payout" && e.note.includes(claimId))) {
+          // 幂等键 = kind + claimId：鸽子险赔付与履约险理赔互不覆盖
+          const noteKey =
+            kind === "insurance" ? "履约保险理赔到账" : "鸽子险赔付到账";
+          if (
+            s.ledger.some(
+              (e) =>
+                e.kind === "payout" &&
+                e.note.includes(noteKey) &&
+                e.note.includes(claimId)
+            )
+          ) {
             return {} as Partial<IdentityState>;
           }
           const now = Date.now();
@@ -274,7 +284,7 @@ export const useIdentityStore = create<IdentityState>()(
             id: `ledger-${now.toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
             kind: "payout",
             amount,
-            note: `鸽子险赔付到账 · 订单 ${claimId}`,
+            note: `${noteKey} · 订单 ${claimId}`,
             at: now,
           };
           return {
