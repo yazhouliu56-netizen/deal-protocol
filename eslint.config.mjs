@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".opencode/**",
+    "oto-spatial-web/**",
+    "mobile/**",
+    "src/base/**",
+    "src/ammo/**",
   ]),
 ]);
 

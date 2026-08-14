@@ -8,7 +8,7 @@ import {
   ORIGIN,
   PRICE_BANDS,
 } from "./destFilter.ts";
-import { otoExperiences } from "../../lib/mockData.ts";
+import { otoExperiences } from "../../../oto-spatial-web/src/lib/mockData.ts";
 
 test("priceOf: parses comma + yuan", () => {
   assert.equal(priceOf("¥2,280/晚"), 2280);

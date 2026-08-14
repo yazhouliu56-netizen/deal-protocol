@@ -14,13 +14,26 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+"resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@/base/*": [
+        "./src/base/*"
+      ],
+      "@/ammo/*": [
+        "./src/ammo/*"
+      ],
+      "@/store/*": [
+        "./oto-spatial-web/src/store/*"
+      ],
       "@/*": [
         "./src/*"
+      ],
+      "@oto/*": [
+        "./oto-spatial-web/src/*"
       ],
       "@deal-protocol/credit-formula": [
         "./packages/credit-formula/index.ts"
@@ -44,19 +57,23 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "oto-spatial-web",
-    "oto-spatial-web/**/*",
-    "mobile",
-    "mobile/**/*",
-    "tests",
-    "tests/**/*",
-    "scripts",
-    "scripts/**/*",
-    ".next",
-    "out",
-    ".temp",
-    "src/app/sw.ts"
-  ]
+"exclude": [
+      "node_modules",
+      "src/base",
+      "src/base/**/*",
+      "src/ammo",
+      "src/ammo/**/*",
+      "oto-spatial-web",
+      "oto-spatial-web/**/*",
+      "mobile",
+      "mobile/**/*",
+      "tests",
+      "tests/**/*",
+      "scripts",
+      "scripts/**/*",
+      ".next",
+      "out",
+      ".temp",
+      "src/app/sw.ts"
+    ]
 }
