@@ -9,12 +9,16 @@
 
 **Deal Protocol** 是一个基于 **Next.js (App Router)** + **Supabase Realtime** + **React Native (Expo)** 构建的高可靠去中心化需求撮合、资金托管与订单履约协议平台。项目集成了全双工实时状态同步、严谨的状态机控制、仲裁举证链以及自动化 CI/CD 端到端（E2E）回归测试门禁。
 
+> **单体架构（ADR-0018 单仓深度融合竣工）**：原 `oto-spatial-web/` 子项目已完全并入本仓库（base/ammo 共享底座、5-provider AI Gateway、`/oto` 5 屏空间应用、PWA 真推），仓库为单一 npm workspace 应用。
+
 ---
 
 ## 📖 目录 (Table of Contents)
 
-- [🚀 核心四大业务主线](#-核心四大业务主线)
+- [🚀 核心业务主线](#-核心业务主线)
+- [🧭 访问入口（协议前端 / OTO 空间应用）](#-访问入口协议前端--oto-空间应用)
 - [⚡ Supabase Realtime 实时架构](#-supabase-realtime-实时架构)
+- [🤖 5-Provider AI Gateway](#-5-provider-ai-gateway)
 - [📁 项目目录结构](#-项目目录结构)
 - [🛠️ 本地开发环境配置](#️-本地开发环境配置)
 - [🧪 自动化测试与 CI/CD 门禁](#-自动化测试与-cicd-门禁)
@@ -22,7 +26,7 @@
 
 ---
 
-## 🚀 核心四大业务主线
+## 🚀 核心业务主线
 
 本平台采用严谨有限状态机 (FSM) 驱动，涵盖需求生命周期的四大核心业务环节：
 
@@ -56,6 +60,15 @@
 
 ---
 
+## 🧭 访问入口（协议前端 / OTO 空间应用）
+
+| 入口 | 路由 | 说明 |
+| :--- | :--- | :--- |
+| 协议前端（主应用） | `/` 及 `/demands` `/orders` `/disputes` `/finance` 等 | 需求广场、撮合、履约、仲裁、财务全链路（47+ 页面） |
+| **OTO 空间应用** | `/oto` | 5 屏沉浸式空间交互 SPA（home / AI 对话 / AR 预览 / 行程 / 个人中心），Zustand 驱动 + PWA 离线兜底 |
+
+---
+
 ## ⚡ Supabase Realtime 实时架构
 
 为了在 Web 端与 Mobile 端实现毫秒级的状态无感更新，平台在 Supabase 数据库层为 **6 大核心表** 启用了 CDC (Change Data Capture) 实时发布（`supabase/migrations/018_enable_realtime.sql` + `015_notifications_system.sql`）：
@@ -77,30 +90,40 @@
 
 ---
 
+## 🤖 5-Provider AI Gateway
+
+LLM 调度统一收敛至 `src/base/ai/gateway/`（ADR-0005）：provider 表驱动（GEMINI / ZHIPU / DASHSCOPE / GROQ / OPENROUTER）+ 任务路由 + 配额 + 429 冷却 + 降级链。语音链（`/api/asr`、`/api/tts`、`/api/voice-intent`）与 waves 对话（`/api/waves/chat`）均由 Gateway 承载。
+
+---
+
 ## 📁 项目目录结构
 
 ```
 deal-protocol/
-├── src/                      # Web 端应用主目录 (Next.js App Router)
-│   ├── app/                  # 业务路由 (需求广场、履约页、仲裁页、财务仪表盘)
-│   ├── components/           # UI 视图组件与响应式布局
+├── src/                      # 单体应用主目录 (Next.js App Router)
+│   ├── app/                  # 业务路由 (需求广场/履约/仲裁/财务 + oto/)
+│   │   ├── oto/              # OTO 5 屏空间应用 (SPA + 独立 layout/PWA)
+│   │   └── api/              # 105+ API 路由 (含 /api/gateway /api/asr /api/push/*)
+│   ├── base/                 # 共享底座九域 (ai/comm/dispatch/form/geo/money/notify/order/platform/risk/safe/trust)
+│   ├── ammo/                 # 弹药属性表 (dispatch-rule/risk-rule/pricing-formula/sop/scene-template...)
+│   ├── store/                # Zustand 状态机 (useWaveStore 等 7 store)
+│   ├── components/           # UI 组件 (waves/ 协议域 + oto-ui/ 空间域 + ui/ shadcn)
 │   ├── hooks/                # Supabase Realtime 订阅自定义 Hooks
 │   ├── lib/                  # Supabase Client 初始化与状态机工具库
 │   ├── modules/              # 领域模块 (Modular Monolith: m02-m14)
 │   └── types/                # database.types.ts 数据库强类型契约
 ├── mobile/                   # 移动端子工程 (React Native / Expo) - TypeScript 隔离
-├── supabase/migrations/      # 数据库迁移脚本 (001-018 + 日期化补丁)
+├── supabase/migrations/      # 数据库迁移脚本 (001-018 + 日期化补丁 + p2p_broadcast)
 ├── packages/                 # 内部共享包 (payment-core / credit-formula)
-├── scripts/                  # 自动化脚本目录
-│   └── verify-e2e-flow.ts    # 四大主线全量 E2E 数据库实测回归脚本
-├── tests/                    # Vitest 单元/集成测试 (43 个文件)
+├── scripts/                  # 自动化脚本 (e2e-*.mjs ×12 / verify-prod / dev-all / generate-vapid ...)
+├── tests/                    # Vitest 单元/集成测试 (426 tests)
 ├── e2e/                      # Playwright E2E 测试 (full-flow / dispute-flow / new-features / production-smoke)
-├── docs/                     # 架构/方案/ADR 文档
+├── docs/                     # 架构/方案/ADR/宪法/收敛登记文档
 ├── .github/workflows/        # GitHub Actions CI/CD 流水线配置
-│   ├── ci.yml                # 类型检查 + 部署冒烟
+│   ├── ci.yml                # 类型检查 + 全量测试 + 生产冒烟
 │   └── db-migration.yml      # 数据库迁移自动推送
-├── tsconfig.json             # 根 TypeScript 配置 (已排除 mobile/tests/scripts/oto-spatial-web)
-└── package.json              # 项目依赖与运行脚本
+├── tsconfig.json             # 根 TypeScript 配置 (已排除 mobile/tests/scripts)
+└── package.json              # 项目依赖与运行脚本 (npm workspaces: mobile + packages/*)
 ```
 
 ---
@@ -118,7 +141,7 @@ deal-protocol/
 cp .env.example .env.local
 ```
 
-`.env.example` 中已按业务分组（Supabase / LLM / SMS / 支付渠道 / 推送 / SOS / 实名 / Cron / PII 加密）列出全部键位及说明；`.env.local` 不会提交到版本库。
+`.env.example` 中已按业务分组（Supabase / LLM / Gateway 5-provider / SMS / 支付渠道 / 推送 VAPID / SOS / 实名 / Cron / PII 加密）列出全部键位及说明；`.env.local` 不会提交到版本库。
 
 ### 3. 安装依赖与启动服务
 
@@ -130,7 +153,7 @@ npm ci
 npm run dev
 ```
 
-打开浏览器访问 http://localhost:3000 即可开始开发。
+打开浏览器访问 http://localhost:3000 即可开始开发；**OTO 空间应用**访问 http://localhost:3000/oto 。
 
 ---
 
@@ -138,17 +161,30 @@ npm run dev
 
 项目建立了健全的本地与云端自动化质量校验体系。
 
+### 测试基线（单仓融合终态）
+
+| 指标 | 数量 |
+| :--- | :--- |
+| 单元测试（vitest 根 426 + node:test 425） | **851** |
+| E2E 脚本（`scripts/e2e-*.mjs`，playwright-core 驱动） | **12** |
+| API 路由（`src/app/api/**/route.ts`） | **105+** |
+| 页面（协议前端 + OTO 5 屏） | **47 + 5 屏** |
+| 组件（waves + oto-ui + ui） | **100+** |
+
 ### 本地测试命令
 
 ```bash
-# 1. 执行全量 TypeScript 类型检查 (不含 mobile / scripts / oto-spatial-web 子目录干扰)
+# 1. 执行全量 TypeScript 类型检查 (不含 mobile / tests / scripts 子目录干扰)
 npx tsc --noEmit
 
-# 2. 执行 Vitest 单元/集成测试
+# 2. 执行全量单元测试 (vitest 426 + node:test 425，一键 851 全绿)
 npm test
 
-# 3. 执行四大主线 E2E 端到端真实数据库回归测试
+# 3. 执行全量生产回归 (build → start :3000 → 12 条 E2E)
 npm run test:verify
+
+# 4. 收敛门禁 (结构改动 rename 登记核查)
+npm run check:convergence
 ```
 
 ### GitHub Actions CI/CD 流水线 (ci.yml)
@@ -156,8 +192,9 @@ npm run test:verify
 每次向 `master` 分支推送代码或提交 PR 时，GitHub Actions 会自动触发以下校验流程：
 
 1. **Node.js 22 环境构建**：启用原生 WebSocket 引擎。
-2. **TypeScript 静态检查** (`npx tsc --noEmit`)：由于根目录 `tsconfig.json` 已排除 `mobile/`、`tests/`、`scripts/` 与 `oto-spatial-web/`，能够干净无误地进行 Web 源码类型校验。
-3. **Vercel 部署冒烟测试**：当 Vercel 部署状态变为 `success` 时，自动对线上环境执行 Playwright 冒烟测试（`e2e/production-smoke.spec.ts`），通过 `BASE_URL` 指向实际部署地址。
+2. **TypeScript 静态检查** (`npx tsc --noEmit`)：排除 `mobile/`、`tests/`、`scripts/` 后干净校验 Web 源码。
+3. **全量单元测试**：`npm test`（851 tests）+ `npm run lint`。
+4. **生产构建 + E2E 全链**：`next build` → `next start :3000` → 12 条 `e2e-*.mjs` 全量回归。
 
 另有 `db-migration.yml`：当 `supabase/migrations/` 有变更推送至 `main` 分支时，自动执行 `supabase db push` 同步云端数据库。
 

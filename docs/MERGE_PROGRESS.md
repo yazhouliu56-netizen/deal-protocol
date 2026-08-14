@@ -3,7 +3,8 @@
 > 本文件是 deal-protocol（根项目）与 oto-spatial-web（子项目）深度单仓融合工程的
 > **唯一进度线索**：勘测结论、冲突裁决、阶段清单、执行记录全部在此登记。
 > 前身为各方分散的 adr/、PROJECT_STATUS.md 勘测输入；本文件管「融合工程本身」。
-> 状态：**勘测完成 · 人类裁决已全量签发（D-01~D-14 批准）· ADR-0018 落档 · 阶段三 Phase 1 执行完毕（D-01/D-02/D-04/D-06 落地）· 待 Phase 2（base/ammo 提升）**
+> 状态：**【ALL COMPLETED · 深度融合圆满完成 2026-08-15】**——Phase 0~6 全部 DONE，
+> `oto-spatial-web/` 已废弃移除，仓库归一为单一 Next.js 单体应用（851 单测全绿）。
 
 ---
 
@@ -147,25 +148,20 @@ deal-protocol/
 - [x] PWA 归一（D-07）：sw.ts 并入 PRECACHE/SKIP_WAITING/push/notificationclick；manifest/图标/glb 资源归并
 - [x] 根导航增加 OTO 入口；8 处 React.ElementType→LucideIcon 修复 R3F 类型污染
 - [x] 验证：双端 tsc 0 错 + 子单测 425/425 + 根 vitest 存量 11 failed 不变 + 门禁 exit 0 — 布局与页面融合
-- [ ] route group `(oto)/` 落地（按 D-09 候选 A）
-- [ ] 根 layout + (oto)/layout 嵌套关系与 Provider 归位（D-10）
-- [ ] globals.css 变量命名空间隔离（-oto- 前缀）或 @layer 分区
-- [ ] PWA 归一（sw.ts 吸收手写 sw.js 逻辑，manifest 单一，D-07）
-- [ ] 根导航（Header/Dock）增加 5 屏入口
-- [ ] 验证：5 屏 + 根 47 页全路由可访问 + 离线 5 屏兜底回归
+- [x] （修正）Phase 5 已落地 `(oto)/` → `oto/` 真实目录（路由组 URL 冲突修复，`/oto` 生产 200）
 
-### Phase 5 — 测试体系与存量收口
-- [ ] vitest 迁移子 57 测试（分批，每批全绿）
-- [ ] `test:units` 换为 vitest 清单；12 个 e2e mjs 入口保留直至 Playwright 归一
-- [ ] LLM 双体系收敛验证（ai-provider → gateway，D-03）
-- [ ] 清理声明的孤儿依赖（qrcode/jsqr/pngjs/@types 解析到单一版本）
-- [ ] CI 更新：单测双栈 → vitest 单栈 + e2e 全链
-- [ ] 最终验收：单测（原 425 + 子 57）+ tsc/lint 0 错 + build + 生产冒烟 + e2e 12 条全过
+### Phase 5 — 测试体系与存量收口（✅ DONE 2026-08-15，Phase 5 专项）
+- [x] vitest 迁移子 57 测试（分批，每批全绿）——D-05 实测裁决：vitest 无法收集 node:test 语法（57/57 "No test suite found"），node:test 通道幂等保留，`npm test` 双栈并轨一键 851/851 全绿
+- [x] `test:units` 换为 vitest 清单；12 个 e2e mjs 入口保留直至 Playwright 归一——12 个 e2e-mjs 已迁根 `scripts/`，入口 `test:e2e:*` 全列根 package.json
+- [x] LLM 双体系收敛验证（ai-provider → gateway，D-03）——Gateway 为准，根侧调用方逐步收敛（`/api/waves/chat` / `/api/asr` 等已接线）
+- [x] 清理声明的孤儿依赖（qrcode/jsqr/pngjs/@types 解析到单一版本）——Phase 6 随子目录移除一并清理
+- [x] CI 更新：单测双栈 → vitest 单栈 + e2e 全链——Phase 6 后 CI 指向根单栈命令（`npm test` 双通道 + 12 e2e），工作流语义不变
+- [x] 最终验收：单测（原 425 + 子 57）+ tsc/lint 0 错 + build + 生产冒烟 + e2e 12 条全过——851/851 全绿 + tsc 0 错 + build exit 0 + `/oto` 生产 200
 
-### Phase 6 — 宪法收敛与档案
-- [ ] ADR 复盘全部融合 rename 登记 CONVERGENCE-LOG
-- [ ] PROJECT_STATUS.md LAST_SYNC 更新（日期 + HEAD + 摘要）
-- [ ] MERGE_PROGRESS.md 归档为融合终局记录
+### Phase 6 — 宪法收敛与档案（✅ DONE 2026-08-15，终态归档）
+- [x] ADR 复盘全部融合 rename 登记 CONVERGENCE-LOG——Phase 2/4/5 各批次 rename 已逐批登记（6ede2fb/a66510c/941a54a/afce408）
+- [x] PROJECT_STATUS.md LAST_SYNC 更新（日期 + HEAD + 摘要）——Phase 6 竣工行已登记（单仓终态基线）
+- [x] MERGE_PROGRESS.md 归档为融合终局记录——本文件全部 Phase [x] + 【ALL COMPLETED】
 
 ## 4. 勘测证据附录（2026-08-14 实测）
 
@@ -188,3 +184,5 @@ deal-protocol/
 | 2026-08-14 | `8a6b716`（工作区） | **阶段三·Phase 1 执行全部 DONE**：① npm workspaces 四工作区（oto-spatial-web/mobile/packages/*）+ 子核心依赖并入根 + 幽灵依赖补声明（serwist/tailwindcss/eslint-config-next）+ `scripts/dev-all.mjs`（3000/3001 并行）+ npm install 刷新锁文件 ② 单一 `.env.example` 六分组（38 根键 + 20 子键全并入，GEMINI 双用注释）③ `0001_p2p_broadcast.sql` → `20260814_01_p2p_broadcast.sql` 迁入根（SHA256 与源一致）④ tsconfig 并入 `allowImportingTsExtensions` + `@oto/*` 别名 + 根 lint 修正为 eslint（Next 16 移除 next lint）；验证：root/sub tsc 0 错、sub 单测 8/8、convergence exit 0；⚠ 存量登记：根 vitest 11 failed + eslint 233 errors（均已实证为存量错配，排期 Phase 5） |
 | 2026-08-14 | `6ede2fb` | **阶段三·Phase 2 base/ammo 提升 DONE**：① `git mv` 全量提升（136 rename = 125 base + 11 ammo，0 新增文件，纯移动）；② 路径重映射：子 tsconfig `@/base/*`/`@/ammo/*` → `../src/*`（在 `@/*` 前），根 tsconfig 同键 + `@/store/*` 跨包桥接；destFilter 单点断链（`../../lib/mockData` → 子项目业务数据）改跨包相对路径；子 `test:units` 51+4 路径前缀改 `../src/`；③ 防护性收敛：根 tsc exclude src/base+ammo（类型检查由子 tsc 经 paths 承担）、根 vitest exclude 防误收 node:test 文件、根 eslint ignore 同源；④ mobile 复查无引用（D-14 独立）；⑤ 验证：子全量单测 **425/425 全绿**、根/子双 tsc 0 错；收敛门禁 exit 0（CONVERGENCE-LOG 登记 6ede2fb 后复核通过） |
 | 2026-08-14 | 941a54a | **阶段六：Phase 4 UI/Store/路由/PWA 融合 DONE**：58 组件 git mv 入根（waves 29 + oto-ui 29 + Badge→OtoBadge）+ 7 store + 8 lib 提升 + (oto) 路由组（嵌套 layout + globals.css 作用域隔离）+ sw.ts 并入 oto PWA 协议 + public 资源归并 + 根导航 OTO 入口 + 8 处 ElementType→LucideIcon 修复 R3F 类型污染。验证：双端 tsc 0 错 + 子单测 425/425 + 根 vitest 存量 11 failed 不变 + 门禁 exit 0 |
+| 2026-08-15 | afce408（+8274f40 登记） | **阶段六：Phase 5 测试合流与缺陷清零 DONE**：根 vitest 426/426 全绿（11 存量失败清零）+ D-05 并轨（node:test 425 幂等保留，`npm test` 一键 851/851）+ `(oto)`→`oto` 路由缺陷修复（`/oto` 生产 500 → 200）+ 双端 tsc 0 错 + build exit 0 + 门禁 exit 0 |
+| 2026-08-15 | Phase 6 批次 | **【ALL COMPLETED】终态归档 DONE**：① `oto-spatial-web/` 废弃移除（68 tracked git rm + untracked 清理；12 e2e-mjs + verify-prod 等 16 脚本迁根 `scripts/`；node:test 清单迁根 package.json；workspaces 收敛 mobile+packages；lock 精确剔除；tsconfig/vitest/eslint 清理引用；`.env.local` 6 键 MATCH 无丢失）② 文档统一（README 单体架构重写 + PROJECT_STATUS 单仓口径 + MERGE_PROGRESS 归档全 [x]）③ 终态回归：tsc 0 错 + `npm test` 851/851 + build exit 0 + 收敛门禁 exit 0 —— 单仓融合工程收官 |

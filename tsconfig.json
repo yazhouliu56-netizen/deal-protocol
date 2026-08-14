@@ -32,9 +32,6 @@
       "@/*": [
         "./src/*"
       ],
-      "@oto/*": [
-        "./oto-spatial-web/src/*"
-      ],
       "@deal-protocol/credit-formula": [
         "./packages/credit-formula/index.ts"
       ],
@@ -63,8 +60,6 @@
       "src/base/**/*",
       "src/ammo",
       "src/ammo/**/*",
-      "oto-spatial-web",
-      "oto-spatial-web/**/*",
       "mobile",
       "mobile/**/*",
       "tests",
