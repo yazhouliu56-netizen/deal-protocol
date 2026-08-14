@@ -87,7 +87,7 @@ export default function VoiceInput({ onProtocolExtracted }: VoiceInputProps) {
       const formData = new FormData()
       formData.append("rawText", transcript)
 
-      const res = await fetch("/api/ai/asr", {
+      const res = await fetch("/api/asr", {
         method: "POST",
         body: formData,
       })

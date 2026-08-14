@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ─── Test 1: ASR route returns correct HTTP error for bad input ──
 
-describe('Dimension 3 - /api/ai/asr route', () => {
+describe('Dimension 3 - /api/asr route', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('POST /api/ai/asr returns 400 when no input provided', async () => {
-    const { POST } = await import('@/app/api/ai/asr/route')
-    const req = new Request('http://localhost:3000/api/ai/asr', { method: 'POST', body: new FormData() })
+  it('POST /api/asr returns 400 when no input provided', async () => {
+    const { POST } = await import('@/app/api/asr/route')
+    const req = new Request('http://localhost:3000/api/asr', { method: 'POST', body: new FormData() })
     const res = await POST(req)
     expect(res.status).toBe(400)
     const body = await res.json()
@@ -17,14 +17,14 @@ describe('Dimension 3 - /api/ai/asr route', () => {
     expect(body.error).toContain('No input')
   })
 
-  it('POST /api/ai/asr returns 500 when AI provider fails', async () => {
+  it('POST /api/asr returns 500 when AI provider fails', async () => {
     vi.mock('@/lib/ai-provider', () => ({
       getAIModel: vi.fn(() => { throw new Error('API key not configured') }),
     }))
-    const { POST } = await import('@/app/api/ai/asr/route')
+    const { POST } = await import('@/app/api/asr/route')
     const fd = new FormData()
     fd.append('rawText', '需要一名保洁阿姨')
-    const res = await POST(new Request('http://localhost:3000/api/ai/asr', { method: 'POST', body: fd }))
+    const res = await POST(new Request('http://localhost:3000/api/asr', { method: 'POST', body: fd }))
     expect(res.status).toBe(500)
     const body = await res.json()
     expect(body.success).toBe(false)

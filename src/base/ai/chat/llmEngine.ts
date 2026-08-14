@@ -221,7 +221,7 @@ export class LlmEngine implements ChatEngine {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30000);
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/waves/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller.signal,
