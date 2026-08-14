@@ -15,7 +15,7 @@
 | 活跃周期 | 2026-08-03 初始化（独立于父项目历史） |
 | 主 LLM | Zhipu GLM-4.7-Flash（zhipu→gemini→mock 三层降级链） |
 | LLM Gateway | ✅ ADR-0005：provider 表单一来源（gemini/zhipu/qwen/groq/openrouter 五行，补 key 即扩容）+ per-provider 配额（独立串行/间隔/429 冷却/健康分沉底）+ 按任务路由（chat→Gemini 首选；voice-intent/cluster/decompose/diagnose→智谱 JSON 稳定首选）+ /api/gateway 统一入口 + 五路由全部薄层化（含 cluster/decompose/diagnose 手写链收敛） |
-| 架构 | 5 屏(home/ai/ar/trip/profile) · 3 API(chat/cluster/decompose) · 核心状态机 `useWaveStore.ts`(36KB) · waves 组件 15 个 |
+| 架构 | 5 屏(home/ai/ar/trip/profile) · 11 API(chat/cluster/decompose/diagnose/gateway/judge/asr/tts/voice-intent/push×2) · 核心状态机 `useWaveStore.ts`(36KB) · waves 组件 29 个 |
 
 ## 二、阶段定义
 
@@ -45,7 +45,7 @@
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
 | P3 真实地图 | ⏳ 待办（先数据化 lat/lng → Leaflet+OSM 免费接入，见「六」） | |
-| P4 Supabase 化 | ⚠️ 仅 `p2p_broadcast` 单表实时广播 | |
+| P4 Supabase 化 | ⚠️ 仅 `p2p_broadcast` 单表实时广播；**本地无 ANON key 时 transport 自动降级为 local**（同设备多 tab 仍可用，见 `base/platform/p2p/transport.ts`） | |
 | P5 PWA 深化 | ✅ 已实测验证：`deviceMemory=2` 降级生效（DPR 锁 1/粒子减半）+ 离线全流程 5 屏可浏览 + lounge.glb 预缓存命中 |
 | P1-P7 waves 撮合闭环 | ✅ `11f703e`（P2P 广播/磋商/鸽子险/评价/治理/信任，6 E2E 进 CI） | |
 | 开放局/拼位 Open Match | ✅ `44aabe2`（拼位/满员成局/人均价，3 tab E2E） | |
@@ -76,7 +76,7 @@
 | 单测 | **389/389 全绿**（`npm run test:units`） |
 | Lint | ESLint exit 0（0 errors；存量 warning 在 scripts/ 非组件） |
 | TypeScript | tsc 全绿（根 + 子项目） |
-| E2E 脚本 | 13 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance） |
+| E2E 脚本 | 12 个就绪；**CI 挂 11 条**（match/app/wave/review/push/fulfil/governance/trust/openmatch/trustopen/acceptance；offline 本地跑） |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音） |
 | 语音链路实测 | ⚠️ 部分：voice-intent 真 LLM 识别 / IDB 留存 / 无麦克风降级 ✅；**录音→ASR 真链留待真机验证**（本机无麦克风）；**TTS 已真实出声链路 ✅ 2026-08-11：GLM 429（余额不足）→ edge-tts 兜底实测合成 mp3 17.4KB（audio/mpeg），双链全灭才落 speechSynthesis** |
 | 生产服务器 | ✅ 运行中（pid 8084，端口 3000，HTTP 200，`restart-prod.mjs`） |
@@ -176,5 +176,6 @@
 | 2026-08-14 | 已推（ef4bac5） | **库储备接线批次 C（ADR-0012 N7 履约保险 + ADR-0015 N16 WebGeoSrc 真实定位）**：① **履约保险接线**——signInsure `insure`/`claim` 纯函数从库储备变生产消费方：store 新增 `policies`（WaveBundle 字段：接口 + partialize 持久化 + transport merge 按 id 合并且本地优先防 claimed 回退 + removeItem 兜底 + transport.test fixture 同步）+ `insureClaim` action（仅本人座位可投保、claim 锁定校验、保费 = 座价 10% 幂等、保费走 `book("insure", -premium)` 本人钱包账本——LedgerKind 增补 "insure"）；resolveNoShow 违约自动理赔（breach 时 holder 未理赔保单标 claimed）；UI：MyClaims InsureBar（投保/保单有效/已理赔三态）、MyWaves LockedSeatFlow 保单徽章 + 「不谅解」handler 理赔入账（`receivePayout` 幂等键重构为 kind+claimId——修复鸽子险与履约险同 claim 互斥跳过的缺陷）+ verdictMsg 联动文案；实测：投保 -¥5 账本 ✓ → 保单跨 tab 同步 ✓ → 「未到场」resolveNoShow 自动标 claimed ✓ → 裁决不谅解 **「履约保险理赔到账 +¥50」入账且鸽子险 +¥5 不重复** ✓ ② **WebGeoSrc**——geoAdapter 新增真实定位实现（navigator.geolocation 封装：8s 超时/拒绝 → current() null 降级 mock，宪法 #10 永不裸奔）+ WaveFeed 顶部 GeoSourceBadge（按需授权「启用 ›」/已授权「📍 真实定位」/拒绝「定位未授权 · 演示坐标」三态，实测授权拒绝 → 降级态正确流转）；单测 420→**425 全绿**（+5 signInsure）、tsc/lint/build 通过 | |
 | 2026-08-14 | 已推（e4b5607） | **P8 线上化 · PWA 真推（LAUNCH-GAP E 组 2/3，表待建）**：web-push@3.6.7 依赖 + VAPID 密钥对生成脚本（`scripts/generate-vapid.mjs` 幂等写 root/.env.local）+ sw.js 注入 push 渲染/notificationclick 聚焦/pushsubscriptionchange 重订阅三事件 + PushEnableBar 客户端（授权 → pushManager.subscribe → /api/push/subscribe 后端幂等 upsert by endpoint + 「发送测试」调 send API；表未配置/权限拒绝/订阅失败分态文案）+ /api/push/subscribe（Supabase upsert，表缺失映射 501 push-table-not-configured 降级）+ /api/push/send（web-push VAPID 签名发送，410/404 自动清理失效订阅）+ 迁移 `20260814_push_subscriptions.sql`（endpoint UNIQUE + RLS + service_role 授权 + delete RPC）；**.env.local 服务端 env 供给打通**（Next 不读 root/.env.local——API 服务端密钥须放 oto-spatial-web/.env.local，gitignore 保护）；实测：env 注入 ✓、subscribe API 通到「表不存在」✓、501 降级 ✓；**阻塞：Supabase 建表**——MGMT_TOKEN 401 失效 / DB 密码直连失败 / 无 exec_sql RPC，用户裁决「表先不建本地降级」，待管理员在 SQL Editor 执行迁移后即可用（代码侧全链路就绪） | |
 | 2026-08-14 | `ae3f764` | 对齐审计回填：PROJECT_STATUS 状态列全量对齐 git 实况（8-10~8-14 全部批次标记为已推并回填 commit——此前 20 余行「待提交/未推」实为文档滞后，代码早已推送：ADR-0016 双行→97d1381/619a332、审计补记→7c1bfae、Meetup 对标 21a0a10/裁决 a982d67、ADR-0017→fda4f0d、批次 B→3f762f0、waitlist 8fe344c/出勤 a95ec5b/guest 65b6113、批次 C→ef4bac5、PWA→e4b5607、ADR-0006→7754884 链、宪法定稿→e19f3d8、N1-N16→4da1c5e、lint ee4ea35/扫码本地三件 3e84982）；实测 c4899f3/ee4ea35/3e84982 均在 origin/master；git 实况 ↔ 文档完全对齐（唯一遗留 = 88 行历史说明） | |
-| 2026-08-14 | 待提交 | **e2e 全量回归（12/12 PASS）+ 契约漂移修复**：`scripts/e2e-*.mjs` 全量跑通（app/match/wave/openmatch/review/push/fulfil/governance/trust/trust-open/acceptance/offline）；修复 4 类 e2e↔近期 UI 契约漂移（非功能回归）：① 8b8cfc4 发布表单「更多选项」折叠 → 9 脚本发布前展开（含 trust-open `publishOpen` 函数、acceptance 场景 B 二次展开）② 「在线 · 正在接收信号」文案 →「正在接收信号」（UI 批次后状态点+短文案）③ `getByLabel("我的")` 子串歧义（命中「我的报价」input）→ `{ exact: true }` ④ 「🚫 未到场」按钮按 aria-label「标记未到场」匹配（aria 优先，原 🚫 文案匹配自始为 0）；另 2 处 reload 等待 networkidle → domcontentloaded（上游 LLM 流式响应慢时 networkidle 永不达成，headless 实测网络 1s 静默、无循环请求）；单测 **425 全绿**（基线复验）、tsc/lint/build 通过 | |
+| 2026-08-14 | 已推（5439439） | **e2e 全量回归（12/12 PASS）+ 契约漂移修复**：`scripts/e2e-*.mjs` 全量跑通（app/match/wave/openmatch/review/push/fulfil/governance/trust/trust-open/acceptance/offline）；修复 4 类 e2e↔近期 UI 契约漂移（非功能回归）：① 8b8cfc4 发布表单「更多选项」折叠 → 9 脚本发布前展开（含 trust-open `publishOpen` 函数、acceptance 场景 B 二次展开）② 「在线 · 正在接收信号」文案 →「正在接收信号」（UI 批次后状态点+短文案）③ `getByLabel("我的")` 子串歧义（命中「我的报价」input）→ `{ exact: true }` ④ 「🚫 未到场」按钮按 aria-label「标记未到场」匹配（aria 优先，原 🚫 文案匹配自始为 0）；另 2 处 reload 等待 networkidle → domcontentloaded（上游 LLM 流式响应慢时 networkidle 永不达成，headless 实测网络 1s 静默、无循环请求）；单测 **425 全绿**（基线复验）、tsc/lint/build 通过 | |
+| 2026-08-14 | 5439439（文档同步修复批次·待提交） | **文档/外围同步修复（三方审计收口）**：README.md 重写（五 provider Gateway 架构 + 任务路由/降级链 + 环境变量表 + PWA 推送配置指南，旧路径 `lib/chat/llmDirective.ts`/`lib/match.ts` 修正为 base/ 实际路径）；新建 `.env.example`（全 10+ env 键分组注释 + 必填/降级语义；`.gitignore` 补 `!.env.example` 例外）；LAUNCH-GAP.md E 组更新（LLM 聚类推送标已真实化、推送渠道标「✔ 代码侧全链路就绪 e4b5607，阻塞=建表」）；架构口径修正（11 API / E2E 12 个 / P4 补 ANON key 本地降级说明）；CONVERGENCE-LOG ADR-0016 登记回填 `97d1381`+`619a332`；清理 `.bak-20260808` 残留 ×2；单测 **425 全绿**（复验）、收敛门禁 exit 0 | |
 

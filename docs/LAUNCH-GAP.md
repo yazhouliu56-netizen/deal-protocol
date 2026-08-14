@@ -44,10 +44,11 @@
 
 | 项 | 现状 |
 |---|---|
-| LLM 聚类推送 | 本地 MockEngine 降级；真线上用 LLM key + 失败降级 |
+| LLM 聚类推送 | ✅ 已真实化（`21c4e0e` 起）：cluster 进 Gateway 五 provider 链（zhipu→gemini→…→mock 降级），不再依赖单一 MockEngine |
 | 地图瓦片 | OpenFreeMap 需在线（离线报 AJAXError，已从 E2E 过滤） |
 | 支付 | 本地模拟收银台；线上接三方 |
-| 短信/推送渠道 | 无；线上接 SMS/推送服务 |
+| SMS | 无；线上接 SMS 服务 |
+| PWA 真推送（web-push） | ✔ **代码侧全链路就绪（`e4b5607`）**：VAPID 密钥脚本 + sw.js 三事件 + 订阅/发送 API + 迁移 `../supabase/migrations/20260814_push_subscriptions.sql`；**阻塞项 = 数据库建表**（表未建时 501 降级，管理员在 Supabase SQL Editor 执行迁移后即通） |
 
 ## 验收口径
 
