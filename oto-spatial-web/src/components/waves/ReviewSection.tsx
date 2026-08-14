@@ -3,7 +3,14 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
-import { createReview, decayLabel, type ReviewDimensions } from "@/base/trust/review";
+import {
+  REVIEW_EXPLANATION_THRESHOLD,
+  createReview,
+  decayLabel,
+  explanationRequired,
+  meanScore,
+  type ReviewDimensions,
+} from "@/base/trust/review";
 import type { Claim, Wave } from "@/base/order/wave";
 import FriendKit from "./FriendKit";
 
@@ -27,6 +34,7 @@ export default function ReviewSection({
   const [open, setOpen] = useState(false);
   const [score, setScore] = useState(5);
   const [comment, setComment] = useState("");
+  const [explainError, setExplainError] = useState(false);
   const [now] = useState(() => Date.now());
   const [dims, setDims] = useState<ReviewDimensions>({
     punctual: 5,
@@ -42,7 +50,15 @@ export default function ReviewSection({
   );
   if (!claim.fulfilledAt) return null;
 
+  /** 入库评分 = 三维均值（与 createReview 一致）；低分强制解释按此判据。 */
+  const finalScore = Math.round(meanScore(dims) * 10) / 10;
+  const lowScore = finalScore <= REVIEW_EXPLANATION_THRESHOLD;
+
   function submit() {
+    if (explanationRequired(finalScore, comment)) {
+      setExplainError(true);
+      return;
+    }
     addReview(
       createReview({
         id: `review-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -139,12 +155,26 @@ export default function ReviewSection({
           </div>
           <textarea
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="说两句（脱敏展示）"
+            onChange={(e) => {
+              setComment(e.target.value);
+              if (e.target.value.trim()) setExplainError(false);
+            }}
+            placeholder={
+              lowScore
+                ? `必填：${finalScore} 分评价需说明理由（防恶意差评）`
+                : "说两句（脱敏展示）"
+            }
             aria-label="评价留言"
             rows={2}
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-[10.5px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 resize-none"
+            className={`w-full rounded-xl bg-white/[0.05] border px-2.5 py-2 text-[10.5px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 resize-none ${
+              explainError ? "border-red-400/70" : "border-white/10"
+            }`}
           />
+          {explainError && (
+            <p className="text-[9px] font-bold text-red-300">
+              ⚠️ {REVIEW_EXPLANATION_THRESHOLD} 星及以下的低分评价必须填写理由
+            </p>
+          )}
           <button
             onClick={submit}
             className="w-full py-2 rounded-xl btn-primary text-[10px] font-bold glow-purple-strong flex items-center justify-center gap-1"

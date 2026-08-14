@@ -39,6 +39,16 @@ export interface Review {
 
 export const REVIEW_WINDOW_MS = 72 * 60 * 60 * 1000;
 export const DEFAULT_REVIEW_SCORE = 4.5;
+/** 低分阈值：≤ 此分值必须填写理由（防恶意差评 + 提信息量，对标 Meetup 吸收项③）。 */
+export const REVIEW_EXPLANATION_THRESHOLD = 3;
+
+/**
+ * 低分强制解释：评分 ≤ 阈值且未填写任何理由时返回 true（提交前拦截门）。
+ * 理由 = 去除首尾空白后非空的文案。
+ */
+export function explanationRequired(score: number, comment?: string): boolean {
+  return score <= REVIEW_EXPLANATION_THRESHOLD && !(comment ?? "").trim();
+}
 
 export function meanScore(d: ReviewDimensions): number {
   return (d.punctual + d.attitude + d.professional) / 3;

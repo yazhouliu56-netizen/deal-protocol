@@ -2,10 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   REVIEW_WINDOW_MS,
+  REVIEW_EXPLANATION_THRESHOLD,
   createReview,
   creditFromReviews,
   dailyQuotaForTier,
   decayLabel,
+  explanationRequired,
   meanScore,
   reviewDeadline,
   reviewDue,
@@ -67,4 +69,24 @@ test("dailyQuotaForTier expands at Lv 4+ (响应额度扩容)", () => {
   assert.equal(dailyQuotaForTier(3), 5);
   assert.equal(dailyQuotaForTier(4), 8);
   assert.equal(dailyQuotaForTier(5), 8);
+});
+
+test("explanationRequired: 低分（≤3 星）无理由必须拦截", () => {
+  assert.equal(REVIEW_EXPLANATION_THRESHOLD, 3);
+  assert.equal(explanationRequired(3), true);
+  assert.equal(explanationRequired(2.5), true);
+  assert.equal(explanationRequired(1), true);
+  assert.equal(explanationRequired(3, "   "), true);
+});
+
+test("explanationRequired: 低分但写了任意非空白理由即放行", () => {
+  assert.equal(explanationRequired(3, "迟到了 20 分钟"), false);
+  assert.equal(explanationRequired(1, "无"), false);
+  assert.equal(explanationRequired(2, "不值得"), false);
+});
+
+test("explanationRequired: 3 分以上不需要理由", () => {
+  assert.equal(explanationRequired(3.1), false);
+  assert.equal(explanationRequired(4.5), false);
+  assert.equal(explanationRequired(5, ""), false);
 });
