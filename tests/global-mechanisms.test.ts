@@ -12,6 +12,7 @@ vi.mock("@/lib/payment", () => ({
 
 vi.mock("@/lib/contract-machine", () => ({
   addContractEvent: vi.fn(),
+  getNextFundStatus: vi.fn().mockReturnValue("REFUNDING"),
 }))
 
 vi.mock("@/modules/m07-credit/credit-engine", () => ({
@@ -74,6 +75,8 @@ describe("Mechanism 1: SLA Enforcer", () => {
     const mod = await import("@/lib/supabase-client")
     getSupabase = vi.mocked(mod.getSupabase)
     getSupabase.mockReturnValue({ from: vi.fn((t: string) => t === 'contracts' ? cChain : oChain) } as unknown as ReturnType<typeof getSupabase>)
+    const mod2 = await import("@/lib/supabase-client")
+    vi.mocked(mod2.getServiceClient).mockReturnValue({ from: vi.fn((t: string) => t === 'contracts' ? cChain : oChain) } as unknown as ReturnType<typeof mod2.getServiceClient>)
   })
 
   it("detects overdue ACCEPTED stage and enforces breach penalty", async () => {
@@ -84,6 +87,8 @@ describe("Mechanism 1: SLA Enforcer", () => {
     oChain.__setData({
       data: [{ id: "order-1", service_phase: "ACCEPTED", created_at: twoHoursAgo, updated_at: twoHoursAgo }],
     })
+    vi.mocked(oChain.single).mockResolvedValue({ data: { service_phase: "ACCEPTED" }, error: null })
+    vi.mocked(cChain.single).mockResolvedValue({ data: { fund_status: "HELD" }, error: null })
 
     const { checkAndEnforceSLA } = await import("@/lib/sla-enforcer")
     const results = await checkAndEnforceSLA()

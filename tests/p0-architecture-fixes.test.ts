@@ -277,15 +277,26 @@ describe('MilestoneCheckpoint', () => {
     const { confirmMilestoneCheckpoint } = await import('@/lib/milestone-escrow')
     const mockUpdate = vi.fn().mockReturnThis()
     const mockEq = vi.fn().mockReturnThis()
+    const chain = {
+      update: mockUpdate,
+      eq: mockEq,
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { id: 'ms-2', contract_id: 'ct-1', title: 'T', amount: 100, step_number: 1 },
+        error: null,
+      }),
+      insert: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'log-1' }, error: null }),
+    }
     const mockSupabase = {
-      from: vi.fn(() => ({ update: mockUpdate, eq: mockEq })),
+      from: vi.fn(() => chain),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
     __setServiceClient(mockSupabase as any)
 
     const result = await confirmMilestoneCheckpoint('ms-2')
     expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledWith({ status: 'completed', auto_confirm_at: null })
+    expect(mockUpdate).toHaveBeenCalledWith({ status: 'completed', completed_at: expect.any(String), auto_confirm_at: null })
     expect(mockEq).toHaveBeenCalledWith('id', 'ms-2')
 
     __resetServiceClient()
@@ -327,20 +338,15 @@ describe('MilestoneCheckpoint', () => {
       { id: 'c1', contract_id: 'ct-1', title: 'Step 1', amount: 100 },
       { id: 'c2', contract_id: 'ct-1', title: 'Step 2', amount: 200 },
     ]
-    const mockUpdate = vi.fn().mockReturnThis()
-    const mockEq = vi.fn().mockReturnThis()
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockResolvedValue({ data: expiredRows, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'log-1' }, error: null }),
+    }
     const mockSupabase = {
-      from: vi.fn((table: string) => {
-        if (table === 'milestone_schedules') {
-          return {
-            select: vi.fn().mockReturnThis(),
-            eq: vi.fn().mockReturnThis(),
-            lte: vi.fn().mockResolvedValue({ data: expiredRows, error: null }),
-            update: mockUpdate,
-          }
-        }
-        return { select: vi.fn().mockResolvedValue({ data: [], error: null }) }
-      }),
+      from: vi.fn(() => chain),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
     __setServiceClient(mockSupabase as any)

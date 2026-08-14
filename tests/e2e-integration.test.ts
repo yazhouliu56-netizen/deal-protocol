@@ -16,6 +16,8 @@ vi.mock('../src/modules/m07-credit/credit-engine', () => ({
   updateCredit: vi.fn(),
   getCreditScore: vi.fn(),
   isColdStart: vi.fn(),
+  getNewbornProtectionFactor: vi.fn().mockReturnValue(1.0),
+  getWeekendMultiplier: vi.fn().mockReturnValue(1.0),
 }))
 vi.mock('../src/lib/track-metric', () => ({
   trackMetric: vi.fn(),

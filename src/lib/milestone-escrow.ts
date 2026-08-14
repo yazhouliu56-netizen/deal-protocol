@@ -188,6 +188,7 @@ export async function confirmMilestoneCheckpoint(
     .update({
       status: 'completed',
       completed_at: new Date().toISOString(),
+      auto_confirm_at: null,
     })
     .eq('id', checkpointId)
     .eq('status', 'submitted')

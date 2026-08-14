@@ -22,6 +22,10 @@ vi.mock('../src/lib/supabase-client', () => {
     (p as Record<string, unknown>).eq = () => eqResult;
     (p as Record<string, unknown>).lte = () => lteResult;
     (p as Record<string, unknown>).limit = () => limitResult;
+    (p as Record<string, unknown>).order = () => chain;
+    (p as Record<string, unknown>).insert = () => insertResult;
+    (p as Record<string, unknown>).single = () => singleResult;
+    (p as Record<string, unknown>).maybeSingle = () => maybeSingleResult;
     return p;
   };
 
@@ -34,21 +38,29 @@ vi.mock('../src/lib/supabase-client', () => {
     data: [{ summary: '历史清扫纠纷判例', ruling_principle: '按完工比例退款' }],
     error: null,
   });
+  const insertResult = chainable({ data: null, error: null });
+  const singleResult = chainable({
+    data: { id: 'ckpt-1', contract_id: 'c-1', title: '上门检测', amount: 50, step_number: 1 },
+    error: null,
+  });
+  const maybeSingleResult = chainable({ data: null, error: null });
 
   const chain: Record<string, unknown> = {
     from: () => chain,
     select: () => chain,
     update: () => chain,
-    insert: () => chain,
+    insert: () => insertResult,
     eq: () => eqResult,
     lte: () => lteResult,
     limit: () => limitResult,
-    single: () => chain,
+    single: () => singleResult,
+    maybeSingle: () => maybeSingleResult,
     order: () => chain,
   };
 
   return {
     getServiceClient: () => chain,
+    getSupabase: () => chain,
     __setServiceClient: (() => undefined) as unknown,
     __resetServiceClient: (() => undefined) as unknown,
   };

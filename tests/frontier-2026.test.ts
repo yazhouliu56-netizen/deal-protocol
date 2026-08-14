@@ -53,11 +53,11 @@ describe('AINegotiator', () => {
   it('returns fallback midpoint when API unavailable', async () => {
     const { proposeCounterOffer } = await import('@/lib/ai-negotiator')
     const result = await proposeCounterOffer({
-      userBudget: 200,
-      providerExpectedPrice: 250,
-      categorySlug: 'cleaning',
-      description: 'Full apartment cleaning service',
-    })
+      currentBudget: 200,
+      proposedPrice: 250,
+      category: 'cleaning',
+      demandTitle: 'Full apartment cleaning service',
+    } as any)
     expect(result.success).toBe(true)
     expect(result.counterPrice).toBeGreaterThanOrEqual(200)
     expect(result.counterPrice).toBeLessThanOrEqual(250)
@@ -68,11 +68,11 @@ describe('AINegotiator', () => {
   it('returns fallback when both values are equal', async () => {
     const { proposeCounterOffer } = await import('@/lib/ai-negotiator')
     const result = await proposeCounterOffer({
-      userBudget: 300,
-      providerExpectedPrice: 300,
-      categorySlug: 'repair',
-      description: 'Fix leaking pipe',
-    })
+      currentBudget: 300,
+      proposedPrice: 300,
+      category: 'repair',
+      demandTitle: 'Fix leaking pipe',
+    } as any)
     expect(result.success).toBe(true)
     expect(result.counterPrice).toBe(300)
   })
@@ -80,22 +80,22 @@ describe('AINegotiator', () => {
   it('returns error when budget is 0', async () => {
     const { proposeCounterOffer } = await import('@/lib/ai-negotiator')
     const result = await proposeCounterOffer({
-      userBudget: 0,
-      providerExpectedPrice: 100,
-      categorySlug: 'test',
-      description: 'test',
-    })
+      currentBudget: 0,
+      proposedPrice: 100,
+      category: 'test',
+      demandTitle: 'test',
+    } as any)
     expect(result.success).toBe(false)
   })
 
   it('returns error when expected price is 0', async () => {
     const { proposeCounterOffer } = await import('@/lib/ai-negotiator')
     const result = await proposeCounterOffer({
-      userBudget: 100,
-      providerExpectedPrice: 0,
-      categorySlug: 'test',
-      description: 'test',
-    })
+      currentBudget: 100,
+      proposedPrice: 0,
+      category: 'test',
+      demandTitle: 'test',
+    } as any)
     expect(result.success).toBe(false)
   })
 
