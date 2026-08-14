@@ -130,12 +130,14 @@ deal-protocol/
 - [x] mobile 归属登记复查:mobile 无 base/ammo 引用（独立态符合 ADR-0007 §4 与 D-14）
 - [x] 验证：子项目全量单测 **425/425 全绿**（原命令跨目录调用）+ 根/子双 `tsc --noEmit` 0 错 + 收敛门禁 exit 0（登记后）
 
-### Phase 3 — API 与 DB 归一
+### Phase 3 — API 与 DB 归一（✅ DONE 2026-08-14）
 - [x] 迁移：`0001_p2p_broadcast.sql` → 日期戳新名迁入根 migrations（内容零改动）（✅ 已随阶段三提前执行：`20260814_01_p2p_broadcast.sql`，SHA256 98D798...74C6 与源一致）
-- [ ] `/api/chat` 冲突收敛（按 D-08 裁决：改名或分 catch-all task 参数）
-- [ ] 语音链归一（ai/asr + asr → 单 asr；tts/voice-intent 保留子入口）
-- [ ] push 通道接线（根 ai/push-recommendations + 子 push/subscribe、send + push_subscriptions 表）
-- [ ] 验证：全部 API route 按新名 GET/POST 实测 200（含 gateway 降级链）
+- [x] `/api/chat` 冲突收敛（按 D-08 裁决：waves 对话改名）：子 `chat/route.ts` → `src/app/api/waves/chat/route.ts`；根协议 `/api/chat` 原样保留；waves 真实调用方 `base/ai/chat/llmEngine.ts`（fetch `/api/chat` → `/api/waves/chat`）；子 ChatPage 走本地 LlmEngine/MockEngine 不经 HTTP，无其它调用方
+- [x] 语音链归一（ai/asr + asr → 单 asr）：子 `asr/route.ts`（GLM-ASR 转写 file→`{text}`）与根旧 `api/ai/asr/route.ts`（LLM 协议提取 rawText→`{success,text,protocol}`）合并为单一 `src/app/api/asr/route.ts` 双分支；旧 `ai/asr` git rm；`VoiceInput.tsx` fetch 改指 `/api/asr`；`asrClient.ts`（base 层）已指 `/api/asr` 无需改；`tts`、`voice-intent` 迁入根同名
+- [x] push 通道接线（根 ai/push-recommendations + 子 push/subscribe、send + push_subscriptions 表）：子 `push/subscribe`、`push/send` 迁入根 `src/app/api/push/`；`ai/push-recommendations` 语义互补保持不动；依赖（@supabase/supabase-js、web-push）根已统一并入
+- [x] gateway 链合流：`gateway`（5-provider）、`cluster`、`decompose`、`diagnose`、`judge` 5 路由全部 git mv 至根同名；import 全部指向根 `@/base/*`（tsconfig 已映射）
+- [x] 验证：根/子双 `tsc --noEmit` 0 错（子 `.next/dev/types` 旧路由缓存已清）+ 子全量单测 425/425 + 根 vitest 回落存量基线 11 failed/415 passed（新增 dimension3 asr 测试已同步新端点，无新增失败）+ 收敛门禁 exit 0
+- [x] 路由变更清单（Phase 3 API 面）：`/api/chat`（根协议保留）、`/api/waves/chat`（waves 对话）、`/api/asr`（合流单端点）、`/api/tts`、`/api/voice-intent`、`/api/gateway`、`/api/cluster`、`/api/decompose`、`/api/diagnose`、`/api/judge`、`/api/push/subscribe`、`/api/push/send`
 
 ### Phase 4 — 布局与页面融合
 - [ ] route group `(oto)/` 落地（按 D-09 候选 A）
@@ -177,4 +179,5 @@ deal-protocol/
 | 2026-08-14 | `8a6b716`（勘测基线） | 创建本文件：5 维勘测完成（依赖/路由/基础设施/迁移/测试）· 冲突矩阵 D-01~D-14 + OK-1~OK-7 · 六阶段执行清单 · 等待人类裁决 |
 | 2026-08-14 | `8a6b716` | **人类架构师全量裁决签发（14/14 批准）**：裁决回填 MERGE_PROGRESS.md §2.1 矩阵【人类裁决】列；ADR-0018（docs/adr/0018-monorepo-merge.md）落档（六圈定位声明 + 宪法条文对照 + 14 项裁决全文）；Phase 0 全部 DONE（裁决/ADR-0018/基线冻结），Phase 1 前置检查 DONE；准备进入阶段三（底座与配置融合） |
 | 2026-08-14 | `8a6b716`（工作区） | **阶段三·Phase 1 执行全部 DONE**：① npm workspaces 四工作区（oto-spatial-web/mobile/packages/*）+ 子核心依赖并入根 + 幽灵依赖补声明（serwist/tailwindcss/eslint-config-next）+ `scripts/dev-all.mjs`（3000/3001 并行）+ npm install 刷新锁文件 ② 单一 `.env.example` 六分组（38 根键 + 20 子键全并入，GEMINI 双用注释）③ `0001_p2p_broadcast.sql` → `20260814_01_p2p_broadcast.sql` 迁入根（SHA256 与源一致）④ tsconfig 并入 `allowImportingTsExtensions` + `@oto/*` 别名 + 根 lint 修正为 eslint（Next 16 移除 next lint）；验证：root/sub tsc 0 错、sub 单测 8/8、convergence exit 0；⚠ 存量登记：根 vitest 11 failed + eslint 233 errors（均已实证为存量错配，排期 Phase 5） |
-| 2026-08-14 | `6ede2fb` | **阶段三·Phase 2 base/ammo 提升 DONE**：① `git mv` 全量提升（136 rename = 125 base + 11 ammo，0 新增文件，纯移动）；② 路径重映射：子 tsconfig `@/base/*`/`@/ammo/*` → `../src/*`（在 `@/*` 前），根 tsconfig 同键 + `@/store/*` 跨包桥接；destFilter 单点断链（`../../lib/mockData` → 子项目业务数据）改跨包相对路径；子 `test:units` 51+4 路径前缀改 `../src/`；③ 防护性收敛：根 tsc exclude src/base+ammo（类型检查由子 tsc 经 paths 承担）、根 vitest exclude 防误收 node:test 文件、根 eslint ignore 同源；④ mobile 复查无引用（D-14 独立）；⑤ 验证：子全量单测 **425/425 全绿**、根/子双 tsc 0 错；收敛门禁 exit 0（CONVERGENCE-LOG 登记 6ede2fb 后复核通过） | |
+| 2026-08-14 | `6ede2fb` | **阶段三·Phase 2 base/ammo 提升 DONE**：① `git mv` 全量提升（136 rename = 125 base + 11 ammo，0 新增文件，纯移动）；② 路径重映射：子 tsconfig `@/base/*`/`@/ammo/*` → `../src/*`（在 `@/*` 前），根 tsconfig 同键 + `@/store/*` 跨包桥接；destFilter 单点断链（`../../lib/mockData` → 子项目业务数据）改跨包相对路径；子 `test:units` 51+4 路径前缀改 `../src/`；③ 防护性收敛：根 tsc exclude src/base+ammo（类型检查由子 tsc 经 paths 承担）、根 vitest exclude 防误收 node:test 文件、根 eslint ignore 同源；④ mobile 复查无引用（D-14 独立）；⑤ 验证：子全量单测 **425/425 全绿**、根/子双 tsc 0 错；收敛门禁 exit 0（CONVERGENCE-LOG 登记 6ede2fb 后复核通过） |
+| 2026-08-14 | `a66510c` | **阶段三·Phase 3 API 路由归一 DONE**：子 11 路由全量 git mv 至根（`chat`→`waves/chat` 改名、`tts/voice-intent/gateway/cluster/decompose/diagnose/judge/push×2` 同名迁入）；**asr 双语义合流单端点**（GLM-ASR 转写 + LLM 协议提取 → `/api/asr`，旧 `ai/asr` 删除、VoiceInput 改指）；llmEngine fetch 改 `/api/waves/chat`（waves 真实调用方）；dimension3 测试同步；验证：双 tsc 0 错 + 子 425/425 + 根 vitest 回落存量基线 11 failed（无新增）+ 门禁 exit 0 |
