@@ -23,9 +23,13 @@ export default function WaveCard({
   joinedByMe,
   requested,
   requestedByMe,
+  waitlistedByMe,
+  waitlistPos,
+  waitlistCount,
   onClaim,
   onJoin,
   onRequestJoin,
+  onWaitlist,
 }: {
   wave: Wave;
   /** Real claim count for this wave. */
@@ -38,10 +42,18 @@ export default function WaveCard({
   requested?: number;
   /** 审批制开放局：我是否已提交申请（待审批）。 */
   requestedByMe?: boolean;
+  /** 开放局：我是否在候补队列。 */
+  waitlistedByMe?: boolean;
+  /** 开放局：我的候补排队位置（1 起）。 */
+  waitlistPos?: number;
+  /** 开放局：当前候补人数。 */
+  waitlistCount?: number;
   onClaim: (p: { price: number; note?: string }) => { error?: string } | void;
   onJoin?: () => void;
   /** 审批制开放局：提交拼位申请。 */
   onRequestJoin?: () => void;
+  /** 开放局：满员后进入候补队列。 */
+  onWaitlist?: () => void;
 }) {
   const identity = useIdentityStore((s) => s.identity);
   const submitReport = useWaveStore((s) => s.submitReport);
@@ -58,7 +70,8 @@ export default function WaveCard({
   const needsApproval = !!wave.needApproval;
   const needed = neededJoiners(wave);
   const ownSeat = joinedByMe || committed;
-  const full = (joined ?? 0) >= needed;
+  // 已成局（assembled）不再直接拼位 —— 一律走候补等让位（Meetup waitlist）
+  const full = (joined ?? 0) >= needed || wave.status === "assembled";
 
   const recommend = useMemo(
     () => suggestedPrice(wave.budget, wave.customs.length),
@@ -142,7 +155,14 @@ export default function WaveCard({
               )}
             </span>
             <span className="text-brandPurple font-bold">
-              {full ? "已满员" : `还差 ${needed - (joined ?? 0)} 人成局`}
+              {wave.status === "assembled"
+                ? "已成局 · 候补等让位"
+                : full
+                  ? "已满员"
+                  : `还差 ${needed - (joined ?? 0)} 人成局`}
+              {(waitlistCount ?? 0) > 0 && (
+                <span className="text-amber-300/90 font-bold"> · 候补 {(waitlistCount ?? 0)} 人</span>
+              )}
             </span>
           </div>
           <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -205,21 +225,25 @@ export default function WaveCard({
         <div className="mt-3 space-y-2">
           {isOpen ? (
             <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  // 审批局：待审批态由 store 的 requestedByMe 驱动（被拒自动回退可重试）；
-                  // 非审批局：由 PaySheet 支付弹窗接管，成功后才经 joinedByMe 反映。
-                  if (needsApproval) {
+              {waitlistedByMe ? (
+                // 候补中：只读展示排队位置（退出候补去「我的接单」）
+                <button
+                  disabled
+                  className="flex-1 py-2.5 rounded-2xl bg-amber-400/10 border border-amber-400/40 text-amber-300 font-bold text-[11px] flex items-center justify-center gap-1.5 disabled:opacity-90"
+                >
+                  <Clock size={12} /> 候补中 · 第 {waitlistPos} 位
+                </button>
+              ) : needsApproval ? (
+                <button
+                  onClick={() => {
+                    // 审批局：待审批态由 store 的 requestedByMe 驱动（被拒自动回退可重试）；
+                    // 非审批局：由 PaySheet 支付弹窗接管，成功后才经 joinedByMe 反映。
                     onRequestJoin?.();
-                  } else {
-                    onJoin?.();
-                  }
-                }}
-                disabled={full || requestedByMe}
-                className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {needsApproval ? (
-                  requestedByMe ? (
+                  }}
+                  disabled={full || requestedByMe}
+                  className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {requestedByMe ? (
                     <>
                       <Clock size={12} /> 待发起人审批
                     </>
@@ -229,15 +253,25 @@ export default function WaveCard({
                     <>
                       <UserPlus size={12} /> 申请加入
                     </>
-                  )
-                ) : full ? (
-                  "已满员"
-                ) : (
+                  )}
+                </button>
+              ) : full ? (
+                <button
+                  onClick={onWaitlist}
+                  className="flex-1 py-2.5 rounded-2xl bg-amber-400/15 border border-amber-400/40 text-amber-300 font-bold text-[11px] hover:bg-amber-400/25 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                >
+                  <Clock size={12} /> 进入候补 · 有空位自动补位
+                </button>
+              ) : (
+                <button
+                  onClick={onJoin}
+                  className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                >
                   <>
                     <UserPlus size={12} /> 拼位加入
                   </>
-                )}
-              </button>
+                </button>
+              )}
               <button
                 onClick={() => {
                   submitReport({

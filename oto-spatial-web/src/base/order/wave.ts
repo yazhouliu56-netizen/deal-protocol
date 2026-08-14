@@ -91,6 +91,8 @@ export interface Wave {
   needApproval?: boolean;
   /** 待审批的拼位申请（responderId → 申请时刻）。审批通过才占用座位。 */
   joinRequests?: Array<{ responderId: string; at: number }>;
+  /** 候补队列（开放局满员后加入；有人退出/撤单时按序自动补位转正）。 */
+  waitlist?: Array<{ responderId: string; at: number }>;
   /** 公开竞价结算（P8 商业化）：组局主开标后写回真实局，持久可见。 */
   biddingSettled?: {
     winnerId: string;
@@ -513,6 +515,101 @@ export function rejectRequest(
         (r) => r.responderId !== responderId
       ),
     },
+  };
+}
+
+/* ---------------------------------------------------------------------------
+ * 候补（waitlist，对标 Meetup 候补转正）
+ *
+ * 开放局满员后，仍想加入的响应者进入候补队列（wave.waitlist，FIFO）。
+ * 有人退出拼位/撤单释放座位时，按序自动补位转正（promoteFromWaitlist），
+ * 由 store 侧生成 joined claim 并收取拼位份额。
+ * 候补是 wave 级队列，不占 ClaimStatus 枚举（宪法 #2 接口保守）。
+ * ------------------------------------------------------------------------- */
+
+/** 候补排序：FIFO 为主；同一时刻加入的按信用分降序补位（对齐「按序/信用分补位」）。 */
+export function sortWaitlist(
+  list: Array<{ responderId: string; at: number }>,
+  scoreOf?: (responderId: string) => number
+): Array<{ responderId: string; at: number }> {
+  return [...list].sort((a, b) => {
+    if (a.at !== b.at) return a.at - b.at;
+    if (scoreOf) return (scoreOf(b.responderId) ?? 0) - (scoreOf(a.responderId) ?? 0);
+    return 0;
+  });
+}
+
+/** 进入候补（幂等：已在队列不重复追加）。要求活跃的开放局或已成局开放局（成局后入队 = 等让位）。 */
+export function joinWaitlist(
+  wave: Wave,
+  responderId: string,
+  now = Date.now()
+): { wave: Wave } {
+  if (!isOpenMatch(wave)) {
+    throw new Error("wave.not-open-match");
+  }
+  if (wave.status !== "active" && wave.status !== "assembled") {
+    throw new Error("wave.not-active");
+  }
+  if ((wave.waitlist ?? []).some((r) => r.responderId === responderId)) {
+    return { wave };
+  }
+  return {
+    wave: {
+      ...wave,
+      waitlist: [...(wave.waitlist ?? []), { responderId, at: now }],
+    },
+  };
+}
+
+/** 主动退出候补（幂等）。 */
+export function leaveWaitlist(
+  wave: Wave,
+  responderId: string
+): { wave: Wave } {
+  return {
+    wave: {
+      ...wave,
+      waitlist: (wave.waitlist ?? []).filter(
+        (r) => r.responderId !== responderId
+      ),
+    },
+  };
+}
+
+/**
+ * 补位转正：队列首位升格为正式拼位——成局前（joined 退出）升为 joined 占座，
+ * 成局让位（acceptDirect）直接升为 accepted（席位立即补齐，局保持 assembled）。
+ * 队列排序按 sortWaitlist（FIFO + 同刻信用分降序）。无候补时原样返回。
+ */
+export function promoteFromWaitlist(
+  wave: Wave,
+  claimId: string,
+  now = Date.now(),
+  scoreOf?: (responderId: string) => number,
+  acceptDirect = false
+): { wave: Wave; claim?: Claim } {
+  const list = sortWaitlist(wave.waitlist ?? [], scoreOf);
+  if (list.length === 0) return { wave };
+  const [first] = list;
+  const remaining = list.slice(1);
+  const price = perSeatPrice(wave);
+  const claim: Claim = {
+    id: claimId,
+    waveId: wave.id,
+    responderId: first.responderId,
+    status: acceptDirect ? "accepted" : "joined",
+    rounds: 0,
+    price,
+    createdAt: now,
+    depositPhase: wave.deposit ? "held" : undefined,
+  };
+  return {
+    wave: {
+      ...wave,
+      waitlist: remaining.length > 0 ? remaining : undefined,
+    },
+    claim,
   };
 }
 

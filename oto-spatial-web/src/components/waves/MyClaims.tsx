@@ -32,12 +32,30 @@ export default function MyClaims() {
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const reportModuleDone = useWaveStore((s) => s.reportModuleDone);
   const reports = useWaveStore((s) => s.reports);
+  const leaveWaitlist = useWaveStore((s) => s.leaveWaitlist);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
   useEffect(() => {
     runAutoFulfilments();
     settleExpiredOpen();
   }, [runAutoFulfilments, settleExpiredOpen]);
+
+  // 我的候补：开放局满员后排队（wave.waitlist 按加入顺序，有人退出自动补位）
+  const myWaitlist = useMemo(
+    () =>
+      waves
+        .filter(
+          (w) =>
+            w.status === "active" && (w.waitlist ?? []).some((r) => r.responderId === identity.id)
+        )
+        .map((w) => ({
+          wave: w,
+          pos: (w.waitlist ?? []).findIndex((r) => r.responderId === identity.id) + 1,
+          total: (w.waitlist ?? []).length,
+        }))
+        .sort((a, b) => a.pos - b.pos),
+    [waves, identity]
+  );
 
   const mine = useMemo(
     () =>
@@ -62,6 +80,48 @@ export default function MyClaims() {
     <div className="pointer-events-auto">
       <h2 className="text-[18px] font-extrabold text-white/95">我的接单</h2>
       <p className="text-[10px] text-white/45 mb-3">你响应过的信号波 · 抢单制：谁确认算谁的</p>
+
+      {/* 候补队列：满员局排队中（有人退出自动补位转正） */}
+      {myWaitlist.length > 0 && (
+        <div className="flex flex-col gap-3 mb-3">
+          {myWaitlist.map(({ wave, pos, total }) => (
+            <div
+              key={wave.id}
+              className="glass-panel rounded-3xl p-4 border-amber-400/30"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className="text-[13px] font-extrabold truncate">
+                    {wave.basics.category}
+                  </h3>
+                  <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                    {wave.basics.time} · {wave.basics.area} ·{" "}
+                    {yuan(wave.budget)}
+                    {wave.capacity >= 2 && "/人"}
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-amber-400/15 border-amber-400/40 text-amber-300">
+                  候补中
+                </span>
+              </div>
+              <div className="rounded-2xl bg-amber-400/10 border border-amber-400/25 p-3 mt-2.5 space-y-2">
+                <p className="text-[10.5px] font-bold text-amber-300 flex items-center gap-1.5">
+                  <Users size={11} /> 候补 · 第 {pos}/{total} 位
+                </p>
+                <p className="text-[9px] text-white/40">
+                  满员排队中：有人退出拼位时按顺序自动补位转正（转正即扣拼位份额）。补位成功会收到通知，也可随时退出候补。
+                </p>
+                <button
+                  onClick={() => leaveWaitlist({ waveId: wave.id, responderId: identity.id })}
+                  className="flex items-center gap-1 text-[9.5px] text-white/40 hover:text-red-300 transition-colors"
+                >
+                  <XCircle size={10} /> 退出候补
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {mine.length === 0 && (
         <div className="glass-panel rounded-3xl p-6 text-center">
@@ -192,6 +252,21 @@ export default function MyClaims() {
               {/* ADR-0010：隐私号 + 私信中枢 */}
               {isLocked && (
                 <ContactCard waveId={wave.id} peerId={wave.authorId} />
+              )}
+
+              {/* 候补补位配套：成局后让位（履约开始前）→ 席位释放，候补首位自动转正 */}
+              {isLocked && wave.capacity >= 2 && !claim.serviceDoneAt && (
+                <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-2.5 flex items-center justify-between gap-2">
+                  <p className="text-[9px] text-white/35 flex items-center gap-1">
+                    <Users size={9} /> 成局后需退出？让位给候补者（按 24h 档位退拼位份额）
+                  </p>
+                  <button
+                    onClick={() => withdraw(claim.id)}
+                    className="shrink-0 flex items-center gap-1 text-[9.5px] text-white/40 hover:text-red-300 transition-colors"
+                  >
+                    <XCircle size={10} /> 让位退出
+                  </button>
+                </div>
               )}
 
               {/* 平台治理：举报对方（行为举报 + 处理回执） */}

@@ -115,6 +115,20 @@ test("friend requests addressed to me", () => {
   assert.equal(items[0].kind, "friend");
 });
 
+test("waitlist-promoted push → 候补转正文案（含品类）", () => {
+  const src = base({
+    waves: [{ id: "w-1", authorId: "u-other", basics: { category: "羽毛球" }, status: "active" }],
+    pushes: [
+      { id: "waitlist-promoted:c9", toId: "u-me", waveId: "w-1", at: 99, read: false },
+    ],
+  });
+  const items = buildNotifyItems(src);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].key, "push:waitlist-promoted:c9");
+  assert.ok(items[0].title.includes("羽毛球"));
+  assert.ok(items[0].title.includes("候补转正"));
+});
+
 test("report outcomes included", () => {
   const src = base({
     reportOutcomes: [{ id: "r1", at: 5, verdict: "已驳回" }],

@@ -35,6 +35,7 @@ export default function WaveFeed() {
   const openClaim = useWaveStore((s) => s.openClaim);
   const joinSeat = useWaveStore((s) => s.joinSeat);
   const requestSeat = useWaveStore((s) => s.requestSeat);
+  const joinWaitlist = useWaveStore((s) => s.joinWaitlist);
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
@@ -72,7 +73,12 @@ export default function WaveFeed() {
     const sigs = [me];
 
     const active = waves.filter(
-      (w) => w.status === "active" && !w.removed && w.authorId !== identity.id
+      (w) =>
+        !w.removed &&
+        w.authorId !== identity.id &&
+        // active 正常进 feed；已成局开放局保留展示（满员卡片变候补入口，Meetup waitlist）
+        (w.status === "active" ||
+          (w.status === "assembled" && (w.capacity ?? 1) >= 2))
     );
     const joinedIds = new Set(
       claims
@@ -89,12 +95,23 @@ export default function WaveFeed() {
       .map((w) => ({
         wave: w,
         interest: claims.filter((c) => c.waveId === w.id).length,
-        joined: claims.filter((c) => c.waveId === w.id && c.status === "joined").length,
+        joined: claims.filter(
+          (c) =>
+            c.waveId === w.id &&
+            (c.status === "joined" ||
+              (w.status === "assembled" && c.status === "accepted"))
+        ).length,
         joinedByMe: joinedIds.has(w.id),
         requested: (w.joinRequests ?? []).length,
         requestedByMe: (w.joinRequests ?? []).some(
           (r) => r.responderId === identity.id
         ),
+        waitlistedByMe: (w.waitlist ?? []).some(
+          (r) => r.responderId === identity.id
+        ),
+        waitlistPos:
+          (w.waitlist ?? []).findIndex((r) => r.responderId === identity.id) + 1,
+        waitlistCount: (w.waitlist ?? []).length,
         hits: broadcastMatches(sigs, w, dispatchRuleFor(w.basics.category)),
       }))
       // 硬筛不过（未认证进家/封禁/离线/品类不符）→ 不出现在 feed
@@ -275,13 +292,16 @@ export default function WaveFeed() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <WaveCard
-              wave={f.wave}
-              interests={f.interest}
-              joined={f.joined}
-              joinedByMe={f.joinedByMe}
-              requested={f.requested}
-              requestedByMe={f.requestedByMe}
+<WaveCard
+                wave={f.wave}
+                interests={f.interest}
+                joined={f.joined}
+                joinedByMe={f.joinedByMe}
+                requested={f.requested}
+                requestedByMe={f.requestedByMe}
+                waitlistedByMe={f.waitlistedByMe}
+                waitlistPos={f.waitlistPos}
+                waitlistCount={f.waitlistCount}
               onClaim={({ price, note }) =>
                 openClaim({
                   waveId: f.wave.id,
@@ -303,6 +323,21 @@ export default function WaveFeed() {
                   toast("申请失败", "error");
                 } else {
                   toast("已提交拼位申请，等待发起人审批", "success");
+                }
+              }}
+              onWaitlist={() => {
+                const out = joinWaitlist({ waveId: f.wave.id, responderId: identity.id });
+                if (out?.error) {
+                  setJoinError(
+                    out.error === "debt-unsettled"
+                      ? "你还有未结清的 no-show 违约，先去「我的」结清欠款再候补"
+                      : out.error === "wave-not-full"
+                        ? "该局还有空位，直接拼位即可"
+                        : "进入候补失败，请重试"
+                  );
+                  toast("候补失败", "error");
+                } else {
+                  toast(`已进入候补 · 当前第 ${out.queuePos} 位，有人退出自动补位`, "success");
                 }
               }}
             />

@@ -21,6 +21,9 @@ import {
   approveRequest,
   rejectRequest,
   withdrawClaim,
+  joinWaitlist,
+  leaveWaitlist,
+  promoteFromWaitlist,
   MAX_ROUNDS,
   type Wave,
 } from "./wave.ts";
@@ -313,5 +316,96 @@ test("rejectRequest: 拒绝仅移除申请，无占座副作用", () => {
   const out = rejectRequest(req.wave, "r1");
   assert.equal(out.wave.joinRequests?.length, 0);
   assert.equal(out.wave.status, "active");
+});
+
+/* ---------- 候补（waitlist，Meetup 吸收项 ②） ---------- */
+
+test("joinWaitlist: 满员开放局支持入队，幂等不重复", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const once = joinWaitlist(wave, "r1", now);
+  assert.equal(once.wave.waitlist?.length, 1);
+  assert.equal(once.wave.waitlist?.[0].responderId, "r1");
+  const twice = joinWaitlist(once.wave, "r1", now + 1000);
+  assert.equal(twice.wave.waitlist?.length, 1, "同人重复入队不叠加");
+  const another = joinWaitlist(once.wave, "r2", now + 2000);
+  assert.equal(another.wave.waitlist?.length, 2, "不同人按序追加");
+});
+
+test("joinWaitlist 拒绝：单人局 / 非活跃局", () => {
+  assert.throws(() => joinWaitlist(baseWave(), "r1", now), /not-open-match/);
+  const closed = closeWave(baseWave({ capacity: 2 }));
+  assert.throws(() => joinWaitlist(closed, "r1", now), /not-active/);
+});
+
+test("leaveWaitlist: 主动退出候补（幂等）", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const queued = joinWaitlist(joinWaitlist(wave, "r1", now).wave, "r2", now + 1).wave;
+  assert.equal(queued.waitlist?.length, 2);
+  const left = leaveWaitlist(queued, "r1");
+  assert.equal(left.wave.waitlist?.length, 1);
+  assert.equal(left.wave.waitlist?.[0].responderId, "r2", "剩余队列保持顺序");
+  const again = leaveWaitlist(left.wave, "r1");
+  assert.equal(again.wave.waitlist?.length, 1, "重复退出幂等");
+});
+
+test("promoteFromWaitlist: 无候补 → 原样返回", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const out = promoteFromWaitlist(wave, "c1", now);
+  assert.equal(out.claim, undefined);
+  assert.equal(out.wave, wave);
+});
+
+test("promoteFromWaitlist: FIFO 补位 → 首位升格 joined claim + 队列移除", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const queued = joinWaitlist(joinWaitlist(wave, "r1", now).wave, "r2", now + 1).wave;
+  const out = promoteFromWaitlist(queued, "c9", now + 100);
+  assert.equal(out.claim?.responderId, "r1", "按加入顺序补位");
+  assert.equal(out.claim?.status, "joined", "占座 not 成局");
+  assert.equal(out.claim?.price, 50, "人均价与 joinSeat 一致");
+  assert.equal(out.claim?.createdAt, now + 100);
+  assert.equal(out.wave.waitlist?.length, 1, "r1 移出队列");
+  assert.equal(out.wave.waitlist?.[0].responderId, "r2", "r2 递补首位");
+});
+
+test("promoteFromWaitlist: 同一时刻入队按信用分降序补位", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const queued = joinWaitlist(joinWaitlist(wave, "low", now).wave, "high", now).wave;
+  const out = promoteFromWaitlist(queued, "c9", now + 5, (id) =>
+    id === "high" ? 1000 : 200
+  );
+  assert.equal(out.claim?.responderId, "high", "同 at 信用分高者优先");
+});
+
+test("promoteFromWaitlist: 与鸽子险联动 —— 补位 claim 持有押金", () => {
+  const wave = baseWave({ capacity: 2, budget: 100, deposit: true });
+  const queued = joinWaitlist(wave, "r1", now).wave;
+  const out = promoteFromWaitlist(queued, "c9", now + 100);
+  assert.equal(out.claim?.depositPhase, "held");
+});
+
+test("promoteFromWaitlist: acceptDirect 成局让位 → 补位者直接 accepted（局保持 assembled）", () => {
+  const wave = baseWave({ capacity: 2, budget: 100 });
+  const assembled = { ...wave, status: "assembled" as const };
+  const queued = joinWaitlist(assembled, "r1", now).wave;
+  const out = promoteFromWaitlist(queued, "c9", now + 100, undefined, true);
+  assert.equal(out.claim?.status, "accepted", "成局让位 → 直接转正锁定席位");
+  assert.equal(out.wave.status, "assembled", "局保持成局态");
+  assert.equal(out.wave.waitlist, undefined, "队列耗尽即清空");
+});
+
+test("候补闭环：满员 → 入队 → 退出释放 → 首位补位 → 队列清空", () => {
+  const wave = baseWave({ capacity: 3, budget: 150 });
+  const first = joinSeat(wave, "r1", "c1", 0, now);
+  // 发起人提前成局前的等待态：某人退出拼位（joined）→ 候补补位
+  const queued = joinWaitlist(first.wave, "r2", now).wave;
+  assert.equal(queued.waitlist?.length, 1);
+  assert.equal(queued.status, "active");
+  const out = promoteFromWaitlist(queued, "c9", now + 100);
+  assert.equal(out.claim?.status, "joined");
+  assert.equal(out.claim?.responderId, "r2");
+  assert.equal(out.wave.waitlist, undefined, "补位后队列清空");
+  // 队列为空后再补 → 原样返回
+  const empty = promoteFromWaitlist(out.wave, "c9", now + 200);
+  assert.equal(empty.claim, undefined);
 });
 

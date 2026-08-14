@@ -22,6 +22,9 @@ import {
   perSeatPrice,
   resolveNoShow as resolveNoShowLogic,
   withdrawClaim,
+  joinWaitlist as joinWaitlistLogic,
+  leaveWaitlist as leaveWaitlistLogic,
+  promoteFromWaitlist as promoteFromWaitlistLogic,
 } from "@/base/order/wave";
 import { acceptFulfilment, requestPayment, resolveAutoFulfilment } from "@/base/order/fulfilment";
 import {
@@ -225,6 +228,16 @@ interface WaveStore extends WaveBundle {
     waveId: string;
     responderId: string;
   }) => { claim?: Claim; assembled?: boolean; error?: string };
+  /** 候补（waitlist）：开放局满员后进入候补队列（幂等；有人退出自动补位）。 */
+  joinWaitlist: (p: {
+    waveId: string;
+    responderId: string;
+  }) => { waitlisted?: boolean; queuePos?: number; error?: string };
+  /** 候补：主动退出队列（幂等）。 */
+  leaveWaitlist: (p: {
+    waveId: string;
+    responderId: string;
+  }) => void;
   /** 组织者把关层：审批制开放局提交拼位申请（幂等，不占座不付钱）。 */
   requestSeat: (p: { waveId: string; responderId: string }) => { ok: boolean; error?: string };
   /** 发起人审批拼位申请：通过 → 占座（满员即成局）；拒绝 → 移除申请。 */
@@ -816,6 +829,55 @@ set((st) => ({
         }
       },
 
+      joinWaitlist: ({ waveId, responderId }) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return { error: "wave-not-found" };
+        if (wave.status !== "active" && wave.status !== "assembled") {
+          return { error: "wave-not-active" };
+        }
+        // 未成局且有位置 → 直接拼位，不排队；已成局（assembled）→ 排队等让位
+        if (wave.status === "active") {
+          const joinedCount = s.claims.filter(
+            (c) => c.waveId === waveId && c.status === "joined"
+          ).length;
+          if (joinedCount < neededJoiners(wave)) {
+            return { error: "wave-not-full" };
+          }
+        }
+        // 与 joinSeat 同防线：no-show 欠款锁定 + 一人一位 + 未成年人资金闸
+        if (hasUnsettledBreach(s.claims, responderId)) {
+          return { error: "debt-unsettled" };
+        }
+        if (wave.deposit) {
+          const gate = gateMoneyAction("deposit");
+          if (gate) return { error: gate };
+        }
+        const already = s.claims.some(
+          (c) =>
+            c.waveId === waveId &&
+            c.responderId === responderId &&
+            (c.status === "joined" || c.status === "accepted")
+        );
+        if (already) return { error: "already-joined" };
+        const out = joinWaitlistLogic(wave, responderId, Date.now());
+        set((st) => ({
+          waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
+        }));
+        const queuePos = (out.wave.waitlist ?? []).length;
+        return { waitlisted: true, queuePos };
+      },
+
+      leaveWaitlist: ({ waveId, responderId }) => {
+        const s = get();
+        const wave = s.waves.find((w) => w.id === waveId);
+        if (!wave) return;
+        const out = leaveWaitlistLogic(wave, responderId);
+        set((st) => ({
+          waves: st.waves.map((w) => (w.id === waveId ? out.wave : w)),
+        }));
+      },
+
       requestSeat: ({ waveId, responderId }) => {
         const s = get();
         const wave = s.waves.find((w) => w.id === waveId);
@@ -1139,12 +1201,99 @@ set((st) => ({
       withdraw: (claimId) => {
         const s = get();
         const claim = s.claims.find((c) => c.id === claimId);
+        const wave = claim
+          ? s.waves.find((w) => w.id === claim.waveId)
+          : undefined;
+        // 席位释放 → 候补首位自动补位转正（占位即付）
+        // ① 成局前退出拼位（joined）→ 补位者占座（joined，局仍 active）
+        // ② 成局后让位（accepted，履约开始前）→ 补位者直接转正（accepted，局保持 assembled）
+        const releasingAccepted =
+          claim?.status === "accepted" &&
+          wave?.status === "assembled" &&
+          !claim.serviceDoneAt;
+        const releasingJoined = claim?.status === "joined";
+        const canPromote =
+          (releasingJoined || releasingAccepted) &&
+          !!wave &&
+          (wave.waitlist?.length ?? 0) > 0;
+        const promoted = canPromote
+          ? promoteFromWaitlistLogic(
+              wave!,
+              nextId("claim"),
+              Date.now(),
+              undefined,
+              releasingAccepted
+            )
+          : undefined;
+        const promotedClaim = promoted?.claim;
+        // 成局让位 → 按 24h 档位退让位者拼位份额（与 cancelOpenWave 同退款车道）
+        const releaseRefund =
+          releasingAccepted && promotedClaim && claim
+            ? refundByTier({
+                waveId: claim.waveId,
+                orders: s.payOrders,
+                startsAt: wave!.startsAt,
+                hasSeats: true,
+              })
+            : undefined;
+        const releaseRefundMap = new Map(
+          (releaseRefund?.refunded ?? []).map((o) => [o.id, o])
+        );
         set((st) => ({
-          claims: st.claims.map((c) => (c.id === claimId ? withdrawClaim(c) : c)),
+          claims: [
+            ...st.claims.map((c) => (c.id === claimId ? withdrawClaim(c) : c)),
+            ...(promotedClaim ? [promotedClaim] : []),
+          ],
           // 撤单 → 协商未成，隐私号会话回收
           privacySessions: claim
             ? revokeSession(st.privacySessions, claim.waveId, Date.now())
             : st.privacySessions,
+          waves: promoted
+            ? st.waves.map((w) =>
+                w.id === promoted.wave.id
+                  ? {
+                      ...promoted.wave,
+                      // 补位也是真实加入：拼位裂变计一次（按人去重）
+                      ...fissionStamp(w, promotedClaim!.responderId, Date.now()),
+                    }
+                  : w
+              )
+            : st.waves,
+          payOrders: [
+            // 成局让位 → 让位者份额按 24h 档位退（refunded 状态）
+            ...(releaseRefund?.refunded ?? []),
+            // 补位转正 → 占位即付自己的份（成局前/成局让位同规则）
+            ...(promotedClaim
+              ? [
+                  capturePayOrder(
+                    createPayOrder({
+                      id: nextId("pay"),
+                      waveId: promotedClaim.waveId,
+                      payerId: promotedClaim.responderId,
+                      amount: promotedClaim.price ?? perSeatPrice(wave!),
+                    })
+                  ),
+                ]
+              : []),
+            // 其余原流水（把被退的订单替换为 refunded 版本）
+            ...st.payOrders.map((o) => releaseRefundMap.get(o.id) ?? o),
+          ],
+          pushes: promotedClaim
+            ? [
+                {
+                  id: `waitlist-promoted:${promotedClaim.id}`,
+                  waveId: promotedClaim.waveId,
+                  toId: promotedClaim.responderId,
+                  score: 100,
+                  customHits: 0,
+                  customTotal: 0,
+                  reason: "waitlist-promoted",
+                  at: Date.now(),
+                  read: false,
+                },
+                ...st.pushes,
+              ].slice(0, 60)
+            : st.pushes,
         }));
       },
 

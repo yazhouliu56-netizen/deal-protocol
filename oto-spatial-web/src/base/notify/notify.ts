@@ -109,6 +109,19 @@ export function buildNotifyItems(src: NotifySource): NotifyItem[] {
   for (const p of src.pushes) {
     if (p.toId !== src.meId) continue;
     if (p.read) continue;
+    // 候补转正推送：文案专属（waitlist-promoted:<claimId> 前缀由 store 补位生成）
+    if (p.id.startsWith("waitlist-promoted:")) {
+      const w = src.waves.find((x) => x.id === p.waveId);
+      items.push({
+        key: `push:${p.id}`,
+        kind: "push" as NotifyKind,
+        emoji: "🎟️",
+        title: `${w ? w.basics.category : "开放局"} 候补转正`,
+        desc: "有人让出座位，你已补位成功 · 去「我的接单」确认",
+        at: p.at,
+      });
+      continue;
+    }
     items.push({
       key: `push:${p.id}`,
       kind: "push" as NotifyKind,
