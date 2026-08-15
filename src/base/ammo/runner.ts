@@ -86,6 +86,15 @@ export interface AdvanceInput {
   orderId: string;
   from: AtomicFiveState;
   to: AtomicFiveState;
+  /**
+   * 订单 CAS 乐观锁版本号（mvp 标准表 orders.version 的运行时镜像）：
+   * - expectedVersion：调用方读取订单时快照的版本号；
+   * - currentVersion：写回前的当前磁盘版本号（调用方在跃迁前的 SELECT）。
+   * 两者齐备时执行 CAS 校验（不等 → BLOCK + OPTIMISTIC_LOCK_VERSION_CONFLICT）；
+   * 双缺省 = 非版本化调用（跳过校验，兼容既有零版本调用，零回归）。
+   */
+  currentVersion?: number;
+  expectedVersion?: number;
   /** 跃迁载荷（透传给钩子；如现场增项报价单）。 */
   payload?: Record<string, unknown>;
   /**
@@ -110,6 +119,11 @@ export interface AdvanceResult {
   /** 实际到达态（BEFORE 钩子 BLOCK 时 = from）。 */
   state: AtomicFiveState;
   reason?: string;
+  /**
+   * 跃迁成功后的 CAS 递增版本号（= (currentVersion ?? 0) + 1，仅版本化
+   * 调用返回）：调用方以它为 orders.version 的新值写回，完成乐观锁闭环。
+   */
+  nextVersion?: number;
   /** 终止事件（触发终止流转时生成，携带结算载荷）。 */
   termination?: ITerminationEvent;
   hookOutcomes: HookOutcome[];
@@ -277,11 +291,39 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
     };
   }
 
+  // CAS 乐观锁校验（mvp 标准表 orders.version 运行时镜像，红线 1 确定性）：
+  // 调用方同时携带 currentVersion（磁盘现值）与 expectedVersion（读取快照）
+  // 才激活比对——双缺省 = 非版本化调用，跳过校验（兼容既有零版本调用，
+  // 零回归）；不等 = 并发写入已被他人提交，直接阻断跃迁返回 BLOCK
+  // （OPTIMISTIC_LOCK_VERSION_CONFLICT），调用方须重读订单后重试。
+  const isVersionAware =
+    input.currentVersion !== undefined || input.expectedVersion !== undefined;
+  if (
+    input.expectedVersion !== undefined &&
+    input.currentVersion !== undefined &&
+    input.currentVersion !== input.expectedVersion
+  ) {
+    return {
+      ok: false,
+      state: input.from,
+      reason: `optimistic-lock-conflict: OPTIMISTIC_LOCK_VERSION_CONFLICT expected ${input.expectedVersion} but got ${input.currentVersion}`,
+      hookOutcomes: [],
+      afterData: [],
+    };
+  }
+
   const ctxBase: ISubEventContext = {
     ammoId: ammo.ammoId,
     orderId: input.orderId,
     from: input.from,
     to: target,
+    // CAS 版本号透传进钩子上下文（弹药闭包可读当前/期望版本做伴随校验）
+    ...(isVersionAware
+      ? {
+          currentVersion: input.currentVersion,
+          expectedVersion: input.expectedVersion,
+        }
+      : {}),
     // 终止路径：结算载荷（termination.payload）合并进钩子上下文，
     // 使 SETTLED 阶段的 AFTER 钩子（如 AA 分账）能读取违约赔付载荷。
     payload: input.termination
@@ -427,7 +469,17 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
     }
   }
 
-  return { ok: true, state, termination, hookOutcomes, afterData };
+  // 版本化调用：CAS 写回递增版本号（= 磁盘现值 + 1，调用方落库 orders.version）
+  return {
+    ok: true,
+    state,
+    ...(isVersionAware
+      ? { nextVersion: (input.currentVersion ?? 0) + 1 }
+      : {}),
+    termination,
+    hookOutcomes,
+    afterData,
+  };
 }
 
 /* =====================================================================

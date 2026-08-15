@@ -160,6 +160,12 @@ export const housekeepingAmmo: IAmmoDefinition = {
   },
   /** 防坐地起价：现场增项金额上限 = 订单基础金额的 50%（S2 熔断）。 */
   maxSurchargeRatio: 0.5,
+  /**
+   * 超时自动代验收契约（固化 24 小时）：IN_SERVICE 履约超过 24h 无验收
+   * 动作 → 系统按契约自动代验收（服务完成信号或截止时刻到达即视为
+   * 已验收），防服务方失联导致订单悬空（订单侧超时任务对账此键）。
+   */
+  autoAcceptanceTimeoutHours: 24,
   /** 运力池聚类：入户重背调（强合规引信 + workerRequirement 三闸）。 */
   supplyCluster: "C2_IN_HOME",
   sop: {

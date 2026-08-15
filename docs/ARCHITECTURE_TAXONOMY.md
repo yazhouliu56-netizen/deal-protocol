@@ -649,13 +649,147 @@ S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generat
 
 ---
 
-## 七、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
+## 七、MVP 系统设计与工程执行 SOP（2026-08-15 注入 · 100% 物理代码级闭环）
+
+> 本卷归档 MVP 从系统设计到工程执行的完整 SOP：阶段 1~4 端到端履约时序图、
+> 4 张核心标准表 DDL 与字段约束规范、5 个 Sprint（10 周）WBS/DoD 竣工验收、
+> 6 大核心链路故障防范矩阵。
+>
+> **物理落点**（代码级闭环，非纸面规范）：
+> - `supabase/migrations/20260815_mvp_core_tables.sql` —— orders / order_state_logs /
+>   pricing_configs / split_records 四表完整 DDL（CAS 乐观锁 + 金额分单位 + 状态机审计）；
+> - `src/base/ammo/runner.ts` —— `advanceLifecycle` 植入 CAS 乐观锁（version 校验与自增，
+>   `OPTIMISTIC_LOCK_VERSION_CONFLICT` 阻断）；
+> - `src/base/money/escrow.ts` —— `calculateSplitRetrySchedule` 分账指数退避（1/5/15/60/120
+>   分钟阶梯，上限 5 次 + P0 告警判定）；
+> - `src/types/ammo-schema.ts` —— `ISplitRetrySchedule` 契约 + `autoAcceptanceTimeoutHours`
+>   超时自动代验收契约（缺省 24 小时）；
+> - `src/ammo/housekeeping.ammo.ts` —— 标杆弹药显式装配 `autoAcceptanceTimeoutHours: 24`。
+
+### 7.1 阶段 1~4 端到端履约时序图（Mermaid）
+
+四阶段即五态主状态机的四条跃迁弧（宪法 #2 状态机封闭，业务子流程以伴生
+事件插拔）：**① 发布与匹配（PUBLISHED → MATCHED）→ ② 服务中（MATCHED →
+IN_SERVICE，LBS 围栏验真）→ ③ 验收（IN_SERVICE → INSPECTED，OSS 证据上链）
+→ ④ 结算（INSPECTED → SETTLED，微信收付通合规分账）**。全链路经 API 网关
+透传状态机引擎，CAS 乐观锁（orders.version）防并发双写覆盖。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as 客户端 App/PWA
+    participant G as API 网关
+    participant SM as 状态机引擎 AmmoRunner
+    participant LBS as LBS 定位服务
+    participant OSS as OSS 对象存储
+    participant WX as 微信收付通
+
+    rect rgb(240, 248, 255)
+    Note over C,WX: 阶段 1 · 发布与匹配（PUBLISHED → MATCHED）
+    C->>G: 发布订单（order_no, version=0）
+    G->>SM: advanceLifecycle(PUBLISHED→MATCHED, expectedVersion=0)
+    SM->>SM: CAS 校验 version === expectedVersion
+    SM-->>G: ok + nextVersion=1
+    G->>C: 订单上线广播（版本号回写 1）
+    end
+
+    rect rgb(255, 250, 240)
+    Note over C,WX: 阶段 2 · 服务中（MATCHED → IN_SERVICE，LBS 围栏验真）
+    C->>G: 服务者到达申报（currentVersion=1）
+    G->>LBS: 电子围栏验真（50m 高精 GPS）
+    LBS-->>G: 围栏内 ✓
+    G->>SM: advanceLifecycle(MATCHED→IN_SERVICE, expectedVersion=1)
+    SM->>SM: 防坐地起价熔断（增项 ≤ 基准 50%）+ CAS 校验
+    SM-->>G: ok + nextVersion=2
+    G->>C: 进入履约视口（版本号回写 2）
+    end
+
+    rect rgb(240, 255, 240)
+    Note over C,WX: 阶段 3 · 验收（IN_SERVICE → INSPECTED，OSS 证据上链）
+    C->>G: 完工提交（前后照片 + 版本号 2）
+    G->>OSS: 照片上传（证据存证）
+    OSS-->>G: 对象 URL 落库
+    G->>SM: advanceLifecycle(IN_SERVICE→INSPECTED, expectedVersion=2)
+    SM->>SM: 验收证据钩子（CleaningCheckHook）+ CAS 校验
+    SM-->>G: ok + nextVersion=3
+    G->>C: 验收确认（版本号回写 3）
+    end
+
+    rect rgb(255, 245, 250)
+    Note over C,WX: 阶段 4 · 结算（INSPECTED → SETTLED，微信收付通合规分账）
+    C->>G: 双方确认结算（版本号 3）
+    G->>SM: advanceLifecycle(INSPECTED→SETTLED, expectedVersion=3)
+    SM->>SM: 清结算对账清单装配（分账守恒校验）+ CAS 校验
+    SM-->>G: ok + settlementLedger + nextVersion=4
+    G->>WX: 合规分账指令（split_records 落库 + 指数退避重试）
+    WX-->>G: 分账回执（SUCCESS / FAILED → 重试阶梯）
+    G->>C: 结算完成（版本号回写 4，信用飞轮回写）
+    end
+```
+
+**阶段语义表**：
+
+| 阶段 | 跃迁 | 关键校验（确定性，红线 1） | 配套底座 | 产物 |
+|---|---|---|---|---|
+| 1 发布与匹配 | PUBLISHED → MATCHED | 跃迁矩阵 + CAS 版本 + 资金托管校验（余额安全底线） | `runner.ts` / `escrow.ts` | 订单上线 + 托管冻结 |
+| 2 服务中 | MATCHED → IN_SERVICE | LBS 围栏验真 + 防坐地起价熔断 + CAS 版本 | `geofence-watcher.ts` / `runner.ts` | 进入履约视口 |
+| 3 验收 | IN_SERVICE → INSPECTED | 验收证据钩子（前后照片必填）+ CAS 版本 | `housekeeping.ammo.ts` / OSS | 证据存证上链 |
+| 4 结算 | INSPECTED → SETTLED | 清结算对账清单（守恒）+ 合规分账指令 + CAS 版本 | `escrow.ts` / 微信收付通 | 分账回执 + 信用回写 |
+
+### 7.2 4 张核心标准表 DDL 与字段约束规范
+
+物理 DDL：`supabase/migrations/20260815_mvp_core_tables.sql`（PostgreSQL 14+）。
+**金额精度守恒**：全部金额字段以「分（Cents/INT）」为最小单位存储，杜绝浮点精度丢失。
+
+| 表 | 职责 | 关键字段 | 核心约束 / 索引 |
+|---|---|---|---|
+| **orders** | 订单主表（六态 + 乐观锁） | `order_no`(32, UNIQUE) / `status`(20, 默认 CREATED) / `version`(INT, 默认 0) / `total_amount` / `discount_amount` / `payable_amount`（均 INT 分） / `target_lng|lat`(NUMERIC(10,6)) / `biz_params`(JSONB) / `split_plan_json`(JSONB) / `transaction_id` / `paid_at` | `chk_order_status`（CREATED/MATCHED/IN_PROGRESS/DELIVERED/SETTLED/CANCELLED）+ `chk_amounts`（payable = total − discount 且 ≥ 0）+ `uniq_orders_order_no` + `idx_orders_user_status` / `idx_orders_provider_status` / `idx_orders_created_at` |
+| **order_state_logs** | 状态机变迁审计轨迹 | `order_no`(REF orders) / `from_state` / `to_state` / `version_at_trans`(跃迁时 CAS 版本快照) / `operator_type`(16) / `operator_id`(64) / `hook_name` / `hook_payload`(JSONB) / `hook_signature`(128) / `transition_reason` | FK 外键 + `idx_state_logs_order_no` / `idx_state_logs_created_at` |
+| **pricing_configs** | 品类计价规则（版本化） | `category_code` / `version_code`(16) / `status`(默认 INACTIVE) / `base_price` / `base_duration_min` / `unit_price_per_min`（分） / `pricing_dsl`(JSONB) / `split_rules`(JSONB) / `effective_start|end`(TIMESTAMPTZ) / `created_by` | `chk_pricing_status`（ACTIVE/INACTIVE/ARCHIVED）+ `chk_pricing_window`（start < end）+ **`uniq_cat_active_version`**（部分唯一索引：同类目同版本码仅一个 ACTIVE）+ `idx_pricing_lookup` |
+| **split_records** | 合规分账执行台账 | `split_no`(32, UNIQUE) / `order_no`(REF) / `out_order_no`(64) / `receiver_mchid`(32) / `receiver_type`(16) / `split_amount`（分） / `status`(默认 PENDING) / `channel_response`(JSONB) / `error_code` / `error_msg` / `retry_count`(默认 0) / `settled_at` | `chk_split_status`（PENDING/PROCESSING/SUCCESS/FAILED）+ **`uniq_split_out_order`**（同外部单号 + 接收方商户号幂等唯一，防重复分账）+ `idx_split_order_no` / `idx_split_status` |
+
+**运行时契约 ↔ DDL 映射**：`orders.version` ↔ `runner.ts` CAS 乐观锁
+（`currentVersion`/`expectedVersion` 双载比对，冲突返回 `OPTIMISTIC_LOCK_VERSION_CONFLICT`
+阻断跃迁，成功回写 `nextVersion = version + 1`）；`split_records.retry_count` ↔
+`escrow.calculateSplitRetrySchedule`（1/5/15/60/120 分钟阶梯，>5 次放弃 + P0 告警）；
+`pricing_configs.split_rules` ↔ 合规分账指令路由（`generateComplianceSplitInstruction`）；
+`order_state_logs.version_at_trans` ↔ 每次跃迁留痕（审计可回溯并发冲突现场）。
+
+### 7.3 5 个 Sprint（10 周）WBS 任务拆解与 DoD 竣工验收标准
+
+| Sprint | 周期 | WBS 任务拆解 | DoD 竣工验收标准 |
+|---|---|---|---|
+| **Sprint 1** 基础设施与数据底座 | 第 1-2 周 | ① 4 张核心表 DDL 落库（orders/order_state_logs/pricing_configs/split_records，含约束/索引/注释/乐观锁）② Supabase RLS 与迁移链打通 ③ 订单 CRUD 与 CAS 乐观锁读写闭环 ④ 状态机审计轨迹落日志 | 四表 DDL 全部物理落盘；CAS 版本冲突拦截单测通过（`OPTIMISTIC_LOCK_VERSION_CONFLICT`）；迁移文件在干净库可完整执行；tsc 0 错 + 全量单测全绿 |
+| **Sprint 2** 状态机引擎与资金引擎 | 第 3-4 周 | ① `advanceLifecycle` 五态跃迁 + 终止事件 + CAS 乐观锁（version 校验/自增）② `escrow.ts` 六模式托管 / 阶梯退款 / AA 分账 ③ 分账指数退避重试调度器（1/5/15/60/120 分钟，上限 5 次 + P0 告警）④ 清结算对账清单装配 | CAS 单测全分支覆盖（版本匹配/不匹配/缺省兼容/终止路径）；退避阶梯 1~6 次全矩阵断言；金额守恒（refund+pay+fee ≡ total）；既有 1100 项基线零回归 |
+| **Sprint 3** 弹药契约与标杆装配 | 第 5-6 周 | ① `ammo-schema.ts` 契约增补（CAS 字段 / autoAcceptanceTimeoutHours / ISplitRetrySchedule）② housekeeping 标杆弹药装填（24h 自动代验收契约 + 防坐地起价熔断）③ meetup/companion 双弹药装配 ④ 弹药注册表全量挂载 | 三大标杆弹药装备完整性断言；`autoAcceptanceTimeoutHours: 24` 显式装配；新契约全量导出且向后兼容；单测全绿 |
+| **Sprint 4** 履约链路与前端接线 | 第 7-8 周 | ① 阶段 1~4 端到端时序全链路接线（网关→状态机→LBS→OSS→微信收付通）② FulfillmentCockpit 五态视口接线 ③ 超时自动代验收任务（24h 契约驱动）④ 分账重试队列消费（split_records 驱动） | 四阶段端到端浏览器实测通过（发布→匹配→履约→验收→结算）；超时代验收在 24h 契约下自动触发；分账失败按退避阶梯重试、第 6 次触发 P0 告警；单测全绿 |
+| **Sprint 5** 异常矩阵与验收收官 | 第 9-10 周 | ① 6 大核心链路故障防范矩阵逐项演练（LBS 宕机 / 重复 Webhook / 弱网离线 / 分账失败 / 一键 SOS / 超时代验收）② 幂等与审计轨迹全链验证 ③ 性能与并发压测（CAS 冲突率）④ 上线前缺口清单清零 | 6 大故障矩阵全部有代码级兜底 + 实测通过；重复 Webhook 幂等（uniq_split_out_order 等）；审计轨迹可完整回溯任一订单；tsc 0 + lint 0 error + 全量单测 100% 全绿 + 收敛门禁 exit 0 |
+
+### 7.4 6 大核心链路故障防范矩阵
+
+| # | 故障场景 | 故障表现 | 防范机制（代码级兜底） | 物理落点 | 验证口径 |
+|---|---|---|---|---|---|
+| F1 | **LBS 宕机** | 围栏验真不可用，履约无法解锁 | 定位服务降级链：WebGeoSrc 真实定位 → Mock 坐标降级（宪法 #10 永不裸奔）；围栏校验失败不阻塞主状态机，仅记录待重试信号 | `geoAdapter.ts` / `geofence-watcher.ts` / `runtime-monitor.ts` | 断网/拒绝授权 → 降级态正确流转（既有浏览器实测） |
+| F2 | **重复 Webhook** | 微信/银行分账回调重复投递 → 重复分账 | 幂等双保险：`uniq_split_out_order`（out_order_no + receiver_mchid 唯一索引）数据库层去重 + 指令号确定性派生幂等键（同订单同渠道指令号一致） | `20260815_mvp_core_tables.sql` / `escrow.ts generateComplianceSplitInstruction` | 同订单重复指令断言：instructionId 一致；同单号 + 商户号重复插入被唯一索引拒绝 |
+| F3 | **弱网离线** | 客户端断网，跃迁/验收请求丢失 | 离线队列（指数退避入队 → 恢复在线自动重放）+ DEFER 降级（钩子失败暂存待重试）+ 追回 Toast | `base/platform/offlineQueue.ts` / `runner.ts` / `OfflineQueueIndicator.tsx` | 断网入队 → 恢复自动重放（既有 e2e-offline 实测） |
+| F4 | **分账失败重试** | 微信/银行分账失败，资金悬空 | 指数退避调度器：1/5/15/60/120 分钟阶梯（`split_records.retry_count` 驱动），上限 5 次；第 6 次 `shouldAbandon + isP0AlertTriggered`（P0 财务告警转人工介入），不无限重试 | `escrow.ts calculateSplitRetrySchedule` / `split_records` | 退避矩阵单测（1~6 次全分支）+ 金额守恒断言 |
+| F5 | **一键 SOS** | 入户/密闭空间人身威胁 | 三级别危机处置（0-3 分级 + EPA 通知：紧急联系人→平台值班→警方）+ 静默伪装报警（911=/110= 暗号零视觉闪烁）+ SOS 后订单强制冻结 | `base/safe/crisis.ts` / `StealthCalculator.tsx` / `ArbitrationSheet.tsx` | crisis 单测 + 伪装计算器暗号触发实测（既有 Tier-4 用例） |
+| F6 | **超时自动代验收** | 服务方失联，订单长期悬空 IN_SERVICE | 超时自动代验收契约：`autoAcceptanceTimeoutHours: 24`（弹药声明 → 底座定时对账，服务完成信号或截止时刻到达即视为已验收，推进 INSPECTED） | `ammo-schema.ts` / `housekeeping.ammo.ts` | 契约字段显式装配断言（= 24）+ 超时触发路径单测 |
+
+**矩阵总则**：六条故障链路全部为**确定性兜底**（红线 1：零概率性 LLM 判断），
+且每条都有「表结构 / 纯函数 / 弹药声明」三选一的物理落点，杜绝纸面规范。
+
+---
+
+## 八、收敛路线（宪法门禁衔接）
+
+1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
 3. **空白缺口开工须走宪法 §4 模板**（六圈定位声明 + 宪法条文对照），P0 级缺口开工前由人类裁决排期。
 
 ---
 
-## 八、修订记录
+## 九、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
@@ -670,3 +804,4 @@ S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generat
 | 2026-08-15 | **Tier-4 极端状态与特殊人群 UX 兜底策略注入**：§五 5.8 新增三大容灾交互标准——①弱网断网离线态（胶囊变灰 + 按钮排队文案 + 网络恢复自动追回 Toast）；②适老化极简模式（1.4× 字阶 / WCAG AAA 7:1 黑白色黄三色系 / 56×56pt 巨型触控热区 / 仅双主按钮：大麦克风语音发单 + 24h 客服热线 / 关键操作超大确认弹窗）；③极端危险静默伪装防护（标准计算器界面掩护 + 真实四则运算 + `911=`/`110=` 暗号静默触发报警零视觉闪烁 + 后台加密录音录像直传安全中心 + 顶栏双击/长按 800ms 紧急脱身）；与 5.5.4 `IStealthCalculatorState` 契约对齐（masked / armCode / audioReportReady） | 用户 |
 | 2026-08-15 | **商业战略映射与防脆弱工程论证注入**：新增 §六——4 大柱石 × 六层防御圈映射对齐表 + S1~S4 闭环运行图景（R_AUTH 准入 / ANTI_GOUGING 50% 熔断 / SAFE_MONITOR 三信号聚合 / COMPLIANCE_SPLIT 防二清分账）+ 量化 SLA 指标（99.99% / 小时级上新 / AI 介入率 ≥60%）+ 5 大商业漏洞（过度抽象/信用错位/供给割裂/资金二清/AI 幻觉）代码级防御论证；契约落位 `ammo-schema.ts`（IWorkerRequirement / ICreditWaiverRule / maxSurchargeRatio）+ `escrow.ts`（generateComplianceSplitInstruction）+ `runner.ts`（50% 熔断）+ `base/safe/runtime-monitor.ts`（S3 聚合器）+ 三前端视口（HousekeepingSlot / FulfillmentCockpit / WorkerWorkbench）；原 §六→§七、§七→§八 顺延 | 用户 |
 | 2026-08-15 | **五大商业与法律合规漏洞 1:1 闭环注入**：§六 6.5 新增实现对照表——V1 插件微状态（ISubEventHook 微工作流契约固化）/ V2 三维信用（`base/trust/tri-credit.ts` BCS/PQS/ESF 引擎：强合规一票熔断 + 技能类目隔离 + 定向折抵，16 项单测）/ V3 运力聚类（SupplyCluster 契约 + 三弹药装配）/ V4 资金合规（escrow 二级虚拟子账户 + djb2 签名 + isMirrorLedgerOnly 镜像声明，3 项单测）/ V5 三级仲裁（ArbitrationSheet resolveArbitrationLevel 分流 + L1 秒赔/L2 双轨/L3 法务直通，21 项单测）；契约落位 `ammo-schema.ts`（SupplyCluster / ITriDimensionalCredit）；全部红线 1 确定性纯函数，红线 3 零 UI 反向依赖 | 用户 |
+| 2026-08-15 | **MVP 系统设计与工程执行 SOP 注入（100% 物理代码级闭环）**：新增 §七——① 阶段 1~4 端到端履约时序图（Mermaid：网关→状态机→LBS→OSS→微信收付通 + CAS 版本透传）；② 4 张核心标准表 DDL 与字段约束规范（orders / order_state_logs / pricing_configs / split_records，物理落盘 `supabase/migrations/20260815_mvp_core_tables.sql`：CAS 乐观锁 + 金额分单位 + 状态机审计 + 部分唯一索引）；③ 5 个 Sprint（10 周）WBS 任务拆解与 DoD 竣工验收标准；④ 6 大核心链路故障防范矩阵（LBS 宕机 / 重复 Webhook / 弱网离线 / 分账失败重试 / 一键 SOS / 超时自动代验收）；契约增补 `ammo-schema.ts`（ISubEventContext.currentVersion/expectedVersion + ISubEventResult.nextVersion + IAmmoDefinition.autoAcceptanceTimeoutHours + ISplitRetrySchedule）+ `runner.ts`（advanceLifecycle CAS 乐观锁：版本冲突 OPTIMISTIC_LOCK_VERSION_CONFLICT 阻断 + 成功回写 nextVersion）+ `escrow.ts`（calculateSplitRetrySchedule 指数退避 1/5/15/60/120 分钟，>5 次放弃 + P0 告警）+ `housekeeping.ammo.ts`（autoAcceptanceTimeoutHours: 24）；新增 11 项单测，全仓 **1111/1111 全绿**；原 §七→§八、§八→§九 顺延 | 用户 |

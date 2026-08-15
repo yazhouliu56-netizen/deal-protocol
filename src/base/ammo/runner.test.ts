@@ -281,6 +281,90 @@ test("调度：支持 async 钩子（Promise 返回值）", async () => {
   assert.equal(r.state, "MATCHED");
 });
 
+/* ============ 2.2 CAS 乐观锁（mvp orders.version 运行时镜像） ============ */
+
+test("CAS：版本匹配时跃迁成功且 nextVersion = currentVersion + 1", async () => {
+  const r = await advanceLifecycle({
+    ammo: emptyAmmo,
+    orderId: "cas-1",
+    from: "PUBLISHED",
+    to: "MATCHED",
+    currentVersion: 3,
+    expectedVersion: 3,
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "MATCHED");
+  assert.equal(r.nextVersion, 4);
+});
+
+test("CAS：版本不匹配直接阻断跃迁（OPTIMISTIC_LOCK_VERSION_CONFLICT）", async () => {
+  const r = await advanceLifecycle({
+    ammo: emptyAmmo,
+    orderId: "cas-2",
+    from: "PUBLISHED",
+    to: "MATCHED",
+    currentVersion: 5,
+    expectedVersion: 3,
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.state, "PUBLISHED");
+  assert.match(r.reason ?? "", /OPTIMISTIC_LOCK_VERSION_CONFLICT/);
+  assert.equal(r.nextVersion, undefined);
+});
+
+test("CAS：未传版本号参数跳过校验（缺省兼容，零回归）", async () => {
+  const r = await advanceLifecycle({
+    ammo: emptyAmmo,
+    orderId: "cas-3",
+    from: "PUBLISHED",
+    to: "MATCHED",
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "MATCHED");
+  assert.equal(r.nextVersion, undefined);
+});
+
+test("CAS：版本号透传进钩子上下文（弹药闭包可读做伴随校验）", async () => {
+  const seen: { current?: number; expected?: number } = {};
+  const versionHook: ISubEventHook = {
+    hookId: "version-watch",
+    on: { to: "MATCHED" },
+    phase: "BEFORE",
+    fallback: "BLOCK",
+    run: (ctx) => {
+      seen.current = ctx.currentVersion;
+      seen.expected = ctx.expectedVersion;
+      return { ok: true };
+    },
+  };
+  const r = await advanceLifecycle({
+    ammo: { ...emptyAmmo, fiveStateHooks: [versionHook] },
+    orderId: "cas-4",
+    from: "PUBLISHED",
+    to: "MATCHED",
+    currentVersion: 7,
+    expectedVersion: 7,
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.nextVersion, 8);
+  assert.deepEqual(seen, { current: 7, expected: 7 });
+});
+
+test("CAS：终止路径同样受乐观锁约束（版本冲突阻断违约结算流转）", async () => {
+  const r = await advanceLifecycle({
+    ammo: emptyAmmo,
+    orderId: "cas-5",
+    from: "IN_SERVICE",
+    to: "INSPECTED",
+    termination: { kind: "BREACH_SETTLED" },
+    currentVersion: 9,
+    expectedVersion: 2,
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.state, "IN_SERVICE");
+  assert.match(r.reason ?? "", /OPTIMISTIC_LOCK_VERSION_CONFLICT/);
+});
+
 /* ============ 3. 引信快速核验器 ============ */
 
 test("引信：未声明引信零防护直接放行", () => {

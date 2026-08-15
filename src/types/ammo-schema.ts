@@ -41,6 +41,14 @@ export interface ISubEventContext {
   orderId: string;
   from: AtomicFiveState;
   to: AtomicFiveState;
+  /**
+   * 订单 CAS 乐观锁版本号（mvp 标准表 orders.version 的运行时镜像）。
+   * 底座在跃迁点注入的「当前磁盘版本」；与 expectedVersion 双缺省 =
+   * 非版本化调用（跳过 CAS 校验，兼容既有零版本调用）。
+   */
+  currentVersion?: number;
+  /** 调用方期望校验的版本号（读-改-写回旋：读取时快照，写前比对）。 */
+  expectedVersion?: number;
   /** 弹药自描述负载（如现场增项报价单、AA 分摊明细）。 */
   payload?: Record<string, unknown>;
 }
@@ -51,6 +59,8 @@ export interface ISubEventResult {
   reason?: string;
   /** 透传给上层的结果数据（如复核通过的配件清单）。 */
   data?: unknown;
+  /** 跃迁成功后的递增版本号（CAS 写回用：调用方以它为 orders.version 新值）。 */
+  nextVersion?: number;
 }
 
 /** 伴生事件钩子（Sub-Event Hook）：插拔在五态跃迁上的业务子流程。 */
@@ -181,6 +191,27 @@ export interface ICreditWaiverRule {
 }
 
 /**
+ * 分账重试结果契约（微信/银行分账指数退避 · 确定性纯函数输出，红线 1）。
+ * 资金引擎 escrow.calculateSplitRetrySchedule 每次调用产出下一跳重试计划：
+ * - 重试阶梯：1 次 → 1min / 2 次 → 5min / 3 次 → 15min / 4 次 → 60min /
+ *   5 次 → 120min；
+ * - 第 6 次起（retryCount > 5）放弃重试（shouldAbandon）并触发 P0 财务
+ *   严重告警（isP0AlertTriggered）——资金链路不得无限重试，人工介入兜底。
+ */
+export interface ISplitRetrySchedule {
+  /** 当前重试序号（1 起；>5 表示已超出重试上限）。 */
+  retryCount: number;
+  /** 本次重试的等待延时（分钟；放弃态为 0）。 */
+  delayMinutes: number;
+  /** 下次重试时刻（epoch ms = nowTimestamp + delayMinutes × 60 × 1000）。 */
+  nextRetryAt: number;
+  /** 是否超过 5 次放弃重试（第 6 次起 true）。 */
+  shouldAbandon: boolean;
+  /** 是否触发 P0 财务严重报警（第 6 次起 true，需人工介入）。 */
+  isP0AlertTriggered: boolean;
+}
+
+/**
  * 运力池属性聚类（漏洞三闭环 · SupplyCluster）：
  * 供给端运力按履约物理形态聚类，弹药声明所属运力池，
  * 供派单/风控/准入按聚类差异化路由（如 C2_IN_HOME 需强背调）。
@@ -226,6 +257,13 @@ export interface IAmmoDefinition {
   creditWaiverRule?: ICreditWaiverRule;
   /** 现场加价上限比例（防坐地起价：增项金额 ≤ 初始基准价 × 此比例；缺省 0.5）。 */
   maxSurchargeRatio?: number;
+  /**
+   * 超时自动代验收时长（小时；缺省 24）。IN_SERVICE 无验收动作超过该
+   * 时长后，系统按弹药契约自动代验收（超时自动代验收 SOP：服务完成信号
+   * 或截止时刻到达即视为已验收），入库字段同步写入
+   * `mvp_core_tables.sql` pricing_configs / orders 的 SOP 装配键。
+   */
+  autoAcceptanceTimeoutHours?: number;
   /** 运力池属性聚类（C1 移动轻履约 / C2 入户重背调 / C3 技术 B2B；缺省 = 未归类）。 */
   supplyCluster?: SupplyCluster;
 }

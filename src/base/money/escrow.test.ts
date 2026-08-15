@@ -11,9 +11,12 @@ import {
   DEFAULT_DEPOSIT_RATE,
   DEFAULT_PLATFORM_RATE,
   ESCROW_MODES,
+  SPLIT_RETRY_LADDER_MINUTES,
+  SPLIT_RETRY_MAX_ATTEMPTS,
   calculateEscrowHold,
   calculateMultiPartySplit,
   calculateProviderSettlement,
+  calculateSplitRetrySchedule,
   calculateTieredRefund,
   generateComplianceSplitInstruction,
   verifyFundSafetyGuard,
@@ -227,6 +230,63 @@ test("release 收敛：零金额与自定义抽成率", () => {
     platformFee: 50,
     providerNet: 950,
   });
+});
+
+/* =====================================================================
+ * 5.1 分账指数退避重试调度（微信/银行分账通道）
+ * ===================================================================== */
+
+test("重试阶梯：1~5 次延时分别为 1/5/15/60/120 分钟且未放弃", () => {
+  const expected = [1, 5, 15, 60, 120];
+  for (let retryCount = 1; retryCount <= SPLIT_RETRY_MAX_ATTEMPTS; retryCount += 1) {
+    const s = calculateSplitRetrySchedule(retryCount, 1_700_000_000_000);
+    assert.equal(s.retryCount, retryCount);
+    assert.equal(s.delayMinutes, expected[retryCount - 1]);
+    assert.equal(s.shouldAbandon, false);
+    assert.equal(s.isP0AlertTriggered, false);
+  }
+  assert.deepEqual([...SPLIT_RETRY_LADDER_MINUTES], expected);
+  assert.equal(SPLIT_RETRY_MAX_ATTEMPTS, 5);
+});
+
+test("重试时刻：nextRetryAt = now + delayMinutes × 60 × 1000", () => {
+  const now = 1_700_000_000_000;
+  const s = calculateSplitRetrySchedule(3, now);
+  assert.equal(s.nextRetryAt, now + 15 * 60 * 1000);
+  const first = calculateSplitRetrySchedule(1, now);
+  assert.equal(first.nextRetryAt, now + 60 * 1000);
+  const fifth = calculateSplitRetrySchedule(5, now);
+  assert.equal(fifth.nextRetryAt, now + 120 * 60 * 1000);
+});
+
+test("第 6 次重试：放弃重试 + 触发 P0 财务严重告警（delayMinutes 归 0）", () => {
+  const s = calculateSplitRetrySchedule(6, 1_700_000_000_000);
+  assert.equal(s.shouldAbandon, true);
+  assert.equal(s.isP0AlertTriggered, true);
+  assert.equal(s.delayMinutes, 0);
+  assert.equal(s.nextRetryAt, 1_700_000_000_000);
+});
+
+test("超上限重试：第 99 次同样放弃 + P0 告警（不无限重试）", () => {
+  const s = calculateSplitRetrySchedule(99, 42);
+  assert.equal(s.shouldAbandon, true);
+  assert.equal(s.isP0AlertTriggered, true);
+  assert.equal(s.retryCount, 99);
+});
+
+test("重试防御：retryCount 非法（0/负数/NaN/小数）钳制为第 1 次重试", () => {
+  for (const bad of [0, -3, NaN, 2.5]) {
+    const s = calculateSplitRetrySchedule(bad, 1_700_000_000_000);
+    assert.equal(s.retryCount, 1);
+    assert.equal(s.delayMinutes, 1);
+    assert.equal(s.shouldAbandon, false);
+  }
+});
+
+test("重试时刻防御：nowTimestamp 非法回退 Date.now()（恒有有限时刻）", () => {
+  const s = calculateSplitRetrySchedule(2, NaN);
+  assert.equal(Number.isFinite(s.nextRetryAt), true);
+  assert.ok(s.nextRetryAt > 0);
 });
 
 /* =====================================================================

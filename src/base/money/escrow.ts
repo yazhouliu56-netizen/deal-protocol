@@ -12,6 +12,8 @@
  *   split_revenue（分账 1.0）/ pay_later（0）/ none（0）
  */
 
+import type { ISplitRetrySchedule } from "../../types/ammo-schema.ts";
+
 /** 默认保证金托管率（deposit_only，映射 m13 缺省 0.3）。 */
 export const DEFAULT_DEPOSIT_RATE = 0.3;
 /** 默认平台抽成率（映射 api/payment/release 与 m13 commission 0.10）。 */
@@ -160,6 +162,51 @@ export function calculateProviderSettlement(
     1,
   );
   return { platformFee: platformIncome, providerNet: providerIncome };
+}
+
+/* =====================================================================
+ * 3. 分账指数退避重试调度（微信/银行分账通道 · 确定性纯函数，红线 1）
+ * ===================================================================== */
+
+/** 分账重试阶梯（分钟）：1 → 5 → 15 → 60 → 120（共 5 次上限）。 */
+export const SPLIT_RETRY_LADDER_MINUTES = [1, 5, 15, 60, 120] as const;
+
+/** 分账重试次数上限（超过即放弃重试并触发 P0 财务严重告警）。 */
+export const SPLIT_RETRY_MAX_ATTEMPTS = 5;
+
+/**
+ * 分账指数退避重试调度计算器（微信收付通 / 银行分账通道执行侧）。
+ *
+ * 纯函数（红线 1：零 LLM 判断、零 IO，时间注入便于测试）：
+ * - retryCount 1~5 次 → 按 SPLIT_RETRY_LADDER_MINUTES 阶梯取延时
+ *   （1 / 5 / 15 / 60 / 120 分钟），返回 nextRetryAt = now + delay × 60000；
+ * - retryCount > 5 → shouldAbandon = true 且 isP0AlertTriggered = true
+ *   （资金链路不得无限重试，转人工介入兜底，delayMinutes 归 0）；
+ * - retryCount 非法（≤0 / 非整数 / NaN）→ 防御钳制为第 1 次重试。
+ */
+export function calculateSplitRetrySchedule(
+  retryCount: number,
+  nowTimestamp: number = Date.now(),
+): ISplitRetrySchedule {
+  const count = Number.isInteger(retryCount) && retryCount > 0 ? retryCount : 1;
+  const now = Number.isFinite(nowTimestamp) ? nowTimestamp : Date.now();
+  if (count > SPLIT_RETRY_MAX_ATTEMPTS) {
+    return {
+      retryCount: count,
+      delayMinutes: 0,
+      nextRetryAt: now,
+      shouldAbandon: true,
+      isP0AlertTriggered: true,
+    };
+  }
+  const delayMinutes = SPLIT_RETRY_LADDER_MINUTES[count - 1];
+  return {
+    retryCount: count,
+    delayMinutes,
+    nextRetryAt: now + delayMinutes * 60 * 1000,
+    shouldAbandon: false,
+    isP0AlertTriggered: false,
+  };
 }
 
 /* =====================================================================
