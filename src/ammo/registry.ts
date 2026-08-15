@@ -21,6 +21,7 @@ import { CATEGORY_RISK } from "./risk-rule.ts";
 import { sopForCategory, CATEGORY_SOP } from "./sop.ts";
 import { housekeepingAmmo } from "./housekeeping.ammo.ts";
 import { meetupAmmo } from "./meetup.ammo.ts";
+import { companionAmmo } from "./companion.ammo.ts";
 
 const hasKey = (table: Record<string, unknown>, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(table, key);
@@ -73,13 +74,17 @@ export const DEFAULT_AMMO: IAmmoDefinition = {
 
 /**
  * 官方标准弹药直挂表（类目 → 官方弹药，优先级高于四表聚合）。
- * Phase 2 起官方弹药（housekeeping-v1 / meetup-social-v1）在此登记，
+ * 三大标杆业务弹药（家政 / 组局 / 陪玩）大满贯：
+ *   housekeeping-v1（💥 碰炸）/ meetup-social-v1（⏳延期 + 📡近炸）/
+ *   companion-v1（纯 📡 近炸）；dating / escort 同人风险类目归 companion。
  * 命中即整弹返回（含声明式钩子），不再走散装表聚合。
  */
 export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
   housekeeping: housekeepingAmmo,
   meetup: meetupAmmo,
-  dating: meetupAmmo,
+  dating: companionAmmo,
+  escort: companionAmmo,
+  companion: companionAmmo,
   social: meetupAmmo,
 };
 
@@ -98,6 +103,9 @@ export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
   组局: "meetup",
   桌游: "meetup",
   拼桌: "meetup",
+  陪玩: "companion",
+  交友: "companion",
+  约会: "companion",
 };
 
 /** 四表任一命中即视为已配置类目（如「羽毛球」仅 SOP 表登记也算）。 */

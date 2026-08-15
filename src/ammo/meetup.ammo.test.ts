@@ -328,8 +328,8 @@ test("违约方 AA 保障金按双押金语义全失（no-show-penalty 规则落
  * 6. 注册表挂载
  * ===================================================================== */
 
-test("注册表：meetup/dating/social 类目直接解析到 meetup-social-v1", () => {
-  for (const c of ["meetup", "dating", "social"]) {
+test("注册表：meetup/social 类目直接解析到 meetup-social-v1（dating 已归 companion）", () => {
+  for (const c of ["meetup", "social"]) {
     assert.equal(getAmmoDefinition(c).ammoId, "meetup-social-v1");
     assert.equal(getAmmoDefinition(c).fuzePolicy.fuzeTypes.length, 2);
   }
@@ -418,12 +418,12 @@ test("超时关闭：EXPIRED 终止事件携带全退载荷流转 SETTLED", asyn
   assert.deepEqual(r.termination?.payload, { refundYuan: 160, reason: "24h 未成局自动关闭" });
 });
 
-test("注册表：官方直挂优先于默认保底（social 未配置四表仍解析官方弹药）", () => {
+test("注册表：官方直挂优先于默认保底（social 未配置四表仍解析官方弹药；dating 归 companion）", () => {
   assert.equal(isConfiguredCategory("social"), false);
   assert.equal(getAmmoDefinition("social").ammoId, "meetup-social-v1");
-  assert.equal(getAmmoDefinition("dating").ammoId, "meetup-social-v1");
   assert.equal(getAmmoDefinition("meetup").ammoId, "meetup-social-v1");
-  const keys = ["housekeeping", "meetup", "dating", "social"];
+  assert.equal(getAmmoDefinition("dating").ammoId, "companion-v1");
+  const keys = ["housekeeping", "meetup", "companion", "social"];
   for (const k of keys) {
     assert.ok(getAmmoDefinition(k).fiveStateHooks.length >= 2);
   }
