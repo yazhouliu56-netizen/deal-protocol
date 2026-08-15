@@ -74,7 +74,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **856/856 全绿**（`npm test` = vitest 426 + node:test 430，58 个 node:test 文件） |
+| 单测 | **897/897 全绿**（`npm test` = vitest 426 + node:test 471，61 个 node:test 文件） |
 | Lint | ✅ exit 0（0 errors）；存量 726 warnings 待渐进式治理（其中 239 为原 error 降级：no-explicit-any 184 / react-hooks 35 / react 10 / prefer-const 5 / ts 5，12 条规则降级 warn；治理后逐条恢复 error 清零），不阻断主线开发 |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 12 个就绪；CI `e2e-verify` job（push 至 master 时全链 12 条回归，PR 不阻塞） |
@@ -187,3 +187,4 @@
 | 2026-08-15 | 28 模块主蓝图批次 | **平台架构全景梳理注入（白皮书 §三 3.4 + 宪法模块编号标准）**：① 六层防御圈 × 核心模块职责矩阵固化——标准模块编号 `L1-M1`～`L6-M4`（L1 触达×4 / L2 业务核心×6 / L3 AI 神经×5 / L4 风控防御×5 / L5 生态网关×2 / L6 生存基建×4），定为全项目永久统一编号标准（宪法元宪法声明 + 修订记录双登记）；② 28 行代码落位与成熟度对照表——每模块标注代码路径 + 测试覆盖 + 🟢🟡⚪️（实测 🟢13 已闭环 / 🟡12 有雏形 / ⚪️1 待建设 = L4-M3 物理履约闭环）；③ **口径核查**：注入清单逐项清点实为 26 模块（与标题「28」差 2 席，编号体系完整成立，差量已在白皮书标注待人类裁决）；④ 验证：纯文档批次零代码变更，856 基线不动 + 收敛门禁 exit 0 | |
 
 | 2026-08-15 | 三阶段路线图批次 | **平台落地推进路线图注入（白皮书 §四）**：三阶段研发与业务演进节奏固化——① **Phase 1 MVP 验证期（0➔1）**：单一重信任场景（家庭深度保洁）打磨底座，L2-M1 五态机 + L1-M2 LBS 围栏 + L2-M4 担保托管 + L2-M5 隐私虚拟号 + L4-M1 碰炸引信，首枚官方标准弹药 `housekeeping.ammo.ts`（现场增项报价 Hook，衔接 P0-1 AmmoRunner）；② **Phase 2 体系成熟期（1➔10）**：轻履约/组局社交品类（麻将、同城搭子），动态表单 + 统一计价 AA + LLM 意图转单/小法官/向量撮合/AIGC 鉴真，标杆弹药 `meetup.ammo.ts`（⏳延期引信）+ `companion.ammo.ts`（📡近炸引信）；③ **Phase 3 规模壁垒期（10➔100）**：全品类开放，弱网离线深度同步 + 多云多活降级 + 运力熔断限流 + 司法级哈希存证；④ 每阶段绑定模块编号 + 缺口衔接（P0-1/P0-3/P1-1/P1-5/P2-2）+ 现状标注；⑤ 顺带修复白皮书小节编号一致性（§三 2.x→3.x、落差审计 3.x→5.x，宪法引用同步）；⑥ 纯文档批次零代码变更，856 基线不动 + 收敛门禁 exit 0 | |
+| 2026-08-15 | 本批（P0-P3） | **AmmoRunner 弹药体系落地（人类裁决：终止事件携带结算载荷流转 SETTLED / IAmmoDefinition 增补 dispatchRule? / 纯函数投影桥）**：P0 契约增补——`types/ammo-schema.ts` 增 `buffSeats?`/`maxRounds?`（对齐 SopParams）+ 内联 `IDispatchRule` + `ITerminationEvent`（CANCELLED/EXPIRED/BREACH_SETTLED）+ `IAmmoDefinition.dispatchRule?`；P1 弹药注册表——`ammo/registry.ts` 纯函数聚合四表（`getAmmoDefinition`/`toPricingModel`/`toFuzePolicy`/`toDispatchRule`/`DEFAULT_AMMO` 保底，7 类目全聚合零表改动）；P2 运行引擎——`base/ammo/runner.ts`（红线 3 纯函数：`toAtomicFiveState` 投影桥 + `advanceLifecycle` 跃迁矩阵校验/BEFORE·AFTER 钩子调度（BLOCK 阻止/SKIP 忽略/DEFER 暂存）/终止事件捕获 + `evaluateAmmoFuze` 引信核验（三类模板并集拦截））；P3 标杆重弹——`ammo/housekeeping.ammo.ts` 双轨升级存量 `lib/protocol/protocols/housekeeping.ts` 资产（六阶段 STAGE/分级退款规则/照片证据契约投影导出），装填 💥IMPACT 引信 + HOURLY 计价 + `OnsiteQuoteHook`（IN_SERVICE BEFORE，未确认增项 BLOCK）+ `CleaningCheckHook`（INSPECTED AFTER 双向拍照）；新测试入 `test:oto:units` 清单；验收：tsc 0 错 + `npm test` **897/897 全绿**（856 基线 +41：registry 10 / runner 20 / housekeeping 11）+ 收敛门禁 exit 0 | |

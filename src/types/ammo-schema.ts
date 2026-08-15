@@ -83,9 +83,54 @@ export interface IAmmoSopOverrides {
   depositDefault?: boolean;
   expiresInMs?: number;
   capacityDefault?: number;
+  /** 拼位缓冲名额（发起人 no-show buff 默认值；增补对齐 SopParams）。 */
+  buffSeats?: number;
+  /** 磋商轮次上限（增补对齐 SopParams）。 */
   maxRounds?: number;
   reviewWindowMs?: number;
   depositRate?: number;
+}
+
+/**
+ * 派单规则契约（对齐 ammo/dispatch-rule 表；人类创始人裁决 2：弹药可声明
+ * 派单/抢单打分规则，未声明时底座按全局默认分发）。
+ */
+export interface IDispatchRule {
+  /** 打分权重（距离/信用/定制覆盖/验证加分）。 */
+  weights: {
+    distance: number;
+    credit: number;
+    custom: number;
+    verifiedBonus: number;
+  };
+  /** 硬门槛（进家实名 / 黑名单 / 在线要求）。 */
+  hardGates?: {
+    requiresVerified?: string[];
+    banned?: boolean;
+    online?: boolean;
+  };
+  /** 星级加成：★≥x 且完成率≥y 时加分。 */
+  starBonus?: { starMin: number; completionMin: number; bonus: number };
+}
+
+/**
+ * 终止事件（人类创始人裁决 1：分支终态以伴生终止事件承载——
+ * 取消 / 超时关闭 / 违约结算，携带结算载荷流转至 SETTLED）。
+ * 五态主状态机保持绝对封闭，终止路径不新增五态成员。
+ */
+export type TerminationKind = "CANCELLED" | "EXPIRED" | "BREACH_SETTLED";
+
+export interface ITerminationEvent {
+  /** 终止类型：取消 / 超时关闭 / 违约结算。 */
+  kind: TerminationKind;
+  /** 触发时刻（epoch ms）。 */
+  at: number;
+  /** 业务单号（wave id / order id）。 */
+  orderId: string;
+  /** 终止前所处五态。 */
+  from: AtomicFiveState;
+  /** 结算载荷（如违约赔付金额、退款比例、裁决记录）。 */
+  payload?: Record<string, unknown>;
 }
 
 /**
@@ -106,6 +151,8 @@ export interface IAmmoDefinition {
   pricingModel: PricingModel;
   /** 风控引信策略（三类引信模板或弹药专属配置）。 */
   fuzePolicy: IFuzePolicy;
+  /** 派单规则（可选；缺省走 base/dispatch 全局默认）。 */
+  dispatchRule?: IDispatchRule;
   /** SOP 覆盖项（缺省走 ammo/sop 类目表）。 */
   sop?: IAmmoSopOverrides;
 }
