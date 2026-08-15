@@ -543,6 +543,39 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 - **宪法落位**：宪法 #8（隐私血液规则：虚拟号/脱敏/拉黑）、#4（引信跟弹药走：防护随场景切换）、
   红线 4（零信任物理感知：双拍/扫码/围栏验真）。
 
+### 5.8 极端状态与特殊人群 UX 兜底策略（Tier-4 Edge Cases & Accessibility）
+
+> 人类创始人注入（2026-08-15）：第四层（5.5.4）从契约升级为可运行组件。
+> 组件落位 `src/components/oto-ui/`：`StealthCalculator` / `SeniorModeView` / `OfflineQueueIndicator`。
+
+#### 5.8.1 弱网断网离线态（Offline Graceful Degradation · 宪法 #10 降级是设计的一部分）
+
+- **灵动胶囊变灰**：`StatusCapsule` 接收 `isOffline` 后胶囊转灰阶（📴 离线徽标，弱网预警）；
+- **按钮排队文案**：离线时提交类 CTA 不消失，改为「已加入离线队列」排队语义（本地加密队列暂存，
+  红线 4 加密语义）；
+- **网络恢复自动追回 Toast**：`OfflineQueueIndicator` 监听 `isOffline` 由 true→false，
+  绿色动态 Toast 播报「✅ 网络已恢复：X 笔数据已自动追回同步」（X = 恢复前暂存笔数）。
+
+#### 5.8.2 适老化极简模式（Senior Mode · WCAG AAA 硬标准）
+
+| 规格 | 标准 |
+|------|------|
+| 字阶 | 全局 1.4× 缩放（14px → 19.6px 起） |
+| 对比度 | ≥ 7:1（黑 #000 / 白 #fff / 黄 #ffd60a 三色系，AAA 级） |
+| 触控热区 | ≥ 56×56pt（≈75×75px）巨型热区 |
+| 主屏 | 仅双主按钮：🎙️ 大麦克风语音一键发单（按住即说话 + 超大确认弹窗）+ 📞 电话联系客服（24h 适老热线） |
+| 交互 | 隐藏级联菜单与参数；关键操作一律超大确认/取消弹窗防误触 |
+
+#### 5.8.3 极端危险「静默伪装」防护（Silent Panic UI · 宪法 #8 极端物理防护形态）
+
+- **标准计算器界面掩护**：`StealthCalculator` 呈现外观与功能完全真实的四则运算计算器
+  （数字 0-9 / +−×÷ / C / =，真实运算结果展示），施暴者无法从界面察觉异样；
+- **特定暗号静默触发**：输入 `911=` 或 `110=` 时——界面**继续正常显示计算结果**（零视觉闪烁），
+  后台静默调用 `onTriggerSilentAlarm({ code, at, recordingReady: true, sequence })`
+  触发红色危机流程并标记录音就绪（后台加密录音/录像直传安全中心，L4-M4 链路）；
+- **紧急脱身出口**：顶栏**双击或长按 800ms** 退出伪装模式（`onExitPanicMode`），
+  与 5.5.4 `IStealthCalculatorState`（masked / armCode / audioReportReady）契约对齐。
+
 ---
 
 ## 六、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
@@ -563,3 +596,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 2026-08-15 | **UI/UX 全景系统架构注入**：§五 5.5 新增「4 层体系与 5 态镜像视口标准」——①设计令牌与微氛围层（灰阶栅格 + 三大场景微主色 `theme-housekeeping` 蓝 / `theme-meetup` 橙 / `theme-companion` 紫 + 适老化高对比排版引擎）②全局通用交互骨架层（顶部状态胶囊 / 多重人格坞 / AI Copilot Orb / 全局底线防护栏）③动态视图与插槽渲染层（五态镜像视口 `AtomicFiveState` ↔ `ViewportStage`：Drafting/Matching/Fulfillment/Inspection/Settlement + 弹药特化插槽）④极端场景与无障碍容灾层（弱网半透明提示条 / 适老模式 / 🛡️防暴力伪装计算器）；契约落位 `src/types/ui-viewport.ts`（纯类型零依赖）；承接 P1-5（视口插槽）+ P2-1（微主色 Token） | 用户 |
 | 2026-08-15 | **端到端三大核心页面拓扑注入**：§五 5.6 新增「三大核心页面拓扑与交互流转标准」——①动态发布页 Dynamic Launchpad（ASCII 线框：StatusCapsule + Copilot Orb + DynamicDraftCard 拟物草稿卡 + 弹药切换，CTA 发射 ➔ PUBLISHED）②通用五态履约主屏 Universal Fulfillment Cockpit（五态镜像视口区按态切换、D 视口弹药特化插槽、advanceLifecycle 跃迁驱动胶囊+视口联动、终止事件分支直入结算视口）③争议调解与小法官半屏抽屉 Dispute & AI Arbitration Sheet（半屏上滑、证据链展列、小法官 Advisory 裁定卡、双出口：采纳结算/人工仲裁，红线 1 写入由用户确认）；每屏标注字段构成 + 状态机驱动关系 + 宪法落位 | 用户 |
 | 2026-08-15 | **三大场景 UI 插槽特化矩阵注入**：§五 5.7 新增「三大典型业务场景 UI 插槽特化全景对比矩阵」——家政保洁（重入户/清洁蓝）/ 组局社交（轻履约/活力橙）/ 同城陪玩（高人身风险/夜幕紫）6 大交互维度特化标准：①主题微色调 ②发布页动态组件（户型清单 vs 座次 vs 兴趣标签）③匹配等待动效（1v1 雷达 vs 拼位候补 vs 背调扫描门）④履约核心特化插槽（增项双拍 vs 座次 AA 围栏 vs 隐私盾+伪装电话）⑤核销完工动作（NFC 碰碰 vs 组织者解冻 vs 300m 脱离自动停表）⑥争议售后入口（损坏直赔 vs 放鸽子申诉 vs 一键拉黑敏感词）；契约增补 `src/types/ui-viewport.ts` `ICompanionSlotProps`（isPrivacyShieldArmed / onTriggerFakeCall / departureDistanceMeters 默认 300m / onBlockUser）+ `IViewportSlots.companion` 挂载位；外骨骼零改动差异全收敛插槽区（红线 2） | 用户 |
+| 2026-08-15 | **Tier-4 极端状态与特殊人群 UX 兜底策略注入**：§五 5.8 新增三大容灾交互标准——①弱网断网离线态（胶囊变灰 + 按钮排队文案 + 网络恢复自动追回 Toast）；②适老化极简模式（1.4× 字阶 / WCAG AAA 7:1 黑白色黄三色系 / 56×56pt 巨型触控热区 / 仅双主按钮：大麦克风语音发单 + 24h 客服热线 / 关键操作超大确认弹窗）；③极端危险静默伪装防护（标准计算器界面掩护 + 真实四则运算 + `911=`/`110=` 暗号静默触发报警零视觉闪烁 + 后台加密录音录像直传安全中心 + 顶栏双击/长按 800ms 紧急脱身）；与 5.5.4 `IStealthCalculatorState` 契约对齐（masked / armCode / audioReportReady） | 用户 |
