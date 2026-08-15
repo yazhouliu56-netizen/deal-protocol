@@ -98,6 +98,7 @@
     "@types/web-push": "^3.6.4",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.12",
+    "jsdom": "^30.0.1",
     "playwright-core": "^1.62.1",
     "prettier": "^3.5.0",
     "tailwindcss": "^4",

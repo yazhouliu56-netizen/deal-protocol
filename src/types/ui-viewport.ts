@@ -165,6 +165,25 @@ export interface ISettlementSlotProps {
   creditGain: { points: number; tierUp: boolean };
 }
 
+/**
+ * 陪玩场景特化插槽契约（C/D 视口共用，高人身风险：夜幕紫 / theme-companion）。
+ *
+ * 白皮书 §五 5.7 三大典型场景对比矩阵 · 同城陪玩列：
+ * - 履约核心 = 隐私盾（虚拟号 + 实时行程守护）+ 伪装假电话紧急脱身；
+ * - 核销完工 = 300m 安全距离脱离自动停表 / 手动确认；
+ * - 争议售后 = 一键拉黑 + AI 敏感词干预。
+ */
+export interface ICompanionSlotProps {
+  /** 隐私防骚扰盾是否武装（虚拟号保护中 + 实时行程守护）。 */
+  isPrivacyShieldArmed: boolean;
+  /** 📱 伪装假电话一键触发（紧急脱身假来电弹层），null = 未武装。 */
+  onTriggerFakeCall: (() => void) | null;
+  /** 离开安全距离（米）；默认 300m，超出自动结账/停表。 */
+  departureDistanceMeters: number;
+  /** 敏感词一键拉黑（争议售后入口，宪法 #8 隐私血液规则）。 */
+  onBlockUser?: () => void;
+}
+
 /** 五态视口插槽聚合（视口层渲染器按 stage 分发消费）。 */
 export interface IViewportSlots {
   stage: ViewportStage;
@@ -173,6 +192,8 @@ export interface IViewportSlots {
   fulfillment?: IFulfillmentSlotProps;
   inspection?: IInspectionSlotProps;
   settlement?: ISettlementSlotProps;
+  /** 陪玩特化（高人身风险场景挂载，见 ICompanionSlotProps）。 */
+  companion?: ICompanionSlotProps;
 }
 
 /* =====================================================================

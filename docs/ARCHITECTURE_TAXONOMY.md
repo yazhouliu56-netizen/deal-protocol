@@ -518,6 +518,31 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 - **宪法落位**：红线 1（隔离墙：LLM 结果仅 Advisory，写入由用户确认动作执行）、
   宪法 #7（LLM 介入：定责环节默认评估 LLM 接入，含降级链）、法则五（隐形防御）。
 
+### 5.7 三大典型业务场景 UI 插槽特化全景对比矩阵
+
+> 人类创始人注入（2026-08-15）：三大标杆弹药（housekeeping-v1 / meetup-social-v1 / companion 预备役）
+> 在 6 大交互维度的特化标准。契约落位 `src/types/ui-viewport.ts`（`ICompanionSlotProps` 增补）；
+> 组件落位 `src/components/waves/slots/`（HousekeepingSlot / MeetupSlot / CompanionSlot）
+> + `FulfillmentCockpit`（通用五态履约主屏，外骨骼 + 视口插槽 + 核销 CTA 三区组装）。
+
+| 维度 | 家政保洁（重入户 · 清洁蓝 theme-housekeeping） | 组局社交（轻履约 · 活力橙 theme-meetup） | 同城陪玩（高人身风险 · 夜幕紫 theme-companion） |
+|------|------------------------------------------------|------------------------------------------|--------------------------------------------------|
+| **1. 主题微色调** | 专业蓝（素雅沉静，重信任） | 活力橙（热闹松弛，轻社交） | 夜幕紫（星云神秘 + 高防护警示感） |
+| **2. 发布页动态组件** | 户型/面积/时长/工具清单 + 时薪计价（HOURLY） | 日期/人数/场地方位/座次 + 人均 AA（PER_SEAT） | 时长/兴趣标签/见面商圈 + 时薪+平台防护附加项 |
+| **3. 匹配等待动效** | 单人卡片雷达波纹（1v1 撮合） | 多人拼位波纹 + 候补席动画（多对多） | 背调徽章扫描动效 + 双向确认门（防骚扰预筛选） |
+| **4. 履约核心特化插槽** | **增项双拍**：现场增项改价确认单 + Before/After 双拍照片池 + 损坏包赔直连 | **座次 AA 围栏**：实时座次表（到场/未到场）+ 500m 签到围栏 + AA 多退少补对账 | **隐私盾 + 伪装电话**：虚拟号保护 + 实时行程守护 + 📱一键伪装假电话脱身 |
+| **5. 核销完工动作** | 双方碰一碰 NFC / 雇主验收清单打钩 | 组织者点选到场成员解冻定金（扫码验真） | 300m 脱离安全距离自动停表 / 手动确认 |
+| **6. 争议与售后入口** | 损坏直赔（财产险理赔直连） | 放鸽子申诉（爽约押金判归守约方） | 一键拉黑 + AI 敏感词干预（骚扰即时拦截） |
+
+- **契约挂载**：`IInspectionSlotProps.special`（photoCompare / aaSplit / onsiteQuote）承接家政与组局列；
+  `ICompanionSlotProps`（isPrivacyShieldArmed / onTriggerFakeCall / departureDistanceMeters 默认 300m /
+  onBlockUser）承接陪玩列——**外骨骼零改动，差异全部收敛在插槽区**（红线 2 + 5.4.4 验收标准）；
+- **弹药映射**：`getAmmoDefinition(category)` 整弹解析 → 视口按 ammoId 装载对应插槽：
+  `housekeeping-v1` → HousekeepingSlot、`meetup-social-v1`（meetup/dating/social 键）→ MeetupSlot、
+  待装填 companion-v1 → CompanionSlot（当前按 scenario 键直挂，弹药表配置后自动收编）；
+- **宪法落位**：宪法 #8（隐私血液规则：虚拟号/脱敏/拉黑）、#4（引信跟弹药走：防护随场景切换）、
+  红线 4（零信任物理感知：双拍/扫码/围栏验真）。
+
 ---
 
 ## 六、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
@@ -537,3 +562,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 2026-08-15 | **前端微内核交互架构注入**：§五 5.4 新增「前端微内核与系统级交互架构」——容器心智模型（不变外骨骼 × 流动动态视口）+ 前端微内核 5 大交互法则（主题 Token 隔离 / 五态灵动胶囊 / 多数字人格流体双模态 / AI 意图转单拟物草稿卡 / 隐形防御显性物理触感）+ 组件三层挂载映射图谱（外骨骼 / 视口 / 物理感知）；D-8 判定挂接 5.4 与 P2-1；与 §四 Phase 2 弹药可插拔验收对齐（外骨骼零改动 + 视口按弹药切换） | 用户 |
 | 2026-08-15 | **UI/UX 全景系统架构注入**：§五 5.5 新增「4 层体系与 5 态镜像视口标准」——①设计令牌与微氛围层（灰阶栅格 + 三大场景微主色 `theme-housekeeping` 蓝 / `theme-meetup` 橙 / `theme-companion` 紫 + 适老化高对比排版引擎）②全局通用交互骨架层（顶部状态胶囊 / 多重人格坞 / AI Copilot Orb / 全局底线防护栏）③动态视图与插槽渲染层（五态镜像视口 `AtomicFiveState` ↔ `ViewportStage`：Drafting/Matching/Fulfillment/Inspection/Settlement + 弹药特化插槽）④极端场景与无障碍容灾层（弱网半透明提示条 / 适老模式 / 🛡️防暴力伪装计算器）；契约落位 `src/types/ui-viewport.ts`（纯类型零依赖）；承接 P1-5（视口插槽）+ P2-1（微主色 Token） | 用户 |
 | 2026-08-15 | **端到端三大核心页面拓扑注入**：§五 5.6 新增「三大核心页面拓扑与交互流转标准」——①动态发布页 Dynamic Launchpad（ASCII 线框：StatusCapsule + Copilot Orb + DynamicDraftCard 拟物草稿卡 + 弹药切换，CTA 发射 ➔ PUBLISHED）②通用五态履约主屏 Universal Fulfillment Cockpit（五态镜像视口区按态切换、D 视口弹药特化插槽、advanceLifecycle 跃迁驱动胶囊+视口联动、终止事件分支直入结算视口）③争议调解与小法官半屏抽屉 Dispute & AI Arbitration Sheet（半屏上滑、证据链展列、小法官 Advisory 裁定卡、双出口：采纳结算/人工仲裁，红线 1 写入由用户确认）；每屏标注字段构成 + 状态机驱动关系 + 宪法落位 | 用户 |
+| 2026-08-15 | **三大场景 UI 插槽特化矩阵注入**：§五 5.7 新增「三大典型业务场景 UI 插槽特化全景对比矩阵」——家政保洁（重入户/清洁蓝）/ 组局社交（轻履约/活力橙）/ 同城陪玩（高人身风险/夜幕紫）6 大交互维度特化标准：①主题微色调 ②发布页动态组件（户型清单 vs 座次 vs 兴趣标签）③匹配等待动效（1v1 雷达 vs 拼位候补 vs 背调扫描门）④履约核心特化插槽（增项双拍 vs 座次 AA 围栏 vs 隐私盾+伪装电话）⑤核销完工动作（NFC 碰碰 vs 组织者解冻 vs 300m 脱离自动停表）⑥争议售后入口（损坏直赔 vs 放鸽子申诉 vs 一键拉黑敏感词）；契约增补 `src/types/ui-viewport.ts` `ICompanionSlotProps`（isPrivacyShieldArmed / onTriggerFakeCall / departureDistanceMeters 默认 300m / onBlockUser）+ `IViewportSlots.companion` 挂载位；外骨骼零改动差异全收敛插槽区（红线 2） | 用户 |
