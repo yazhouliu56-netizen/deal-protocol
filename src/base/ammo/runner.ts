@@ -154,7 +154,11 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
     orderId: input.orderId,
     from: input.from,
     to: target,
-    payload: input.payload,
+    // 终止路径：结算载荷（termination.payload）合并进钩子上下文，
+    // 使 SETTLED 阶段的 AFTER 钩子（如 AA 分账）能读取违约赔付载荷。
+    payload: input.termination
+      ? { ...(input.payload ?? {}), ...input.termination.payload }
+      : input.payload,
   };
 
   const hookOutcomes: HookOutcome[] = [];
