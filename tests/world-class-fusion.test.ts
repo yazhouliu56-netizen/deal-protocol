@@ -4,11 +4,6 @@ import { describe, it, expect, beforeAll, vi } from 'vitest'
 // Mechanism 1: Priority Tip Booster — 1.5x matching weight
 // ============================================================
 describe('PriorityTipBooster', () => {
-  it('tip route returns 400 for missing tipAmount', async () => {
-    const { POST } = await import('@/app/api/demands/[id]/tip/route')
-    expect(POST).toBeDefined()
-  })
-
   it('tip is stored in core_fields as has_tip=true with tip_amount', () => {
     const coreFields = { title: 'Fix pipe', has_tip: true, tip_amount: 200 }
     expect(coreFields.has_tip).toBe(true)
@@ -134,11 +129,6 @@ describe('GDPRAnonymization', () => {
     expect(walletLogs.length).toBe(1)
     expect(contracts[0].amount).toBe(500)
     expect(evidenceLog[0].hash).toBe('abc')
-  })
-
-  it('profile delete route exports POST', async () => {
-    const mod = await import('@/app/api/profile/delete/route')
-    expect(mod.POST).toBeDefined()
   })
 })
 

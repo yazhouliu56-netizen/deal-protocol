@@ -138,7 +138,7 @@ describe('E2E Integration Smoke Test', () => {
     __resetSupabaseClient()
   })
 
-  it('should flow through voice->protocol->match->push->grab->hold->complete->settle->credit', async () => {
+  it('should flow through voice->protocol->match->push->grab (payment lifecycle converged to escrow engine)', async () => {
     callLLM
       .mockResolvedValueOnce(defaultEmbedding)
       .mockResolvedValueOnce(defaultExtraction)
@@ -203,45 +203,5 @@ describe('E2E Integration Smoke Test', () => {
     expect(appendEvidence).toHaveBeenCalledWith(
       expect.objectContaining({ eventType: 'order_grabbed' }),
     )
-
-    const { holdPayment, confirmCompletion, settlePayment } = await import(
-      '../src/modules/m13-payment/payment-service'
-    )
-
-    chain.single.mockResolvedValue({
-      data: { id: 'order-1', protocol_id: 'proto-1', amount: 200 },
-      error: null,
-    })
-
-    const holdResult = await holdPayment('proto-1', 200)
-    expect(holdResult.success).toBe(true)
-
-    chain.then.mockImplementation((resolve) => resolve({
-      data: [{ id: 'ev-d', payload: { confirmed_by: 'demander' } }],
-      error: null,
-    }))
-    const confirmDemander = await confirmCompletion('proto-1', 'demander')
-    expect(confirmDemander.success).toBe(false)
-    expect(confirmDemander.message).toBe('Awaiting confirmation from the other party')
-
-    chain.then.mockImplementation((resolve) => resolve({
-      data: [
-        { id: 'ev-d', payload: { confirmed_by: 'demander' } },
-        { id: 'ev-p', payload: { confirmed_by: 'provider' } },
-      ],
-      error: null,
-    }))
-    const confirmProvider = await confirmCompletion('proto-1', 'provider')
-    expect(confirmProvider.success).toBe(true)
-
-    chain.single.mockResolvedValue({
-      data: { id: 'order-1', provider_income: 170, satisfaction_hold: 20, provider_id: 'provider-1' },
-      error: null,
-    })
-
-    const settleResult = await settlePayment('proto-1')
-    expect(settleResult.success).toBe(true)
-
-    expect(updateCredit).toHaveBeenCalled()
   })
 })

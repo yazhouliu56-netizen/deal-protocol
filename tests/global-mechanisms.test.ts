@@ -212,41 +212,4 @@ describe("Mechanism 4: T+0 Fast Withdrawal", () => {
     expect(tier.level).toBe(3)
     expect(tier.fastWithdrawal).toBe(false)
   })
-
-  it("tryFastWithdrawal inserts instant withdrawal for high-tier providers", async () => {
-    const creditModule = await import("@/modules/m07-credit/credit-engine")
-    vi.mocked(creditModule.getCreditScore).mockResolvedValue({
-      baseScore: 800,
-      categoryScore: 80,
-      dimensions: {},
-      baseTotalDeals: 50,
-    })
-
-    const supabaseClient = await import("@/lib/supabase-client")
-    const getSupabase = vi.mocked(supabaseClient.getSupabase)
-    const mockInsert = vi.fn().mockReturnThis()
-    const mockFrom = vi.fn()
-    getSupabase.mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof getSupabase>)
-    mockFrom.mockReturnValue({ insert: mockInsert })
-
-    const { tryFastWithdrawal } = await import("@/modules/m13-payment/payment-service")
-    const result = await tryFastWithdrawal("provider-vip-1", 5000, "protocol-1")
-
-    expect(result.instant).toBe(true)
-  })
-
-  it("tryFastWithdrawal does NOT insert instant withdrawal for low-tier providers", async () => {
-    const creditModule = await import("@/modules/m07-credit/credit-engine")
-    vi.mocked(creditModule.getCreditScore).mockResolvedValue({
-      baseScore: 400,
-      categoryScore: 40,
-      dimensions: {},
-      baseTotalDeals: 2,
-    })
-
-    const { tryFastWithdrawal } = await import("@/modules/m13-payment/payment-service")
-    const result = await tryFastWithdrawal("provider-low-1", 100, "protocol-2")
-
-    expect(result.instant).toBe(false)
-  })
 })

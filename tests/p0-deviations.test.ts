@@ -198,15 +198,4 @@ describe('P0-01: demands route uses protocols table', () => {
     expect(content).toMatch(/\.from\(['"]protocols['"]\)/)
     expect(content).not.toMatch(/\.from\(['"]demands['"]\)/)
   })
-
-  it('demands/create/route.ts writes to protocols table', async () => {
-    const fs = await import('fs')
-    const path = await import('path')
-    const content = fs.readFileSync(
-      path.join(process.cwd(), 'src/app/api/demands/create/route.ts'),
-      'utf-8',
-    )
-    expect(content).toMatch(/\.from\(['"]protocols['"]\)/)
-    expect(content).not.toMatch(/\.from\(['"]demands['"]\)/)
-  })
 })

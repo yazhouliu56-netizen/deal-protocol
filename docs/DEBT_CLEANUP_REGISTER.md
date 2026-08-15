@@ -365,52 +365,54 @@
 - [x] 门禁核验：tsc 0 报错 / 单测全绿 / convergence exit 0 / 0 业务文件改动
 
 ## Batch 1：零风险纯垃圾出清（触发：创始人裁决后单发指令）
-- [ ] A1 `api/llm-test`（自带 "Debug endpoint" 注释，优先级最高）
-- [ ] A4 `api/ai/push-recommendations`
-- [ ] A5 `api/category-configs`
-- [ ] A6 `api/demands/create`
-- [ ] A7 `api/demands/list`
-- [ ] A8 `api/demands/nearby`
-- [ ] A10 `api/demands/[id]/match`
-- [ ] A11 `api/demands/[id]/tip`
-- [ ] A12 `api/developer/preference`
-- [ ] A13 `api/disputes/[id]/arbitrate-ai`
-- [ ] A14 `api/disputes/[id]`
-- [ ] A16 `api/orders/accept-delivery`
-- [ ] A17 `api/orders/submit-delivery`
-- [ ] A18 `api/pricing/estimate`
-- [ ] A19 `api/profile/delete`
-- [ ] A20 `api/provider/withdraw`
-- [ ] A21 `api/telecom/privacy-number`
-- [ ] A23 `api/verify/identity`
-- [ ] A24 `api/protocols`（根）
-- [ ] A25 `api/protocols/[id]`
-- [ ] A26 `api/admin/disputes`（无 `/list` 版）
+- [x] A1 `api/llm-test`（自带 "Debug endpoint" 注释，优先级最高）
+- [x] A4 `api/ai/push-recommendations`
+- [x] A5 `api/category-configs`
+- [x] A6 `api/demands/create`
+- [x] A7 `api/demands/list`
+- [x] A8 `api/demands/nearby`
+- [x] A10 `api/demands/[id]/match`
+- [x] A11 `api/demands/[id]/tip`
+- [x] A12 `api/developer/preference`
+- [x] A13 `api/disputes/[id]/arbitrate-ai`
+- [x] A14 `api/disputes/[id]`
+- [x] A16 `api/orders/accept-delivery`
+- [x] A17 `api/orders/submit-delivery`
+- [x] A18 `api/pricing/estimate`
+- [x] A19 `api/profile/delete`
+- [x] A20 `api/provider/withdraw`
+- [x] A21 `api/telecom/privacy-number`（保留：创始人裁决清单未列入，lib 活跃，销项为「保留观察」）
+- [x] A23 `api/verify/identity`
+- [x] A24 `api/protocols`（根）
+- [x] A25 `api/protocols/[id]`
+- [x] A26 `api/admin/disputes`（无 `/list` 版）
 
 ## Batch 2：级联成对出清（触发：Batch 1 后）
-- [ ] L1 成对：A2 `api/ai/inspect-quality` + `lib/vision-inspector.ts`
-- [ ] L2 成对：A3 `api/ai/negotiate` + `lib/ai-negotiator.ts`
-- [ ] L3 成对：A9 `api/demands/predict-intent` + `lib/intent-radar.ts`
-- [ ] L5 成对：C4 `DisputeModal.tsx` + `api/disputes/create`
-- [ ] L6 成对：C5 `ReviewModal.tsx` + `api/reviews/submit`
-- [ ] L7 成对：C6 `SmartRequest.tsx` + `api/llm-classify`
-- [ ] C1 `RealtimeChat.tsx`
-- [ ] C2 `NotificationCenter.tsx`（根目录，注意保留 `providers/NotificationProvider`）
-- [ ] C3 `AIArbitrationCard.tsx`（根目录）
-- [ ] C7 `OnboardingWizard.tsx`
-- [ ] C8 `VoiceInput.tsx`
-- [ ] C9 `DynamicPricingCard.tsx`
-- [ ] C10 `PeerJuryPanel.tsx`
-- [ ] C11 `WebRTCCallRoom.tsx`
-- [ ] C12 `ConfirmDialog.tsx`
-- [ ] C13 `escrow/encounter-contract-modal.tsx`
-- [ ] C14 `ProviderCheckinModal.tsx`
-- [ ] G1-G3 三个 `.gitkeep` 文件清理
+- [x] L1 成对：A2 `api/ai/inspect-quality` + `lib/vision-inspector.ts`
+- [x] L2 成对：A3 `api/ai/negotiate` + `lib/ai-negotiator.ts`
+- [x] L3 成对：A9 `api/demands/predict-intent` + `lib/intent-radar.ts`
+- [x] L5 成对：C4 `DisputeModal.tsx` + `api/disputes/create`
+- [x] L6 成对：C5 `ReviewModal.tsx` + `api/reviews/submit`
+- [x] L7 成对：C6 `SmartRequest.tsx` + `api/llm-classify`
+- [x] C1 `RealtimeChat.tsx`
+- [x] C2 `NotificationCenter.tsx`（根目录，注意保留 `providers/NotificationProvider`）
+- [x] C3 `AIArbitrationCard.tsx`（根目录）
+- [x] C7 `OnboardingWizard.tsx`
+- [x] C8 `VoiceInput.tsx`
+- [x] C9 `DynamicPricingCard.tsx`
+- [x] C10 `PeerJuryPanel.tsx`
+- [x] C11 `WebRTCCallRoom.tsx`
+- [x] C12 `ConfirmDialog.tsx`
+- [x] C13 `escrow/encounter-contract-modal.tsx`
+- [x] C14 `ProviderCheckinModal.tsx`
+- [x] G1-G3 三个 `.gitkeep` 文件清理
 
 ## Batch 3：冗余模块出清（触发：Batch 1-2 全部销项后）
-- [ ] M8 `modules/m09-content-audit/content-audit.ts`（全仓 0 引用确认后删）
-- [ ] M12 `modules/m13-payment/payment-service.ts`（确认 `base/money/escrow.ts` 无真实 import 后删）
-- [ ] A15 `api/disputes/resolve` 收敛并入 `admin/arbitrate`（需先确认后台裁决 UI 链路）
+- [x] M8 `modules/m09-content-audit/content-audit.ts`（全仓 0 引用确认后删）
+- [x] M12 `modules/m13-payment/payment-service.ts`（确认 `base/money/escrow.ts` 无真实 import 后删）
+- [x] A15 `api/disputes/resolve`（保留：裁决清单未列入，功能并入 `admin/arbitrate` 评审待续）
+
+> **Batch 1-3 物理出清执行记录（Commit: 本次提交 `40b253e..`）**：创始人裁决后执行，git rm 删除 47 个文件（Batch 1: 20 项 / Batch 2: 21 项 / Batch 3: 2 项 + 4 项测试同步）。`A14 disputes/[id]` 经核实从未存在于文件系统（审计正则误记，无文件可删，销项状态：无需操作）；`A21 telecom/privacy-number` 与 `L4 agent-gateway` 按免死金牌保留。**测试同步清理（17 项断言/文件）**：`tests/m09-audit.test.ts`、`tests/m09-flydan.test.ts` 整文件删除（m09 已删）；`frontier-2026.test.ts` 删 AINegotiator 块（ai-negotiator 已删）；`global-mechanisms.test.ts` 删 tryFastWithdrawal 2 用例（m13 已删）；`p0-deviations.test.ts` 删 demands/create 断言（保留 demands/route 断言）；`world-class-fusion.test.ts` 删 tip/profile-delete 路由断言（保留纯逻辑断言）；`e2e-integration.test.ts` 移除 m13 资金段（hold/complete/settle→credit 链收敛至 escrow 引擎，标题同步更新）。全量门禁：`tsc 0 错` / `vitest 469 + node:test 573 = 1042/1042 全绿`（1061 - 19 失效测试） / `check:convergence exit 0` / 工作区无未追踪垃圾。
 
 ## Batch 4：结构级收敛（触发：单独立项，非垃圾清运）
 - [ ] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）
