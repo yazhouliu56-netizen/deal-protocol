@@ -214,7 +214,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L2-M1` | 标准订单状态机 | `base/order/wave.ts` + `types/ammo-schema.ts`（五态契约） | wave 状态机/认领/成团测试 | 🟢（五态为目标契约，wave 过渡映射见 §二 2.1） |
 | `L2-M2` | 计价分摊引擎 | `base/money/customPricing` + `ammo/pricing-formula`（时/距/系数/地板价）、settleGroupFail | customPricing/计费测试 | 🟡（定式计价闭环；AA 分摊在场外、现场改价/动态溢价待建） |
 | `L2-M3` | 双模分发路由 | `base/dispatch/match`（派单）+ `broadcast`（抢单广播）+ `ammo/dispatch-rule` | match/broadcast 测试 | 🟢（双模 + ammo 权重硬门槛闭环） |
-| `L2-M4` | 账户清结算 | `base/money/*`（ledger/pay/deposit/bidding）、`packages/payment-core`、`app/api/payment/*`（托管） | pay/ledger/deposit 测试 | 🟡（确定性引擎闭环；统一钱包跨场景通兑、提现 ⚪️） |
+| `L2-M4` | 账户清结算 | `base/money/escrow.ts`（**统一托管与清结算引擎：六模式托管/三阶段阶梯退款/AA 多方分账/资金安全底线**）+ `base/money/*`（ledger/pay/deposit/bidding）+ `base/ammo/runner.ts`（AmmoRunner 五态资金挂接：MATCHED 托管校验 / SETTLED 清结算对账清单）+ `app/api/payment/*`（release 收敛调统一引擎） | escrow/pay/ledger/deposit 测试 | 🟢（确定性引擎闭环 + AmmoRunner 五态挂接 + api/payment 收敛；统一钱包跨场景通兑、提现 ⚪️） |
 | `L2-M5` | IM 与隐私通信 | `base/comm/privacyNumber`（48h 双向热绑定）+ `base/comm/im` | privacyNumber 测试 | 🟢（隐私号/IM 闭环；音视频端到端加密 ⚪️） |
 | `L2-M6` | 信用成长体系 | `base/trust/*`（reputation/starRank/review）+ `packages/credit-formula` | trust/评分测试 | 🟢（跨场景通兑按宪法 #6 飞轮滚动） |
 | `L3-M1` | 意图识别转单 | `base/ai/chat/llmEngine` + `decompose.ts` + `voice/voiceIntent.ts` | 拆解/意图测试 | 🟢（NL→结构化草稿闭环，围栏容错） |

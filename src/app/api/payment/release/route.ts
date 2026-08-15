@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
+import { calculateProviderSettlement } from "@/base/money/escrow"
 
 export const POST = withAuth(async (req, user) => {
   const { orderId } = await req.json()
@@ -35,8 +36,7 @@ export const POST = withAuth(async (req, user) => {
   }
 
   const amount = demand.price ?? 0
-  const platformFee = Math.round(amount * 0.10 * 100) / 100
-  const providerNet = Math.round((amount - platformFee) * 100) / 100
+  const { platformFee, providerNet } = calculateProviderSettlement(amount)
 
   const { data: wallet, error: walletError } = await supabase
     .from("provider_wallets")

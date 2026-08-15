@@ -21,6 +21,12 @@ import type {
 import { FIVE_STATE_TRANSITIONS } from "../../types/ammo-schema.ts";
 import type { IFuzePolicy } from "../../types/fuze-policy.ts";
 import type { FuzeType } from "../../types/fuze-policy.ts";
+import {
+  calculateEscrowHold,
+  calculateMultiPartySplit,
+  calculateTieredRefund,
+  verifyFundSafetyGuard,
+} from "../money/escrow.ts";
 
 /* =====================================================================
  * 1. 五态投影桥（人类裁决 3：纯函数运行时投影，不做状态迁移）
@@ -107,6 +113,90 @@ export interface AdvanceResult {
   hookOutcomes: HookOutcome[];
   /** AFTER 钩子的透传结果数据（如验收照片清单）。 */
   afterData: unknown[];
+}
+
+/* =====================================================================
+ * 2.1 资金托管与清结算挂接（L2-M4 账户清结算 · 阶段二深水区收敛）
+ * ===================================================================== */
+
+/** 跃迁资金载荷（payload.escrowPayload，MATCHED 校验 / SETTLED 装配）。 */
+export interface EscrowPayload {
+  /** 订单托管总额（原价，必填）。 */
+  amount: number;
+  /** 保证金托管率（缺省走 escrow 默认全款托管语义）。 */
+  depositRate?: number;
+  /** 需求方当前余额（提供时触发资金安全底线校验）。 */
+  balance?: number;
+  /** 平台抽成率（缺省 0.1，结算分账用）。 */
+  platformRate?: number;
+  /** 参与人数（AA 组局 ≥2 走人均分摊，缺省 1）。 */
+  participants?: number;
+  /** 阶梯退款载荷（违约/提前终止结算用）。 */
+  refund?: { elapsedRatio?: number; isBreach?: boolean };
+}
+
+/** 清结算对账清单（SETTLED 终局装配；四大弹药统一产出，L2-M4 权威对账）。 */
+export interface SettlementLedger {
+  ammoId: string;
+  orderId: string;
+  status: "SETTLED";
+  /** 初始托管载荷（MATCHED 时锁定）。 */
+  hold: { totalAmount: number; heldDeposit: number; payableAmount: number };
+  /** 正常结算分账（AA 人均 + 平台抽成 + 服务方净得）。 */
+  split?: { perSeatCost: number; platformIncome: number; providerIncome: number };
+  /** 违约/提前终止阶梯退款（守恒：refund + pay + fee ≡ total）。 */
+  refund?: { refundToDemander: number; payToProvider: number; platformFee: number };
+  providerIncome: number;
+  platformIncome: number;
+  demanderRefund: number;
+}
+
+/**
+ * 结算对账清单装配（纯函数，确定性清结算——红线 1：零 LLM 判断）。
+ * 违约/退款载荷存在 → 走阶梯退款；否则 → 多方分账（AA 人均 + 平台抽成）。
+ */
+export function buildSettlementLedger(input: {
+  ammo: IAmmoDefinition;
+  orderId: string;
+  amount: number;
+  depositRate?: number;
+  platformRate?: number;
+  participants?: number;
+  refund?: { elapsedRatio?: number; isBreach?: boolean };
+}): SettlementLedger {
+  const hold = calculateEscrowHold(input.amount, input.depositRate);
+  if (input.refund) {
+    const tiered = calculateTieredRefund(
+      input.amount,
+      input.refund.elapsedRatio ?? 0.5,
+      input.refund.isBreach === true,
+    );
+    return {
+      ammoId: input.ammo.ammoId,
+      orderId: input.orderId,
+      status: "SETTLED",
+      hold,
+      refund: tiered,
+      providerIncome: tiered.payToProvider,
+      platformIncome: tiered.platformFee,
+      demanderRefund: tiered.refundToDemander,
+    };
+  }
+  const split = calculateMultiPartySplit(
+    input.amount,
+    input.platformRate ?? 0.1,
+    input.participants ?? 1,
+  );
+  return {
+    ammoId: input.ammo.ammoId,
+    orderId: input.orderId,
+    status: "SETTLED",
+    hold,
+    split,
+    providerIncome: split.providerIncome,
+    platformIncome: split.platformIncome,
+    demanderRefund: 0,
+  };
 }
 
 function hookMatches(
@@ -223,6 +313,49 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
     }
     hookOutcomes.push({ hookId: hook.hookId, ok: true, fallbackUsed: "NONE" });
     if (result?.data !== undefined) afterData.push(result.data);
+  }
+
+  // 资金托管挂接（L2-M4，仅 payload.escrowPayload 存在时激活——零载荷
+  // 完全透传，既有跃迁行为不变；资金校验失败按准入语义 BLOCK 回退）。
+  const escrowPayload = ctxBase.payload?.escrowPayload as EscrowPayload | undefined;
+  if (escrowPayload) {
+    const hold = calculateEscrowHold(escrowPayload.amount, escrowPayload.depositRate);
+    if (hold.totalAmount <= 0) {
+      return {
+        ok: false,
+        state: input.from,
+        reason: `escrow-hold-invalid: amount must be positive (got ${escrowPayload.amount})`,
+        hookOutcomes,
+        afterData,
+      };
+    }
+    if (
+      escrowPayload.balance !== undefined &&
+      !verifyFundSafetyGuard(escrowPayload.balance, hold.heldDeposit)
+    ) {
+      return {
+        ok: false,
+        state: input.from,
+        reason: `escrow-fund-safety-guard: balance ${escrowPayload.balance} < required hold ${hold.heldDeposit}`,
+        hookOutcomes,
+        afterData,
+      };
+    }
+    if (target === "MATCHED") {
+      afterData.push({ escrow: hold });
+    } else if (target === "SETTLED") {
+      afterData.push({
+        settlementLedger: buildSettlementLedger({
+          ammo,
+          orderId: input.orderId,
+          amount: escrowPayload.amount,
+          depositRate: escrowPayload.depositRate,
+          platformRate: escrowPayload.platformRate,
+          participants: escrowPayload.participants,
+          refund: escrowPayload.refund,
+        }),
+      });
+    }
   }
 
   return { ok: true, state, termination, hookOutcomes, afterData };
