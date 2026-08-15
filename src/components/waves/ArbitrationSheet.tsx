@@ -6,14 +6,42 @@ import type { AtomicFiveState } from "@/types/ammo-schema";
 /**
  * 争议调解 · AI 小法官半屏抽屉（Dispute & AI Arbitration Sheet · 白皮书 §五 5.6.3）。
  *
+ * 漏洞五闭环 · 三级人机双轨仲裁分流（resolveArbitrationLevel 确定性纯函数）：
+ * - Level 1（≤30 元 且 无安全告警）：🟢 规则引擎自动秒赔，一键补偿结案，
+ *   不扣罚服务者（平台体验保障金出账）；
+ * - Level 2（30 < 金额 ≤ 500）：🤖 AI 小法官建议卡（Advisory）+ 人工审核
+ *   双出口（接受方案 / 驳回修正升级人工）；
+ * - Level 3（>500 元 或 红色报警）：🔴 法务专家组直通，自动切断线上调解，
+ *   展示紧急连线安全法务组 + 联动保险公司现场勘查状态卡。
+ *
  * 三区组装：
  * 1. 物证比对链 —— 客户投诉诉求 / 履约完工照片（含 AI 视觉标注）/ 关键聊天记录；
- * 2. AI 小法官建议卡（L3-M3）—— 退款金额 + 平台补偿券 + 责任认定 + 信用扣减 + 理由链，
- *    仅 Advisory（红线 1：LLM 结果不直接落库，写入由用户确认动作执行）；
- * 3. 隔离墙双出口（红线 1）——
- *    【🤝 接受调解方案】onAcceptProposal：扣扳机执行退款并流转 SETTLED（BREACH_SETTLED 载荷）；
- *    【🧑⚖️ 申请人工客服】onEscalateManual：冻结资金进入人工仲裁队列。
+ * 2. 分级仲裁区 —— L1 秒赔卡 / L2 AI 建议卡 / L3 法务直连卡（互斥渲染）；
+ * 3. 分级出口 —— L1 一键补偿 / L2 双出口 / L3 法务 + 保险联动。
+ * 红线 1：分流判定与 L1 秒赔为确定性纯函数，LLM 仅存在于 L2 Advisory。
  */
+
+/** 三级仲裁层级（漏洞五 · 确定性分流结果）。 */
+export type ArbitrationLevel = "LEVEL_1" | "LEVEL_2" | "LEVEL_3";
+
+/**
+ * 三级仲裁分流判定（确定性纯函数，红线 1）：
+ * - 金额 ≤ 30 且无安全告警 → LEVEL_1（小额秒赔）；
+ * - 金额 > 500 或 触发安全告警 → LEVEL_3（重大/高危，法务直通）；
+ * - 其余（30 < 金额 ≤ 500）→ LEVEL_2（AI + 人工双轨）。
+ * 金额未提供（undefined）→ 保守按 LEVEL_2（维持既有行为）。
+ */
+export function resolveArbitrationLevel(
+  disputeAmountYuan: number | undefined,
+  hasSafetyAlert = false,
+): ArbitrationLevel {
+  if (hasSafetyAlert) return "LEVEL_3";
+  if (disputeAmountYuan === undefined) return "LEVEL_2";
+  if (!Number.isFinite(disputeAmountYuan) || disputeAmountYuan <= 0) return "LEVEL_2";
+  if (disputeAmountYuan <= 30) return "LEVEL_1";
+  if (disputeAmountYuan > 500) return "LEVEL_3";
+  return "LEVEL_2";
+}
 
 /** 履约完工照片证据（含 AI 视觉标注）。 */
 export interface ArbitrationPhotoEvidence {
@@ -61,7 +89,7 @@ export interface ArbitrationSheetProps {
   currentState?: AtomicFiveState;
   /** 物证比对链。 */
   evidence: ArbitrationEvidence;
-  /** AI 小法官建议卡（Advisory）。 */
+  /** AI 小法官建议卡（Advisory；L1/L3 级自动隐藏）。 */
   proposal: ArbitrationProposal;
   /** 双出口 A：接受调解方案（执行退款 + 流转 SETTLED）。 */
   onAcceptProposal: () => void;
@@ -69,6 +97,14 @@ export interface ArbitrationSheetProps {
   onEscalateManual: () => void;
   /** 关闭抽屉。 */
   onClose: () => void;
+  /** 争议金额（¥；驱动三级分流，缺省 = 保守 LEVEL_2）。 */
+  disputeAmountYuan?: number;
+  /** 红色安全报警（人身安全告警；触发即 LEVEL_3 法务直通）。 */
+  hasSafetyAlert?: boolean;
+  /** L1 秒赔回调（一键秒级补偿，扣平台体验保障金，不扣罚服务者）。 */
+  onInstantCompensate?: () => void;
+  /** L3 法务直通回调（紧急连线安全法务组）。 */
+  onConnectLegal?: () => void;
 }
 
 /** 司法存证包导出状态（api/evidence/export-judicial-package 审计证书）。 */
@@ -118,6 +154,21 @@ const SHEET_CSS = `
 .arb-btn:active{transform:scale(.98)}
 .arb-btn-accept{background:linear-gradient(135deg,#4ade80,#16a34a);color:#04120a}
 .arb-btn-escalate{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#1a0b02}
+.arb-level{margin-top:12px;padding:12px 14px;border-radius:16px;font-size:12px;line-height:1.6}
+.arb-level-1{background:linear-gradient(135deg,rgba(74,222,128,.14),rgba(34,197,94,.05));
+  border:1px solid rgba(74,222,128,.4)}
+.arb-level-3{background:linear-gradient(135deg,rgba(248,113,113,.16),rgba(220,38,38,.06));
+  border:1px solid rgba(248,113,113,.5)}
+.arb-level-title{font-size:13px;font-weight:800}
+.arb-level-note{font-size:11px;color:#94a3b8;margin-top:4px}
+.arb-law-card{margin-top:10px;padding:11px 13px;border-radius:14px;font-size:11.5px;
+  display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06)}
+.arb-law-card strong{font-size:12px}
+.arb-law-pulse{width:9px;height:9px;border-radius:50%;background:#ef4444;
+  animation:law-pulse 1.2s ease-in-out infinite;flex-shrink:0}
+@keyframes law-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5);opacity:.8}
+  50%{box-shadow:0 0 0 6px rgba(239,68,68,0);opacity:1}}
 `;
 
 const LIABILITY_LABEL: Record<ArbitrationProposal["liability"], string> = {
@@ -126,7 +177,7 @@ const LIABILITY_LABEL: Record<ArbitrationProposal["liability"], string> = {
   split: "双方按比担责",
 };
 
-/** 争议调解半屏抽屉（bottom-sheet 上滑）。 */
+/** 争议调解半屏抽屉（bottom-sheet 上滑 · 三级人机双轨分流）。 */
 export default function ArbitrationSheet({
   open,
   orderId,
@@ -137,10 +188,19 @@ export default function ArbitrationSheet({
   onAcceptProposal,
   onEscalateManual,
   onClose,
+  disputeAmountYuan,
+  hasSafetyAlert = false,
+  onInstantCompensate,
+  onConnectLegal,
 }: ArbitrationSheetProps) {
   const [exportState, setExportState] = useState<ExportState>("idle");
   const [certificate, setCertificate] = useState<JudicialCertificate | null>(null);
   const [exportError, setExportError] = useState("");
+
+  const level = resolveArbitrationLevel(disputeAmountYuan, hasSafetyAlert);
+  const isLevel1 = level === "LEVEL_1";
+  const isLevel2 = level === "LEVEL_2";
+  const isLevel3 = level === "LEVEL_3";
 
   const handleExportJudicial = async () => {
     setExportState("loading");
@@ -175,6 +235,21 @@ export default function ArbitrationSheet({
         <div className="arb-title">
           <span>
             🧑‍⚖️ 争议调解 · 小法官
+            {isLevel3 && (
+              <span className="arb-ai-badge" style={{ marginLeft: 6, color: "#fca5a5" }}>
+                🔴 Level 3 法务直通
+              </span>
+            )}
+            {isLevel1 && (
+              <span className="arb-ai-badge" style={{ marginLeft: 6, color: "#4ade80" }}>
+                🟢 Level 1 极小额
+              </span>
+            )}
+            {!isLevel1 && !isLevel3 && (
+              <span className="arb-ai-badge" style={{ marginLeft: 6 }}>
+                🟡 Level 2 双轨
+              </span>
+            )}
             {currentState ? (
               <span className="arb-ai-badge" style={{ marginLeft: 6 }}>
                 争议窗口 {currentState}
@@ -189,6 +264,42 @@ export default function ArbitrationSheet({
           <button type="button" className="arb-close" data-action="close" onClick={onClose}>
             ✕ 关闭
           </button>
+        </div>
+
+        {/* 分级仲裁头卡（漏洞五 · 确定性分流） */}
+        <div
+          className={`arb-level ${isLevel1 ? "arb-level-1" : isLevel3 ? "arb-level-3" : ""}`}
+          data-level={level}
+          data-amount={disputeAmountYuan ?? ""}
+        >
+          {isLevel1 && (
+            <>
+              <div className="arb-level-title">🟢 Level 1 极小额争议 · 规则引擎自动秒赔</div>
+              <div className="arb-level-note">
+                争议金额 ¥{disputeAmountYuan} ≤ 30 元且无安全告警——符合小额速赔规则，
+                由平台体验保障金直接补偿，不扣罚服务者信用与收入。
+              </div>
+            </>
+          )}
+          {isLevel3 && (
+            <>
+              <div className="arb-level-title">🔴 Level 3 重大争议/人身安全警报 · 已切入法务专家组</div>
+              <div className="arb-level-note">
+                {hasSafetyAlert
+                  ? "检测到人身安全红色告警——线上调解自动切断，由安全法务组接管取证与处置。"
+                  : `争议金额 ¥${disputeAmountYuan} > 500 元——超出线上调解额度，转入法务专家组审理。`}
+              </div>
+            </>
+          )}
+          {!isLevel1 && !isLevel3 && (
+            <>
+              <div className="arb-level-title">🟡 Level 2 中额争议 · AI + 人工双轨</div>
+              <div className="arb-level-note">
+                金额 {disputeAmountYuan === undefined ? "未知" : `¥${disputeAmountYuan}`}
+                落在 30~500 元区间——AI 建议书先行，人工审核员复核双出口。
+              </div>
+            </>
+          )}
         </div>
 
         {/* ① 物证比对链 */}
@@ -264,62 +375,128 @@ export default function ArbitrationSheet({
           </div>
         </section>
 
-        {/* ② AI 小法官建议卡（Advisory） */}
-        <section className="arb-ai-card" data-testid="ai-proposal-card">
-          <span className="arb-ai-badge">🤖 AI 小法官裁定 · 仅 Advisory（红线 1）</span>
-          <div className="arb-ai-row">
-            <span>责任认定</span>
-            <strong data-testid="proposal-liability">{LIABILITY_LABEL[proposal.liability]}</strong>
-          </div>
-          <div className="arb-ai-row">
-            <span>责任说明</span>
-            <span style={{ color: "#cbd5e1" }}>{proposal.liabilityNote}</span>
-          </div>
-          <div className="arb-ai-row">
-            <span>建议退款</span>
-            <span className="arb-ai-refund" data-testid="proposal-refund">
-              ¥{proposal.refundAmount.toFixed(proposal.refundAmount % 1 ? 2 : 0)}
-            </span>
-          </div>
-          <div className="arb-ai-row">
-            <span>平台补偿券</span>
-            <strong style={{ color: "#fbbf24" }} data-testid="proposal-coupon">
-              ¥{proposal.compensationCouponYuan}
-            </strong>
-          </div>
-          <div className="arb-ai-row">
-            <span>信用扣减</span>
-            <strong style={{ color: "#fca5a5" }} data-testid="proposal-credit">
-              -{proposal.creditDeduct} 分
-            </strong>
-          </div>
-          <div className="arb-ai-note">📐 理由链（LLM 失败回落确定性规则）：</div>
-          <ul className="arb-reason" data-testid="proposal-reasons">
-            {proposal.reasonChain.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
-        </section>
+        {/* ② 分级仲裁区：L2 = AI 小法官建议卡（Advisory）；L1/L3 自动切断线上调解 */}
+        {isLevel2 ? (
+          <section className="arb-ai-card" data-testid="ai-proposal-card">
+            <span className="arb-ai-badge">🤖 AI 小法官裁定 · 仅 Advisory（红线 1）</span>
+            <div className="arb-ai-row">
+              <span>责任认定</span>
+              <strong data-testid="proposal-liability">{LIABILITY_LABEL[proposal.liability]}</strong>
+            </div>
+            <div className="arb-ai-row">
+              <span>责任说明</span>
+              <span style={{ color: "#cbd5e1" }}>{proposal.liabilityNote}</span>
+            </div>
+            <div className="arb-ai-row">
+              <span>建议退款</span>
+              <span className="arb-ai-refund" data-testid="proposal-refund">
+                ¥{proposal.refundAmount.toFixed(proposal.refundAmount % 1 ? 2 : 0)}
+              </span>
+            </div>
+            <div className="arb-ai-row">
+              <span>平台补偿券</span>
+              <strong style={{ color: "#fbbf24" }} data-testid="proposal-coupon">
+                ¥{proposal.compensationCouponYuan}
+              </strong>
+            </div>
+            <div className="arb-ai-row">
+              <span>信用扣减</span>
+              <strong style={{ color: "#fca5a5" }} data-testid="proposal-credit">
+                -{proposal.creditDeduct} 分
+              </strong>
+            </div>
+            <div className="arb-ai-note">📐 理由链（LLM 失败回落确定性规则）：</div>
+            <ul className="arb-reason" data-testid="proposal-reasons">
+              {proposal.reasonChain.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          </section>
+        ) : isLevel1 ? (
+          <section className="arb-ai-card" data-testid="instant-compensate-card" style={{ borderColor: "rgba(74,222,128,.4)", background: "linear-gradient(135deg,rgba(74,222,128,.12),rgba(16,185,129,.04))" }}>
+            <span className="arb-ai-badge" style={{ color: "#4ade80" }}>⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
+            <div className="arb-ai-row">
+              <span>争议金额</span>
+              <span className="arb-ai-refund" style={{ color: "#4ade80" }} data-testid="instant-amount">
+                ¥{disputeAmountYuan}
+              </span>
+            </div>
+            <div className="arb-ai-row">
+              <span>赔付来源</span>
+              <strong style={{ color: "#fbbf24" }}>平台体验保障金（不扣罚服务者）</strong>
+            </div>
+            <div className="arb-ai-row">
+              <span>服务者处置</span>
+              <strong style={{ color: "#4ade80" }}>零扣罚 · 零信用减分 · 即时结案</strong>
+            </div>
+          </section>
+        ) : (
+          <section className="arb-ai-card" data-testid="legal-direct-card" style={{ borderColor: "rgba(248,113,113,.5)", background: "linear-gradient(135deg,rgba(248,113,113,.14),rgba(127,29,29,.05))" }}>
+            <span className="arb-ai-badge" style={{ color: "#fca5a5" }}>⚖️ 法务专家组接管 · 线上调解已切断</span>
+            <div className="arb-law-card" data-testid="legal-connect-card">
+              <span className="arb-law-pulse" />
+              <div>
+                <strong>紧急连线安全法务组</strong>
+                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 2 }}>
+                  法务专家在线值班中 · 平均响应 &lt; 5 分钟
+                </div>
+              </div>
+            </div>
+            <div className="arb-law-card" data-testid="legal-insurance-card">
+              <span style={{ flexShrink: 0 }}>🛡️</span>
+              <div>
+                <strong>联动保险公司现场勘查</strong>
+                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 2 }}>
+                  定损理赔通道已预置 · 勘查员调度中
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
-        {/* ③ 隔离墙双出口（红线 1：写入由用户确认动作执行） */}
-        <div className="arb-actions">
-          <button
-            type="button"
-            className="arb-btn arb-btn-accept"
-            data-action="accept-proposal"
-            onClick={onAcceptProposal}
-          >
-            🤝 接受调解方案
-          </button>
-          <button
-            type="button"
-            className="arb-btn arb-btn-escalate"
-            data-action="escalate-manual"
-            onClick={onEscalateManual}
-          >
-            🧑‍⚖️ 申请人工客服
-          </button>
-        </div>
+        {/* ③ 分级出口：L2 隔离墙双出口 / L1 一键秒赔 / L3 法务直连 */}
+        {isLevel1 ? (
+          <div className="arb-actions">
+            <button
+              type="button"
+              className="arb-btn arb-btn-accept"
+              data-action="instant-compensate"
+              onClick={onInstantCompensate}
+            >
+              ⚡ 一键秒级补偿（扣除平台体验保障金）
+            </button>
+          </div>
+        ) : isLevel3 ? (
+          <div className="arb-actions">
+            <button
+              type="button"
+              className="arb-btn arb-btn-escalate"
+              data-action="connect-legal"
+              onClick={onConnectLegal}
+            >
+              🚨 紧急连线安全法务组
+            </button>
+          </div>
+        ) : (
+          <div className="arb-actions">
+            <button
+              type="button"
+              className="arb-btn arb-btn-accept"
+              data-action="accept-proposal"
+              onClick={onAcceptProposal}
+            >
+              🤝 接受调解方案
+            </button>
+            <button
+              type="button"
+              className="arb-btn arb-btn-escalate"
+              data-action="escalate-manual"
+              onClick={onEscalateManual}
+            >
+              🧑‍⚖️ 申请人工客服
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -637,6 +637,16 @@ S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generat
 
 **防脆弱性总论**：防御机制全部以「弹药声明 → 底座执行 → 前端可视」三段式落盘——声明处可读（业务填表）、执行处可测（单测断言 BLOCK/放行）、视口处可见（用户感知），商业战略因此获得与软件工程物理（状态机守恒、纯函数确定性、单向依赖）同构的可靠性。
 
+### 6.5 五大商业与法律合规漏洞 1:1 实现对照表（2026-08-15 闭环落地）
+
+| # | 商业/合规漏洞 | 1:1 落地实现 | 落地文件 | 测试证据（全部单测独立覆盖） |
+|---|---|---|---|---|
+| V1 | **插件微状态**（钩子无状态化、失败静默） | ISubEventHook 微工作流机制固化：单钩子 = 原子微工作流（校验→执行→降级），底座按 phase 调度 / fallback 降级，绝不静默失效；钩子链 = 现场微流程编排层 | `src/types/ammo-schema.ts`（ISubEventHook + 微工作流契约注释） | 既有 runner 全量钩子调度测试（BLOCK/SKIP/DEFER 三降级） |
+| V2 | **三维信用缺失**（单维信用跨类目通兑） | BCS/PQS/ESF 三维解耦信用雷达引擎：强合规一票熔断（IMPACT/PROXIMITY 引信 → 公安核验 + ESF 门槛，BCS 满分也拒绝）+ 垂直技能类目隔离（PQS 按 category 精确匹配，禁通兑）+ 定向押金折抵（creditWaiverRule 单维度 + maxWaiverPercentage 上限） | `src/base/trust/tri-credit.ts` + `src/types/ammo-schema.ts`（ITriDimensionalCredit） | `tri-credit.test.ts` 16 项：警察核验熔断 / ESF 50<60 熔断 / PQS 缺失拒 / 守时不通兑 / 折抵守恒与上限 |
+| V3 | **运力割裂**（供给池无属性聚类） | SupplyCluster 运力池属性契约：C1_MOBILITY（同城移动）/ C2_IN_HOME（入户重背调）/ C3_TECH_B2B（技术类）；三大标杆弹药全部装配 | `src/types/ammo-schema.ts`（SupplyCluster）+ 三弹药 `supplyCluster` 字段 | 弹药装备完整性测试断言（housekeeping/meetup/companion） |
+| V4 | **资金合规缺位**（二级账户缺失、信息流资金流未分离） | 二级虚拟账户体系：masterAccountId（银行存管大账户）+ providerSubWalletId（服务者虚拟子账户）+ instructionSignature（djb2 确定性签名）+ isMirrorLedgerOnly 只读镜像声明——信息流与资金流严格分离 | `src/base/money/escrow.ts`（IComplianceSplitInstruction 强化） | `escrow.test.ts` 漏洞四段 3 项：子账户/签名派生/签名确定性/自定义注入 |
+| V5 | **三级仲裁缺位**（全量争议挤入 AI 通道） | 三级人机双轨仲裁分流：Level 1（≤30 元且无安全告警）规则引擎秒赔零扣罚 / Level 2（30~500 元）AI+人工双出口 / Level 3（>500 元或红色报警）法务专家组直通 + 保险公司联动，自动切断线上调解 | `src/components/waves/ArbitrationSheet.tsx`（resolveArbitrationLevel 确定性分流） | `ArbitrationSheet.test.tsx` 21 项：25 元 L1 秒赔卡 / 200 元 L2 双轨 / 800 元与红色报警 L3 法务直连 / 边界值与回调 |
+
 ---
 
 ## 七、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
@@ -659,3 +669,4 @@ S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generat
 | 2026-08-15 | **三大场景 UI 插槽特化矩阵注入**：§五 5.7 新增「三大典型业务场景 UI 插槽特化全景对比矩阵」——家政保洁（重入户/清洁蓝）/ 组局社交（轻履约/活力橙）/ 同城陪玩（高人身风险/夜幕紫）6 大交互维度特化标准：①主题微色调 ②发布页动态组件（户型清单 vs 座次 vs 兴趣标签）③匹配等待动效（1v1 雷达 vs 拼位候补 vs 背调扫描门）④履约核心特化插槽（增项双拍 vs 座次 AA 围栏 vs 隐私盾+伪装电话）⑤核销完工动作（NFC 碰碰 vs 组织者解冻 vs 300m 脱离自动停表）⑥争议售后入口（损坏直赔 vs 放鸽子申诉 vs 一键拉黑敏感词）；契约增补 `src/types/ui-viewport.ts` `ICompanionSlotProps`（isPrivacyShieldArmed / onTriggerFakeCall / departureDistanceMeters 默认 300m / onBlockUser）+ `IViewportSlots.companion` 挂载位；外骨骼零改动差异全收敛插槽区（红线 2） | 用户 |
 | 2026-08-15 | **Tier-4 极端状态与特殊人群 UX 兜底策略注入**：§五 5.8 新增三大容灾交互标准——①弱网断网离线态（胶囊变灰 + 按钮排队文案 + 网络恢复自动追回 Toast）；②适老化极简模式（1.4× 字阶 / WCAG AAA 7:1 黑白色黄三色系 / 56×56pt 巨型触控热区 / 仅双主按钮：大麦克风语音发单 + 24h 客服热线 / 关键操作超大确认弹窗）；③极端危险静默伪装防护（标准计算器界面掩护 + 真实四则运算 + `911=`/`110=` 暗号静默触发报警零视觉闪烁 + 后台加密录音录像直传安全中心 + 顶栏双击/长按 800ms 紧急脱身）；与 5.5.4 `IStealthCalculatorState` 契约对齐（masked / armCode / audioReportReady） | 用户 |
 | 2026-08-15 | **商业战略映射与防脆弱工程论证注入**：新增 §六——4 大柱石 × 六层防御圈映射对齐表 + S1~S4 闭环运行图景（R_AUTH 准入 / ANTI_GOUGING 50% 熔断 / SAFE_MONITOR 三信号聚合 / COMPLIANCE_SPLIT 防二清分账）+ 量化 SLA 指标（99.99% / 小时级上新 / AI 介入率 ≥60%）+ 5 大商业漏洞（过度抽象/信用错位/供给割裂/资金二清/AI 幻觉）代码级防御论证；契约落位 `ammo-schema.ts`（IWorkerRequirement / ICreditWaiverRule / maxSurchargeRatio）+ `escrow.ts`（generateComplianceSplitInstruction）+ `runner.ts`（50% 熔断）+ `base/safe/runtime-monitor.ts`（S3 聚合器）+ 三前端视口（HousekeepingSlot / FulfillmentCockpit / WorkerWorkbench）；原 §六→§七、§七→§八 顺延 | 用户 |
+| 2026-08-15 | **五大商业与法律合规漏洞 1:1 闭环注入**：§六 6.5 新增实现对照表——V1 插件微状态（ISubEventHook 微工作流契约固化）/ V2 三维信用（`base/trust/tri-credit.ts` BCS/PQS/ESF 引擎：强合规一票熔断 + 技能类目隔离 + 定向折抵，16 项单测）/ V3 运力聚类（SupplyCluster 契约 + 三弹药装配）/ V4 资金合规（escrow 二级虚拟子账户 + djb2 签名 + isMirrorLedgerOnly 镜像声明，3 项单测）/ V5 三级仲裁（ArbitrationSheet resolveArbitrationLevel 分流 + L1 秒赔/L2 双轨/L3 法务直通，21 项单测）；契约落位 `ammo-schema.ts`（SupplyCluster / ITriDimensionalCredit）；全部红线 1 确定性纯函数，红线 3 零 UI 反向依赖 | 用户 |

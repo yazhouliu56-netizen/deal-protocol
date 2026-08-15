@@ -226,6 +226,8 @@ export const meetupAmmo: IAmmoDefinition = {
     allowedCreditDimension: "PUNCTUALITY",
     maxWaiverPercentage: 0.5,
   },
+  /** 运力池聚类：同城移动轻履约（LBS 围栏到场解锁）。 */
+  supplyCluster: "C1_MOBILITY",
   sop: {
     depositDefault: true,
     expiresInMs: 24 * 3600_000,

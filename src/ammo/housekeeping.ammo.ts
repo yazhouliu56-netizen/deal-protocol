@@ -160,6 +160,8 @@ export const housekeepingAmmo: IAmmoDefinition = {
   },
   /** 防坐地起价：现场增项金额上限 = 订单基础金额的 50%（S2 熔断）。 */
   maxSurchargeRatio: 0.5,
+  /** 运力池聚类：入户重背调（强合规引信 + workerRequirement 三闸）。 */
+  supplyCluster: "C2_IN_HOME",
   sop: {
     depositDefault: true,
     expiresInMs: 2 * 3600_000,

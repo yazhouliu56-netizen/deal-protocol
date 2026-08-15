@@ -177,10 +177,18 @@ export const COMPLIANCE_MERCHANT_MAP: Record<ComplianceChannel, string> = {
 } as const;
 
 /**
- * 合规分账指令载荷（持牌支付机构标准格式）。
+ * 合规分账指令载荷（持牌支付机构标准格式 · 漏洞四闭环强化）。
  * 平台不直接收付资金流（规避二清），结算以「分账指令」形式路由至
  * 持牌机构执行：接收方（服务者账户）实收 providerNet，平台抽成
  * platformFee 由机构按指令拆出，需求方退款 demanderRefund 原路退回。
+ *
+ * 二级虚拟账户体系（银行见证宝 / 微信收付通语义）：
+ * - masterAccountId：平台在持牌机构的银行存管大账户（唯一资金归集户）；
+ * - providerSubWalletId：服务者二级虚拟电子子账户（仅记账，资金由
+ *   大账户经分账指令路由，平台钱包 isMirrorLedgerOnly 只读镜像——
+ *   信息流与资金流严格分离，满足法务监管标准）；
+ * - instructionSignature：指令确定性摘要签名（djb2 占位；生产由平台
+ *   密钥中心注入，机构侧验签防篡改）。
  */
 export interface IComplianceSplitInstruction {
   /** 指令号（订单 + 渠道确定性派生，幂等键）。 */
@@ -189,7 +197,11 @@ export interface IComplianceSplitInstruction {
   channel: ComplianceChannel;
   /** 服务商商户号（平台在持牌机构的入网号）。 */
   merchantId: string;
-  /** 分账接收方（服务者账户）。 */
+  /** 银行存管大账户 ID（平台唯一资金归集户，持牌机构托管）。 */
+  masterAccountId: string;
+  /** 服务者二级虚拟电子子账户 ID（仅记账，无实体资金池）。 */
+  providerSubWalletId: string;
+  /** 分账接收方（服务者主账户标识）。 */
   receiverAccountId: string;
   /** 分账金额（服务者实收，= 结算净额）。 */
   splitAmountYuan: number;
@@ -197,6 +209,10 @@ export interface IComplianceSplitInstruction {
   platformFeeYuan: number;
   /** 需求方退款（阶梯退款场景原路退回额）。 */
   demanderRefundYuan: number;
+  /** 指令确定性签名（djb2 摘要占位，生产注入密钥中心签名）。 */
+  instructionSignature: string;
+  /** 平台钱包为只读镜像（信息流/资金流分离的法务声明）。 */
+  isMirrorLedgerOnly: true;
   /** 计价币种（当前仅人民币）。 */
   currency: "CNY";
   /** 指令生成时刻（epoch ms）。 */
@@ -205,6 +221,26 @@ export interface IComplianceSplitInstruction {
 
 const round2c = (n: number): number => Math.round(n * 100) / 100;
 
+/** 银行存管大账户映射（渠道 → 平台归集户 ID；接入方用实际托管户覆盖）。 */
+export const COMPLIANCE_MASTER_ACCOUNT_MAP: Record<ComplianceChannel, string> = {
+  WECHAT_PAY: "master-wechat-escrow-0001",
+  STRIPE_CONNECT: "master_stripe_connect_0001",
+  BANK_ESCROW: "master-bank-escrow-0001",
+} as const;
+
+/**
+ * djb2 确定性摘要（纯函数，红线 1）：指令签名占位算法——
+ * 对指令关键字段拼接做哈希，机构侧可复算验签；生产由平台密钥中心
+ * 以真实密钥替换签名值（本函数仍作离线校验基准）。
+ */
+export function djb2Signature(input: string): string {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash + input.charCodeAt(i)) >>> 0;
+  }
+  return `sig-${hash.toString(16).padStart(8, "0")}`;
+}
+
 /**
  * 合规分账指令路由生成器（S4 · 防二清 · 确定性纯函数，红线 1）。
  *
@@ -212,6 +248,11 @@ const round2c = (n: number): number => Math.round(n * 100) / 100;
  * 或三阶段阶梯退款 refundToDemander / payToProvider / platformFee），
  * 输出持牌机构可执行的分账指令载荷。指令号 = 订单 + 渠道确定性派生
  * （幂等：同订单同渠道重复生成指令号一致，机构侧可去重）。
+ *
+ * 二级虚拟账户路由（漏洞四闭环）：masterAccountId（银行存管大账户）+
+ * providerSubWalletId（服务者二级虚拟子账户）由调用方传入或按渠道
+ * 派生；指令携带 djb2 确定性签名（isMirrorLedgerOnly 恒定 true，
+ * 声明平台钱包仅为只读镜像——信息流与资金流分离）。
  *
  * 金额守恒校验：分账总额（split + fee + refund）≡ 结算总额
  * （防资金凭空多分；传入总额缺省按三者之和推导）。
@@ -231,6 +272,12 @@ export function generateComplianceSplitInstruction(
     receiverAccountId: string;
     /** 覆盖默认商户号（接入方实际入网号）。 */
     merchantId?: string;
+    /** 银行存管大账户（缺省按渠道映射派生）。 */
+    masterAccountId?: string;
+    /** 服务者二级虚拟电子子账户（缺省按接收方派生）。 */
+    providerSubWalletId?: string;
+    /** 签名密钥（占位；生产由密钥中心注入）。 */
+    signatureSecret?: string;
     now?: number;
   },
 ): IComplianceSplitInstruction {
@@ -249,15 +296,27 @@ export function generateComplianceSplitInstruction(
     Math.max(0, s.demanderRefund ?? s.refundToDemander ?? 0),
   );
   const instructionId = `split-${opts.orderId}-${channel}`;
+  const masterAccountId = opts.masterAccountId ?? COMPLIANCE_MASTER_ACCOUNT_MAP[channel];
+  const providerSubWalletId =
+    opts.providerSubWalletId ?? `sub-${opts.receiverAccountId}`;
+  const signatureSecret = opts.signatureSecret ?? "deal-protocol";
+  const createdAt = opts.now ?? Date.now();
+  const instructionSignature = djb2Signature(
+    `${instructionId}|${splitAmountYuan}|${platformFee}|${demanderRefundYuan}|${masterAccountId}|${signatureSecret}`,
+  );
   return {
     instructionId,
     channel,
     merchantId: opts.merchantId ?? COMPLIANCE_MERCHANT_MAP[channel],
+    masterAccountId,
+    providerSubWalletId,
     receiverAccountId: opts.receiverAccountId,
     splitAmountYuan,
     platformFeeYuan: platformFee,
     demanderRefundYuan,
+    instructionSignature,
+    isMirrorLedgerOnly: true,
     currency: "CNY",
-    createdAt: opts.now ?? Date.now(),
+    createdAt,
   };
 }

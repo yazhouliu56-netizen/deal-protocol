@@ -186,6 +186,8 @@ export const companionAmmo: IAmmoDefinition = {
     },
     starBonus: { starMin: 4.2, completionMin: 0.75, bonus: 10 },
   },
+  /** 运力池聚类：同城移动轻履约（300m 脱离自动停表 + 近炸引信防护）。 */
+  supplyCluster: "C1_MOBILITY",
   sop: {
     depositDefault: false,
     expiresInMs: 4 * 3600_000,

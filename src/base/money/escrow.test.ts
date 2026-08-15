@@ -480,3 +480,49 @@ test("S4：buildSettlementLedger 挂载合规分账指令（缺省不产出，�
   assert.equal(withCompliance.compliance.platformFeeYuan, 30);
   assert.equal(withCompliance.compliance.receiverAccountId, "provider-3");
 });
+
+/* ============ 漏洞四：二级虚拟子账户 + 指令签名 ============ */
+
+test("漏洞四：分账指令携带存管大账户/二级子账户/签名/镜像声明", () => {
+  const ins = generateComplianceSplitInstruction(
+    { platformFee: 20, providerNet: 180 },
+    "WECHAT_PAY",
+    { orderId: "esc-20", receiverAccountId: "provider-1" },
+  );
+  assert.equal(ins.masterAccountId, "master-wechat-escrow-0001");
+  assert.equal(ins.providerSubWalletId, "sub-provider-1");
+  assert.match(ins.instructionSignature, /^sig-[0-9a-f]{8}$/);
+  assert.equal(ins.isMirrorLedgerOnly, true);
+});
+
+test("漏洞四：签名确定性（同输入同签名，篡改金额即变）", () => {
+  const base = { platformFee: 10, providerNet: 90 };
+  const opts = { orderId: "esc-21", receiverAccountId: "p1" };
+  const a = generateComplianceSplitInstruction(base, "BANK_ESCROW", opts);
+  const b = generateComplianceSplitInstruction(base, "BANK_ESCROW", opts);
+  assert.equal(a.instructionSignature, b.instructionSignature);
+  const tampered = generateComplianceSplitInstruction(
+    { platformFee: 10, providerNet: 91 },
+    "BANK_ESCROW",
+    opts,
+  );
+  assert.notEqual(tampered.instructionSignature, a.instructionSignature);
+});
+
+test("漏洞四：自定义存管大账户/子账户/签名密钥可注入", () => {
+  const ins = generateComplianceSplitInstruction(
+    { platformFee: 5, payToProvider: 45, refundToDemander: 50 },
+    "STRIPE_CONNECT",
+    {
+      orderId: "esc-22",
+      receiverAccountId: "acct_p",
+      masterAccountId: "master-custom-001",
+      providerSubWalletId: "sub-custom-002",
+      signatureSecret: "test-secret",
+    },
+  );
+  assert.equal(ins.masterAccountId, "master-custom-001");
+  assert.equal(ins.providerSubWalletId, "sub-custom-002");
+  assert.equal(ins.splitAmountYuan, 45);
+  assert.equal(ins.demanderRefundYuan, 50);
+});

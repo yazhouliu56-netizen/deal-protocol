@@ -71,6 +71,16 @@ export interface ISubEventHook {
   fallback: "SKIP" | "BLOCK" | "DEFER";
 }
 
+/**
+ * 插件微工作流机制（漏洞一闭环 · 微状态机固化）：
+ * 单钩子 = 最小原子微工作流（校验 → 执行 → 降级），底座只负责在跃迁点
+ * 按 `phase` 调度与按 `fallback` 降级，不感知钩子内部实现——业务子流程
+ * 因此获得与五态主状态机同构的确定性：**每个钩子要么产出一个明确结果
+ * （ok + reason + data），要么按声明降级，绝不静默失效**。钩子链即
+ * 微工作流编排层（如 onsiteQuoteHook → cleaningCheckHook 构成
+ * 「增项确认 → 双拍验收」两段式现场微流程），上承五态、下接弹药闭包。
+ */
+
 /** 计价模型（对齐 ammo/pricing-formula 表：固定 / 时薪 / 人均 / 公式引用）。 */
 export type PricingModel =
   | { kind: "FIXED"; amountYuan: number }
@@ -170,6 +180,29 @@ export interface ICreditWaiverRule {
   maxWaiverPercentage: number;
 }
 
+/**
+ * 运力池属性聚类（漏洞三闭环 · SupplyCluster）：
+ * 供给端运力按履约物理形态聚类，弹药声明所属运力池，
+ * 供派单/风控/准入按聚类差异化路由（如 C2_IN_HOME 需强背调）。
+ */
+export type SupplyCluster = "C1_MOBILITY" | "C2_IN_HOME" | "C3_TECH_B2B";
+
+/**
+ * 三维解耦信用契约（漏洞二闭环 · BCS/PQS/ESF 三维雷达）。
+ * 与既有单维信用分（trustScore）解耦并存：三维分各自独立评定，
+ * 垂直技能分按类目隔离，杜绝「全能通才」式跨类目信用套利。
+ */
+export interface ITriDimensionalCredit {
+  /** 通用履约信用分（Base Compliance Score，0-100，全类目通用）。 */
+  bcsScore: number;
+  /** 垂直专业技能分（Professional Qualification Score，按类目隔离，如 { housekeeping: 85 }）。 */
+  pqsScores: Record<string, number>;
+  /** 道德与人身安全分（Ethics & Safety Factor，0-100，入户/密闭空间一票否决维度）。 */
+  esfScore: number;
+  /** 是否通过公安无犯罪核验（入户/密闭空间类目强制要求）。 */
+  isPoliceVerified: boolean;
+}
+
 export interface IAmmoDefinition {
   /** 弹药唯一标识（URL 安全短名，如 "housekeeping-v1"）。 */
   ammoId: string;
@@ -193,4 +226,6 @@ export interface IAmmoDefinition {
   creditWaiverRule?: ICreditWaiverRule;
   /** 现场加价上限比例（防坐地起价：增项金额 ≤ 初始基准价 × 此比例；缺省 0.5）。 */
   maxSurchargeRatio?: number;
+  /** 运力池属性聚类（C1 移动轻履约 / C2 入户重背调 / C3 技术 B2B；缺省 = 未归类）。 */
+  supplyCluster?: SupplyCluster;
 }
