@@ -208,8 +208,8 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 编号 | 模块 | 代码落位 | 856 测试覆盖 | 状态 |
 |------|------|----------|--------------|------|
 | `L1-M1` | 动态表单引擎 | `base/form/dynamicForm`、`ammo/`（PublishSheet 弹药表单） | 表单生成/描述器测试 | 🟢（弹药内嵌表单 P1-5 待建） |
-| `L1-M2` | LBS 时空感知 | `base/geo/*`（geo/geoAdapter/destFilter/mapConfig/mapPref）、`geo.ts` 距离时效 | geo 距离/过滤/地图配置测试 | 🟡（经纬度/距离时效已闭环；电子围栏判定与轨迹上报 ⚪️） |
-| `L1-M3` | 体验友好适配 | `base/ai/voice/*`（asr/tts 语音交互）、`base/platform/performance`（tier 降级） | voice 链路测试 | 🟡（语音链路已闭环；大字/大热区适老化 UI ⚪️） |
+| `L1-M2` | LBS 时空感知 | `base/geo/*`（geo/geoAdapter/destFilter/mapConfig/mapPref）、`geofence-watcher.ts`（**50m 高精围栏：Haversine + 精度漂移过滤 + 停留时长防刷 + 300m 安全距离脱离**） | geo 距离/过滤/地图配置/围栏判定测试 | 🟢（经纬度/距离时效/50m 围栏判定闭环；轨迹上报 ⚪️ 子缺口 P2） |
+| `L1-M3` | 体验友好适配 | `base/ai/voice/*`（asr/tts 语音交互）、`base/platform/performance`（tier 降级）、`components/oto-ui/SeniorModeView.tsx`（**1.4x 字阶 / WCAG AAA 高对比 / 56pt+ 触控热区**） | voice 链路/适老渲染测试 | 🟢（语音链路 + 大字/大热区适老化 UI 闭环） |
 | `L1-M4` | 零知脱敏展示 | `base/safe/privacy`（分级脱敏）、`base/comm/privacyNumber`（号码池掩码）、`fuze-policy` blurLocation | privacy/脱敏测试 | 🟢 |
 | `L2-M1` | 标准订单状态机 | `base/order/wave.ts` + `types/ammo-schema.ts`（五态契约） | wave 状态机/认领/成团测试 | 🟢（五态为目标契约，wave 过渡映射见 §二 2.1） |
 | `L2-M2` | 计价分摊引擎 | `base/money/customPricing` + `ammo/pricing-formula`（时/距/系数/地板价）、settleGroupFail | customPricing/计费测试 | 🟡（定式计价闭环；AA 分摊在场外、现场改价/动态溢价待建） |
@@ -224,7 +224,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L3-M5` | 对话式数据 BI | `base/ai/bi.ts`（规则解析聚合） | bi 报表测试 | 🟢（规则版落地；LLM 意图改写 P1-4 留口） |
 | `L4-M1` | 可插拔风控中枢 | `base/risk/*`（sentinel/roamGuard/fission/moderation）+ `ammo/risk-rule` 引信表 + `types/fuze-policy.ts`（三类引信模板） | sentinel/roam 测试 | 🟢（引信表驱动闭环；FuzeMatrix 自适应装载随 AmmoRunner P0-1） |
 | `L4-M2` | 终端反欺诈 | `base/risk/roamGuard`（设备指纹/多开）+ `lib/fraud-detection/*`、`modules`（黑名单） | roam 多开测试 | 🟡（设备指纹/多开闭环；模拟器检测/GPS 防作弊待建） |
-| `L4-M3` | 物理履约闭环 | `base/order/attendance`（到场签到雏形） | attendance 测试 | ⚪️（50m 围栏校验 + NFC/动态码碰一碰完工待建设） |
+| `L4-M3` | 物理履约闭环 | `base/geo/geofence-watcher.ts`（**50m 高精 GPS 围栏：Haversine 距离 + 精度漂移过滤 + 停留时长防刷 + 300m 陪玩安全距离脱离**）+ `base/platform/nfc-adapter.ts`（**Web NFC 碰碰：HMAC 防重放载荷 + 动态码扫码降级**）+ `base/order/attendance`（到场签到） | geofence-watcher/nfc-adapter/attendance 测试 | 🟢（50m 围栏校验 + NFC/动态码碰一碰核销闭环） |
 | `L4-M4` | 危机干预协议 | `base/safe/crisis`（EPA 通知链）+ `fuze-policy` sos 契约 | crisis 测试 | 🟡（EPA 链闭环；位置上报/录音证据联动 P1-3 待建） |
 | `L4-M5` | 隐私合规遗忘 | `base/safe/privacy` + `ageGate`（未成年人合规）+ `fuze-policy` privacy 契约 | privacy/ageGate 测试 | 🟡（脱敏/分级闭环；密态存储/过期销毁全域抹除 ⚪️） |
 | `L5-M1` | 多通道适配器 | `base/platform/p2p`（transport/supabase）、`lib/payment.ts`/wechat-pay/alipay（支付双通道）、Gateway 多 provider 降级 | p2p/payment 测试 | 🟡（支付/LLM 多厂商闭环；地图/通讯多厂商毫秒切换待建） |

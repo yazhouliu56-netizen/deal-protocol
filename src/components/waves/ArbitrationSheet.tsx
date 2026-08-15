@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 
 /**
@@ -70,6 +71,14 @@ export interface ArbitrationSheetProps {
   onClose: () => void;
 }
 
+/** 司法存证包导出状态（api/evidence/export-judicial-package 审计证书）。 */
+export interface JudicialCertificate {
+  caseInfo?: { disputeId: string; orderId: string };
+  hashChain?: { chainValid: boolean; entries: unknown[] };
+}
+
+type ExportState = "idle" | "loading" | "done" | "error";
+
 const SHEET_CSS = `
 .arb-mask{position:fixed;inset:0;background:rgba(5,6,15,.62);backdrop-filter:blur(4px);z-index:80}
 .arb-sheet{position:fixed;inset-inline:0;bottom:0;z-index:81;max-width:520px;margin:0 auto;
@@ -129,6 +138,31 @@ export default function ArbitrationSheet({
   onEscalateManual,
   onClose,
 }: ArbitrationSheetProps) {
+  const [exportState, setExportState] = useState<ExportState>("idle");
+  const [certificate, setCertificate] = useState<JudicialCertificate | null>(null);
+  const [exportError, setExportError] = useState("");
+
+  const handleExportJudicial = async () => {
+    setExportState("loading");
+    setExportError("");
+    try {
+      const res = await fetch(
+        `/api/evidence/export-judicial-package?disputeId=${encodeURIComponent(orderId)}`,
+      );
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        setExportError(body.error ?? "司法存证包导出失败");
+        setExportState("error");
+        return;
+      }
+      setCertificate(body.judicialPackage as JudicialCertificate);
+      setExportState("done");
+    } catch {
+      setExportError("网络异常：司法存证包导出失败，请稍后重试");
+      setExportState("error");
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -190,6 +224,44 @@ export default function ArbitrationSheet({
               ))}
             </div>
           )}
+
+          {/* 司法存证包导出（L2 证据链 → 司法级 SHA-256 审计证书） */}
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="arb-btn arb-btn-escalate"
+              data-action="export-judicial"
+              onClick={handleExportJudicial}
+              disabled={exportState === "loading"}
+            >
+              {exportState === "loading" ? "⏳ 打包存证链…" : "📦 导出司法级存证包"}
+            </button>
+            {exportState === "error" && (
+              <div className="arb-quote" style={{ marginTop: 8, color: "#fca5a5" }} data-testid="export-error">
+                ⚠️ {exportError}
+              </div>
+            )}
+            {exportState === "done" && certificate?.hashChain && (
+              <div className="arb-ai-card" style={{ marginTop: 8 }} data-testid="judicial-certificate">
+                <span className="arb-ai-badge">🔐 SHA-256 审计证书 · 司法级</span>
+                <div className="arb-ai-row">
+                  <span>存证链校验</span>
+                  <strong style={{ color: certificate.hashChain.chainValid ? "#4ade80" : "#f87171" }}>
+                    {certificate.hashChain.chainValid ? "链完整 · 未被篡改" : "链断裂 · 需人工复核"}
+                  </strong>
+                </div>
+                <div className="arb-ai-row">
+                  <span>证据锚点数</span>
+                  <strong style={{ color: "#cbd5e1" }}>{certificate.hashChain.entries.length} 条</strong>
+                </div>
+                {certificate.hashChain.entries.length > 0 && (
+                  <div className="arb-ai-note" style={{ wordBreak: "break-all" }}>
+                    📜 链首哈希：{String((certificate.hashChain.entries[0] as { hash?: string }).hash ?? "-").slice(0, 24)}…
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ② AI 小法官建议卡（Advisory） */}
