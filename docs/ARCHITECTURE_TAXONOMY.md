@@ -326,7 +326,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | D-5 | **两套状态机并存**：base 纯函数状态机（waves） vs 父项目 DB 状态机（orders/contracts） | `lib/protocol/engine.ts` + `supabase/migrations/001~` | 红线 1/3 | 🟡 融合期双轨，ADR-0018 后仍存 |
 | D-6 | **AmmoRunner 未实现**：四表被各引擎散点消费（`dispatchRuleFor`、`riskOf`…），无统一声明式解析执行器 | `src/ammo/index.ts`（仅 re-export） | 红线 2 | 🟡 表驱动已达成，统一运行时缺失 |
 | D-7 | **弹药层与存量协议层重复**：`lib/protocol/protocols/housekeeping.ts`、`dating.ts` 已是垂直 SOP，但未并入 ammo 声明式体系 | `src/lib/protocol/protocols/*` | 红线 2（精神） | 🟡 存量候选弹药，待收编 |
-| D-8 | **前端视界投影未隔离**：全局单主题（oto-ui），无弹药专属主题 Token/Layout | `src/components/theme/`、`oto-ui/` | 红线 6 | 🔴 缺失 |
+| D-8 | **前端视界投影未隔离**：全局单主题（oto-ui），无弹药专属主题 Token/Layout | `src/components/theme/`、`oto-ui/` | 红线 6 | 🔴 缺失（哲学架构已定义 §五 5.4，落地以 P2-1 弹药主题 Token 为第一执行点） |
 
 ### 5.3 【愿景提及但完全缺失】— 空白缺口（按优先级）
 
@@ -344,11 +344,53 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | P2-2 | **AB 分流/degrades 真实场景**（resilience 库层已备） | ⑥基建圈 | ⑥圈 | 无真实分流场景，不硬造 |
 | P2-3 | **移动端融合**（RN 注册 base/geo、弹药表单） | 底座统一 | ①感知圈 | 已登记未融合 |
 
+### 5.4 前端微内核与系统级交互架构（UI/UX 哲学注入）
+
+> 人类创始人注入（2026-08-15）：前端与后端「40mm 发射筒 + 插拔弹药」达成全栈大统一。
+> 前端架构 = **不变的外骨骼（Universal Shell）** × **流动的动态视口（Dynamic Scenario Core）**，
+> 五态状态机直接投影为全局视觉锚点。
+
+#### 5.4.1 容器心智模型：不变的外骨骼 + 流动的动态视口
+
+- **外骨骼（Universal Shell · 固定屏幕物理锚点）**：
+  - 顶部**五态灵动状态胶囊（Status Capsule）**：状态机 `toAtomicFiveState` 直接投影，
+    常驻呼吸动画（广播中 ➔ 已锁定 ➔ 履约中 ➔ 待验收 ➔ 已结算），打消履约不确定感；
+  - 右上角**全局安全中心（SOS）**；
+  - 底部**万能操作栏（CTA）**；
+  - 全局 **AI 语音浮窗**。
+  - 定位：跨品类 **0 学习成本的肌肉记忆**，任何业务页面不得破坏其锚点位置。
+- **动态视口（Dynamic Scenario Core · 场景自适应）**：
+  - 由 `IAmmoDefinition` + JSON-Schema 驱动的中间视口，**毫秒级动态渲染表单与组件**；
+  - 加载**场景专属微氛围**（家政素雅蓝 / 组局霓虹橙 / 陪玩星云紫）；
+  - 定位：一切业务差异化只发生在视口内——严禁为单一品类硬编码独立全套页面。
+
+#### 5.4.2 前端微内核 5 大交互法则（The 5 Interaction Laws）
+
+| # | 法则 | 内容 |
+|---|------|------|
+| 一 | **外骨骼锁定肌肉记忆，视口渲染场景灵魂** | 主题 Token 隔离（外骨骼与视口视觉解耦），杜绝认知割裂 |
+| 二 | **五态灵动胶囊（Universal 5-Stage Status Capsule）** | 状态机 `toAtomicFiveState` 直接投影为顶部常驻呼吸胶囊（广播中 ➔ 已锁定 ➔ 履约中 ➔ 待验收 ➔ 已结算） |
+| 三 | **多重「数字人格」流体双模态（Multi-Persona Fluidity）** | 单手下滑手势瞬间切换【发单/消费视界】↔【接单/工人工作台】，通用钱包与信用分实时共享 |
+| 四 | **AI 意图转单与「拟物草稿卡」（AI-Driven Intent Ingestion）** | 自然语言/语音输入 ➔ `decompose` 抽取 ➔ 屏幕中央浮现半拟物化磨砂透明【订单草稿卡（Draft Card）】➔ 用户微调确认发射 |
+| 五 | **隐形防御与显性物理触感锚点（Invisible Shield & Explicit Anchors）** | 隐私全链路动态脱敏；关键履约节点强物理触感（50m 电子围栏微震反馈 + 完工碰一碰 NFC/扫码全屏水波纹动效与机械锁合音效） |
+
+#### 5.4.3 前端组件三层挂载映射图谱
+
+| 层 | 职责 | 组件（✅ 存量就绪 / 待建） |
+|----|------|----------------------------|
+| **外骨骼层 Shell Layer** | 全局物理锚点，跨品类恒在 | `StatusCapsule`（待建）· `FloatingDock` ✅ · `SafetyKit`(SOS) ✅ · `VoiceBar` ✅ |
+| **视口层 Viewport Layer** | 弹药驱动业务渲染（IAmmoDefinition + JSON-Schema） | `PublishSheet` ✅ · `DynamicFormView` ✅ · `WaveFeed` ✅ · `MyWaves` ✅ · 弹药定制面板（增项报价 / AA 分摊 / 到场扫码，待建） |
+| **物理与感知层 Sensory Layer** | 硬件与空间感知 | `ScanMockSheet`（真相机扫码）✅ · `SpatialHeatMap`（LBS 地图）✅ · `FurnitureScene`（3D 舞台）✅ |
+
+#### 5.4.4 与存量缺口的承接
+
+- 承接 **D-8**（前端视界投影未隔离）与 **P2-1**（弹药主题 Token 系统）：法则一（主题 Token 隔离）与视口场景微氛围即为其哲学定义，落地以弹药主题 Token（P2-1）为第一执行点；
+- 承接 **P1-5**（弹药内嵌表单 schema）：法则四草稿卡与视口动态表单由 `IAmmoDefinition` 驱动即为其统一形态（`DynamicFormView` 通用引擎已就绪，弹药表单绑定待建）；
+- 与 §四 4.3 Phase 2 弹药可插拔验收对齐：**前端侧「同底座换弹药」验收标准 = 外骨骼零改动 + 视口按弹药切换**（housekeeping ↔ meetup ↔ companion 引信与微氛围勾选即生效）。
+
 ---
 
-## 六、收敛路线（宪法门禁衔接）
-
-1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
+## 六、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
 3. **空白缺口开工须走宪法 §4 模板**（六圈定位声明 + 宪法条文对照），P0 级缺口开工前由人类裁决排期。
 
@@ -362,3 +404,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 2026-08-15 | **核心设计模型注入**：新增 §二 万能底座五态原子状态机（Published➔Matched➔In-Service➔Inspected➔Settled + 伴生事件 Sub-Events 插拔）+ 三类风控引信矩阵（💥碰炸/⏳延期/📡近炸）+ 数字人格信用飞轮；契约落位 `src/types/ammo-schema.ts` + `src/types/fuze-policy.ts`；原章节顺延（三~六） | 用户 |
 | 2026-08-15 | **28 模块主蓝图注入**：§三 3.4 升级为「六层防御圈 × 28 核心模块职责矩阵」——标准模块编号 `L1-M1`～`L6-M4` 定为全项目永久唯一编号标准 + 六层职责矩阵 + 26 行代码落位与成熟度对照表（实测 🟢13 已闭环 / 🟡12 有雏形 / ⚪️1 待建设，清单净 26 模块，标题口径差量已标注待裁决） | 用户 |
 | 2026-08-15 | **三阶段推进路线图注入**：新增 §四「平台落地推进路线图」——Phase 1 MVP 验证期（0➔1，housekeeping.ammo.ts 碰炸引信）/ Phase 2 体系成熟期（1➔10，meetup 延期 + companion 近炸）/ Phase 3 规模壁垒期（10➔100，弱网/容灾/熔断/存证）；每阶段绑定模块编号 + 缺口衔接 + 现状标注；顺带修正小节编号（§三 2.x→3.x、落差审计 3.x→5.x），全文档编号体系收敛 | 用户 |
+| 2026-08-15 | **前端微内核交互架构注入**：§五 5.4 新增「前端微内核与系统级交互架构」——容器心智模型（不变外骨骼 × 流动动态视口）+ 前端微内核 5 大交互法则（主题 Token 隔离 / 五态灵动胶囊 / 多数字人格流体双模态 / AI 意图转单拟物草稿卡 / 隐形防御显性物理触感）+ 组件三层挂载映射图谱（外骨骼 / 视口 / 物理感知）；D-8 判定挂接 5.4 与 P2-1；与 §四 Phase 2 弹药可插拔验收对齐（外骨骼零改动 + 视口按弹药切换） | 用户 |
