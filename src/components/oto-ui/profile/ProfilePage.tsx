@@ -29,6 +29,8 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { crisisSms, type CrisisLevel } from "@/base/safe/crisis";
 import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
 import DynamicFormView, { type FormField, type FormValues } from "@/components/oto-ui/DynamicFormView";
+import SeniorModeView from "@/components/oto-ui/SeniorModeView";
+import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
 
 /** 紧急联系人登记 schema（ADR-0015 动态表单 N2 接线；SOS 发起时读取）。 */
 const CONTACT_SCHEMA: FormField[] = [
@@ -99,6 +101,10 @@ export default function ProfilePage({
   const [crisisTargets, setCrisisTargets] = useState<string[]>([]);
   const [crisisSmsText, setCrisisSmsText] = useState("");
   const [lastForget, setLastForget] = useState<ForgetKind | null>(null);
+  /** W6 总装：长辈模式全屏覆盖 + 应急伪装计算器呼出（5.8.2 / 5.8.3 生产入口）。 */
+  const [seniorMode, setSeniorMode] = useState(false);
+  const [stealthOpen, setStealthOpen] = useState(false);
+  const [stealthAlarmed, setStealthAlarmed] = useState(false);
   /** 紧急联系人（动态表单 schema 驱动，localState 持有）。 */
   const [contactsSaved, setContactsSaved] = useState(false);
   const [contactForm, setContactForm] = useState<FormValues>({ name: "妈妈", relation: "家人", phone: "138-0000-0001" });
@@ -531,6 +537,31 @@ export default function ProfilePage({
             </p>
           )}
         </div>
+        {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
+        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
+          <p className="text-[9.5px] font-bold text-white/60">
+            无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
+          </p>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setSeniorMode(true)}
+              className="flex-1 px-2 py-2 rounded-lg bg-amber-400/15 border border-amber-400/40 text-amber-300 text-[10px] font-extrabold hover:bg-amber-400/25 active:scale-95 transition-all"
+            >
+              👵 长辈模式
+            </button>
+            <button
+              onClick={() => setStealthOpen(true)}
+              className="flex-1 px-2 py-2 rounded-lg bg-purple-400/15 border border-purple-400/40 text-purple-300 text-[10px] font-extrabold hover:bg-purple-400/25 active:scale-95 transition-all"
+            >
+              🛡️ 应急伪装
+            </button>
+          </div>
+          {stealthAlarmed && (
+            <p className="text-[8.5px] text-red-300/80">
+              ⚠️ 静默报警已触发：录音就绪，红色危机流程已启动（界面无任何异常显示）
+            </p>
+          )}
+        </div>
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
         <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
           <p className="text-[9.5px] font-bold text-white/60">
@@ -628,6 +659,59 @@ export default function ProfilePage({
           )}
         </div>
       </div>
+
+      {/* W6 总装：长辈模式全屏覆盖（5.8.2：双主按钮 + 1.4x 字阶 AAA） */}
+      {seniorMode && (
+        <div className="fixed inset-0 z-[70] overflow-y-auto bg-black">
+          <div className="flex justify-end p-3">
+            <button
+              onClick={() => setSeniorMode(false)}
+              aria-label="退出长辈模式"
+              className="px-4 py-2 rounded-xl border border-white/40 text-white text-[13px] font-bold bg-white/10"
+            >
+              退出长辈模式
+            </button>
+          </div>
+          <div className="flex justify-center px-4 pb-10">
+            <SeniorModeView
+              onVoiceStart={() => {
+                setSeniorMode(false);
+                onGoHome?.();
+              }}
+              onCallSupport={() => {
+                /* 24h 适老热线：拨号动作由宿主层承载 */
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* W6 总装：应急伪装计算器覆盖层（5.8.3：真实运算 + 911=/110= 静默报警 + 双击/长按脱身） */}
+      {stealthOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative">
+            <button
+              onClick={() => setStealthOpen(false)}
+              aria-label="退出伪装模式"
+              className="absolute -top-8 right-0 text-[10px] text-white/50"
+            >
+              ✕ 退出伪装
+            </button>
+            <StealthCalculator
+              onTriggerSilentAlarm={(payload: SilentAlarmPayload) => {
+                // 静默触发红色危机流程：界面零视觉闪烁，后台登记危机 + 录音就绪
+                setStealthAlarmed(true);
+                raiseCrisis({
+                  level: 3,
+                  note: `静默报警（伪装计算器暗号 ${payload.code}，录音就绪）`,
+                  contacts: contacts.map((c) => c.name),
+                });
+              }}
+              onExitPanicMode={() => setStealthOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

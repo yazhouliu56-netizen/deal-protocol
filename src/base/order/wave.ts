@@ -80,8 +80,13 @@ export interface Wave {
   claimedById?: string;
   /** 复杂任务：LLM 拆分 + 发起人确认的模块定义（接单后锁定不可增删）。 */
   modules?: import("../ai/decompose").TaskModule[];
-  /** Virtual interest counter (hotness-source; physics kept separate). */
+  /** 虚拟兴趣计数（热度来源；物理机制保持分离）。 */
   hotness?: number;
+  /**
+   * 弹药标识（W1 总装）：发布时经 getAmmoDefinition(category) 反查写入，
+   * 供履约座舱按 ammoId 装载场景插槽（housekeeping-v1 / meetup-social-v1 …）。
+   */
+  ammoId?: string;
   /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
   fissionCount?: number;
   /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
@@ -176,6 +181,8 @@ export interface CreateWaveInput {
   modules?: import("../ai/decompose").TaskModule[];
   createdAt: number;
   hotness?: number;
+  /** 弹药标识（可选；发布时按品类反查写入，见 getAmmoDefinition）。 */
+  ammoId?: string;
 }
 
 /** Build a wave; validates essential fields (basic needs must be complete). */
@@ -206,6 +213,7 @@ export function createWave(input: CreateWaveInput): Wave {
     createdAt: input.createdAt,
     status: input.pending ? "pending" : "active",
     hotness: input.hotness ?? 0,
+    ammoId: input.ammoId,
   };
 }
 

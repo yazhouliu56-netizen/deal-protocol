@@ -83,6 +83,23 @@ export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
   social: meetupAmmo,
 };
 
+/**
+ * 中文品类 → 官方弹药 key 归一化（W1 总装：发布弹层以中文品类发单，
+ * 需直挂官方弹药才能在 Wave 上写入 housekeeping-v1 / meetup-social-v1，
+ * 供履约座舱按 ammoId 装载场景插槽——白皮书 §5.7 scenario 键直挂）。
+ */
+export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
+  "家政保洁": "housekeeping",
+  保洁: "housekeeping",
+  打扫: "housekeeping",
+  羽毛球约局: "meetup",
+  羽毛球: "meetup",
+  约局: "meetup",
+  组局: "meetup",
+  桌游: "meetup",
+  拼桌: "meetup",
+};
+
 /** 四表任一命中即视为已配置类目（如「羽毛球」仅 SOP 表登记也算）。 */
 export function isConfiguredCategory(category: string): boolean {
   return (
@@ -115,4 +132,19 @@ export function getAmmoDefinition(category: string): IAmmoDefinition {
     dispatchRule: toDispatchRule(category),
     sop: sopForCategory(category) as IAmmoSopOverrides,
   };
+}
+
+/**
+ * W1 总装：发布链路弹药标识解析（PublishSheet 发单时写入 Wave.ammoId）。
+ *
+ * 与 getAmmoDefinition 的差异：中文品类经 CATEGORY_TO_OFFICIAL 归一化后
+ * 直挂官方弹药 ammoId（如「家政保洁」→ housekeeping-v1、「羽毛球约局」→
+ * meetup-social-v1），供履约座舱按 ammoId 装载场景插槽（白皮书 §5.7）。
+ * getAmmoDefinition 保持纯聚合语义（存量测试基线），本函数只服务发布落库。
+ */
+export function resolveAmmoIdForPublish(category: string): string {
+  const officialKey = CATEGORY_TO_OFFICIAL[category];
+  const official = OFFICIAL_AMMO[officialKey ?? category];
+  if (official) return official.ammoId;
+  return getAmmoDefinition(category).ammoId;
 }

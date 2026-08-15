@@ -14,6 +14,7 @@ import type {
   IAmmoDefinition,
   ISubEventContext,
   ISubEventHook,
+  ISubEventResult,
   ITerminationEvent,
   TerminationKind,
 } from "../../types/ammo-schema.ts";
@@ -92,8 +93,8 @@ export interface HookOutcome {
   ok: boolean;
   reason?: string;
   data?: unknown;
-  /** 钩子失败时实际采用的降级（NONE = 成功）。 */
-  fallbackUsed: "NONE" | "SKIP" | "DEFER";
+  /** 钩子失败时实际采用的降级（NONE = 成功；BLOCK = 阻止跃迁，见 ISubEventHook.fallback）。 */
+  fallbackUsed: "NONE" | "SKIP" | "DEFER" | "BLOCK";
 }
 
 export interface AdvanceResult {

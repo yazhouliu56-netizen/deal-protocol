@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
 import ToastHost from "@/components/oto-ui/ToastHost";
+import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,6 +56,8 @@ export default function OtoLayout({
   return (
     <div className={`oto-app ${geistSans.variable} ${geistMono.variable} h-full`}>
       {children}
+      {/* W6 总装：全局弱网离线指示器（navigator.onLine 桥，断网琥珀条 / 恢复绿 Toast） */}
+      <OnlineStatusBridge />
       <ToastHost />
       <PwaServiceWorker />
     </div>

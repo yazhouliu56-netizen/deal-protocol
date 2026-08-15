@@ -53,6 +53,10 @@ export default function OfflineQueueIndicator({
       const timer = setTimeout(() => setToast(null), TOAST_DURATION_MS);
       return () => clearTimeout(timer);
     }
+    if (isOffline) {
+      // 再次离线（含恢复 Toast 期间）：离线提示条优先，清除追回 Toast
+      setToast(null);
+    }
     return undefined;
   }, [isOffline, pendingCount]);
 

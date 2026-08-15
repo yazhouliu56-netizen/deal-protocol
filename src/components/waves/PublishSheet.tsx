@@ -6,6 +6,8 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
+import DynamicDraftCard from "./DynamicDraftCard";
+import { resolveAmmoIdForPublish } from "@/ammo/registry";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
@@ -195,6 +197,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       publishFee,
       expiresAt: Date.now() + ttl,
       hotness: 2 + Math.floor(Math.random() * 2),
+      // W1 总装：弹药标识随单落库（中文品类归一化直挂官方弹药，履约座舱按 ammoId 装载场景插槽）
+      ammoId: resolveAmmoIdForPublish(category.trim()),
     });
     if (out === null) {
       setError("发布被拒：账号已被平台限制（限流/封禁），请稍后或申诉");
@@ -310,6 +314,23 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               {pricingForCategory(category.trim()).warrantyText ?? "按单协商"}
             </span>
           </p>
+        )}
+
+        {/* W1 总装：弹药驱动草稿预览卡（ammoId/计价模型/安全徽章自动投影），
+            扣动扳机·一键发布 = 真实发射链路（publish → createPendingWave → payWave） */}
+        {category.trim() && (
+          <div className="mb-3">
+            <DynamicDraftCard
+              category={category.trim()}
+              onPublish={() => publish()}
+              onTweak={(key) => {
+                // 草稿卡参数行点击微调：聚焦对应表单（开放局容量 → 展开更多选项）
+                if (key === "capacity" || key === "deposit" || key === "rounds") {
+                  setShowMore(true);
+                }
+              }}
+            />
+          </div>
         )}
 
         {/* 可选配置折叠开关：核心要素常显，可选件收起 */}

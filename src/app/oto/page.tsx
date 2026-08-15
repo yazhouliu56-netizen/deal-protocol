@@ -13,6 +13,10 @@ import SearchBar from "@/components/oto-ui/SearchBar";
 import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
+import StatusCapsule from "@/components/oto-ui/StatusCapsule";
+import { toAtomicFiveState } from "@/base/ammo/runner";
+import { useWaveStore } from "@/store/useWaveStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 import DestinationCard from "@/components/oto-ui/destinations/DestinationCard";
 import DestinationHub from "@/components/oto-ui/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
@@ -161,6 +165,29 @@ function HomePage() {
   const clearCart = useAppStore((s) => s.clearCart);
   const destinationsRef = useRef<HTMLDivElement>(null);
 
+  /* W2 总装：当前用户进行中活动 Wave → toAtomicFiveState 投影 → 顶栏五态胶囊 */
+  const waves = useWaveStore((s) => s.waves);
+  const claims = useWaveStore((s) => s.claims);
+  const identity = useIdentityStore((s) => s.identity);
+  const activeWave = useMemo(() => {
+    const mine = waves
+      .filter(
+        (w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired",
+      )
+      .sort((a, b) => b.createdAt - a.createdAt);
+    return mine[0] ?? null;
+  }, [waves, identity.id]);
+  const activeFiveState = useMemo(() => {
+    if (!activeWave) return null;
+    const acceptedClaim = claims.find(
+      (c) => c.waveId === activeWave.id && (c.status === "accepted" || c.status === "joined"),
+    );
+    return toAtomicFiveState({
+      waveStatus: activeWave.status,
+      claimStatus: acceptedClaim?.status,
+    });
+  }, [activeWave, claims]);
+
   const visibleExperiences = useMemo(() => {
     const q = search.trim().toLowerCase();
     const byCategory = activeCategory
@@ -187,6 +214,18 @@ function HomePage() {
 
   return (
     <div className="pointer-events-auto">
+      {/* W2 总装：顶栏五态灵动胶囊（当前进行中订单实时投影：🟡广播 ➔ 🔵就位 ➔ 🟣履约 ➔ 🟠待验收 ➔ 🟢已结算） */}
+      {activeWave && activeFiveState && (
+        <div className="flex justify-center mb-2" data-testid="top-status-capsule">
+          <StatusCapsule
+            status={activeFiveState}
+            options={{
+              isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
+              onSosClick: undefined,
+            }}
+          />
+        </div>
+      )}
       {/* 问候语 + 标题 */}
       <div className="flex items-center gap-2.5 mb-1">
         <IdentityAvatar />
