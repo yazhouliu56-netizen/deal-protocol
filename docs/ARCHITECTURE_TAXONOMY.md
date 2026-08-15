@@ -388,6 +388,62 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 - 承接 **P1-5**（弹药内嵌表单 schema）：法则四草稿卡与视口动态表单由 `IAmmoDefinition` 驱动即为其统一形态（`DynamicFormView` 通用引擎已就绪，弹药表单绑定待建）；
 - 与 §四 4.3 Phase 2 弹药可插拔验收对齐：**前端侧「同底座换弹药」验收标准 = 外骨骼零改动 + 视口按弹药切换**（housekeeping ↔ meetup ↔ companion 引信与微氛围勾选即生效）。
 
+### 5.5 UI/UX 全景系统架构：4 层体系与 5 态镜像视口标准
+
+> 人类创始人注入（2026-08-15）：将 5.4 的前端微内核哲学细化为可执行的全景系统架构。
+> 契约落位：`src/types/ui-viewport.ts`（视口插槽契约，纯类型零依赖，红线 3）。
+
+#### 5.5.1 第一层：设计令牌与微氛围层（Design Tokens & Theming）
+
+- **全局基础灰阶与空间栅格**：跨场景恒定的中性底色、间距/圆角/栅格体系（外骨骼的视觉地基）；
+- **三大场景特化微主色 Token**：
+  - `theme-housekeeping` 家政专业蓝（素雅蓝微氛围）；
+  - `theme-meetup` 组局活力橙（霓虹橙微氛围）；
+  - `theme-companion` 交友夜幕紫（星云紫微氛围）；
+- **适老化高对比度排版引擎**：大字/大触控区适老模式（承接 5.5.4 无障碍容灾层，Token 级切换）。
+
+#### 5.5.2 第二层：全局通用交互骨架（Universal Shell Framework）
+
+| 骨架件 | 职责 | 契约 | 存量 |
+|--------|------|------|------|
+| **顶部灵动状态胶囊（Top Status Capsule）** | 状态五态同步（`toAtomicFiveState` 投影）+ 弱网离线预警 + LBS 指示 | `IStatusCapsuleState` | 待建（5.4.3 外骨骼层首项） |
+| **全局多重人格坞（Persona Dock）** | 雇主 / 服务商 / 组局者角色单手极速切换（法则三） | `IPersonaDockState` | 存量雏形：`FloatingDock` + `WorkerWorkbench` 双工人台 |
+| **悬浮智能中枢（AI Copilot Orb）** | 语音转单（法则四入口）+ 智能小法官直达入口 | `ICopilotOrbState` | 存量雏形：`VoiceBar` + `JudgePanel` |
+| **全局底线防护栏（Global Safety Guard）** | 一键红色 SOS + 隐私行程分享（法则五） | `ISafetyGuardState` | 存量：`SafetyKit` 四件套 ✅ |
+
+#### 5.5.3 第三层：动态视图与插槽渲染层（Dynamic Viewport & 5-State Slots）
+
+**5 态镜像视口标准**：视口与五态原子状态机一一镜像（`AtomicFiveState` ↔ `ViewportStage`），
+任何弹药在任何阶段只渲染对应视口，视口内以弹药特化插槽（Slot）承载差异化交互：
+
+| 镜像 | 视口 | 核心交互 | 插槽契约 |
+|------|------|----------|----------|
+| `PUBLISHED` | **A. 需求发布视口（Drafting View）** | 对话流草稿卡（法则四）+ JSON-Schema 动态表单 | `IDraftingSlotProps` |
+| `MATCHED` | **B. 撮合与匹配视口（Matching View）** | 雷达扫描波纹 + 抢单大厅 + 向量打分卡 | `IMatchingSlotProps` |
+| `IN_SERVICE` | **C. 履约时空视口（Fulfillment View）** | LBS 3D 轨迹图 + 虚拟通信条 + 离线事务栏 | `IFulfillmentSlotProps` |
+| `INSPECTED` | **D. 验收与对账视口（Inspection View）** | 弹药特化插槽（前后照片比对 / AA 滑块 / 增项弹窗）+ 物理碰一碰(NFC)/动态码全屏核销 | `IInspectionSlotProps` |
+| `SETTLED` | **E. 结算与信用视口（Settlement View）** | 多方分账抽屉 + 六维雷达打分板 + 跨场景积分动效 | `ISettlementSlotProps` |
+
+**弹药特化插槽原则**（红线 2 / 5.4.4）：同一视口内按弹药切换插槽内容——
+保洁走「前后照片比对 + 增项弹窗」、组局走「AA 分摊滑块 + 到场扫码核销」、
+交友走「背调徽章 + 虚拟号接通」；**外骨骼层（5.5.2）零改动**。
+
+#### 5.5.4 第四层：极端场景与无障碍容灾交互（Edge-Cases & Accessibility）
+
+- **弱网离线半透明提示条**：`IOfflineBannerState`（宪法 #10 降级是设计的一部分，离线事务栏可见性提示）；
+- **大字/大触控区适老模式**：`ISeniorModeTokens`（承接 5.5.1 适老化排版引擎，44px 触控 + 高对比度）；
+- 🛡️ **防暴力伪装计算器界面**（`IStealthCalculatorState`）：高危场景下以标准计算器形态掩护，
+  通过特定数字组合静默触发报警与音频回传（隐私是血液规则，宪法 #8 的极端物理防护形态）。
+
+#### 5.5.5 视口契约落位与承接
+
+- 契约文件：`src/types/ui-viewport.ts`（`ScenarioTheme` / `ViewportStage` / 五视口插槽 Props /
+  四骨架件 State / 容灾三态，纯类型零依赖，红线 3 `UI ➔ base ➔ types` 单向流动）；
+- 承接 **P1-5**（弹药内嵌表单 schema）+ **P2-1**（弹药主题 Token）：5.5.1 微主色 Token 即 P2-1 落地形态、
+  5.5.3 视口插槽即 P1-5 落地形态；
+- 与 5.4.3 映射：三层挂载图谱中的「视口层弹药定制面板（增项报价 / AA 分摊 / 到场扫码，待建）」
+  即 5.5.3 的 D 视口弹药特化插槽清单。
+
 ---
 
 ## 六、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
@@ -405,3 +461,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 2026-08-15 | **28 模块主蓝图注入**：§三 3.4 升级为「六层防御圈 × 28 核心模块职责矩阵」——标准模块编号 `L1-M1`～`L6-M4` 定为全项目永久唯一编号标准 + 六层职责矩阵 + 26 行代码落位与成熟度对照表（实测 🟢13 已闭环 / 🟡12 有雏形 / ⚪️1 待建设，清单净 26 模块，标题口径差量已标注待裁决） | 用户 |
 | 2026-08-15 | **三阶段推进路线图注入**：新增 §四「平台落地推进路线图」——Phase 1 MVP 验证期（0➔1，housekeeping.ammo.ts 碰炸引信）/ Phase 2 体系成熟期（1➔10，meetup 延期 + companion 近炸）/ Phase 3 规模壁垒期（10➔100，弱网/容灾/熔断/存证）；每阶段绑定模块编号 + 缺口衔接 + 现状标注；顺带修正小节编号（§三 2.x→3.x、落差审计 3.x→5.x），全文档编号体系收敛 | 用户 |
 | 2026-08-15 | **前端微内核交互架构注入**：§五 5.4 新增「前端微内核与系统级交互架构」——容器心智模型（不变外骨骼 × 流动动态视口）+ 前端微内核 5 大交互法则（主题 Token 隔离 / 五态灵动胶囊 / 多数字人格流体双模态 / AI 意图转单拟物草稿卡 / 隐形防御显性物理触感）+ 组件三层挂载映射图谱（外骨骼 / 视口 / 物理感知）；D-8 判定挂接 5.4 与 P2-1；与 §四 Phase 2 弹药可插拔验收对齐（外骨骼零改动 + 视口按弹药切换） | 用户 |
+| 2026-08-15 | **UI/UX 全景系统架构注入**：§五 5.5 新增「4 层体系与 5 态镜像视口标准」——①设计令牌与微氛围层（灰阶栅格 + 三大场景微主色 `theme-housekeeping` 蓝 / `theme-meetup` 橙 / `theme-companion` 紫 + 适老化高对比排版引擎）②全局通用交互骨架层（顶部状态胶囊 / 多重人格坞 / AI Copilot Orb / 全局底线防护栏）③动态视图与插槽渲染层（五态镜像视口 `AtomicFiveState` ↔ `ViewportStage`：Drafting/Matching/Fulfillment/Inspection/Settlement + 弹药特化插槽）④极端场景与无障碍容灾层（弱网半透明提示条 / 适老模式 / 🛡️防暴力伪装计算器）；契约落位 `src/types/ui-viewport.ts`（纯类型零依赖）；承接 P1-5（视口插槽）+ P2-1（微主色 Token） | 用户 |
