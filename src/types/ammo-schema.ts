@@ -138,6 +138,38 @@ export interface ITerminationEvent {
  * `ammoId + category + 五态钩子 + 定价模型 + 引信策略`。
  * 底座通用 AmmoRunner 按此清单装载执行（红线 2：声明式弹药规范）。
  */
+
+/**
+ * 供给端准入要求（S1 R_AUTH 供给端准入网关 · 动态资质拦截）。
+ * 弹药声明服务者进入该类目履约所需的最低资质门槛，WorkerWorkbench /
+ * 接单链路按此拦截未达标服务者（补齐资质后方可接该类目订单）。
+ */
+export interface IWorkerRequirement {
+  /** 必需资格证书（如 ['HEALTH_CERT', 'ELECTRICIAN_CERT']）。 */
+  requiredCertificates?: string[];
+  /** 最低安全背调分（0-100；低于该分禁止承接高风险入户类目）。 */
+  minSafetyScore?: number;
+  /** 最低实名等级（BASIC 注册 / REAL_NAME 实名 / POLICE_VERIFIED 公安核验）。 */
+  requiredIdentityLevel?: "BASIC" | "REAL_NAME" | "POLICE_VERIFIED";
+}
+
+/**
+ * 定向信用折抵规则（分维度信用折抵 · 防信用错位）。
+ * 数字人格信用飞轮的兑换闸门：仅允许指定信用维度折抵指定资金门槛
+ * （如「安全分 → 押金」/「守时分 → 预付定金」），禁止跨维度通兑
+ * （防高安全分用户用错维度套利）。
+ */
+export interface ICreditWaiverRule {
+  /** 允许折抵的信用维度（单维度定向，禁止多维度叠加通兑）。 */
+  allowedCreditDimension:
+    | "SAFETY_BACKGROUND"
+    | "PUNCTUALITY"
+    | "SKILL_LEVEL"
+    | "ASSET_REPUTATION";
+  /** 最高允许折抵比例（如 0.5 = 押金最多折抵 50%，其余仍需资金锁定）。 */
+  maxWaiverPercentage: number;
+}
+
 export interface IAmmoDefinition {
   /** 弹药唯一标识（URL 安全短名，如 "housekeeping-v1"）。 */
   ammoId: string;
@@ -155,4 +187,10 @@ export interface IAmmoDefinition {
   dispatchRule?: IDispatchRule;
   /** SOP 覆盖项（缺省走 ammo/sop 类目表）。 */
   sop?: IAmmoSopOverrides;
+  /** 供给端准入门槛（S1 R_AUTH；缺省 = 无额外要求）。 */
+  workerRequirement?: IWorkerRequirement;
+  /** 定向信用折抵规则（信用飞轮兑换闸门；缺省 = 不开放折抵）。 */
+  creditWaiverRule?: ICreditWaiverRule;
+  /** 现场加价上限比例（防坐地起价：增项金额 ≤ 初始基准价 × 此比例；缺省 0.5）。 */
+  maxSurchargeRatio?: number;
 }

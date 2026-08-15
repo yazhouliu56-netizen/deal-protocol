@@ -32,6 +32,10 @@ export interface HousekeepingSlotProps {
   onRejectQuote?: () => void;
   /** 损坏包赔理赔直连（财产险入口）。 */
   onClaimDamage?: () => void;
+  /** 订单基础金额（¥；用于展示防坐地起价上限，缺省 0 不显示）。 */
+  baseAmountYuan?: number;
+  /** 现场加价上限比例（对齐弹药 maxSurchargeRatio；缺省 0.5 = 50%）。 */
+  maxSurchargeRatio?: number;
 }
 
 const SLOT_CSS = `
@@ -53,6 +57,10 @@ const SLOT_CSS = `
 .hk-verified{margin-left:4px;font-size:11px;color:#4ade80}
 .hk-damage{width:100%;padding:9px 0;border-radius:12px;border:none;font-size:13px;font-weight:700;
   cursor:pointer;background:linear-gradient(135deg,#f97316,#dc2626);color:#fff}
+.hk-cap{font-size:11px;color:#94a3b8;padding:6px 10px;border-radius:10px;
+  background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)}
+.hk-cap-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
+.hk-cap-over{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
 `;
 
 /** 家政保洁插槽：增项改价确认单 + 双拍照片池 + 损坏包赔直连。 */
@@ -62,10 +70,26 @@ export default function HousekeepingSlot({
   onAcceptQuote,
   onRejectQuote,
   onClaimDamage,
+  baseAmountYuan = 0,
+  maxSurchargeRatio = 0.5,
 }: HousekeepingSlotProps) {
+  const hasBase = baseAmountYuan > 0;
+  const capYuan = hasBase ? Math.round(baseAmountYuan * maxSurchargeRatio * 100) / 100 : null;
+  const overCap =
+    capYuan !== null && quote && !quote.confirmed && quote.amountYuan > capYuan;
   return (
     <div className="hk-slot" data-slot="housekeeping">
       <style>{SLOT_CSS}</style>
+      {hasBase && capYuan !== null && (
+        <section
+          className={`hk-cap ${overCap ? "hk-cap-over" : quote ? "hk-cap-ok" : ""}`}
+          data-cap-meta
+        >
+          {overCap
+            ? `⚠️ 增项 +¥${quote.amountYuan} 超过上限 ¥${capYuan}（基础金额 ${maxSurchargeRatio * 100}%）——超出部分需双方重新确认，防坐地起价`
+            : `🛡️ 现场加价上限为订单基础金额的 ${maxSurchargeRatio * 100}%（¥${capYuan}），超限增项将拦截（防坐地起价）`}
+        </section>
+      )}
       {quote && (
         <section className="hk-quote">
           <div>

@@ -15,6 +15,7 @@ import {
   calculateMultiPartySplit,
   calculateProviderSettlement,
   calculateTieredRefund,
+  generateComplianceSplitInstruction,
   verifyFundSafetyGuard,
 } from "./escrow.ts";
 import {
@@ -396,4 +397,86 @@ test("buildSettlementLedger：违约退款路径与正常分账路径字段齐�
   assert.equal(splitLedger.split?.platformIncome, 30);
   assert.equal(splitLedger.split?.providerIncome, 270);
   assert.equal(splitLedger.demanderRefund, 0);
+});
+
+/* ============ S4 合规分账指令路由（防二清） ============ */
+
+test("S4：微信分账指令生成（服务商商户号 + 幂等指令号 + 金额守恒）", () => {
+  const s = calculateProviderSettlement(200, 0.1);
+  assert.equal(s.platformFee, 20);
+  assert.equal(s.providerNet, 180);
+  const ins = generateComplianceSplitInstruction(s, "WECHAT_PAY", {
+    orderId: "esc-11",
+    receiverAccountId: "provider-1",
+  });
+  assert.equal(ins.instructionId, "split-esc-11-WECHAT_PAY");
+  assert.equal(ins.channel, "WECHAT_PAY");
+  assert.equal(ins.merchantId, "1900000109");
+  assert.equal(ins.receiverAccountId, "provider-1");
+  assert.equal(ins.splitAmountYuan, 180);
+  assert.equal(ins.platformFeeYuan, 20);
+  assert.equal(ins.demanderRefundYuan, 0);
+  assert.equal(ins.currency, "CNY");
+  assert.ok(Number.isFinite(ins.createdAt));
+  // 守恒：split + fee + refund ≡ total
+  assert.equal(ins.splitAmountYuan + ins.platformFeeYuan + ins.demanderRefundYuan, 200);
+});
+
+test("S4：Stripe Connect 分账指令（渠道商户号映射 + 自定义覆盖）", () => {
+  const ins = generateComplianceSplitInstruction(
+    { platformFee: 15, providerNet: 135, demanderRefund: 0 },
+    "STRIPE_CONNECT",
+    { orderId: "esc-12", receiverAccountId: "acct_provider_9" },
+  );
+  assert.equal(ins.merchantId, "acct_connect_standard");
+  const custom = generateComplianceSplitInstruction(
+    { platformFee: 1, providerNet: 99 },
+    "STRIPE_CONNECT",
+    { orderId: "esc-13", receiverAccountId: "p2", merchantId: "acct_connect_custom" },
+  );
+  assert.equal(custom.merchantId, "acct_connect_custom");
+});
+
+test("S4：银行托管分账（退款场景原路退回 + 幂等键渠道隔离）", () => {
+  const ins = generateComplianceSplitInstruction(
+    { platformFee: 5, payToProvider: 40, refundToDemander: 155 },
+    "BANK_ESCROW",
+    { orderId: "esc-14", receiverAccountId: "provider-2" },
+  );
+  assert.equal(ins.splitAmountYuan, 40);
+  assert.equal(ins.demanderRefundYuan, 155);
+  assert.equal(ins.platformFeeYuan, 5);
+  assert.equal(ins.splitAmountYuan + ins.platformFeeYuan + ins.demanderRefundYuan, 200);
+  // 同订单不同渠道 → 指令号不同（幂等键含渠道）
+  const wechat = generateComplianceSplitInstruction(
+    { platformFee: 5, payToProvider: 40, refundToDemander: 155 },
+    "WECHAT_PAY",
+    { orderId: "esc-14", receiverAccountId: "provider-2" },
+  );
+  assert.notEqual(wechat.instructionId, ins.instructionId);
+});
+
+test("S4：buildSettlementLedger 挂载合规分账指令（缺省不产出，兼容既有）", () => {
+  const noCompliance = buildSettlementLedger({
+    ammo: meetupAmmo,
+    orderId: "esc-15",
+    amount: 300,
+    participants: 3,
+    platformRate: 0.1,
+  });
+  assert.equal(noCompliance.compliance, undefined);
+
+  const withCompliance = buildSettlementLedger({
+    ammo: meetupAmmo,
+    orderId: "esc-16",
+    amount: 300,
+    participants: 3,
+    platformRate: 0.1,
+    compliance: { channel: "WECHAT_PAY", receiverAccountId: "provider-3" },
+  });
+  assert.ok(withCompliance.compliance);
+  assert.equal(withCompliance.compliance.instructionId, "split-esc-16-WECHAT_PAY");
+  assert.equal(withCompliance.compliance.splitAmountYuan, 270);
+  assert.equal(withCompliance.compliance.platformFeeYuan, 30);
+  assert.equal(withCompliance.compliance.receiverAccountId, "provider-3");
 });

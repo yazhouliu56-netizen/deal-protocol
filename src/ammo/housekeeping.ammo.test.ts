@@ -206,3 +206,99 @@ test("五态投影整合视角：抢单 accepted → MATCHED；申报后 → IN_
     "INSPECTED"
   );
 });
+/* ============ S2 防坐地起价熔断（50% 上限） ============ */
+
+test("熔断：增项 60% 超限（base 100 / 增项 60 > 50 上限）→ BLOCK ANTI_GOUGING_LIMIT_EXCEEDED", async () => {
+  const r = await advanceLifecycle({
+    ammo: housekeepingAmmo,
+    orderId: "hk-gouge-1",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: {
+      baseAmountYuan: 100,
+      onsiteQuote: { items: ["深度除螨"], totalYuan: 60, approved: true },
+    },
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.state, "MATCHED");
+  assert.match(r.reason ?? "", /ANTI_GOUGING_LIMIT_EXCEEDED/);
+  assert.match(r.reason ?? "", /anti-gouging-blocked/);
+});
+
+test("熔断：增项 30% 未超限（base 100 / 增项 30 ≤ 50 上限）→ 放行进入服务", async () => {
+  const r = await advanceLifecycle({
+    ammo: housekeepingAmmo,
+    orderId: "hk-gouge-2",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: {
+      baseAmountYuan: 100,
+      onsiteQuote: { items: ["深度除螨"], totalYuan: 30, approved: true },
+    },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "IN_SERVICE");
+});
+
+test("熔断：恰好 50% 边界（base 200 / 增项 100）→ 放行", async () => {
+  const r = await advanceLifecycle({
+    ammo: housekeepingAmmo,
+    orderId: "hk-gouge-3",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: {
+      baseAmountYuan: 200,
+      onsiteQuote: { items: ["空调清洗"], totalYuan: 100, approved: true },
+    },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "IN_SERVICE");
+});
+
+test("熔断：escrowPayload.amount 作为基准价（未显式注入 baseAmountYuan）", async () => {
+  const r = await advanceLifecycle({
+    ammo: housekeepingAmmo,
+    orderId: "hk-gouge-4",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: {
+      escrowPayload: { amount: 200, depositRate: 0.3 },
+      onsiteQuote: { items: ["开荒保洁加项"], totalYuan: 130, approved: true },
+    },
+  });
+  assert.equal(r.ok, false);
+  assert.match(r.reason ?? "", /ANTI_GOUGING_LIMIT_EXCEEDED/);
+});
+
+test("熔断：弹药未声明 maxSurchargeRatio → 校验跳过（零回归兜底）", async () => {
+  const r = await advanceLifecycle({
+    ammo: {
+      ammoId: "no-cap-ammo",
+      category: "test",
+      version: "1.0.0",
+      fiveStateHooks: [],
+      pricingModel: { kind: "FIXED", amountYuan: 100 },
+      fuzePolicy: IMPACT_FUZE_TEMPLATE,
+    },
+    orderId: "hk-gouge-5",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: {
+      baseAmountYuan: 100,
+      onsiteQuote: { items: ["任意加项"], totalYuan: 90, approved: true },
+    },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "IN_SERVICE");
+});
+
+test("弹药装备：S1 准入 + 定向信用折抵 + 上限比例声明完整", () => {
+  assert.equal(housekeepingAmmo.maxSurchargeRatio, 0.5);
+  assert.deepEqual(housekeepingAmmo.workerRequirement, {
+    requiredCertificates: ["HEALTH_CERT"],
+    minSafetyScore: 60,
+    requiredIdentityLevel: "REAL_NAME",
+  });
+  assert.equal(housekeepingAmmo.creditWaiverRule?.allowedCreditDimension, "SAFETY_BACKGROUND");
+  assert.equal(housekeepingAmmo.creditWaiverRule?.maxWaiverPercentage, 0.5);
+});

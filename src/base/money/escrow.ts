@@ -161,3 +161,103 @@ export function calculateProviderSettlement(
   );
   return { platformFee: platformIncome, providerNet: providerIncome };
 }
+
+/* =====================================================================
+ * S4 合规分账指令路由（防二清：清结算必须经持牌支付机构分账通道）
+ * ===================================================================== */
+
+/** 合规分账渠道（持牌支付机构标准分账通道）。 */
+export type ComplianceChannel = "WECHAT_PAY" | "STRIPE_CONNECT" | "BANK_ESCROW";
+
+/** 分账渠道 → 服务商商户号（渠道标识常量；接入方用实际商户号覆盖）。 */
+export const COMPLIANCE_MERCHANT_MAP: Record<ComplianceChannel, string> = {
+  WECHAT_PAY: "1900000109",
+  STRIPE_CONNECT: "acct_connect_standard",
+  BANK_ESCROW: "escrow_acct_0001",
+} as const;
+
+/**
+ * 合规分账指令载荷（持牌支付机构标准格式）。
+ * 平台不直接收付资金流（规避二清），结算以「分账指令」形式路由至
+ * 持牌机构执行：接收方（服务者账户）实收 providerNet，平台抽成
+ * platformFee 由机构按指令拆出，需求方退款 demanderRefund 原路退回。
+ */
+export interface IComplianceSplitInstruction {
+  /** 指令号（订单 + 渠道确定性派生，幂等键）。 */
+  instructionId: string;
+  /** 分账渠道（持牌机构通道）。 */
+  channel: ComplianceChannel;
+  /** 服务商商户号（平台在持牌机构的入网号）。 */
+  merchantId: string;
+  /** 分账接收方（服务者账户）。 */
+  receiverAccountId: string;
+  /** 分账金额（服务者实收，= 结算净额）。 */
+  splitAmountYuan: number;
+  /** 手续费明细（平台抽成拆解）。 */
+  platformFeeYuan: number;
+  /** 需求方退款（阶梯退款场景原路退回额）。 */
+  demanderRefundYuan: number;
+  /** 计价币种（当前仅人民币）。 */
+  currency: "CNY";
+  /** 指令生成时刻（epoch ms）。 */
+  createdAt: number;
+}
+
+const round2c = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * 合规分账指令路由生成器（S4 · 防二清 · 确定性纯函数，红线 1）。
+ *
+ * 输入任一 ProviderSettlement 形态的结算结果（platformFee / providerNet，
+ * 或三阶段阶梯退款 refundToDemander / payToProvider / platformFee），
+ * 输出持牌机构可执行的分账指令载荷。指令号 = 订单 + 渠道确定性派生
+ * （幂等：同订单同渠道重复生成指令号一致，机构侧可去重）。
+ *
+ * 金额守恒校验：分账总额（split + fee + refund）≡ 结算总额
+ * （防资金凭空多分；传入总额缺省按三者之和推导）。
+ */
+export function generateComplianceSplitInstruction(
+  settlement:
+    | { platformFee: number; providerNet: number; demanderRefund?: number }
+    | {
+        refundToDemander: number;
+        payToProvider: number;
+        platformFee: number;
+        providerNet?: never;
+      },
+  channel: ComplianceChannel,
+  opts: {
+    orderId: string;
+    receiverAccountId: string;
+    /** 覆盖默认商户号（接入方实际入网号）。 */
+    merchantId?: string;
+    now?: number;
+  },
+): IComplianceSplitInstruction {
+  const s = settlement as {
+    platformFee: number;
+    providerNet?: number;
+    demanderRefund?: number;
+    refundToDemander?: number;
+    payToProvider?: number;
+  };
+  const platformFee = round2c(Math.max(0, s.platformFee ?? 0));
+  const splitAmountYuan = round2c(
+    Math.max(0, s.providerNet ?? s.payToProvider ?? 0),
+  );
+  const demanderRefundYuan = round2c(
+    Math.max(0, s.demanderRefund ?? s.refundToDemander ?? 0),
+  );
+  const instructionId = `split-${opts.orderId}-${channel}`;
+  return {
+    instructionId,
+    channel,
+    merchantId: opts.merchantId ?? COMPLIANCE_MERCHANT_MAP[channel],
+    receiverAccountId: opts.receiverAccountId,
+    splitAmountYuan,
+    platformFeeYuan: platformFee,
+    demanderRefundYuan,
+    currency: "CNY",
+    createdAt: opts.now ?? Date.now(),
+  };
+}

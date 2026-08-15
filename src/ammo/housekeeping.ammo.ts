@@ -141,6 +141,25 @@ export const housekeepingAmmo: IAmmoDefinition = {
       online: true,
     },
   },
+  /**
+   * S1 供给端准入门槛（R_AUTH）：进家类目强制实名 + 安全背调分门槛 +
+   * 健康证（WorkerWorkbench 按此拦截未达标服务者接单）。
+   */
+  workerRequirement: {
+    requiredCertificates: ["HEALTH_CERT"],
+    minSafetyScore: 60,
+    requiredIdentityLevel: "REAL_NAME",
+  },
+  /**
+   * 定向信用折抵（信用飞轮兑换闸门）：仅允许「安全背调分」维度折抵押金
+   * （最高 50%），禁止跨维度通兑（防信用错位套利）。
+   */
+  creditWaiverRule: {
+    allowedCreditDimension: "SAFETY_BACKGROUND",
+    maxWaiverPercentage: 0.5,
+  },
+  /** 防坐地起价：现场增项金额上限 = 订单基础金额的 50%（S2 熔断）。 */
+  maxSurchargeRatio: 0.5,
   sop: {
     depositDefault: true,
     expiresInMs: 2 * 3600_000,

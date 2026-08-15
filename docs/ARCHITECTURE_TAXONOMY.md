@@ -578,13 +578,74 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 
 ---
 
-## 六、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
+## 六、商业战略映射与防脆弱工程论证（2026-08-15 注入）
+
+> 本节将宏观商业战略（4 大柱石 × S1~S4 闭环）与 5 大商业漏洞防御，
+> 以代码级契约（弹药声明 / 底座纯函数 / 前端视口）全量落盘——
+> 商业实战力与软件工程物理学的深度统一。红线 1（确定性纯函数）与
+> 红线 3（单向依赖）为所有防御机制的结构性保证：**防御不是策略文案，
+> 而是可单测、可审计、可熔断的确定性代码路径**。
+
+### 6.1 四大商业柱石 × 六层防御圈映射对齐表
+
+| 商业柱石 | 承载层 | 六层防御圈落位 | 核心契约落点 |
+|---|---|---|---|
+| ① 动态交互中台（发单/抢单/撮合） | 前端微内核 + 弹药视口 | L1 准入、L4 物理履约 | `FulfillmentCockpit` + 弹药插槽（外骨骼零改动） |
+| ② 通用履约引擎（五态原子状态机） | AmmoRunner 底座 | L2 资金托管、L4 围栏核销 | `advanceLifecycle` / `buildSettlementLedger` |
+| ③ 智能决策中枢（撮合/定价/裁决） | 弹药引信 + 信用飞轮 | L1 背调准入、L2 信用折抵 | `fuzePolicy` / `creditWaiverRule` / `workerRequirement` |
+| ④ 高可用底座（弱网/容灾/存证） | base 纯函数域 | L3 数据存证、L5 实时监控、L6 危机联动 | `runtime-monitor` / 离线队列 / 证据链 |
+
+### 6.2 S1~S4 全流程运行闭环与关键杠杆点
+
+```
+S1 供给端准入 ── R_AUTH 供给端资质网关（workerRequirement 声明式门槛）
+    │            · 实名等级 / 安全背调分 / 资格证书 三闸并检（WorkerWorkbench 拦截标签）
+    ▼
+S2 需求端防榨 ── ANTI_GOUGING 防坐地起价熔断（maxSurchargeRatio 声明式上限）
+    │            · 现场增项 > 基础价 × 50% → BLOCK（runner.ts 确定性校验）
+    ▼
+S3 履约期守护 ── SAFE_MONITOR 运行时安全总线（evaluateRuntimeSafety 聚合器）
+    │            · LBS 围栏漂移 / 敏感词违规 / 虚拟号保护 三信号聚合 →
+    │              GUARDED / ATTENTION / THREAT 三态徽标（FulfillmentCockpit 实时展示）
+    ▼
+S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generateComplianceSplitInstruction）
+                 · 平台不经手资金流（防二清）：分账指令直发持牌机构
+                 · 服务商商户号 + 幂等指令号 + 金额守恒（split+fee+refund ≡ total）
+```
+
+**关键杠杆点**：S1 抬高服务供给质量基线（准入即品质）；S2 消除平台信任塌方头号诱因（坐地起价）；S3 把「隐形防御」显性化为用户可感知的安全守护（复购杠杆）；S4 合规资质是规模化支付的入场券（战略级杠杆）。
+
+### 6.3 系统量化 SLA 与运营指标体系
+
+| 指标 | 目标 | 保障机制 |
+|---|---|---|
+| 平台 SLA | **≥ 99.99%** | 四态降级宪法（#10 降级是设计的一部分）+ 弱网离线队列 + 幂等重放 |
+| 新业务上线周期 | **小时级**（填表即新弹药） | 声明式弹药规范（红线 2）：新类目 = 新 IAmmoDefinition，零引擎改动 |
+| 纠纷 AI 自动介入率 | **≥ 60%** | 证据链存证（照片/GPS/敏感词记录）→ 确定性规则裁决 + AI 辅助，红线 1 写入须用户确认 |
+| 资金差错率 | 0（守恒不变量） | `sanitizeAmount/rate` 脏数防御 + `split+fee+refund ≡ total` 守恒断言 |
+| 敏感词命中响应 | 毫秒级（正则纯函数） | `autoFlag` 确定性匹配，无 LLM 延迟 |
+
+### 6.4 五大商业漏洞官方代码级防御论证
+
+| # | 商业漏洞 | 表现 | 代码级防御 | 落点 |
+|---|---|---|---|---|
+| V1 | **过度抽象** | 抽象层空转、弹药同构异构混乱 | 声明式装填即落地：每颗弹药自带钩子/引信/准入/折抵/上限，底座只按清单执行；D-7 双轨并行（协议原位保留） | `housekeeping.ammo.ts` / `meetup.ammo.ts` |
+| V2 | **信用错位** | 信用分跨维度通兑套利 | 定向信用折抵闸门：`creditWaiverRule.allowedCreditDimension` 单维度定向 + `maxWaiverPercentage` 上限（安全分→押金 / 守时分→定金，禁通兑） | `ammo-schema.ts` ICreditWaiverRule |
+| V3 | **供给割裂** | 服务者良莠不齐、进家无门槛 | R_AUTH 供给端准入网关：`workerRequirement`（实名等级 / 安全背调分 / 资格证书）三闸并检，未达标拦截接单 | `ammo-schema.ts` IWorkerRequirement + `WorkerWorkbench.tsx` |
+| V4 | **资金二清** | 平台直接收付资金流涉非法支付 | 合规分账指令路由：清结算不落平台资金池，分账指令直发持牌机构（服务商商户号 + 幂等指令号 + 金额守恒） | `escrow.ts` generateComplianceSplitInstruction |
+| V5 | **AI 幻觉** | 概率性判断侵入资金/安全关键路径 | 红线 1 隔离墙：全部资金/准入/熔断/安全聚合为**确定性纯函数**（Haversine + 正则 + 布尔），LLM 仅限辅助建议且写入须用户确认 | `runner.ts` 熔断 / `runtime-monitor.ts` / `escrow.ts` |
+
+**防脆弱性总论**：防御机制全部以「弹药声明 → 底座执行 → 前端可视」三段式落盘——声明处可读（业务填表）、执行处可测（单测断言 BLOCK/放行）、视口处可见（用户感知），商业战略因此获得与软件工程物理（状态机守恒、纯函数确定性、单向依赖）同构的可靠性。
+
+---
+
+## 七、收敛路线（宪法门禁衔接）1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
 3. **空白缺口开工须走宪法 §4 模板**（六圈定位声明 + 宪法条文对照），P0 级缺口开工前由人类裁决排期。
 
 ---
 
-## 七、修订记录
+## 八、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
@@ -597,3 +658,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 2026-08-15 | **端到端三大核心页面拓扑注入**：§五 5.6 新增「三大核心页面拓扑与交互流转标准」——①动态发布页 Dynamic Launchpad（ASCII 线框：StatusCapsule + Copilot Orb + DynamicDraftCard 拟物草稿卡 + 弹药切换，CTA 发射 ➔ PUBLISHED）②通用五态履约主屏 Universal Fulfillment Cockpit（五态镜像视口区按态切换、D 视口弹药特化插槽、advanceLifecycle 跃迁驱动胶囊+视口联动、终止事件分支直入结算视口）③争议调解与小法官半屏抽屉 Dispute & AI Arbitration Sheet（半屏上滑、证据链展列、小法官 Advisory 裁定卡、双出口：采纳结算/人工仲裁，红线 1 写入由用户确认）；每屏标注字段构成 + 状态机驱动关系 + 宪法落位 | 用户 |
 | 2026-08-15 | **三大场景 UI 插槽特化矩阵注入**：§五 5.7 新增「三大典型业务场景 UI 插槽特化全景对比矩阵」——家政保洁（重入户/清洁蓝）/ 组局社交（轻履约/活力橙）/ 同城陪玩（高人身风险/夜幕紫）6 大交互维度特化标准：①主题微色调 ②发布页动态组件（户型清单 vs 座次 vs 兴趣标签）③匹配等待动效（1v1 雷达 vs 拼位候补 vs 背调扫描门）④履约核心特化插槽（增项双拍 vs 座次 AA 围栏 vs 隐私盾+伪装电话）⑤核销完工动作（NFC 碰碰 vs 组织者解冻 vs 300m 脱离自动停表）⑥争议售后入口（损坏直赔 vs 放鸽子申诉 vs 一键拉黑敏感词）；契约增补 `src/types/ui-viewport.ts` `ICompanionSlotProps`（isPrivacyShieldArmed / onTriggerFakeCall / departureDistanceMeters 默认 300m / onBlockUser）+ `IViewportSlots.companion` 挂载位；外骨骼零改动差异全收敛插槽区（红线 2） | 用户 |
 | 2026-08-15 | **Tier-4 极端状态与特殊人群 UX 兜底策略注入**：§五 5.8 新增三大容灾交互标准——①弱网断网离线态（胶囊变灰 + 按钮排队文案 + 网络恢复自动追回 Toast）；②适老化极简模式（1.4× 字阶 / WCAG AAA 7:1 黑白色黄三色系 / 56×56pt 巨型触控热区 / 仅双主按钮：大麦克风语音发单 + 24h 客服热线 / 关键操作超大确认弹窗）；③极端危险静默伪装防护（标准计算器界面掩护 + 真实四则运算 + `911=`/`110=` 暗号静默触发报警零视觉闪烁 + 后台加密录音录像直传安全中心 + 顶栏双击/长按 800ms 紧急脱身）；与 5.5.4 `IStealthCalculatorState` 契约对齐（masked / armCode / audioReportReady） | 用户 |
+| 2026-08-15 | **商业战略映射与防脆弱工程论证注入**：新增 §六——4 大柱石 × 六层防御圈映射对齐表 + S1~S4 闭环运行图景（R_AUTH 准入 / ANTI_GOUGING 50% 熔断 / SAFE_MONITOR 三信号聚合 / COMPLIANCE_SPLIT 防二清分账）+ 量化 SLA 指标（99.99% / 小时级上新 / AI 介入率 ≥60%）+ 5 大商业漏洞（过度抽象/信用错位/供给割裂/资金二清/AI 幻觉）代码级防御论证；契约落位 `ammo-schema.ts`（IWorkerRequirement / ICreditWaiverRule / maxSurchargeRatio）+ `escrow.ts`（generateComplianceSplitInstruction）+ `runner.ts`（50% 熔断）+ `base/safe/runtime-monitor.ts`（S3 聚合器）+ 三前端视口（HousekeepingSlot / FulfillmentCockpit / WorkerWorkbench）；原 §六→§七、§七→§八 顺延 | 用户 |

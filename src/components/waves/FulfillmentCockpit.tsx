@@ -5,6 +5,7 @@ import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import HousekeepingSlot, { type HousekeepingSlotProps } from "./slots/HousekeepingSlot";
 import MeetupSlot, { type MeetupSlotProps } from "./slots/MeetupSlot";
 import CompanionSlot, { type CompanionSlotProps } from "./slots/CompanionSlot";
+import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
 
 /**
  * 通用五态履约主屏（Universal Fulfillment Cockpit · 白皮书 §五 5.6.2）。
@@ -53,6 +54,10 @@ export interface FulfillmentCockpitProps {
   onConfirmSplit?: () => void;
   /** 底部物理核销 CTA（三场景特化）。 */
   onComplete?: () => void;
+  /** S3 SAFE_MONITOR 实时安全报告（缺省 = 不渲染安全守护徽标）。 */
+  safetyReport?: IRuntimeSafetyReport;
+  /** 家政插槽防坐地起价展示（基础金额 + 上限比例）。 */
+  housekeepingCap?: { baseAmountYuan: number; maxSurchargeRatio?: number };
 }
 
 /** 场景 → 主题微色元数据（5.7 维度 1 的 Token 投影）。 */
@@ -83,6 +88,11 @@ const COCKPIT_CSS = `
   cursor:pointer;color:#05060f;transition:transform .15s,filter .15s}
 .cockpit-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
 .cockpit-cta:active{transform:scale(.98)}
+.cockpit-safety{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;
+  font-size:11px;font-weight:600;border:1px solid}
+.cockpit-safety-guarded{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3)}
+.cockpit-safety-attention{color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3)}
+.cockpit-safety-threat{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
 `;
 
 /** 六维信用雷达预览（trustScore 拆分展示）。 */
@@ -107,6 +117,21 @@ export function describeCompletionCta(scenario: CockpitScenario): string {
   }
 }
 
+/** S3 SAFE_MONITOR 安全徽标元数据（安全守护状态 → 文案/类名/图标）。 */
+export const SAFETY_PILL_META = {
+  GUARDED: { label: "🛡️ 安全守护中 · 全维度零威胁", className: "cockpit-safety-guarded" },
+  ATTENTION: { label: "⚠️ 安全守护 · 有告警待确认", className: "cockpit-safety-attention" },
+  THREAT: { label: "🚨 安全守护 · 威胁已联动风控", className: "cockpit-safety-threat" },
+} as const;
+
+/** 安全报告 → 徽标元数据投影（纯函数，供测试直接断言）。 */
+export function describeSafetyPill(
+  report: IRuntimeSafetyReport,
+): { label: string; className: string; status: "GUARDED" | "ATTENTION" | "THREAT" } {
+  const meta = SAFETY_PILL_META[report.securityPillStatus];
+  return { ...meta, status: report.securityPillStatus };
+}
+
 /** 通用五态履约主屏：外骨骼顶栏 + 服务者卡 + 场景插槽 + 核销 CTA。 */
 export default function FulfillmentCockpit({
   status,
@@ -120,9 +145,12 @@ export default function FulfillmentCockpit({
   onAcceptQuote,
   onConfirmSplit,
   onComplete,
+  safetyReport,
+  housekeepingCap,
 }: FulfillmentCockpitProps) {
   const theme = SCENARIO_THEME_META[scenario];
   const cta = describeCompletionCta(scenario);
+  const safetyPill = safetyReport ? describeSafetyPill(safetyReport) : null;
 
   return (
     <div className="cockpit" data-scenario={scenario} data-theme={theme.themeClass}>
@@ -134,6 +162,21 @@ export default function FulfillmentCockpit({
       <div className="cockpit-theme" data-theme-label>
         🎨 场景主题 · {theme.label}
       </div>
+
+      {safetyPill && (
+        <section
+          className={`cockpit-safety ${safetyPill.className}`}
+          data-safety={safetyReport?.securityPillStatus}
+          data-safety-count={safetyReport?.activeThreats.length ?? 0}
+        >
+          {safetyPill.label}
+          {safetyReport && safetyReport.activeThreats.length > 0 && (
+            <span style={{ opacity: 0.75 }}>
+              · {safetyReport.activeThreats.join(" / ")}
+            </span>
+          )}
+        </section>
+      )}
 
       <section className="cockpit-provider">
         <span className="cockpit-avatar">{provider.avatar}</span>
@@ -168,6 +211,8 @@ export default function FulfillmentCockpit({
           onAcceptQuote={onAcceptQuote ?? housekeeping?.onAcceptQuote}
           onRejectQuote={housekeeping?.onRejectQuote}
           onClaimDamage={housekeeping?.onClaimDamage}
+          baseAmountYuan={housekeepingCap?.baseAmountYuan ?? 0}
+          maxSurchargeRatio={housekeepingCap?.maxSurchargeRatio ?? 0.5}
         />
       )}
       {scenario === "meetup" && (

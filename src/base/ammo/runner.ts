@@ -25,7 +25,9 @@ import {
   calculateEscrowHold,
   calculateMultiPartySplit,
   calculateTieredRefund,
+  generateComplianceSplitInstruction,
   verifyFundSafetyGuard,
+  type ComplianceChannel,
 } from "../money/escrow.ts";
 
 /* =====================================================================
@@ -149,6 +151,8 @@ export interface SettlementLedger {
   providerIncome: number;
   platformIncome: number;
   demanderRefund: number;
+  /** S4 合规分账指令（防二清；仅显式传入 compliance 路由时产出）。 */
+  compliance?: ReturnType<typeof generateComplianceSplitInstruction>;
 }
 
 /**
@@ -163,6 +167,11 @@ export function buildSettlementLedger(input: {
   platformRate?: number;
   participants?: number;
   refund?: { elapsedRatio?: number; isBreach?: boolean };
+  /** S4 合规分账路由（防二清；缺省 = 不产出分账指令，兼容既有调用）。 */
+  compliance?: {
+    channel: "WECHAT_PAY" | "STRIPE_CONNECT" | "BANK_ESCROW";
+    receiverAccountId: string;
+  };
 }): SettlementLedger {
   const hold = calculateEscrowHold(input.amount, input.depositRate);
   if (input.refund) {
@@ -180,6 +189,20 @@ export function buildSettlementLedger(input: {
       providerIncome: tiered.payToProvider,
       platformIncome: tiered.platformFee,
       demanderRefund: tiered.refundToDemander,
+      compliance: input.compliance
+        ? generateComplianceSplitInstruction(
+            {
+              platformFee: tiered.platformFee,
+              payToProvider: tiered.payToProvider,
+              refundToDemander: tiered.refundToDemander,
+            },
+            input.compliance.channel,
+            {
+              orderId: input.orderId,
+              receiverAccountId: input.compliance.receiverAccountId,
+            },
+          )
+        : undefined,
     };
   }
   const split = calculateMultiPartySplit(
@@ -196,6 +219,20 @@ export function buildSettlementLedger(input: {
     providerIncome: split.providerIncome,
     platformIncome: split.platformIncome,
     demanderRefund: 0,
+    compliance: input.compliance
+      ? generateComplianceSplitInstruction(
+          {
+            platformFee: split.platformIncome,
+            providerNet: split.providerIncome,
+            demanderRefund: 0,
+          },
+          input.compliance.channel,
+          {
+            orderId: input.orderId,
+            receiverAccountId: input.compliance.receiverAccountId,
+          },
+        )
+      : undefined,
   };
 }
 
@@ -318,6 +355,38 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
   // 资金托管挂接（L2-M4，仅 payload.escrowPayload 存在时激活——零载荷
   // 完全透传，既有跃迁行为不变；资金校验失败按准入语义 BLOCK 回退）。
   const escrowPayload = ctxBase.payload?.escrowPayload as EscrowPayload | undefined;
+
+  // S2 防坐地起价熔断（50% 上限，商业防脆弱 · 确定性校验，红线 1）：
+  // 弹药声明 maxSurchargeRatio 时，现场增项金额（onsiteQuote.totalYuan）
+  // 不得超过初始基准价 × 上限比例。基准价取 escrowPayload.amount（订单托管
+  // 总额）或 payload.baseAmountYuan（调用方显式注入）；两者均缺省则跳过
+  // 校验（兼容既有零载荷调用，零回归）。
+  const onsiteQuote = ctxBase.payload?.onsiteQuote as
+    | { totalYuan?: number }
+    | undefined;
+  const surchargeBase =
+    escrowPayload?.amount ?? (ctxBase.payload?.baseAmountYuan as number | undefined);
+  if (
+    onsiteQuote &&
+    surchargeBase !== undefined &&
+    Number.isFinite(surchargeBase) &&
+    surchargeBase > 0 &&
+    ammo.maxSurchargeRatio !== undefined
+  ) {
+    const limit = ammo.maxSurchargeRatio;
+    const maxAllowed = surchargeBase * limit;
+    const quoteTotal = Number(onsiteQuote.totalYuan ?? 0);
+    if (!Number.isFinite(quoteTotal) || quoteTotal > maxAllowed) {
+      return {
+        ok: false,
+        state: input.from,
+        reason: `anti-gouging-blocked: ANTI_GOUGING_LIMIT_EXCEEDED surcharge ${quoteTotal} exceeds ${limit * 100}% of base ${surchargeBase} (max ${maxAllowed})`,
+        hookOutcomes,
+        afterData,
+      };
+    }
+  }
+
   if (escrowPayload) {
     const hold = calculateEscrowHold(escrowPayload.amount, escrowPayload.depositRate);
     if (hold.totalAmount <= 0) {

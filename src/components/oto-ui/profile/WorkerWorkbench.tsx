@@ -1,17 +1,59 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
+import { ArrowLeft, Check, CircleDollarSign, Clock3, Inbox, Power, ShieldAlert, Star } from "lucide-react";
 import {
   useAppStore,
   WORKER_PROFILES,
   type WorkerOrder,
 } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { housekeepingAmmo } from "@/ammo/housekeeping.ammo";
+import type { IWorkerRequirement } from "@/types/ammo-schema";
 
 function priceToNumber(price: string): number {
   const m = price.match(/(\d+)/);
   return m ? parseInt(m[1], 10) : 0;
+}
+
+/**
+ * 服务者资质档案（S1 R_AUTH 准入判定数据源；本地演示画像，
+ * 生产接入 provider_qualifications 表后由服务端下发）。
+ */
+const WORKER_QUALIFICATIONS: Record<
+  string,
+  { identityLevel: "BASIC" | "REAL_NAME" | "POLICE_VERIFIED"; safetyScore: number; certificates: string[] }
+> = {
+  kail: { identityLevel: "REAL_NAME", safetyScore: 82, certificates: [] },
+  wang: { identityLevel: "REAL_NAME", safetyScore: 91, certificates: ["HEALTH_CERT"] },
+};
+
+/**
+ * S1 R_AUTH 供给端准入判定（确定性纯函数，红线 1）：
+ * 服务者资质是否满足目标弹药 workerRequirement。
+ * 返回缺项清单（空数组 = 达标可接单）。
+ */
+export function evaluateWorkerQualification(
+  profileId: string,
+  requirement?: IWorkerRequirement,
+): string[] {
+  if (!requirement) return [];
+  const q = WORKER_QUALIFICATIONS[profileId];
+  if (!q) return ["资质档案缺失"];
+  const missing: string[] = [];
+  if (requirement.requiredIdentityLevel && q.identityLevel !== requirement.requiredIdentityLevel) {
+    missing.push(`需实名等级 ${requirement.requiredIdentityLevel}（当前 ${q.identityLevel}）`);
+  }
+  if (
+    requirement.minSafetyScore !== undefined &&
+    q.safetyScore < requirement.minSafetyScore
+  ) {
+    missing.push(`需安全背调分 ≥${requirement.minSafetyScore}（当前 ${q.safetyScore}）`);
+  }
+  for (const cert of requirement.requiredCertificates ?? []) {
+    if (!q.certificates.includes(cert)) missing.push(`需资格证书 ${cert}`);
+  }
+  return missing;
 }
 
 /**
@@ -34,6 +76,11 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
   const completed = mine.filter((o) => o.status === "completed");
   const income = completed.reduce((sum, o) => sum + priceToNumber(o.price), 0);
   const incoming = workerOrders.reduce((sum, o) => sum + priceToNumber(o.price), 0);
+  const qualificationMissing = evaluateWorkerQualification(
+    providerId,
+    housekeepingAmmo.workerRequirement,
+  );
+  const qualified = qualificationMissing.length === 0;
 
   return (
     <div className="pointer-events-auto flex flex-col gap-4">
@@ -116,6 +163,33 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
           ))}
         </div>
       </motion.div>
+
+      {/* S1 R_AUTH 供给端准入拦截（动态资质校验） */}
+      {!qualified && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3"
+          data-auth-gate="blocked"
+        >
+          <div className="flex items-center gap-2 text-[11px] font-bold text-red-300">
+            <ShieldAlert size={13} /> 需补齐资质认证后方可承接家政上门订单
+          </div>
+          <ul className="mt-1.5 flex flex-col gap-1 text-[10px] text-white/55">
+            {qualificationMissing.map((m) => (
+              <li key={m}>· {m}</li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
+      {qualified && (
+        <div
+          className="rounded-2xl border border-emerald-400/25 bg-emerald-400/8 px-4 py-2.5 text-[10.5px] text-emerald-300 flex items-center gap-2"
+          data-auth-gate="passed"
+        >
+          <Check size={12} /> 资质已达标（实名 + 安全背调 + 健康证），可承接家政上门订单
+        </div>
+      )}
 
       {/* 待接单 */}
       <section>

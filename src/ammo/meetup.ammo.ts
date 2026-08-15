@@ -217,6 +217,15 @@ export const meetupAmmo: IAmmoDefinition = {
     },
     starBonus: { starMin: 4, completionMin: 0.7, bonus: 10 },
   },
+  /**
+   * 定向信用折抵（信用飞轮兑换闸门）：仅允许「守时分」维度折抵预付定金
+   * （最高 50%，如 30% 预付金可折 15%，剩余仍资金锁定）——守约资产
+   * 定向兑现，禁止跨维度通兑（防信用错位套利）。
+   */
+  creditWaiverRule: {
+    allowedCreditDimension: "PUNCTUALITY",
+    maxWaiverPercentage: 0.5,
+  },
   sop: {
     depositDefault: true,
     expiresInMs: 24 * 3600_000,

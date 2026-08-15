@@ -428,3 +428,9 @@ test("注册表：官方直挂优先于默认保底（social 未配置四表仍�
     assert.ok(getAmmoDefinition(k).fiveStateHooks.length >= 2);
   }
 });
+
+test("弹药装备：meetup 定向信用折抵（守时分 → 预付定金）声明完整", () => {
+  assert.equal(meetupAmmo.creditWaiverRule?.allowedCreditDimension, "PUNCTUALITY");
+  assert.equal(meetupAmmo.creditWaiverRule?.maxWaiverPercentage, 0.5);
+  assert.equal(meetupAmmo.maxSurchargeRatio, undefined);
+});
