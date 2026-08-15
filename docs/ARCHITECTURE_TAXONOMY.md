@@ -134,16 +134,105 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 证据鉴真复核（LLM 复核降级链） | `base/ai/forgery.ts` | 🟢 五信号加权 + LLM 复核降级 |
 | 语音链路 | `base/ai/voice/`（asr/tts/audioStore） | 🟢 GLM→Web Speech / edge-tts→speechSynthesis 降级 |
 
-### 2.4 六层防御圈归属（全仓投影）
+### 2.4 六层防御圈 × 28 核心模块职责矩阵（标准模块编号，全项目永久统一）
 
-| 圈 | 定义 | 本仓落位（核心资产） |
-|----|------|---------------------|
-| ① 感知圈（触达） | 用户触达与需求录入 | `base/form/dynamicForm`、`base/geo/*`、`ammo/scene-template`、`components/oto-ui/*`、`src/app/` 前端 44 页面、`mobile/` |
-| ② 业务圈（业务核心） | 订单/履约/资金闭环 | `base/order/*`、`base/money/*`、`base/dispatch/*`、`store/useWaveStore.ts` |
-| ③ AI 圈（AI 神经） | LLM 寄生核心流程 | `base/ai/*`、`app/api/ai/*`、`app/api/gateway/judge/chat/cluster/decompose/diagnose/voice-intent/asr/tts` |
-| ④ 网关圈（生态网关） | 外部系统与通道 | `app/api/payment/*`、`webhooks/*`、`app/api/push/*`、`base/platform/p2p/*`、`supabase/migrations/*`、`lib/payment.ts`、`lib/wechat-pay-service.ts`、`lib/alipay-service.ts` |
-| ⑤ 风控圈（安全风控） | 反欺诈/危机/合规 | `base/risk/*`、`base/safe/*`、`base/trust/*`、`lib/fraud-detection/*`、`packages/credit-formula` |
-| ⑥ 基建圈（生存基建） | 容灾降级与运维 | `base/platform/circuit/offlineQueue/resilience/snapshot/signInsure`、`app/offline`、`sw.ts`、`scripts/restart-prod.mjs`、`scripts/dev-all.mjs`、`scripts/e2e-*.mjs`、`scripts/convergence-check.mjs` |
+> 人类创始人注入（2026-08-15）：全项目模块编号唯一标准 `L1-M1` ～ `L6-M4`。
+> 任何设计 / ADR / 代码归属讨论必须引用本编号；新增模块须经人类裁决后在此表登记。
+>
+> ⚠️ **口径说明（实测核查）**：本次注入清单按六层逐项清点实为 **26 个模块**
+> （L1×4 + L2×6 + L3×5 + L4×5 + L5×2 + L6×4），与标题口径「28」存在 2 席差量；
+> 编号体系 `L1-M1`～`L6-M4` 完整成立（模块数 = 最大 M 序号），差量席位待人类裁决补充。
+
+#### 2.4.1 模块职责矩阵（六层 28 模块）
+
+**L1 用户体验与触达层（Front-end Perception）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L1-M1` | 动态表单引擎 | 基于 JSON-Schema 动态渲染不同业务下单界面，字段拖拽配置 |
+| `L1-M2` | LBS 时空感知 | 经纬度采集、距离时效计算、电子围栏判定与轨迹上报 |
+| `L1-M3` | 体验友好适配 | 大字高对比度、大热区触控、语音交互与适老化辅助 |
+| `L1-M4` | 零知脱敏展示 | 手机号掩码、地址模糊化、会话临时 Token 化展示 |
+
+**L2 通用业务核心层（Core Domain Engines）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L2-M1` | 标准订单状态机 | 统管“发布-匹配-履约-验收-结算”五态生命周期与伴生事件 |
+| `L2-M2` | 计价分摊引擎 | 按时、按距、按人头 AA、阶梯计价、动态溢价及现场改价 |
+| `L2-M3` | 双模分发路由 | 智能派单（路径/画像最优）与抢单大厅（优先级队列调度） |
+| `L2-M4` | 账户清结算 | 资金担保托管、多方分账、跨场景统一钱包、提现与风控冻结 |
+| `L2-M5` | IM 与隐私通信 | 端到端文本/音视频通讯、双向虚拟隐私号热绑定与录音存证 |
+| `L2-M6` | 信用成长体系 | 守时率、专业度等多维画像计算，跨场景信用通用通兑 |
+
+**L3 智能决策与 AI 神经层（LLM Intelligence）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L3-M1` | 意图识别转单 | 自然语言/口语化语音直接抽取为标准化订单草稿 |
+| `L3-M2` | 向量匹配推荐 | 基于 Embedding 的人-单-场特征匹配与协同推荐 |
+| `L3-M3` | 智能争议仲裁 | 履约物证比对、聊天承诺与时间轨迹分析，给出定责赔付建议 |
+| `L3-M4` | AIGC 鉴真检测 | 完工凭证图像 EXIF、元数据与像素合成痕迹扫描 |
+| `L3-M5` | 对话式数据 BI | 自然语言即时生成运营报表与业务归因诊断 |
+
+**L4 安全合规与风控防御层（Risk & Compliance）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L4-M1` | 可插拔风控中枢 | 三类引信（碰炸/延期/近炸）自适应挂载矩阵 |
+| `L4-M2` | 终端反欺诈 | 设备指纹、模拟器检测、GPS 防作弊与黑名单拦截 |
+| `L4-M3` | 物理履约闭环 | 50 米 GPS 围栏校验 + NFC/动态码碰一碰确认完工 |
+| `L4-M4` | 危机干预协议 | 一键红色报警、视音频直连安全官与心理援助接入 |
+| `L4-M5` | 隐私合规遗忘 | 敏感信息密态存储、动态脱敏、过期销毁、全链路抹除 |
+
+**L5 生态连接与开放网关层（Integration Gateway）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L5-M1` | 多通道适配器 | 地图/支付/通讯服务多厂商聚合接入与毫秒级故障自动切换 |
+| `L5-M2` | 外部合规生态 | 公安实名认证、电子合同签章、场景险秒级直连投保 |
+
+**L6 基础设施与生存保障层（Infra & Resilience）**
+
+| 编号 | 模块 | 职责 |
+|------|------|------|
+| `L6-M1` | 弱网离线引擎 | 断网本地加密队列暂存操作，联网自动追回与重试 |
+| `L6-M2` | 运力熔断机制 | 区域爆单/运力枯竭排队限流，价格杠杆供需平衡 |
+| `L6-M3` | 多云多活容灾 | 四步优雅降级（关非核心 ➔ 限流 ➔ 保核心 ➔ 只读） |
+| `L6-M4` | 司法级存证数仓 | 业务全量轨迹、聊天流水哈希存证，提供司法黑匣子 |
+
+#### 2.4.2 代码落位与成熟度对照表（28 模块全仓映射）
+
+> 状态图例：🟢 已闭环（生产代码 + 测试覆盖） / 🟡 有雏形（主链路已落地，缺口待补） / ⚪️ 待建设
+
+| 编号 | 模块 | 代码落位 | 856 测试覆盖 | 状态 |
+|------|------|----------|--------------|------|
+| `L1-M1` | 动态表单引擎 | `base/form/dynamicForm`、`ammo/`（PublishSheet 弹药表单） | 表单生成/描述器测试 | 🟢（弹药内嵌表单 P1-5 待建） |
+| `L1-M2` | LBS 时空感知 | `base/geo/*`（geo/geoAdapter/destFilter/mapConfig/mapPref）、`geo.ts` 距离时效 | geo 距离/过滤/地图配置测试 | 🟡（经纬度/距离时效已闭环；电子围栏判定与轨迹上报 ⚪️） |
+| `L1-M3` | 体验友好适配 | `base/ai/voice/*`（asr/tts 语音交互）、`base/platform/performance`（tier 降级） | voice 链路测试 | 🟡（语音链路已闭环；大字/大热区适老化 UI ⚪️） |
+| `L1-M4` | 零知脱敏展示 | `base/safe/privacy`（分级脱敏）、`base/comm/privacyNumber`（号码池掩码）、`fuze-policy` blurLocation | privacy/脱敏测试 | 🟢 |
+| `L2-M1` | 标准订单状态机 | `base/order/wave.ts` + `types/ammo-schema.ts`（五态契约） | wave 状态机/认领/成团测试 | 🟢（五态为目标契约，wave 过渡映射见 §二 2.1） |
+| `L2-M2` | 计价分摊引擎 | `base/money/customPricing` + `ammo/pricing-formula`（时/距/系数/地板价）、settleGroupFail | customPricing/计费测试 | 🟡（定式计价闭环；AA 分摊在场外、现场改价/动态溢价待建） |
+| `L2-M3` | 双模分发路由 | `base/dispatch/match`（派单）+ `broadcast`（抢单广播）+ `ammo/dispatch-rule` | match/broadcast 测试 | 🟢（双模 + ammo 权重硬门槛闭环） |
+| `L2-M4` | 账户清结算 | `base/money/*`（ledger/pay/deposit/bidding）、`packages/payment-core`、`app/api/payment/*`（托管） | pay/ledger/deposit 测试 | 🟡（确定性引擎闭环；统一钱包跨场景通兑、提现 ⚪️） |
+| `L2-M5` | IM 与隐私通信 | `base/comm/privacyNumber`（48h 双向热绑定）+ `base/comm/im` | privacyNumber 测试 | 🟢（隐私号/IM 闭环；音视频端到端加密 ⚪️） |
+| `L2-M6` | 信用成长体系 | `base/trust/*`（reputation/starRank/review）+ `packages/credit-formula` | trust/评分测试 | 🟢（跨场景通兑按宪法 #6 飞轮滚动） |
+| `L3-M1` | 意图识别转单 | `base/ai/chat/llmEngine` + `decompose.ts` + `voice/voiceIntent.ts` | 拆解/意图测试 | 🟢（NL→结构化草稿闭环，围栏容错） |
+| `L3-M2` | 向量匹配推荐 | `base/ai/embed.ts`（bigram TF 余弦，零依赖） | embed 语义测试 | 🟢（确定性版活产；LLM Embedding 可选链 P1-4 留口） |
+| `L3-M3` | 智能争议仲裁 | `base/ai/judge.ts` + `forgery.ts`（物证）+ 时间轨迹分析 + `app/api/judge` | judge/定责测试 | 🟢（规则引擎兜底，仅出建议赔付——红线 1 隔离墙） |
+| `L3-M4` | AIGC 鉴真检测 | `base/ai/forgery.ts`（EXIF/文件名/复用/时间/比例五信号 + LLM 复核降级） | forgery 鉴真测试 | 🟡（五信号闭环；像素合成痕迹扫描见 P0-3/P1-1） |
+| `L3-M5` | 对话式数据 BI | `base/ai/bi.ts`（规则解析聚合） | bi 报表测试 | 🟢（规则版落地；LLM 意图改写 P1-4 留口） |
+| `L4-M1` | 可插拔风控中枢 | `base/risk/*`（sentinel/roamGuard/fission/moderation）+ `ammo/risk-rule` 引信表 + `types/fuze-policy.ts`（三类引信模板） | sentinel/roam 测试 | 🟢（引信表驱动闭环；FuzeMatrix 自适应装载随 AmmoRunner P0-1） |
+| `L4-M2` | 终端反欺诈 | `base/risk/roamGuard`（设备指纹/多开）+ `lib/fraud-detection/*`、`modules`（黑名单） | roam 多开测试 | 🟡（设备指纹/多开闭环；模拟器检测/GPS 防作弊待建） |
+| `L4-M3` | 物理履约闭环 | `base/order/attendance`（到场签到雏形） | attendance 测试 | ⚪️（50m 围栏校验 + NFC/动态码碰一碰完工待建设） |
+| `L4-M4` | 危机干预协议 | `base/safe/crisis`（EPA 通知链）+ `fuze-policy` sos 契约 | crisis 测试 | 🟡（EPA 链闭环；位置上报/录音证据联动 P1-3 待建） |
+| `L4-M5` | 隐私合规遗忘 | `base/safe/privacy` + `ageGate`（未成年人合规）+ `fuze-policy` privacy 契约 | privacy/ageGate 测试 | 🟡（脱敏/分级闭环；密态存储/过期销毁全域抹除 ⚪️） |
+| `L5-M1` | 多通道适配器 | `base/platform/p2p`（transport/supabase）、`lib/payment.ts`/wechat-pay/alipay（支付双通道）、Gateway 多 provider 降级 | p2p/payment 测试 | 🟡（支付/LLM 多厂商闭环；地图/通讯多厂商毫秒切换待建） |
+| `L5-M2` | 外部合规生态 | `base/platform/signInsure`（签章验签）+ modules（认证/类目）+ identity 实名模拟 | signInsure 测试 | 🟡（本地签章/实名模拟雏形；公安实名/电子合同/场景险直连 ⚪️） |
+| `L6-M1` | 弱网离线引擎 | `base/platform/offlineQueue` + `resilience` + `sw.js` 离线缓存 + `app/offline` | offlineQueue/韧性测试 | 🟢（离线队列/追回/缓存闭环） |
+| `L6-M2` | 运力熔断机制 | `base/platform/circuit`（熔断库层）、`performance` tier | circuit 测试 | 🟡（熔断库层已备；区域爆单/价格杠杆真实场景 P2-2 未上线） |
+| `L6-M3` | 多云多活容灾 | `base/platform/resilience`（降级库层）+ `circuit` | resilience 测试 | 🟡（降级库层已备；四步优雅降级编排待建设） |
+| `L6-M4` | 司法级存证数仓 | `base/platform/resilience`（数据湖哈希链）+ `signInsure` 签章 + `qr/scan`（链接存证） | 哈希链/签章测试 | 🟢（哈希链闭环；全量轨迹黑匣子待完备） |
 
 ### 2.5 父项目存量层（融合过渡归属，ADR-0018）
 
@@ -226,3 +315,4 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 |------|------|--------|
 | 2026-08-15 | 初版定稿：元宪法四层 + 六红线固化 + 全仓归属映射 + 落差审计（D1-D8 + P0-P2 缺口） | 用户 |
 | 2026-08-15 | **核心设计模型注入**：新增 §二 万能底座五态原子状态机（Published➔Matched➔In-Service➔Inspected➔Settled + 伴生事件 Sub-Events 插拔）+ 三类风控引信矩阵（💥碰炸/⏳延期/📡近炸）+ 数字人格信用飞轮；契约落位 `src/types/ammo-schema.ts` + `src/types/fuze-policy.ts`；原章节顺延（三~六） | 用户 |
+| 2026-08-15 | **28 模块主蓝图注入**：§三 2.4 升级为「六层防御圈 × 28 核心模块职责矩阵」——标准模块编号 `L1-M1`～`L6-M4` 定为全项目永久唯一编号标准 + 六层职责矩阵 + 26 行代码落位与成熟度对照表（实测 🟢13 已闭环 / 🟡12 有雏形 / ⚪️1 待建设，清单净 26 模块，标题口径差量已标注待裁决） | 用户 |
