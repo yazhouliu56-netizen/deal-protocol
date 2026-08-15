@@ -206,4 +206,4 @@
 | 2026-08-15 | dd895dd | L4-M3 物理履约闭环 + 28 模块零空白：geofence/nfc/rpc 三底座 + 司法导出；1061/1061 全绿 + tsc 0 + 门禁 exit 0 |
 | 2026-08-15 | 代码洁癖级大扫除（阶段四） | **Lint 治理 100% 纯净**：① 白名单核心目录（src/base / src/ammo / src/types / components/waves / components/oto-ui）ESLint 警告清零（全仓 744 → 739，白名单 6 → 0）；② 类型加固：StealthCalculator 新增 buildSilentAlarmPayload 模块级工厂（impure 边界封口）；③ HousekeepingSlot 两张照片位 img → next/image（Image fill + position:relative，alt 语义保留）；④ 未用变量真实清理（SeniorModeView onVoiceEnd / JudgePanel claimId）；⑤ 修复 nfc-adapter 测试时序脆弱（注入 now 时钟参数）；⑥ **1061/1061 全绿** + tsc 0 + lint 0 error + 门禁 exit 0 | |
 | 2026-08-15 | 3c242c3 | 代码洁癖大扫除：白名单目录 lint 清零 + 类型加固 + img→next/image；1061/1061 全绿 + tsc 0 + 门禁 exit 0 |
-| 2026-08-15 | 20148cf | 4 阶段总攻战役收官：LAST_SYNC 对齐最终 HEAD；工作区干净，1061/1061 全绿基线确认 |
+| 2026-08-15 | 1510d05 | 4 阶段总攻战役收官：LAST_SYNC 对齐最终 HEAD；工作区干净，1061/1061 全绿基线确认 |
