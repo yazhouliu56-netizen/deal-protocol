@@ -31,7 +31,67 @@
 
 ---
 
-## 二、全仓资产归属映射（Taxonomy Mapping）
+## 二、核心设计模型（人类创始人注入 · 2026-08-15）
+
+> **万能底座 + 插拔弹药 + 动态风控引信** —— 元宪法四层模型的底层执行契约。
+> 代码落位：`src/types/ammo-schema.ts`（五态 + 伴生事件 + 弹药 Schema）、
+> `src/types/fuze-policy.ts`（三类引信策略 + 预置模板）。两者为纯类型协议
+> （红线 3：`UI / Ammo ➔ base ➔ types`），零业务依赖。
+
+### 2.1 万能物理底座与五态原子状态机
+
+**不可分割的标准五态流转**（底座主状态机绝对封闭，宪法 #2 接口保守）：
+
+```
+PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
+➔ INSPECTED（已验收）➔ SETTLED（已结算）
+```
+
+- **原子性**：五态为不可再分的跃迁单元，任何业务不得自行发明中间态；跃迁矩阵唯一
+  （`FIVE_STATE_TRANSITIONS`），非法跃迁编译期拦截；
+- **伴生事件（Sub-Events）插拔**：现场增项报价、AA 分摊确认、配件复核等子流程
+  一律挂载为 `ISubEventHook`（BEFORE 校验 / AFTER 副作用 + SKIP / BLOCK / DEFER
+  确定性降级），底座五态机只保证在跃迁点调用钩子，不感知业务闭包内部；
+- **与现有 `base/order/wave.ts` 状态机的过渡映射**（宪法 #2：只增补不改义，
+  现有枚举语义不变，逐步向原子五态收敛）：
+
+| 原子五态 | 现有 wave 工程投影 | 说明 |
+|---------|-------------------|------|
+| `PUBLISHED` | `pending` / `active`（发布 + 撮合开放） | 发布并进入撮合池 |
+| `MATCHED` | `claimed` / `assembled`（认领 + 成团） | 响应者锁定（claimed）、开放局满员（assembled） |
+| `IN_SERVICE` | 履约进行中（`moduleFulfilment` 模块态） | 服务窗口，伴生事件主要挂载点 |
+| `INSPECTED` | 验收窗（reviewWindowMs，超时自动好评/放款） | 验收与复核 |
+| `SETTLED` | `closed`（终局） | 结算落账、争议关卷 |
+
+### 2.2 三类动态风控引信矩阵（Fuze Matrix）
+
+| 引信 | 威胁类型 | 防护武器 | 本仓落位（现状 → 契约） |
+|------|----------|----------|------------------------|
+| 💥 **碰炸（IMPACT）** | 高财产 / 入户风险 | 强准入背调 + 保证金 + 过程留痕 + 财产险 | `ammo/sop` deposit、`base/risk/moderation`、`base/platform/signInsure` → `IMPACT_FUZE_TEMPLATE` |
+| ⏳ **延期（DELAY）** | 履约 / 爽约风险 | 预付定金冻结 + LBS 电子围栏解锁 + 反赌反诈过滤 | `base/money/deposit`、`base/geo/*`、`base/risk/sentinel` → `DELAY_FUZE_TEMPLATE` |
+| 📡 **近炸（PROXIMITY）** | 人身 / 交友风险 | 虚拟号 + 模糊定位 + AI 敏感词干预 + 一键 SOS | `base/comm/privacyNumber`、`base/safe/crisis`、`base/ai/*` → `PROXIMITY_FUZE_TEMPLATE` |
+
+- **引信跟弹药走**（宪法 #5）：每颗弹药 `fuzePolicy` 声明引信类型与参数，
+  勾选即生效；底座不写死单一业务风控；
+- 多引信并联取并集，防护等级取最高；未声明 = 零防护兜底（弹药必须显式装填）。
+
+### 2.3 数字人格与通用信用飞轮
+
+- **资产通兑**：履约沉淀（守时 / 专业 / 礼貌 + 完成率）形成跨场景可复用的
+  数字人格信用资产（`base/trust/*` + `packages/credit-formula`）；
+- **信用飞轮**：低风险场景履约累积信用分 ➔ 降低高风险场景（进家 / 大额 / 新号）
+  准入门槛与押金倍率 —— **弹药可换，信用资产跨弹药累积**（宪法 #6 信任数据是瞄准镜）。
+
+### 2.4 契约落位（`src/types/`）
+
+| 契约文件 | 内容 |
+|----------|------|
+| `src/types/ammo-schema.ts` | `AtomicFiveState` / `FIVE_STATE_TRANSITIONS` / `ISubEventHook` / `ISubEventContext` / `PricingModel` / `IAmmoDefinition` |
+| `src/types/fuze-policy.ts` | `FuzeType` / `IFuzePolicy`（背调 · 押金 · 围栏 · 隐私 · SOS）/ 三类预置模板 + `DEFAULT_FUZE_POLICY` |
+
+---
+
+## 三、全仓资产归属映射（Taxonomy Mapping）
 
 ### 2.1 底座发射筒（Base Tube）— `src/base/`（11 域，约 100 文件）
 
@@ -109,7 +169,7 @@
 
 ---
 
-## 三、哲学愿景 vs 实际代码：全景落差审计（Gap Analysis）
+## 四、哲学愿景 vs 实际代码：全景落差审计（Gap Analysis）
 
 ### 3.1 【已完美落地】— 完全符合哲学且落盘的重器
 
@@ -152,7 +212,7 @@
 
 ---
 
-## 四、收敛路线（宪法门禁衔接）
+## 五、收敛路线（宪法门禁衔接）
 
 1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
@@ -160,8 +220,9 @@
 
 ---
 
-## 五、修订记录
+## 六、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
 | 2026-08-15 | 初版定稿：元宪法四层 + 六红线固化 + 全仓归属映射 + 落差审计（D1-D8 + P0-P2 缺口） | 用户 |
+| 2026-08-15 | **核心设计模型注入**：新增 §二 万能底座五态原子状态机（Published➔Matched➔In-Service➔Inspected➔Settled + 伴生事件 Sub-Events 插拔）+ 三类风控引信矩阵（💥碰炸/⏳延期/📡近炸）+ 数字人格信用飞轮；契约落位 `src/types/ammo-schema.ts` + `src/types/fuze-policy.ts`；原章节顺延（三~六） | 用户 |
