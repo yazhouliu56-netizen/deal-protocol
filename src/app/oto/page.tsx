@@ -23,6 +23,7 @@ import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
 import NotificationCenter from "@/components/waves/NotificationCenter";
+import FulfillmentCenter from "@/components/waves/FulfillmentCenter";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import {
@@ -168,6 +169,7 @@ function HomePage() {
   /* W2 总装：当前用户进行中活动 Wave → toAtomicFiveState 投影 → 顶栏五态胶囊 */
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
+  const fulfilment = useWaveStore((s) => s.fulfilment);
   const identity = useIdentityStore((s) => s.identity);
   const activeWave = useMemo(() => {
     const mine = waves
@@ -182,11 +184,15 @@ function HomePage() {
     const acceptedClaim = claims.find(
       (c) => c.waveId === activeWave.id && (c.status === "accepted" || c.status === "joined"),
     );
+    // W5 总装：合并 advanceLifecycle 核销回写（fulfilmentStatus / isSettled），胶囊实时流转
+    const flags = fulfilment[activeWave.id];
     return toAtomicFiveState({
       waveStatus: activeWave.status,
       claimStatus: acceptedClaim?.status,
+      fulfilmentStatus: flags?.fulfilmentStatus,
+      isSettled: flags?.isSettled,
     });
-  }, [activeWave, claims]);
+  }, [activeWave, claims, fulfilment]);
 
   const visibleExperiences = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -852,6 +858,9 @@ function TripPage() {
 
   return (
     <div className="pointer-events-auto">
+      {/* W3 总装：进行中订单（MATCHED / IN_SERVICE / INSPECTED）→ 顶部主视口优先渲染履约座舱 */}
+      <FulfillmentCenter />
+
       {/* 我的需求：需求方视角（信号波 + 接单 + 磋商 + 违约） */}
       <MyWaves />
 

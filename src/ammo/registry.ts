@@ -148,3 +148,14 @@ export function resolveAmmoIdForPublish(category: string): string {
   if (official) return official.ammoId;
   return getAmmoDefinition(category).ammoId;
 }
+
+/**
+ * W5 总装：按 ammoId 反查整弹（履约座舱核销时装载钩子）。
+ * 官方弹药（housekeeping-v1 / meetup-social-v1）整弹直挂；未命中时回落
+ * 类目聚合（兼容无 ammoId 的存量 Wave，category 中文名走四表聚合）。
+ */
+export function getAmmoById(ammoId: string): IAmmoDefinition {
+  const hit = Object.values(OFFICIAL_AMMO).find((a) => a.ammoId === ammoId);
+  if (hit) return hit;
+  return getAmmoDefinition(ammoId);
+}

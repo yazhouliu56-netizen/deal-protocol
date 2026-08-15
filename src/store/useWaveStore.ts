@@ -130,6 +130,17 @@ function gateMoneyAction(action: MoneyAction): string | undefined {
  */
 
 interface WaveStore extends WaveBundle {
+  /**
+   * W5 总装：履约/结算回写位（advanceLifecycle 流转结果落库，驱动
+   * toAtomicFiveState 投影 → 顶栏胶囊实时流转）。只增不改：存量字段零触碰。
+   * key = waveId；fulfilmentStatus "reported" = 已申报完工 → IN_SERVICE，
+   * "confirmed" = 已验收 → INSPECTED；isSettled = 资金终局 → SETTLED。
+   */
+  fulfilment: Record<string, { fulfilmentStatus?: "reported" | "confirmed"; isSettled?: boolean }>;
+  setFulfilment: (
+    waveId: string,
+    flags: { fulfilmentStatus?: "reported" | "confirmed"; isSettled?: boolean }
+  ) => void;
   publishWave: (
     input: Omit<CreateWaveInput, "id" | "authorId" | "createdAt"> & {
       authorId: string;
@@ -353,6 +364,8 @@ export const useWaveStore = create<WaveStore>()(
       waves: [],
       claims: [],
       payOrders: [],
+      // W5 总装：履约/结算回写位（advanceLifecycle 流转结果 → toAtomicFiveState 投影）
+      fulfilment: {},
       // 氛围响应者初始内联（客户端静态数据），rehydrate 会用共享空间内容
       // 覆盖。此前用 onRehydrateStorage seed + setState 注入，会触发 persist
       // 写回，与另一 tab 的写入形成读-改-写竞态（可见性延迟下互相覆盖，
@@ -516,6 +529,15 @@ createPendingWave: (input) => {
         void get().clusterPushes({ ...wave, status: "active" });
         return { ok: true };
       },
+
+      // W5 总装：履约/结算回写位（advanceLifecycle 流转结果 → 投影 → 胶囊实时流转）
+      setFulfilment: (waveId, flags) =>
+        set((s) => ({
+          fulfilment: {
+            ...s.fulfilment,
+            [waveId]: { ...s.fulfilment[waveId], ...flags },
+          },
+        })),
 
       publishWave: (input) => {
         // 治理闸门 1：被封禁/限流中不能发布
