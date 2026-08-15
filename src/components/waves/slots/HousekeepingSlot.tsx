@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 /**
  * 家政保洁特化插槽（Housekeeping Slot · 清洁蓝 theme-housekeeping）。
  *
@@ -44,9 +46,9 @@ const SLOT_CSS = `
 .hk-btn-accept{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
 .hk-btn-reject{background:rgba(255,255,255,.1);color:#cbd5e1;border:1px solid rgba(255,255,255,.2)}
 .hk-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hk-photo{aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
+.hk-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
   display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;
-  background:rgba(255,255,255,.05)}
+  overflow:hidden;background:rgba(255,255,255,.05)}
 .hk-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
 .hk-verified{margin-left:4px;font-size:11px;color:#4ade80}
 .hk-damage{width:100%;padding:9px 0;border-radius:12px;border:none;font-size:13px;font-weight:700;
@@ -89,14 +91,14 @@ export default function HousekeepingSlot({
       <section className="hk-photos">
         <div className="hk-photo">
           {photos?.before ? (
-            <img src={photos.before} alt="服务前照片" />
+            <Image src={photos.before} alt="服务前照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
           ) : (
             <span>📷 Before 待拍摄</span>
           )}
         </div>
         <div className="hk-photo">
           {photos?.after ? (
-            <img src={photos.after} alt="服务后照片" />
+            <Image src={photos.after} alt="服务后照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
           ) : (
             <span>📷 After 待拍摄</span>
           )}

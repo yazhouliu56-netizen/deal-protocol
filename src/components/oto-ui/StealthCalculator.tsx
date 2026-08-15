@@ -34,6 +34,15 @@ export interface StealthCalculatorProps {
 /** 触发暗号集合。 */
 export const PANIC_CODES = ["911", "110"] as const;
 
+/** 静默报警载荷工厂（模块级 impure 边界：时间戳在此封口，不在渲染闭包内调用）。 */
+export function buildSilentAlarmPayload(
+  code: string,
+  sequence: string,
+  recordingReady: boolean,
+): { code: string; at: number; recordingReady: boolean; sequence: string } {
+  return { code, at: Date.now(), recordingReady, sequence };
+}
+
 /** 真实四则运算（除零返回 null → 显示 Error）。 */
 export function computeResult(
   a: number,
@@ -135,12 +144,7 @@ export default function StealthCalculator({
       const finalSeq = `${sequence}=`;
       const code = detectPanicCode(finalSeq);
       if (code && onTriggerSilentAlarm) {
-        onTriggerSilentAlarm({
-          code,
-          at: Date.now(),
-          recordingReady: true,
-          sequence: finalSeq,
-        });
+        onTriggerSilentAlarm(buildSilentAlarmPayload(code, finalSeq, true));
       }
       setSequence("");
       setCurrent("");

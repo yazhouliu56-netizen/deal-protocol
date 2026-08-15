@@ -55,7 +55,6 @@ const SENIOR_CSS = `
 /** 适老化长辈模式视图：双主按钮 + 超大确认弹窗 + AAA 高对比。 */
 export default function SeniorModeView({
   onVoiceStart,
-  onVoiceEnd,
   onCallSupport,
 }: SeniorModeViewProps) {
   const [confirmingVoice, setConfirmingVoice] = useState(false);

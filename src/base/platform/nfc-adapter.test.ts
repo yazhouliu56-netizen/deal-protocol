@@ -22,8 +22,8 @@ test("环境检测：Node/jsdom 无 NDEFReader → 不支持（走动态码降�
 });
 
 test("载荷生成：结构 5 段（v1:waveId:ts:exp:sig），同输入不同时刻载荷不同", () => {
-  const p1 = createNfcVerificationPayload(WAVE, TOKEN);
-  const p2 = createNfcVerificationPayload(WAVE, TOKEN);
+  const p1 = createNfcVerificationPayload(WAVE, TOKEN, 1_800_000_000_000);
+  const p2 = createNfcVerificationPayload(WAVE, TOKEN, 1_800_000_060_000);
   assert.equal(p1.split(":").length, 5);
   assert.equal(p1.split(":")[0], "v1");
   assert.equal(p1.split(":")[1], WAVE);

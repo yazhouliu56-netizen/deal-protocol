@@ -11,7 +11,6 @@ import type { VerdictSuggestion } from "@/base/ai/judge";
  * 失败自动回落到确定性规则（宪法 #10）。一键发起协商采纳。
  */
 export default function JudgePanel({
-  claimId,
   reason,
   evidence,
   amountYuan,

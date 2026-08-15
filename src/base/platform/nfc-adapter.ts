@@ -40,8 +40,12 @@ export function isWebNfcSupported(): boolean {
 }
 
 /** 生成碰碰核销载荷（waveId + 服务端 secretToken 签名，含时间戳防重放）。 */
-export function createNfcVerificationPayload(waveId: string, secretToken: string): string {
-  const ts = Date.now();
+export function createNfcVerificationPayload(
+  waveId: string,
+  secretToken: string,
+  now: number = Date.now(),
+): string {
+  const ts = now;
   const exp = ts + DYNAMIC_QR_EXPIRES_MS;
   const sig = sign(waveId, ts, exp, secretToken);
   return `${PAYLOAD_VERSION}:${waveId}:${ts}:${exp}:${sig}`;
