@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { CATEGORY_ICON_RULES } from "../../ammo/scene-template.ts";
 import {
   applyBooking,
   applyCancel,
@@ -19,15 +20,16 @@ const booking: BookingInput = {
   createdAt: 123,
 };
 
-test("iconFor maps category keywords with fallback", () => {
-  assert.equal(iconFor(booking.title), "🏸");
-  assert.equal(iconFor("日系写真 · 滨江"), "📷");
-  assert.equal(iconFor("深度保洁 · 180㎡"), "🧹");
-  assert.equal(iconFor("神秘团购"), "✨");
+test("iconFor maps category keywords with fallback（词表由弹药注入）", () => {
+  assert.equal(iconFor(booking.title, CATEGORY_ICON_RULES), "🏸");
+  assert.equal(iconFor("日系写真 · 滨江", CATEGORY_ICON_RULES), "📷");
+  assert.equal(iconFor("深度保洁 · 180㎡", CATEGORY_ICON_RULES), "🧹");
+  assert.equal(iconFor("神秘团购", CATEGORY_ICON_RULES), "✨");
+  assert.equal(iconFor(booking.title), "✨", "未装填弹药 → 通用兜底");
 });
 
 test("bookingWorkerOrder mirrors the booking onto the bench", () => {
-  const o = bookingWorkerOrder(booking, "我（Alex）");
+  const o = bookingWorkerOrder(booking, "我（Alex）", CATEGORY_ICON_RULES);
   assert.equal(o.id, booking.id);
   assert.equal(o.service, booking.title);
   assert.equal(o.status, "pending");
@@ -41,11 +43,12 @@ test("applyBooking prefills both slices without dupes", () => {
     bookings: [],
     workerOrders: [],
   };
-  s = applyBooking(s, booking);
+  s = applyBooking(s, booking, CATEGORY_ICON_RULES);
   assert.equal(s.bookings.length, 1);
   assert.equal(s.workerOrders.length, 1);
+  assert.equal(s.workerOrders[0].icon, "🏸");
 
-  s = applyBooking(s, booking);
+  s = applyBooking(s, booking, CATEGORY_ICON_RULES);
   assert.equal(s.bookings.length, 2, "same booking allowed on user side");
   assert.equal(s.workerOrders.length, 1, "bench side must not duplicate");
 });
@@ -53,7 +56,7 @@ test("applyBooking prefills both slices without dupes", () => {
 test("applyCancel marks cancelled and removes the bench order", () => {
   let s: { bookings: BookingRow[]; workerOrders: WorkerOrderInput[] } = {
     bookings: [booking],
-    workerOrders: [bookingWorkerOrder(booking)],
+    workerOrders: [bookingWorkerOrder(booking, "我（Alex）", CATEGORY_ICON_RULES)],
   };
   s = applyCancel(s, booking.id);
   assert.equal(s.bookings[0].status, "cancelled");

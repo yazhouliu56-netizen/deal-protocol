@@ -9,7 +9,7 @@
  * missing, keeping all E2E suites green without credentials).
  */
 
-import type { WaveBundle } from "@/store/useWaveStore";
+import type { WaveBundle } from "@/types/wave-bundle";
 
 export interface P2pTransport {
   kind: "local" | "supabase";

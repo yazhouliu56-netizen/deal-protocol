@@ -5,7 +5,7 @@ import { Bot, Check, Mic, Send, Sparkles, Star, Volume2, VolumeX } from "lucide-
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { MockEngine } from "@/base/ai/chat/mockEngine";
 import { LlmEngine } from "@/base/ai/chat/llmEngine";
-import type { ChatMessage, ChatEvent, GenCard, ProviderItem } from "@/base/ai/chat/types";
+import type { ChatMessage, ChatEvent, GenCard, ProviderItem, ChatEngineContext } from "@/base/ai/chat/types";
 import { ChevronDown } from "lucide-react";
 import type { ScoreBreakdown } from "@/base/dispatch/match";
 import VoiceBar from "@/components/oto-ui/VoiceBar";
@@ -65,7 +65,12 @@ export default function ChatPage() {
     !llmFallback;
   const engine = useMemo(() => {
     void session; // 重建触发器：新对话/降级时强制新建引擎实例
-    return useLlm ? new LlmEngine() : new MockEngine();
+    // 宪法收敛：条文 #3 —— 底座引擎零 Store 依赖，状态由 UI 层显式注入
+    const ctx: ChatEngineContext = {
+      getChatMessages: () => useAppStore.getState().chatMessages,
+      isWorkerOnline: () => useAppStore.getState().workerOnline,
+    };
+    return useLlm ? new LlmEngine(ctx) : new MockEngine(ctx);
   }, [session, useLlm]);
   const [input, setInput] = useState("");
   const composingRef = useRef(false);

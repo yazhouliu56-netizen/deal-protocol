@@ -35,6 +35,11 @@ export interface SentinelInput {
   graphFission?: boolean;
   /** 服务类目（引信联动：进家类目探针加权 ×1.2）。 */
   category?: string;
+  /**
+   * 进家/上门类目词表（弹药装填，ammo/risk-rule 引信参数注入）。
+   * 底座只做通用词表匹配，业务词由弹药层声明。
+   */
+  homeAccessKeywords?: string[];
 }
 
 export interface SentinelResult {
@@ -52,8 +57,17 @@ export interface SentinelEvent {
   note: string;
 }
 
-/** 引信：进家/上门类目关键词 → 探针整体加权（只读 ammo 语义，不新增弹药字段）。 */
-const HOME_ACCESS_KEYWORDS = ["家政", "保洁", "厨师", "上门", "陪诊", "按摩", "遛狗"];
+/**
+ * 进家类目判定（引信联动）：通用词表匹配，词表由弹药层
+ * （ammo/risk-rule home-access-verification 引信参数）注入。
+ */
+export function isHomeAccess(
+  category: string | undefined,
+  keywords: string[] = []
+): boolean {
+  if (!category) return false;
+  return keywords.some((k) => category.includes(k));
+}
 
 function deviceScore(risk: RiskLevel | undefined): number {
   if (risk === "high") return 80;
@@ -77,12 +91,6 @@ function graphScore(identityCount: number | undefined, fission: boolean | undefi
   if ((identityCount ?? 0) >= 3 && fission) return 75;
   if ((identityCount ?? 0) >= 3 || fission) return 40;
   return 0;
-}
-
-/** 进家类目判定（引信联动，语义与 ammo/risk-rule home-access 一致）。 */
-export function isHomeAccess(category: string | undefined): boolean {
-  if (!category) return false;
-  return HOME_ACCESS_KEYWORDS.some((k) => category.includes(k));
 }
 
 /**
@@ -146,7 +154,7 @@ export function sentinelCheck(input: SentinelInput): SentinelResult {
   const weightSum = pool.reduce((s, f) => s + f.weight, 0);
   const raw = pool.reduce((s, f) => s + f.score * f.weight, 0) / Math.max(1, weightSum);
 
-  const boost = isHomeAccess(input.category) ? 1.2 : 1;
+  const boost = isHomeAccess(input.category, input.homeAccessKeywords) ? 1.2 : 1;
   // 宪法 #9：高危单因子信号不得被其它低危因子稀释——
   // 取「加权分」与「最高单因子分」的大者。
   const maxFactor = Math.max(...factors.map((f) => f.score));

@@ -1,13 +1,13 @@
 import {
   delay,
   type ChatEngine,
+  type ChatEngineContext,
   type ChatEvent,
   type GenCard,
   type ProviderItem,
   type TimeslotSlot,
 } from "./types";
 import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
-import { useAppStore } from "@/store/useAppStore";
 import { decorateWeekendLabels } from "./slots";
 
 export type DemandCategory = "badminton" | "photography" | "housekeeping" | null;
@@ -306,6 +306,8 @@ function parseTime(s: string): string | null {
  * The confirm/success cards are rendered client-side on booking.
  */
 export class MockEngine implements ChatEngine {
+  constructor(private readonly ctx: ChatEngineContext) {}
+
   private slot: DemandSlot = {
     category: null,
     time: null,
@@ -444,7 +446,7 @@ export class MockEngine implements ChatEngine {
       style: this.slot.style,
       area: this.slot.area,
       slotId: slotId ?? null,
-      online: useAppStore.getState().workerOnline,
+      online: this.ctx.isWorkerOnline(),
       partySize: this.slot.partySize,
     };
   }

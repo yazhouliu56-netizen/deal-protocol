@@ -20,3 +20,15 @@ const TEMPLATE_BY_CATEGORY: Record<string, SceneTemplate> = {
 export function templateForCategory(category: string): SceneTemplate {
   return TEMPLATE_BY_CATEGORY[category] ?? "lounge";
 }
+
+/**
+ * 类目展示图标词表（弹药装填）— 业务词→emoji 由弹药层声明，
+ * 底座 booking.iconFor 只做通用匹配（宪法 #4：不写死业务字段）。
+ */
+import type { IconRule } from "@/base/order/booking";
+
+export const CATEGORY_ICON_RULES: IconRule[] = [
+  [/羽毛球/, "🏸"],
+  [/摄影|约拍|写真/, "📷"],
+  [/保洁/, "🧹"],
+];

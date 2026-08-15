@@ -6,6 +6,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { completionRate, rankLabel, reviewStats } from "@/base/trust/starRank";
 import { requiresVerification } from "@/base/dispatch/broadcast";
+import { dispatchRuleFor } from "@/ammo/dispatch-rule";
 
 /**
  * 能力声明 — the responder's capability statement (the core match input).
@@ -268,7 +269,9 @@ export default function CapabilityPanel() {
             </span>
           </button>
           {!identity.verified &&
-            identity.categories.some((c) => requiresVerification(c)) && (
+            identity.categories.some((c) =>
+              requiresVerification(c, dispatchRuleFor(c))
+            ) && (
               <p className="text-[9.5px] text-amber-300/90 mt-1.5">
                 ⚠️ 陪诊/家政/上门做饭等进家品类需先实名认证（对标 Care.com 接单门槛）
               </p>

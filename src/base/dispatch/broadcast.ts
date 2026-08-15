@@ -100,11 +100,14 @@ export interface BroadcastRule {
   starBonus?: { starMin: number; completionMin: number; bonus: number };
 }
 
-/** 缺省规则 = 现状常量（等价 ammo DEFAULT_DISPATCH）。 */
+/**
+ * 缺省规则 = 通用零业务兜底（未注入弹药表时的安全默认；业务词表一律由
+ * ammo/dispatch-rule 装填后经 rule 参数注入——宪法 #4 引信跟弹药走）。
+ */
 export const DEFAULT_BROADCAST_RULE: BroadcastRule = {
   weights: { distance: 30, credit: 30, custom: 25, verifiedBonus: 5 },
   hardGates: {
-    requiresVerified: ["陪诊陪护", "家政保洁", "厨师", "上门"],
+    requiresVerified: [],
     banned: true,
     online: true,
   },

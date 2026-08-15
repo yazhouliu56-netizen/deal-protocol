@@ -1,12 +1,13 @@
 import type {
   ChatEngine,
+  ChatEngineContext,
   ChatEvent,
+  ChatMessage,
   GenCard,
   ProviderItem,
   TimeslotSlot,
 } from "./types";
 import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
-import { useAppStore } from "@/store/useAppStore";
 import { decorateWeekendLabels } from "./slots";
 import {
   CATEGORY_LABEL,
@@ -19,15 +20,15 @@ import { NEED_KEYS, parseDirective, type LlmDirective } from "./llmDirective";
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Build recent user/assistant turns from the global store so the model can
- * follow-up on earlier questions. Greetings + generated cards are dropped,
- * and the in-flight current user message (already appended by ChatPage) is
- * set aside to avoid repeating it.
+ * Build recent user/assistant turns from the caller-provided history so the
+ * model can follow-up on earlier questions. Greetings + generated cards are
+ * dropped, and the in-flight current user message (already appended by
+ * ChatPage) is set aside to avoid repeating it.
  */
 function buildHistory(
-  currentUser: string
+  currentUser: string,
+  msgs: ChatMessage[]
 ): Array<{ role: "user" | "assistant"; content: string }> {
-  const msgs = useAppStore.getState().chatMessages;
   const turns: Array<{ role: "user" | "assistant"; content: string }> = [];
   let droppedCurrent = false;
   for (const m of msgs) {
@@ -82,6 +83,8 @@ interface NeedState {
  * 任何 LLM 故障直接 throw —— ChatPage 的 catch 会恢复输入框并提示重试。
  */
 export class LlmEngine implements ChatEngine {
+  constructor(private readonly ctx: ChatEngineContext) {}
+
   private category: DemandCategory = null;
   private need: NeedState = {
     level: null,
@@ -172,7 +175,7 @@ export class LlmEngine implements ChatEngine {
       style: this.need.style,
       area: this.need.area,
       slotId,
-      online: useAppStore.getState().workerOnline,
+      online: this.ctx.isWorkerOnline(),
       partySize: this.need.partySize,
     };
   }
@@ -217,7 +220,7 @@ export class LlmEngine implements ChatEngine {
   /** Call Gemini via the server proxy; parse the strict JSON directive. */
   private async askLlm(userMessage: string): Promise<LlmDirective> {
     const summary = this.summary();
-    const history = buildHistory(userMessage);
+    const history = buildHistory(userMessage, this.ctx.getChatMessages());
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30000);
     try {

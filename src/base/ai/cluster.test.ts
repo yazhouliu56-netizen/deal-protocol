@@ -5,10 +5,16 @@ import {
   enrichWaveTags,
   mockClusterTags,
   pushReason,
+  type MatchFn,
 } from "./cluster.ts";
 import { broadcastMatches } from "../dispatch/broadcast.ts";
 import type { ResponderCapability } from "../dispatch/broadcast.ts";
 import type { Wave } from "../order/wave.ts";
+import { dispatchRuleFor } from "../../ammo/dispatch-rule.ts";
+
+/** 真实接线链路：ammo 表规则注入（宪法 #4 词表由弹药携带）。 */
+const matchesFor = (category: string): MatchFn => (r, w) =>
+  broadcastMatches(r, w, dispatchRuleFor(category));
 
 const cook: ResponderCapability = {
   id: "r-cook",
@@ -78,10 +84,10 @@ test("enrichWaveTags merges LLM tags into custom tags (dedup)", () => {
 });
 
 test("buildPushes hard-filters + ranks, excludes the author", () => {
-  const pushes = buildPushes(wave(), [cook, farCook, player], ["生日"], broadcastMatches);
+  const pushes = buildPushes(wave(), [cook, farCook, player], ["生日"], matchesFor("厨师 · 上门做饭"));
   const ids = pushes.map((p) => p.toId);
   assert.ok(ids.includes("r-cook"));
-  assert.ok(!ids.includes("r-far"), "12km 超附近半径被硬筛");
+  assert.ok(!ids.includes("r-far"), "未认证 + 12km 超附近半径被硬筛");
   assert.ok(!ids.includes("r-ball"), "品类不匹配被硬筛");
   assert.equal(pushes[0].toId, "r-cook", "近距 + 标签命中 + 高信用排最前");
   assert.ok(pushes[0].customHits >= 1);
@@ -89,18 +95,22 @@ test("buildPushes hard-filters + ranks, excludes the author", () => {
 
 test("buildPushes never pushes to the wave author", () => {
   const w = wave({ authorId: "r-cook" });
-  assert.equal(buildPushes(w, [cook, player], [], broadcastMatches).length, 0);
+  assert.equal(buildPushes(w, [cook, player], [], matchesFor("厨师 · 上门做饭")).length, 0);
 });
 
 test("pushReason reads like a human line", () => {
-  const hit = broadcastMatches([cook], enrichWaveTags(wave(), ["生日"]))[0];
+  const hit = broadcastMatches(
+    [cook],
+    enrichWaveTags(wave(), ["生日"]),
+    dispatchRuleFor("厨师 · 上门做饭")
+  )[0];
   assert.ok(pushReason(hit, "生日").includes("命中标签「生日」×2"));
   assert.ok(pushReason(hit, "生日").includes("距离 2 公里内"));
   assert.ok(pushReason(hit, "生日").includes("信用 Lv.4"));
 });
 
 test("buildPushes tags the actually-hit semantic tag", () => {
-  const p = buildPushes(wave(), [cook], ["上门做饭", "生日"], broadcastMatches)[0];
+  const p = buildPushes(wave(), [cook], ["上门做饭", "生日"], matchesFor("厨师 · 上门做饭"))[0];
   assert.equal(p.tag, "生日", "优先命中响应者自己的标签");
   assert.ok(p.reason.includes("「生日」"));
 });

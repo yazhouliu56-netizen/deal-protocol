@@ -20,7 +20,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { P2pTransport } from "./transport";
-import type { WaveBundle } from "@/store/useWaveStore";
+import type { WaveBundle } from "@/types/wave-bundle";
 
 const TABLE = "p2p_broadcast";
 const ROW_ID = "oto";

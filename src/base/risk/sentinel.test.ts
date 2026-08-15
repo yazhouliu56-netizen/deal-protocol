@@ -1,11 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { homeAccessKeywordsFor } from "../../ammo/risk-rule.ts";
 import {
   isHomeAccess,
   recordSentinel,
   sentinelCheck,
   type SentinelEvent,
 } from "./sentinel.ts";
+
+const HOME_KEYWORDS = homeAccessKeywordsFor("家政保洁");
 
 test("全绿：正常用户所有因子 0 → safe", () => {
   const r = sentinelCheck({
@@ -70,18 +73,20 @@ test("图因子：多身份+裂变 → 75 分 → high", () => {
   assert.equal(r.level, "high");
 });
 
-test("引信联动：进家类目设备高危 → ×1.2 后仍 ≥70 封顶 100", () => {
+test("引信联动：进家类目设备高危 → ×1.2 后仍 ≥70 封顶 100（词表由弹药注入）", () => {
   const r = sentinelCheck({
     deviceRisk: "high",
     category: "家政保洁",
+    homeAccessKeywords: HOME_KEYWORDS,
     creditScore: 850,
     amountYuan: 120,
     publishCount: 2,
   });
   assert.equal(r.level, "high");
   assert.equal(r.score, 96); // 80×1.2
-  assert.ok(isHomeAccess("家政保洁"));
-  assert.ok(!isHomeAccess("羽毛球"));
+  assert.ok(isHomeAccess("家政保洁", HOME_KEYWORDS));
+  assert.ok(!isHomeAccess("羽毛球", HOME_KEYWORDS));
+  assert.ok(!isHomeAccess("家政保洁"), "未注入词表 → 不加权（弹药语义）");
 });
 
 test("宪法 #9：设备高危不被低危因子稀释 → 保持 high", () => {

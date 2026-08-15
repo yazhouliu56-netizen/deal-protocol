@@ -93,5 +93,16 @@ export interface ChatEngine {
   select(cardId: string): AsyncIterable<ChatEvent>;
 }
 
+/**
+ * Caller-supplied engine context (UI/Store layer owns the state; base stays pure).
+ * Unidirectional flow: UI/Ammo → base → types — engines never read global stores.
+ */
+export interface ChatEngineContext {
+  /** Conversation history so the engine can follow-up on earlier questions. */
+  getChatMessages(): ChatMessage[];
+  /** Whether local workers are online (used by matchmaking). */
+  isWorkerOnline(): boolean;
+}
+
 export const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));

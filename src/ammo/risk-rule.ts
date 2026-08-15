@@ -13,15 +13,20 @@ export type RiskRuleName =
 export interface RiskRule {
   rule: RiskRuleName;
   enabled: boolean;
-  /** 规则参数，如 roam 阈值 / 免费配额数。 */
-  params?: Record<string, number | string | boolean>;
+  /** 规则参数，如 roam 阈值 / 免费配额数 / 业务词表（string[]）。 */
+  params?: Record<string, number | string | boolean | string[]>;
 }
 
 /** 全局引信表 — 所有弹药共享；业务类目级覆盖见 CATEGORY_RISK。 */
 export const GLOBAL_RISK_RULES: RiskRule[] = [
   { rule: "anti-self-boost", enabled: true },
   { rule: "roam-guard", enabled: true, params: { freeBindings: 1, warnThreshold: 2, freezeThreshold: 3 } },
-  { rule: "home-access-verification", enabled: true },
+  {
+    rule: "home-access-verification",
+    enabled: true,
+    // 进家/上门类目词表（弹药装填，底座仅做通用词表匹配）
+    params: { homeAccessKeywords: ["家政", "保洁", "厨师", "上门", "陪诊", "按摩", "遛狗"] },
+  },
   { rule: "publish-fee-quota", enabled: true, params: { freePerDay: 3, publishFee: 2 } },
   // §未成年人网络保护条例(2024) — 平台默认开启未成年人分级保护（宪法 #8 血液规则）
   { rule: "age-required", enabled: true, params: { guardianConsentUnder14: true, moneyActionBlockedUnder18: true } },
@@ -48,4 +53,15 @@ export function riskRulesFor(category: string): RiskRule[] {
 
 export function isRuleEnabled(rules: RiskRule[], name: RiskRuleName): boolean {
   return rules.find((r) => r.rule === name)?.enabled ?? false;
+}
+
+/**
+ * 进家/上门类目词表（home-access 引信参数，弹药装填）。
+ * 底座 sentinel 探针只做通用词表匹配，具体业务词在此声明。
+ */
+export function homeAccessKeywordsFor(category: string): string[] {
+  const rules = riskRulesFor(category);
+  const params = rules.find((r) => r.rule === "home-access-verification")?.params;
+  const list = params?.homeAccessKeywords;
+  return Array.isArray(list) ? list : [];
 }

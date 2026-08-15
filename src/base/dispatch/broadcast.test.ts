@@ -47,28 +47,35 @@ test("passesHardFilter gates on category / offline", () => {
     "被封禁者不出现在广播"
   );
 
-test("requiresVerification: home-access categories need verified responders", () => {
-  assert.equal(requiresVerification("陪诊陪护"), true);
-  assert.equal(requiresVerification("家政保洁"), true);
-  assert.equal(requiresVerification("厨师 · 上门做饭"), true);
-  assert.equal(requiresVerification("羽毛球约局"), false);
+test("requiresVerification: home-access categories need verified responders（ammo 表驱动）", () => {
+  const rule = dispatchRuleFor("家政保洁");
+  const chefRule = dispatchRuleFor("厨师 · 上门做饭");
+  assert.equal(requiresVerification("陪诊陪护", dispatchRuleFor("陪诊陪护")), true);
+  assert.equal(requiresVerification("家政保洁", rule), true);
+  assert.equal(requiresVerification("厨师 · 上门做饭", chefRule), true);
+  assert.equal(requiresVerification("羽毛球约局", dispatchRuleFor("羽毛球约局")), false);
+  // 未装填弹药 → 通用兜底不拦截（宪法 #4 词表由弹药注入）
+  assert.equal(requiresVerification("家政保洁"), false);
   // hard gate: unverified responder cannot take home-access waves
   const homeWave: WaveLike = {
     ...wave,
     basics: { ...wave.basics, category: "家政保洁" },
   };
-  assert.equal(passesHardFilter(chef("u1", { verified: false }), homeWave).ok, false);
   assert.equal(
-    passesHardFilter(chef("u1", { verified: false }), homeWave).why,
+    passesHardFilter(chef("u1", { verified: false }), homeWave, rule).ok,
+    false
+  );
+  assert.equal(
+    passesHardFilter(chef("u1", { verified: false }), homeWave, rule).why,
     "unverified"
   );
   assert.equal(
-    passesHardFilter(chef("u2", { categories: ["家政保洁"] }), homeWave).ok,
+    passesHardFilter(chef("u2", { categories: ["家政保洁"] }), homeWave, rule).ok,
     true
   );
   // 未认证对进家品类被硬筛（u3 是默认 verified:true → 需显式关掉）
   assert.equal(
-    passesHardFilter(chef("u3", { verified: false }), wave).ok,
+    passesHardFilter(chef("u3", { verified: false }), wave, chefRule).ok,
     false,
     "厨师单对未认证者拦截"
   );
@@ -80,7 +87,8 @@ test("requiresVerification: home-access categories need verified responders", ()
   assert.equal(
     passesHardFilter(
       chef("u4", { verified: false, categories: ["羽毛球约局"] }),
-      sportWave
+      sportWave,
+      dispatchRuleFor("羽毛球约局")
     ).ok,
     true,
     "户外品类未认证可接"

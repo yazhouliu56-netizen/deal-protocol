@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { applyBooking, applyCancel } from "@/base/order/booking";
+import { CATEGORY_ICON_RULES } from "@/ammo/scene-template";
 import type { DockPage } from "@/components/oto-ui/FloatingDock";
 import type { ChatMessage, GenCard } from "@/base/ai/chat/types";
 import { otoExperiences, type OTOCategory, type OTOExperience } from "@/lib/mockData";
@@ -212,7 +213,8 @@ clearChat: () =>
         set((s) =>
           applyBooking(
             { bookings: s.bookings, workerOrders: s.workerOrders },
-            booking
+            booking,
+            CATEGORY_ICON_RULES
           )
         ),
       addReview: (review) =>

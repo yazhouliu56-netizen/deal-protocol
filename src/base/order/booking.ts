@@ -23,14 +23,11 @@ export interface WorkerOrderInput {
   providerId?: string;
 }
 
-const ICON_RULES: Array<[RegExp, string]> = [
-  [/羽毛球/, "🏸"],
-  [/摄影|约拍|写真/, "📷"],
-  [/保洁/, "🧹"],
-];
+/** 业务词 → 展示图标规则（由弹药层装填注入，base 只做通用匹配）。 */
+export type IconRule = [RegExp, string];
 
-export function iconFor(title: string): string {
-  for (const [re, icon] of ICON_RULES) {
+export function iconFor(title: string, rules: IconRule[] = []): string {
+  for (const [re, icon] of rules) {
     if (re.test(title)) return icon;
   }
   return "✨";
@@ -42,12 +39,13 @@ export function iconFor(title: string): string {
  */
 export function bookingWorkerOrder(
   booking: BookingInput,
-  client = "我（Alex）"
+  client = "我（Alex）",
+  iconRules: IconRule[] = []
 ): WorkerOrderInput {
   return {
     id: booking.id,
     service: booking.title,
-    icon: iconFor(booking.title),
+    icon: iconFor(booking.title, iconRules),
     client,
     time: booking.time,
     price: booking.price,
@@ -60,12 +58,13 @@ export function bookingWorkerOrder(
 /** Apply a new booking to both slices; the bench side never duplicates. */
 export function applyBooking<S extends BookingInput>(
   state: { bookings: S[]; workerOrders: WorkerOrderInput[] },
-  booking: S
+  booking: S,
+  iconRules: IconRule[] = []
 ): { bookings: S[]; workerOrders: WorkerOrderInput[] } {
   const already = state.workerOrders.some((o) => o.id === booking.id);
   return {
     bookings: [booking, ...state.bookings],
-    workerOrders: already ? state.workerOrders : [bookingWorkerOrder(booking), ...state.workerOrders],
+    workerOrders: already ? state.workerOrders : [bookingWorkerOrder(booking, "我（Alex）", iconRules), ...state.workerOrders],
   };
 }
 
