@@ -3,6 +3,7 @@
 > 管辖范围：`deal-protocol/` 单体仓库（含原 `oto-spatial-web/` 子项目，ADR-0018 Phase 6 已并入废弃）。父项目 v3.0.0-PROD 基线见 `PROJECT_STATE.md`。
 > **维护规则**（见 AGENTS.md）：凡代码改动影响功能/验证基线/阶段 → 同步更新本文件对应表格，并刷新底部 `LAST_SYNC`。
 > **前身**：`NEXT_STEPS.md` 于 2026-08-07 并入本文件后废弃。
+> **文档索引**：全仓资产与技术债唯一事实源 → [`docs/DEBT_CLEANUP_REGISTER.md`](DEBT_CLEANUP_REGISTER.md)（99 路由 / 126 组件 / 14 模块 / 级联台账，2026-08-15 建档基线）。
 
 ---
 
@@ -207,3 +208,4 @@
 | 2026-08-15 | 代码洁癖级大扫除（阶段四） | **Lint 治理 100% 纯净**：① 白名单核心目录（src/base / src/ammo / src/types / components/waves / components/oto-ui）ESLint 警告清零（全仓 744 → 739，白名单 6 → 0）；② 类型加固：StealthCalculator 新增 buildSilentAlarmPayload 模块级工厂（impure 边界封口）；③ HousekeepingSlot 两张照片位 img → next/image（Image fill + position:relative，alt 语义保留）；④ 未用变量真实清理（SeniorModeView onVoiceEnd / JudgePanel claimId）；⑤ 修复 nfc-adapter 测试时序脆弱（注入 now 时钟参数）；⑥ **1061/1061 全绿** + tsc 0 + lint 0 error + 门禁 exit 0 | |
 | 2026-08-15 | 3c242c3 | 代码洁癖大扫除：白名单目录 lint 清零 + 类型加固 + img→next/image；1061/1061 全绿 + tsc 0 + 门禁 exit 0 |
 | 2026-08-15 | 1510d05 | 4 阶段总攻战役收官：LAST_SYNC 对齐最终 HEAD；工作区干净，1061/1061 全绿基线确认 |
+| 2026-08-15 | 本批（待提交） | **全仓资产与技术债全景台账建档（纯文档批次）**：新建 `docs/DEBT_CLEANUP_REGISTER.md`（全仓资产与技术债单一事实源）——99 个 API 路由逐行全量建档（65 生产活跃 + 26 孤儿 A1-A26 + 9 基础设施 B1-B9）、126 个生产组件（110 在用 + 16 待审 C1-C16）、14 个模块目录（m02-m14 + mM 镜像，m09/m13 冗余待裁）、3 个垂直协议双轨（base/housekeeping/dating ↔ ammo）与 7 项级联工具库成对台账（L1-L7）、分批出清路线图（Batch 0-4）；零代码变更，1061/1061 基线不受影响；物理出清待创始人裁决后按 Batch 指令执行 |
