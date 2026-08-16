@@ -10,12 +10,90 @@
   --color-brandCyan: #00f0ff;
 }
 
+/* ============ 1:1 Design Token 字典（白皮书 §九，Figma 变量 1:1 映射） ============
+   命名与 Figma 变量一致（Color/Surface/... / Spacing/4/... / Radius/... / Shadow/... / Motion/...），
+   消费方一律经 var(--token) 引用，禁止硬编码色值/间距（Lighthouse Design QA 验收项 T-3）。 */
+
+:root {
+  --color-primary: #0f52ba;
+  --color-primary-active: #0a3c85;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f6f9;
+  --color-text-main: #111827;
+  --color-text-secondary: #6b7280;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --touch-target-min: 44px;
+  --touch-target-comfort: 48px;
+
+  --radius-component: 12px;
+  --radius-pill: 9999px;
+
+  --shadow-sheet: 0 -4px 20px rgba(0, 0, 0, 0.08);
+
+  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+}
+
+/* 原生触控反馈类：全局按钮/卡片等可点元素统一挂接（PWA Native-Like 规范 §九） */
+.interactive-tap {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+  transition:
+    transform var(--duration-fast) var(--motion-ease-out),
+    opacity var(--duration-fast) var(--motion-ease-out);
+}
+.interactive-tap:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
 .oto-app {
   --oto-accent-purple: #7b61ff;
   --oto-accent-blue: #4b9bff;
   --oto-accent-cyan: #00f0ff;
   --oto-accent-magenta: #ff007a;
   --oto-inlay-bg: rgba(20, 22, 38, 0.55);
+
+  /* Design Token 字典注入容器（继承根值，容器内可覆盖） */
+  --color-primary: #0f52ba;
+  --color-primary-active: #0a3c85;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f6f9;
+  --color-text-main: #111827;
+  --color-text-secondary: #6b7280;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --touch-target-min: 44px;
+  --touch-target-comfort: 48px;
+  --radius-component: 12px;
+  --radius-pill: 9999px;
+  --shadow-sheet: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
 
   overflow: hidden;
   height: 100%;

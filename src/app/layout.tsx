@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
 import Header from "@/components/Header";
@@ -8,6 +8,20 @@ import "./globals.css";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://deal-protocol-phi.vercel.app";
+
+/**
+ * PWA Native-Like 严格视口（白皮书 §九 Design QA 验收项 V-1）：
+ * - viewport-fit=cover：刘海屏内容铺满真实视口（配合 env(safe-area-inset-*)）；
+ * - 锁定缩放（userScalable=false + maximumScale=1）：消除双击缩放（配合
+ *   touch-action: manipulation 触控类）与桌面端手动缩放的布局漂移。
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -69,7 +83,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh" className="h-full antialiased">
-      <body className="min-h-full flex flex-col antialiased">
+      <body
+        className="min-h-full flex flex-col antialiased"
+        style={{ WebkitTapHighlightColor: "transparent" }}
+      >
         <SessionProvider>
           <UXProvider>
             <ThemeProvider>

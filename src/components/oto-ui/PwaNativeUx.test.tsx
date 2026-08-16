@@ -3,7 +3,7 @@ import { act } from "react";
 import type { ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PrePermissionSheet, {
   PERMANENTLY_DENIED_HINT,
@@ -11,7 +11,11 @@ import PrePermissionSheet, {
   PERMISSION_COPY,
 } from "@/components/oto-ui/PrePermissionSheet";
 import A2HSPrompt, {
+  A2HS_DISMISSED_KEY,
+  isA2HSSuppressed,
   isIosSafari,
+  SEVEN_DAYS_MS,
+  suppressA2HS,
   type A2HSPromptHandle,
 } from "@/components/oto-ui/A2HSPrompt";
 import ProofCamera, {
@@ -21,6 +25,11 @@ import {
   EDGE_SWIPE_THRESHOLD_PX,
   useEdgeSwipeBack,
 } from "@/base/platform/useEdgeSwipeBack";
+import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+
+beforeEach(() => {
+  window.localStorage.clear();
+});
 
 function mount(ui: ReactElement) {
   const container = document.createElement("div");
@@ -40,13 +49,17 @@ function unmount(root: ReturnType<typeof createRoot>, container: HTMLDivElement)
 function fireTouch(
   type: "touchstart" | "touchmove" | "touchend",
   points: { clientX: number; clientY: number }[],
+  target: EventTarget = window,
 ) {
   const ev = new Event(type, { cancelable: true }) as unknown as TouchEvent;
   Object.defineProperty(ev, "touches", { value: points });
   Object.defineProperty(ev, "changedTouches", { value: points });
-  window.dispatchEvent(ev);
+  target.dispatchEvent(ev);
   return ev;
 }
+
+const IOS_SAFARI_UA =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
 
 describe("PrePermissionSheet 硬件权限预授权浮层", () => {
   it("定位模式：标题 / 业务文案 / 确认按钮语义齐全", () => {
@@ -207,6 +220,93 @@ describe("A2HSPrompt 桌面安装价值时刻引导", () => {
     );
     await act(async () => handle.current?.showInstallPrompt("FIRST_ORDER_COMPLETED"));
     expect(container.textContent).toBe("");
+    unmount(root, container);
+  });
+
+  it("7 天静默期内：iOS 分支 showInstallPrompt 被抑制，不弹气泡", async () => {
+    window.localStorage.setItem(A2HS_DISMISSED_KEY, String(Date.now() + SEVEN_DAYS_MS - 1000));
+    expect(isA2HSSuppressed()).toBe(true);
+    const handle: { current: A2HSPromptHandle | null } = { current: null };
+    const { container, root } = mount(
+      <A2HSPrompt ref={(h) => { handle.current = h; }} ua={IOS_SAFARI_UA} />,
+    );
+    await act(async () => handle.current?.showInstallPrompt("FIRST_ORDER_COMPLETED"));
+    expect(container.querySelector('[data-mode="ios"]')).toBeNull();
+    expect(container.querySelector('[data-mode="native"]')).toBeNull();
+    expect(container.textContent).toBe("");
+    unmount(root, container);
+  });
+
+  it("7 天静默期内：Android deferred prompt 分支同样被抑制", async () => {
+    window.localStorage.setItem(A2HS_DISMISSED_KEY, String(Date.now() + SEVEN_DAYS_MS - 1000));
+    (window as unknown as { BeforeInstallPromptEvent?: unknown }).BeforeInstallPromptEvent = class BeforeInstallPromptEvent {};
+    const handle: { current: A2HSPromptHandle | null } = { current: null };
+    const { container, root } = mount(<A2HSPrompt ref={(h) => { handle.current = h; }} />);
+    const promptFn = vi.fn().mockResolvedValue(undefined);
+    await act(async () => {
+      window.dispatchEvent(
+        Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
+          prompt: promptFn,
+        }),
+      );
+    });
+    await act(async () => handle.current?.showInstallPrompt("PROVIDER_VERIFIED"));
+    expect(container.querySelector('[data-mode="native"]')).toBeNull();
+    expect(promptFn).not.toHaveBeenCalled();
+    unmount(root, container);
+    delete (window as unknown as { BeforeInstallPromptEvent?: unknown }).BeforeInstallPromptEvent;
+  });
+
+  it("点击【暂不需要】→ 写入 localStorage 7 天过期时间戳，且 showInstallPrompt 立即被抑制", async () => {
+    const promptFn = vi.fn().mockResolvedValue(undefined);
+    (window as unknown as { BeforeInstallPromptEvent?: unknown }).BeforeInstallPromptEvent = class BeforeInstallPromptEvent {};
+    const handle: { current: A2HSPromptHandle | null } = { current: null };
+    const { container, root } = mount(<A2HSPrompt ref={(h) => { handle.current = h; }} />);
+    await act(async () => {
+      window.dispatchEvent(
+        Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
+          prompt: promptFn,
+        }),
+      );
+    });
+    await act(async () => handle.current?.showInstallPrompt("FIRST_ORDER_COMPLETED"));
+    expect(container.querySelector('[data-mode="native"]')).not.toBeNull();
+    const before = Date.now();
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-action="a2hs-later"]')!.click();
+    });
+    const stored = Number(window.localStorage.getItem(A2HS_DISMISSED_KEY));
+    expect(Number.isFinite(stored)).toBe(true);
+    expect(stored).toBeGreaterThanOrEqual(before + SEVEN_DAYS_MS);
+    expect(stored).toBeLessThanOrEqual(before + SEVEN_DAYS_MS + 2000);
+    expect(isA2HSSuppressed()).toBe(true);
+    expect(container.querySelector('[data-mode="native"]')).toBeNull();
+    await act(async () => handle.current?.showInstallPrompt("FIRST_ORDER_COMPLETED"));
+    expect(container.querySelector('[data-mode="native"]')).toBeNull();
+    unmount(root, container);
+    delete (window as unknown as { BeforeInstallPromptEvent?: unknown }).BeforeInstallPromptEvent;
+  });
+
+  it("suppressA2HS 纯函数：写入后可被 isA2HSSuppressed 读取；时间戳注入可核验过期恢复", () => {
+    const now = 1_800_000_000_000;
+    expect(isA2HSSuppressed(now)).toBe(false);
+    suppressA2HS(7, now);
+    expect(window.localStorage.getItem(A2HS_DISMISSED_KEY)).toBe(String(now + SEVEN_DAYS_MS));
+    expect(isA2HSSuppressed(now)).toBe(true);
+    expect(isA2HSSuppressed(now + SEVEN_DAYS_MS - 1)).toBe(true);
+    expect(isA2HSSuppressed(now + SEVEN_DAYS_MS)).toBe(false);
+  });
+
+  it("静默期过期后：showInstallPrompt 恢复弹窗", async () => {
+    const now = Date.now();
+    suppressA2HS(7, now - SEVEN_DAYS_MS - 1);
+    expect(isA2HSSuppressed(now)).toBe(false);
+    const handle: { current: A2HSPromptHandle | null } = { current: null };
+    const { container, root } = mount(
+      <A2HSPrompt ref={(h) => { handle.current = h; }} ua={IOS_SAFARI_UA} />,
+    );
+    await act(async () => handle.current?.showInstallPrompt("FIRST_ORDER_COMPLETED"));
+    expect(container.querySelector('[data-mode="ios"]')).not.toBeNull();
     unmount(root, container);
   });
 });
@@ -434,6 +534,75 @@ describe("useEdgeSwipeBack 屏幕左边缘手势返回 Hook（集成）", () => 
     fireTouch("touchend", [{ clientX: 10 + EDGE_SWIPE_THRESHOLD_PX + 20, clientY: 310 }]);
     expect(backSpy).toHaveBeenCalledTimes(1);
     backSpy.mockRestore();
+    unmount(root, container);
+  });
+});
+
+describe("useDragToDismiss 半屏抽屉下拉关闭 Hook（集成）", () => {
+  function makeSheet(onDismiss: () => void, enabled?: boolean) {
+    let dragRef: { current: HTMLElement | null } = { current: null };
+    function Probe() {
+      dragRef = useDragToDismiss({ onDismiss, enabled }).dragRef;
+      return <div ref={(el) => { dragRef.current = el; }} data-testid="sheet" style={{ height: 500 }} />;
+    }
+    const { container, root } = mount(<Probe />);
+    const el = container.querySelector<HTMLElement>('[data-testid="sheet"]')!;
+    Object.defineProperty(el, "clientHeight", { value: 500, configurable: true });
+    return { container, root, el };
+  }
+
+  it("下拉位移 36%（180/500）：touchend 触发 onDismiss", async () => {
+    const onDismiss = vi.fn();
+    const { el, root } = makeSheet(onDismiss);
+    fireTouch("touchstart", [{ clientX: 200, clientY: 100 }], el);
+    fireTouch("touchmove", [{ clientX: 200, clientY: 260 }], el);
+    const endEv = fireTouch("touchend", [{ clientX: 200, clientY: 280 }], el);
+    expect(endEv.defaultPrevented).toBe(false);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    root.unmount();
+  });
+
+  it("下拉位移 30%（150/500）：不触发，且手势结束后复位（可再次滑动）", async () => {
+    const onDismiss = vi.fn();
+    const { el, root } = makeSheet(onDismiss);
+    fireTouch("touchstart", [{ clientX: 200, clientY: 100 }], el);
+    fireTouch("touchend", [{ clientX: 200, clientY: 250 }], el);
+    expect(onDismiss).not.toHaveBeenCalled();
+    fireTouch("touchstart", [{ clientX: 200, clientY: 300 }], el);
+    fireTouch("touchend", [{ clientX: 200, clientY: 490 }], el);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    root.unmount();
+  });
+
+  it("反向向上滑动（deltaY < 0）：不触发", async () => {
+    const onDismiss = vi.fn();
+    const { el, root } = makeSheet(onDismiss);
+    fireTouch("touchstart", [{ clientX: 200, clientY: 400 }], el);
+    fireTouch("touchmove", [{ clientX: 200, clientY: 100 }], el);
+    fireTouch("touchend", [{ clientX: 200, clientY: 50 }], el);
+    expect(onDismiss).not.toHaveBeenCalled();
+    root.unmount();
+  });
+
+  it("enabled=false：事件解绑不监听", async () => {
+    const onDismiss = vi.fn();
+    const { el, root } = makeSheet(onDismiss, false);
+    fireTouch("touchstart", [{ clientX: 200, clientY: 100 }], el);
+    fireTouch("touchend", [{ clientX: 200, clientY: 500 }], el);
+    expect(onDismiss).not.toHaveBeenCalled();
+    root.unmount();
+  });
+
+  it("未绑定容器（纯 window）：回退基准高度 400px，位移 144px = 36% 触发", async () => {
+    const onDismiss = vi.fn();
+    function Probe() {
+      useDragToDismiss({ onDismiss });
+      return null;
+    }
+    const { container, root } = mount(<Probe />);
+    fireTouch("touchstart", [{ clientX: 200, clientY: 100 }]);
+    fireTouch("touchend", [{ clientX: 200, clientY: 244 }]);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
     unmount(root, container);
   });
 });

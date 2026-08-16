@@ -4,7 +4,7 @@ import { useCallback, useEffect, useImperativeHandle, useState } from "react";
 import type { Ref } from "react";
 
 /**
- * A2HS 桌面安装价值时刻引导（Add-to-Home-Screen Prompt · 白皮书 §八）。
+ * A2HS 桌面安装价值时刻引导（Add-to-Home-Screen Prompt · 白皮书 §八/§九）。
  *
  * - 捕获 `beforeinstallprompt`：默认 `preventDefault()` 并内部持有，
  *   把原生安装弹窗延迟到「价值时刻」（首单完成 / 服务者认证通过）
@@ -12,12 +12,57 @@ import type { Ref } from "react";
  * - Android / Chrome：非模态价值卡片 + 【立即添加至桌面】→ 调用原生
  *   `deferredPrompt.prompt()`；
  * - iOS Safari（standalone === false）：底部悬浮气泡图示
- *   「分享图标 ➔ 滑动选择 添加至主屏幕」。
+ *   「分享图标 ➔ 滑动选择 添加至主屏幕」；
+ * - 7 天防骚扰静默期：用户点击【暂不需要】后写 `localStorage` 过期时间戳，
+ *   `showInstallPrompt` 前置检查 `isA2HSSuppressed()`，静默期内直接忽略
+ *   （防御编程：存储读写全部 try-catch / SSR 安全，异常绝不阻断挂载）。
  *
  * SSR 安全：监听全部挂在 useEffect，初始零渲染。
  */
 
 export type A2HSMilestone = "FIRST_ORDER_COMPLETED" | "PROVIDER_VERIFIED";
+
+/** localStorage 静默期键：值为「静默截止时刻」（epoch 毫秒）。 */
+export const A2HS_DISMISSED_KEY = "a2hs_dismissed_until";
+/** 静默期长度：7 天（毫秒）。 */
+export const SEVEN_DAYS_MS = 7 * 86400000;
+
+/** 读取静默截止时刻；存储不可用 / 值非法 → null（SSR 与隐私模式安全）。 */
+export function readA2HSDismissal(): number | null {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(A2HS_DISMISSED_KEY);
+    if (!raw) return null;
+    const t = Number(raw);
+    return Number.isFinite(t) && t > 0 ? t : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 当前时刻是否处于 7 天静默期内（nowTimestamp 可注入以便单测）。 */
+export function isA2HSSuppressed(nowTimestamp?: number): boolean {
+  const until = readA2HSDismissal();
+  if (until === null) return false;
+  return (nowTimestamp ?? Date.now()) < until;
+}
+
+/** 写入 7 天静默期（nowTimestamp 可注入以便单测）；存储不可用静默跳过。 */
+export function suppressA2HS(days = 7, nowTimestamp?: number): void {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      A2HS_DISMISSED_KEY,
+      String((nowTimestamp ?? Date.now()) + days * 86400000),
+    );
+  } catch {
+    // 存储不可用（隐私模式/配额）：静默跳过，不阻断交互。
+  }
+}
 
 export const A2HS_MILESTONE_COPY: Record<
   A2HSMilestone,
@@ -116,6 +161,9 @@ export default function A2HSPrompt({ onInstalled, ua, ref }: IA2HSPromptProps) {
 
   const showInstallPrompt = useCallback(
     (m: A2HSMilestone) => {
+      if (isA2HSSuppressed()) {
+        return;
+      }
       setMilestone(m);
       if (deferred) {
         setMode("native");
@@ -131,7 +179,10 @@ export default function A2HSPrompt({ onInstalled, ua, ref }: IA2HSPromptProps) {
 
   useImperativeHandle(ref, () => ({ showInstallPrompt }), [showInstallPrompt]);
 
-  const close = useCallback(() => setMode(null), []);
+  const close = useCallback(() => {
+    suppressA2HS(7);
+    setMode(null);
+  }, []);
 
   const install = useCallback(async () => {
     if (!deferred) return;

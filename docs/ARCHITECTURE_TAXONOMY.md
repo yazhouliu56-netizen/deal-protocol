@@ -838,7 +838,110 @@ tsc 0 error；lint 0 error（base 目录按既有 ignore 白名单约定）。
 
 ---
 
-## 九、收敛路线（宪法门禁衔接）
+## 九、Design QA 与 PWA Handoff 规范（Sprint -0.5 双轨协作 · 2026-08-16 注入 · 100% 物理代码级闭环）
+
+> 人类创始人注入（2026-08-16）：PWA UI/UX 详细执行手册（SOP 第二部分）。
+> 目标：把「设计交付」从口头/截图升级为**可机器校验的 Token 字典 + 双轨里程碑 + Lighthouse
+> 硬性基准**——设计侧改一个变量，工程侧 1:1 落一个 CSS Custom Property；验收不再是"看着像",
+> 而是"Lighthouse a11y ≥ 95 / LCP ≤ 2.0s / CLS ≤ 0.05"这类可量化数字。
+
+### 9.1 Sprint -0.5 双轨敏捷协同模型与 W1~W10 里程碑产物
+
+设计轨（Figma）与工程轨（代码）并行推进，每 Sprint 对齐一次、产物 1:1 可映射：
+
+| 周 | 设计轨产物（Figma） | 工程轨产物（本仓） | 对齐验收 |
+|---|---|---|---|
+| W1 | 变量库定稿：色彩/间距/圆角/阴影/动效 5 族（含深色与浅色双主题） | `src/app/oto/globals.css` 1:1 Token 字典（§9.2） | 变量名逐项 diff 无漂移 |
+| W2 | 组件变量命名规范（Figma component properties 白名单） | `src/components/oto-ui/` 组件层组件对齐（§9.3） | 命名映射表抽查 |
+| W3 | 触控规范稿（≥44px 热区 / 防双击缩放 / 按压反馈） | `.interactive-tap` 全局触控类 + `viewport` 锁定（userScalable=false / viewportFit=cover） | 热区计算 vs CSS min-height 实测 |
+| W4 | 安装引导（A2HS）交互稿（价值时刻 + 静默期） | `A2HSPrompt.tsx` 7 天 localStorage 静默期（§9.5） | 静默期单测矩阵通过 |
+| W5 | 半屏抽屉手势稿（下拉关闭动效） | `src/base/platform/useDragToDismiss.ts`（>35% 阈值纯函数 + Hook） | 阈值矩阵单测通过 |
+| W6 | 相机存证 / 权限预授权稿 | `ProofCamera.tsx` / `PrePermissionSheet.tsx`（§八已闭环） | 双端实测 |
+| W7 | 深色主题变量切换设计 | Token 双主题映射（暗色值注入 .oto-app 作用域） | 主题切换抽查 |
+| W8 | Lighthouse 基准冻结（LCP/CLS/a11y/触控） | §9.4 基准表 + `npm run build` 产物自检 | Lighthouse 报告比对 |
+| W9 | 视觉回归基准图（核心 5 屏） | e2e 截图锚点（既有 e2e 12 条回归） | 视觉 diff 阈值 |
+| W10 | Handoff 完整包（变量/组件/规范三合一） | 本 §白皮书归档 + PROJECT_STATUS 基线同步 | 双轨产物 1:1 对齐清单勾销 |
+
+### 9.2 Figma 变量 → CSS Custom Properties 1:1 映射字典
+
+物理落点：`src/app/oto/globals.css` `:root` 与 `.oto-app` 双写（D-10 契约：容器内可覆盖、
+不触碰根 shadcn 主题变量）。**消费纪律：组件引用一律 `var(--token)`，禁止硬编码色值/间距/圆角。**
+
+| Figma 变量（设计侧） | CSS Custom Property（工程侧） | 值 | 备注 |
+|---|---|---|---|
+| Color/Primary | `--color-primary` | `#0F52BA` | 主品牌色 |
+| Color/Primary/Active | `--color-primary-active` | `#0A3C85` | 按压/选中加深 |
+| Color/Surface | `--color-surface` | `#FFFFFF` | 卡片/弹层底 |
+| Color/Surface/Subtle | `--color-surface-subtle` | `#F4F6F9` | 次级底（输入框/分隔） |
+| Color/Text/Main | `--color-text-main` | `#111827` | 主文本 |
+| Color/Text/Secondary | `--color-text-secondary` | `#6B7280` | 次要文本 |
+| Color/Status/Success | `--color-success` | `#16A34A` | 成功态 |
+| Color/Status/Warning | `--color-warning` | `#D97706` | 警告态 |
+| Color/Status/Danger | `--color-danger` | `#DC2626` | 危险/错误态 |
+| Spacing/1 ~ /8 | `--space-1` ~ `--space-8` | 4/8/12/16/24/32px | 4px 栅格 |
+| Touch/Target/Min | `--touch-target-min` | `44px` | 触控底线（WCAG 2.5.8） |
+| Touch/Target/Comfort | `--touch-target-comfort` | `48px` | 推荐触控（本仓规范） |
+| Radius/Component | `--radius-component` | `12px` | 卡片/按钮圆角 |
+| Radius/Pill | `--radius-pill` | `9999px` | 胶囊/徽章 |
+| Shadow/Sheet | `--shadow-sheet` | `0 -4px 20px rgba(0,0,0,.08)` | 半屏抽屉投影 |
+| Motion/Ease/Spring | `--motion-ease-spring` | `cubic-bezier(.175,.885,.32,1.275)` | 弹出回弹 |
+| Motion/Ease/Out | `--motion-ease-out` | `cubic-bezier(.16,1,.3,1)` | 出场缓出 |
+| Motion/Duration/Fast | `--duration-fast` | `150ms` | 微交互 |
+| Motion/Duration/Base | `--duration-base` | `250ms` | 常规过渡 |
+
+### 9.3 Figma 图层 → 前端 Atomic 组件层级映射规则
+
+| Figma 图层层级 | 前端组件层级 | 映射规则 |
+|---|---|---|
+| 页面/Page（Figma Frame） | 路由页面 `src/app/**/page.tsx` | 一页面一 Frame，禁止跨页复用 Frame 尺寸 |
+| 区块/Section（Auto Layout Frame） | 布局组件（容器 div / grid 语义） | Frame 名即组件名（kebab-case），Auto Layout 属性映射 Flex/Grid |
+| 组件/Component（含 Variants） | `src/components/oto-ui/*.tsx` 组件 | Variant 属性 → props 联合类型；命名对齐 Figma 变量 |
+| 原子元素（Text/Icon/Shape） | JSX 原生元素 + `var(--token)` 消费 | 色值/字号/间距一律 Token 引用，禁止 magic number |
+| 实例/Instance（组件复用） | `<Component />` 组合 | 复用组件即实例，深度嵌套 >3 需抽组件 |
+
+**验收 T-3**：新页面/组件落地时 grep 校验无硬编码色值（`#([0-9a-fA-F]{3,6})` 命中数 0，豁免
+渐变/阴影特殊值须白名单登记）。
+
+### 9.4 Google Lighthouse 核心体验硬性基准表（Design QA 验收）
+
+| 指标 | 硬性基准 | 验收方式 |
+|---|---|---|
+| LCP | ≤ 2.0s | Lighthouse mobile（4G 节流） |
+| CLS | ≤ 0.05 | 同上 |
+| a11y | ≥ 95 | 同上（axe 规则集） |
+| FCP | ≤ 1.8s | 同上 |
+| TBT | ≤ 200ms | 同上 |
+| 触控靶区 | 交互元素 ≥ 44×44 CSS px（推荐 48） | 代码审阅（`--touch-target-min` 消费）+ 热区计算 |
+| 双击缩放 | 禁止（`userScalable: false` + `touch-action: manipulation`） | viewport 元数据 + 全局触控类检查 |
+| 点击高亮 | `-webkit-tap-highlight-color: transparent` | 根 body 样式 + `.interactive-tap` |
+| 安全区 | `viewport-fit=cover` + `env(safe-area-inset-*)` 消费 | viewport 元数据 + 底部栏实测 |
+
+物理落点：`src/app/layout.tsx`（`viewport` 导出锁定）+ `src/app/oto/globals.css`
+（`.interactive-tap`：min 44px / tap-highlight 透明 / `user-select:none` /
+`touch-action:manipulation` / 150ms 按压反馈 scale(.97)+opacity(.85)）。
+
+### 9.5 PWA 交互验收标准（防骚扰 / 手势关闭）
+
+| 交互 | 验收标准 | 物理落点与单测 |
+|---|---|---|
+| A2HS 7 天静默期 | 用户点【暂不需要】→ `localStorage['a2hs_dismissed_until']` = 当前+7d；静默期内 `showInstallPrompt` 直接忽略，不弹卡片/气泡；存储读写异常（隐私模式/SSR）静默降级不阻断挂载 | `A2HSPrompt.tsx`（`isA2HSSuppressed` / `suppressA2HS` 纯函数）+ 静默期单测 ×6 |
+| 抽屉下拉关闭 | 仅向下滑动；位移/容器高度 > 35% 触发 `onDismiss`（=35% 不触发）；向上拖动/零位移永不触发；容器高度非法防御性拒绝；未绑定容器回退 400px 基准 | `useDragToDismiss.ts`（`shouldDismissSheet` 纯函数 + Hook 三事件监听）+ 阈值矩阵单测 ×9 + jsdom 集成 ×5 |
+
+### 9.6 本 §物理落点清单与双端单测矩阵
+
+| 物理落点 | 职责 | 单测 | 用例数 |
+|---|---|---|---|
+| `src/app/oto/globals.css` | 1:1 Token 字典（`:root` + `.oto-app` 双写）+ `.interactive-tap` 全局触控类 | —（样式声明，编译期验证） | — |
+| `src/app/layout.tsx` | Next 16 `viewport` 导出（width/initialScale/maximumScale/userScalable=false/viewportFit=cover）+ body 点击高亮消除 | —（元数据声明） | — |
+| `src/components/oto-ui/A2HSPrompt.tsx` | 7 天静默期（`isA2HSSuppressed` / `suppressA2HS` 纯函数 + showInstallPrompt 前置拦截 + 稍后再说写入） | `PwaNativeUx.test.tsx` | +5 |
+| `src/base/platform/useDragToDismiss.ts` | 半屏抽屉下拉 >35% 关闭手势（`shouldDismissSheet` 纯函数 + touch 三事件 Hook + 400px 基准回退） | `useDragToDismiss.test.ts`（node:test）+ `PwaNativeUx.test.tsx` jsdom 集成 | +9 / +5 |
+
+全仓测试基线：**1180/1180 全绿**（vitest 520 + node:test 660，1161 基线 +19）。
+tsc 0 error；lint 0 error；`npm run build` 通过。
+
+---
+
+## 十、收敛路线（宪法门禁衔接）
 
 1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
@@ -846,10 +949,11 @@ tsc 0 error；lint 0 error（base 目录按既有 ignore 白名单约定）。
 
 ---
 
-## 十、修订记录
+## 十一、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
+| 2026-08-16 | **Design QA 与 PWA Handoff 规范注入（100% 物理代码级闭环）**：新增 §九——① Sprint -0.5 双轨敏捷协同模型（设计轨 Figma 变量/组件 × 工程轨 CSS Token/组件，W1~W10 里程碑产物清单，每周对齐）；② Figma 变量 → CSS Custom Properties 1:1 映射字典（`src/app/oto/globals.css` `:root` + `.oto-app` 双写：色彩 9 项 / 间距 6 级 / 触控 44/48px / 圆角 / 阴影 / 动效曲线，D-10 契约不触碰根主题）；③ Figma 图层 → Atomic 组件层级映射规则（验收 T-3：组件禁止硬编码色值）；④ Google Lighthouse 核心体验硬性基准表（LCP ≤ 2.0s / CLS ≤ 0.05 / a11y ≥ 95 / FCP ≤ 1.8s / TBT ≤ 200ms）；⑤ PWA 交互验收标准（A2HS 7 天静默期 `localStorage['a2hs_dismissed_until']` + 抽屉下拉 >35% 关闭）；物理落点 `layout.tsx`（Next 16 viewport：userScalable=false / viewportFit=cover + body 点击高亮消除）+ `A2HSPrompt.tsx`（isA2HSSuppressed/suppressA2HS 纯函数 + showInstallPrompt 前置拦截）+ `src/base/platform/useDragToDismiss.ts`（shouldDismissSheet 纯函数 + touch 三事件 Hook + 400px 基准回退）；新增 19 项双端单测（node:test 9 + vitest 10），全仓 **1180/1180 全绿**；原 §九→§十、§十→§十一 顺延 | 用户 |
 | 2026-08-16 | **PWA Native-Like UI/UX 架构与双端执行手册注入（100% 物理代码级闭环）**：新增 §八——① Canvas 时空防伪水印引擎 `src/base/platform/watermark-canvas.ts`（时间/坐标/订单哈希格式化 + 4:3 中心裁剪 + 右下角遮罩压制 + SHA-256 存证指纹 + 无 DOM 确定性降级，红线 5）② 屏幕左边缘手势返回 `src/base/platform/useEdgeSwipeBack.ts`（24px 边缘带 / 60px 阈值 / 1.5 垂直比纯函数 + touch Hook passive 抢占 + history.back 回退）③ 三组件：硬件权限预授权浮层 `PrePermissionSheet.tsx`（200m 围栏语义 / 防伪物证链双文案 + 永久拒绝「锁形图标」重置指引 + 48px 触控）、A2HS 安装价值时刻引导 `A2HSPrompt.tsx`（beforeinstallprompt 捕获延迟弹出 + Android prompt() + iOS Safari 分享气泡）、4:3 存证水印相机 `controls/ProofCamera.tsx`（capture=environment 禁相册 + 自动水印注入 + SHA-256 标签）；新增 50 项双端单测（node:test 28 + vitest jsdom 22），全仓 **1161/1161 全绿**；原 §八→§九、§九→§十 顺延 | 用户 |
 | 2026-08-15 | 初版定稿：元宪法四层 + 六红线固化 + 全仓归属映射 + 落差审计（D1-D8 + P0-P2 缺口） | 用户 |
 | 2026-08-15 | **核心设计模型注入**：新增 §二 万能底座五态原子状态机（Published➔Matched➔In-Service➔Inspected➔Settled + 伴生事件 Sub-Events 插拔）+ 三类风控引信矩阵（💥碰炸/⏳延期/📡近炸）+ 数字人格信用飞轮；契约落位 `src/types/ammo-schema.ts` + `src/types/fuze-policy.ts`；原章节顺延（三~六） | 用户 |
