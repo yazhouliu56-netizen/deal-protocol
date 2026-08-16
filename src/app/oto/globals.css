@@ -11,7 +11,7 @@
 }
 
 /* ============ 1:1 Design Token 字典（白皮书 §九，Figma 变量 1:1 映射） ============
-   命名与 Figma 变量一致（Color/Surface/... / Spacing/4/... / Radius/... / Shadow/... / Motion/...），
+   命名与 Figma 变量一致（Color 族 / Spacing 族 / Radius 族 / Shadow 族 / Motion 族），
    消费方一律经 var(--token) 引用，禁止硬编码色值/间距（Lighthouse Design QA 验收项 T-3）。 */
 
 :root {
