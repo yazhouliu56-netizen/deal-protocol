@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEdgeSwipeBack } from "@/base/platform/useEdgeSwipeBack";
+import { lockEdgeGesture, useEdgeGestureLock } from "@/components/oto-ui/edgeGestureLock";
 import Stage from "@/components/oto-ui/3d/Stage";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
 import ProfilePage from "@/components/oto-ui/profile/ProfilePage";
@@ -103,6 +105,13 @@ export default function Home() {
   // P1：AR 拍照存证证据链提升到根视图 —— 拍摄结果跨屏进入 Trip 履约争议物证链
   const [proofShots, setProofShots] = useState<ArbitrationPhotoEvidence[]>([]);
 
+  // P2：屏幕左边缘右滑 → 平滑回 Home（非 Home 屏生效；全屏弹层互斥锁启用时禁用）
+  const gestureLocked = useEdgeGestureLock();
+  useEdgeSwipeBack({
+    enabled: !gestureLocked && screen !== "home",
+    onSwipeBack: () => setScreen("home"),
+  });
+
   useEffect(() => {
     initLowPower();
   }, []);
@@ -171,6 +180,11 @@ function HomePage() {
   const [showCart, setShowCart] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
+
+  // P2：Home 弹层（扫码 / 心愿单 / 目的地中心）打开期间锁定边缘滑动返回
+  useEffect(() => {
+    lockEdgeGesture(showCart || scanOpen || hubOpen);
+  }, [showCart, scanOpen, hubOpen]);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
@@ -601,6 +615,11 @@ function ARPage({
   const [activePoint, setActivePoint] = useState<null | (typeof AR_SCENE_POINTS)[number]>(null);
   // P0 接电：4:3 存证水印相机模态 + 已捕获存证照片列表（P1：提升到根视图跨屏传导）
   const [photoOpen, setPhotoOpen] = useState(false);
+
+  // P2：AR 全屏相机打开期间锁定边缘滑动返回（防手势打架）
+  useEffect(() => {
+    lockEdgeGesture(photoOpen);
+  }, [photoOpen]);
 
   const addedToCart = cart.includes(selectedExperience.id);
 

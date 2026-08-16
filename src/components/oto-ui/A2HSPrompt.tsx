@@ -95,6 +95,8 @@ export interface IA2HSPromptProps {
   ua?: string;
   /** React 19 ref-as-prop：暴露 showInstallPrompt 命令式接口。 */
   ref?: Ref<A2HSPromptHandle>;
+  /** 引导卡可见性变化回调（P2：宿主侧借此与边缘手势互斥，防手势打架）。 */
+  onPromptChange?: (visible: boolean) => void;
 }
 
 /** iOS Safari 判定（iPhone / iPad + 非桌面 UA）。 */
@@ -139,7 +141,7 @@ const PROMPT_CSS = `
   border-bottom:1px solid rgba(251,191,36,.4);transform:rotate(45deg)}
 `;
 
-export default function A2HSPrompt({ onInstalled, ua, ref }: IA2HSPromptProps) {
+export default function A2HSPrompt({ onInstalled, ua, ref, onPromptChange }: IA2HSPromptProps) {
   const [deferred, setDeferred] = useState<IBeforeInstallPromptLike | null>(null);
   const [mode, setMode] = useState<"native" | "ios" | null>(null);
   const [milestone, setMilestone] = useState<A2HSMilestone>("FIRST_ORDER_COMPLETED");
@@ -167,22 +169,25 @@ export default function A2HSPrompt({ onInstalled, ua, ref }: IA2HSPromptProps) {
       setMilestone(m);
       if (deferred) {
         setMode("native");
+        onPromptChange?.(true);
         return;
       }
       const u = ua ?? (typeof navigator !== "undefined" ? navigator.userAgent : "");
       if (isIosSafari(u) && !isStandalonePwa()) {
         setMode("ios");
+        onPromptChange?.(true);
       }
     },
-    [deferred, ua],
+    [deferred, ua, onPromptChange],
   );
 
   useImperativeHandle(ref, () => ({ showInstallPrompt }), [showInstallPrompt]);
 
   const close = useCallback(() => {
     suppressA2HS(7);
+    onPromptChange?.(false);
     setMode(null);
-  }, []);
+  }, [onPromptChange]);
 
   const install = useCallback(async () => {
     if (!deferred) return;
@@ -194,9 +199,10 @@ export default function A2HSPrompt({ onInstalled, ua, ref }: IA2HSPromptProps) {
       }
     } finally {
       setDeferred(null);
+      onPromptChange?.(false);
       setMode(null);
     }
-  }, [deferred, onInstalled]);
+  }, [deferred, onInstalled, onPromptChange]);
 
   if (!mode) return null;
 

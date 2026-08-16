@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
+import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
 
 /**
  * 争议调解 · AI 小法官半屏抽屉（Dispute & AI Arbitration Sheet · 白皮书 §五 5.6.3）。
@@ -121,8 +122,9 @@ const SHEET_CSS = `
   background:linear-gradient(180deg,rgba(23,26,46,.96),rgba(13,16,32,.98));
   border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:none;
   max-height:72vh;overflow-y:auto;padding:10px 16px 18px;color:#e2e8f0;font-size:13px;
-  box-shadow:0 -18px 60px rgba(0,0,0,.55)}
-.arb-grip{width:44px;height:4px;border-radius:999px;background:rgba(255,255,255,.25);margin:4px auto 10px}
+  transition:transform .2s cubic-bezier(.16,1,.3,1),opacity .2s cubic-bezier(.16,1,.3,1)}
+.arb-sheet-dismissing{transform:translateY(105%);opacity:0}
+.arb-grip{width:44px;height:4px;border-radius:999px;background:rgba(255,255,255,.25);margin:4px auto 10px;cursor:grab;touch-action:none}
 .arb-title{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800}
 .arb-close{border:none;background:rgba(255,255,255,.08);color:#cbd5e1;border-radius:10px;padding:4px 10px;
   font-size:11px;cursor:pointer}
@@ -197,6 +199,40 @@ export default function ArbitrationSheet({
   const [certificate, setCertificate] = useState<JudicialCertificate | null>(null);
   const [exportError, setExportError] = useState("");
 
+  /** P2：顶部把手下拉 >35% → 平滑下滑离场 → 关闭（enabled=open 使 open 时重绑把手） */
+  const [dismissing, setDismissing] = useState(false);
+  const dismissTimerRef = useRef<number | null>(null);
+  const { dragRef: gripDragRef } = useDragToDismiss({
+    onDismiss: () => {
+      if (dismissing) return;
+      setDismissing(true);
+      dismissTimerRef.current = window.setTimeout(() => {
+        dismissTimerRef.current = null;
+        setDismissing(false);
+        onClose();
+      }, 200);
+    },
+    enabled: open,
+  });
+
+  // 重开抽屉时清除残留过渡态与定时器
+  useEffect(() => {
+    if (open) {
+      setDismissing(false);
+      if (dismissTimerRef.current !== null) {
+        window.clearTimeout(dismissTimerRef.current);
+        dismissTimerRef.current = null;
+      }
+    }
+  }, [open]);
+
+  useEffect(
+    () => () => {
+      if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current);
+    },
+    [],
+  );
+
   const level = resolveArbitrationLevel(disputeAmountYuan, hasSafetyAlert);
   const isLevel1 = level === "LEVEL_1";
   const isLevel2 = level === "LEVEL_2";
@@ -229,8 +265,12 @@ export default function ArbitrationSheet({
     <div data-testid="arbitration-sheet" data-order={orderId}>
       <style>{SHEET_CSS}</style>
       <div className="arb-mask" onClick={onClose} data-action="mask" />
-      <div className="arb-sheet" role="dialog" aria-label="争议调解">
-        <div className="arb-grip" />
+      <div
+        className={`arb-sheet${dismissing ? " arb-sheet-dismissing" : ""}`}
+        role="dialog"
+        aria-label="争议调解"
+      >
+        <div className="arb-grip" ref={gripDragRef as React.Ref<HTMLDivElement>} data-action="drag-grip" />
 
         <div className="arb-title">
           <span>

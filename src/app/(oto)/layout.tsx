@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
 import ToastHost from "@/components/oto-ui/ToastHost";
 import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
+import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -60,6 +61,8 @@ export default function OtoLayout({
       <OnlineStatusBridge />
       <ToastHost />
       <PwaServiceWorker />
+      {/* P2 总装：A2HS 价值时刻安装引导（首次结算 / 服务者上岗，7 天静默防骚扰） */}
+      <A2HSPromptHost />
     </div>
   );
 }

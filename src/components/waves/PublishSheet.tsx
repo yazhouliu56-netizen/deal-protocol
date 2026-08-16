@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
+import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
@@ -60,6 +61,41 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [decomposing, setDecomposing] = useState(false);
   /** P2-6 弹层分组：可选配置（定制/拆解/开放局/鸽子险/有效期/配额）默认折叠，核心表单常显 */
   const [showMore, setShowMore] = useState(false);
+  /** P2：拖拽收起过渡态（下拉 >35% → 平滑下滑离场 → 关闭） */
+  const [dismissing, setDismissing] = useState(false);
+  const dismissTimerRef = useRef<number | null>(null);
+
+  // P2：顶部把手下拉 >35% 平滑关闭（enabled=open 使 open 时重绑到已挂载的把手）
+  const { dragRef: sheetDragRef } = useDragToDismiss({
+    onDismiss: () => {
+      if (dismissing) return;
+      setDismissing(true);
+      dismissTimerRef.current = window.setTimeout(() => {
+        dismissTimerRef.current = null;
+        setDismissing(false);
+        onClose();
+      }, 210);
+    },
+    enabled: open,
+  });
+
+  // 重开抽屉时清除残留过渡态与定时器
+  useEffect(() => {
+    if (open) {
+      setDismissing(false);
+      if (dismissTimerRef.current !== null) {
+        window.clearTimeout(dismissTimerRef.current);
+        dismissTimerRef.current = null;
+      }
+    }
+  }, [open]);
+
+  useEffect(
+    () => () => {
+      if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current);
+    },
+    [],
+  );
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
@@ -240,10 +276,17 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           />
           <motion.div
             initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            animate={dismissing ? { y: "110%", opacity: 0 } : { y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
             className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
           >
+        {/* P2：拖拽把手（下拉 >35% 平滑收起） */}
+        <div
+          ref={sheetDragRef as React.Ref<HTMLDivElement>}
+          data-testid="publish-drag-handle"
+          aria-hidden="true"
+          className="w-12 h-1.5 mx-auto mt-0.5 mb-2 rounded-full bg-white/20 shrink-0 cursor-grab touch-none"
+        />
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
             <Send size={13} className="text-brandCyan" /> 发出信号波

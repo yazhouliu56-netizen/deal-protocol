@@ -26,6 +26,15 @@ import {
   useEdgeSwipeBack,
 } from "@/base/platform/useEdgeSwipeBack";
 import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
+import {
+  lockEdgeGesture,
+  readEdgeGestureLock,
+  resetEdgeGestureLock,
+  useEdgeGestureLock,
+} from "@/components/oto-ui/edgeGestureLock";
+import { useWaveStore } from "@/store/useWaveStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -603,6 +612,122 @@ describe("useDragToDismiss 半屏抽屉下拉关闭 Hook（集成）", () => {
     fireTouch("touchstart", [{ clientX: 200, clientY: 100 }]);
     fireTouch("touchend", [{ clientX: 200, clientY: 244 }]);
     expect(onDismiss).toHaveBeenCalledTimes(1);
+    unmount(root, container);
+  });
+});
+
+/* ============================ P2：A2HS 价值时刻外骨骼 + 手势互斥锁 ============================ */
+
+const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+
+function ProbeLock() {
+  const locked = useEdgeGestureLock();
+  return <span data-testid="lock-probe" data-locked={String(locked)} />;
+}
+
+describe("P2 A2HSPromptHost 价值时刻触发外骨骼", () => {
+  beforeEach(() => {
+    resetEdgeGestureLock();
+    useWaveStore.setState({ waves: [], claims: [], fulfilment: {} });
+  });
+
+  it("冷启动无任何价值时刻 → 不渲染安装引导", async () => {
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    expect(container.querySelector('[data-mode="ios"]')).toBeNull();
+    expect(container.querySelector('[data-mode="native"]')).toBeNull();
+    unmount(root, container);
+  });
+
+  it("首次结算（FIRST_ORDER_COMPLETED）→ 渲染 iOS 桌面添加引导 + 锁边缘手势", async () => {
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    await act(async () => {
+      useWaveStore.setState({ fulfilment: { "w-1": { isSettled: true } } });
+    });
+    const bubble = container.querySelector('[data-mode="ios"]');
+    expect(bubble).not.toBeNull();
+    expect(bubble?.textContent).toContain("首单已圆满结算");
+    expect(bubble?.textContent).toContain("添加至主屏幕");
+    expect(readEdgeGestureLock()).toBe(true);
+    unmount(root, container);
+  });
+
+  it("引导卡可见期间手势锁生效（useEdgeGestureLock 订阅反射）", async () => {
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    act(() => {
+      lockEdgeGesture(true);
+    });
+    const probe = document.createElement("div");
+    document.body.appendChild(probe);
+    const probeRoot = createRoot(probe);
+    act(() => {
+      probeRoot.render(<ProbeLock />);
+    });
+    expect(probe.querySelector('[data-testid="lock-probe"]')?.getAttribute("data-locked")).toBe("true");
+    act(() => {
+      lockEdgeGesture(false);
+    });
+    expect(probe.querySelector('[data-testid="lock-probe"]')?.getAttribute("data-locked")).toBe("false");
+    probeRoot.unmount();
+    probe.remove();
+    unmount(root, container);
+  });
+
+  it("同一实例同一里程碑只触发一次（firedRef 去重）", async () => {
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    await act(async () => {
+      useWaveStore.setState({ fulfilment: { "w-a": { isSettled: true } } });
+    });
+    expect(container.querySelectorAll('[data-mode="ios"]').length).toBe(1);
+    await act(async () => {
+      useWaveStore.setState({ fulfilment: { "w-b": { isSettled: true } } });
+    });
+    expect(container.querySelectorAll('[data-mode="ios"]').length).toBe(1);
+    unmount(root, container);
+  });
+
+  it("7 天静默期内价值时刻不触发（防骚扰铁律）", async () => {
+    window.localStorage.setItem(A2HS_DISMISSED_KEY, String(Date.now() + SEVEN_DAYS_MS));
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    await act(async () => {
+      useWaveStore.setState({ fulfilment: { "w-d": { isSettled: true } } });
+      useWaveStore.setState({
+        claims: [
+          {
+            id: "c-1",
+            waveId: "w-d",
+            responderId: useIdentityStore.getState().identity.id,
+            status: "accepted",
+            rounds: 0,
+            price: 50,
+            createdAt: Date.now(),
+          },
+        ],
+      });
+    });
+    expect(container.querySelector('[data-mode="ios"]')).toBeNull();
+    unmount(root, container);
+  });
+
+  it("服务者首次被雇方批准占座（PROVIDER_VERIFIED）→ 渲染上岗准入引导", async () => {
+    const { container, root } = mount(<A2HSPromptHost ua={IPHONE_UA} />);
+    await act(async () => {
+      useWaveStore.setState({
+        claims: [
+          {
+            id: "c-2",
+            waveId: "w-none",
+            responderId: useIdentityStore.getState().identity.id,
+            status: "accepted",
+            rounds: 0,
+            price: 80,
+            createdAt: Date.now(),
+          },
+        ],
+      });
+    });
+    const bubble = container.querySelector('[data-mode="ios"]');
+    expect(bubble).not.toBeNull();
+    expect(bubble?.textContent).toContain("服务者认证已通过");
     unmount(root, container);
   });
 });
