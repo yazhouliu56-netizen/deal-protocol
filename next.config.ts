@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   turbopack: {},
+  async redirects() {
+    return [
+      {
+        source: "/oto",
+        destination: "/",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default withSerwist({

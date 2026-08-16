@@ -60,7 +60,7 @@ export default function HomePage() {
         {/* 导航菜单与主题切换器 */}
         <div className="flex items-center gap-4 sm:gap-6">
           <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-slate-300">
-            <Link href="/" style={{ color: 'var(--accent-color)' }} className="transition">首页</Link>
+            <Link href="/dp" style={{ color: 'var(--accent-color)' }} className="transition">首页</Link>
             <Link href="/demands" className="hover:text-cyan-300 transition">悬赏大厅</Link>
             <Link href="/orders" className="hover:text-cyan-300 transition">我的契约</Link>
             <Link href="/profile" className="hover:text-cyan-300 transition">玩家中心</Link>

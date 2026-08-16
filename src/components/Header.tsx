@@ -23,7 +23,7 @@ export default function Header() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname?.startsWith("/oto") || pathname === "/") return null
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname === "/") return null
 
   const isLoggedIn = !!session
 
@@ -61,8 +61,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          <Link href="/" className={linkClass("/")}>首页</Link>
-          <Link href="/oto" className={linkClass("/oto")}>OTO空间</Link>
+          <Link href="/" className={linkClass("/")}>OTO空间</Link>
+          <Link href="/dp" className={linkClass("/dp")}>协议后台</Link>
           <Link href="/demands" className={linkClass("/demands")}>悬赏大厅</Link>
           <Link href="/orders" className={linkClass("/orders")}>我的契约</Link>
           {isLoggedIn && <Link href="/dashboard" className={linkClass("/dashboard")}>控制面板</Link>}
@@ -128,8 +128,8 @@ export default function Header() {
       {mobileOpen && (
         <div className="border-t border-slate-800/60 md:hidden animate-in touch-manipulation">
           <nav className="flex flex-col gap-px px-6 py-3">
-            <Link href="/" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm font-medium text-slate-100 hover:bg-slate-800 active:bg-slate-700">首页</Link>
-            <Link href="/oto" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">OTO空间</Link>
+            <Link href="/" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm font-medium text-slate-100 hover:bg-slate-800 active:bg-slate-700">OTO空间</Link>
+            <Link href="/dp" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">协议后台</Link>
             <Link href="/demands" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">悬赏大厅</Link>
             <Link href="/orders" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">我的契约</Link>
             {isLoggedIn && <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">控制面板</Link>}

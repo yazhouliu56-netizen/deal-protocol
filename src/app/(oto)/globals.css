@@ -1,7 +1,7 @@
 /* ⚠️ Tailwind v4 内容扫描白名单（治本 · 2026-08-16）：
    - source(none) 彻底禁用「自动内容检测」：防止 docs/ 下 Markdown 历史记录中的
      bottom-[calc(env(…))] 字面量被提取为非法任意值类名 → PostCSS 解析崩溃；
-   - 本入口（src/app/oto/globals.css）向上两级即 src/，仅显式 @source UI 源码。 */
+   - 本入口（src/app/(oto)/globals.css）向上两级即 src/，仅显式 @source UI 源码。 */
 @import "tailwindcss" source(none);
 @source "../../**/*.{js,ts,jsx,tsx,mdx}";
 
