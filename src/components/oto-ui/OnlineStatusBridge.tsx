@@ -13,12 +13,15 @@ import { useWaveStore } from "@/store/useWaveStore";
  */
 
 export default function OnlineStatusBridge() {
-  const [online, setOnline] = useState<boolean>(() =>
-    typeof navigator !== "undefined" ? navigator.onLine : true,
-  );
+  // SSR 首帧统一按「在线」渲染：Node 22 全局存在 navigator 对象且
+  // navigator.onLine 为 undefined（!undefined === true），若在状态初始化
+  // 时读取会导致服务端渲染出「离线」琥珀条而客户端不渲染 → Hydration
+  // mismatch。网络真实状态由挂载后的 useEffect 接管（见下）。
+  const [online, setOnline] = useState<boolean>(true);
   const pendingOps = useWaveStore((s) => s.offlineQueue.length);
 
   useEffect(() => {
+    setOnline(typeof window !== "undefined" && navigator.onLine);
     const on = () => setOnline(true);
     const off = () => setOnline(false);
     window.addEventListener("online", on);
