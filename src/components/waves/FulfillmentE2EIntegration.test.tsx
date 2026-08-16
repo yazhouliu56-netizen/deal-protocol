@@ -15,6 +15,8 @@ import FulfillmentCenter, {
   needsCockpit,
   nextCockpitState,
   resolveCockpitScenario,
+  buildDisputeEvidence,
+  buildDisputeProposal,
 } from "./FulfillmentCenter";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 
@@ -381,6 +383,80 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     expect(container.textContent).toContain("资金冻结中");
     root.unmount();
     container.remove();
+  });
+
+  it("P1 动态物证链：金额/诉求/存证照片均来自活动 Wave（静态演示桩已拔除）", async () => {
+    const wave = makeWave({
+      id: "w-hk-p1",
+      status: "locked" as const,
+      ammoId: "housekeeping-v1",
+      budget: 400,
+    });
+    useWaveStore.setState({
+      waves: [{ ...wave, negotiableNote: "厨房台面有水渍未擦净" }],
+      claims: [makeAcceptedClaim(wave.id)],
+    });
+    await act(async () => {
+      root.render(
+        <FulfillmentCenter
+          evidencePhotos={[{ photo: "cap-p1", aiNote: "水印存证 · 哈希 0a1b2c3d" }]}
+        />,
+      );
+    });
+    await act(async () => {
+      (container.querySelector('[data-action="open-dispute"]') as HTMLButtonElement).click();
+    });
+    const sheet = container.querySelector('[data-testid="arbitration-sheet"]');
+    expect(sheet).not.toBeNull();
+    // 动态诉求（来自 negotiableNote）
+    expect(sheet?.textContent).toContain("厨房台面有水渍未擦净");
+    // 动态金额驱动三级分流（400 → LEVEL_2 区间，退款按 30% 折算 120）
+    expect(sheet?.textContent).toContain("¥120");
+    // 动态存证照片透传
+    expect(sheet?.textContent).toContain("哈希 0a1b2c3d");
+    // 旧静态演示桩文案彻底消失
+    expect(sheet?.textContent).not.toContain("客厅角落仍有积灰");
+    expect(sheet?.textContent).not.toContain("迟到 25 分钟");
+    root.unmount();
+    container.remove();
+  });
+});
+
+describe("P1 动态仲裁金额与物证装配纯函数（确定性规则）", () => {
+  it("buildDisputeProposal：小额全额退（L1 区间），中额 30% 折算，照抄金额驱动分流", () => {
+    expect(buildDisputeProposal(20).refundAmount).toBe(20);
+    expect(buildDisputeProposal(400).refundAmount).toBe(120);
+    expect(buildDisputeProposal(600).refundAmount).toBe(180);
+    expect(buildDisputeProposal(0).refundAmount).toBe(0);
+  });
+
+  it("buildDisputeProposal：存证照片计数进入理由链", () => {
+    const p = buildDisputeProposal(400, 2);
+    expect(p.reasonChain.join("")).toContain("2 张水印存证照片");
+    expect(p.reasonChain.join("")).toContain("SHA-256");
+  });
+
+  it("buildDisputeEvidence：诉求/锚点来自真实 Wave 数据", () => {
+    const ev = buildDisputeEvidence({
+      basics: { category: "家政保洁", time: "明天 11:00", area: "幸福家园小区" },
+      budget: 200,
+      payAmount: 200,
+      negotiableNote: "客厅角落遗留灰尘",
+      customs: [{ text: "全屋除尘" }],
+    });
+    expect(ev.complaint).toContain("家政保洁 履约争议");
+    expect(ev.complaint).toContain("客厅角落遗留灰尘");
+    expect(ev.chatTranscript?.[0]).toContain("明天 11:00");
+    expect(ev.chatTranscript?.[1]).toContain("全屋除尘");
+  });
+
+  it("buildDisputeEvidence：无诉求备注时以金额兜底，无照片时照片槽为空", () => {
+    const ev = buildDisputeEvidence({
+      basics: { category: "羽毛球约局", time: "周六 16:00", area: "滨江公园" },
+      budget: 60,
+    });
+    expect(ev.complaint).toContain("¥60");
+    expect(ev.photos).toEqual([]);
   });
 });
 

@@ -11,6 +11,7 @@ import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
 import DialCard from "./DialCard";
 import ArbitrationSheet, {
   type ArbitrationEvidence,
+  type ArbitrationPhotoEvidence,
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
@@ -113,7 +114,12 @@ const CENTER_CSS = `
 `;
 
 /** Trip 屏履约座舱装配中心（无进行中单 → 不渲染）。 */
-export default function FulfillmentCenter() {
+export default function FulfillmentCenter({
+  evidencePhotos = [],
+}: {
+  /** 投诉方已上传的存证照片（AR 拍照存证 / 履约照片），动态透传进争议物证链。 */
+  evidencePhotos?: ArbitrationPhotoEvidence[];
+}) {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
   const fulfilment = useWaveStore((s) => s.fulfilment);
@@ -177,6 +183,19 @@ export default function FulfillmentCenter() {
     [activeWave],
   );
 
+  // P1：争议物证链真实化 —— 从当前活动 Wave（金额/诉求/存证照片）动态装配，
+  // 彻底拔除静态演示桩 DISPUTE_EVIDENCE / DISPUTE_PROPOSAL。
+  // （hooks 必须位于 early-return 之前，wave 为空时产出 null 由收窄分支容忍）
+  const disputeAmount = activeWave ? activeWave.budget : 0;
+  const disputeEvidence = useMemo(
+    () => (activeWave ? buildDisputeEvidence(activeWave, evidencePhotos) : null),
+    [activeWave, evidencePhotos],
+  );
+  const disputeProposal = useMemo(
+    () => (activeWave ? buildDisputeProposal(disputeAmount, evidencePhotos.length) : null),
+    [activeWave, disputeAmount, evidencePhotos.length],
+  );
+
   if (!activeWave || !currentState || !needsCockpit(currentState) || !scenario || !ammo) {
     return null;
   }
@@ -187,6 +206,8 @@ export default function FulfillmentCenter() {
   const ammoDef = ammo;
   const sc: CockpitScenario = scenario;
   const orderTotal = wave.budget + (hkQuote?.confirmed ? hkQuote.amountYuan : 0);
+  const dEvidence = disputeEvidence!;
+  const dProposal = disputeProposal!;
 
   // W5：核销 CTA 生产首次调用引擎（advanceLifecycle 真实跃迁）
   async function handleComplete() {
@@ -223,8 +244,8 @@ export default function FulfillmentCenter() {
       termination: {
         kind: "BREACH_SETTLED",
         payload: {
-          refundAmount: DISPUTE_PROPOSAL.refundAmount,
-          creditDeduct: DISPUTE_PROPOSAL.creditDeduct,
+          refundAmount: dProposal.refundAmount,
+          creditDeduct: dProposal.creditDeduct,
           ammoId: ammoDef.ammoId,
         },
       },
@@ -419,14 +440,15 @@ export default function FulfillmentCenter() {
         </div>
       )}
 
-      {/* W7：争议调解半屏抽屉 */}
+      {/* W7：争议调解半屏抽屉（P1：动态物证链 + 动态三级仲裁金额） */}
       <ArbitrationSheet
         open={disputeOpen}
         orderId={wave.id}
         ammoId={ammoDef.ammoId}
         currentState={currentState}
-        evidence={DISPUTE_EVIDENCE}
-        proposal={DISPUTE_PROPOSAL}
+        evidence={dEvidence}
+        proposal={dProposal}
+        disputeAmountYuan={disputeAmount}
         onAcceptProposal={() => void handleAcceptProposal()}
         onEscalateManual={handleEscalateManual}
         onClose={() => setDisputeOpen(false)}
@@ -435,31 +457,64 @@ export default function FulfillmentCenter() {
   );
 }
 
-/** 演示物证比对链（数据湖存证锚点语义）。 */
-const DISPUTE_EVIDENCE: ArbitrationEvidence = {
-  complaint: "保洁完工后客厅角落仍有积灰，且预约时段迟到 25 分钟，要求部分退款。",
-  providerStatement: "已按清单完成全屋保洁，角落为家具遮挡残留，可提供完工照片。",
-  photos: [
-    { photo: "work-done", aiNote: "检测到客厅角落存在除尘残留（置信度 0.87）" },
-    { photo: "work-done-2", aiNote: "其余区域清洁度合格（置信度 0.92）" },
-  ],
-  chatTranscript: [
-    "雇主 14:02：师傅大概几点到？",
-    "履约方 14:10：路上堵车，预计 14:35 到（实际 14:40 到达）",
-    "雇主 18:12：客厅角落灰尘没清理干净",
-  ],
-};
+/**
+ * P1：动态争议物证链装配（确定性规则，红线 1 —— AI 仅存在于 L2 Advisory）。
+ * 从当前活动 Wave 的真实数据派生：品类 + 金额 + 需求诉求（negotiableNote）+ 已上传存证照片。
+ */
+export function buildDisputeEvidence(
+  wave: {
+    basics: { category: string; time: string; area: string };
+    budget: number;
+    payAmount?: number;
+    negotiableNote?: string;
+    customs?: { text: string }[];
+  },
+  evidencePhotos: ArbitrationPhotoEvidence[] = [],
+): ArbitrationEvidence {
+  const category = wave.basics.category;
+  const amount = wave.payAmount ?? wave.budget;
+  const complaint = wave.negotiableNote?.trim()
+    ? `${category} 履约争议：${wave.negotiableNote.trim()}`
+    : `${category} 履约争议（订单金额 ¥${amount}）`;
+  const anchor = `需求约定 | ${wave.basics.time} · ${wave.basics.area} · 预算 ¥${wave.budget}`;
+  return {
+    complaint,
+    photos: evidencePhotos,
+    chatTranscript:
+      wave.customs && wave.customs.length > 0
+        ? [anchor, `验收标准 | ${wave.customs.slice(0, 3).map((c) => c.text).join("；")}`]
+        : [anchor],
+  };
+}
 
-/** 演示 AI 小法官建议卡（仅 Advisory，红线 1）。 */
-const DISPUTE_PROPOSAL: ArbitrationProposal = {
-  liability: "split",
-  liabilityNote: "迟到 + 局部清洁不达标由履约方承担，房屋整体完工度良好双方认可",
-  refundAmount: 60,
-  compensationCouponYuan: 20,
-  creditDeduct: 10,
-  reasonChain: [
-    "规则 R-1：预约迟到 >15 分钟 → 履约方担责（证据：聊天时间戳锚点）",
-    "规则 R-2：完工照片 AI 标注局部残留 → 按 8% 工费折算退款",
-    "规则 R-3：雇主无恶意索赔记录 → 平台补偿券安抚双方",
-  ],
-};
+/**
+ * P1：三级仲裁金额动态推导（确定性比例规则，红线 1）。
+ * 退款按订单金额比例折算，金额本身驱动 ArbitrationSheet 的 LEVEL_1/2/3 分流。
+ */
+export function buildDisputeProposal(
+  amountYuan: number,
+  evidencePhotoCount = 0,
+): ArbitrationProposal {
+  const safeAmount = Number.isFinite(amountYuan) && amountYuan > 0 ? amountYuan : 0;
+  // 小额（≤30）全额退还；其余按 30% 折算（最小 30 元），保证 L1 秒赔与 L2 建议的确定性分档
+  const refundAmount =
+    safeAmount <= 30 ? safeAmount : Math.max(30, Math.round(safeAmount * 0.3));
+  const refundPct = safeAmount > 0 ? Math.round((refundAmount / safeAmount) * 100) : 0;
+  return {
+    liability: "split",
+    liabilityNote:
+      safeAmount <= 0
+        ? "订单金额未录入，按双方陈述折衷认定"
+        : `订单金额 ¥${safeAmount}${evidencePhotoCount > 0 ? `，已上传 ${evidencePhotoCount} 张水印存证照片` : ""}，按履约瑕疵比例折算`,
+    refundAmount,
+    compensationCouponYuan: Math.max(10, Math.min(20, Math.round(safeAmount * 0.1))),
+    creditDeduct: 10,
+    reasonChain: [
+      `规则 R-1：争议金额 ¥${safeAmount} 已进入三级仲裁分流（订单资金处托管冻结）`,
+      `规则 R-2：按 ${refundPct}% 瑕疵比例折算退款 ¥${refundAmount}`,
+      evidencePhotoCount > 0
+        ? `规则 R-3：已上传 ${evidencePhotoCount} 张水印存证照片（SHA-256 指纹）纳入证据比对`
+        : "规则 R-3：暂无存证照片，以需求约定与聊天锚点评估",
+    ],
+  };
+}

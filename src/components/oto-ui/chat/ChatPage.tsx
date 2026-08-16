@@ -11,6 +11,9 @@ import type { ScoreBreakdown } from "@/base/dispatch/match";
 import VoiceBar from "@/components/oto-ui/VoiceBar";
 import { speak } from "@/base/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
+import { resolveAmmoIdForPublish } from "@/ammo/registry";
+import { toast } from "@/base/platform/toast";
 import { recommend, type SemMatch } from "@/base/ai/embed";
 import {
   parseVoiceIntent,
@@ -84,6 +87,8 @@ export default function ChatPage() {
   const listRef = useRef<HTMLDivElement>(null);
   const waves = useWaveStore((s) => s.waves);
   const askBi = useWaveStore((s) => s.askBi);
+  const createPendingWave = useWaveStore((s) => s.createPendingWave);
+  const payWave = useWaveStore((s) => s.payWave);
   const setScreen = useAppStore((s) => s.setScreen);
   // 语义推荐（ADR-0011，N3 接线）：输入时对活跃局做余弦相似推荐
   const [semHits, setSemHits] = useState<SemMatch[]>([]);
@@ -311,12 +316,77 @@ export default function ChatPage() {
       id: "success-" + booking.id,
       title: "预订成功",
       lines: [
-        ...lines.filter((l) => l.k !== "服务"),
+        ...lines,
         { k: "订单号", v: booking.id.slice(0, 8).toUpperCase() },
       ],
       price,
     };
     updateChatCards(msgId, [...(message?.cards ?? []), successCard]);
+  }
+
+  /**
+   * P1：AI 意图生成卡 → 真实弹药发单闭环。
+   * 复用 PublishSheet 同款 createPendingWave 校验链（风控/违禁/限流闸门），
+   * 人类点击【转为正式订单】即确认 → 随单资金托管（payWave capture）→ Wave 进入
+   * ACTIVE 广播，Home 顶栏 StatusCapsule 随之流转（human-in-the-loop，红线 1）。
+   */
+  function handleConvertToWave(
+    msgId: string,
+    lines: { k: string; v: string }[],
+    price: string,
+  ) {
+    const lineMap = Object.fromEntries(lines.map((l) => [l.k, l.v]));
+    const category = (lineMap["服务"] ?? "本地服务").trim();
+    const time = (lineMap["时段"] ?? "尽快").trim();
+    const area = (lineMap["地点"] ?? "AI 撮合确认").trim();
+    const budgetNum = parseInt(price.replace(/[^\d]/g, ""), 10);
+    const budget = Number.isFinite(budgetNum) && budgetNum > 0 ? budgetNum : 100;
+    const pending = createPendingWave({
+      authorId: useIdentityStore.getState().identity.id,
+      basics: { category, time, area, radiusKm: 5 },
+      budget,
+      customs: [],
+      negotiable: false,
+      capacity: 1,
+      payAmount: budget,
+      publishFee: 0,
+      expiresAt: Date.now() + 7_200_000,
+      hotness: 2,
+      ammoId: resolveAmmoIdForPublish(category),
+    });
+    if (!pending) {
+      toast("发布被拒：账号受限或内容命中风控，请到「安全中心」查看", "error");
+      return;
+    }
+    if (pending.blocked) {
+      const reason =
+        pending.blocked === "debt"
+          ? "你有未结清的 no-show 违约"
+          : pending.blocked === "roam"
+            ? "本设备命中高危多开风控"
+            : "反欺诈探针甄检到高危信号";
+      toast(`发布被拒：${reason}，请到「安全中心」处理`, "error");
+      return;
+    }
+    if (pending.removed) {
+      toast("内容命中违禁词，已转入平台审核", "error");
+      return;
+    }
+    const paid = payWave(pending.id);
+    if (!paid.ok) {
+      toast("资金托管失败，请稍后重试", "error");
+      return;
+    }
+    const message = chatMessages.find((m) => m.id === msgId);
+    const waveNo = pending.id.slice(0, 8).toUpperCase();
+    const converted = (message?.cards ?? []).map((c) =>
+      c.type === "success" && !c.lines.some((l) => l.k === "弹药单号")
+        ? { ...c, lines: [...c.lines, { k: "弹药单号", v: waveNo }] }
+        : c,
+    );
+    updateChatCards(msgId, converted);
+    toast(`📡 已转为正式弹药订单 · ${category} · ¥${budget}`, "success");
+    setScreen("home");
   }
 
   return (
@@ -367,6 +437,7 @@ export default function ChatPage() {
             isLatest={streaming && i === chatMessages.length - 1}
             onCardSelect={handleCardSelect}
             onBook={handleBook}
+            onConvertToWave={handleConvertToWave}
           />
         ))}
         {thinking && <ThinkingDot />}
@@ -462,11 +533,13 @@ function ChatBubble({
   isLatest = false,
   onCardSelect,
   onBook,
+  onConvertToWave,
 }: {
   message: ChatMessage;
   isLatest?: boolean;
   onCardSelect: (cardId: string) => void;
   onBook: (msgId: string, lines: { k: string; v: string }[], price: string) => void;
+  onConvertToWave: (msgId: string, lines: { k: string; v: string }[], price: string) => void;
 }) {
   const isUser = message.role === "user";
   return (
@@ -511,6 +584,7 @@ function ChatBubble({
           msgId={message.id}
           onCardSelect={onCardSelect}
           onBook={onBook}
+          onConvertToWave={onConvertToWave}
         />
       ))}
     </motion.div>
@@ -522,11 +596,13 @@ function GenCardView({
   msgId,
   onCardSelect,
   onBook,
+  onConvertToWave,
 }: {
   card: NonNullable<ChatMessage["cards"]>[number];
   msgId: string;
   onCardSelect: (cardId: string) => void;
   onBook: (msgId: string, lines: { k: string; v: string }[], price: string) => void;
+  onConvertToWave: (msgId: string, lines: { k: string; v: string }[], price: string) => void;
 }) {
   if (card.type === "timeslot") {
     return (
@@ -599,9 +675,25 @@ function GenCardView({
             {card.price}
           </span>
           {booked ? (
-            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30">
-              <Check size={12} /> 已预订
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30">
+                <Check size={12} /> 已预订
+              </span>
+              {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
+              {card.lines.some((l) => l.k === "弹药单号") ? (
+                <span className="text-[11px] font-bold text-brandCyan px-3 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/40">
+                  已转正式订单 ✅
+                </span>
+              ) : (
+                <button
+                  onClick={() => onConvertToWave(msgId, card.lines, card.price)}
+                  aria-label="转为正式订单"
+                  className="px-3.5 py-1.5 rounded-full btn-primary text-[11px] font-bold glow-purple-strong active:scale-95"
+                >
+                  📡 转为正式订单
+                </button>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}

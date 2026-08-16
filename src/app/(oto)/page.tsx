@@ -17,7 +17,6 @@ import EnvBadge from "@/components/oto-ui/EnvBadge";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { toast } from "@/base/platform/toast";
-import type { WatermarkResult } from "@/base/platform/watermark-canvas";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import DestinationCard from "@/components/oto-ui/destinations/DestinationCard";
@@ -27,6 +26,7 @@ import MyWaves from "@/components/waves/MyWaves";
 import SafetyKit from "@/components/waves/SafetyKit";
 import NotificationCenter from "@/components/waves/NotificationCenter";
 import FulfillmentCenter from "@/components/waves/FulfillmentCenter";
+import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import {
@@ -100,6 +100,8 @@ const listContainer = {
 export default function Home() {
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
+  // P1：AR 拍照存证证据链提升到根视图 —— 拍摄结果跨屏进入 Trip 履约争议物证链
+  const [proofShots, setProofShots] = useState<ArbitrationPhotoEvidence[]>([]);
 
   useEffect(() => {
     initLowPower();
@@ -137,8 +139,13 @@ export default function Home() {
           <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
             {screen === "home" && <HomePage />}
             {screen === "ai" && <ChatPage />}
-            {screen === "ar" && <ARPage />}
-            {screen === "trip" && <TripPage />}
+            {screen === "ar" && (
+              <ARPage
+                proofShots={proofShots}
+                onProofShot={(r) => setProofShots((prev) => [...prev, r])}
+              />
+            )}
+            {screen === "trip" && <TripPage proofShots={proofShots} />}
             {screen === "profile" && <ProfilePage onGoHome={() => setScreen("home")} />}
           </div>
         </motion.div>
@@ -571,7 +578,14 @@ const AR_SCENE_POINTS = [
   },
 ];
 
-function ARPage() {
+function ARPage({
+  proofShots,
+  onProofShot,
+}: {
+  /** 根视图提升的存证照片（跨屏供给 Trip 争议物证链）。 */
+  proofShots: ArbitrationPhotoEvidence[];
+  onProofShot: (shot: ArbitrationPhotoEvidence) => void;
+}) {
   const selectedExperience = useAppStore((s) => s.selectedExperience);
   const activeSwatch = useAppStore((s) => s.activeSwatch);
   const setActiveSwatch = useAppStore((s) => s.setActiveSwatch);
@@ -585,9 +599,8 @@ function ARPage() {
 
   const [mode, setMode] = useState<"scene" | "preview">("scene");
   const [activePoint, setActivePoint] = useState<null | (typeof AR_SCENE_POINTS)[number]>(null);
-  // P0 接电：4:3 存证水印相机模态 + 已捕获存证照片列表
+  // P0 接电：4:3 存证水印相机模态 + 已捕获存证照片列表（P1：提升到根视图跨屏传导）
   const [photoOpen, setPhotoOpen] = useState(false);
-  const [evidences, setEvidences] = useState<WatermarkResult[]>([]);
 
   const addedToCart = cart.includes(selectedExperience.id);
 
@@ -711,9 +724,9 @@ function ARPage() {
                 className="relative"
               >
                 <Camera size={14} />
-                {evidences.length > 0 && (
+                {proofShots.length > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
-                    {evidences.length}
+                    {proofShots.length}
                   </span>
                 )}
               </GlassIconButton>
@@ -882,16 +895,19 @@ function ARPage() {
                 ✕
               </button>
             </div>
-            {evidences.length > 0 && (
+            {proofShots.length > 0 && (
               <p className="text-[10px] text-emerald-300/80 mb-2">
-                ✅ 当前已存证 {evidences.length} 张（含水印 + SHA-256 指纹）
+                ✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）
               </p>
             )}
             <ProofCamera
               orderNo={`AR-${selectedExperience.id}-${Date.now().toString(36)}`}
               geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }}
               onCaptured={(result) => {
-                setEvidences((prev) => [...prev, result]);
+                onProofShot({
+                  photo: result.dataUrl,
+                  aiNote: `水印存证 · 时间地点注入 · 哈希 ${result.sha256.slice(0, 8)}`,
+                });
                 setPhotoOpen(false);
                 toast(
                   "✅ 存证照片已生成 · 时间地点水印 + 哈希指纹已记录",
@@ -907,7 +923,7 @@ function ARPage() {
 }
 
 /* ============================ TRIP ============================ */
-function TripPage() {
+function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[] }) {
   const tabs = ["行程", "AR 指南", "地图视图", "分享行程"];
   const [activeTab, setActiveTab] = useState("行程");
   const [shareCopied, setShareCopied] = useState(false);
@@ -935,7 +951,7 @@ function TripPage() {
   return (
     <div className="pointer-events-auto">
       {/* W3 总装：进行中订单（MATCHED / IN_SERVICE / INSPECTED）→ 顶部主视口优先渲染履约座舱 */}
-      <FulfillmentCenter />
+      <FulfillmentCenter evidencePhotos={proofShots} />
 
       {/* 我的需求：需求方视角（信号波 + 接单 + 磋商 + 违约） */}
       <MyWaves />
