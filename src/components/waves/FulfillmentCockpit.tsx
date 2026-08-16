@@ -52,6 +52,9 @@ export interface FulfillmentCockpitProps {
   onTriggerFakeCall?: () => void;
   onAcceptQuote?: () => void;
   onConfirmSplit?: () => void;
+  /** P0 接电：服务者卡通讯按钮真实回调（一键虚拟通话 / 隐私聊天）。 */
+  onDial?: () => void;
+  onChat?: () => void;
   /** 底部物理核销 CTA（三场景特化）。 */
   onComplete?: () => void;
   /** S3 SAFE_MONITOR 实时安全报告（缺省 = 不渲染安全守护徽标）。 */
@@ -144,6 +147,8 @@ export default function FulfillmentCockpit({
   onTriggerFakeCall,
   onAcceptQuote,
   onConfirmSplit,
+  onDial,
+  onChat,
   onComplete,
   safetyReport,
   housekeepingCap,
@@ -195,10 +200,10 @@ export default function FulfillmentCockpit({
           </span>
         </div>
         <div className="cockpit-actions">
-          <button type="button" className="cockpit-pill" aria-label="一键虚拟通话">
+          <button type="button" className="cockpit-pill" aria-label="一键虚拟通话" data-action="dial" onClick={onDial}>
             📞
           </button>
-          <button type="button" className="cockpit-pill" aria-label="隐私聊天">
+          <button type="button" className="cockpit-pill" aria-label="隐私聊天" data-action="chat" onClick={onChat}>
             💬
           </button>
         </div>

@@ -35,9 +35,14 @@ describe("W1 接线：发布链路弹药标识解析（resolveAmmoIdForPublish�
     expect(resolveAmmoIdForPublish("dating")).toBe("meetup-social-v1");
   });
 
+  it("摄影/约拍类目 → companion-v1（P0 约拍映射补齐，防错装组局插槽）", () => {
+    expect(CATEGORY_TO_OFFICIAL["摄影师约拍"]).toBe("companion");
+    expect(CATEGORY_TO_OFFICIAL["约拍"]).toBe("companion");
+    expect(resolveAmmoIdForPublish("摄影师约拍")).toBe("companion-v1");
+    expect(resolveAmmoIdForPublish("约拍")).toBe("companion-v1");
+  });
+
   it("未归一化类目 → 聚合弹药 ammoId（保留类目名，非官方）", () => {
-    expect(CATEGORY_TO_OFFICIAL["摄影师约拍"]).toBeUndefined();
-    expect(resolveAmmoIdForPublish("摄影师约拍")).toBe("摄影师约拍");
     expect(resolveAmmoIdForPublish("不存在类目")).toBe("default-ammo");
   });
 

@@ -11,10 +11,13 @@ import OtoBadge from "@/components/oto-ui/OtoBadge";
 import CategoryPill from "@/components/oto-ui/CategoryPill";
 import SearchBar from "@/components/oto-ui/SearchBar";
 import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
+import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { toAtomicFiveState } from "@/base/ammo/runner";
+import { toast } from "@/base/platform/toast";
+import type { WatermarkResult } from "@/base/platform/watermark-canvas";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import DestinationCard from "@/components/oto-ui/destinations/DestinationCard";
@@ -227,7 +230,18 @@ function HomePage() {
             status={activeFiveState}
             options={{
               isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
-              onSosClick: undefined,
+              // P0 接电：SOS 一键报警 → 危机应急预案（级别 3 极端紧急，EPA 三通道通知）
+              onSosClick: () => {
+                useWaveStore
+                  .getState()
+                  .raiseCrisis({
+                    level: 3,
+                    note: "首页顶栏 SOS 一键报警（紧急求助）",
+                    waveId: activeWave.id,
+                    contacts: [],
+                  });
+                toast("🚨 SOS 已上报 · 已通知紧急联系人/平台值班/警方通道", "success");
+              },
             }}
           />
         </div>
@@ -571,6 +585,9 @@ function ARPage() {
 
   const [mode, setMode] = useState<"scene" | "preview">("scene");
   const [activePoint, setActivePoint] = useState<null | (typeof AR_SCENE_POINTS)[number]>(null);
+  // P0 接电：4:3 存证水印相机模态 + 已捕获存证照片列表
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [evidences, setEvidences] = useState<WatermarkResult[]>([]);
 
   const addedToCart = cart.includes(selectedExperience.id);
 
@@ -687,8 +704,18 @@ function ARPage() {
               <GlassIconButton size="sm" aria-label="查看详情" onClick={toggleShowInfo}>
                 <Info size={14} />
               </GlassIconButton>
-              <GlassIconButton size="sm" aria-label="拍照留影">
+              <GlassIconButton
+                size="sm"
+                aria-label="拍照存证"
+                onClick={() => setPhotoOpen(true)}
+                className="relative"
+              >
                 <Camera size={14} />
+                {evidences.length > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
+                    {evidences.length}
+                  </span>
+                )}
               </GlassIconButton>
             </div>
           </>
@@ -826,6 +853,55 @@ function ARPage() {
           </>
         )}
       </div>
+
+      {/* P0 接电：4:3 存证水印相机模态（拍照 → 水印+哈希指纹 → 本地存证列表） */}
+      {photoOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setPhotoOpen(false)}
+          />
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
+                <Camera size={13} className="text-brandCyan" /> 拍照存证 · 时间地点水印
+              </h3>
+              <button
+                onClick={() => setPhotoOpen(false)}
+                aria-label="关闭相机"
+                className="text-white/40 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            {evidences.length > 0 && (
+              <p className="text-[10px] text-emerald-300/80 mb-2">
+                ✅ 当前已存证 {evidences.length} 张（含水印 + SHA-256 指纹）
+              </p>
+            )}
+            <ProofCamera
+              orderNo={`AR-${selectedExperience.id}-${Date.now().toString(36)}`}
+              geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }}
+              onCaptured={(result) => {
+                setEvidences((prev) => [...prev, result]);
+                setPhotoOpen(false);
+                toast(
+                  "✅ 存证照片已生成 · 时间地点水印 + 哈希指纹已记录",
+                  "success"
+                );
+              }}
+            />
+          </motion.div>
+        </>
+      )}
     </div>
   );
 }
@@ -1045,7 +1121,14 @@ function TripPage() {
                   </div>
                 ))}
               {sortedActivities.map((act) => (
-                <ActivityRow key={act.id} activity={act} />
+                <ActivityRow
+                  key={act.id}
+                  activity={act}
+                  onNavigate={() => {
+                    setActiveTab("地图视图");
+                    toast(`🧭 已规划导航路线 · 下一站 ${act.title}（${act.location}）`, "success");
+                  }}
+                />
               ))}
             </div>
           </div>
@@ -1152,7 +1235,13 @@ function TripPage() {
   );
 }
 
-function ActivityRow({ activity }: { activity: OTOActivity }) {
+function ActivityRow({
+  activity,
+  onNavigate,
+}: {
+  activity: OTOActivity;
+  onNavigate?: () => void;
+}) {
   return (
     <div className="flex items-start gap-3">
       {/* 时间线节点 */}
@@ -1175,7 +1264,10 @@ function ActivityRow({ activity }: { activity: OTOActivity }) {
         <h4 className="text-xs font-bold mt-1.5 truncate">{activity.title}</h4>
         <p className="text-[10px] text-white/50 truncate">{activity.subtitle}</p>
         <div className="flex items-center gap-2 mt-2">
-          <button className="flex items-center gap-1 px-2.5 min-h-8 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold hover:bg-brandCyan/10 transition-colors">
+          <button
+            onClick={onNavigate}
+            className="flex items-center gap-1 px-2.5 min-h-8 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold hover:bg-brandCyan/10 transition-colors"
+          >
             <Navigation size={10} /> 导航
           </button>
           <span className="text-[10px] text-white/40">{activity.location}</span>

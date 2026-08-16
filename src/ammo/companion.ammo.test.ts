@@ -336,10 +336,12 @@ test("注册表：companion/dating/escort 全键解析到 companion-v1", () => {
   }
 });
 
-test("注册表：中文品类归一化 → companion-v1（陪玩/交友/约会）", () => {
+test("注册表：中文品类归一化 → companion-v1（陪玩/交友/约会/约拍）", () => {
   assert.equal(resolveAmmoIdForPublish("陪玩"), "companion-v1");
   assert.equal(resolveAmmoIdForPublish("交友"), "companion-v1");
   assert.equal(resolveAmmoIdForPublish("约会"), "companion-v1");
+  assert.equal(resolveAmmoIdForPublish("摄影师约拍"), "companion-v1");
+  assert.equal(resolveAmmoIdForPublish("约拍"), "companion-v1");
 });
 
 test("注册表：三大标杆弹药大满贯（家政/组局/陪玩全品类覆盖）", () => {

@@ -8,10 +8,12 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
+import DialCard from "./DialCard";
 import ArbitrationSheet, {
   type ArbitrationEvidence,
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
+import { toast } from "@/base/platform/toast";
 import type { HousekeepingQuote } from "./slots/HousekeepingSlot";
 import type { MeetupSeat } from "./slots/MeetupSlot";
 
@@ -116,6 +118,7 @@ export default function FulfillmentCenter() {
   const claims = useWaveStore((s) => s.claims);
   const fulfilment = useWaveStore((s) => s.fulfilment);
   const setFulfilment = useWaveStore((s) => s.setFulfilment);
+  const raiseCrisis = useWaveStore((s) => s.raiseCrisis);
   const identity = useIdentityStore((s) => s.identity);
 
   // W3：当前用户进行中 Wave（投影三态可挂载）
@@ -163,6 +166,8 @@ export default function FulfillmentCenter() {
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [escalated, setEscalated] = useState(false);
   const [transitError, setTransitError] = useState<string | null>(null);
+  /** P0 接电：📞 一键虚拟通话弹层（DialCard 一次性线路）。 */
+  const [dialOpen, setDialOpen] = useState(false);
 
   const scenario: CockpitScenario | null = activeWave
     ? resolveCockpitScenario(activeWave)
@@ -267,6 +272,11 @@ export default function FulfillmentCenter() {
         capsule={{
           isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
           distanceMeters: scenario === "meetup" ? 500 : scenario === "companion" ? 300 : undefined,
+          // P0 接电：SOS 一键报警 → 危机应急预案（级别 3 极端紧急，EPA 三通道通知）
+          onSosClick: () => {
+            raiseCrisis({ level: 3, note: "履约座舱 SOS 一键报警（紧急求助）", waveId: wave.id, contacts: [] });
+            toast("🚨 SOS 已上报 · 已通知紧急联系人/平台值班/警方通道", "success");
+          },
         }}
         provider={provider}
         housekeeping={{
@@ -301,6 +311,10 @@ export default function FulfillmentCenter() {
           isPrivacyShieldArmed: true,
           onTriggerFakeCall: () => setFakeCallOpen(true),
           onBlockUser: () => setDisputeOpen(true),
+        }}
+        onDial={() => setDialOpen(true)}
+        onChat={() => {
+          toast("💬 隐私聊天已开启 · 双方脱敏直连（虚拟号保护）", "success");
         }}
         onComplete={() => void handleComplete()}
       />
@@ -374,6 +388,33 @@ export default function FulfillmentCenter() {
             >
               挂断
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* P0 接电：📞 一键虚拟通话弹层（Deterministic 一次性线路，30min 失效） */}
+      {dialOpen && (
+        <div className="fc-call-mask" data-testid="dial-overlay">
+          <div className="glass-panel rounded-3xl p-4 w-[320px] max-w-[92vw]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-extrabold text-white/85">
+                📞 一键虚拟通话
+              </span>
+              <button
+                type="button"
+                aria-label="关闭虚拟通话"
+                onClick={() => setDialOpen(false)}
+                className="text-white/40 hover:text-white text-[13px]"
+              >
+                ✕
+              </button>
+            </div>
+            <DialCard
+              waveId={wave.id}
+              responderId={activeClaim?.responderId ?? "unknown"}
+              demanderId={wave.authorId}
+              lockedAt={wave.createdAt}
+            />
           </div>
         </div>
       )}

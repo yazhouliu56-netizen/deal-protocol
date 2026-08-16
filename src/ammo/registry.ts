@@ -106,6 +106,9 @@ export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
   陪玩: "companion",
   交友: "companion",
   约会: "companion",
+  "摄影师约拍": "companion",
+  约拍: "companion",
+  摄影: "companion",
 };
 
 /** 四表任一命中即视为已配置类目（如「羽毛球」仅 SOP 表登记也算）。 */

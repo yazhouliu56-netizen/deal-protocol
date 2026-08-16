@@ -240,4 +240,36 @@ describe("FulfillmentCockpit 事件回调", () => {
     await clickAction({ ...BASE_PROPS, onComplete: complete }, "complete");
     expect(complete).toHaveBeenCalledTimes(1);
   });
+
+  it("P0 接电：📞 一键虚拟通话触发 onDial", async () => {
+    const dial = vi.fn();
+    await clickAction({ ...BASE_PROPS, onDial: dial }, "dial");
+    expect(dial).toHaveBeenCalledTimes(1);
+  });
+
+  it("P0 接电：💬 隐私聊天触发 onChat", async () => {
+    const chat = vi.fn();
+    await clickAction({ ...BASE_PROPS, onChat: chat }, "chat");
+    expect(chat).toHaveBeenCalledTimes(1);
+  });
+
+  it("P0 接电：SOS 外骨骼胶囊点击触发 onSosClick", async () => {
+    const sos = vi.fn();
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <FulfillmentCockpit {...BASE_PROPS} capsule={{ onSosClick: sos }} />,
+      );
+    });
+    const btn = container.querySelector<HTMLButtonElement>('button[aria-label="SOS 紧急求助"]');
+    expect(btn).not.toBeNull();
+    await act(async () => {
+      btn!.click();
+    });
+    expect(sos).toHaveBeenCalledTimes(1);
+    root.unmount();
+    container.remove();
+  });
 });
