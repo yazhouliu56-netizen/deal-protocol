@@ -181,7 +181,14 @@ export type SensorKind =
   | "GPS_GEOFENCE" // LBS 电子围栏（到点解锁）
   | "WATERMARK_CAMERA" // 水印相机（时空防伪存证）
   | "NFC_BUMP" // 碰碰核销（完工打卡）
-  | "REAL_TIME_AUDIO"; // 实时录音（留证/危机联动）
+  | "REAL_TIME_AUDIO" // 实时录音（留证/危机联动）
+  // 降级阶梯备用位（人类创始人裁决 2026-08-16：三大标杆弹药 8D 全息化
+  // 增补；只作传感器失效时的逐级回退位，非独立主传感器）
+  | "CELL_TOWER_COARSE_GEO" // 基站粗定位（GPS 围栏失效回退）
+  | "MANUAL_BASE_PHOTO_AUDIT" // 人工照片审核兜底（定位不可用）
+  | "HTML5_NATIVE_FALLBACK" // 原生摄像头兜底（水印相机不可用）
+  | "QR_SCAN_VERIFICATION" // 扫码核验（NFC/围栏失效回退）
+  | "PROXIMITY_DEPARTURE_MANUAL_CHECK"; // 离开人工确认（近炸停表兜底）
 
 /**
  * 传感降级阶梯（宪法 #10：降级是设计的一部分）：

@@ -9,12 +9,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   COMPANION_DEPARTURE_METERS,
+  COMPANION_HOLOGRAPHIC_CONFIG,
   COMPANION_HOURLY_RATE,
   COMPANION_MIN_HOURS,
   COMPANION_OVERTIME_RATE,
   COMPANION_SAFETY_GATES,
-  DEPARTURE_FINISH_HOOK_ID,
-  PRIVACY_SHIELD_HOOK_ID,
   companionAmmo,
   departureFinishHook,
   privacyShieldHook,
@@ -48,8 +47,8 @@ test("弹药装备完整性：companion-v1 声明式装填无误", () => {
   assert.equal(companionAmmo.fuzePolicy.fuzeTypes.length, 1);
   assert.deepEqual(companionAmmo.fuzePolicy.fuzeTypes, ["PROXIMITY"]);
   assert.equal(companionAmmo.fiveStateHooks.length, 2);
-  assert.ok(companionAmmo.fiveStateHooks.includes(privacyShieldHook));
-  assert.ok(companionAmmo.fiveStateHooks.includes(departureFinishHook));
+  assert.ok(companionAmmo.fiveStateHooks.some((h) => h.hookId === "operator.privacy-shield"));
+  assert.ok(companionAmmo.fiveStateHooks.some((h) => h.hookId === "operator.departure-finish"));
   assert.equal(companionAmmo.sop?.capacityDefault, 1);
   assert.equal(companionAmmo.sop?.depositDefault, false);
   assert.equal(companionAmmo.dispatchRule?.weights.credit, 40);
@@ -58,6 +57,37 @@ test("弹药装备完整性：companion-v1 声明式装填无误", () => {
     "交友",
     "约会",
   ]);
+});
+
+test("8D 全息出厂：D1 准入 / D2 计价护栏 / D4 传感降级 / D6 违约阶梯 / D7 分账守恒 / D8 视界", () => {
+  const c = COMPANION_HOLOGRAPHIC_CONFIG;
+  assert.equal(c.supplyCluster, "C1_MOBILITY");
+  assert.equal(c.workerRequirement?.requiredIdentityLevel, "REAL_NAME");
+  assert.equal(c.workerRequirement?.minSafetyScore, 65);
+  assert.deepEqual(c.pricingParams, {
+    baseRate: COMPANION_HOURLY_RATE,
+    minHours: COMPANION_MIN_HOURS,
+    overtimeMultiplier: COMPANION_OVERTIME_RATE,
+  });
+  assert.equal(c.minFloorPrice, 10000);
+  assert.equal(c.maxCeilingPrice, 300000);
+  assert.deepEqual(c.requiredSensors, ["GPS_GEOFENCE", "REAL_TIME_AUDIO"]);
+  assert.deepEqual(c.sensorFallbackLadder?.GPS_GEOFENCE, [
+    "PROXIMITY_DEPARTURE_MANUAL_CHECK",
+  ]);
+  assert.deepEqual(c.forwardHooks, ["PrivacyShieldHook", "DepartureFinishHook"]);
+  assert.equal(c.cancellationTiers?.length, 2);
+  assert.deepEqual(c.cancellationTiers?.[1], {
+    stage: "AFTER_MATCH_EN_ROUTE",
+    demanderRefundRatio: 0.85,
+    providerCompensationYuan: 0,
+    deductDepositRatio: 0.15,
+  });
+  assert.equal(c.autoAcceptanceTimeoutHours, 2);
+  assert.equal(c.splitRules?.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
+  assert.equal(c.theme, "companion");
+  assert.equal(c.cockpitSlot, "CompanionSlot");
+  assert.equal(companionAmmo.holographic, COMPANION_HOLOGRAPHIC_CONFIG);
 });
 
 test("领域常量：¥100/h 起步 1h / 超时 ×1.2 / 离开 300m / 隐私盾三闸", () => {
@@ -108,44 +138,51 @@ test("隐私盾钩子：无载荷 → BLOCK 阻止进入服务", async () => {
   });
   assert.equal(r.ok, false);
   assert.equal(r.state, "MATCHED");
-  assert.ok(r.reason?.includes("privacy-shield-required"));
+  assert.ok(r.reason?.includes("privacy-shield-not-armed"));
 });
 
-test("隐私盾钩子：三闸部分未就绪 → BLOCK 并列出缺项闸名", async () => {
+test("隐私盾钩子：盾未就绪 → BLOCK（算子契约 shieldArmed）", async () => {
   const r = await advanceLifecycle({
     ammo: companionAmmo,
+    orderId: "cp-2",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: { privacy: { shieldArmed: false } },
+  });
+  assert.equal(r.ok, false);
+  assert.equal(r.state, "MATCHED");
+  assert.ok(r.reason?.includes("privacy-shield-not-armed"));
+});
+
+test("隐私盾钩子：盾就绪 → 放行（算子契约透传）", async () => {
+  const r = await advanceLifecycle({
+    ammo: companionAmmo,
+    orderId: "cp-3",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: { privacy: { shieldArmed: true } },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "IN_SERVICE");
+  assert.equal(r.hookOutcomes.length, 1);
+  assert.equal(r.hookOutcomes[0].hookId, "operator.privacy-shield");
+  assert.equal(r.hookOutcomes[0].ok, true);
+  assert.equal(r.hookOutcomes[0].fallbackUsed, "NONE");
+});
+
+test("富钩子直测：隐私盾三闸部分未就绪 → 列出缺项闸名", () => {
+  const r = privacyShieldHook.run({
+    ammoId: companionAmmo.ammoId,
     orderId: "cp-2",
     from: "MATCHED",
     to: "IN_SERVICE",
     payload: {
       privacyShield: { virtualNumberBound: true, journeyGuardArmed: false },
     },
-  });
+  }) as { ok: boolean; reason?: string };
   assert.equal(r.ok, false);
-  assert.equal(r.state, "MATCHED");
   assert.ok(r.reason?.includes("journeyGuardArmed"));
-});
-
-test("隐私盾钩子：三闸全就绪 → 放行并透传武装确认", async () => {
-  const r = await advanceLifecycle({
-    ammo: companionAmmo,
-    orderId: "cp-3",
-    from: "MATCHED",
-    to: "IN_SERVICE",
-    payload: {
-      privacyShield: {
-        virtualNumberBound: true,
-        journeyGuardArmed: true,
-        sensitiveWordListening: true,
-      },
-    },
-  });
-  assert.equal(r.ok, true);
-  assert.equal(r.state, "IN_SERVICE");
-  assert.equal(r.hookOutcomes.length, 1);
-  assert.equal(r.hookOutcomes[0].hookId, PRIVACY_SHIELD_HOOK_ID);
-  assert.equal(r.hookOutcomes[0].ok, true);
-  assert.equal(r.hookOutcomes[0].fallbackUsed, "NONE");
+  assert.ok(r.reason?.includes("sensitiveWordListening"));
 });
 
 /* =====================================================================
@@ -154,27 +191,25 @@ test("隐私盾钩子：三闸全就绪 → 放行并透传武装确认", async 
 
 const NOW = 1_800_000_000_000;
 
-test("离开停表钩子：距离 < 300m → 记不满足（AFTER 不阻断终局）", async () => {
-  const r = await advanceLifecycle({
-    ammo: companionAmmo,
+test("富钩子直测：离开停表——距离 < 300m → 记不满足（AFTER 不阻断终局）", () => {
+  const r = departureFinishHook.run({
+    ammoId: companionAmmo.ammoId,
     orderId: "cp-4",
     from: "INSPECTED",
     to: "SETTLED",
     now: NOW,
     payload: {
+      at: NOW,
       departure: { distanceMeters: 120, startedAt: NOW - 90 * 60_000 },
     },
-  });
-  assert.equal(r.ok, true);
-  assert.equal(r.state, "SETTLED");
-  assert.equal(r.hookOutcomes.length, 1);
-  assert.equal(r.hookOutcomes[0].ok, false);
-  assert.ok(r.hookOutcomes[0].reason?.includes("departure-within-safe-radius"));
+  }) as { ok: boolean; reason?: string };
+  assert.equal(r.ok, false);
+  assert.ok(r.reason?.includes("departure-within-safe-radius"));
 });
 
-test("离开停表钩子：≥300m 自动结账停表（1h 内按时薪，超出 ×1.2）", async () => {
-  const r = await advanceLifecycle({
-    ammo: companionAmmo,
+test("富钩子直测：离开停表——≥300m 自动结账停表（1h 内按时薪）", () => {
+  const r = departureFinishHook.run({
+    ammoId: companionAmmo.ammoId,
     orderId: "cp-5",
     from: "INSPECTED",
     to: "SETTLED",
@@ -186,23 +221,16 @@ test("离开停表钩子：≥300m 自动结账停表（1h 内按时薪，超出
         startedAt: NOW - 45 * 60_000,
       },
     },
-  });
+  }) as { ok: boolean; data?: { elapsedMinutes?: number; billedYuan?: number; rateYuan?: number; credit?: { bonus?: number } } };
   assert.equal(r.ok, true);
-  assert.equal(r.state, "SETTLED");
-  const settle = r.afterData[0] as {
-    elapsedMinutes?: number;
-    billedYuan?: number;
-    rateYuan?: number;
-    credit?: { bonus?: number };
-  };
-  assert.equal(settle.elapsedMinutes, 45);
-  assert.equal(settle.billedYuan, 100);
-  assert.equal(settle.credit?.bonus, 5);
+  assert.equal(r.data?.elapsedMinutes, 45);
+  assert.equal(r.data?.billedYuan, 100);
+  assert.equal(r.data?.credit?.bonus, 5);
 });
 
-test("离开停表钩子：超时 2.5h → 起步 1h + 超出 1.5h ×1.2（100 + 180 = 280）", async () => {
-  const r = await advanceLifecycle({
-    ammo: companionAmmo,
+test("富钩子直测：离开停表——超时 2.5h → 起步 1h + 超出 1.5h ×1.2（100 + 180 = 280）", () => {
+  const r = departureFinishHook.run({
+    ammoId: companionAmmo.ammoId,
     orderId: "cp-6",
     from: "INSPECTED",
     to: "SETTLED",
@@ -214,26 +242,22 @@ test("离开停表钩子：超时 2.5h → 起步 1h + 超出 1.5h ×1.2（100 +
         startedAt: NOW - 150 * 60_000,
       },
     },
-  });
+  }) as { ok: boolean; data?: { elapsedMinutes?: number; billedYuan?: number } };
   assert.equal(r.ok, true);
-  const settle = r.afterData[0] as { elapsedMinutes?: number; billedYuan?: number };
-  assert.equal(settle.elapsedMinutes, 150);
-  assert.equal(settle.billedYuan, 280);
+  assert.equal(r.data?.elapsedMinutes, 150);
+  assert.equal(r.data?.billedYuan, 280);
 });
 
-test("离开停表钩子：缺载荷 → 记 reason（SKIP 降级不阻塞）", async () => {
-  const r = await advanceLifecycle({
-    ammo: companionAmmo,
+test("富钩子直测：离开停表——缺载荷 → 记 reason（SKIP 降级不阻塞）", () => {
+  const r = departureFinishHook.run({
+    ammoId: companionAmmo.ammoId,
     orderId: "cp-7",
     from: "INSPECTED",
     to: "SETTLED",
     now: NOW,
-  });
-  assert.equal(r.ok, true);
-  assert.equal(r.state, "SETTLED");
-  assert.equal(r.hookOutcomes[0].ok, false);
-  assert.equal(r.hookOutcomes[0].reason, "departure-data-required");
-  assert.equal(r.hookOutcomes[0].fallbackUsed, "SKIP");
+  }) as { ok: boolean; reason?: string };
+  assert.equal(r.ok, false);
+  assert.equal(r.reason, "departure-data-required");
 });
 
 /* =====================================================================
@@ -259,11 +283,7 @@ test("全流程：发布→匹配→隐私盾挂载→服务→验收→300m 离
     to: "IN_SERVICE",
     now: NOW - 2 * 3600_000,
     payload: {
-      privacyShield: {
-        virtualNumberBound: true,
-        journeyGuardArmed: true,
-        sensitiveWordListening: true,
-      },
+      privacy: { shieldArmed: true },
     },
   });
   assert.equal(inService.ok, true);
@@ -275,9 +295,14 @@ test("全流程：发布→匹配→隐私盾挂载→服务→验收→300m 离
     from: "IN_SERVICE",
     to: "INSPECTED",
     now: NOW - 30 * 60_000,
+    payload: {
+      departure: { confirmed: true },
+    },
   });
   assert.equal(inspected.ok, true);
   assert.equal(inspected.state, "INSPECTED");
+  assert.equal(inspected.hookOutcomes[0].hookId, "operator.departure-finish");
+  assert.equal(inspected.hookOutcomes[0].ok, true);
 
   const settled = await advanceLifecycle({
     ammo: companionAmmo,
@@ -285,22 +310,11 @@ test("全流程：发布→匹配→隐私盾挂载→服务→验收→300m 离
     from: "INSPECTED",
     to: "SETTLED",
     now: NOW,
-    payload: {
-      at: NOW,
-      departure: {
-        distanceMeters: 520,
-        startedAt: NOW - 2 * 3600_000,
-      },
-    },
   });
   assert.equal(settled.ok, true);
   assert.equal(settled.state, "SETTLED");
-  assert.equal(settled.hookOutcomes.length, 1);
-  assert.equal(settled.hookOutcomes[0].hookId, DEPARTURE_FINISH_HOOK_ID);
-  const settle = settled.afterData[0] as { billedYuan?: number; elapsedMinutes?: number };
-  // 2h = 起步 1h(100) + 超出 1h ×1.2(120) = 220
-  assert.equal(settle.billedYuan, 220);
-  assert.equal(settle.elapsedMinutes, 120);
+  // 300m 停表计费语义由富钩子 departureFinishHook 直测覆盖（算子为精简签退契约）
+  assert.equal(settled.hookOutcomes.length, 0);
 });
 
 test("骚扰违约终止：BREACH_SETTLED 载荷强制流转 SETTLED（隔离墙语义）", async () => {

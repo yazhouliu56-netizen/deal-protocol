@@ -24,7 +24,15 @@ import type {
   ISubEventHook,
   ISubEventResult,
 } from "../types/ammo-schema.ts";
-import { DYNAMIC_AMMO_POOL } from "./registry.ts";
+
+/* =====================================================================
+ * 运行时动态弹药池（人类创始人裁决 2026-08-16 · 循环依赖治理）：
+ * 本池定义在装配层（AmmoFactory）而非 registry——打断「factory → registry
+ * → ammo → factory」ESM 循环依赖（TDZ 崩溃根因），依赖图收敛为无环 DAG：
+ * factory → types；ammo → factory；registry → factory + ammo（宪法 #3
+ * 单向依赖）。registry.ts 自此文件 re-export 本池，既有消费方导入面不变。
+ * ===================================================================== */
+export const DYNAMIC_AMMO_POOL: Map<string, IAmmoDefinition> = new Map();
 
 /* =====================================================================
  * 红线 1 · 静态安全白名单算子注册表（HOOK_OPERATOR_REGISTRY）

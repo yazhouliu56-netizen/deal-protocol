@@ -32,12 +32,15 @@ import { companionAmmo } from "./companion.ammo.ts";
 const hasKey = (table: Record<string, unknown>, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(table, key);
 
+import { DYNAMIC_AMMO_POOL } from "./factory.ts";
 /**
  * 运行时动态弹药池（AmmoFactory 热注册写入位）：
  * Map<category, IAmmoDefinition>，工厂 `registerDynamicAmmo` 把审查通过、
  * 全图冻结的弹药注入本池；检索链路动态池优先（见 getAmmoDefinition）。
+ * 本池定义在装配层 factory.ts（循环依赖治理，见 factory.ts 头部说明），
+ * 此处 import + re-export 保持既有消费方（getAmmoDefinition / factory.test.ts）导入面不变。
  */
-export const DYNAMIC_AMMO_POOL: Map<string, IAmmoDefinition> = new Map();
+export { DYNAMIC_AMMO_POOL };
 
 /** 计价模型投影：有时薪档 → HOURLY（首档时薪）；否则 FIXED（起步价/地板价）。 */
 export function toPricingModel(formula: PricingFormula): PricingModel {
@@ -91,6 +94,9 @@ export const DEFAULT_AMMO: IAmmoDefinition = {
  *   housekeeping-v1（💥 碰炸）/ meetup-social-v1（⏳延期 + 📡近炸）/
  *   companion-v1（纯 📡 近炸）；dating / escort 同人风险类目归 companion。
  * 命中即整弹返回（含声明式钩子），不再走散装表聚合。
+ * 注：三枚弹药均已按 8 维全息配置（IHolographicAmmoConfig）经 AmmoFactory
+ *   assembleAmmo 流水线静态审查出厂（模块加载期强制门禁，详见各弹药文件），
+ *   本表直挂其出厂产物；动态弹药经 DYNAMIC_AMMO_POOL 热注册优先命中。
  */
 export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
   housekeeping: housekeepingAmmo,

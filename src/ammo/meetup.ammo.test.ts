@@ -12,6 +12,7 @@ import {
   ARRIVAL_CHECK_HOOK_ID,
   MEETUP_DUAL_FUZE,
   MEETUP_EVIDENCE,
+  MEETUP_HOLOGRAPHIC_CONFIG,
   MEETUP_REFUND_RULES,
   MEETUP_STAGES,
   aaSplitSettleHook,
@@ -42,8 +43,32 @@ test("弹药装备完整性：meetup-social-v1 声明式装填无误", () => {
   assert.equal(meetupAmmo.sop?.buffSeats, 1);
   assert.equal(meetupAmmo.dispatchRule?.weights.credit, 35);
   assert.equal(meetupAmmo.fiveStateHooks.length, 2);
-  assert.ok(meetupAmmo.fiveStateHooks.includes(arrivalCheckHook));
-  assert.ok(meetupAmmo.fiveStateHooks.includes(aaSplitSettleHook));
+  assert.ok(meetupAmmo.fiveStateHooks.some((h) => h.hookId === "operator.arrival-check"));
+  assert.ok(meetupAmmo.fiveStateHooks.some((h) => h.hookId === "operator.aa-split-settle"));
+});
+
+test("8D 全息出厂：D1 准入 / D2 计价护栏 / D4 传感降级 / D6 违约阶梯 / D7 分账守恒 / D8 视界", () => {
+  const c = MEETUP_HOLOGRAPHIC_CONFIG;
+  assert.equal(c.supplyCluster, "C1_MOBILITY");
+  assert.deepEqual(c.workerRequirement, { requiredIdentityLevel: "BASIC" });
+  assert.deepEqual(c.pricingParams, { perSeatCost: 80 });
+  assert.equal(c.minFloorPrice, 3000);
+  assert.equal(c.maxCeilingPrice, 100000);
+  assert.deepEqual(c.requiredSensors, ["GPS_GEOFENCE", "NFC_BUMP"]);
+  assert.deepEqual(c.sensorFallbackLadder?.GPS_GEOFENCE, ["QR_SCAN_VERIFICATION"]);
+  assert.deepEqual(c.forwardHooks, ["ArrivalCheckHook", "AASplitSettleHook"]);
+  assert.equal(c.cancellationTiers?.length, 2);
+  assert.deepEqual(c.cancellationTiers?.[1], {
+    stage: "IN_SERVICE",
+    demanderRefundRatio: 0.7,
+    providerCompensationYuan: 0,
+    deductDepositRatio: 0.3,
+  });
+  assert.equal(c.autoAcceptanceTimeoutHours, 6);
+  assert.equal(c.splitRules?.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
+  assert.equal(c.theme, "meetup");
+  assert.equal(c.cockpitSlot, "MeetupSlot");
+  assert.equal(meetupAmmo.holographic, MEETUP_HOLOGRAPHIC_CONFIG);
 });
 
 test("存量协议资产升级：六阶段/退款规则/证据契约投影完整", () => {
@@ -167,7 +192,7 @@ test("五态全流程：组局发布→拼单锁定→到场验真解锁→验�
     orderId: "mtg-1",
     from: "MATCHED",
     to: "IN_SERVICE",
-    payload: { arrival: { viaGps: true, checkedInSeats: 3 } },
+    payload: { arrival: { confirmed: true } },
   });
   assert.equal(inService.ok, true);
   assert.equal(inService.state, "IN_SERVICE");
@@ -198,27 +223,18 @@ test("五态全流程：组局发布→拼单锁定→到场验真解锁→验�
     from: "INSPECTED",
     to: "SETTLED",
     payload: {
-      settlement: {
-        venueCostYuan: 300,
-        seats: [
-          { userId: "u1", paidYuan: 80, present: true },
-          { userId: "u2", paidYuan: 80, present: true },
-        ],
-      },
+      aaSplit: { totalYuan: 300, confirmedPartyCount: 2 },
     },
   });
   assert.equal(settled.ok, true);
   assert.equal(settled.state, "SETTLED");
   assert.equal(settled.afterData.length, 1);
-  const aa = settled.afterData[0] as {
-    aa: { userId: string; settleYuan: number }[];
-    penalty: unknown;
+  const split = settled.afterData[0] as {
+    splitConfirmed: boolean;
+    perSeatYuan: number;
   };
-  assert.equal(aa.aa.length, 2);
-  assert.equal(aa.aa[0].userId, "u1");
-  assert.equal(aa.aa[0].settleYuan, -70);
-  assert.equal(aa.aa[1].settleYuan, -70);
-  assert.equal(aa.penalty, null);
+  assert.equal(split.splitConfirmed, true);
+  assert.equal(split.perSeatYuan, 150);
 });
 
 test("五态投影桥：拼单 accepted → MATCHED；申报后 → IN_SERVICE", () => {
@@ -244,7 +260,7 @@ test("到场验真：未验真 BLOCK 阻止进入服务（冻结不解锁）", a
   });
   assert.equal(blocked.ok, false);
   assert.equal(blocked.state, "MATCHED");
-  assert.equal(blocked.reason, "hook-blocked: meetup.arrival-check · arrival-verification-required");
+  assert.equal(blocked.reason, "hook-blocked: operator.arrival-check · arrival-not-confirmed");
 
   const notVerified = await advanceLifecycle({
     ammo: meetupAmmo,
@@ -255,19 +271,10 @@ test("到场验真：未验真 BLOCK 阻止进入服务（冻结不解锁）", a
   });
   assert.equal(notVerified.ok, false);
   assert.equal(notVerified.state, "MATCHED");
-  assert.equal(notVerified.reason, "hook-blocked: meetup.arrival-check · arrival-not-verified");
+  assert.equal(notVerified.reason, "hook-blocked: operator.arrival-check · arrival-not-confirmed");
 });
 
-test("到场验真：双方扫码确认到场同样放行（scanCode ≥8 位）", async () => {
-  const r = await advanceLifecycle({
-    ammo: meetupAmmo,
-    orderId: "mtg-4",
-    from: "MATCHED",
-    to: "IN_SERVICE",
-    payload: { arrival: { scanCode: "meetup-9f3k2a", checkedInSeats: 2 } },
-  });
-  assert.equal(r.ok, true);
-  assert.equal(r.state, "IN_SERVICE");
+test("到场验真：富钩子直测——双方扫码确认到场同样放行（scanCode ≥8 位）", () => {
   const scanUnlock = arrivalCheckHook.run({
     ammoId: meetupAmmo.ammoId,
     orderId: "mtg-4",
@@ -275,7 +282,20 @@ test("到场验真：双方扫码确认到场同样放行（scanCode ≥8 位）
     to: "IN_SERVICE",
     payload: { arrival: { scanCode: "meetup-9f3k2a", checkedInSeats: 2 } },
   }) as { ok: boolean; data: unknown };
+  assert.equal(scanUnlock.ok, true);
   assert.deepEqual(scanUnlock.data, { unlocked: true, checkedInSeats: 2, method: "scan" });
+});
+
+test("到场验真：引擎级算子验收（arrival.confirmed）放行进入服务", async () => {
+  const r = await advanceLifecycle({
+    ammo: meetupAmmo,
+    orderId: "mtg-4",
+    from: "MATCHED",
+    to: "IN_SERVICE",
+    payload: { arrival: { confirmed: true } },
+  });
+  assert.equal(r.ok, true);
+  assert.equal(r.state, "IN_SERVICE");
 });
 
 test("超时违约：爽约触发 BREACH_SETTLED 终止事件，违约金归守约方", async () => {
@@ -305,17 +325,32 @@ test("超时违约：爽约触发 BREACH_SETTLED 终止事件，违约金归守�
   assert.equal(breach.termination?.kind, "BREACH_SETTLED");
   assert.equal(breach.termination?.from, "MATCHED");
   assert.equal(breach.termination?.at, start + 25 * 3600_000);
-  assert.equal(breach.afterData.length, 1);
-  const result = breach.afterData[0] as {
-    aa: { userId: string; settleYuan: number }[];
-    penalty: { breacherId: string; forfeitYuan: number; receiverId: string };
-    credit: { honored: unknown[]; breached: { userId: string; forfeitYuan: number }[] };
-  };
-  assert.equal(result.aa.length, 1);
-  assert.equal(result.penalty.forfeitYuan, 80);
-  assert.equal(result.penalty.receiverId, "u1");
-  assert.equal(result.credit.breached[0].userId, "u3");
-  assert.equal(result.credit.honored.length, 1);
+  // 引擎级：终止事件透传终结态；AA 明细由富钩子直测覆盖（见下）
+  assert.equal(breach.afterData.length, 0);
+});
+
+test("富钩子直测：爽约 AA 分账——违约金归守约方 + 信用回写", () => {
+  const r = aaSplitSettleHook.run({
+    ammoId: meetupAmmo.ammoId,
+    orderId: "mtg-9",
+    from: "MATCHED",
+    to: "SETTLED",
+    payload: {
+      settlement: {
+        venueCostYuan: 200,
+        seats: [
+          { userId: "u1", paidYuan: 80, present: true },
+          { userId: "u3", paidYuan: 80, present: false },
+        ],
+        penalty: { breacherId: "u3", forfeitYuan: 80, receiverId: "u1" },
+      },
+    },
+  }) as { ok: boolean; data: { aa: unknown[]; penalty: { forfeitYuan: number; receiverId: string }; credit: { honored: unknown[]; breached: { userId: string; forfeitYuan: number }[] } } };
+  assert.equal(r.ok, true);
+  assert.equal(r.data.penalty.forfeitYuan, 80);
+  assert.equal(r.data.penalty.receiverId, "u1");
+  assert.equal(r.data.credit.breached[0].userId, "u3");
+  assert.equal(r.data.credit.honored.length, 1);
 });
 
 test("违约方 AA 保障金按双押金语义全失（no-show-penalty 规则落定）", () => {
@@ -361,15 +396,30 @@ test("AA 结算钩子：缺失结算载荷 SKIP 降级，不阻塞终态推进",
   assert.equal(r.ok, true);
   assert.equal(r.state, "SETTLED");
   assert.equal(r.afterData.length, 0);
-  assert.equal(r.hookOutcomes.at(-1)?.hookId, AA_SPLIT_SETTLE_HOOK_ID);
+  assert.equal(r.hookOutcomes.at(-1)?.hookId, "operator.aa-split-settle");
   assert.equal(r.hookOutcomes.at(-1)?.ok, false);
-  assert.equal(r.hookOutcomes.at(-1)?.reason, "settlement-required");
+  assert.equal(r.hookOutcomes.at(-1)?.reason, "aa-split-unconfirmed");
   assert.equal(r.hookOutcomes.at(-1)?.fallbackUsed, "SKIP");
 });
 
-test("AA 分账：到场者混合补缴/退款（多退少补）", async () => {
+test("AA 分账：引擎级算子分账（人均 AA 确认比例透传）", async () => {
   const settled = await advanceLifecycle({
     ammo: meetupAmmo,
+    orderId: "mtg-6",
+    from: "INSPECTED",
+    to: "SETTLED",
+    payload: { aaSplit: { totalYuan: 300, confirmedPartyCount: 3 } },
+  });
+  assert.equal(settled.ok, true);
+  const split = settled.afterData[0] as { splitConfirmed: boolean; perSeatYuan: number };
+  assert.equal(split.splitConfirmed, true);
+  assert.equal(split.perSeatYuan, 100);
+  assert.equal(settled.hookOutcomes.at(-1)?.hookId, "operator.aa-split-settle");
+});
+
+test("富钩子直测：AA 分账混合补缴/退款（多退少补）", () => {
+  const r = aaSplitSettleHook.run({
+    ammoId: meetupAmmo.ammoId,
     orderId: "mtg-6",
     from: "INSPECTED",
     to: "SETTLED",
@@ -383,19 +433,14 @@ test("AA 分账：到场者混合补缴/退款（多退少补）", async () => {
         ],
       },
     },
-  });
-  assert.equal(settled.ok, true);
-  const aa = settled.afterData[0] as {
-    aa: { userId: string; settleYuan: number }[];
-    credit: { honored: unknown[]; breached: unknown[] };
-  };
-  assert.equal(aa.aa.length, 3);
-  const byUser = new Map(aa.aa.map((s) => [s.userId, s.settleYuan]));
+  }) as { ok: boolean; data: { aa: { userId: string; settleYuan: number }[]; credit: { honored: unknown[]; breached: unknown[] } } };
+  assert.equal(r.ok, true);
+  const byUser = new Map(r.data.aa.map((s) => [s.userId, s.settleYuan]));
   assert.equal(byUser.get("u1"), 0);
   assert.equal(byUser.get("u2"), -20);
   assert.equal(byUser.get("u3"), -20);
-  assert.equal(aa.credit.breached.length, 0);
-  assert.equal(aa.credit.honored.length, 3);
+  assert.equal(r.data.credit.breached.length, 0);
+  assert.equal(r.data.credit.honored.length, 3);
 });
 
 test("超时关闭：EXPIRED 终止事件携带全退载荷流转 SETTLED", async () => {

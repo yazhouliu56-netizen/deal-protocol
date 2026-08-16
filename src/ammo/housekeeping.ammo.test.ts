@@ -8,6 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   HOUSEKEEPING_EVIDENCE,
+  HOUSEKEEPING_HOLOGRAPHIC_CONFIG,
   HOUSEKEEPING_REFUND_RULES,
   HOUSEKEEPING_STAGES,
   cleaningCheckHook,
@@ -30,8 +31,39 @@ test("弹药装备完整性：housekeeping-v1 声明式装填无误", () => {
   assert.equal(housekeepingAmmo.sop?.depositDefault, true);
   assert.equal(housekeepingAmmo.dispatchRule?.weights.distance, 40);
   assert.equal(housekeepingAmmo.fiveStateHooks.length, 2);
-  assert.ok(housekeepingAmmo.fiveStateHooks.includes(onsiteQuoteHook));
-  assert.ok(housekeepingAmmo.fiveStateHooks.includes(cleaningCheckHook));
+  assert.ok(housekeepingAmmo.fiveStateHooks.some((h) => h.hookId === "operator.onsite-quote"));
+  assert.ok(housekeepingAmmo.fiveStateHooks.some((h) => h.hookId === "operator.cleaning-check"));
+});
+
+test("8D 全息出厂：D1 入户一票否决 / D2 计价护栏 / D4 传感降级 / D6 违约阶梯 / D7 分账守恒 / D8 视界", () => {
+  const h = HOUSEKEEPING_HOLOGRAPHIC_CONFIG;
+  assert.equal(h.supplyCluster, "C2_IN_HOME");
+  assert.equal(h.workerRequirement?.isPoliceVerified, true);
+  assert.equal(h.workerRequirement?.minSafetyScore, 60);
+  assert.equal(h.workerRequirement?.requiredIdentityLevel, "REAL_NAME");
+  assert.deepEqual(h.pricingParams, { baseRate: 60, minHours: 2 });
+  assert.equal(h.minFloorPrice, 12000);
+  assert.equal(h.maxCeilingPrice, 200000);
+  assert.deepEqual(h.requiredSensors, ["GPS_GEOFENCE", "WATERMARK_CAMERA"]);
+  assert.deepEqual(h.sensorFallbackLadder?.GPS_GEOFENCE, [
+    "CELL_TOWER_COARSE_GEO",
+    "MANUAL_BASE_PHOTO_AUDIT",
+  ]);
+  assert.deepEqual(h.sensorFallbackLadder?.WATERMARK_CAMERA, ["HTML5_NATIVE_FALLBACK"]);
+  assert.deepEqual(h.forwardHooks, ["OnsiteQuoteHook", "CleaningCheckHook"]);
+  assert.equal(h.cancellationTiers?.length, 4);
+  assert.deepEqual(h.cancellationTiers?.[1], {
+    stage: "AFTER_MATCH_EN_ROUTE",
+    demanderRefundRatio: 0.8,
+    providerCompensationYuan: 20,
+    deductDepositRatio: 0.2,
+  });
+  assert.equal(h.autoAcceptanceTimeoutHours, 24);
+  assert.equal(h.splitRules?.providerRatio + h.splitRules!.platformRatio + h.splitRules!.insuranceRatio, 1);
+  assert.equal(h.theme, "housekeeping");
+  assert.equal(h.cockpitSlot, "HousekeepingSlot");
+  // 流水线出厂镜像：弹药本体直挂全息配置（视界层/座舱只读消费）
+  assert.equal(housekeepingAmmo.holographic, HOUSEKEEPING_HOLOGRAPHIC_CONFIG);
 });
 
 test("存量协议资产升级：六阶段/退款规则/证据契约投影完整", () => {
@@ -81,9 +113,9 @@ test("现场增项：未确认报价 BLOCK 阻止进入服务", async () => {
   });
   assert.equal(r.ok, false);
   assert.equal(r.state, "MATCHED");
-  assert.match(r.reason ?? "", /hook-blocked: housekeeping\.onsite-quote/);
+  assert.match(r.reason ?? "", /hook-blocked: operator\.onsite-quote/);
   const outcome = r.hookOutcomes[0];
-  assert.equal(outcome?.hookId, "housekeeping.onsite-quote");
+  assert.equal(outcome?.hookId, "operator.onsite-quote");
   assert.equal(outcome?.fallbackUsed, "BLOCK");
   assert.equal(outcome?.reason, "onsite-quote-pending");
 });
@@ -135,7 +167,7 @@ test("完工验收：照片缺失 → AFTER SKIP 软失败，验收仍达成", a
   assert.equal(r.ok, true);
   assert.equal(r.state, "INSPECTED");
   const outcome = r.hookOutcomes[0];
-  assert.equal(outcome?.hookId, "housekeeping.cleaning-check");
+  assert.equal(outcome?.hookId, "operator.cleaning-check");
   assert.equal(outcome?.fallbackUsed, "SKIP");
   assert.equal(outcome?.reason, "evidence-photos-required");
 });
@@ -298,6 +330,7 @@ test("弹药装备：S1 准入 + 定向信用折抵 + 上限比例声明完整",
     requiredCertificates: ["HEALTH_CERT"],
     minSafetyScore: 60,
     requiredIdentityLevel: "REAL_NAME",
+    isPoliceVerified: true,
   });
   assert.equal(housekeepingAmmo.creditWaiverRule?.allowedCreditDimension, "SAFETY_BACKGROUND");
   assert.equal(housekeepingAmmo.creditWaiverRule?.maxWaiverPercentage, 0.5);

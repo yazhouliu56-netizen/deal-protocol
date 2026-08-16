@@ -7,28 +7,28 @@
  *   gps_track 定位证据 / 4 维主观评价 / 三级争议通道）。该协议仍被
  *   `lib/protocol/registry.ts` 引用，原位保留，双轨并行不破坏引用方。
  *
- * 装填清单（人类创始人注入 Phase 2）：
- *   - 类目 social · 挂载 ⏳ DELAY + 📡 PROXIMITY 双引信并联：
- *       ⏳ 延期引信：30% 预付定金冻结（AA 保障金）+ 500m LBS 电子围栏到场
- *         解锁 + 反赌反诈过滤（映射存量 dualDeposit 双押金 / confirm_arrival）；
- *       📡 近炸引信：虚拟号脱敏 + 模糊定位 + AI 敏感词干预 + 一键 SOS 联动。
- *   - 计价 PER_SEAT（按人头人均 AA 分摊，映射存量 commitment 押金语义）。
- *   - 防鸽子（拼单锁定前置）：MATCHED 前由调用方执行引信核验
- *     （evaluateAmmoFuze：advanceFreeze 未到账 → 阻断进入 MATCHED）。
- *   - IN_SERVICE 阶段 BEFORE：ArrivalCheckHook —— 到场验真钩子
- *     （LBS 围栏命中 / 双方扫码确认到场），解除延期引信定金冻结（BLOCK）。
- *   - SETTLED 阶段 AFTER：AASplitSettleHook —— AA 动态结算钩子
- *     （自动分账放款给场地方/组织者，守约记录回写信用引擎 L2-M6 飞轮）。
+ * 8D 全息化（人类创始人注入 2026-08-16 · 方案 A 三大标杆弹药全量流水线化归一）：
+ *   - D1 供给准入：C1_MOBILITY 同城移动轻履约（BASIC 实名即可成局）。
+ *   - D2 计价与护栏：PER_SEAT 人均 AA（80 元/座，至少 2 人）；地板 30 元 /
+ *     天花板 1000 元（3000/100000 分）；守时分定向折抵 ≤50%。
+ *   - D3 风控引信：⏳ 延期 + 📡 近炸双引信并联（MEETUP_DUAL_FUZE）。
+ *   - D4 传感降级：GPS 围栏 + NFC 碰碰；围栏失效回退扫码核验。
+ *   - D5 正向钩子：ArrivalCheckHook + AASplitSettleHook（白名单算子出厂）。
+ *   - D6 逆向违约阶梯：匹配前 100% 退；服务中爽约扣 30% 补偿守约方。
+ *   - D7 清算与仲裁：6h 超时自动成局/关闭；分账三比 0.88/0.10/0.02（守恒）。
+ *   - D8 视界与表单：meetup 主题 + MeetupSlot 履约座舱插槽。
  */
 
 import type {
   IAmmoDefinition,
+  IHolographicAmmoConfig,
   ISubEventContext,
   ISubEventHook,
   ISubEventResult,
 } from "../types/ammo-schema.ts";
 import type { IFuzePolicy } from "../types/fuze-policy.ts";
 import { DELAY_FUZE_TEMPLATE, PROXIMITY_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
+import { assembleAmmo, deepFreeze } from "./factory.ts";
 
 /* =====================================================================
  * 存量协议资产投影升级（出处：protocols/dating.ts）
@@ -87,7 +87,12 @@ export const MEETUP_DUAL_FUZE: IFuzePolicy = {
 };
 
 /* =====================================================================
- * 五态伴生钩子
+ * 存量领域钩子（富语义实现，保留导出供直接调用与直测）
+ *
+ * 8D 全息化后弹药本体（fiveStateHooks）改由 AmmoFactory 算子白名单解析
+ * （红线 1：D5 forwardHooks 仅允许从 HOOK_OPERATOR_REGISTRY 静态解析）。
+ * 本组富钩子（围栏/扫码验真、AA 多退少补与违约赔付）作为领域语义库保留，
+ * 引擎级流转已由算子接管。
  * ===================================================================== */
 
 export const ARRIVAL_CHECK_HOOK_ID = "meetup.arrival-check";
@@ -197,17 +202,81 @@ export const aaSplitSettleHook: ISubEventHook = {
 };
 
 /* =====================================================================
- * 弹药定义
+ * 8 维全息配置（AmmoFactory 装配原料 · 静态审查出厂）
  * ===================================================================== */
 
-/** 组局社交 · 官方标准弹药（Phase 2 标杆，⏳ 延期 + 📡 近炸双引信）。 */
-export const meetupAmmo: IAmmoDefinition = {
+/** 组局社交 · 8 维全息声明（D1~D8，资金守恒/加价熔断出厂硬检）。 */
+export const MEETUP_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   ammoId: "meetup-social-v1",
   category: "social",
   version: "1.0.0",
-  fiveStateHooks: [arrivalCheckHook, aaSplitSettleHook],
+
+  /* D1 供给准入（同城移动轻履约，BASIC 实名即可） */
+  supplyCluster: "C1_MOBILITY",
+  workerRequirement: {
+    requiredIdentityLevel: "BASIC",
+  },
+
+  /* D2 计价与护栏（PER_SEAT 人均 AA · 地板 30 元 / 天花板 1000 元） */
   pricingModel: { kind: "PER_SEAT", perSeatYuan: 80, minSeats: 2 },
+  pricingParams: { perSeatCost: 80 },
+  minFloorPrice: 3000,
+  maxCeilingPrice: 100000,
+  creditWaiverRule: {
+    allowedCreditDimension: "PUNCTUALITY",
+    maxWaiverPercentage: 0.5,
+  },
+
+  /* D3 风控引信（⏳ 延期 + 📡 近炸双引信并联） */
   fuzePolicy: MEETUP_DUAL_FUZE,
+
+  /* D4 传感降级（GPS 围栏 + NFC 碰碰；围栏失效回退扫码核验） */
+  requiredSensors: ["GPS_GEOFENCE", "NFC_BUMP"],
+  sensorFallbackLadder: {
+    GPS_GEOFENCE: ["QR_SCAN_VERIFICATION"],
+  },
+
+  /* D5 正向钩子（HOOK_OPERATOR_REGISTRY 静态白名单解析） */
+  forwardHooks: ["ArrivalCheckHook", "AASplitSettleHook"],
+
+  /* D6 逆向违约阶梯（匹配前全退；服务中爽约扣 30% 补守约方） */
+  cancellationTiers: [
+    { stage: "BEFORE_MATCH", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 0 },
+    { stage: "IN_SERVICE", demanderRefundRatio: 0.7, providerCompensationYuan: 0, deductDepositRatio: 0.3 },
+  ],
+
+  /* D7 清算与仲裁（6h 超时自动成局/关闭 + 分账 0.88+0.10+0.02=1.0） */
+  autoAcceptanceTimeoutHours: 6,
+  splitRules: { providerRatio: 0.88, platformRatio: 0.1, insuranceRatio: 0.02 },
+
+  /* D8 视界与表单（meetup 主题 + MeetupSlot 座舱插槽） */
+  theme: "meetup",
+  cockpitSlot: "MeetupSlot",
+};
+
+/* =====================================================================
+ * 弹药定义（AmmoFactory 流水线出厂 · 全图冻结不可变发布）
+ * ===================================================================== */
+
+/**
+ * 组局社交 · 官方标准弹药（Phase 2 标杆 · 8D 全息装配出厂）。
+ *
+ * 出厂门禁（模块加载期强制）：资金守恒（0.88+0.10+0.02=1.0 ±1e-9）、
+ * 计价护栏 / 违约阶梯 / 钩子白名单——任一不通过即抛错拒绝出厂。
+ *
+ * 注：派单规则（dispatchRule）与 SOP 覆盖（sop）为工厂投影之外的存量
+ * 字段，此处显式写入完整保留（社交/约会/组局实名关键词硬门槛与拼位
+ * SOP 语义不因全息化丢失），再整体 deepFreeze 冻结发布。
+ */
+const _meetupAssembled = assembleAmmo(MEETUP_HOLOGRAPHIC_CONFIG);
+if (!_meetupAssembled.ok) {
+  throw new Error(
+    `[AmmoFactory] meetup-social-v1 出厂被拒: ${_meetupAssembled.errors.join("; ")}`
+  );
+}
+
+export const meetupAmmo: Readonly<IAmmoDefinition> = deepFreeze({
+  ..._meetupAssembled.ammo,
   dispatchRule: {
     weights: { distance: 30, credit: 35, custom: 25, verifiedBonus: 10 },
     hardGates: {
@@ -217,17 +286,6 @@ export const meetupAmmo: IAmmoDefinition = {
     },
     starBonus: { starMin: 4, completionMin: 0.7, bonus: 10 },
   },
-  /**
-   * 定向信用折抵（信用飞轮兑换闸门）：仅允许「守时分」维度折抵预付定金
-   * （最高 50%，如 30% 预付金可折 15%，剩余仍资金锁定）——守约资产
-   * 定向兑现，禁止跨维度通兑（防信用错位套利）。
-   */
-  creditWaiverRule: {
-    allowedCreditDimension: "PUNCTUALITY",
-    maxWaiverPercentage: 0.5,
-  },
-  /** 运力池聚类：同城移动轻履约（LBS 围栏到场解锁）。 */
-  supplyCluster: "C1_MOBILITY",
   sop: {
     depositDefault: true,
     expiresInMs: 24 * 3600_000,
@@ -237,4 +295,4 @@ export const meetupAmmo: IAmmoDefinition = {
     reviewWindowMs: 24 * 3600_000,
     depositRate: 0.3,
   },
-};
+});

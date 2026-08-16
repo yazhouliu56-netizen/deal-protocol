@@ -4,23 +4,32 @@
  * 存量资产升级仪式（D-7 关闭）：
  *   出处 = `src/lib/protocol/protocols/housekeeping.ts`（250 行垂直 SOP，
  *   仍被 `lib/protocol/registry.ts` 引用，原位保留）+ `docs/contract-engine-state-machine.md`
- *   资金状态机（7 态 16 转换）。本文件以 IAmmoDefinition 声明式装填重新
- *   投影升级，双轨并行不破坏既有引用方。
+ *   资金状态机（7 态 16 转换）。本文件以 8 维全息配置（IHolographicAmmoConfig）
+ *   交付 AmmoFactory 流水线出厂，双轨并行不破坏既有引用方。
  *
- * 装填清单（人类创始人注入 Phase 1 MVP）：
- *   - 类目 housekeeping · 挂载 💥 IMPACT_FUZE_TEMPLATE（碰炸引信：进家高财产）。
- *   - 计价 HOURLY 复合（0 门槛 2 小时起，映射存量 funding full_prepay 语义）。
- *   - IN_SERVICE 阶段 BEFORE：OnsiteQuoteHook —— 现场增项报价（BLOCK 未确认）。
- *   - INSPECTED 阶段 AFTER：CleaningCheckHook —— 完工双向拍照与验收（SKIP 证据收集）。
+ * 8D 全息化（人类创始人注入 2026-08-16 · 方案 A 三大标杆弹药全量流水线化归一）：
+ *   - D1 供给准入：C2_IN_HOME 入户重背调（公安核验 isPoliceVerified 一票否决）。
+ *   - D2 计价与护栏：HOURLY ¥60/h 起步 2h；地板 120 元 / 天花板 2000 元
+ *     （12000/200000 分）；加价熔断 ≤50%；安全分定向折抵 ≤50%。
+ *   - D3 风控引信：💥 IMPACT_FUZE_TEMPLATE（碰炸引信：进家高财产）。
+ *   - D4 传感降级：GPS 围栏 + 水印相机；失效逐级回退基站粗定位/人工照片
+ *     审核/原生摄像头。
+ *   - D5 正向钩子：OnsiteQuoteHook + CleaningCheckHook（识别白名单算子出厂）。
+ *   - D6 逆向违约阶梯：匹配前 100% 退 → 途退 80%+20 元车马费 →
+ *     现场退 50% → 服务中 0% 退扣全额。
+ *   - D7 清算与仲裁：24h 超时代验收；分账三比 0.85/0.10/0.05（资金守恒）。
+ *   - D8 视界与表单：housekeeping 主题 + HousekeepingSlot 履约座舱插槽。
  */
 
 import type {
   IAmmoDefinition,
+  IHolographicAmmoConfig,
   ISubEventContext,
   ISubEventHook,
   ISubEventResult,
 } from "../types/ammo-schema.ts";
 import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
+import { assembleAmmo, deepFreeze } from "./factory.ts";
 
 /* =====================================================================
  * 存量协议资产投影升级（出处：protocols/housekeeping.ts）
@@ -54,7 +63,12 @@ export const HOUSEKEEPING_EVIDENCE = {
 } as const;
 
 /* =====================================================================
- * 五态伴生钩子
+ * 存量领域钩子（富语义实现，保留导出供直接调用与直测）
+ *
+ * 8D 全息化后弹药本体（fiveStateHooks）改由 AmmoFactory 算子白名单解析
+ * （红线 1：D5 forwardHooks 仅允许从 HOOK_OPERATOR_REGISTRY 静态解析）。
+ * 本组富钩子（三闸校验 / 证据契约透传）作为领域语义库保留，旧调用方与
+ * 直测仍可引用；引擎级流转已由算子接管（算子契约精简、降级语义一致）。
  * ===================================================================== */
 
 export const ONSITE_QUOTE_HOOK_ID = "housekeeping.onsite-quote";
@@ -122,17 +136,90 @@ export const cleaningCheckHook: ISubEventHook = {
 };
 
 /* =====================================================================
- * 弹药定义
+ * 8 维全息配置（AmmoFactory 装配原料 · 静态审查出厂）
  * ===================================================================== */
 
-/** 家庭深度保洁 · 官方标准弹药（Phase 1 MVP）。 */
-export const housekeepingAmmo: IAmmoDefinition = {
+/** 家庭深度保洁 · 8 维全息声明（D1~D8，资金守恒/入户背调/加价熔断出厂硬检）。 */
+export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   ammoId: "housekeeping-v1",
   category: "housekeeping",
   version: "1.0.0",
-  fiveStateHooks: [onsiteQuoteHook, cleaningCheckHook],
+
+  /* D1 供给准入（S1 R_AUTH 供给端准入网关） */
+  supplyCluster: "C2_IN_HOME",
+  workerRequirement: {
+    requiredCertificates: ["HEALTH_CERT"],
+    minSafetyScore: 60,
+    requiredIdentityLevel: "REAL_NAME",
+    isPoliceVerified: true,
+  },
+
+  /* D2 计价与护栏（价格透明优先 + 防坐地起价） */
   pricingModel: { kind: "HOURLY", rateYuan: 60, minHours: 2 },
+  pricingParams: { baseRate: 60, minHours: 2 },
+  minFloorPrice: 12000,
+  maxCeilingPrice: 200000,
+  maxSurchargeRatio: 0.5,
+  creditWaiverRule: {
+    allowedCreditDimension: "SAFETY_BACKGROUND",
+    maxWaiverPercentage: 0.5,
+  },
+
+  /* D3 风控引信（💥 碰炸：进家高财产） */
   fuzePolicy: IMPACT_FUZE_TEMPLATE,
+
+  /* D4 传感降级（零信任物理感知 · 宪法 #10） */
+  requiredSensors: ["GPS_GEOFENCE", "WATERMARK_CAMERA"],
+  sensorFallbackLadder: {
+    GPS_GEOFENCE: ["CELL_TOWER_COARSE_GEO", "MANUAL_BASE_PHOTO_AUDIT"],
+    WATERMARK_CAMERA: ["HTML5_NATIVE_FALLBACK"],
+  },
+
+  /* D5 正向钩子（HOOK_OPERATOR_REGISTRY 静态白名单解析） */
+  forwardHooks: ["OnsiteQuoteHook", "CleaningCheckHook"],
+
+  /* D6 逆向违约阶梯（分阶段退款/车马费/保证金扣划） */
+  cancellationTiers: [
+    { stage: "BEFORE_MATCH", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 0 },
+    { stage: "AFTER_MATCH_EN_ROUTE", demanderRefundRatio: 0.8, providerCompensationYuan: 20, deductDepositRatio: 0.2 },
+    { stage: "ON_SITE", demanderRefundRatio: 0.5, providerCompensationYuan: 0, deductDepositRatio: 0.5 },
+    { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
+  ],
+
+  /* D7 清算与仲裁（24h 超时代验收 + 分账资金守恒 0.85+0.10+0.05=1.0） */
+  autoAcceptanceTimeoutHours: 24,
+  splitRules: { providerRatio: 0.85, platformRatio: 0.1, insuranceRatio: 0.05 },
+
+  /* D8 视界与表单（housekeeping 主题 + HousekeepingSlot 座舱插槽） */
+  theme: "housekeeping",
+  cockpitSlot: "HousekeepingSlot",
+};
+
+/* =====================================================================
+ * 弹药定义（AmmoFactory 流水线出厂 · 全图冻结不可变发布）
+ * ===================================================================== */
+
+/**
+ * 家庭深度保洁 · 官方标准弹药（Phase 1 MVP · 8D 全息装配出厂）。
+ *
+ * 出厂门禁（模块加载期强制）：资金守恒（split 三比合成 1.0 ±1e-9）、
+ * C2_IN_HOME 入户一票否决（isPoliceVerified === true）、加价熔断 ≤0.5、
+ * 计价护栏 / 违约阶梯 / 钩子白名单——任一不通过即抛错拒绝出厂。
+ *
+ * 注：AmmoFactory 投影字段（身份/定价/引信/准入/折抵/全息镜像）；派单规则
+ * （dispatchRule）与 SOP 覆盖（sop）为工厂投影之外的存量字段，此处显式写入
+ * 完整保留（入户实名关键词硬门槛与发布页 SOP 预填语义不因全息化丢失），
+ * 再整体 deepFreeze 冻结发布。
+ */
+const _housekeepingAssembled = assembleAmmo(HOUSEKEEPING_HOLOGRAPHIC_CONFIG);
+if (!_housekeepingAssembled.ok) {
+  throw new Error(
+    `[AmmoFactory] housekeeping-v1 出厂被拒: ${_housekeepingAssembled.errors.join("; ")}`
+  );
+}
+
+export const housekeepingAmmo: Readonly<IAmmoDefinition> = deepFreeze({
+  ..._housekeepingAssembled.ammo,
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {
@@ -141,33 +228,6 @@ export const housekeepingAmmo: IAmmoDefinition = {
       online: true,
     },
   },
-  /**
-   * S1 供给端准入门槛（R_AUTH）：进家类目强制实名 + 安全背调分门槛 +
-   * 健康证（WorkerWorkbench 按此拦截未达标服务者接单）。
-   */
-  workerRequirement: {
-    requiredCertificates: ["HEALTH_CERT"],
-    minSafetyScore: 60,
-    requiredIdentityLevel: "REAL_NAME",
-  },
-  /**
-   * 定向信用折抵（信用飞轮兑换闸门）：仅允许「安全背调分」维度折抵押金
-   * （最高 50%），禁止跨维度通兑（防信用错位套利）。
-   */
-  creditWaiverRule: {
-    allowedCreditDimension: "SAFETY_BACKGROUND",
-    maxWaiverPercentage: 0.5,
-  },
-  /** 防坐地起价：现场增项金额上限 = 订单基础金额的 50%（S2 熔断）。 */
-  maxSurchargeRatio: 0.5,
-  /**
-   * 超时自动代验收契约（固化 24 小时）：IN_SERVICE 履约超过 24h 无验收
-   * 动作 → 系统按契约自动代验收（服务完成信号或截止时刻到达即视为
-   * 已验收），防服务方失联导致订单悬空（订单侧超时任务对账此键）。
-   */
-  autoAcceptanceTimeoutHours: 24,
-  /** 运力池聚类：入户重背调（强合规引信 + workerRequirement 三闸）。 */
-  supplyCluster: "C2_IN_HOME",
   sop: {
     depositDefault: true,
     expiresInMs: 2 * 3600_000,
@@ -176,4 +236,4 @@ export const housekeepingAmmo: IAmmoDefinition = {
     reviewWindowMs: 48 * 3600_000,
     depositRate: 0.2,
   },
-};
+});
