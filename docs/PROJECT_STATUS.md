@@ -71,12 +71,13 @@
 | 本地上传头像 | ✅ `IdentityAvatar`（有头像显示图片 / 无则 emoji 兜底）+ `lib/avatar.ts` FileReader→canvas 居中裁切压缩 96×96 JPEG，Identity.avatar persist，三处展示（首页/雷达头/个人中心）同步 | |
 | UI/UX 打磨九件套 | ✅ `docs/UI-UX-BACKLOG.md` 全清零：① 发布 CTA 主视觉（渐变+光晕+入场动画）② 竞价卡虚线玻璃+演示沙盒标识降权 ③ 空态三步引导（localStorage 记忆）④ AI 屏语音入口气泡 ⑤ 行程屏真实 bookings 优先入时间线 ⑥ 头部层级+状态圆点 ⑦ Dock layoutId 光晕滑块 ⑧ 竞价按钮触控尺寸 ⑨ 全局 Toast（lib/toast + ToastHost + 发布/拼位接入，MutationObserver 实测弹出）| |
 | **8 维全息弹药 + AmmoFactory 流水线** | ✅ `src/types/ammo-schema.ts` 增 8 维契约 `IHolographicAmmoConfig`（D1 准入 / D2 计价护栏 / D3 引信 / D4 传感降级 / D5 正向钩子 / D6 逆向违约阶梯 / D7 清算仲裁 / D8 视界表单 + version 元数据）+ `ICancellationTier`/`ISplitRules`/`SensorKind` 等；`src/ammo/factory.ts` 四道工序流水线（validateAmmoConfig 静态语义审查：资金守恒 =1.0 容差 1e-9 / C2_IN_HOME 公安背调或安全分 ≥700 一票否决 / 加价熔断 ≤0.5 / 计价边界 / 阶梯边界 / 钩子白名单解析，红线 1 零 eval）+ `HOOK_OPERATOR_REGISTRY` 6 算子静态白名单 + `assembleAmmo` deepFreeze 全图冻结 + `registerDynamicAmmo` 热注册；`src/ammo/registry.ts` 增 `DYNAMIC_AMMO_POOL`（检索链：动态池→官方→四表聚合→默认保底；本池定义在装配层 factory.ts，registry re-export，循环依赖根治）；`src/base/ammo/runner.ts`（AdvanceInput.ammoSnapshot 快照优先调度 + ctx 透传）；白皮书 §十 归档（8 维字典 + 4 级工序 + car-wash/appliance-repair 声明式样例）→ **三大标杆弹药（housekeeping-v1 / meetup-social-v1 / companion-v1）已 100% 8D 全息化流水线出厂**（模块加载期强制门禁，dispatchRule/sop 显式保留，SensorKind 增补 5 降级成员）→ 单测 **1217/1217 全绿**（本次 +7）、tsc 0 错、build 通过 | 2026-08-16 |
+| **长尾非标即时量产大考（DRONE_CROP_SPRAY 农田无人机植保）** | ✅ 全新类目零静态文件 100% 纯内存动态量产实证：`src/ammo/dynamic-production-exam.test.ts` 考卷 8 项全绿——① 口语化非标诉求运行时组装 8 维全息配置（D1 CAAC 飞手执照+无犯罪背调 / D2 起步 ¥500·地板 ¥300·天花板 ¥3000·熔断 50% / D3 💥碰炸引信 / D4 GPS+水印相机降级阶梯 / D5 三钩子白名单 / D6 三阶段违约阶梯 / D7 12h 代验收+85/10/5 分账 / D8 视界令牌+动态表单）；② Linter 真实质检通过 + 资金不守恒/未知钩子/熔断超限三探针全拦截；③ registerDynamicAmmo 热注入 DYNAMIC_AMMO_POOL → 检索链第一顺位 + deepFreeze 全图冻结；④ AmmoRunner 五态全链路实测（CAS 乐观锁 0→1→2→3→4、托管 ¥500 全款冻结、增项 +¥100 ≤ 50% 熔断放行、双向水印照片验收证据、SETTLED 微信收付通指令 服务者 ¥510/平台 ¥60/保险计提 ¥30 ≡ ¥600 严格守恒）；⑤ 熔断拒付（¥400>¥250 BLOCK）+ CAS 冲突阻断 + 碰炸引信双闸门拦截；⑥ 零静态文件实证（磁盘扫描无 drone 前缀文件 + OFFICIAL_AMMO 无键 + 池内唯一来源）。全程零 factory/registry 改动（无断线）→ 单测 **1217→1225/1225 全绿**（本次 +8）、tsc 0 错、build exit 0、收敛门禁 exit 0 | 2026-08-17 |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1210/1210 全绿**（`npm test` = vitest 537 + node:test 673） |
+| 单测 | **1225/1225 全绿**（`npm test` = vitest 537 + node:test 688；2026-08-17 大考新增 8 项） |
 | Lint | ✅ exit 0（0 errors）；存量 726 warnings 待渐进式治理（其中 239 为原 error 降级：no-explicit-any 184 / react-hooks 35 / react 10 / prefer-const 5 / ts 5，12 条规则降级 warn；治理后逐条恢复 error 清零），不阻断主线开发 |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | 12 个就绪；CI `e2e-verify` job（push 至 master 时全链 12 条回归，PR 不阻塞） |
@@ -121,6 +122,7 @@
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
+| 2026-08-17 | `377782d` | **长尾非标业务即时量产大考实证**：全新类目 DRONE_CROP_SPRAY（农田无人机植保）在严禁静态 `.ammo.ts` 业务文件前提下，仅凭口语化非标诉求纯运行时组装 8 维全息配置 → AmmoFactory Linter 审查出厂 + 热注入 DYNAMIC_AMMO_POOL → AmmoRunner 五态全链路（CAS 0→4 / 托管 / 增项熔断 / 双拍 / 微信收付通 85·10·5 守恒）+ 零静态文件实证；新增 `src/ammo/dynamic-production-exam.test.ts` 考卷 8 项、`package.json` test:oto:units 扩列（历史「测试清单扩列」惯例）→ 单测 **1217→1225/1225 全绿**、tsc 0 错、build exit 0、收敛门禁 exit 0；全程零 factory/registry 改动 |
 | 2026-08-07 | `2748a36` | 建立状态档案体系（PROJECT_STATUS.md 替代 NEXT_STEPS，AGENTS.md 挂 sync 规则），已推送 origin |
 | 2026-08-07 | `1f118be` | CI 补挂 trustopen/acceptance（11 条 E2E）+ 生产服务器启动验证（pid 15900，HTTP 200） |
 | 2026-08-07 | `bdfda92` | 调整 P3 路线：数据化先行（lat/lng + 真实成交）→ Leaflet+OSM 免费接图，保留 CSS 降级 |
