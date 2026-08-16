@@ -941,7 +941,164 @@ tsc 0 error；lint 0 error；`npm run build` 通过。
 
 ---
 
-## 十、收敛路线（宪法门禁衔接）
+## 十、8 维全息解构模型与 AmmoFactory 工业级弹药流水线
+
+> **人类创始人注入（2026-08-16）**：弹药从「人手装填」升级为「流水线量产」——
+> 单颗弹药以一份 8 维全息声明（`IHolographicAmmoConfig`）交付装配线，经
+> 静态语义审查 → 沙箱组装 → 不可变发布出厂，注册表热注册即时量产上线。
+> 代码落位：`src/types/ammo-schema.ts`（8 维契约 + 快照字段）、
+> `src/ammo/factory.ts`（审查器 + 算子注册表 + 组装器 + 热注册器）、
+> `src/ammo/registry.ts`（运行时动态弹药池）、`src/base/ammo/runner.ts`（快照冻结）。
+> 依赖方向严守红线 3：`factory（第二层弹药） ➔ types / ammo 同类表`，零 UI 反向 import。
+
+### 10.1 8 维全息参数字典（D1~D8）与正交关系表
+
+| 维度 | 名称 | 参数定义 | 装配线强校验（不过即拒出厂） |
+|------|------|----------|------------------------------|
+| D1 | **供给准入**（S1 R_AUTH） | `supplyCluster`（C1 移动 / C2 入户 / C3 技术 B2B）、`workerRequirement`（资格证书 / 安全分 / 实名等级 / 公安背调） | `C2_IN_HOME` 一票否决：`isPoliceVerified === true` 或 `minSafetyScore >= 700` |
+| D2 | **计价与护栏**（价格透明优先） | `pricingModel`、`pricingParams`、`minFloorPrice`（地板价/分）、`maxCeilingPrice`（天花板价/分）、`maxSurchargeRatio`（默认 0.5）、`creditWaiverRule` | 加价熔断 `≤ 0.5`（S2 防坐地起价）；地板价 ≤ 天花板价 |
+| D3 | **风控引信**（引信跟弹药走） | `fuzePolicy`（💥碰炸 / ⏳延期 / 📡近炸，三类模板或专属配置） | 必须显式装填（零防护弹药不允许出厂） |
+| D4 | **传感降级**（零信任物理感知） | `requiredSensors`（GPS_GEOFENCE / WATERMARK_CAMERA / NFC_BUMP / REAL_TIME_AUDIO）、`sensorFallbackLadder`（主传感失效逐级回退） | —（纯声明，运行期由履约链路按阶梯降级） |
+| D5 | **正向钩子**（五态伴生事件插拔） | `forwardHooks: string[]`（引用 `HOOK_OPERATOR_REGISTRY` 静态白名单名称） | 每个名称必须命中静态白名单（红线 1：无 eval / 无动态代码通道） |
+| D6 | **逆向违约阶梯**（分阶段赔付契约） | `cancellationTiers[]`：`stage`（BEFORE_MATCH / AFTER_MATCH_EN_ROUTE / ON_SITE / IN_SERVICE）× `demanderRefundRatio`（0~1）× `providerCompensationYuan`（车马费 ≥ 0）× `deductDepositRatio`（0~1） | 退款/扣金比例 ∈ [0,1]、车马费 ≥ 0 |
+| D7 | **清算与仲裁**（终局分账） | `splitRules`（provider / platform / insurance 三比）、`autoAcceptanceTimeoutHours`（超时代验收） | **资金守恒硬性审查**：三比之和 = 1.0（容差 1e-9），不守恒直接拒绝出厂 |
+| D8 | **视界与表单**（前端视界投影隔离） | `theme`（ScenarioTheme 微主色）、`formSchema`（发布页 JSON-Schema）、`cockpitSlot`（履约座舱场景插槽键） | —（视界层按弹药装载，红线 6） |
+
+**正交关系**：八维相互独立、互不嵌套——D1 管「谁可以干」（供给准入）、D2 管「多少钱」
+（计价护栏）、D3 管「风险怎么防」（引信）、D4 管「证据怎么取」（传感）、D5 管「流程怎么走」
+（钩子）、D6 管「黄了怎么赔」（违约阶梯）、D7 管「成了怎么分」（清算）、D8 管「长什么样」
+（视界表单）。任一维度违规由审查器一票否决，不因其它维度合规而豁免。
+
+### 10.2 AmmoFactory 4 级安全生产工序
+
+```
+① 参数注入（Config Injection）
+   IHolographicAmmoConfig（8 维声明 JSON，填表即新弹药）
+        │
+        ▼
+② 静态语义审查（Semantic Linter · validateAmmoConfig）
+   资金守恒 = 1.0（容差 1e-9）｜C2 入户背调一票否决｜加价 ≤ 0.5
+   地板价 ≤ 天花板价｜违约阶梯比例边界｜钩子名静态白名单解析
+   未通过 → 拒绝出厂（错误清单返回，零污染）
+        │
+        ▼
+③ 沙箱组装（Sandbox Assembler · assembleAmmo）
+   D5 钩子名称 → HOOK_OPERATOR_REGISTRY 静态映射（已编译纯函数，
+   红线 1：严禁 eval / new Function / 动态未受检代码执行）
+   → 投影标准 IAmmoDefinition（含 holographic 全息镜像）
+        │
+        ▼
+④ 不可变发布（Immutable Release · deepFreeze）
+   全图递归 Object.freeze（弹药 + 钩子 + 引信 + 镜像全部只读）
+   → getAmmoDefinition(category) 即时可查
+```
+
+**算子静态白名单（HOOK_OPERATOR_REGISTRY，6 枚已编译纯函数）**：
+`ArrivalCheckHook`（到点履约校验，BEFORE · BLOCK）/ `CleaningCheckHook`（完工双拍验收，
+AFTER · SKIP）/ `OnsiteQuoteHook`（现场增项报价，BEFORE · BLOCK）/ `AASplitSettleHook`
+（AA 分摊结算，AFTER · SKIP）/ `PrivacyShieldHook`（隐私盾武装校验，BEFORE · BLOCK）/
+`DepartureFinishHook`（完工离场签退，AFTER · SKIP）。
+
+**运行时热注册（Hot-Registry · registerDynamicAmmo）**：审查通过 → 注入
+`src/ammo/registry.ts` 的 `DYNAMIC_AMMO_POOL`（Map<category, IAmmoDefinition>）；
+检索链路升级为「动态池 → 官方硬编码 → 四表聚合 → 默认保底」——热注册弹药即时生效，
+未命中自动回落（既有检索语义零回归）；审查不过拒绝入池，不污染现行链路。
+
+**在途订单快照冻结（快照优先 · 热更新免疫）**：订单进入履约链路时由调用方冻结注册表
+当前时点的整弹快照（`AdvanceInput.ammoSnapshot`）；`advanceLifecycle` 存在快照时，
+跃迁矩阵校验 / BEFORE / AFTER 钩子调度 / 防坐地起价熔断 / 资金托管挂接全部严格基于
+快照执行（`ammo` 仅作缺省回落），并透传 `ISubEventContext.ammoSnapshot` 供钩子闭包
+伴随校验——线上热注册新版本弹药与在途订单完全隔离，进行中订单逻辑零污染。
+
+### 10.3 实战案例：上门汽车洗美与家电维修的 8 维声明式样例
+
+**car-wash-v1（上门汽车洗美 · C1 移动轻履约）**：
+
+```json
+{
+  "ammoId": "car-wash-v1", "category": "上门汽车洗美", "version": "1.0.0",
+  "supplyCluster": "C1_MOBILITY",
+  "workerRequirement": { "requiredIdentityLevel": "REAL_NAME", "minSafetyScore": 60 },
+  "pricingModel": { "kind": "FIXED", "amountYuan": 88 },
+  "pricingParams": { "travelFeeYuan": 10 },
+  "minFloorPrice": 3000, "maxCeilingPrice": 12000, "maxSurchargeRatio": 0.3,
+  "creditWaiverRule": { "allowedCreditDimension": "PUNCTUALITY", "maxWaiverPercentage": 0.3 },
+  "fuzePolicy": { "fuzeId": "fuze-car-wash", "fuzeTypes": ["DELAY"],
+    "backgroundCheck": "BASIC", "deposit": { "strategy": "RATIO", "ratio": 0.1 },
+    "advanceFreeze": { "enabled": true, "ratio": 0.1 },
+    "geoFence": { "enabled": true, "radiusM": 500, "unlockOnArrival": true, "gracePeriodMs": 900000 },
+    "antiFraudFilter": true, "trace": { "photoProof": true, "evidenceChain": true } },
+  "requiredSensors": ["GPS_GEOFENCE", "WATERMARK_CAMERA"],
+  "sensorFallbackLadder": { "GPS_GEOFENCE": ["NFC_BUMP"], "WATERMARK_CAMERA": ["REAL_TIME_AUDIO"] },
+  "forwardHooks": ["ArrivalCheckHook", "OnsiteQuoteHook", "CleaningCheckHook"],
+  "cancellationTiers": [
+    { "stage": "BEFORE_MATCH", "demanderRefundRatio": 1.0, "providerCompensationYuan": 0, "deductDepositRatio": 0 },
+    { "stage": "AFTER_MATCH_EN_ROUTE", "demanderRefundRatio": 0.8, "providerCompensationYuan": 20, "deductDepositRatio": 0.2 } ],
+  "autoAcceptanceTimeoutHours": 12,
+  "splitRules": { "providerRatio": 0.9, "platformRatio": 0.05, "insuranceRatio": 0.05 },
+  "theme": "default",
+  "formSchema": { "fields": [{ "key": "carModel", "type": "text" }] },
+  "cockpitSlot": "car-wash-cockpit"
+}
+```
+
+**appliance-repair-v1（家电维修 · C2 入户重背调）**：
+
+```json
+{
+  "ammoId": "appliance-repair-v1", "category": "家电维修", "version": "1.0.0",
+  "supplyCluster": "C2_IN_HOME",
+  "workerRequirement": {
+    "requiredCertificates": ["ELECTRICIAN_CERT"],
+    "isPoliceVerified": true,
+    "requiredIdentityLevel": "POLICE_VERIFIED"
+  },
+  "pricingModel": { "kind": "FIXED", "amountYuan": 120 },
+  "minFloorPrice": 5000, "maxCeilingPrice": 30000, "maxSurchargeRatio": 0.5,
+  "fuzePolicy": { "fuzeId": "fuze-repair", "fuzeTypes": ["IMPACT", "DELAY"],
+    "backgroundCheck": "HARD",
+    "deposit": { "strategy": "RATIO", "ratio": 0.2 },
+    "trace": { "photoProof": true, "evidenceChain": true },
+    "propertyInsurance": true,
+    "advanceFreeze": { "enabled": true, "ratio": 0.2 },
+    "geoFence": { "enabled": true, "radiusM": 300, "unlockOnArrival": true, "gracePeriodMs": 600000 },
+    "antiFraudFilter": true,
+    "privacy": { "virtualNumber": true, "blurLocation": true, "sensitiveWordIntervention": false },
+    "sos": { "enabled": true, "autoLocationReport": true, "autoEvidenceAppend": true, "notifyEmergencyContacts": true } },
+  "requiredSensors": ["GPS_GEOFENCE", "WATERMARK_CAMERA"],
+  "sensorFallbackLadder": { "GPS_GEOFENCE": ["NFC_BUMP"] },
+  "forwardHooks": ["ArrivalCheckHook", "OnsiteQuoteHook", "CleaningCheckHook", "DepartureFinishHook"],
+  "cancellationTiers": [
+    { "stage": "BEFORE_MATCH", "demanderRefundRatio": 1.0, "providerCompensationYuan": 0, "deductDepositRatio": 0 },
+    { "stage": "AFTER_MATCH_EN_ROUTE", "demanderRefundRatio": 0.7, "providerCompensationYuan": 30, "deductDepositRatio": 0.3 },
+    { "stage": "ON_SITE", "demanderRefundRatio": 0.5, "providerCompensationYuan": 50, "deductDepositRatio": 0.5 } ],
+  "autoAcceptanceTimeoutHours": 24,
+  "splitRules": { "providerRatio": 0.85, "platformRatio": 0.1, "insuranceRatio": 0.05 },
+  "theme": "housekeeping",
+  "formSchema": { "fields": [{ "key": "applianceType", "type": "picker" }] },
+  "cockpitSlot": "appliance-repair-cockpit"
+}
+```
+
+> 注：appliance-repair 的 D6 阶梯、D8 视界在 2026-08-16 批次仅作为白皮书声明式样例
+> 归档（库储备形态），生产装配消费方接入排期见 `docs/PROJECT_STATUS.md` 六、下一步。
+
+### 10.4 物理落点清单与单测矩阵
+
+| 物理落点 | 职责 | 单测 | 用例数 |
+|---|---|---|---|
+| `src/types/ammo-schema.ts` | 8 维契约 `IHolographicAmmoConfig` + `ICancellationTier`/`ISplitRules`/`SensorKind`/`SensorFallbackLadder`/`PricingParams` + `IWorkerRequirement.isPoliceVerified` + `ISubEventContext.ammoSnapshot` + `IAmmoDefinition.holographic` 镜像 | —（纯类型契约） | — |
+| `src/ammo/factory.ts` | 四道工序流水线：`validateAmmoConfig`（资金守恒/C2 一票否决/加价熔断/计价边界/阶梯边界/白名单解析）+ `HOOK_OPERATOR_REGISTRY`（6 算子静态白名单）+ `assembleAmmo`（沙箱组装 + deepFreeze 全图冻结）+ `registerDynamicAmmo`（热注册注入动态池） | `factory.test.ts`（node:test） | +12 |
+| `src/ammo/registry.ts` | `DYNAMIC_AMMO_POOL` 导出 + 检索链路升级「动态池 → 官方 → 四表聚合 → 默认保底」（getAmmoDefinition / getAmmoById 双通道） | 既有 `registry.test.ts` 回归（零改动） | 0 |
+| `src/base/ammo/runner.ts` | `AdvanceInput.ammoSnapshot` 快照优先调度（矩阵/钩子/熔断/资金全链基于快照）+ `ISubEventContext.ammoSnapshot` 透传 | 既有 `runner.test.ts` 回归（零改动）+ `factory.test.ts` 快照冻结 ×2 | 0 |
+| `package.json` | `test:oto:units` 白名单追加 `src/ammo/factory.test.ts` | — | — |
+
+全仓测试基线：**1210/1210 全绿**（vitest 537 + node:test 673，本次 factory 矩阵 +12）。
+tsc 0 error；`npm run build` 通过；收敛门禁 exit 0。
+
+---
+
+## 十一、收敛路线（宪法门禁衔接）
 
 1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
@@ -949,10 +1106,11 @@ tsc 0 error；lint 0 error；`npm run build` 通过。
 
 ---
 
-## 十一、修订记录
+## 十二、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
+| 2026-08-16 | **8 维全息解构模型与 AmmoFactory 工业级弹药流水线注入（100% 物理代码级闭环）**：新增 §十——① 8 维全息参数字典（D1 供给准入 / D2 计价与护栏 / D3 引信 / D4 传感降级 / D5 正向钩子 / D6 逆向违约阶梯 / D7 清算与仲裁 / D8 视界与表单）+ 正交关系表；② AmmoFactory 4 级安全生产工序（参数注入 → 静态审查 → 沙箱组装 → 不可变发布）+ 6 算子静态白名单 + 运行时热注册 + 在途订单快照冻结；③ car-wash-v1 / appliance-repair-v1 8 维 JSON 声明式样例；物理落点 `ammo-schema.ts`（IHolographicAmmoConfig/ICancellationTier/ISplitRules/SensorKind/isPoliceVerified/ammoSnapshot/holographic）+ `factory.ts`（validateAmmoConfig 资金守恒=C1 一票否决=加价熔断=计价边界=白名单解析 + HOOK_OPERATOR_REGISTRY 6 算子 + assembleAmmo deepFreeze 全图冻结 + registerDynamicAmmo 热注册）+ `registry.ts`（DYNAMIC_AMMO_POOL 动态池优先检索链）+ `runner.ts`（AdvanceInput.ammoSnapshot 快照优先调度 + ctx 透传）；新增 12 项 node:test 白名单注册，全仓 **1210/1210 全绿**（vitest 537 + node:test 673，node:test 661 → 673）；原 §十→§十一、§十一→§十二 顺延 | 用户 |
 | 2026-08-16 | 修复 Tailwind v4 自动扫描越界问题（source(none) 显式白名单）与 PWA 动态 manifest 路由冲突 | 用户 |
 | 2026-08-16 | **Design QA 与 PWA Handoff 规范注入（100% 物理代码级闭环）**：新增 §九——① Sprint -0.5 双轨敏捷协同模型（设计轨 Figma 变量/组件 × 工程轨 CSS Token/组件，W1~W10 里程碑产物清单，每周对齐）；② Figma 变量 → CSS Custom Properties 1:1 映射字典（`src/app/oto/globals.css` `:root` + `.oto-app` 双写：色彩 9 项 / 间距 6 级 / 触控 44/48px / 圆角 / 阴影 / 动效曲线，D-10 契约不触碰根主题）；③ Figma 图层 → Atomic 组件层级映射规则（验收 T-3：组件禁止硬编码色值）；④ Google Lighthouse 核心体验硬性基准表（LCP ≤ 2.0s / CLS ≤ 0.05 / a11y ≥ 95 / FCP ≤ 1.8s / TBT ≤ 200ms）；⑤ PWA 交互验收标准（A2HS 7 天静默期 `localStorage['a2hs_dismissed_until']` + 抽屉下拉 >35% 关闭）；物理落点 `layout.tsx`（Next 16 viewport：userScalable=false / viewportFit=cover + body 点击高亮消除）+ `A2HSPrompt.tsx`（isA2HSSuppressed/suppressA2HS 纯函数 + showInstallPrompt 前置拦截）+ `src/base/platform/useDragToDismiss.ts`（shouldDismissSheet 纯函数 + touch 三事件 Hook + 400px 基准回退）；新增 19 项双端单测（node:test 9 + vitest 10），全仓 **1180/1180 全绿**；原 §九→§十、§十→§十一 顺延 | 用户 |
 | 2026-08-16 | **PWA Native-Like UI/UX 架构与双端执行手册注入（100% 物理代码级闭环）**：新增 §八——① Canvas 时空防伪水印引擎 `src/base/platform/watermark-canvas.ts`（时间/坐标/订单哈希格式化 + 4:3 中心裁剪 + 右下角遮罩压制 + SHA-256 存证指纹 + 无 DOM 确定性降级，红线 5）② 屏幕左边缘手势返回 `src/base/platform/useEdgeSwipeBack.ts`（24px 边缘带 / 60px 阈值 / 1.5 垂直比纯函数 + touch Hook passive 抢占 + history.back 回退）③ 三组件：硬件权限预授权浮层 `PrePermissionSheet.tsx`（200m 围栏语义 / 防伪物证链双文案 + 永久拒绝「锁形图标」重置指引 + 48px 触控）、A2HS 安装价值时刻引导 `A2HSPrompt.tsx`（beforeinstallprompt 捕获延迟弹出 + Android prompt() + iOS Safari 分享气泡）、4:3 存证水印相机 `controls/ProofCamera.tsx`（capture=environment 禁相册 + 自动水印注入 + SHA-256 标签）；新增 50 项双端单测（node:test 28 + vitest jsdom 22），全仓 **1161/1161 全绿**；原 §八→§九、§九→§十 顺延 | 用户 |

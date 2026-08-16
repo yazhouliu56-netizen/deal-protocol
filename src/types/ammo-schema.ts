@@ -5,9 +5,15 @@
  * - 万能物理底座 = 五态原子状态机（绝对封闭），业务子流程以伴生事件插拔。
  * - 每颗弹药 = 一份 IAmmoDefinition（声明式装填：五态钩子 + 定价模型 + 引信策略）。
  * 本文件为底层协议（红线 3：`UI / Ammo ➔ base ➔ types`），只依赖 fuze-policy。
+ *
+ * 8 维全息弹药契约（2026-08-16 AmmoFactory 工业级装配线）：
+ * - IHolographicAmmoConfig = 装配原料（D1 供给准入 / D2 计价与护栏 / D3 引信 /
+ *   D4 传感降级 / D5 正向钩子 / D6 逆向违约阶梯 / D7 清算与仲裁 / D8 视界与表单）；
+ * - IAmmoDefinition 增补 holographic 运行时镜像（工厂装配弹药直挂全息配置）。
  */
 
 import type { IFuzePolicy } from "./fuze-policy";
+import type { ScenarioTheme } from "./ui-viewport";
 
 /**
  * 五态原子生命周期（Atomic Five-State Lifecycle）：
@@ -51,6 +57,13 @@ export interface ISubEventContext {
   expectedVersion?: number;
   /** 弹药自描述负载（如现场增项报价单、AA 分摊明细）。 */
   payload?: Record<string, unknown>;
+  /**
+   * 在途订单弹药快照（快照冻结机制）：由 AmmoRunner 在装配跃迁上下文时注入
+   * （= AdvanceInput.ammoSnapshot）。钩子闭包可读该快照做伴随校验；存在时
+   * 状态机一切跃迁与钩子执行严格基于该快照，免疫线上弹药热更新污染。
+   * 缺省 = 未启用快照（兼容既有零快照调用）。
+   */
+  ammoSnapshot?: IAmmoDefinition;
 }
 
 /** 伴生事件执行结果（ok=false 且 fallback=BLOCK 时底座阻止跃迁）。 */
@@ -159,6 +172,140 @@ export interface ITerminationEvent {
  * 底座通用 AmmoRunner 按此清单装载执行（红线 2：声明式弹药规范）。
  */
 
+/* =====================================================================
+ * D4 传感降级 · 所需物理传感器清单与降级阶梯（零信任物理感知红线）
+ * ===================================================================== */
+
+/** 物理传感器类型（D4 传感维度枚举）。 */
+export type SensorKind =
+  | "GPS_GEOFENCE" // LBS 电子围栏（到点解锁）
+  | "WATERMARK_CAMERA" // 水印相机（时空防伪存证）
+  | "NFC_BUMP" // 碰碰核销（完工打卡）
+  | "REAL_TIME_AUDIO"; // 实时录音（留证/危机联动）
+
+/**
+ * 传感降级阶梯（宪法 #10：降级是设计的一部分）：
+ * 主传感器不可用时按阶梯逐级回退到备用传感器，全部失效才降级为
+ * 人工确认兜底。如 `{ GPS_GEOFENCE: ["NFC_BUMP"] }` = GPS 围栏失效
+ * → 碰碰核销替代到点确认。
+ */
+export type SensorFallbackLadder = Partial<Record<SensorKind, SensorKind[]>>;
+
+/* =====================================================================
+ * D6 逆向违约阶梯（取消/违约分阶段赔付契约）
+ * ===================================================================== */
+
+/** 违约发生阶段（逆向违约阶梯的阶梯切点）。 */
+export type CancellationStage =
+  | "BEFORE_MATCH" // 匹配前取消（雇主零成本撤单）
+  | "AFTER_MATCH_EN_ROUTE" // 匹配后·服务者出发途中（车马费补偿）
+  | "ON_SITE" // 已到现场（场地/等待成本补偿）
+  | "IN_SERVICE"; // 服务中（按已完成比例结算）
+
+/** 逆向违约单阶梯（按阶段声明退款/补偿/扣金三件套）。 */
+export interface ICancellationTier {
+  /** 违约发生阶段。 */
+  stage: CancellationStage;
+  /** 雇主退款比例（0.0 ~ 1.0，按已托管总额）。 */
+  demanderRefundRatio: number;
+  /** 服务者补偿车马费（元，服务方低成本垫资保障）。 */
+  providerCompensationYuan: number;
+  /** 违约扣除保证金比例（0.0 ~ 1.0，仅违约方责任时扣划）。 */
+  deductDepositRatio: number;
+}
+
+/* =====================================================================
+ * D7 清算与仲裁 · 分账比例契约（资金守恒硬性校验位）
+ * ===================================================================== */
+
+/** 终局分账规则：三方比例之和必须严格等于 1.0（资金守恒红线）。 */
+export interface ISplitRules {
+  /** 服务方净得比例。 */
+  providerRatio: number;
+  /** 平台分润比例。 */
+  platformRatio: number;
+  /** 履约险/兜底池计提比例。 */
+  insuranceRatio: number;
+}
+
+/* =====================================================================
+ * D2 计价与护栏 · 计价参数集（公式类定价的附加参数）
+ * ===================================================================== */
+
+/** 计价附加参数（formula pricing 的 params 结构化镜像）。 */
+export type PricingParams = Record<string, number | string | boolean>;
+
+/* =====================================================================
+ * 8 维全息弹药配置契约（IHolographicAmmoConfig → AmmoFactory 装配原料）
+ *
+ * 单颗弹药以一份声明式 8 维全息配置交付装配线，维度划分：
+ *   D1 供给准入   D2 计价与护栏   D3 风控引信   D4 传感降级
+ *   D5 正向钩子   D6 逆向违约阶梯 D7 清算与仲裁 D8 视界与表单
+ * 装配线（src/ammo/factory.ts）执行静态语义审查 → 沙箱组装 →
+ * 不可变发布（Object.freeze 全图冻结），审核不通过拒绝出厂。
+ * ===================================================================== */
+export interface IHolographicAmmoConfig {
+  /* ===== 弹药身份元数据（装配线产物 IAmmoDefinition 的身份三件套） ===== */
+  /** 弹药唯一标识（URL 安全短名，如 "car-wash-v1"）。 */
+  ammoId: string;
+  /** 业务类目名（注册表检索键，对齐 getAmmoDefinition(category)）。 */
+  category: string;
+  /** 弹药版本（语义化 x.y.z，如 'v1.0.0'）。 */
+  version: string;
+
+  /* ===== D1 供给准入（S1 R_AUTH 供给端准入网关） ===== */
+  /** 运力池属性聚类（C2_IN_HOME 入户触发安全一票否决）。 */
+  supplyCluster: SupplyCluster;
+  /** 服务者最低资质门槛（入户类目须过背调红线方可出厂）。 */
+  workerRequirement?: IWorkerRequirement;
+
+  /* ===== D2 计价与护栏（价格透明优先 + 防坐地起价） ===== */
+  /** 计价模型（固定 / 时薪 / 人均 / 公式引用）。 */
+  pricingModel: PricingModel;
+  /** 计价附加参数（如里程费、夜间系数）。 */
+  pricingParams?: PricingParams;
+  /** 地板价（分）：成交价不得低于此价（防低价抢单倾销）。 */
+  minFloorPrice?: number;
+  /** 天花板价（分）：成交价不得高于此价（防坐地起价）。 */
+  maxCeilingPrice?: number;
+  /** 现场增项加价上限比例（默认 0.5，装配审查强校验 ≤ 0.5）。 */
+  maxSurchargeRatio?: number;
+  /** 定向信用折抵规则（信用飞轮兑换闸门）。 */
+  creditWaiverRule?: ICreditWaiverRule;
+
+  /* ===== D3 风控引信（💥碰炸 / ⏳延期 / 📡近炸，引信跟弹药走） ===== */
+  /** 引信策略（未显式装填 = 零防护兜底，审查器拒绝装配）。 */
+  fuzePolicy: IFuzePolicy;
+
+  /* ===== D4 传感降级（零信任物理感知 · 宪法 #10） ===== */
+  /** 履约所需物理传感器清单（缺省 = 纯软件履约）。 */
+  requiredSensors?: SensorKind[];
+  /** 主传感器失效时的逐级回退阶梯。 */
+  sensorFallbackLadder?: SensorFallbackLadder;
+
+  /* ===== D5 正向钩子（五态伴生事件插拔清单） ===== */
+  /** 引用的标准钩子名称清单（HOOK_OPERATOR_REGISTRY 静态白名单解析）。 */
+  forwardHooks?: string[];
+
+  /* ===== D6 逆向违约阶梯（分阶段取消/违约赔付契约） ===== */
+  /** 违约阶段阶梯（按阶段声明退款比例/车马费补偿/保证金扣划）。 */
+  cancellationTiers?: ICancellationTier[];
+
+  /* ===== D7 清算与仲裁（终局分账 + 超时代验收） ===== */
+  /** 超时自动代验收时长（小时；缺省 24）。 */
+  autoAcceptanceTimeoutHours?: number;
+  /** 终局分账规则（三比之和 = 1.0，资金守恒硬校验）。 */
+  splitRules?: ISplitRules;
+
+  /* ===== D8 视界与表单（前端视界投影隔离 · 动态视口装载） ===== */
+  /** 场景特化微主色令牌（housekeeping/meetup/companion/default）。 */
+  theme?: ScenarioTheme;
+  /** 发布页动态表单 JSON-Schema（PublishSheet 视界投影用）。 */
+  formSchema?: Record<string, unknown>;
+  /** 履约座舱场景插槽键（五态视口特化插槽装载位）。 */
+  cockpitSlot?: string;
+}
+
 /**
  * 供给端准入要求（S1 R_AUTH 供给端准入网关 · 动态资质拦截）。
  * 弹药声明服务者进入该类目履约所需的最低资质门槛，WorkerWorkbench /
@@ -169,6 +316,12 @@ export interface IWorkerRequirement {
   requiredCertificates?: string[];
   /** 最低安全背调分（0-100；低于该分禁止承接高风险入户类目）。 */
   minSafetyScore?: number;
+  /**
+   * 公安无犯罪核验通行证（C2_IN_HOME 入户一票否决红线关键位）：
+   * 入户类目弹药装配时须 `isPoliceVerified === true` 或
+   * `minSafetyScore >= 700`（0-1000 综合安全分量表），否则拒绝出厂。
+   */
+  isPoliceVerified?: boolean;
   /** 最低实名等级（BASIC 注册 / REAL_NAME 实名 / POLICE_VERIFIED 公安核验）。 */
   requiredIdentityLevel?: "BASIC" | "REAL_NAME" | "POLICE_VERIFIED";
 }
@@ -266,4 +419,10 @@ export interface IAmmoDefinition {
   autoAcceptanceTimeoutHours?: number;
   /** 运力池属性聚类（C1 移动轻履约 / C2 入户重背调 / C3 技术 B2B；缺省 = 未归类）。 */
   supplyCluster?: SupplyCluster;
+  /**
+   * 8 维全息配置运行时镜像（AmmoFactory 装配时投影，缺省 = 非工厂装配的
+   * 手写弹药）。视界层/履约座舱只读消费 D4/D6/D7/D8 全息数据（传感降级
+   * 阶梯、违约阶梯、分账规则、视界令牌），宪法红线 6：前端视界投影隔离。
+   */
+  holographic?: IHolographicAmmoConfig;
 }

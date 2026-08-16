@@ -82,6 +82,15 @@ export function toAtomicFiveState(ctx: FiveStateProjectionInput): AtomicFiveStat
 export interface AdvanceInput {
   /** 弹药定义（钩子清单 + 引信 + SOP 均由弹药自描述）。 */
   ammo: IAmmoDefinition;
+  /**
+   * 在途订单弹药快照（快照冻结机制 · 热更新免疫，2026-08-16）：
+   * 订单进入履约链路时由调用方冻结注册表当前时点的整弹快照；
+   * 推进时若提供 ammoSnapshot，状态机的一切跃迁矩阵校验、BEFORE/AFTER
+   * 钩子调度、引信核验、防坐地起价熔断与资金托管挂接均严格基于该快照
+   * 执行（快照优先，ammo 仅作缺省回落）——线上 AmmoFactory 热注册的新版
+   * 弹药与在途订单完全隔离，进行中订单逻辑零污染。
+   */
+  ammoSnapshot?: IAmmoDefinition;
   /** 业务单号（wave id / order id）。 */
   orderId: string;
   from: AtomicFiveState;
@@ -274,10 +283,14 @@ async function runHookSafely(
  * 生命周期推进：校验跃迁矩阵 → BEFORE 钩子（BLOCK 可阻止）→ 推进 →
  * AFTER 钩子（副作用透传）。BEFORE 钩子失败按弹药声明降级：
  * BLOCK 阻止跃迁 / SKIP 忽略 / DEFER 记录待重试（由调用方持久化队列）。
+ *
+ * 快照优先（快照冻结机制）：input.ammoSnapshot 存在时，本函数全部逻辑
+ * （矩阵 / 钩子 / 引信 / 熔断 / 资金）严格基于快照执行——进行中订单免疫
+ * 线上弹药热更新；缺省回落 input.ammo（既有调用零回归）。
  */
 export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResult> {
   const now = input.now ?? Date.now();
-  const ammo = input.ammo;
+  const ammo = input.ammoSnapshot ?? input.ammo;
   const target: AtomicFiveState = input.termination ? "SETTLED" : input.to;
 
   // 非终止路径：跃迁矩阵校验（唯一合法流向）
@@ -317,6 +330,8 @@ export async function advanceLifecycle(input: AdvanceInput): Promise<AdvanceResu
     orderId: input.orderId,
     from: input.from,
     to: target,
+    // 快照冻结透传：钩子闭包可读当前依赖的弹药快照（ammoSnapshot 优先）
+    ...(input.ammoSnapshot ? { ammoSnapshot: input.ammoSnapshot } : {}),
     // CAS 版本号透传进钩子上下文（弹药闭包可读当前/期望版本做伴随校验）
     ...(isVersionAware
       ? {

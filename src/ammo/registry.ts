@@ -1,10 +1,16 @@
 /**
- * 弹药注册表 · 存量聚合器（P0-1 AmmoRunner 前置，宪法 #3/#4/#5）。
+ * 弹药注册表 · 存量聚合器 + 运行时动态弹药池（P0-1 AmmoRunner 前置，宪法 #3/#4/#5）。
  *
  * 把既有 `src/ammo/` 散装四表（pricing-formula / dispatch-rule / risk-rule /
  * sop）无损聚合成符合 `IAmmoDefinition` 规范的弹药对象——
  * 不修改任何既有表文件（856 测试基线零影响），纯函数只读聚合。
  * 未配置类目自动应用默认保底弹药（Default Ammo，零防护兜底）。
+ *
+ * 运行时动态弹药池（AmmoFactory 热注册，2026-08-16）：
+ * `src/ammo/factory.ts` 的 registerDynamicAmmo 把装配出厂的不可变弹药按
+ * category 注入 DYNAMIC_AMMO_POOL；getAmmoDefinition / getAmmoById 检索
+ * 链路为「动态池 → 官方硬编码 → 四表聚合 → 默认保底」——热注册弹药
+ * 即时生效，未命中自动回落官方弹药与默认保底（零回归）。
  */
 
 import type {
@@ -25,6 +31,13 @@ import { companionAmmo } from "./companion.ammo.ts";
 
 const hasKey = (table: Record<string, unknown>, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(table, key);
+
+/**
+ * 运行时动态弹药池（AmmoFactory 热注册写入位）：
+ * Map<category, IAmmoDefinition>，工厂 `registerDynamicAmmo` 把审查通过、
+ * 全图冻结的弹药注入本池；检索链路动态池优先（见 getAmmoDefinition）。
+ */
+export const DYNAMIC_AMMO_POOL: Map<string, IAmmoDefinition> = new Map();
 
 /** 计价模型投影：有时薪档 → HOURLY（首档时薪）；否则 FIXED（起步价/地板价）。 */
 export function toPricingModel(formula: PricingFormula): PricingModel {
@@ -122,12 +135,14 @@ export function isConfiguredCategory(category: string): boolean {
 }
 
 /**
- * 弹药注册表查询（纯函数）：官方弹药直挂优先，其次按类目聚合四表。
- * 官方弹药（housekeeping-v1 / meetup-social-v1）：整弹直接返回；
+ * 弹药注册表查询（纯函数）：动态热注册池优先，其次官方弹药直挂，再次按
+ * 类目聚合四表。官方弹药（housekeeping-v1 / meetup-social-v1）：整弹直接返回；
  * 已配置类目：四表逐项聚合（缺表自动走各表默认值）；
  * 未配置类目：返回默认保底弹药（保留传入类目名）。
  */
 export function getAmmoDefinition(category: string): IAmmoDefinition {
+  const dynamic = DYNAMIC_AMMO_POOL.get(category);
+  if (dynamic) return dynamic;
   const official = OFFICIAL_AMMO[category];
   if (official) return official;
   if (!isConfiguredCategory(category)) {
@@ -162,10 +177,13 @@ export function resolveAmmoIdForPublish(category: string): string {
 
 /**
  * W5 总装：按 ammoId 反查整弹（履约座舱核销时装载钩子）。
- * 官方弹药（housekeeping-v1 / meetup-social-v1）整弹直挂；未命中时回落
- * 类目聚合（兼容无 ammoId 的存量 Wave，category 中文名走四表聚合）。
+ * 检索链路：动态热注册池 → 官方弹药（housekeeping-v1 / meetup-social-v1）
+ * 整弹直挂；未命中时回落类目聚合（兼容无 ammoId 的存量 Wave，category
+ * 中文名走四表聚合）。
  */
 export function getAmmoById(ammoId: string): IAmmoDefinition {
+  const dynamic = [...DYNAMIC_AMMO_POOL.values()].find((a) => a.ammoId === ammoId);
+  if (dynamic) return dynamic;
   const hit = Object.values(OFFICIAL_AMMO).find((a) => a.ammoId === ammoId);
   if (hit) return hit;
   return getAmmoDefinition(ammoId);
