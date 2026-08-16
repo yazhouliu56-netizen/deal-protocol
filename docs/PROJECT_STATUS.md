@@ -122,7 +122,7 @@
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
-| 2026-08-17 | `377782d` | **长尾非标业务即时量产大考实证**：全新类目 DRONE_CROP_SPRAY（农田无人机植保）在严禁静态 `.ammo.ts` 业务文件前提下，仅凭口语化非标诉求纯运行时组装 8 维全息配置 → AmmoFactory Linter 审查出厂 + 热注入 DYNAMIC_AMMO_POOL → AmmoRunner 五态全链路（CAS 0→4 / 托管 / 增项熔断 / 双拍 / 微信收付通 85·10·5 守恒）+ 零静态文件实证；新增 `src/ammo/dynamic-production-exam.test.ts` 考卷 8 项、`package.json` test:oto:units 扩列（历史「测试清单扩列」惯例）→ 单测 **1217→1225/1225 全绿**、tsc 0 错、build exit 0、收敛门禁 exit 0；全程零 factory/registry 改动 |
+| 2026-08-17 | `a3ca5e6` | **长尾非标业务即时量产大考实证**：全新类目 DRONE_CROP_SPRAY（农田无人机植保）在严禁静态 `.ammo.ts` 业务文件前提下，仅凭口语化非标诉求纯运行时组装 8 维全息配置 → AmmoFactory Linter 审查出厂 + 热注入 DYNAMIC_AMMO_POOL → AmmoRunner 五态全链路（CAS 0→4 / 托管 / 增项熔断 / 双拍 / 微信收付通 85·10·5 守恒）+ 零静态文件实证；新增 `src/ammo/dynamic-production-exam.test.ts` 考卷 8 项、`package.json` test:oto:units 扩列（历史「测试清单扩列」惯例）→ 单测 **1217→1225/1225 全绿**、tsc 0 错、build exit 0、收敛门禁 exit 0；全程零 factory/registry 改动 |
 | 2026-08-07 | `2748a36` | 建立状态档案体系（PROJECT_STATUS.md 替代 NEXT_STEPS，AGENTS.md 挂 sync 规则），已推送 origin |
 | 2026-08-07 | `1f118be` | CI 补挂 trustopen/acceptance（11 条 E2E）+ 生产服务器启动验证（pid 15900，HTTP 200） |
 | 2026-08-07 | `bdfda92` | 调整 P3 路线：数据化先行（lat/lng + 真实成交）→ Leaflet+OSM 免费接图，保留 CSS 降级 |
