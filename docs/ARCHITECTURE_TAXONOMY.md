@@ -781,7 +781,64 @@ sequenceDiagram
 
 ---
 
-## 八、收敛路线（宪法门禁衔接）
+## 八、PWA Native-Like UI/UX 架构与双端执行手册（2026-08-16 注入 · 100% 物理代码级闭环）
+
+> 人类创始人注入（2026-08-16）：将 §五 5.4「前端微内核」与 5.5「UI/UX 全景架构」的
+> PWA 原生体验主张落为**物理代码 + 双端（浏览器 / Node 单测）执行手册**。
+> 总则：一切 PWA 原生行为都是「纯函数判定 + 薄 DOM 桥 + 确定性降级」，
+> 同一逻辑在浏览器与 Node 测试环境执行结果完全一致（红线 1 确定性、红线 5 永不裸奔）。
+
+### 8.1 物理落地清单（代码 → 测试 → 文档三级闭环）
+
+| 物理落点 | 职责 | 单测 | 用例数 |
+|---|---|---|---|
+| `src/base/platform/watermark-canvas.ts` | Canvas 时空防伪水印引擎：时间/坐标/订单哈希格式化、SHA-256 指纹、4:3 中心裁剪 + 右下角遮罩压制、无 DOM 确定性降级 | `watermark-canvas.test.ts`（node:test） | 19 |
+| `src/base/platform/useEdgeSwipeBack.ts` | 屏幕左边缘手势返回：24px 边缘带 / 60px 滑动阈值 / 1.5 垂直比判定（纯函数）+ touch 事件 Hook（passive 抢占 + history.back 回退） | `useEdgeSwipeBack.test.ts`（node:test） | 9 |
+| `src/components/oto-ui/PrePermissionSheet.tsx` | 硬件权限防拒绝预授权浮层：GEOLOCATION（200m 围栏语义）/ CAMERA（防伪物证链）双文案、永久拒绝「锁形图标重置指引」、48px 触控 | `PwaNativeUx.test.tsx`（vitest jsdom） | 5 |
+| `src/components/oto-ui/A2HSPrompt.tsx` | A2HS 安装价值时刻引导：beforeinstallprompt 捕获 + preventDefault 延迟弹出、Android 原生 prompt()、iOS Safari 分享气泡（含 isIosSafari 纯函数） | 同上 | 5 |
+| `src/components/oto-ui/controls/ProofCamera.tsx` | 4:3 环境相机直拍（capture=environment 禁相册）+ 拍照自动注入时空水印 + SHA-256 存证标签 | 同上 | 6 |
+| `src/base/platform/useEdgeSwipeBack.ts`（Hook 集成） | jsdom 合成 touch 事件驱动真实手势链路（preventDefault / 回调 / history.back） | 同上 | 6 |
+
+全仓测试基线：**1161/1161 全绿**（vitest 510 + node:test 651，其中本 §新增 50 项）。
+tsc 0 error；lint 0 error（base 目录按既有 ignore 白名单约定）。
+
+### 8.2 三组件交互规范（视觉物理锚点）
+
+| 规范项 | 标准 | 物理落点 |
+|---|---|---|
+| 触控热区 | 交互按钮 `min-height: 48px`（≥44px 底线） | `PERMISSION_BUTTON_MIN_HEIGHT_PX` / `CAMERA_BUTTON_MIN_HEIGHT_PX` = 48 |
+| 防误触 | `-webkit-tap-highlight-color: transparent` + 按压 `scale(.97)` 微反馈 | 三组件 CSS 常量 |
+| 取景比例 | 存证照片统一 4:3（中心裁剪，`WATERMARK_RATIO`） | `fit43SourceRect` 纯函数 + canvas 绘制 |
+| 水印排版 | 右下角半透明遮罩（`rgba(0,0,0,.55)`）+ 三行等宽文本（时间 / 坐标±精度 / 订单哈希 wm-12hex） | `paintWatermark` / `buildWatermarkLines` |
+| 隐私底线 | 水印不落订单明文，仅落确定性哈希（djb2 族，与 signInsure 同源）；坐标精度 ±N m | `buildOrderHash` |
+| 权限礼貌 | 首次触达先解释后申请；永久拒绝态给「地址栏锁形图标」重置路径 | `PrePermissionSheet` |
+
+### 8.3 红线落实对照（宪法）
+
+| 红线 | 本 §落实 |
+|---|---|
+| 红线 1（确定性） | 水印格式化 / 边缘判定 / 订单哈希全部纯函数，零概率性判断；降级路径确定性可复现（同输入同输出） |
+| 红线 3（零 UI 反向依赖） | `watermark-canvas.ts` / `useEdgeSwipeBack.ts` 零 React 组件 / 零 UI Store 导入；判定逻辑独立于 DOM 可测 |
+| 红线 5（永不裸奔） | 无 DOM / Canvas 2D 不可用 / 图像加载失败 / 任意异常 → 一律返回降级结果（`watermarkApplied:false` + 源哈希），主函数外层 catch 兜底，绝无未捕获异常 |
+| 红线 2（外骨骼零改动） | 三组件均为视口/弹层级挂件，不侵入外骨骼锚点布局 |
+
+### 8.4 双端执行手册（浏览器 ↔ Node 单测一致性矩阵）
+
+| 能力 | 浏览器执行路径 | Node 单测执行路径 | 一致性保障 |
+|---|---|---|---|
+| 时间 / 坐标格式化 | 本地时区 Date + WGS-84 十进制度 | 同机同 TZ 断言 | 同一纯函数，无平台分支 |
+| SHA-256 指纹 | WebCrypto `crypto.subtle` | Node ≥20 全局 `crypto.subtle` | `sha256Hex` 单实现双端复用 |
+| 水印压制 | 真实 Canvas 2D 绘制 + toDataURL/toBlob | fake canvas 工厂记录调用序列（drawImage/save/fillRect/fillText/restore） | `canvasFactory` 注入点 + `WATERMARK_OVERLAY_RATIO` 常量一致 |
+| 环境降级 | 无 2D 上下文（如隐私模式）→ 仅哈希 | 无 DOM → 同路径 | `degrade()` 双端同一代码 |
+| 边缘手势 | 真实 TouchEvent（touches/changedTouches） | jsdom 合成事件（defineProperty 注入坐标） | `evaluateEdgeSwipe` 纯函数 + Hook 读取可选链 |
+| A2HS 安装 | 真机 beforeinstallprompt / iOS UA | 注入 fake BeforeInstallPromptEvent + UA 字符串 | `isIosSafari` 纯函数 + ref 命令式接口 |
+
+**执行纪律**：任何修改必须双端同测——Node 侧用例进 `test:oto:units` 清单，组件侧进
+`PwaNativeUx.test.tsx`；新增行为无对应双端用例视为未完成（DoD 口径）。
+
+---
+
+## 九、收敛路线（宪法门禁衔接）
 
 1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
 2. **建议收敛顺序**：D-2（WaveBundle 契约上收 `src/types/`，改动最小）→ D-1（llmEngine/mockEngine 注入化）→ D-3（sentinel 进家词迁 ammo/risk-rule）→ D-6（AmmoRunner 第一版，同时承载 P0-1）→ D-4/D-5（父项目 API 收编，最大工程）。
@@ -789,10 +846,11 @@ sequenceDiagram
 
 ---
 
-## 九、修订记录
+## 十、修订记录
 
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
+| 2026-08-16 | **PWA Native-Like UI/UX 架构与双端执行手册注入（100% 物理代码级闭环）**：新增 §八——① Canvas 时空防伪水印引擎 `src/base/platform/watermark-canvas.ts`（时间/坐标/订单哈希格式化 + 4:3 中心裁剪 + 右下角遮罩压制 + SHA-256 存证指纹 + 无 DOM 确定性降级，红线 5）② 屏幕左边缘手势返回 `src/base/platform/useEdgeSwipeBack.ts`（24px 边缘带 / 60px 阈值 / 1.5 垂直比纯函数 + touch Hook passive 抢占 + history.back 回退）③ 三组件：硬件权限预授权浮层 `PrePermissionSheet.tsx`（200m 围栏语义 / 防伪物证链双文案 + 永久拒绝「锁形图标」重置指引 + 48px 触控）、A2HS 安装价值时刻引导 `A2HSPrompt.tsx`（beforeinstallprompt 捕获延迟弹出 + Android prompt() + iOS Safari 分享气泡）、4:3 存证水印相机 `controls/ProofCamera.tsx`（capture=environment 禁相册 + 自动水印注入 + SHA-256 标签）；新增 50 项双端单测（node:test 28 + vitest jsdom 22），全仓 **1161/1161 全绿**；原 §八→§九、§九→§十 顺延 | 用户 |
 | 2026-08-15 | 初版定稿：元宪法四层 + 六红线固化 + 全仓归属映射 + 落差审计（D1-D8 + P0-P2 缺口） | 用户 |
 | 2026-08-15 | **核心设计模型注入**：新增 §二 万能底座五态原子状态机（Published➔Matched➔In-Service➔Inspected➔Settled + 伴生事件 Sub-Events 插拔）+ 三类风控引信矩阵（💥碰炸/⏳延期/📡近炸）+ 数字人格信用飞轮；契约落位 `src/types/ammo-schema.ts` + `src/types/fuze-policy.ts`；原章节顺延（三~六） | 用户 |
 | 2026-08-15 | **28 模块主蓝图注入**：§三 3.4 升级为「六层防御圈 × 28 核心模块职责矩阵」——标准模块编号 `L1-M1`～`L6-M4` 定为全项目永久唯一编号标准 + 六层职责矩阵 + 26 行代码落位与成熟度对照表（实测 🟢13 已闭环 / 🟡12 有雏形 / ⚪️1 待建设，清单净 26 模块，标题口径差量已标注待裁决） | 用户 |
