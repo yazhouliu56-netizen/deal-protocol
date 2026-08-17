@@ -30,6 +30,7 @@ import type {
 } from "../types/ammo-schema.ts";
 import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
+import { AIGC_PHOTO_FORGERY_DETECTED } from "../base/ai/forgery.ts";
 
 /* =====================================================================
  * 存量协议资产投影升级（出处：protocols/housekeeping.ts）
@@ -107,13 +108,21 @@ export const onsiteQuoteHook: ISubEventHook = {
  * 映射存量 completion.requiredEvidence: ["after_photo"] + evidence before/after。
  * 验收达成后把「服务前/后照片」证据清单透传上层（存证链/争议复核用）；
  * 相机不可用等软失败不影响验收（AFTER 副作用，状态已推进）。
- * 载荷：payload.photos = { before: string[], after: string[] }。
+ *
+ * L3-M4 深度鉴真接入（红线 1）：钩子为同步契约，不可 await —— 鉴真核验
+ * 经 payload.photoVerify 携带（上层先跑 detectImageForgery 再流转）：
+ *   - payload.photoVerify = { riskLevel: "CRITICAL" } → BLOCK 阻断流转，
+ *     错误原因 AIGC_PHOTO_FORGERY_DETECTED（伪造证据不允许推进验收）；
+ *   - 其余风险等级作为附加数据透传（evidence.forgery 留档争议物证链）；
+ *   - 无 photoVerify → 维持既有行为（照片齐全即放行，向后兼容存量测试）。
+ * 载荷：payload.photos = { before: string[], after: string[] }；
+ *       payload.photoVerify = { riskLevel, overallConfidence, summaryDiagnosis }。
  */
 export const cleaningCheckHook: ISubEventHook = {
   hookId: CLEANING_CHECK_HOOK_ID,
   on: { to: "INSPECTED" },
-  phase: "AFTER",
-  fallback: "SKIP",
+  phase: "BEFORE",
+  fallback: "BLOCK",
   run: (ctx: ISubEventContext): ISubEventResult => {
     const photos = ctx.payload?.photos as
       | { before?: string[]; after?: string[] }
@@ -123,6 +132,18 @@ export const cleaningCheckHook: ISubEventHook = {
     if (before.length === 0 || after.length === 0) {
       return { ok: false, reason: "evidence-photos-required" };
     }
+
+    const verify = ctx.payload?.photoVerify as
+      | { riskLevel?: string; overallConfidence?: number; summaryDiagnosis?: string }
+      | undefined;
+    if (verify?.riskLevel === "CRITICAL") {
+      return {
+        ok: false,
+        reason: AIGC_PHOTO_FORGERY_DETECTED,
+        data: { forgery: verify },
+      };
+    }
+
     return {
       ok: true,
       data: {
@@ -130,6 +151,7 @@ export const cleaningCheckHook: ISubEventHook = {
         contract: HOUSEKEEPING_EVIDENCE,
         requiredMet: before.length <= HOUSEKEEPING_EVIDENCE.beforePhoto.maxCount
           && after.length <= HOUSEKEEPING_EVIDENCE.afterPhoto.maxCount,
+        ...(verify ? { forgery: verify } : {}),
       },
     };
   },

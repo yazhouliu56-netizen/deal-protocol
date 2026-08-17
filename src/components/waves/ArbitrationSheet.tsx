@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import type { ForgeryRiskLevel } from "@/base/ai/forgery";
 
 /**
  * 争议调解 · AI 小法官半屏抽屉（Dispute & AI Arbitration Sheet · 白皮书 §五 5.6.3）。
@@ -50,7 +51,20 @@ export interface ArbitrationPhotoEvidence {
   photo: string;
   /** AI 视觉标注（多模态审图结果，仅 Advisory）。 */
   aiNote: string;
+  /** L3-M4 AIGC 深度鉴真报告（物证链展示；可缺省 = 未鉴真）。 */
+  forgeryReport?: {
+    riskLevel: ForgeryRiskLevel;
+    overallConfidence: number;
+    tamperFlags: string[];
+  };
 }
+
+const FORGERY_RISK_META: Record<ForgeryRiskLevel, { color: string; label: string }> = {
+  LOW: { color: "#4ade80", label: "LOW 可信" },
+  MEDIUM: { color: "#fbbf24", label: "MEDIUM 存疑" },
+  HIGH: { color: "#f97316", label: "HIGH 嫌疑" },
+  CRITICAL: { color: "#ef4444", label: "CRITICAL 伪造" },
+};
 
 export interface ArbitrationEvidence {
   /** 客户投诉诉求（原始诉求文本）。 */
@@ -361,6 +375,28 @@ export default function ArbitrationSheet({
                   <div>
                     <div style={{ fontSize: 11, color: "#94a3b8" }}>完工照片 {i + 1} · 哈希锚点</div>
                     <div className="arb-photo-ai">🤖 AI 视觉标注：{p.aiNote}</div>
+                    {p.forgeryReport ? (
+                      <div data-testid="photo-forgery">
+                        <span
+                          className="arb-ai-badge"
+                          data-testid="forgery-risk"
+                          style={{
+                            marginTop: 6,
+                            color: FORGERY_RISK_META[p.forgeryReport.riskLevel].color,
+                            borderColor: `${FORGERY_RISK_META[p.forgeryReport.riskLevel].color}66`,
+                            background: `${FORGERY_RISK_META[p.forgeryReport.riskLevel].color}1f`,
+                          }}
+                        >
+                          🔬 AIGC 鉴真 {Math.round(p.forgeryReport.overallConfidence * 100)}% ·{" "}
+                          {FORGERY_RISK_META[p.forgeryReport.riskLevel].label}
+                        </span>
+                        {p.forgeryReport.tamperFlags.length > 0 && (
+                          <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 4 }}>
+                            疑点标签：{p.forgeryReport.tamperFlags.join("、")}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}

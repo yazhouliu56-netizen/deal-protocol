@@ -223,3 +223,57 @@ describe("基础渲染兼容（W7 既有面）", () => {
     expect(html).toBe("");
   });
 });
+
+/* ============ 6. L3-M4 AIGC 鉴真徽标展示 ============ */
+
+describe("AIGC 鉴真评分徽标（L3-M4 物证链）", () => {
+  it("照片带鉴真报告 → 展示置信度百分比 + 风险等级徽标", () => {
+    const html = renderStatic({
+      disputeAmountYuan: 200,
+      evidence: {
+        complaint: "完工照片疑似 AI 生成，要求核验",
+        photos: [
+          {
+            photo: "/cap-1.jpg",
+            aiNote: "水印存证 · 哈希 0a1b2c3d",
+            forgeryReport: {
+              riskLevel: "CRITICAL",
+              overallConfidence: 0.23,
+              tamperFlags: ["EXIF_MISSING", "HASH_TAMPERED"],
+            },
+          },
+        ],
+      },
+    });
+    expect(html).toContain('data-testid="photo-forgery"');
+    expect(html).toContain('data-testid="forgery-risk"');
+    expect(html).toContain("AIGC 鉴真 23%");
+    expect(html).toContain("CRITICAL 伪造");
+    expect(html).toContain("EXIF_MISSING");
+    expect(html).toContain("HASH_TAMPERED");
+  });
+
+  it("可信照片（LOW）→ 绿色徽标 + 无疑点标签", () => {
+    const html = renderStatic({
+      disputeAmountYuan: 200,
+      evidence: {
+        complaint: "无争议",
+        photos: [
+          {
+            photo: "/cap-2.jpg",
+            aiNote: "水印存证",
+            forgeryReport: { riskLevel: "LOW", overallConfidence: 0.96, tamperFlags: [] },
+          },
+        ],
+      },
+    });
+    expect(html).toContain("AIGC 鉴真 96%");
+    expect(html).toContain("LOW 可信");
+    expect(html).not.toContain("疑点标签：");
+  });
+
+  it("照片无鉴真报告 → 不渲染徽标（向后兼容）", () => {
+    const html = renderStatic({ disputeAmountYuan: 200 });
+    expect(html).not.toContain('data-testid="photo-forgery"');
+  });
+});

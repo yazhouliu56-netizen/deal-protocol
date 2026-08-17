@@ -21,6 +21,8 @@ import {
   toAtomicFiveState,
 } from "../base/ammo/runner.ts";
 import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
+import type { ISubEventContext } from "../types/ammo-schema.ts";
+import { AIGC_PHOTO_FORGERY_DETECTED } from "../base/ai/forgery.ts";
 
 test("弹药装备完整性：housekeeping-v1 声明式装填无误", () => {
   assert.equal(housekeepingAmmo.ammoId, "housekeeping-v1");
@@ -170,6 +172,63 @@ test("完工验收：照片缺失 → AFTER SKIP 软失败，验收仍达成", a
   assert.equal(outcome?.hookId, "operator.cleaning-check");
   assert.equal(outcome?.fallbackUsed, "SKIP");
   assert.equal(outcome?.reason, "evidence-photos-required");
+});
+
+test("L3-M4 鉴真阻断：CRITICAL 伪造证据 → BLOCK + AIGC_PHOTO_FORGERY_DETECTED", async () => {
+  const base: ISubEventContext = {
+    ammoId: housekeepingAmmo.ammoId,
+    orderId: "hk-forgery-1",
+    from: "IN_SERVICE",
+    to: "INSPECTED",
+    payload: {
+      photos: { before: ["before-1.jpg"], after: ["after-1.jpg"] },
+      photoVerify: {
+        riskLevel: "CRITICAL",
+        overallConfidence: 0.21,
+        summaryDiagnosis: "命中 4 项疑点 —— 判定为伪造证据",
+      },
+    },
+  };
+  const r = cleaningCheckHook.run(base);
+  assert.equal(r.ok, false);
+  assert.equal(r.reason, AIGC_PHOTO_FORGERY_DETECTED);
+  const forgery = (r.data as { forgery?: unknown })?.forgery;
+  assert.ok(forgery);
+});
+
+test("L3-M4 鉴真放行：非 CRITICAL 风险附证据透传，验收照常达成", async () => {
+  const base: ISubEventContext = {
+    ammoId: housekeepingAmmo.ammoId,
+    orderId: "hk-forgery-2",
+    from: "IN_SERVICE",
+    to: "INSPECTED",
+    payload: {
+      photos: { before: ["before-1.jpg"], after: ["after-1.jpg"] },
+      photoVerify: {
+        riskLevel: "LOW",
+        overallConfidence: 0.93,
+        summaryDiagnosis: "五信号全部通过",
+      },
+    },
+  };
+  const r = cleaningCheckHook.run(base);
+  assert.equal(r.ok, true);
+  const data = r.data as { evidence?: unknown; forgery?: unknown };
+  assert.ok(data.evidence);
+  assert.ok(data.forgery);
+  assert.equal((data.forgery as { riskLevel?: string }).riskLevel, "LOW");
+});
+
+test("L3-M4 鉴真向后兼容：无 photoVerify 载荷 → 照片齐全即放行", async () => {
+  const base: ISubEventContext = {
+    ammoId: housekeepingAmmo.ammoId,
+    orderId: "hk-forgery-3",
+    from: "IN_SERVICE",
+    to: "INSPECTED",
+    payload: { photos: { before: ["before-1.jpg"], after: ["after-1.jpg"] } },
+  };
+  const r = cleaningCheckHook.run(base);
+  assert.equal(r.ok, true);
 });
 
 test("全流程：INSPECTED → SETTLED 终局", async () => {

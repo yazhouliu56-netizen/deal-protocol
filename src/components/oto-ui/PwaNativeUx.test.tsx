@@ -551,7 +551,7 @@ describe("useDragToDismiss 半屏抽屉下拉关闭 Hook（集成）", () => {
   function makeSheet(onDismiss: () => void, enabled?: boolean) {
     function Probe() {
       const { dragRef } = useDragToDismiss({ onDismiss, enabled });
-      return <div ref={dragRef} data-testid="sheet" style={{ height: 500 }} />;
+      return <div ref={dragRef as React.RefObject<HTMLDivElement>} data-testid="sheet" style={{ height: 500 }} />;
     }
     const { container, root } = mount(<Probe />);
     const el = container.querySelector<HTMLElement>('[data-testid="sheet"]')!;

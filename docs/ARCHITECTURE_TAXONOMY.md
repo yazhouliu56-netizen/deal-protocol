@@ -201,9 +201,13 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L6-M3` | 多云多活容灾 | 四步优雅降级（关非核心 ➔ 限流 ➔ 保核心 ➔ 只读） |
 | `L6-M4` | 司法级存证数仓 | 业务全量轨迹、聊天流水哈希存证，提供司法黑匣子 |
 
-#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射）
+#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射，本战役战果 3 模块晋级 🟢）
 
 > 状态图例：🟢 已闭环（生产代码 + 测试覆盖） / 🟡 有雏形（主链路已落地，缺口待补） / ⚪️ 待建设
+> **P2 战役战果（截至 2026-08-17）**：L6-M3、L5-M1、L3-M4 三模块自 🟡/⚪️ 晋级 🟢（详见各行标注），
+> 当前 26 模块清单 = **🟢 20 / 🟡 6（L2-M2、L4-M2、L4-M4、L4-M5、L5-M2、L6-M2）/ ⚪️ 0**；
+> 标题口径「28」差量 2 席（口径说明见 §3.4）与剩余 🟡 模块（计价分摊/终端反欺诈/危机干预
+> 位置上报/外部合规直连/运力熔断真实场景）为后续战役清单，非本战役承诺范围。
 
 | 编号 | 模块 | 代码落位 | 856 测试覆盖 | 状态 |
 |------|------|----------|--------------|------|
@@ -220,7 +224,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L3-M1` | 意图识别转单 | `base/ai/chat/llmEngine` + `decompose.ts` + `voice/voiceIntent.ts` | 拆解/意图测试 | 🟢（NL→结构化草稿闭环，围栏容错） |
 | `L3-M2` | 向量匹配推荐 | `base/ai/embed.ts`（bigram TF 余弦，零依赖） | embed 语义测试 | 🟢（确定性版活产；LLM Embedding 可选链 P1-4 留口） |
 | `L3-M3` | 智能争议仲裁 | `base/ai/judge.ts` + `forgery.ts`（物证）+ 时间轨迹分析 + `app/api/judge` | judge/定责测试 | 🟢（规则引擎兜底，仅出建议赔付——红线 1 隔离墙） |
-| `L3-M4` | AIGC 鉴真检测 | `base/ai/forgery.ts`（EXIF/文件名/复用/时间/比例五信号 + LLM 复核降级） | forgery 鉴真测试 | 🟡（五信号闭环；像素合成痕迹扫描见 P0-3/P1-1） |
+| `L3-M4` | 鉴真检测 | 完工凭证五信号融合引擎（EXIF 时空 / SHA-256 指纹 / 水印 / ELA 像素 / AI 视觉） | forgery 鉴真测试 | 🟢（**2026-08-17 闭环**：五信号融合 + CRITICAL 阻断验收 + 物证链徽标） |
 | `L3-M5` | 对话式数据 BI | `base/ai/bi.ts`（**对话式报表引擎：意图分流（品类违约 / 资金走势 / 服务者履约 / 全局兜底）→ 聚合 → `IBiReportPayload` 图表载荷（BAR/LINE/PIE/TABLE）**）+ `app/api/admin/bi`（管理端查数 API）+ `components/admin/ConversationalBiView.tsx`（**对话看板：快捷气泡 + AI 归因诊断卡 + KPI 指标网格 + 零依赖 SVG/CSS 图表 + 追问引导**） | bi 报表测试 + ConversationalBiView 组件测试 | 🟢（**2026-08-17 P2 战役 100% 闭环**：确定性规则链 + 5-provider Gateway LLM 归因增强（失败静默降级回规则摘要，红线 1）+ 管理看板接线 dashboard） |
 | `L4-M1` | 可插拔风控中枢 | `base/risk/*`（sentinel/roamGuard/fission/moderation）+ `ammo/risk-rule` 引信表 + `types/fuze-policy.ts`（三类引信模板） | sentinel/roam 测试 | 🟢（引信表驱动闭环；FuzeMatrix 自适应装载随 AmmoRunner P0-1） |
 | `L4-M2` | 终端反欺诈 | `base/risk/roamGuard`（设备指纹/多开）+ `lib/fraud-detection/*`、`modules`（黑名单） | roam 多开测试 | 🟡（设备指纹/多开闭环；模拟器检测/GPS 防作弊待建） |
@@ -289,10 +293,10 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
   跨场景统一钱包通兑、风控引信切换与 LLM 深度赋能。
 - **建设范围**：
   - **L1/L2**：动态表单渲染（L1-M1，JSON-Schema 弹药内嵌表单 P1-5）+ 统一计价与 AA 分摊引擎（L2-M2，补齐现场改价 / 动态溢价）。
-  - **L3 AI 神经**：LLM 意图解析转单（L3-M1，已 🟢）+ 智能仲裁小法官（L3-M3，已 🟢）+ 向量撮合推荐（L3-M2，Embedding 可选链接通）+ AIGC 图像鉴真（L3-M4，P0-3 / P1-1 像素合成扫描补齐）。
+  - **L3 AI 神经**：LLM 意图解析转单（L3-M1，已 🟢）+ 智能仲裁小法官（L3-M3，已 🟢）+ 向量撮合推荐（L3-M2，Embedding 可选链接通）+ AIGC 图像鉴真（L3-M4，已 🟢 五信号融合闭环）。
   - **标杆弹药**：`meetup.ammo.ts`（⏳ **延期引信** `DELAY_FUZE_TEMPLATE`：预付定金冻结 + LBS 电子围栏解锁 + 反赌反诈过滤）+ `companion.ammo.ts`（📡 **近炸引信** `PROXIMITY_FUZE_TEMPLATE`：虚拟号 + 模糊定位 + AI 敏感词干预 + 一键 SOS）。
 - **阶段验收**：同底座换弹药（meetup ↔ companion）零 base 修改；引信随弹药切换（DELAY ↔ PROXIMITY）勾选即生效；跨场景钱包通兑（L2-M4）+ 信用飞轮（L2-M6，宪法 #6）。
-- **现状标注**：L3-M1 / M2 / M3 已 🟢（确定性版）；L1-M1 / L2-M2 / L3-M4 为 🟡 需补齐；跨场景钱包通兑 ⚪️。
+- **现状标注**：L3-M1 / M2 / M3 / M4 已 🟢（确定性版 + 五信号鉴真闭环）；L1-M1 / L2-M2 为 🟡 需补齐；跨场景钱包通兑 ⚪️。
 
 ### 4.4 Phase 3：规模壁垒期（10 ➔ 100）
 
