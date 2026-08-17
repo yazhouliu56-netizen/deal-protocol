@@ -25,7 +25,7 @@ describe('M02 Identity Verification', () => {
 
   beforeEach(() => {
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
     delete process.env.REAL_NAME_API_KEY
     process.env.PII_ENCRYPTION_KEY = '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'
 

@@ -22,7 +22,7 @@ const EMPTY_CONFIG: PlatformConfig = {
 }
 
 export default function AdminConfigPage() {
-  const { user: session, loading: status } = useSession()
+  const { user: session } = useSession()
   const [config, setConfig] = useState<PlatformConfig>(EMPTY_CONFIG)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

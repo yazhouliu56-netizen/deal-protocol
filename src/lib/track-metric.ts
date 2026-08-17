@@ -9,7 +9,9 @@ type MetricName =
   | 'credit.update_count'
   | 'sos.trigger_count'
   | 'payment.volume'
-  | 'evidence.log_count';
+  | 'evidence.log_count'
+  | 'credit.decay_processed'
+  | 'credit.decay_applied';
 
 interface MetricPoint {
   name: MetricName;

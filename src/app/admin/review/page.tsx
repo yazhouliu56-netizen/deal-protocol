@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogTrigger,
@@ -34,7 +33,7 @@ interface ReviewItem {
 }
 
 export default function AdminReviewPage() {
-  const { user: session, loading: sessionLoading } = useSession()
+  const { user: session } = useSession()
   const [items, setItems] = useState<ReviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
@@ -43,7 +42,6 @@ export default function AdminReviewPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const fetchItems = async () => {
-    setLoading(true)
     try {
       const res = await fetch("/api/admin/review")
       if (!res.ok) throw new Error("加载失败")
@@ -58,7 +56,10 @@ export default function AdminReviewPage() {
 
   useEffect(() => {
     if (session?.role !== "ADMIN") return
-    fetchItems()
+    const init = async () => {
+      await fetchItems()
+    }
+    init()
   }, [session])
 
   const handleAction = async () => {
@@ -77,6 +78,7 @@ export default function AdminReviewPage() {
       toast.success(actionType === "approve" ? "已通过" : "已拒绝")
       setActionId(null)
       setReason("")
+      setLoading(true)
       fetchItems()
     } catch {
       toast.error("网络错误")
@@ -114,7 +116,7 @@ export default function AdminReviewPage() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">审核队列</h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-zinc-500">审核待确认的协议和服务者资质</p>
           </div>
-          <Button variant="outline" onClick={fetchItems} disabled={loading} className="rounded-xl">
+          <Button variant="outline" onClick={() => { setLoading(true); fetchItems() }} disabled={loading} className="rounded-xl">
             刷新
           </Button>
         </div>

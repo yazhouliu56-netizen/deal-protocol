@@ -24,7 +24,7 @@ if (!stripeKey) {
   process.exit(1);
 }
 
-const stripe = new Stripe(stripeKey, { apiVersion: "2025-02-24.acacia" as any });
+const stripe = new Stripe(stripeKey, { apiVersion: "2025-02-24.acacia" });
 const webhookUrl = `${siteUrl}/api/webhooks/stripe`;
 
 async function main() {

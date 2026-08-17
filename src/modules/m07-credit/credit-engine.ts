@@ -1,7 +1,7 @@
 import { getSupabase } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import type { CreditDimension } from '@/lib/contracts'
-import { computeCompositeScore, ageFactor, decayFactor, coldStartProtection } from '../../../packages/credit-formula/index'
+import { computeCompositeScore, ageFactor, decayFactor } from '../../../packages/credit-formula/index'
 
 const DIMS: CreditDimension[] = ['integrity', 'capability', 'reliability', 'communication', 'safety', 'contribution']
 

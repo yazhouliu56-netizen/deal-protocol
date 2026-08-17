@@ -1,7 +1,7 @@
 "use client"
 
-import { useChat } from "@ai-sdk/react"
-import { useRef, useEffect, useMemo, useState, useCallback, type ChangeEvent } from "react"
+import { useChat, type UIMessage } from "@ai-sdk/react"
+import { useRef, useEffect, useState, useCallback, type ChangeEvent } from "react"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
@@ -72,8 +72,6 @@ export default function SplitDemandView({ session, highlightedField }: { session
   const [logFeed, setLogFeed] = useState<string[]>([])
   const [logIndex, setLogIndex] = useState(0)
 
-  const [media, setMedia] = useState<Array<{ url: string; name: string; type: "image" | "video" }>>([])
-
   interface ExtractedProtocol {
     category?: string
     budget?: number | string
@@ -88,7 +86,6 @@ export default function SplitDemandView({ session, highlightedField }: { session
   }
 
   const [extractedProtocol, setExtractedProtocol] = useState<ExtractedProtocol | null>(null)
-  const [createdDemandId, setCreatedDemandId] = useState<string | null>(null)
   const [riskWarning, setRiskWarning] = useState<string | null>(null)
 
   const userContext = session
@@ -136,12 +133,21 @@ export default function SplitDemandView({ session, highlightedField }: { session
   useEffect(() => {
     const lastMsg = messages[messages.length - 1]
     if (lastMsg?.role !== "assistant") return
-    const text = (lastMsg as any).content || lastMsg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || ''
+    const textParts =
+      lastMsg.parts
+        ?.filter((p) => p.type === "text")
+        .map((p) => (p as { type: "text"; text: string }).text)
+        .join("") ?? ""
+    const text = (lastMsg as UIMessage & { content?: string }).content || textParts
     const match = text.match(/\[PROTOCOL_JSON\]([\s\S]*?)\[\/PROTOCOL_JSON\]/)
     if (match) {
       try {
         const parsed = JSON.parse(match[1])
-        setExtractedProtocol(parsed)
+        const commit = async () => {
+          await Promise.resolve()
+          setExtractedProtocol(parsed)
+        }
+        commit()
         console.log("[Shadow Interceptor] Protocol extracted:", parsed)
       } catch (e) {
         console.warn("[Shadow Interceptor] JSON parse failed (incomplete stream?)", e)
@@ -162,12 +168,6 @@ export default function SplitDemandView({ session, highlightedField }: { session
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
-
-  useEffect(() => {
-    if (createdDemandId) {
-      setPublishedId(createdDemandId)
-    }
-  }, [createdDemandId])
 
   useEffect(() => {
     if (demoState === "idle") return
@@ -207,7 +207,7 @@ export default function SplitDemandView({ session, highlightedField }: { session
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey && !isLoading) {
       e.preventDefault()
-      handleFormSubmit(e as any)
+      handleFormSubmit(e as unknown as React.FormEvent)
     }
   }
 
@@ -570,7 +570,7 @@ export default function SplitDemandView({ session, highlightedField }: { session
                     )}
                     <div className="flex-1 space-y-2 min-w-0">
                       {(() => {
-                        const rawText = (msg as any).content || msg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || ''
+                        const rawText = (msg as UIMessage & { content?: string }).content || msg.parts?.filter((p) => p.type === 'text').map((p) => (p as { type: "text"; text: string }).text).join('') || ''
                         const displayText = msg.role === "assistant" ? renderBubbleContent(rawText) : rawText
                         return displayText ? (
                           <div className={cn(

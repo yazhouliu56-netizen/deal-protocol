@@ -98,7 +98,7 @@ async function rungWechat(
     const accessTokenResponse = await fetch(
       `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${wechatPayService['appId']}&secret=${wechatPayService['appSecret']}`,
     )
-    const tokenData: any = await accessTokenResponse.json()
+    const tokenData = await accessTokenResponse.json() as { access_token?: string; errcode?: number; errmsg?: string }
     if (!tokenData.access_token) {
       throw new Error(`WeChat token failed: ${JSON.stringify(tokenData)}`)
     }

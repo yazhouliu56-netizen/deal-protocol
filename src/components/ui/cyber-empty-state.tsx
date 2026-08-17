@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Scroll, Sparkles, RefreshCw, Home } from 'lucide-react';
+import { Scroll, RefreshCw, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CyberEmptyStateProps {

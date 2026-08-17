@@ -1,10 +1,8 @@
 import { getServiceClient } from "@/lib/supabase-client"
-import { arbitrate, determineTier, canAutoExecute, CONFIDENCE_AUTO_EXECUTE_THRESHOLD } from "@/lib/arbitration"
+import { arbitrate, determineTier, canAutoExecute } from "@/lib/arbitration"
 import { getEngine } from "@/lib/protocol/engine"
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
-import { callLLM } from "@/lib/llm"
-import type { DisputeTier } from "@/lib/arbitration"
 
 interface DisputeChannel {
   maxAmount?: number
@@ -13,7 +11,7 @@ interface DisputeChannel {
   resolveHours: number
 }
 
-export async function resolveDispute(disputeId: string, channel: DisputeChannel): Promise<{ resolution: string; providerAmount: number; customerAmount: number }> {
+export async function resolveDispute(disputeId: string, _channel: DisputeChannel): Promise<{ resolution: string; providerAmount: number; customerAmount: number }> {
   const supabase = getServiceClient()
 
   const { data: dispute } = await supabase

@@ -14,6 +14,11 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-require-imports": "warn",
       "@typescript-eslint/no-this-alias": "warn",
       "@typescript-eslint/no-unsafe-function-type": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+      }],
       "react/no-unescaped-entities": "warn",
       "prefer-const": "warn",
       "react-hooks/set-state-in-effect": "warn",
@@ -34,6 +39,10 @@ const eslintConfig = defineConfig([
     "mobile/**",
     "src/base/**",
     "src/ammo/**",
+    // 构建产物：Serwist 由 src/app/sw.ts 编译生成，禁止 lint 扫描
+    "public/sw.js",
+    "public/sw.js.map",
+    "public/workbox-*.js",
   ]),
 ]);
 

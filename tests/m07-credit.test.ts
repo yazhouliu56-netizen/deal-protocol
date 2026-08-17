@@ -5,7 +5,6 @@ vi.mock('../src/modules/m11-evidence-log/evidence-chain', () => ({
   appendEvidence: vi.fn(),
 }))
 
-import { appendEvidence } from '../src/modules/m11-evidence-log/evidence-chain'
 
 class MockChain {
   readonly from = vi.fn(() => this)
@@ -23,7 +22,7 @@ describe('M07 Credit System', () => {
   beforeEach(() => {
     chain = new MockChain()
     chain.single.mockResolvedValue({ data: { id: 'test-evidence-id' } })
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
   })
 
   afterEach(() => {

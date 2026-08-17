@@ -15,19 +15,9 @@ export function maskPhoneWithLen(phone: string | null | undefined, prefixLen = 3
   return s.slice(0, prefixLen) + "*".repeat(s.length - prefixLen - suffixLen) + s.slice(-suffixLen)
 }
 
-interface VirtualNumber {
-  id: string
-  contractId: string
-  proxyNumber: string
-  targetNumber: string
-  role: "provider" | "customer"
-  expiresAt: Date
-  createdAt: Date
-}
-
 const VIRTUAL_PREFIX = "1709"
 
-export function generateProxyNumber(contractId: string, role: "provider" | "customer"): string {
+export function generateProxyNumber(_contractId: string, _role: "provider" | "customer"): string {
   const hash = randomBytes(4).readUInt32BE(0) % 10000000
   return `${VIRTUAL_PREFIX}${String(hash).padStart(7, "0")}`
 }

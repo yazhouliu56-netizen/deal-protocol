@@ -117,7 +117,6 @@ export default function OrderOperations({
   };
 
   const fundStatus = contract.fund_status || contract.fundStatus || '';
-  const serviceStage = contract.service_stage ?? contract.serviceStage ?? 0;
 
   const visibleActions = (contract.availableActions ?? [])
     .map((a) => operationLabels[a.action])

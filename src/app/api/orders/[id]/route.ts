@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase-client";
-import { createPayment, getAvailablePaymentChannels } from "@/lib/payment";
+import { createPayment, getAvailablePaymentChannels, type PaymentProvider } from "@/lib/payment";
 import {
   validateTransition,
   getNextFundStatus,
@@ -15,7 +15,7 @@ import {
 import { getEngine } from "@/lib/protocol/engine";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
-import { trackWorkflowStageEvidence } from "@/lib/workflow-evidence-tracker";
+import { trackWorkflowStageEvidence, type WorkflowStageInput } from "@/lib/workflow-evidence-tracker";
 import { maskPhone } from "@/lib/privacy-guard";
 
 async function insertNotification({
@@ -68,19 +68,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   ]);
 
   // Risky queries — tables that may not exist yet
-  let reviewsRes: any = { data: [] };
+  let reviewsRes: { data: Array<{ id: string; evidence_hash?: string; reviewer?: { name?: string } | null }> | null } = { data: [] };
   try {
     reviewsRes = await supabase.from('evidence_chain').select('*, reviewer:reviewer_id(name)').eq('contract_id', id);
   } catch (e) {
     console.warn("evidence_chain table not found, skipping reviews:", e);
   }
-  let disputesRes: any = { data: [] };
+  let disputesRes: { data: Array<{ id: string; channel?: string; reason?: string; created_at?: string }> | null } = { data: [] };
   try {
     disputesRes = await supabase.from('disputes').select('id, channel, reason, created_at').eq('contract_id', id).eq('status', 'OPEN').limit(1);
   } catch (e) {
     console.warn("disputes query failed:", e);
   }
-  let protocolVersionRes: any = { data: null };
+  let protocolVersionRes: { data: Record<string, unknown> | null } = { data: null };
   if (contract.protocol_version_id) {
     try {
       protocolVersionRes = await supabase.from('protocol_versions').select('*').eq('id', contract.protocol_version_id).single();
@@ -261,9 +261,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const guardError = validateTransition(contract.protocol_id, action, {
     contract: {
       id: contract.id,
-      fundStatus: contract.fund_status as any,
+      fundStatus: contract.fund_status ?? "",
       disputeStatus: contract.dispute_status,
-      serviceStage: contract.service_stage as any,
+      serviceStage: contract.service_stage ?? 0,
       providerId: contract.provider_id,
       customerId: contract.customer_id,
       amount: contract.amount,
@@ -304,7 +304,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       description: `订单支付: ${id}`,
       contractId: id,
       payerId: session.user.id,
-      provider: paymentProvider as any,
+      provider: paymentProvider as PaymentProvider,
     });
 
     if (!paymentResult.success) {
@@ -407,6 +407,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .eq('contract_id', id)
       .eq('status', 'OPEN')
       .single();
+    void dispute;
 
     const providerAmount = (body.providerAmount as number) ?? contract.amount * 0.5;
     const customerAmount = (body.customerAmount as number) ?? contract.amount * 0.5;
@@ -509,7 +510,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         contractId: id,
         userId: session.user.id,
         userIp: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || undefined,
-        stage: stageName as any,
+        stage: stageName as WorkflowStageInput["stage"],
         latitude,
         longitude,
         photoUrl,

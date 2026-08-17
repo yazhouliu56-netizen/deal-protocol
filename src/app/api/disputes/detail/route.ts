@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
 
-export const GET = withAuth(async (request: Request, user: any) => {
+export const GET = withAuth(async (request: Request, user) => {
   try {
     const supabase = getServiceClient();
     const { searchParams } = new URL(request.url);
@@ -27,7 +27,7 @@ export const GET = withAuth(async (request: Request, user: any) => {
     }
 
     return NextResponse.json(dispute);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "查询维权详情失败" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) || "查询维权详情失败" }, { status: 500 });
   }
 });

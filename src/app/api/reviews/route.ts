@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
-import { getServiceClient } from "@/lib/supabase-client";
 import { callLLM } from "@/lib/llm";
 import { getEngine } from "@/lib/protocol/engine";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
@@ -16,14 +15,14 @@ export const POST = withAuth(async (req, user) => {
     return NextResponse.json({ error: "评分无效" }, { status: 400 });
   }
 
-  let contract: any = null;
+  let contract: { protocol_id: string; provider_id: string; customer_id: string; fund_status: string } | null = null;
   try {
     const res = await supabase
       .from('contracts')
       .select('*')
       .eq('id', contractId)
       .single();
-    contract = res.data;
+    contract = res.data as { protocol_id: string; provider_id: string; customer_id: string; fund_status: string };
     if (res.error || !contract) {
       return NextResponse.json({ error: "订单不存在" }, { status: 404 });
     }
@@ -57,8 +56,8 @@ export const POST = withAuth(async (req, user) => {
     return NextResponse.json({ error: "已评价过" }, { status: 400 });
   }
 
-  let review: any = null;
-  let createError: any = null;
+  let review: { id: string } | null = null;
+  let createError: unknown = null;
   try {
     const res = await supabase
       .from('evidence_chain')
@@ -72,7 +71,7 @@ export const POST = withAuth(async (req, user) => {
       })
       .select()
       .single();
-    review = res.data;
+    review = res.data as { id: string };
     createError = res.error;
   } catch (e) {
     createError = e;
@@ -81,6 +80,10 @@ export const POST = withAuth(async (req, user) => {
   if (createError) {
     console.warn("Failed to create review:", JSON.stringify(createError));
     return NextResponse.json({ error: "评价提交失败", detail: JSON.stringify(createError) }, { status: 500 });
+  }
+
+  if (!review) {
+    return NextResponse.json({ error: "评价提交失败" }, { status: 500 });
   }
 
   if (reviewDef?.labelExtraction) {

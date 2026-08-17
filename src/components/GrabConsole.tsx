@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 interface GrabConsoleProps {
   demandId: string;
   initialTimeLeft: number;
-  initialCompetitors: any[];
+  initialCompetitors?: Array<{ id: string; name: string }>;
   onGrabSuccess: () => void;
   onGrabFailure: (reason: string) => void;
   verificationStatus?: string;
@@ -54,13 +54,13 @@ export default function GrabConsole({
         setStatus("failed");
         onGrabFailure(data.reason || "手慢了，订单已被其他师傅接到");
       }
-    } catch (error) {
+    } catch {
       setStatus("failed");
       onGrabFailure("网络异常，请稍后重试");
     }
   };
 
-  const cardAnimationVariants = {
+  const cardAnimationVariants: Variants = {
     idle: { scale: 1 },
     grabbing: { scale: 0.98, opacity: 0.95 },
     success: { 
@@ -76,7 +76,7 @@ export default function GrabConsole({
         opacity: { duration: 0.3 }
       }
     }
-  } as any;
+  };
 
   return (
     <motion.div
@@ -153,7 +153,7 @@ export default function GrabConsole({
         </div>
 
         <div className="text-xs text-gray-400">
-          已有 {initialCompetitors.length} 位师傅在周围伺机而动
+          已有 {(initialCompetitors ?? []).length} 位师傅在周围伺机而动
         </div>
 
         <button

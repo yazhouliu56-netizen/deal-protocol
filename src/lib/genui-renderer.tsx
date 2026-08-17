@@ -6,7 +6,7 @@
  * ProtocolCard and GenUIRenderer will be removed in a future phase.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
@@ -164,7 +164,7 @@ function FieldArray({ field, value, onChange }: {
   onChange: (v: string[]) => void
 }) {
   const [inputVal, setInputVal] = useState('')
-  const items: string[] = Array.isArray(value) ? value : []
+  const items = useMemo<string[]>(() => (Array.isArray(value) ? value : []), [value])
 
   const addItem = useCallback(() => {
     const trimmed = inputVal.trim()
@@ -273,16 +273,6 @@ function HighRiskConfirmDialog({ riskTier }: { riskTier?: string }) {
         <input type="checkbox" className="h-4 w-4 rounded border-red-300" required />
         I understand and agree to proceed
       </label>
-    </div>
-  )
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-4">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-10 animate-pulse rounded bg-gray-200" />
-      ))}
     </div>
   )
 }

@@ -60,8 +60,8 @@ export default function AIDemandsRadarWorkspace() {
         setDemands(data)
         toast.success(`扫描就绪，命中 ${data.length} 个高拟合商机`, { id: toastId })
       }
-    } catch (e: any) {
-      toast.error(`模型初始化中断: ${e.message}`, { id: toastId })
+    } catch (e: unknown) {
+      toast.error(`模型初始化中断: ${e instanceof Error ? e.message : String(e)}`, { id: toastId })
     } finally {
       setIsScanning(false)
     }
@@ -105,7 +105,7 @@ export default function AIDemandsRadarWorkspace() {
           {demands.length === 0 ? (
             <div className="border border-zinc-800 bg-zinc-900/10 rounded-2xl p-16 text-center text-zinc-500 text-sm">
               <Search className="w-6 h-6 text-zinc-700 mx-auto mb-3" />
-              雷达处于静默期。点击右上角"启动 AI 智能扫描"加载多维匹配空间。
+              雷达处于静默期。点击右上角{"\u201C"}启动 AI 智能扫描{"\u201D"}加载多维匹配空间。
             </div>
           ) : (
             demands.map((item) => (

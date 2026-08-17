@@ -11,7 +11,7 @@ import {
   type RoamEvent,
   type RoamRuleParams,
 } from "@/base/risk/roamGuard";
-import { isRuleEnabled, riskRulesFor, type RiskRule } from "@/ammo/risk-rule";
+import { isRuleEnabled, riskRulesFor } from "@/ammo/risk-rule";
 
 /** ammo/risk-rule 的 roam-guard 引信参数 → base 阈值（宪法 #5：引信跟弹药走）。 */
 function roamParams(): RoamRuleParams {

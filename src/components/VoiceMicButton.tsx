@@ -4,6 +4,38 @@ import { useState, useEffect, useRef } from "react"
 import { Mic, MicOff } from "lucide-react"
 import toast from "react-hot-toast"
 
+interface SpeechRecognitionResult {
+  transcript: string
+}
+
+interface SpeechRecognitionEvent {
+  results: Array<Array<SpeechRecognitionResult>>
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string
+  message?: string
+}
+
+interface SpeechRecognitionLike {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((e: SpeechRecognitionEvent) => void) | null
+  onend: (() => void) | null
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null
+  start: () => void
+  stop: () => void
+  abort: () => void
+}
+
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionCtor
+  webkitSpeechRecognition?: SpeechRecognitionCtor
+}
+
 interface VoiceMicButtonProps {
   onTranscript: (text: string) => void
   onListeningStateChange?: (isListening: boolean) => void
@@ -14,52 +46,51 @@ export default function VoiceMicButton({
   onListeningStateChange,
 }: VoiceMicButtonProps) {
   const [isListening, setIsListening] = useState(false)
-  const [isSupported, setIsSupported] = useState(true)
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const [isSupported] = useState(() => {
+    if (typeof window === "undefined") return false
+    const w = window as SpeechRecognitionWindow
+    return !!(w.SpeechRecognition || w.webkitSpeechRecognition)
+  })
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!isSupported || typeof window === "undefined") return
+    const w = window as SpeechRecognitionWindow
+    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition
+    if (!Ctor) return
 
-      if (!SpeechRecognition) {
-        setIsSupported(false)
-        return
+    const recognition = new Ctor()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = "zh-CN"
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const resultText = event.results[0][0].transcript
+      if (resultText) {
+        onTranscript(resultText)
       }
-
-      const recognition = new SpeechRecognition()
-      recognition.continuous = false
-      recognition.interimResults = false
-      recognition.lang = "zh-CN"
-
-      recognition.onresult = (event: any) => {
-        const resultText = event.results[0][0].transcript
-        if (resultText) {
-          onTranscript(resultText)
-        }
-      }
-
-      recognition.onend = () => {
-        setIsListening(false)
-        onListeningStateChange?.(false)
-      }
-
-      recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error, event.message ?? "")
-        setIsListening(false)
-        onListeningStateChange?.(false)
-        if (event.error === "not-allowed") {
-          toast.error("麦克风权限被拒绝，请在浏览器设置中允许麦克风访问")
-        } else if (event.error === "no-speech") {
-          toast.error("未检测到语音，请重试")
-        } else {
-          toast.error("语音转文字不可用，请手动输入")
-        }
-      }
-
-      recognitionRef.current = recognition
     }
-  }, [onTranscript, onListeningStateChange])
+
+    recognition.onend = () => {
+      setIsListening(false)
+      onListeningStateChange?.(false)
+    }
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error("Speech recognition error:", event.error, event.message ?? "")
+      setIsListening(false)
+      onListeningStateChange?.(false)
+      if (event.error === "not-allowed") {
+        toast.error("麦克风权限被拒绝，请在浏览器设置中允许麦克风访问")
+      } else if (event.error === "no-speech") {
+        toast.error("未检测到语音，请重试")
+      } else {
+        toast.error("语音转文字不可用，请手动输入")
+      }
+    }
+
+    recognitionRef.current = recognition
+  }, [onTranscript, onListeningStateChange, isSupported])
 
   const toggleListening = async (e: React.MouseEvent) => {
     e.preventDefault()

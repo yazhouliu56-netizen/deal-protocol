@@ -1,4 +1,4 @@
-import { test, expect, type Page, type BrowserContext } from "@playwright/test"
+import { test, expect, type Page } from "@playwright/test"
 
 const BASE_URL = process.env.BASE_URL || "https://deal-protocol.vercel.app"
 const MIN_TOUCH = 44
@@ -20,7 +20,7 @@ test.afterEach(async () => {
 // ── 0. Security Response Headers ──
 test.describe("Security Headers", () => {
   test("X-Content-Type-Options: nosniff", async () => {
-    const res = await (await fetch(BASE_URL)).text()
+    await (await fetch(BASE_URL)).text()
     // fallback: use page request
   })
 
@@ -41,7 +41,7 @@ test.describe("Realtime / WebSocket", () => {
     })
     const page = await context.newPage()
     await page.goto(BASE_URL + "/demands", { waitUntil: "networkidle" })
-    const hasWS = wsPages.some((u) => u.startsWith("wss://"))
+    wsPages.some((u) => u.startsWith("wss://"))
     // WebSocket may not fire on every deployment; log but soft-check
     console.log(`WebSocket connections observed: ${wsPages.length}`)
     expect(wsPages.length).toBeGreaterThanOrEqual(0)
@@ -60,9 +60,6 @@ test.describe("Mobile Touch (iPhone 13 390×844)", () => {
     expect(overflow.scrollW).toBeLessThanOrEqual(overflow.clientW + 1)
   }
 
-  async function assertTouchTarget(el: Promise<ReturnType<Page["locator"]>>) {
-    // Not a real assertion – we use boundingBox directly
-  }
 
   test("Header hamburger button meets 44px touch target", async ({ page }) => {
     await page.goto(BASE_URL + "/demands", { waitUntil: "networkidle" })

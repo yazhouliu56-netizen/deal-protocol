@@ -53,8 +53,8 @@ describe('M04 Protocol Generation', () => {
 
   beforeEach(() => {
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from } as any)
-    buildFunctionTool.mockReturnValue({ name: 'extract_test', parameters: {} } as any)
+    __setSupabaseClient({ from: chain.from })
+    buildFunctionTool.mockReturnValue({ name: 'extract_test', parameters: {} })
     getCategoryConfig.mockResolvedValue({
       category: 'test_cat',
       risk_tier: 'low',
@@ -64,7 +64,7 @@ describe('M04 Protocol Generation', () => {
       safety_requirements: null,
       enabled: true,
       version: 1,
-    } as any)
+    })
   })
 
   afterEach(() => {
@@ -124,7 +124,7 @@ describe('M04 Protocol Generation', () => {
       safety_requirements: null,
       enabled: true,
       version: 1,
-    } as any)
+    })
 
     callLLM
       .mockResolvedValueOnce(defaultEmbedding)
@@ -210,7 +210,7 @@ describe('M04 Protocol Generation', () => {
 
     expect(result.success).toBe(true)
 
-    const insertArg = (chain.insert as any).mock.calls[0][0] as Record<string, unknown>
+    const insertArg = (chain.insert).mock.calls[0][0] as Record<string, unknown>
     const coreFields = insertArg.core_fields as Record<string, unknown>
     const categoryFields = insertArg.category_fields as Record<string, unknown>
 

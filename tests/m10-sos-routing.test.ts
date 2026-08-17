@@ -31,7 +31,7 @@ describe('M10 SOS Routing Exclusion', () => {
 
   beforeEach(() => {
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
     chain.single.mockResolvedValue({ data: null, error: null })
     chain.maybeSingle.mockResolvedValue({ data: null, error: null })
 
@@ -88,7 +88,7 @@ describe('M10 SOS Routing Exclusion', () => {
 
   it('matchNearby filters out is_online=false providers', async () => {
     const mockRpc = vi.fn()
-    __setSupabaseClient({ rpc: mockRpc } as any)
+    __setSupabaseClient({ rpc: mockRpc })
 
     mockRpc.mockResolvedValue({
       data: [

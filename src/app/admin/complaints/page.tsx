@@ -1,14 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "@/components/SessionProvider"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
 } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -49,7 +47,7 @@ const ACTION_CONFIG: Record<string, { label: string; btnClass: string; variant: 
 }
 
 export default function AdminComplaintsPage() {
-  const { user: session, loading: sessionLoading } = useSession()
+  const { user: session } = useSession()
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -58,8 +56,7 @@ export default function AdminComplaintsPage() {
   const [reason, setReason] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  const fetchComplaints = async () => {
-    setLoading(true)
+  const fetchComplaints = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/complaints")
       if (!res.ok) throw new Error("加载失败")
@@ -70,12 +67,15 @@ export default function AdminComplaintsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (session?.role !== "ADMIN") return
-    fetchComplaints()
-  }, [session])
+    const init = async () => {
+      await fetchComplaints()
+    }
+    init()
+  }, [session, fetchComplaints])
 
   const handleAction = async () => {
     setSubmitting(true)

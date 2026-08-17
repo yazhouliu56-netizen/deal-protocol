@@ -53,7 +53,7 @@ async function main() {
       WHERE pubname = 'supabase_realtime'
       ORDER BY tablename;
     `)
-    const currentTables = checkResult.rows.map((r: any) => r.tablename)
+    const currentTables = checkResult.rows.map((r) => r.tablename)
     console.log(`Current tables in supabase_realtime: [${currentTables.join(', ')}]`)
 
     const needsDemands = !currentTables.includes('demands')
@@ -82,7 +82,7 @@ async function main() {
       WHERE pubname = 'supabase_realtime'
       ORDER BY tablename;
     `)
-    const finalTables = verifyResult.rows.map((r: any) => r.tablename)
+    const finalTables = verifyResult.rows.map((r) => r.tablename)
     console.log(`\nPublication tables after update: [${finalTables.join(', ')}]`)
     console.log('Supabase Realtime configuration complete.')
   } catch (err) {

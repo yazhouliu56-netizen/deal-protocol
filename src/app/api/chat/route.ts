@@ -4,9 +4,15 @@ import { auth } from "@/lib/auth"
 import { interceptChatRisk } from "@/lib/risk-interceptor"
 import { buildConciergeContext } from "@/lib/concierge-agent"
 
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system'
+  content?: string
+  parts?: Array<{ type: string; text?: string }>
+}
+
 export async function POST(request: Request) {
   try {
-    let { messages, userContext } = await request.json()
+    const { messages, userContext } = await request.json()
 
     if (!userContext) {
       const session = await auth()
@@ -16,18 +22,18 @@ export async function POST(request: Request) {
     }
 
     const userId = userContext?.userId ?? (await auth())?.user?.id
-const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop()
+const lastUserMsg = (messages as ChatMessage[]).filter((m) => m.role === 'user').pop()
   let riskWarning = ''
   if (lastUserMsg) {
-    const rawText = lastUserMsg.content ?? lastUserMsg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? ''
+    const rawText = lastUserMsg.content ?? lastUserMsg.parts?.filter((p) => p.type === 'text').map((p) => p.text).join('') ?? ''
     const riskResult = interceptChatRisk(rawText)
     if (riskResult.hasRisk) {
       riskWarning = `\n\n【平台风控拦截】检测到用户试图进行私下交易或交换联系方式。已自动屏蔽联系方式。请回复时坚持平台交易原则，引导用户在平台内完成正规交易。`
     }
   }
 
-  const modelMessages = messages.map((msg: any) => {
-    let content = msg.content ?? msg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') ?? ''
+  const modelMessages = (messages as ChatMessage[]).map((msg) => {
+    let content = msg.content ?? msg.parts?.filter((p) => p.type === 'text').map((p) => p.text).join('') ?? ''
     if (msg.role === 'user') {
       const { sanitizedText, hasRisk } = interceptChatRisk(content)
       if (hasRisk && sanitizedText) content = sanitizedText

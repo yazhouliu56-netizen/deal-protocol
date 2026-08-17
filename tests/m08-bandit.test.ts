@@ -22,7 +22,7 @@ describe('M08 Bandit Ranker', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
   })
 
   afterEach(() => {
@@ -99,7 +99,7 @@ describe('M08 Bandit Ranker', () => {
 
       await recordReward('p1', 'cleaning', 'conversion', 1)
 
-      const insertCall = (chain.insert as any).mock.calls[0][0]
+      const insertCall = (chain.insert).mock.calls[0][0]
       expect(insertCall).toMatchObject({
         provider_id: 'p1',
         category: 'cleaning',
@@ -118,7 +118,7 @@ describe('M08 Bandit Ranker', () => {
       await recordReward('p1', 'cleaning', 'conversion', 1)
 
       expect(chain.update).toHaveBeenCalled()
-      const updateArg = (chain.update as any).mock.calls[0][0] as { conversions: number; reward_sum: number }
+      const updateArg = (chain.update).mock.calls[0][0] as { conversions: number; reward_sum: number }
       expect(updateArg.conversions).toBe(2)
       expect(updateArg.reward_sum).toBe(2)
     })
@@ -131,7 +131,7 @@ describe('M08 Bandit Ranker', () => {
 
       await recordReward('p1', 'cleaning', 'conversion', -5)
 
-      const updateArg = (chain.update as any).mock.calls[0][0] as { reward_sum: number }
+      const updateArg = (chain.update).mock.calls[0][0] as { reward_sum: number }
       expect(updateArg.reward_sum).toBe(0)
     })
   })

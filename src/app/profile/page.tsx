@@ -6,7 +6,6 @@ import { useSession } from '@/components/SessionProvider';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -14,8 +13,8 @@ import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { EscrowStats } from '@/components/profile/escrow-stats';
 import { InventoryGrid } from '@/components/profile/inventory-grid';
 import {
-  Crown, Shield, UserCheck, Wallet, ChevronRight, CircleDashed,
-  User, Scroll, Award,
+  Crown, Shield, UserCheck, Wallet,
+  User, Scroll,
 } from 'lucide-react';
 
 interface UserProfile {
@@ -32,13 +31,6 @@ interface UserProfile {
   skills?: string | string[];
   service_areas?: string;
   avatar_url?: string;
-}
-
-function getCreditLevel(score: number) {
-  if (score >= 200) return { label: '优秀', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' };
-  if (score >= 150) return { label: '良好', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' };
-  if (score >= 100) return { label: '一般', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' };
-  return { label: '待提升', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' };
 }
 
 const VERIFICATION_ITEMS = [
@@ -106,7 +98,11 @@ export default function ProfilePage() {
   }, []);
 
   useEffect(() => {
-    if (session) fetchProfile();
+    if (!session) return;
+    const init = async () => {
+      await fetchProfile();
+    };
+    init();
   }, [session, fetchProfile]);
 
   const handleSaveProfile = async () => {
@@ -180,13 +176,11 @@ export default function ProfilePage() {
     : [profile.role || 'CUSTOMER'];
   const isProvider = userRoles.includes('PROVIDER');
   const isCustomer = userRoles.includes('CUSTOMER');
-  const isDualIdentity = isProvider && isCustomer;
   const roleLabels = [
     isProvider && '服务商',
     isCustomer && '客户',
   ].filter(Boolean) as string[];
 
-  const creditLevel = getCreditLevel(profile.credit_score);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 font-sans relative">

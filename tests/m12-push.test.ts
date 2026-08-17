@@ -15,7 +15,7 @@ vi.mock('@/lib/track-metric', () => ({
 import { getSupabase } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { trackMetric } from '@/lib/track-metric'
-import { grabOrder, expressInterest, getInterestList, pushToCandidates, LockProvider, DatabaseLockProvider, RedisLockProvider, getLockProvider, setLockProvider } from '@/modules/m12-push/push-service'
+import { grabOrder, expressInterest, getInterestList, pushToCandidates } from '@/modules/m12-push/push-service'
 
 class MockChain {
   readonly from = vi.fn(() => this)
@@ -38,7 +38,7 @@ describe('M12 Push Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    getSupabase.mockReturnValue({ from: chain.from, channel: chain.channel } as any)
+    getSupabase.mockReturnValue({ from: chain.from, channel: chain.channel })
     appendEvidence.mockResolvedValue({
       id: 'ev-1',
       protocol_id: 'proto-1',

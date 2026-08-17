@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Sparkles, Shield, Zap, Award, X, Check, Backpack, type LucideIcon } from 'lucide-react';
+import { Package, Shield, Zap, Award, X, Check, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
 

@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import Image from "next/image"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import toast from "react-hot-toast"
@@ -37,25 +38,27 @@ const STATUS_TOAST: Record<string, string> = {
 
 export default function ClientTrackingClient({ initialData }: { initialData: DemandData | null }) {
   const [demand, setDemand] = useState<DemandData | null>(initialData)
+  const statusRef = useRef(demand?.status)
+  useEffect(() => { statusRef.current = demand?.status }, [demand?.status])
   const [settling, setSettling] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
-    if (!demand) return
+    if (!demand?.id) return
     const supabase = getBrowserSupabase()
     const channel = supabase
-      .channel(`demand:${demand.id}`)
+      .channel(`demand:${demand?.id}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "demands",
-          filter: `id=eq.${demand.id}`,
+          filter: `id=eq.${demand?.id}`,
         },
         (payload) => {
           const newStatus = (payload.new as Partial<DemandData>).status
-          if (newStatus && newStatus !== demand.status) {
+          if (newStatus && newStatus !== statusRef.current) {
             const msg = STATUS_TOAST[newStatus]
             if (msg) toast(msg, { icon: "🔔" })
           }
@@ -65,7 +68,7 @@ export default function ClientTrackingClient({ initialData }: { initialData: Dem
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [demand?.id, demand?.status])
+  }, [demand?.id])
 
   const handleSettle = async () => {
     if (!demand) return
@@ -205,7 +208,7 @@ export default function ClientTrackingClient({ initialData }: { initialData: Dem
           <h3 className="font-bold mb-4 text-zinc-900 dark:text-zinc-100">完工凭证</h3>
           <div className="grid grid-cols-2 gap-3">
             {demand.certificate_images.map((url: string, i: number) => (
-              <img key={i} src={url} alt="完工凭证" className="rounded-lg aspect-square object-cover" />
+              <Image key={i} src={url} alt="完工凭证" width={400} height={400} className="rounded-lg aspect-square object-cover" />
             ))}
           </div>
         </div>

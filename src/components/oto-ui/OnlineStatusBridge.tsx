@@ -21,7 +21,11 @@ export default function OnlineStatusBridge() {
   const pendingOps = useWaveStore((s) => s.offlineQueue.length);
 
   useEffect(() => {
-    setOnline(typeof window !== "undefined" && navigator.onLine);
+    const sync = async () => {
+      await Promise.resolve()
+      setOnline(typeof window !== "undefined" && navigator.onLine)
+    }
+    sync()
     const on = () => setOnline(true);
     const off = () => setOnline(false);
     window.addEventListener("online", on);

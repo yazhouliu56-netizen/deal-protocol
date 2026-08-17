@@ -13,7 +13,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 // ── 环境变量读取：优先系统环境变量，再回退 .env.local ──
-function loadEnvVar(key: string): string | undefined {
+function _loadEnvVar(key: string): string | undefined {
   if (process.env[key]) return process.env[key]
   return undefined
 }
@@ -48,7 +48,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase: SupabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { persistSession: false },
-  realtime: { transport: (globalThis as any).WebSocket as any },
+  realtime: { transport: (globalThis).WebSocket },
 })
 
 // ── 彩色日志工具 ──
@@ -98,8 +98,8 @@ async function runE2E(): Promise<void> {
   }
 
   // 角色分配
-  const customerProfile = profiles.find((p: any) => p.role === 'CUSTOMER')
-  const providerProfile = profiles.find((p: any) => p.role === 'PROVIDER')
+  const customerProfile = profiles.find((p) => p.role === 'CUSTOMER')
+  const providerProfile = profiles.find((p) => p.role === 'PROVIDER')
 
   if (customerProfile && providerProfile) {
     clientId = customerProfile.id

@@ -24,7 +24,7 @@ export function useOrderRealtime(
   const [isLiveUpdated, setIsLiveUpdated] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const onChangeRef = useRef(options?.onChange)
-  onChangeRef.current = options?.onChange
+  useEffect(() => { onChangeRef.current = options?.onChange }, [options?.onChange])
 
   useEffect(() => {
     const supabase = getBrowserSupabase()

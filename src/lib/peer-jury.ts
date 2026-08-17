@@ -1,6 +1,5 @@
 import { getSupabase } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
-import { updateCredit } from '@/modules/m07-credit/credit-engine'
 
 /**
  * Invite jury members for a dispute.
@@ -27,7 +26,7 @@ export async function inviteJuryMembers(disputeId: string): Promise<string[]> {
 
   if (!order) throw new Error('Order not found')
 
-  const involvedIds = [order.customer_id, (order as any).initiator_id].filter(Boolean)
+  const involvedIds = [order.customer_id].filter(Boolean)
 
   // Find Tier 5 users (trust_tier >= 5 via trigger on credit_records base_score >= 900)
   const { data: jurors } = await supabase
@@ -98,14 +97,6 @@ export async function castJuryVote(
 
   // Award +5 contribution credit via the credit engine's 'verification' event type
   // (contribution delta = +2 for 'verification', so we call it multiple times)
-  const evidencePayload = JSON.stringify({
-    dispute_id: disputeId,
-    juror_id: jurorId,
-    vote,
-    action: 'jury_reward',
-    timestamp: new Date().toISOString(),
-  })
-
   const { data: evRecord } = await supabase
     .from('evidence_log')
     .insert({

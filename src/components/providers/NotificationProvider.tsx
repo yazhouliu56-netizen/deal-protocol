@@ -79,7 +79,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!user?.id) return
-    fetchNotifications()
+    const init = async () => {
+      await fetchNotifications()
+    }
+    init()
   }, [user?.id, fetchNotifications])
 
   useEffect(() => {

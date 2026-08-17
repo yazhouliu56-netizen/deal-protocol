@@ -19,14 +19,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode; defaultTheme?:
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem('deal_protocol_theme') as ThemeMode;
-    if (savedTheme && ['cyber-pop', 'soft-astral', 'tactical-hud', 'pro-minimal'].includes(savedTheme)) {
-      setThemeState(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      document.documentElement.setAttribute('data-theme', defaultTheme);
-    }
+    const init = async () => {
+      await Promise.resolve();
+      setMounted(true);
+      const savedTheme = localStorage.getItem('deal_protocol_theme') as ThemeMode;
+      if (savedTheme && ['cyber-pop', 'soft-astral', 'tactical-hud', 'pro-minimal'].includes(savedTheme)) {
+        setThemeState(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        document.documentElement.setAttribute('data-theme', defaultTheme);
+      }
+    };
+    init();
   }, [defaultTheme]);
 
   const setTheme = (newTheme: ThemeMode) => {

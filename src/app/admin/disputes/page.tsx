@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { toast } from "react-hot-toast"
 import { ShieldAlert, Scale, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Image as ImageIcon } from "lucide-react"
 
@@ -26,7 +26,7 @@ export default function AdminDisputesWorkspace() {
     type: null,
   })
 
-  const fetchDisputes = async () => {
+  const fetchDisputes = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await fetch("/api/admin/disputes/list")
@@ -64,11 +64,14 @@ export default function AdminDisputesWorkspace() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchDisputes()
-  }, [])
+    const init = async () => {
+      await fetchDisputes()
+    }
+    init()
+  }, [, fetchDisputes])
 
   const handleArbitrateAction = async () => {
     if (!selectedDispute || !showModal.type) return
@@ -96,8 +99,8 @@ export default function AdminDisputesWorkspace() {
       setDisputes((prev) => prev.filter((item) => item.id !== selectedDispute.id))
       setSelectedDispute(null)
       setShowModal({ active: false, type: null })
-    } catch (error: any) {
-      toast.error(`裁决中断: ${error.message}`, { id: toastId })
+    } catch (error: unknown) {
+      toast.error(`裁决中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
     } finally {
       setIsProcessing(false)
     }

@@ -242,7 +242,7 @@ describe('MilestoneCheckpoint', () => {
       })),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     const result = await submitMilestoneCheckpoint('ms-1', 24)
     expect(result.success).toBe(true)
@@ -267,7 +267,7 @@ describe('MilestoneCheckpoint', () => {
       })),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     await expect(submitMilestoneCheckpoint('ms-fail', 24)).rejects.toThrow(/Failed to submit/)
     __resetServiceClient()
@@ -292,7 +292,7 @@ describe('MilestoneCheckpoint', () => {
       from: vi.fn(() => chain),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     const result = await confirmMilestoneCheckpoint('ms-2')
     expect(result.success).toBe(true)
@@ -305,7 +305,7 @@ describe('MilestoneCheckpoint', () => {
   it('confirmMilestoneCheckpoint throws when db update fails', async () => {
     const { confirmMilestoneCheckpoint } = await import('@/lib/milestone-escrow')
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient({} as any)
+    __setServiceClient({})
 
     await expect(confirmMilestoneCheckpoint('ms-fail')).rejects.toThrow()
     __resetServiceClient()
@@ -321,7 +321,7 @@ describe('MilestoneCheckpoint', () => {
       })),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     const result = await processExpiredCheckpoints()
     expect(result).toHaveProperty('processedCount')
@@ -349,7 +349,7 @@ describe('MilestoneCheckpoint', () => {
       from: vi.fn(() => chain),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     const result = await processExpiredCheckpoints()
     expect(result.processedCount).toBe(2)
@@ -374,7 +374,7 @@ describe('MilestoneCheckpoint', () => {
       })),
     }
     const { __setServiceClient, __resetServiceClient } = await import('@/lib/supabase-client')
-    __setServiceClient(mockSupabase as any)
+    __setServiceClient(mockSupabase)
 
     const result = await processExpiredCheckpoints()
     expect(result.processedCount).toBe(0)

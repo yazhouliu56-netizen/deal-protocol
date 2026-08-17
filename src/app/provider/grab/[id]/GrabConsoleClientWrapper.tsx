@@ -7,17 +7,24 @@ import GrabConsole from "@/components/GrabConsole"
 
 interface GrabConsoleClientWrapperProps {
   demandId: string
-  initialTimeLeft: number
-  initialCompetitors: { id: string; avatar: string; name: string }[]
+  initialCreatedAt: string
+  initialCompetitors: {
+    id: string
+    avatar: string
+    name: string
+  }[]
 }
 
 export default function GrabConsoleClientWrapper({
   demandId,
-  initialTimeLeft,
+  initialCreatedAt,
   initialCompetitors,
 }: GrabConsoleClientWrapperProps) {
   const router = useRouter()
   const [verificationStatus, setVerificationStatus] = useState<string | undefined>(undefined)
+  const [initialTimeLeft] = useState(() =>
+    Math.max(0, 900 - Math.floor((Date.now() - new Date(initialCreatedAt).getTime()) / 1000)),
+  )
 
   useEffect(() => {
     fetch("/api/profile")

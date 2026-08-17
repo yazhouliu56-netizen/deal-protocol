@@ -1,13 +1,11 @@
 import { getServiceClient } from "@/lib/supabase-client"
 import { addContractEvent } from "./events"
-import { getConfig } from "@/lib/platform/config"
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { getEngine } from "@/lib/protocol/engine"
 
 export async function handleSatisfactionBatch(contractId: string) {
   const supabase = getServiceClient()
-  const config = await getConfig()
 
   const { data: contract } = await supabase
     .from('contracts')
@@ -90,12 +88,6 @@ export async function releaseSatisfactionBatch(batchId: string) {
     .single()
 
   if (!batch || batch.status !== 'PENDING') return
-
-  const { data: provider } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', batch.provider_id)
-    .single()
 
   const { data: contracts } = await supabase
     .from('contracts')

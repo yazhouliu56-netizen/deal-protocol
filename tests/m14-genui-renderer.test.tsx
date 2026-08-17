@@ -72,7 +72,7 @@ describe('M14 GenUIRenderer', () => {
     const onChange = vi.fn()
 
     const html = renderToString(
-      React.createElement(mod.GenUIRenderer, { schema: testSchema as any, value: {}, onChange }),
+      React.createElement(mod.GenUIRenderer, { schema: testSchema, value: {}, onChange }),
     )
 
     for (const t of allTypes) {

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Clock, User, ShieldCheck } from "lucide-react"
+import { User, ShieldCheck } from "lucide-react"
 
 const FUND_STATUS_MAP: Record<string, { label: string; color: string }> = {
   PENDING_HELD: { label: "待支付", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400" },
@@ -64,7 +64,6 @@ export default function OrdersPage() {
   }, [session, authStatus, router])
 
   useEffect(() => {
-    setLoading(true)
     fetch(`/api/orders?role=${role}`)
       .then((res) => res.ok ? res.json() : [])
       .then((data) => setContracts(data.contracts ?? []))
@@ -95,7 +94,7 @@ export default function OrdersPage() {
             <button
               key={r}
               type="button"
-              onClick={() => setRole(r)}
+              onClick={() => { setLoading(true); setRole(r) }}
               className={cn(
                 "touch-target flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all active:scale-[0.98]",
                 role === r

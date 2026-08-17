@@ -3,7 +3,7 @@ import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { classifyDemand } from "@/lib/demand/classifier"
 
-export const POST = withAuth(async (req, user) => {
+export const POST = withAuth(async (req, _user) => {
   try {
     const { text } = await req.json()
     if (!text || typeof text !== "string") {

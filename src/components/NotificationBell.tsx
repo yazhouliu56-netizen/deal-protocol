@@ -41,7 +41,10 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    const init = async () => {
+      await fetchNotifications()
+    }
+    init()
     const interval = setInterval(fetchNotifications, 30_000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);

@@ -9,7 +9,7 @@
  * 服务进程完全脱离调用者句柄，工具正常结束。故本脚本不重定向日志。
  */
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 

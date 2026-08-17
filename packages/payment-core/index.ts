@@ -287,7 +287,7 @@ export class PaymentManager {
     };
   }
 
-  private async handleWechatNotify(body: string, headers: NotifyHeaders): Promise<NotifyResult> {
+  private async handleWechatNotify(body: string, _headers: NotifyHeaders): Promise<NotifyResult> {
     if (!this.wechatConfig) {
       throw new Error("WeChat Pay not configured");
     }

@@ -1,16 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { uploadPhotoWithRetry } from "@/lib/upload"
 import type { VerificationStatus } from "@/lib/types"
-import {
-  Shield, ShieldCheck, ShieldX, Clock, Upload, X,
-  ChevronRight, Loader2, CheckCircle2, ArrowRight,
-} from "lucide-react"
+import { Shield, ShieldCheck, ShieldX, Clock, Upload, X, ChevronRight, Loader2, ArrowRight } from "lucide-react"
 
 function VerificationForm({
   status,
@@ -220,7 +217,7 @@ export default function VerificationPage() {
   const [rejectedReason, setRejectedReason] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/profile")
       const data = await res.json()
@@ -232,11 +229,14 @@ export default function VerificationPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchStatus()
-  }, [])
+    const init = async () => {
+      await fetchStatus()
+    }
+    init()
+  }, [fetchStatus])
 
   if (loading) {
     return (

@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { toast } from "react-hot-toast"
-import { ShieldAlert, Award, UserX, CheckCircle, RefreshCw, AlertTriangle, UserCheck } from "lucide-react"
+import { ShieldAlert, UserX, CheckCircle, RefreshCw, AlertTriangle, UserCheck } from "lucide-react"
 
 interface AnomalyProfile {
   id: string
@@ -19,7 +19,7 @@ export default function AdminReputationWorkspace() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
-  const fetchAnomalies = async () => {
+  const fetchAnomalies = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await fetch("/api/admin/reputation/list")
@@ -51,11 +51,14 @@ export default function AdminReputationWorkspace() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchAnomalies()
-  }, [])
+    const init = async () => {
+      await fetchAnomalies()
+    }
+    init()
+  }, [, fetchAnomalies])
 
   const handleAmnesty = async () => {
     if (!selectedProfile) return
@@ -75,8 +78,8 @@ export default function AdminReputationWorkspace() {
       toast.success("特赦洗白成功，该服务商抢单准入限制已全面解除", { id: toastId })
       setProfiles((prev) => prev.filter((p) => p.id !== selectedProfile.id))
       setSelectedProfile(null)
-    } catch (error: any) {
-      toast.error(`特赦中断: ${error.message}`, { id: toastId })
+    } catch (error: unknown) {
+      toast.error(`特赦中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
     } finally {
       setIsProcessing(false)
     }
@@ -210,7 +213,7 @@ export default function AdminReputationWorkspace() {
               <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex gap-2.5 mb-5 text-[11px] text-zinc-400 leading-relaxed">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
                 <div>
-                  风控介入法则：此控制台专用于应对由于不可抗力或客户恶意刷差评导致的优质服务商被"误伤"锁定的特赦修复通道。
+                  风控介入法则：此控制台专用于应对由于不可抗力或客户恶意刷差评导致的优质服务商被{"\u201C"}误伤{"\u201D"}锁定的特赦修复通道。
                 </div>
               </div>
 

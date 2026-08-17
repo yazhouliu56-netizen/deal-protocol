@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Tables } from '@/types/database.types';
-import { Shield, Zap, Cpu, Sparkles, Coins, ArrowUpRight, User } from 'lucide-react';
+import { Zap, Cpu, Coins, ArrowUpRight, User } from 'lucide-react';
 
 export interface DemandCardProps {
   demand: Tables<'demands'>;

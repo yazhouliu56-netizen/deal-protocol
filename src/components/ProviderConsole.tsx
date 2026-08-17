@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   Radio, ShieldAlert, Navigation, ArrowRight, CheckCircle2,
-  Upload, CloudLightning, Coins, ArrowLeft, ShieldCheck, Lock, Unlock, IdCard,
+  Upload, CloudLightning, Coins, ArrowLeft, Lock, IdCard,
 } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -43,11 +43,15 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
   const [verificationStatus, setVerificationStatus] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    loadDemands()
+    const init = async () => {
+      await loadDemands()
+    }
+    init()
     fetch("/api/profile")
       .then((res) => res.json())
       .then((data) => setVerificationStatus(data.user?.verification_status))
       .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadDemands 挂载时仅跑一次（函数声明每次渲染重建）
   }, [])
 
   useEffect(() => {

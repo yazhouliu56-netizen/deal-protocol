@@ -179,7 +179,7 @@ export async function submitMilestoneCheckpoint(
 
 export async function confirmMilestoneCheckpoint(
   checkpointId: string,
-  userId: string,
+  _userId: string,
 ): Promise<{ success: boolean }> {
   const supabase = getServiceClient()
 

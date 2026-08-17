@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
 
-export const GET = withAuth(async (request: Request, user: any) => {
+export const GET = withAuth(async (request: Request, user) => {
   try {
     const supabase = getServiceClient();
 
@@ -50,7 +50,7 @@ export const GET = withAuth(async (request: Request, user: any) => {
         activeEscrowOrderCount: escrowOrders?.length || 0
       }
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "获取资金概览失败" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) || "获取资金概览失败" }, { status: 500 });
   }
 });

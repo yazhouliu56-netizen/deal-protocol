@@ -40,7 +40,7 @@ export const GET = withAuth(async (req, user) => {
       ? supabase.from('profiles').select('id, name').in('id', customerIds)
       : { data: [] },
   ]);
-  let paymentsRes: { data: any[] | null; error: any } = { data: [], error: null };
+  let paymentsRes: { data: Array<{ contract_id: string; status: string | null; amount: number | null }> | null; error: unknown } = { data: [], error: null };
   try {
     paymentsRes = await supabase.from('payments').select('contract_id, status, amount').in('contract_id', contractIds);
   } catch (e) {

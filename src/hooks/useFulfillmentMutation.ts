@@ -9,7 +9,7 @@ export function useFulfillmentMutation(
 ) {
   const [syncState, setSyncState] = useState<SyncState>("idle")
   const mutationFnRef = useRef(mutationFn)
-  mutationFnRef.current = mutationFn
+  useEffect(() => { mutationFnRef.current = mutationFn }, [mutationFn])
 
   const execute = useCallback(async (data: unknown) => {
     if (!navigator.onLine) {

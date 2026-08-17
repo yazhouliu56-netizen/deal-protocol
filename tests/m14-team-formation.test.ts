@@ -36,7 +36,7 @@ describe('M14 Team Formation', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    getSupabase.mockReturnValue({ from: chain.from } as any)
+    getSupabase.mockReturnValue({ from: chain.from })
     appendEvidence.mockResolvedValue({
       id: 'ev-1',
       protocol_id: 'proto-1',

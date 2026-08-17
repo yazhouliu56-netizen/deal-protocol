@@ -8,7 +8,7 @@ import { getBrowserSupabase } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Card, CardHeader, CardTitle, CardDescription, CardContent,
+  Card, CardHeader, CardDescription, CardContent,
 } from '@/components/ui/card'
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
@@ -94,7 +94,6 @@ export default function DashboardPage() {
 
   if (!profile) return null
 
-  const isProvider = contracts.length > 0 && providings.length > 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ArrowLeft, ShieldAlert, FileText, Scale, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ShieldAlert, FileText, Scale } from "lucide-react";
 
 interface DisputeDetail {
   id: string;
@@ -22,11 +22,7 @@ export default function DisputeDetailPage() {
   const router = useRouter();
   const [dispute, setDispute] = useState<DisputeDetail | null>(null);
 
-  useEffect(() => {
-    if (params?.id) fetchDetail(params.id as string);
-  }, [params?.id]);
-
-  const fetchDetail = async (id: string) => {
+  const fetchDetail = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/disputes/detail?id=${id}`);
       if (res.ok) {
@@ -36,7 +32,14 @@ export default function DisputeDetailPage() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      if (params?.id) await fetchDetail(params.id as string);
+    };
+    init();
+  }, [params?.id, fetchDetail]);
 
   if (!dispute) {
     return (

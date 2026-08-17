@@ -52,16 +52,17 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
         { event: "*", schema: "public", table: "demands" },
         (payload) => {
           const { eventType, new: newRecord, old: oldRecord } = payload
+          const record = newRecord as Partial<IncomingDemand> & { status?: string }
 
-          if (eventType === "INSERT" && (newRecord as any).status === "OPEN") {
-            setDemands((prev) => [{ ...(newRecord as any), isNew: true } as IncomingDemand, ...prev])
+          if (eventType === "INSERT" && record.status === "OPEN") {
+            setDemands((prev) => [{ ...record, isNew: true } as IncomingDemand, ...prev])
           } else if (eventType === "UPDATE") {
-            if ((newRecord as any).status !== "OPEN") {
+            if (record.status !== "OPEN") {
               setDemands((prev) => prev.filter((d) => d.id !== newRecord.id))
             } else {
               setDemands((prev) =>
                 prev.map((d) =>
-                  d.id === newRecord.id ? ({ ...d, ...(newRecord as any) } as IncomingDemand) : d,
+                  d.id === newRecord.id ? ({ ...d, ...record } as IncomingDemand) : d,
                 ),
               )
             }

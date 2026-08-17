@@ -175,7 +175,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                           <p className="text-xs text-slate-500 mt-0.5">履约方正前往杭州滨江展馆现场搭建中，准备上传实拍存证</p>
                           {!isReleased && (
                             <div className="mt-3 p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-between">
-                              <span className="text-xs text-slate-500">待履约方上传"现场完工存证照"...</span>
+                              <span className="text-xs text-slate-500">待履约方上传“现场完工存证照”...</span>
                               <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500">等待中</span>
                             </div>
                           )}
@@ -313,7 +313,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                   <FileText className="w-5 h-5" />
                 </div>
                 <p className="text-xs text-slate-500">待履约团队到达杭州滨江展馆现场后</p>
-                <p className="text-[10px] text-slate-400">其实拍的"物料现场照"与"GPS签到日志"将自动在此处生成并脱敏上链</p>
+                <p className="text-[10px] text-slate-400">其实拍的“物料现场照”与“GPS签到日志”将自动在此处生成并脱敏上链</p>
               </div>
             </div>
 

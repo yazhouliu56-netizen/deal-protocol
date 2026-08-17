@@ -66,32 +66,32 @@ export const CyberOracleDialog: React.FC<CyberOracleDialogProps> = ({
   const config = stateConfig[state];
   const IconComponent = config.icon;
   const [displayedText, setDisplayedText] = useState('');
-  const [typingError, setTypingError] = useState(false);
 
   useEffect(() => {
-    try {
-      let index = 0;
-      setDisplayedText('');
-      setTypingError(false);
-      const safeMessage = typeof message === 'string' ? message : '';
-      if (!safeMessage) {
-        setTypingError(true);
-        setDisplayedText('[裁决姬处于休眠保护模式 — 暂无消息可展示]');
-        return;
-      }
-      const timer = setInterval(() => {
-        if (index < safeMessage.length) {
-          setDisplayedText((prev) => prev + safeMessage.charAt(index));
-          index++;
-        } else {
-          clearInterval(timer);
+    const type = async () => {
+      await Promise.resolve();
+      try {
+        let index = 0;
+        setDisplayedText('');
+        const safeMessage = typeof message === 'string' ? message : '';
+        if (!safeMessage) {
+          setDisplayedText('[裁决姬处于休眠保护模式 — 暂无消息可展示]');
+          return;
         }
-      }, 20);
-      return () => clearInterval(timer);
-    } catch {
-      setTypingError(true);
-      setDisplayedText('[裁决姬处于休眠保护模式 — 渲染异常，已自动降级]');
-    }
+        const timer = setInterval(() => {
+          if (index < safeMessage.length) {
+            setDisplayedText((prev) => prev + safeMessage.charAt(index));
+            index++;
+          } else {
+            clearInterval(timer);
+          }
+        }, 20);
+        return () => clearInterval(timer);
+      } catch {
+        setDisplayedText('[裁决姬处于休眠保护模式 — 渲染异常，已自动降级]');
+      }
+    };
+    type();
   }, [message]);
 
   return (

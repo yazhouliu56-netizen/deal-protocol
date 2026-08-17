@@ -46,7 +46,7 @@ function makeChain(): Record<string, ReturnType<typeof vi.fn>> & { __setData(d: 
   return chain
 }
 
-function mockData(chain: ReturnType<typeof makeChainMock>, result: unknown) {
+function _mockData(chain: ReturnType<typeof makeChainMock>, result: unknown) {
   const p = Promise.resolve(result)
   vi.mocked(chain.select).mockReturnValue(chain)
   vi.mocked(chain.eq).mockReturnValue(chain)

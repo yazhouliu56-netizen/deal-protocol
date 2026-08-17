@@ -47,6 +47,7 @@ export function MediaPicker({ value, onChange, maxFiles = 3 }: MediaPickerProps)
             {value[idx]?.type === "video" ? (
               <video src={url} className="h-full w-full object-cover" />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- blob: URL 预览，next/image 不支持
               <img src={url} alt="" className="h-full w-full object-cover" />
             )}
             <button

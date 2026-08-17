@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   turbopack: {},
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "eixqnwaxcnwtxiizmdfs.supabase.co" },
+    ],
+  },
   async redirects() {
     return [
       {

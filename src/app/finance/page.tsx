@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Wallet, ArrowUpRight, ArrowDownLeft, ShieldCheck, Clock, RefreshCw, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
@@ -45,18 +45,7 @@ export default function FinanceDashboardPage() {
     { balance: overview.availableBalance, pendingWithdrawal: overview.pendingWithdrawal },
   );
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (realtime.balance !== undefined) {
-      setOverview((prev) => ({ ...prev, availableBalance: realtime.balance }))
-    }
-  }, [realtime.balance])
-
-  const loadData = async () => {
-    setIsLoading(true);
+  const loadData = useCallback(async () => {
     try {
       const [ovRes, txRes] = await Promise.all([
         fetch("/api/finance/overview"),
@@ -81,7 +70,20 @@ export default function FinanceDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [realtime]);
+
+  useEffect(() => {
+    const init = async () => {
+      await loadData();
+    };
+    init();
+  }, [loadData]);
+
+  const [prevBalance, setPrevBalance] = useState<number | undefined>(undefined);
+  if (realtime.balance !== prevBalance && realtime.balance !== undefined) {
+    setPrevBalance(realtime.balance);
+    setOverview((prev) => ({ ...prev, availableBalance: realtime.balance }));
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 font-sans">
@@ -99,7 +101,7 @@ export default function FinanceDashboardPage() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={loadData}
+              onClick={() => { setIsLoading(true); loadData(); }}
               className="touch-target flex items-center justify-center p-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl transition active:scale-95"
               title="刷新数据"
             >
@@ -230,7 +232,7 @@ export default function FinanceDashboardPage() {
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
         availableBalance={overview.availableBalance}
-        onSuccess={loadData}
+        onSuccess={() => { setIsLoading(true); loadData(); }}
       />
     </div>
   );

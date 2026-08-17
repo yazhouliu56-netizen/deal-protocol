@@ -59,7 +59,7 @@ class MockChain {
     const result = lastFromCall && this._fromResults.has(lastFromCall)
       ? this._fromResults.get(lastFromCall)!
       : this._nextResult
-    return Promise.resolve(result).then(onfulfilled as any)
+    return Promise.resolve(result).then(onfulfilled)
   }
 }
 
@@ -77,7 +77,7 @@ describe('AI Arbitrator — Legal Knowledge & Civil Code', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
   })
 
   afterEach(() => {
@@ -195,24 +195,24 @@ describe('AI Arbitrator — Legal Knowledge & Civil Code', () => {
       const pkg = await exportJudicialPackage('dispute-001')
 
       expect(pkg.caseInfo).toBeDefined()
-      expect((pkg.caseInfo as any).disputeId).toBe('dispute-001')
+      expect((pkg.caseInfo).disputeId).toBe('dispute-001')
 
       expect(pkg.litigationSubjects).toBeDefined()
       expect(Array.isArray(pkg.litigationSubjects)).toBe(true)
-      expect((pkg.litigationSubjects as any[]).length).toBe(2)
-      for (const subject of pkg.litigationSubjects as any[]) {
+      expect((pkg.litigationSubjects).length).toBe(2)
+      for (const subject of pkg.litigationSubjects) {
         expect(subject).toHaveProperty('userId')
         expect(subject).toHaveProperty('phone')
         expect(subject).toHaveProperty('realName')
       }
 
       expect(pkg.originalAgreement).toBeDefined()
-      expect((pkg.originalAgreement as any).category).toBe('装修')
+      expect((pkg.originalAgreement).category).toBe('装修')
 
       expect(pkg.hashChain).toBeDefined()
-      expect((pkg.hashChain as any).chainValid).toBe(true)
-      expect(Array.isArray((pkg.hashChain as any).entries)).toBe(true)
-      expect((pkg.hashChain as any).entries.length).toBe(3)
+      expect((pkg.hashChain).chainValid).toBe(true)
+      expect(Array.isArray((pkg.hashChain).entries)).toBe(true)
+      expect((pkg.hashChain).entries.length).toBe(3)
 
       expect(pkg.performanceTrail).toBeDefined()
       expect(Array.isArray(pkg.performanceTrail)).toBe(true)
@@ -239,7 +239,7 @@ describe('arbitrateDispute — RAG + Three-Perspective', () => {
       })),
     }
     serviceChain = { from: vi.fn(() => selectChain) } as unknown as MockChain
-    __setServiceClient({ from: serviceChain.from } as any)
+    __setServiceClient({ from: serviceChain.from })
   }
 
   beforeEach(() => {

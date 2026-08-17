@@ -7,7 +7,7 @@ import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { CheckpointTimer } from '@/components/escrow/checkpoint-timer';
 import { AiArbitrationCard } from '@/components/ai/ai-arbitration-card';
 import { GachaModal } from '@/components/gacha/gacha-modal';
-import { ShieldCheck, Scroll, Coins, ArrowLeft, Lock, CheckCircle2 } from 'lucide-react';
+import { Coins, ArrowLeft, Lock } from 'lucide-react';
 
 interface CheckpointItem {
   id: string;
@@ -25,16 +25,19 @@ export default function DemandDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
   const [isGachaOpen, setIsGachaOpen] = useState(false);
 
-  const [checkpoints, setCheckpoints] = useState<CheckpointItem[]>([
-    { id: 'cp-1', title: '节点一：二次元原型稿落锁', amount: 300, status: 'completed' as const, autoConfirmAt: null },
-    {
-      id: 'cp-2',
-      title: '节点二：交付 CyberOracleDialog 交互代码',
-      amount: 400,
-      status: 'submitted' as const,
-      autoConfirmAt: new Date(Date.now() + 18 * 3600 * 1000).toISOString(),
-    },
-  ]);
+  const [checkpoints, setCheckpoints] = useState<CheckpointItem[]>(() => {
+    const cp2AutoConfirmAt = new Date(Date.now() + 18 * 3600 * 1000).toISOString();
+    return [
+      { id: 'cp-1', title: '节点一：二次元原型稿落锁', amount: 300, status: 'completed' as const, autoConfirmAt: null },
+      {
+        id: 'cp-2',
+        title: '节点二：交付 CyberOracleDialog 交互代码',
+        amount: 400,
+        status: 'submitted' as const,
+        autoConfirmAt: cp2AutoConfirmAt,
+      },
+    ];
+  });
 
   useEffect(() => {
     async function loadDemand() {

@@ -38,7 +38,6 @@ import {
   openDispute,
   resolveAuto,
   type DisputeReason,
-  type DisputeRecord,
 } from "@/base/order/dispute";
 import { hasUnsettledBreach, refundByTier, settleGroupFail } from "@/base/trust/trust";
 import type { Review } from "@/base/trust/review";
@@ -47,7 +46,7 @@ import { capturePayOrder, createPayOrder } from "@/base/money/pay";
 import { fissionStamp } from "@/base/risk/fission";
 import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { riskOf } from "@/base/risk/roamGuard";
-import { recordSentinel, sentinelCheck, type SentinelEvent } from "@/base/risk/sentinel";
+import { recordSentinel, sentinelCheck } from "@/base/risk/sentinel";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, type MoneyAction } from "@/base/safe/ageGate";
 import { addGuest as addGuestLogic, removeGuest as removeGuestLogic, type GuestInfo } from "@/base/order/guest";
@@ -59,19 +58,15 @@ import {
   allocatePair,
   revokeSession,
   DEMO_POOL,
-  type PrivacySession,
 } from "@/base/comm/privacyNumber";
-import { markRead, sendMsg, type ImMsg, type ImThread } from "@/base/comm/im";
+import { markRead, sendMsg } from "@/base/comm/im";
 import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
   sendFriendRequest as sendFriendRequestLogic,
-  type FriendRequest,
-  type Friendship,
 } from "@/base/trust/friends";
 import { MOCK_RESPONDERS } from "@/lib/mockResponders";
 import { getP2pTransport } from "@/base/platform/p2p/transport";
-import type { PushItem } from "@/base/ai/cluster";
 import { buildPushes, mockClusterTags } from "@/base/ai/cluster";
 import { broadcastMatches } from "@/base/dispatch/broadcast";
 import { dispatchRuleFor } from "@/ammo/dispatch-rule";
@@ -92,10 +87,10 @@ import {
   type CrisisRecord,
 } from "@/base/safe/crisis";
 import { requestForget as requestForgetLogic, type ForgetKind, type ForgetRequest } from "@/base/safe/privacy";
-import { allow as breakerAllow, trip as breakerTrip, type Breaker } from "@/base/platform/circuit";
-import { due as queueDue, enqueue as enqueueOp, markPlayed as markQueuePlayed, type QueuedOp } from "@/base/platform/offlineQueue";
-import { lakeAppend, type LakeRecord } from "@/base/platform/resilience";
-import { signDoc, type SignedDoc } from "@/base/platform/signInsure";
+import { allow as breakerAllow, trip as breakerTrip } from "@/base/platform/circuit";
+import { due as queueDue, enqueue as enqueueOp, markPlayed as markQueuePlayed } from "@/base/platform/offlineQueue";
+import { lakeAppend } from "@/base/platform/resilience";
+import { signDoc } from "@/base/platform/signInsure";
 import { completionRate, reviewStats } from "@/base/trust/starRank";
 import {
   applyPenalty,
@@ -105,8 +100,6 @@ import {
   isBanned,
   resolveReport as resolveReportLogic,
   submitReport as submitReportLogic,
-  type BanRecord,
-  type Report,
 } from "@/base/risk/moderation";
 
 /** 未成年人资金闸（ADR-0016）：响应/拼位/竞价等真实资金入口按 ageGate 拦截。

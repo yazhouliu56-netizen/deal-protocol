@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
 
-export const POST = withAuth(async (request: Request, user: any) => {
+export const POST = withAuth(async (request: Request, user) => {
   try {
     const supabase = getServiceClient();
     const { amount, payoutMethod, accountInfo } = await request.json();
@@ -55,7 +55,7 @@ export const POST = withAuth(async (request: Request, user: any) => {
       .eq("id", user.id);
 
     return NextResponse.json({ success: true, withdrawal });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "提现请求提交失败" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) || "提现请求提交失败" }, { status: 500 });
   }
 });

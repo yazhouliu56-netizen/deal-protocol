@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Scroll, Zap, Cpu, Sparkles, CheckCircle2, AlertTriangle, type LucideIcon } from 'lucide-react';
-import { createDemandSchema, CreateDemandInput } from '@/lib/validations/api-schemas';
+import { createDemandSchema } from '@/lib/validations/api-schemas';
 import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { CyberOracleDialog, OracleState } from '@/components/ui/cyber-oracle-dialog';
 

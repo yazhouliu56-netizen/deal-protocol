@@ -34,7 +34,7 @@ vi.mock("@/lib/event-bus", () => ({
 
 const { POST } = await import("./route")
 
-let existingPayment: { provider_payment_id: string } | null = null
+const existingPayment: { provider_payment_id: string } | null = null
 
 function setupMockContract(contract: Record<string, unknown> | null) {
   const singleFn = vi.fn().mockResolvedValue({ data: contract, error: contract ? null : new Error("not found") })

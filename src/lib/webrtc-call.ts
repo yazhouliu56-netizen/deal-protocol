@@ -1,5 +1,4 @@
 import { getBrowserSupabase } from '@/lib/supabase-browser'
-import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import crypto from 'crypto'
 
 export interface WebRTCCallMeta {

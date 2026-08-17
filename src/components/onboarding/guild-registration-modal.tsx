@@ -16,11 +16,15 @@ export const GuildRegistrationModal: React.FC<GuildRegistrationModalProps> = ({ 
   const [quiz, setQuiz] = useState('code');
 
   useEffect(() => {
-    setMounted(true);
-    const registered = localStorage.getItem('deal_guild_registered');
-    if (!registered) {
-      setIsOpen(true);
-    }
+    const init = async () => {
+      await Promise.resolve();
+      setMounted(true);
+      const registered = localStorage.getItem('deal_guild_registered');
+      if (!registered) {
+        setIsOpen(true);
+      }
+    };
+    init();
   }, []);
 
   useEffect(() => {

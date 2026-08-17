@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { isEnabled } from '@/lib/feature-flags'
-import type { FeatureFlag, UserContext } from '@/lib/feature-flags'
+import type { FeatureFlag } from '@/lib/feature-flags'
 
 describe('M15 Feature Flags', () => {
   it('disabled flag always returns false', () => {

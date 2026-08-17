@@ -45,7 +45,7 @@ export class AlipayService {
       const verify = crypto.createVerify('RSA-SHA256');
       verify.update(content, 'utf8');
       return verify.verify(this.alipayPublicKey, sign, 'base64');
-    } catch (e) {
+    } catch {
       return false;
     }
   }

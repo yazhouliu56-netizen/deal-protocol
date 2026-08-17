@@ -160,7 +160,7 @@ export default function RightsPage() {
 
               {/* Badge section (credit level) */}
               {(right as typeof right & { badge?: React.ReactNode }).badge && (
-                <div>{(right as any).badge}</div>
+                <div>{(right as typeof right & { badge?: React.ReactNode }).badge}</div>
               )}
 
               <ul className="space-y-2">

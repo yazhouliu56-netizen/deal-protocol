@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit"
-import type { PostgrestSingleResponse, SupabaseClient } from "@supabase/supabase-js"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 // P0-01: 统一代码路径 — demands 路由转写至 protocols/contracts 核心数据源
 // 保持旧 API 接口不变，但主力读写走 protocols 表

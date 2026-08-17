@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 
 interface AdminStats {
@@ -13,7 +13,7 @@ export default function DashboardClient() {
   const [stats, setStats] = useState<AdminStats>({ active_count: 0, completed_count: 0, anomaly_count: 0 })
   const [anomalies, setAnomalies] = useState<Record<string, unknown>[]>([])
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     const supabase = getBrowserSupabase()
 
     const { data: statsData } = await supabase
@@ -32,10 +32,11 @@ export default function DashboardClient() {
       .lt("updated_at", new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
 
     setAnomalies(anomalyList ?? [])
-  }
+  }, [])
 
   useEffect(() => {
-    fetchDashboardData()
+    const init = async () => { await fetchDashboardData(); };
+    init()
 
     const supabase = getBrowserSupabase()
     const channel = supabase
@@ -44,7 +45,7 @@ export default function DashboardClient() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [fetchDashboardData])
 
   return (
     <div>

@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest"
-import React from "react"
 
 /* ─── 1. Login Page: 3-tabs, 60s countdown, registered=true ─── */
 describe("Login Page - 3-Tab Restructure (A1/A2/A7)", () => {

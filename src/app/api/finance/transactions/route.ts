@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
 
-export const GET = withAuth(async (request: Request, user: any) => {
+export const GET = withAuth(async (request: Request, user) => {
   try {
     const supabase = getServiceClient();
 
@@ -34,7 +34,7 @@ export const GET = withAuth(async (request: Request, user: any) => {
     }
 
     return NextResponse.json({ success: true, data: transactions || [] });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "拉取交易流水失败" }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) || "拉取交易流水失败" }, { status: 500 });
   }
 });

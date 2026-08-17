@@ -6,9 +6,9 @@ const classifyParams = z.object({
   text: z.string().optional().describe("The user's original request text"),
 })
 
-export const classifyDemandTool = (tool as any)({
+export const classifyDemandTool = tool({
   description: "Classify a user's service request into a structured demand with title, category, budget, urgency, and address",
-  parameters: classifyParams,
+  inputSchema: classifyParams,
   execute: async ({ text }: z.infer<typeof classifyParams>) => {
     const userText = text || "用户发起了服务需求"
     const categories = ["维修", "按摩", "保洁", "社交", "其他"]
@@ -60,7 +60,7 @@ export const classifyDemandTool = (tool as any)({
       address: result.address ?? null,
     }
   },
-}) as any
+})
 
 const generateParams = z.object({
   category: z.string().describe("The classified DB category"),
@@ -68,9 +68,9 @@ const generateParams = z.object({
   description: z.string().describe("The demand description"),
 })
 
-export const generateProtocolTool = (tool as any)({
+export const generateProtocolTool = tool({
   description: "Generate a smart protocol card based on a classified demand's category. Must be called AFTER classifyDemand.",
-  parameters: generateParams,
+  inputSchema: generateParams,
   execute: async ({ category, title, description }: z.infer<typeof generateParams>) => {
     const supabase = getSupabase()
     const { data: config } = await supabase
@@ -100,7 +100,7 @@ export const generateProtocolTool = (tool as any)({
       description,
     }
   },
-}) as any
+})
 
 const createParams = z.object({
   title: z.string().describe("Demand title from classification"),
@@ -116,9 +116,9 @@ const createParams = z.object({
   protocol_json: z.record(z.unknown()).describe("Protocol values JSON"),
 })
 
-export const createDemandTool = (tool as any)({
+export const createDemandTool = tool({
   description: "Create a demand in the database after the user confirms. Must be called AFTER the user explicitly confirms.",
-  parameters: createParams,
+  inputSchema: createParams,
   execute: async (params: z.infer<typeof createParams>) => {
     const supabase = getSupabase()
 
@@ -152,4 +152,4 @@ export const createDemandTool = (tool as any)({
       message: "需求发布成功！正在跳转到详情页...",
     }
   },
-}) as any
+})

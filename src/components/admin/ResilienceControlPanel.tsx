@@ -72,7 +72,10 @@ export default function ResilienceControlPanel() {
   }, [])
 
   useEffect(() => {
-    void load()
+    const init = async () => {
+      await load()
+    }
+    init()
   }, [load])
 
   const switchLevel = useCallback(

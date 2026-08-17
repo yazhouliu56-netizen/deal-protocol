@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import SmartProtocolCard from "@/components/SmartProtocolCard"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Shield, CheckCircle2, Crown } from "lucide-react"
+import { Sparkles, Shield, CheckCircle2 } from "lucide-react"
 
 export function ToolSkeleton({ name }: { name: string }) {
   return (
@@ -32,29 +32,31 @@ export function FallbackComponent({ name }: { name: string }) {
   )
 }
 
-export function ClassifyDemandResult({ result }: { result: any }) {
+export function ClassifyDemandResult({ result }: { result: unknown }) {
+  const r = asRecord(result)
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm text-foreground">
         <Sparkles className="size-4 text-indigo-500" />
         <span>AI 已理解您的需求</span>
-        <Badge variant="secondary" className="text-[10px]">{result.category ?? ""}</Badge>
+        <Badge variant="secondary" className="text-[10px]">{str(r.category)}</Badge>
       </div>
       <div className="rounded-lg border border-border/40 bg-muted/40 p-3 text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">{result.title}</p>
-        <p className="mt-0.5 text-xs">{result.description}</p>
+        <p className="font-medium text-foreground">{str(r.title)}</p>
+        <p className="mt-0.5 text-xs">{str(r.description)}</p>
         <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-          {result.budgetMin != null && <span>预算 ¥{result.budgetMin}{result.budgetMax ? `-${result.budgetMax}` : ""}</span>}
-          <span>紧急度：{result.urgency === "high" ? "紧急" : result.urgency === "medium" ? "适中" : "不着急"}</span>
-          {result.address && <span>📍 {result.address}</span>}
+          {num(r.budgetMin) != null && <span>预算 ¥{num(r.budgetMin)}{num(r.budgetMax) != null ? `-${num(r.budgetMax)}` : ""}</span>}
+          <span>紧急度：{str(r.urgency) === "high" ? "紧急" : str(r.urgency) === "medium" ? "适中" : "不着急"}</span>
+          {str(r.address) && <span>📍 {str(r.address)}</span>}
         </div>
       </div>
     </div>
   )
 }
 
-export function GenerateProtocolResult({ result, onAction }: { result: any; onAction?: (action: string, payload?: any) => void }) {
-  const riskTier = result.risk_tier === "high" ? "high" : result.risk_tier === "medium" ? "medium" : "low" as const
+export function GenerateProtocolResult({ result, onAction }: { result: unknown; onAction?: (action: string, payload?: unknown) => void }) {
+  const r = asRecord(result)
+  const riskTier = str(r.risk_tier) === "high" ? "high" : str(r.risk_tier) === "medium" ? "medium" : "low" as const
 
   return (
     <div className="space-y-3">
@@ -68,24 +70,24 @@ export function GenerateProtocolResult({ result, onAction }: { result: any; onAc
         )}
       </div>
       <SmartProtocolCard
-        title={result.title ?? ""}
-        description={result.description ?? ""}
-        category={result.category ?? ""}
+        title={str(r.title)}
+        description={str(r.description)}
+        category={str(r.category)}
         riskTier={riskTier}
-        budgetMin={result.budgetMin}
-        budgetMax={result.budgetMax}
-        schema={result.schema_json ?? {}}
-        protocolFields={result.protocol_json ?? {}}
+        budgetMin={num(r.budgetMin) ?? undefined}
+        budgetMax={num(r.budgetMax) ?? undefined}
+        schema={isRecord(r.schema_json) ? r.schema_json : {}}
+        protocolFields={isRecord(r.protocol_json) ? r.protocol_json : {}}
         onProtocolFieldsChange={() => {}}
-        price={result.price ?? 0}
+        price={num(r.price) ?? 0}
         onPriceChange={() => {}}
         media={[]}
         onMediaChange={() => {}}
         onPublish={() => onAction?.("confirm_protocol")}
         publishing={false}
         mode="view"
-        suggestedMin={result.budgetMin}
-        suggestedMax={result.budgetMax}
+        suggestedMin={num(r.budgetMin) ?? undefined}
+        suggestedMax={num(r.budgetMax) ?? undefined}
       />
       {onAction && (
         <Button size="sm" className="w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => onAction("confirm_protocol")}>
@@ -96,7 +98,8 @@ export function GenerateProtocolResult({ result, onAction }: { result: any; onAc
   )
 }
 
-export function CreateDemandResult({ result }: { result: any }) {
+export function CreateDemandResult({ result }: { result: unknown }) {
+  const r = asRecord(result)
   return (
     <Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-950/10">
       <CardContent className="py-4">
@@ -106,7 +109,7 @@ export function CreateDemandResult({ result }: { result: any }) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">需求已发布！</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{result.message}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{str(r.message)}</p>
           </div>
         </div>
       </CardContent>
@@ -114,7 +117,23 @@ export function CreateDemandResult({ result }: { result: any }) {
   )
 }
 
-export const toolComponentRegistry: Record<string, React.FC<{ result: any; args: any; onAction?: (action: string, payload?: any) => void }>> = {
+function asRecord(v: unknown): Record<string, unknown> {
+  return typeof v === "object" && v !== null ? v as Record<string, unknown> : {}
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null
+}
+
+function str(v: unknown): string {
+  return typeof v === "string" ? v : ""
+}
+
+function num(v: unknown): number | null {
+  return typeof v === "number" ? v : null
+}
+
+export const toolComponentRegistry: Record<string, React.FC<{ result: unknown; args: unknown; onAction?: (action: string, payload?: unknown) => void }>> = {
   classifyDemand: ({ result }) => <ClassifyDemandResult result={result} />,
   generateProtocol: ({ result, onAction }) => <GenerateProtocolResult result={result} onAction={onAction} />,
   createDemand: ({ result }) => <CreateDemandResult result={result} />,
@@ -123,10 +142,10 @@ export const toolComponentRegistry: Record<string, React.FC<{ result: any; args:
 export function renderToolInvocation(toolInvocation: {
   toolName: string
   state: string
-  result?: any
-  args?: any
+  result?: unknown
+  args?: unknown
   toolCallId: string
-}, onAction?: (action: string, payload?: any) => void) {
+}, onAction?: (action: string, payload?: unknown) => void) {
   const { toolName, state, result, args } = toolInvocation
 
   if (state === "partial-call" || state === "call") {

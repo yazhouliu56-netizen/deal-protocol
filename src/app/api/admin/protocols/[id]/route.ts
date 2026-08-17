@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
-import { protocolRegistry } from "@/lib/protocol/registry";
 import { clearEngineCache } from "@/lib/protocol/engine";
 import { getDbProtocolDetail, reloadFromDb } from "@/lib/protocol/bootstrap";
 
@@ -26,7 +25,7 @@ export const GET = withAuth(async (req, user, ...args) => {
 
 export const PATCH = withAuth(async (req, user, ...args) => {
   try {
-    const { id } = await (args[0] as { params: Promise<{ id: string }> }).params;
+    await (args[0] as { params: Promise<{ id: string }> }).params;
     const svc = getServiceClient();
     const { data: profile } = await svc.from('profiles').select('role').eq('id', user.id).single();
     if (profile?.role !== 'ADMIN') {

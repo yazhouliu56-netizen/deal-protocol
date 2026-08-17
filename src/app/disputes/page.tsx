@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ShieldAlert, ArrowRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -18,13 +18,8 @@ export default function DisputesListPage() {
   const [disputes, setDisputes] = useState<DisputeItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    fetchDisputes();
-  }, []);
-
-  const fetchDisputes = async () => {
+  const fetchDisputes = useCallback(async () => {
     try {
-      setIsLoading(true);
       const res = await fetch("/api/disputes/list");
       if (res.ok) {
         const data = await res.json();
@@ -35,7 +30,14 @@ export default function DisputesListPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      await fetchDisputes();
+    };
+    init();
+  }, [fetchDisputes]);
 
   const renderStatusBadge = (status: DisputeItem["status"]) => {
     switch (status) {

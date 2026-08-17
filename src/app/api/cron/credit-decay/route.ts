@@ -10,8 +10,8 @@ export async function GET() {
   try {
     const result = await applyBulkCreditDecay()
 
-    trackMetric('credit.decay_processed' as any, result.processed)
-    trackMetric('credit.decay_applied' as any, result.decayed)
+    trackMetric('credit.decay_processed', result.processed)
+    trackMetric('credit.decay_applied', result.decayed)
 
     return NextResponse.json({
       success: true,

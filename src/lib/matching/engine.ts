@@ -27,7 +27,6 @@ export async function findMatches(
   },
 ): Promise<MatchCandidate[]> {
   const supabase = getServiceClient()
-  const radius = options?.radiusKm ?? 5
   const limit = options?.limit ?? 20
   const ranker = options?.ranker ?? staticRanker
 

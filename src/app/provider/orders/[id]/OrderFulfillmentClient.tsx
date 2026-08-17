@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import Image from "next/image"
+import React, { useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import toast from "react-hot-toast"
@@ -46,6 +47,8 @@ export default function OrderFulfillmentClient({
   providerId,
 }: OrderFulfillmentClientProps) {
   const [demand, setDemand] = useState<DemandDetail>(initialDemand)
+  const demandStatusRef = useRef(demand.status)
+  useEffect(() => { demandStatusRef.current = demand.status }, [demand.status])
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [uploadedImages, setUploadedImages] = useState<string[]>(demand.certificate_images || [])
@@ -150,7 +153,7 @@ export default function OrderFulfillmentClient({
         },
         (payload) => {
           const newStatus = (payload.new as Partial<DemandDetail>).status
-          if (newStatus && newStatus !== demand.status) {
+          if (newStatus && newStatus !== demandStatusRef.current) {
             toast(`订单状态已更新: ${newStatus}`, { icon: "🔔" })
           }
           setDemand((prev) => ({ ...prev, ...(payload.new as Partial<DemandDetail>) }) as DemandDetail)
@@ -243,7 +246,7 @@ export default function OrderFulfillmentClient({
             <div className="grid grid-cols-3 gap-2">
               {uploadedImages.map((url, i) => (
                 <div key={i} className="aspect-square relative rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
-                  <img src={url} alt="完工凭证" className="w-full h-full object-cover" />
+                  <Image src={url} alt="完工凭证" width={400} height={400} className="w-full h-full object-cover" />
                 </div>
               ))}
 

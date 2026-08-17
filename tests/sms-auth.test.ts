@@ -58,8 +58,7 @@ function mockProfilesFind(existing: Record<string, unknown> | null) {
   const eqPhone = vi.fn().mockReturnValue({ maybeSingle });
   const selectProfiles = vi.fn().mockReturnValue({ eq: eqPhone });
   const insert = vi.fn().mockResolvedValue({ error: null });
-  const selectContracts = vi.fn();
-
+  
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === "profiles") {
       return existing
@@ -179,7 +178,7 @@ describe("POST /api/auth/sms/verify", () => {
       role: "demander",
       created_at: "2026-01-01T00:00:00Z",
     };
-    const { insert } = mockProfilesFind(existingUser);
+    const { insert: _insert } = mockProfilesFind(existingUser);
     const { setSmsCode } = await import("@/lib/sms-code-store");
     setSmsCode("13900139000", "888888");
 

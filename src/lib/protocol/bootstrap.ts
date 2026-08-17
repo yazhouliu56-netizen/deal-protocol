@@ -95,7 +95,7 @@ export async function getDbProtocols() {
     .in('protocol_id', protocolIds)
     .order('created_at', { ascending: false })
 
-  const versionMap = new Map<string, any>()
+  const versionMap = new Map<string, NonNullable<typeof versions>[number]>()
   for (const v of Array.isArray(versions) ? versions : []) {
     if (!versionMap.has(v.protocol_id)) {
       versionMap.set(v.protocol_id, v)

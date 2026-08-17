@@ -15,7 +15,7 @@ const readEnv = (p) => {
   return readFileSync(p, "utf-8");
 };
 
-let env = readEnv(envPath);
+const env = readEnv(envPath);
 if (env.includes("VAPID_PUBLIC_KEY")) {
   const pub = env.match(/^VAPID_PUBLIC_KEY=(.+)$/m)?.[1]?.trim();
   console.log(`VAPID 已存在（幂等跳过）: ${pub?.slice(0, 20)}...`);

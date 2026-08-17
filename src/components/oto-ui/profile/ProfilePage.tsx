@@ -120,7 +120,11 @@ export default function ProfilePage({
   // 方案 A：前台内嵌登录抽屉（AuthSheet）—— 登录态即时刷新（oto:auth-changed）
   const [authAccount, setAuthAccount] = useState<AuthAccount | null>(null);
   useEffect(() => {
-    setAuthAccount(readAuthAccount());
+    const syncAuth = async () => {
+      await Promise.resolve()
+      setAuthAccount(readAuthAccount())
+    }
+    syncAuth()
     const onAuth = () => setAuthAccount(readAuthAccount());
     window.addEventListener(AUTH_CHANGED_EVENT, onAuth);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuth);

@@ -28,7 +28,7 @@ function getToken(): string {
 const MIGRATIONS_DIR = resolve(__dirname, "../supabase/migrations");
 const TRACKING_TABLE = "_migrations";
 
-async function sql(query: string, token: string): Promise<any[]> {
+async function sql(query: string, token: string): Promise<unknown[]> {
   const res = await fetch(API_BASE + "/database/query", {
     method: "POST",
     headers: {
@@ -73,7 +73,7 @@ async function main() {
   const applied = await sql(
     `SELECT name FROM ${TRACKING_TABLE} ORDER BY name`, token
   );
-  const appliedSet = new Set(applied.map((r: any) => r.name));
+  const appliedSet = new Set(applied.map((r) => r.name));
 
   const files = readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))
@@ -136,7 +136,7 @@ function splitTopLevel(raw: string): string[] {
       try {
         await sql(stmt + ";", token);
         ok++;
-      } catch (err: any) {
+      } catch (err) {
         console.warn(`   ⚠️  语句跳过 (${err.message.slice(0, 120)})`);
         skip++;
       }

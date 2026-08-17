@@ -4,7 +4,10 @@ import { useEffect, useRef } from "react"
 
 export function useSSE(type: string, id: string | null, onEvent: () => void) {
   const onEventRef = useRef(onEvent)
-  onEventRef.current = onEvent
+
+  useEffect(() => {
+    onEventRef.current = onEvent
+  }, [onEvent])
 
   useEffect(() => {
     if (!id) return

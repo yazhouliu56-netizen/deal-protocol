@@ -7,8 +7,6 @@ import { getBrowserSupabase } from '@/lib/supabase-browser'
 import toast from "react-hot-toast"
 import { Badge } from '@/components/ui/badge'
 import { CreditDashboard } from '@/components/CreditDashboard'
-import SmartProtocolCard from '@/components/SmartProtocolCard'
-import { renderToolInvocation } from '@/lib/chat-component-registry'
 import { cn } from '@/lib/utils'
 import {
   Send, AlertTriangle, Loader2, User, Bot,

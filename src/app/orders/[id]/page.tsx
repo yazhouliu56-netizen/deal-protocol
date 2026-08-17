@@ -7,13 +7,13 @@ import { useSession } from "@/components/SessionProvider"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { Loader2, ExternalLink, CheckCircle2, AlertTriangle, MessageCircle, Clock, MapPin, User, Shield } from "lucide-react"
+import { Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock, MapPin } from "lucide-react"
 import OrderOperations from "./order-operations"
 import { useOrderRealtime } from "@/hooks/use-order-realtime"
 import { useSSE } from "@/lib/use-sse"
 import { useContractSound } from "@/lib/use-contract-sound"
+import Image from "next/image"
 
 interface Payment {
   id: string; status: string; amount: number
@@ -408,7 +408,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 text-center">扫码支付</p>
                   {activePayment.qrCode && (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="rounded-lg border bg-white p-3"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activePayment.qrCode)}`} alt="QR" className="h-40 w-40" /></div>
+                      <div className="rounded-lg border bg-white p-3"><Image unoptimized src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activePayment.qrCode)}`} alt="QR" width={160} height={160} className="h-40 w-40" /></div>
                       <p className="text-[10px] text-zinc-500">请使用{activePayment.channel === "alipay" ? "支付宝" : "微信"}扫码</p>
                     </div>
                   )}
@@ -446,7 +446,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   )
 }
 
-function SosButton({ orderId, contract }: { orderId: string; contract: Contract | null }) {
+function SosButton({ orderId, contract: _contract }: { orderId: string; contract: Contract | null }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 

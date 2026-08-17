@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 // ============================================================
 // Mechanism 1: Recommendation Referral Chain
@@ -116,7 +116,6 @@ describe('SOSAudioVault', () => {
   })
 
   it('duplicate hash does not create duplicate evidence', () => {
-    const hash = 'abc123'
     const existing = { id: 'ev-1' }
     expect(existing.id).toBe('ev-1')
   })

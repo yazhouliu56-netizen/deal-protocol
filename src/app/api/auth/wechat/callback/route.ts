@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
-import { wechatPayService } from "@/lib/wechat-pay-service";
 
 function getWechatOpenId(code: string): Promise<string> {
   const appId = process.env.WECHAT_APP_ID || "wx_placeholder";
@@ -57,8 +56,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(new URL("/dashboard?auth=wechat_success", request.url));
-  } catch (err: any) {
+  } catch (err) {
     console.error("WeChat OAuth callback error:", err);
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(err.message)}`, request.url));
+    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent((err instanceof Error ? err.message : String(err)))}`, request.url));
   }
 }

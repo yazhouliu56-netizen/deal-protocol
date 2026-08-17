@@ -6,7 +6,7 @@ import { ClassifyDemandResult, GenerateProtocolResult, CreateDemandResult, ToolS
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
-import { MessageSquare, FileText, Zap } from "lucide-react"
+import { Zap } from "lucide-react"
 
 export default function DemoPage() {
   const [price, setPrice] = useState(180)

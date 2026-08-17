@@ -1,5 +1,5 @@
 import Stripe from "stripe"
-import { PaymentManager as PaymentCoreManager } from "@daviekong/payment-core"
+import { PaymentManager as PaymentCoreManager, type CreatePaymentParams } from "@daviekong/payment-core"
 
 export type PaymentProvider = "stripe" | "alipay" | "wechat"
 
@@ -178,14 +178,15 @@ export function getPaymentProvider(provider: PaymentProvider): IPaymentProvider 
         }
         instance = {
           async createPayment(req) {
-            const result = (await manager.createPayment({
-              contractId: req.contractId,
+            const input: CreatePaymentParams = {
+              orderId: req.contractId,
               amount: req.amount,
               channel: provider,
               description: req.description,
               payerId: req.payerId,
               notifyUrl: `${process.env.PAYMENT_NOTIFY_URL || ''}/api/payment/notify`,
-            } as any)) as { success: boolean; providerPaymentId?: string; redirectUrl?: string; error?: string }
+            }
+            const result = (await manager.createPayment(input)) as { success: boolean; providerPaymentId?: string; redirectUrl?: string; error?: string }
             return {
               success: result.success,
               providerPaymentId: result.providerPaymentId || null,
@@ -196,7 +197,8 @@ export function getPaymentProvider(provider: PaymentProvider): IPaymentProvider 
             }
           },
           async refundPayment(providerPaymentId, amount) {
-            const result = (await (manager as any).refund(providerPaymentId, amount, provider)) as { success: boolean; providerPaymentId?: string; error?: string }
+            const refundApi = manager as unknown as { refund: (paymentId: string, amount: number, channel: string) => Promise<{ success: boolean; providerPaymentId?: string; error?: string }> }
+            const result = (await refundApi.refund(providerPaymentId, amount, provider)) as { success: boolean; providerPaymentId?: string; error?: string }
             return {
               success: result.success,
               providerPaymentId: result.providerPaymentId || null,

@@ -1,3 +1,5 @@
+import { randomBytes, createCipheriv, createDecipheriv } from 'crypto'
+
 const ALGORITHM = 'aes-256-gcm'
 const ENCODING = 'base64'
 
@@ -10,10 +12,9 @@ function getKey(): Buffer {
 }
 
 export function encryptPII(plaintext: string): string {
-  const crypto = require('crypto')
   const key = getKey()
-  const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+  const iv = randomBytes(16)
+  const cipher = createCipheriv(ALGORITHM, key, iv)
   let encrypted = cipher.update(plaintext, 'utf8', ENCODING)
   encrypted += cipher.final(ENCODING)
   const authTag = cipher.getAuthTag().toString(ENCODING)
@@ -21,13 +22,12 @@ export function encryptPII(plaintext: string): string {
 }
 
 export function decryptPII(ciphertext: string): string {
-  const crypto = require('crypto')
   const key = getKey()
   const parts = ciphertext.split(':')
   const iv = Buffer.from(parts[0], ENCODING)
   const encrypted = parts[1]
   const authTag = Buffer.from(parts[2], ENCODING)
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+  const decipher = createDecipheriv(ALGORITHM, key, iv)
   decipher.setAuthTag(authTag)
   let decrypted = decipher.update(encrypted, ENCODING, 'utf8')
   decrypted += decipher.final('utf8')

@@ -73,7 +73,7 @@ describe('LLM Integration - Contract Builder', () => {
       category: '家政',
       core_fields: { location: '北京市朝阳区', time_window: '2026-07-25 14:00' },
       category_fields: { service_type: '日常保洁' },
-      risk_tier: 'low' as any,
+      risk_tier: 'low',
       status: 'matching',
     })
 
@@ -184,7 +184,7 @@ describe('LLM Integration - Fulfillment Summarizer', () => {
   it('generateFulfillmentSnapshot returns null when contract not found', async () => {
     const chain = makeChain()
     chain.single.mockResolvedValue({ data: null })
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
     vi.mocked(callLLM).mockResolvedValue('{"summary":"ok","sentiment":"positive"}')
 
     const { generateFulfillmentSnapshot } = await import('../src/lib/fulfillment-summarizer')
@@ -202,7 +202,7 @@ describe('LLM Integration - Fulfillment Summarizer', () => {
       { event_type: 'photo_upload', payload: { hash: 'abc123' }, created_at: '2026-07-25T10:05:00Z' },
       { event_type: 'completion_confirmed', payload: {}, created_at: '2026-07-25T10:10:00Z' },
     ]
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
 
     vi.mocked(callLLM).mockResolvedValue(
       '{"summary": "服务商已完成上门服务，准时打卡并上传了完工照片。", "sentiment": "positive"}',
@@ -221,7 +221,7 @@ describe('LLM Integration - Fulfillment Summarizer', () => {
       data: { id: 'c2', protocol_id: 'p2', demander_id: 'u1', provider_id: 'u2', amount: 100, status: 'SETTLED' },
     })
     chain._data = []
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
 
     vi.mocked(callLLM).mockRejectedValue(new Error('parse error'))
 
@@ -273,7 +273,7 @@ describe('LLM Integration - Concierge Agent', () => {
         core_fields: { service_time: serviceTime },
       },
     ])
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
     vi.mocked(callLLM).mockReset()
 
     const { buildConciergeContext } = await import('../src/lib/concierge-agent')
@@ -287,7 +287,7 @@ describe('LLM Integration - Concierge Agent', () => {
     vi.mocked(callLLM).mockResolvedValue('请冷静，通过平台仲裁解决分歧。')
 
     const chain = makeChain([])
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
 
     const { buildConciergeContext } = await import('../src/lib/concierge-agent')
     const messages = await buildConciergeContext('user-1', '退钱！服务太差了我要退款！')
@@ -297,7 +297,7 @@ describe('LLM Integration - Concierge Agent', () => {
 
   it('buildConciergeContext does not inject mediation on normal message', async () => {
     const chain = makeChain([])
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
 
     const { buildConciergeContext } = await import('../src/lib/concierge-agent')
     const messages = await buildConciergeContext('user-1', '你好，我想预约今天下午的保洁服务')

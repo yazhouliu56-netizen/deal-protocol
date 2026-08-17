@@ -76,21 +76,18 @@ const defaultExtraction = JSON.stringify({
 
 const defaultEmbedding = JSON.stringify(new Array(1024).fill(0.1))
 
-async function verifyCallOrder(calls: { name: string; args: any }[]): Promise<void> {
-  expect(calls.length).toBeGreaterThan(0)
-}
 
 describe('E2E Integration Smoke Test', () => {
   let chain: MockChain
-  let supabaseMock: any
+  let supabaseMock
 
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
     supabaseMock = { from: chain.from, channel: chain.channel, rpc: vi.fn() }
-    __setSupabaseClient(supabaseMock as any)
+    __setSupabaseClient(supabaseMock)
 
-    buildFunctionTool.mockReturnValue({ name: 'extract_test', parameters: {} } as any)
+    buildFunctionTool.mockReturnValue({ name: 'extract_test', parameters: {} })
     getCategoryConfig.mockResolvedValue({
       category: '家政',
       risk_tier: 'low',
@@ -100,9 +97,9 @@ describe('E2E Integration Smoke Test', () => {
       safety_requirements: null,
       enabled: true,
       version: 1,
-    } as any)
+    })
 
-    appendEvidence.mockImplementation(async (input: any) => {
+    appendEvidence.mockImplementation(async (input) => {
       return {
         id: input.eventType === 'completion_confirmed' ? `ev-${input.payload.confirmed_by}` : 'ev-1',
         protocol_id: input.protocolId,
@@ -114,7 +111,7 @@ describe('E2E Integration Smoke Test', () => {
         hash: 'abc',
         prev_hash: 'GENESIS',
         created_at: '2026-01-01T00:00:00Z',
-      } as any
+      }
     })
 
     updateCredit.mockResolvedValue({ success: true, newScore: 65 })

@@ -6,7 +6,6 @@ import { ProxyAgent } from 'undici'
 
 const VERCELL_URL = 'https://deal-protocol-phi.vercel.app'
 const SUPABASE_URL = 'https://eixqnwaxcnwtxiizmdfs.supabase.co'
-const REMOTE = 'https://github.com/yazhouliu56-netizen/deal-protocol.git'
 
 function fetchOpts(timeout = 10000): RequestInit {
   const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
@@ -57,7 +56,7 @@ async function checkVercel() {
       const v = res.headers.get(h)
       if (v) results.push({ name: `Header: ${h}`, ok: true, detail: v })
     }
-  } catch (e: any) {
+  } catch (e) {
     results.push({ name: '首页可达', ok: false, detail: e.message })
   }
 
@@ -72,7 +71,7 @@ async function checkVercel() {
       ok: res.status === 200,
       detail: `${res.status} (${elapsed}ms) → ${JSON.stringify(body)}`,
     })
-  } catch (e: any) {
+  } catch (e) {
     results.push({ name: '/api/health', ok: false, detail: e.message })
   }
 
@@ -85,7 +84,7 @@ async function checkVercel() {
         ok: res.status >= 200 && res.status < 400,
         detail: `HTTP ${res.status}`,
       })
-    } catch (e: any) {
+    } catch (e) {
       results.push({ name: `静态资源 ${path}`, ok: false, detail: e.message })
     }
   }
@@ -149,7 +148,7 @@ async function checkSupabase() {
   for (const [table, label] of KEY_TABLES) {
     try {
       const start = Date.now()
-      const { data, error } = await supabase.from(table).select('id').limit(1)
+      const { error } = await supabase.from(table).select('id').limit(1)
       const elapsed = Date.now() - start
       if (error) {
         console.log(`  \x1b[31m✘ ${label} (${elapsed}ms): ${error.message}\x1b[0m`)
@@ -157,7 +156,7 @@ async function checkSupabase() {
         console.log(`  \x1b[32m✔ ${label} (${elapsed}ms)\x1b[0m`)
         okCount++
       }
-    } catch (e: any) {
+    } catch (e) {
       console.log(`  \x1b[31m✘ ${label}: ${e.message}\x1b[0m`)
     }
   }
@@ -167,7 +166,7 @@ async function checkSupabase() {
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/health`, fetchOpts(5000))
     console.log(`  ${res.ok ? '\x1b[32m✔' : '\x1b[31m✘'} Edge Function health: HTTP ${res.status}\x1b[0m`)
-  } catch (e: any) {
+  } catch (e) {
     console.log(`  \x1b[33m⚠ Edge Function health 不可达 (未部署时为正常): ${e.message}\x1b[0m`)
   }
 }
@@ -192,7 +191,7 @@ async function checkStripe() {
     const Stripe = (await import('stripe')).default
     const stripe = new Stripe(secretKey)
     const balance = await stripe.balance.retrieve()
-    const avail = balance.available.map((b: any) => `${b.currency.toUpperCase()} ${(b.amount / 100).toFixed(2)}`).join(', ')
+    const avail = balance.available.map((b) => `${b.currency.toUpperCase()} ${(b.amount / 100).toFixed(2)}`).join(', ')
     console.log(`  \x1b[32m✔ stripe.balance.retrieve() OK: ${avail}\x1b[0m`)
 
     const endpoints = await stripe.webhookEndpoints.list({ limit: 10 })
@@ -204,7 +203,7 @@ async function checkStripe() {
         console.log(`  Webhook Endpoint: ${ep.url} — ${status}`)
       }
     }
-  } catch (e: any) {
+  } catch (e) {
     console.log(`  \x1b[31m✘ Stripe 认证失败: ${e.message}\x1b[0m`)
   }
 }

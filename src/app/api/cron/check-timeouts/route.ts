@@ -36,9 +36,9 @@ export async function GET(request: NextRequest) {
           const guard = engine.validateTransition("auto_complete", {
             contract: {
               id: contract.id,
-              fundStatus: contract.fund_status as any,
+              fundStatus: contract.fund_status ?? "",
               disputeStatus: contract.dispute_status,
-              serviceStage: contract.service_stage as any,
+              serviceStage: contract.service_stage ?? 0,
               providerId: contract.provider_id,
               customerId: contract.customer_id,
               amount: contract.amount,
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Get contract relations for all expired batches
       const batchIds = (expiredBatches ?? []).map(b => b.id);
-      let batchContractMap = new Map<string, { id: string }[]>();
+      const batchContractMap = new Map<string, { id: string }[]>();
 
       if (batchIds.length > 0) {
         const { data: contracts, error: contractsError } = await supabase

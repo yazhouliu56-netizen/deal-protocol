@@ -23,7 +23,7 @@ describe('M07 Cross-Category Score Isolation', () => {
   beforeEach(() => {
     chain = new MockChain()
     chain.single.mockResolvedValue({ data: { id: 'test-evidence-id' } })
-    __setSupabaseClient({ from: chain.from } as any)
+    __setSupabaseClient({ from: chain.from })
 
     appendEvidence.mockResolvedValue({
       id: 'ev-1',

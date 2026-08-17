@@ -112,11 +112,15 @@ async function getFcmSubscriptions(userIds: string[]): Promise<PushSubscriptionI
   return (data ?? []) as unknown as PushSubscriptionInfo[]
 }
 
-async function loadWebpush() {
+interface WebPushModule {
+  setVapidDetails(mailto: string, publicKey: string, privateKey: string): void
+  sendNotification(subscription: PushSubscriptionJSON, payload: string): Promise<unknown>
+}
+
+async function loadWebpush(): Promise<WebPushModule | null> {
   try {
-    // @ts-ignore - web-push is an optional dependency
     const mod = await import('web-push')
-    return mod as any
+    return mod as unknown as WebPushModule
   } catch {
     return null
   }
@@ -144,7 +148,7 @@ export async function sendPushNotification(
     webpush.setVapidDetails('mailto:push@deal-protocol.local', vapidPublicKey, vapidPrivateKey)
     for (const sub of subs) {
       try {
-        await webpush.sendNotification(sub.subscription as any, payload)
+        await webpush.sendNotification(sub.subscription as PushSubscriptionJSON, payload)
       } catch {
         console.warn(`[M12] VAPID send failed for user ${userId}`)
       }
@@ -195,7 +199,7 @@ export async function sendOfflineNotification(input: PushInput): Promise<void> {
     webpush.setVapidDetails('mailto:push@deal-protocol.local', vapidPublicKey, vapidPrivateKey)
     for (const sub of subs) {
       try {
-        await webpush.sendNotification(sub.subscription as any, JSON.stringify({ title, body, data }))
+        await webpush.sendNotification(sub.subscription as PushSubscriptionJSON, JSON.stringify({ title, body, data }))
       } catch {
         console.warn(`[M12] VAPID offline push failed for user ${sub.user_id}`)
       }

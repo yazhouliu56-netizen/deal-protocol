@@ -51,8 +51,8 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
       toast.success("提现申请已提交，预计 1-2 个工作日内到账", { id: toastId });
       if (onSuccess) onSuccess();
       onClose();
-    } catch (err: any) {
-      toast.error(`提现失败: ${err.message}`, { id: toastId });
+    } catch (err: unknown) {
+      toast.error(`提现失败: ${err instanceof Error ? err.message : "未知错误"}`, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

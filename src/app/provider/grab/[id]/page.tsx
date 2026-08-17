@@ -31,11 +31,6 @@ export default async function GrabPage({ params }: PageProps) {
     )
   }
 
-  const createdAt = new Date(demand.created_at).getTime()
-  const currentTime = Date.now()
-  const elapsedSeconds = Math.floor((currentTime - createdAt) / 1000)
-  const timeLeft = Math.max(0, 900 - elapsedSeconds)
-
   const { data: contracts } = await supabase
     .from("contracts")
     .select("provider:profiles!provider_id(id, name)")
@@ -56,7 +51,7 @@ export default async function GrabPage({ params }: PageProps) {
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
       <GrabConsoleClientWrapper
         demandId={demandId}
-        initialTimeLeft={timeLeft}
+        initialCreatedAt={demand.created_at}
         initialCompetitors={competitors}
       />
     </div>

@@ -15,7 +15,7 @@ describe('M03 Category Config Validator', () => {
   })
 
   it('should reject invalid risk_tier', () => {
-    const errors = validateConfig({ category: 'test', risk_tier: 'extreme' as any })
+    const errors = validateConfig({ category: 'test', risk_tier: 'extreme' })
     expect(errors.some((e) => e.message.includes('low, medium, or high'))).toBe(true)
   })
 
@@ -41,7 +41,7 @@ describe('M03 Category Config Validator', () => {
     const errors = validateConfig({
       category: 'test',
       risk_tier: 'low',
-      response_mode: 'invalid_mode' as any,
+      response_mode: 'invalid_mode',
     })
     expect(errors.some((e) => e.field === 'response_mode')).toBe(true)
   })

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { toast } from "react-hot-toast"
 import { Wallet, Landmark, CheckCircle, XCircle, RefreshCw, ShieldCheck, AlertCircle, ArrowUpRight } from "lucide-react"
 
@@ -24,7 +24,7 @@ export default function AdminWithdrawalsWorkspace() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setIsLoading(true)
     try {
       const response = await fetch("/api/admin/withdraw/list")
@@ -60,11 +60,14 @@ export default function AdminWithdrawalsWorkspace() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchRequests()
-  }, [])
+    const init = async () => {
+      await fetchRequests()
+    }
+    init()
+  }, [, fetchRequests])
 
   const handleReviewAction = async (action: "approve" | "reject") => {
     if (!selectedItem) return
@@ -89,8 +92,8 @@ export default function AdminWithdrawalsWorkspace() {
       )
       setRequests((prev) => prev.filter((item) => item.id !== selectedItem.id))
       setSelectedItem(null)
-    } catch (error: any) {
-      toast.error(`决议中断: ${error.message}`, { id: toastId })
+    } catch (error: unknown) {
+      toast.error(`决议中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
     } finally {
       setIsProcessing(false)
     }

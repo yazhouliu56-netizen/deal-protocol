@@ -140,6 +140,7 @@ export default function ProofCamera({
 
         {phase !== "idle" && result && (
           <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- data: URL 存证缩略图，next/image 不支持 */}
             <img
               className="proof-camera-img"
               src={result.dataUrl}

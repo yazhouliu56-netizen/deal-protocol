@@ -40,7 +40,7 @@ self.addEventListener("install", () => {
 // 保留上一代（已开标签页仍引用旧 chunk）。
 const OTO_RUNTIME_CACHE = "spatial-oto-runtime";
 const OTO_VERSION_RE = /^spatial-oto-v(\d+)/;
-let otoGeneration = 1;
+const otoGeneration = 1;
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(

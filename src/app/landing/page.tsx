@@ -29,15 +29,22 @@ const PLACEHOLDER_TEXTS = [
   "例如：晚上回家发现门锁坏了，进不去门",
 ]
 
+interface ProtocolResult {
+  title: string
+  description: string
+  risk_tier?: string
+  category?: string
+  protocol_json?: unknown
+}
+
 export default function LandingPage() {
   const [text, setText] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [severity, setSeverity] = useState(2)
   const [generating, setGenerating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<ProtocolResult | null>(null)
   const [editing, setEditing] = useState(false)
-  const [editedFields, setEditedFields] = useState<Record<string, unknown>>({})
   const [mediaFiles, setMediaFiles] = useState<Array<{ id: string; name: string; progress: number }>>([])
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -62,7 +69,6 @@ export default function LandingPage() {
       if (!res.ok) throw new Error((await res.json()).error)
       const data = await res.json()
       setResult(data)
-      setEditedFields(data.protocol_json)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "协议生成失败，请重试")
     } finally {

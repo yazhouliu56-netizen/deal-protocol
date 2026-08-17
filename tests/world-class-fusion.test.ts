@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 // ============================================================
 // Mechanism 1: Priority Tip Booster — 1.5x matching weight

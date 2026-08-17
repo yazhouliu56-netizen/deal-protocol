@@ -13,7 +13,7 @@ import OtoBadge from "@/components/oto-ui/OtoBadge";
 import CategoryPill from "@/components/oto-ui/CategoryPill";
 import SearchBar from "@/components/oto-ui/SearchBar";
 import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
-import AuthSheet, { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
+import AuthSheet from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
@@ -627,6 +627,10 @@ function ARPage({
 
   const addedToCart = cart.includes(selectedExperience.id);
 
+  const [cameraOrderNo, setCameraOrderNo] = useState(
+    () => `AR-${selectedExperience.id}-${Date.now().toString(36)}`,
+  );
+
   function goMatch(draft: string) {
     setAiDraft(draft);
     setScreen("ai");
@@ -743,7 +747,10 @@ function ARPage({
               <GlassIconButton
                 size="sm"
                 aria-label="拍照存证"
-                onClick={() => setPhotoOpen(true)}
+                onClick={() => {
+                  setCameraOrderNo(`AR-${selectedExperience.id}-${Date.now().toString(36)}`);
+                  setPhotoOpen(true);
+                }}
                 className="relative"
               >
                 <Camera size={14} />
@@ -924,7 +931,7 @@ function ARPage({
               </p>
             )}
             <ProofCamera
-              orderNo={`AR-${selectedExperience.id}-${Date.now().toString(36)}`}
+              orderNo={cameraOrderNo}
               geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }}
               onCaptured={(result) => {
                 onProofShot({

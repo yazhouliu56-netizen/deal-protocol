@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Sparkles, Award, X, Zap, Shield, type LucideIcon } from 'lucide-react';
-import { useTheme } from '@/components/theme/theme-provider';
 
 export interface GachaReward {
   id: string;
@@ -25,7 +24,6 @@ interface GachaModalProps {
 }
 
 export const GachaModal: React.FC<GachaModalProps> = ({ isOpen, onClose }) => {
-  const { theme } = useTheme();
   const [stage, setStage] = useState<'idle' | 'opening' | 'revealed'>('idle');
   const [reward, setReward] = useState<GachaReward | null>(null);
 
@@ -34,8 +32,12 @@ export const GachaModal: React.FC<GachaModalProps> = ({ isOpen, onClose }) => {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      setStage('idle');
-      setReward(null);
+      const reset = async () => {
+        await Promise.resolve();
+        setStage('idle');
+        setReward(null);
+      };
+      reset();
     }
     return () => {
       document.body.style.overflow = '';

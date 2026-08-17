@@ -232,7 +232,11 @@ export default function ArbitrationSheet({
   // 重开抽屉时清除残留过渡态与定时器
   useEffect(() => {
     if (open) {
-      setDismissing(false);
+      const reset = async () => {
+        await Promise.resolve()
+        setDismissing(false)
+      }
+      reset()
       if (dismissTimerRef.current !== null) {
         window.clearTimeout(dismissTimerRef.current);
         dismissTimerRef.current = null;

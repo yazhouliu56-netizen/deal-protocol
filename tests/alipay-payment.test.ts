@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockConstructEvent = vi.fn();
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -31,7 +30,7 @@ vi.mock("@/lib/event-bus", () => ({
 }));
 
 vi.mock("@/lib/api-auth", () => ({
-  withAuth: (handler: Function) => handler,
+  withAuth: (handler: (req: unknown) => unknown) => handler,
 }));
 
 const alipayService = {
@@ -137,7 +136,7 @@ describe("POST /api/webhooks/alipay", () => {
     const resp = await POST(req);
     const text = await resp.text();
     expect(resp.status).toBe(400);
-    expect(text).toContain("fail") || expect(text).toContain("error");
+    expect(text.includes("fail") || text.includes("error")).toBe(true);
   });
 
   it("should reject non-success trade status", async () => {

@@ -6,7 +6,7 @@ import { maskPhone } from "@/lib/privacy-guard";
 export const GET = withAuth(async (req, user) => {
   const svc = await getRouteClient()
 
-  const { data: profile, error } = await svc
+  const { data: profile } = await svc
     .from('profiles')
     .select('id, name, email, phone, role, roles, credit_score, balance, created_at, bio, skills, service_areas, avatar_url, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
     .eq('id', user.id)

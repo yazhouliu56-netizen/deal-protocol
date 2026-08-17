@@ -54,16 +54,8 @@ try {
 
   const screens = await page.evaluate(async () => {
     const doc = document;
-    const check = (have) => ({ have });
-    const out = { home: null, ai: null, ar: null, trip: null, profile: null };
+        const out = { home: null, ai: null, ar: null, trip: null, profile: null };
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const names = ["AI 助手", "AR 扫描", "行程", "我的"];
-    const targets = {
-      ai: ["想找什么，直接说", "想找什么"],
-      ar: ["AR"],
-      trip: ["行程"],
-      profile: ["我的"],
-    };
     // 用视频导航（Dock 按钮）
     const clickDock = async (label) => {
       const b = [...doc.querySelectorAll("button")].find(

@@ -19,7 +19,6 @@ interface AiArbitrationCardProps {
 
 export const AiArbitrationCard: React.FC<AiArbitrationCardProps> = ({
   confidenceScore,
-  winner = 'split',
   reasoning = '根据判例库 Top 3 相似证据链匹配，建议按 7:3 进行托管资金分段清算。',
   requiresHumanReview = false,
   perspectives = { contractRatio: 45, commonSenseRatio: 35, rightsRatio: 20 },

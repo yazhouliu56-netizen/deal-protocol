@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useState, useEffect, useCallback, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,6 @@ const TABS: { id: TabId; label: string; icon: typeof Smartphone }[] = [
 ]
 
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<TabId>("sms")
   const [error, setError] = useState("")
@@ -87,8 +86,7 @@ export default function LoginPage() {
 
 /* ─── Tab 1: SMS Code Login ─── */
 function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
-  const router = useRouter()
-  const [phone, setPhone] = useState("")
+    const [phone, setPhone] = useState("")
   const [code, setCode] = useState("")
   const [codeSent, setCodeSent] = useState(false)
   const [countdown, setCountdown] = useState(0)
@@ -200,8 +198,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
 
 /* ─── Tab 2: Password Login ─── */
 function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
+    const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 

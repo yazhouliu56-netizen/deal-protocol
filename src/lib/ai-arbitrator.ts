@@ -60,7 +60,7 @@ export async function generateAIArbitrationReport(disputeId: string): Promise<AI
     .eq('order_id', orderId)
     .order('created_at', { ascending: true });
 
-  const totalAmount = (dispute as any).demands?.amount || 200;
+  const totalAmount = (dispute as { demands?: { amount?: number } }).demands?.amount || 200;
   const evidence = evidenceList || [];
   const chainDigest = computeEvidenceDigest(evidence);
 
@@ -234,7 +234,7 @@ export interface ArbitrateDisputeOptions {
   evidenceLogs?: Array<{ event_type: string; payload: unknown }>;
 }
 
-async function fetchRelevantPrecedents(queryText: string): Promise<Array<{ summary: string; ruling_principle: string }>> {
+async function fetchRelevantPrecedents(): Promise<Array<{ summary: string; ruling_principle: string }>> {
   try {
     const supabase = getServiceClient();
     const { data, error } = await supabase
@@ -252,7 +252,7 @@ async function fetchRelevantPrecedents(queryText: string): Promise<Array<{ summa
 export async function arbitrateDispute(options: ArbitrateDisputeOptions): Promise<ArbitrationResult> {
   const { disputeId, reason, evidenceLogs = [] } = options;
 
-  const precedents = await fetchRelevantPrecedents(reason);
+  const precedents = await fetchRelevantPrecedents();
   const precedentContext = precedents.length > 0
     ? precedents.map((p, idx) => `[判例 ${idx + 1}] 摘要: ${p.summary} | 裁决原则: ${p.ruling_principle}`).join('\n')
     : '暂无直接匹配的既往历史判例，请按通用公平原则裁决。';

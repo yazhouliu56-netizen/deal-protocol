@@ -20,14 +20,14 @@ vi.mock('../src/lib/supabase-client', () => {
     then<TResult1 = QueryResult, TResult2 = never>(
       onfulfilled?: ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
     ): Promise<TResult1 | TResult2> {
-      return Promise.resolve({ data: [], error: null }).then(onfulfilled as any)
+      return Promise.resolve({ data: [], error: null }).then(onfulfilled)
     }
   }
 
   const chain = new MockChain()
 
   return {
-    getServiceClient: vi.fn(() => ({ from: chain.from }) as any),
+    getServiceClient: vi.fn(() => ({ from: chain.from })),
   }
 })
 

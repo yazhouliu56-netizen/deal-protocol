@@ -6,7 +6,7 @@ describe('M05 Geo Index', () => {
 
   beforeEach(() => {
     mockRpc = vi.fn()
-    __setSupabaseClient({ rpc: mockRpc } as any)
+    __setSupabaseClient({ rpc: mockRpc })
   })
 
   afterEach(() => {

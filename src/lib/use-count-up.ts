@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
 
 export function useCountUp(target: number, duration = 1200, enabled = true) {
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState(() => (enabled ? 0 : target))
 
   useEffect(() => {
-    if (!enabled) { setValue(target); return }
+    if (!enabled) return
 
     const start = performance.now()
     let raf: number
@@ -21,5 +21,5 @@ export function useCountUp(target: number, duration = 1200, enabled = true) {
     return () => cancelAnimationFrame(raf)
   }, [target, duration, enabled])
 
-  return value
+  return enabled ? value : target
 }

@@ -11,7 +11,7 @@ import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
 import { DemandCardSkeleton } from '@/components/ui/cyber-skeleton';
 import { GuildRegistrationModal } from '@/components/onboarding/guild-registration-modal';
 import { QueueAdventureModal } from '@/components/encounter/queue-adventure-modal';
-import { Search, Filter, Plus, Gift, Sparkles, Scroll, Clock, Users } from 'lucide-react';
+import { Search, Plus, Gift, Sparkles, Scroll, Users } from 'lucide-react';
 
 interface DemandCardItem extends Tables<'demands'> {
   category?: string;

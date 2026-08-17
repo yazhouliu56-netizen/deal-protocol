@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/components/SessionProvider";
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import {
@@ -44,17 +41,20 @@ export default function AdminProtocolsPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
 
-  const loadProtocols = async () => {
+  const loadProtocols = useCallback(async () => {
     const res = await fetch("/api/admin/protocols");
     if (!res.ok) return;
     const data = await res.json();
     setProtocols(data.protocols ?? []);
     setPageLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    if (session?.role === "ADMIN") loadProtocols();
-  }, [session]);
+    if (session?.role === "ADMIN") {
+      const init = async () => { await loadProtocols(); };
+      init();
+    }
+  }, [session, loadProtocols]);
 
   const toggleProtocol = async (id: string, enabled: boolean) => {
     setToggling(id);

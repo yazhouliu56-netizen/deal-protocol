@@ -123,9 +123,9 @@ function PieChart({ data }: { data: IBiChartDatum[] }) {
   const R = 42
   const C = 2 * Math.PI * R
   const COLORS = ["#3b82f6", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"]
-  let acc = 0
   const segments = data.map((d, i) => {
     const frac = d.value / total
+    const offset = -data.slice(0, i).reduce((s, x) => s + x.value / total, 0) * C
     const seg = (
       <circle
         key={`${d.label}-${i}`}
@@ -136,11 +136,10 @@ function PieChart({ data }: { data: IBiChartDatum[] }) {
         stroke={COLORS[i % COLORS.length]}
         strokeWidth={14}
         strokeDasharray={`${Math.max(0, frac * C - 1.5)} ${C - Math.max(0, frac * C - 1.5)}`}
-        strokeDashoffset={-acc * C}
+        strokeDashoffset={offset}
         transform="rotate(-90 60 60)"
       />
     )
-    acc += frac
     return seg
   })
 

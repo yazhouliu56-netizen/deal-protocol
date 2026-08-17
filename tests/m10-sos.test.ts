@@ -37,7 +37,7 @@ describe('M10 SOS Service', () => {
 
   beforeEach(() => {
     chain = new MockChain()
-    getSupabase.mockReturnValue({ from: chain.from } as any)
+    getSupabase.mockReturnValue({ from: chain.from })
     chain.single.mockResolvedValue({ data: null, error: null })
     chain.maybeSingle.mockResolvedValue({ data: null, error: null })
     appendEvidence.mockResolvedValue({

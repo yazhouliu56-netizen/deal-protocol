@@ -80,10 +80,9 @@ export async function councilArbitrate(req: ArbitrationRequest): Promise<Arbitra
   const votes = await Promise.all(PERSONAS.map((p) => personaArbitrate(p, req)))
 
   const providerAmounts = votes.map((v) => v.providerAmount)
-  const customerAmounts = votes.map((v) => v.customerAmount)
   const avgProvider = providerAmounts.reduce((a, b) => a + b, 0) / providerAmounts.length
 
-  const loserVotes = votes.map((v) => {
+  const loserVotes = votes.map(() => {
     const raw = JSON.parse(`{"loser": "none"}`)
     return raw.loser
   })

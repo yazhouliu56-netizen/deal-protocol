@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useSession } from '@/components/SessionProvider'
 import { getBrowserSupabase } from '@/lib/supabase-browser'
 import toast from "react-hot-toast"
@@ -15,7 +14,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from '@/components/ui/card'
 import {
   Dialog,
@@ -25,7 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { AlertTriangle, Shield, Phone, MapPin, Loader2 } from 'lucide-react'
+import { AlertTriangle, Shield, Phone, Loader2 } from 'lucide-react'
 
 interface ActiveContract {
   id: string
