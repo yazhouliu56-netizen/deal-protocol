@@ -256,7 +256,7 @@
 | `PriceSlider.tsx` | [🟢 正常在用] | `demo/page.tsx`、`SmartProtocolCard.tsx` |
 | `WithdrawModal.tsx` | [🟢 正常在用] | `finance/page.tsx`（消费 `/api/finance/withdraw`） |
 | `VoiceMicButton.tsx` | [🟢 正常在用] | `SplitDemandView.tsx` |
-| `MapComponent.tsx` | [🟢 正常在用] | `provider/orders/[id]/OrderFulfillmentClient.tsx`（Leaflet 动态 import；与 MapView 双轨） |
+| `MapComponent.tsx` | [🗑 已出清] | ~~Leaflet 双轨~~ → 履约页已迁移 MapLibre `MapView`（Batch 4 C15 收敛，`git rm` 删除 + leaflet 依赖出清） |
 | `providers/UXProvider.tsx` | [🟢 正常在用] | `app/layout.tsx` |
 | `providers/NotificationProvider.tsx` | [🟢 正常在用] | `components/NotificationCenter.tsx`（旧版 C2）+ 跨帧通知 |
 | `theme/theme-provider.tsx` + `theme-switcher.tsx` | [🟢 正常在用] | layout / 主题切换 |
@@ -286,7 +286,7 @@
 | C12 | `components/ConfirmDialog.tsx` | 确认弹窗 | 0 引用（`ui/dialog` 已覆盖） | 零 | 彻底删除 |
 | C13 | `components/escrow/encounter-contract-modal.tsx` | 会面合同弹窗 | 0 引用 | 零 | 彻底删除 |
 | C14 | `components/ProviderCheckinModal.tsx` | 服务者签到弹窗 | 0 引用 | 零 | 彻底删除 |
-| C15 | `components/MapComponent.tsx`（Leaflet） | 履约地图 | 被 `OrderFulfillmentClient.tsx` 动态 import（活跃）；与 MapView(MapLibre) 双轨并存 | 删除需先迁移履约页至 MapView | 保留双轨（或收敛迁移后再删） |
+| ~~C15~~ | ~~`components/MapComponent.tsx`（Leaflet）~~ | ~~履约地图~~ | ✅ **已收敛归一（2026-08-17）**：履约页迁移 MapLibre `MapView`（focus 锚定 + 单点光晕），`git rm` 物理删除，leaflet/react-leaflet/@types/leaflet 依赖出清 | 无 | 已删除 |
 | C16 | 老控制台 4 件套（`ClientConsole`/`ProviderConsole`/`SwipeableCard`/`GrabConsole`） | 老 5 屏时代组件 | 全部仍有页面引用（`console`、`provider`、`provider/incoming`、`provider/grab` 页面活跃） | 未取代 | 保留（待 `/oto` 5 屏完全接管后评估） |
 
 ---
@@ -416,7 +416,7 @@
 
 ## Batch 4：结构级收敛（触发：单独立项，非垃圾清运）
 - [ ] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）
-- [ ] C15 履约页地图从 Leaflet `MapComponent` 迁移至 MapLibre `MapView` 后废弃 Leaflet 轨
+- [x] C15 履约页地图从 Leaflet `MapComponent` 迁移至 MapLibre `MapView` 后废弃 Leaflet 轨（✅ 2026-08-17：迁移 + `git rm` + 三依赖出清，P1 攻坚战役步骤一）
 - [ ] C16 老控制台 4 件套：`/oto` 5 屏完全接管 `console/provider/incoming/grab` 页面后评估废弃
 - [ ] E1/E2 补 `/rights`、`/demo` 导航入口或转 dev-only 路由
 

@@ -52,6 +52,7 @@ export default function MapView({
   ambient = [],
   className = "",
   onDotClick,
+  focus,
 }: {
   dots: MapDot[];
   /** Static "city life" points (visual density, no interaction). */
@@ -59,12 +60,15 @@ export default function MapView({
   className?: string;
   /** Fired when an active-wave glow dot is clicked (id = wave id). */
   onDotClick?: (id: string) => void;
+  /** 目标点锚定：初始相机直达该点并拉高到 15 级（缺省 = MAP_CENTER 全城视角）。 */
+  focus?: GeoPoint;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const dotsRef = useRef<MapDot[]>(dots);
   const ambientRef = useRef<GeoPoint[]>(ambient);
   const onDotClickRef = useRef(onDotClick);
+  const focusRef = useRef<GeoPoint | undefined>(focus);
   useEffect(() => {
     dotsRef.current = dots;
   }, [dots]);
@@ -80,8 +84,10 @@ export default function MapView({
       map = new m.Map({
         container: containerRef.current,
         style: MAP_STYLE_URL,
-        center: [MAP_CENTER.lng, MAP_CENTER.lat],
-        zoom: MAP_ZOOM,
+        center: focusRef.current
+          ? [focusRef.current.lng, focusRef.current.lat]
+          : [MAP_CENTER.lng, MAP_CENTER.lat],
+        zoom: focusRef.current ? 15 : MAP_ZOOM,
         pitch: MAP_PITCH,
       });
       mapRef.current = map;

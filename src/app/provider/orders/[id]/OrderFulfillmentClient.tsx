@@ -8,8 +8,9 @@ import { Skeleton } from "@/components/ui/Skeleton"
 import { useFulfillmentMutation } from "@/hooks/useFulfillmentMutation"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import { uploadPhotoWithRetry } from "@/lib/upload"
+import type { GeoPoint, MapDot } from "@/base/geo/mapConfig"
 
-const MapWithNoSSR = dynamic(() => import("@/components/MapComponent").then((m) => ({ default: m.MapComponent })), {
+const MapWithNoSSR = dynamic(() => import("@/components/waves/MapView"), {
   ssr: false,
   loading: () => <Skeleton className="h-64 w-full" />,
 })
@@ -73,6 +74,12 @@ export default function OrderFulfillmentClient({
 
   const currentConfig = STATUS_MAP[demand.status]
   const isMissingCertificates = demand.status === "STARTED" && uploadedImages.length < 2
+
+  // D8 地图栈归一（Batch 4 C15）：Leaflet MapComponent 出清 → MapLibre MapView 单点锚定
+  const targetPoint: GeoPoint = { lat: demand.latitude, lng: demand.longitude }
+  const targetDots: MapDot[] = [
+    { id: `target-${demand.id}`, position: targetPoint, hot: 1, category: "履约目标" },
+  ]
 
   const handleStatusAdvance = async () => {
     if (!currentConfig.next || loading || isMissingCertificates) return
@@ -179,7 +186,11 @@ export default function OrderFulfillmentClient({
             <p><span className="text-zinc-400">客户姓名：</span>{demand.client_name || "张先生 (系统脱敏)"}</p>
             <p><span className="text-zinc-400">服务地址：</span>{demand.address || "北京市海淀区中关村南大街1号"}</p>
           </div>
-          <MapWithNoSSR lat={demand.latitude} lng={demand.longitude} />
+          <MapWithNoSSR
+            className="h-64 w-full rounded-2xl overflow-hidden"
+            focus={targetPoint}
+            dots={targetDots}
+          />
           <div className="grid grid-cols-3 gap-3 pt-2">
             <a
               href={`tel:${demand.client_phone || "13800000000"}`}

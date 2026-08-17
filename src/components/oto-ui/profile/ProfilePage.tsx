@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRightLeft,
   BadgeCheck,
   Check,
+  LogIn,
   MapPin,
   Star,
 } from "lucide-react";
@@ -31,6 +32,12 @@ import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
 import DynamicFormView, { type FormField, type FormValues } from "@/components/oto-ui/DynamicFormView";
 import SeniorModeView from "@/components/oto-ui/SeniorModeView";
 import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
+import {
+  readAuthAccount,
+  openAuthSheet,
+  AUTH_CHANGED_EVENT,
+  type AuthAccount,
+} from "@/components/oto-ui/auth/AuthSheet";
 
 /** 紧急联系人登记 schema（ADR-0015 动态表单 N2 接线；SOS 发起时读取）。 */
 const CONTACT_SCHEMA: FormField[] = [
@@ -110,6 +117,15 @@ export default function ProfilePage({
   const [contactForm, setContactForm] = useState<FormValues>({ name: "妈妈", relation: "家人", phone: "138-0000-0001" });
   const [contacts, setContacts] = useState<{ name: string; phone: string }[]>([{ name: "妈妈", phone: "138-0000-0001" }]);
 
+  // 方案 A：前台内嵌登录抽屉（AuthSheet）—— 登录态即时刷新（oto:auth-changed）
+  const [authAccount, setAuthAccount] = useState<AuthAccount | null>(null);
+  useEffect(() => {
+    setAuthAccount(readAuthAccount());
+    const onAuth = () => setAuthAccount(readAuthAccount());
+    window.addEventListener(AUTH_CHANGED_EVENT, onAuth);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuth);
+  }, []);
+
   /** 出生年本地输入状态（回填现有值）。 */
   const [birthYearInput, setBirthYearInput] = useState<string>(
     identity.birthYear != null ? String(identity.birthYear) : ""
@@ -152,12 +168,25 @@ export default function ProfilePage({
 
   return (
     <div className="pointer-events-auto flex flex-col gap-4">
-      {/* G-5 访客引导：数据来源 + 本地模式入口（登录后提示云端，由数据化替换） */}
+      {/* G-5 访客引导：数据来源 + 本地模式入口（登录后提示云端，由数据化替换）
+          方案 A：未登录 → 呼出 AuthSheet 登录；已登录 → 切换/退出账号 */}
       <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25">
         <span className="text-[11px]">💠</span>
         <p className="flex-1 min-w-0 text-[9.5px] text-white/55">
-          访客 · 本地演示身份「{identity.nickname}」 · 数据存本机浏览器
+          {authAccount
+            ? `已登录 · ${authAccount.nickname}（${authAccount.role === "employer" ? "需求方" : authAccount.role === "provider" ? "服务者" : "组局主理人"}）· 数据存本机浏览器`
+            : `访客 · 本地演示身份「${identity.nickname}」 · 数据存本机浏览器`}
         </p>
+        <button
+          onClick={() => {
+            openAuthSheet();
+          }}
+          aria-label={authAccount ? "切换账号" : "登录"}
+          className="shrink-0 px-2 py-1 rounded-full btn-primary text-[9px] font-bold inline-flex items-center gap-1"
+        >
+          <LogIn size={9} />
+          {authAccount ? "切换账号" : "登录 · 注册"}
+        </button>
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"

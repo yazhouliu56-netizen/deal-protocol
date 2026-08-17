@@ -13,6 +13,7 @@ import OtoBadge from "@/components/oto-ui/OtoBadge";
 import CategoryPill from "@/components/oto-ui/CategoryPill";
 import SearchBar from "@/components/oto-ui/SearchBar";
 import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
+import AuthSheet, { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
@@ -162,6 +163,9 @@ export default function Home() {
 
       {/* 底部悬浮 Dock：固定在真实屏幕底部（store 驱动） */}
       <FloatingDock />
+
+      {/* 方案 A：空间毛玻璃登录抽屉（全局呼出 oto:auth-open，前台零整页跳出） */}
+      <AuthSheet />
 
       {/* 数据源徽章：全屏面常驻（HomePage 内不再单独挂） */}
       <EnvBadge />
