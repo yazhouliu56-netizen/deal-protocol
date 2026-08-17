@@ -201,14 +201,14 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L6-M3` | 多云多活容灾 | 四步优雅降级（关非核心 ➔ 限流 ➔ 保核心 ➔ 只读） |
 | `L6-M4` | 司法级存证数仓 | 业务全量轨迹、聊天流水哈希存证，提供司法黑匣子 |
 
-#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射，本战役战果 7 模块晋级 🟢）
+#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射，P2 战役 9 模块晋级 🟢，26/26 大满贯达成）
 
 > 状态图例：🟢 已闭环（生产代码 + 测试覆盖） / 🟡 有雏形（主链路已落地，缺口待补） / ⚪️ 待建设
-> **P2 战役战果（截至 2026-08-17 第二波攻坚）**：L6-M3、L5-M1、L3-M4（第一批）+ L4-M4、L4-M5（第一波）
-> + L4-M2、L5-M2（第二波）共七模块自 🟡/⚪️ 晋级 🟢（详见各行标注），
-> 当前 26 模块清单 = **🟢 24 / 🟡 2（L2-M2、L6-M2）/ ⚪️ 0**；
-> 标题口径「28」差量 2 席（口径说明见 §3.4）与剩余 🟡 模块（计价分摊/终端反欺诈/
-> 外部合规直连/运力熔断真实场景）为后续战役清单，非本战役承诺范围。
+> **P2 战役战果（2026-08-17 终局三波攻坚全部收官）**：L6-M3、L5-M1、L3-M4（第一批）
+> + L4-M4、L4-M5（第一波）+ L4-M2、L5-M2（第二波）+ L2-M2、L6-M2（第三波终局）
+> 共九模块自 🟡/⚪️ 晋级 🟢（详见各行标注），
+> 当前 26 模块清单 = **🟢 26 / 🟡 0 / ⚪️ 0 —— 六层防御圈 26 核心模块 100% 全绿大满贯！**；
+> 标题口径「28」差量 2 席（口径说明见 §3.4），不再有 🟡 模块欠账。
 
 | 编号 | 模块 | 代码落位 | 856 测试覆盖 | 状态 |
 |------|------|----------|--------------|------|
@@ -217,7 +217,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L1-M3` | 体验友好适配 | `base/ai/voice/*`（asr/tts 语音交互）、`base/platform/performance`（tier 降级）、`components/oto-ui/SeniorModeView.tsx`（**1.4x 字阶 / WCAG AAA 高对比 / 56pt+ 触控热区**） | voice 链路/适老渲染测试 | 🟢（语音链路 + 大字/大热区适老化 UI 闭环） |
 | `L1-M4` | 零知脱敏展示 | `base/safe/privacy`（分级脱敏）、`base/comm/privacyNumber`（号码池掩码）、`fuze-policy` blurLocation | privacy/脱敏测试 | 🟢 |
 | `L2-M1` | 标准订单状态机 | `base/order/wave.ts` + `types/ammo-schema.ts`（五态契约） | wave 状态机/认领/成团测试 | 🟢（五态为目标契约，wave 过渡映射见 §二 2.1） |
-| `L2-M2` | 计价分摊引擎 | `base/money/customPricing` + `ammo/pricing-formula`（时/距/系数/地板价）、settleGroupFail | customPricing/计费测试 | 🟡（定式计价闭环；AA 分摊在场外、现场改价/动态溢价待建） |
+| `L2-M2` | 计价分摊引擎 | `base/money/customPricing` + `base/money/surge-pricing.ts`（**L2-M2 潮汐动态与环境溢价算子：时段潮汐（早高峰 7-9 ×1.15/晚高峰 17-20 ×1.20/深夜 22-5 ×1.30/其余 ×1.0，边界精确）；极端天气（暴雨 ×1.25/暴雪·风暴 ×1.40/中轻雨 ×1.10）；供需热度（ratio>2.0 线性平滑 ×1.50 封顶 + L6-M2 运力中枢 capacitySurgeFactor 显式注入直连联动）；三因子连乘 → 分单位取整 → D2 护栏 [minFloorPriceCents, maxCeilingPriceCents] 双向钳制（先地板后天花板、上限恒守、负数账单保护），输出 ISurgePricingResult 含费用拆解 breakdown**）+ `ammo/pricing-formula`（时/距/系数/地板价）、settleGroupFail | customPricing/计费测试 + surge-pricing 潮汐溢价测试 | 🟢（**2026-08-17 第三波终局攻坚闭环**：定式计价 + 潮汐动态溢价 + 护栏钳制全链路，金额精度与上下限护栏守恒实测满足） |
 | `L2-M3` | 双模分发路由 | `base/dispatch/match`（派单）+ `broadcast`（抢单广播）+ `ammo/dispatch-rule` | match/broadcast 测试 | 🟢（双模 + ammo 权重硬门槛闭环） |
 | `L2-M4` | 账户清结算 | `base/money/escrow.ts`（**统一托管与清结算引擎：六模式托管/三阶段阶梯退款/AA 多方分账/资金安全底线**）+ `base/money/*`（ledger/pay/deposit/bidding）+ `base/ammo/runner.ts`（AmmoRunner 五态资金挂接：MATCHED 托管校验 / SETTLED 清结算对账清单）+ `app/api/payment/*`（release 收敛调统一引擎） | escrow/pay/ledger/deposit 测试 | 🟢（确定性引擎闭环 + AmmoRunner 五态挂接 + api/payment 收敛；统一钱包跨场景通兑、提现 ⚪️） |
 | `L2-M5` | IM 与隐私通信 | `base/comm/privacyNumber`（48h 双向热绑定）+ `base/comm/im` | privacyNumber 测试 | 🟢（隐私号/IM 闭环；音视频端到端加密 ⚪️） |
@@ -235,7 +235,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L5-M1` | 多通道适配器 | `base/platform/multi-channel-gateway.ts`（**多厂商毫秒级动态热备总线：`executeWithFallback` 通用故障转移调度器 + 三态健康机（HEALTHY/DEGRADED/UNHEALTHY，三连败熔断 60s 冷却 → 半开探测自愈）+ 按 channelKey::vendor 独立熔断状态池 + Promise.race 超时控制 + LOCAL_MOCK 确定性兜底**）+ `dispatchSmsWithFallback`（阿里云➔腾讯云➔华为云➔本地 Mock 存根）+ `calculateDistanceWithFallback`（MapLibre/OpenFreeMap➔高德➔腾讯➔本地 Haversine 纯数学）+ `base/geo/geofence-watcher.ts`（**`checkGeofenceArrivalViaHotSwap` 热备距离判定入口，外部全挂回落本地判定口径一致**）+ `lib/notification-ladder.ts`（**SMS 号段升级为多通道热备总线**）+ `base/platform/p2p`、Gateway 多 provider 降级 | multi-channel-gateway 熔断/降级/门面测试 + geofence 热备入口测试 | 🟢（**2026-08-17 闭环**：SMS 三家短信 + LBS 两级地图厂商毫秒级热备全链路；全挂 100% 本地确定性兜底（红线 1），零单点依赖（宪法 #10）） |
 | `L5-M2` | 外部合规生态 | `base/platform/signInsure`（签章验签）+ `base/platform/compliance-ecosystem.ts`（**《电子签名法》§14《电子商务法》§52 电子合同防伪签章 `generateEContractSeal`：规范化序列化 → SHA-256 不可变 contractDigest（64 位 hex，同输入同摘要）+ `verifyContractSeal` 篡改 1 字节即验签失败 + 法定存证声明固定文案；场景微保险秒级保单 `issueMicroInsurancePolicy`：保费严格取自 ammo.holographic.splitRules.insuranceRatio（家政 0.05/组局 0.02/陪玩 0.03，缺省固定费率 0.05），分单位精确取整；保额上限类目映射（家政 50,000 元/组局·兜底 20,000 元）；保单号 POL-YYYYMMDD-orderNoHash + 30 天有效期 + 理赔报案通道 claimGateway 绑定**）+ modules（认证/类目）+ identity 实名模拟 | signInsure 测试 + compliance-ecosystem 签章/保单测试 | 🟢（**2026-08-17 第二波攻坚闭环**：签章验签 + 电子合同存证 + 场景微保险秒级直连，保费与清结算保险计提口径守恒实测、红线 3 零 UI 反向依赖实测） |
 | `L6-M1` | 弱网离线引擎 | `base/platform/offlineQueue` + `resilience` + `sw.js` 离线缓存 + `app/offline` | offlineQueue/韧性测试 | 🟢（离线队列/追回/缓存闭环） |
-| `L6-M2` | 运力熔断机制 | `base/platform/circuit`（熔断库层）、`performance` tier | circuit 测试 | 🟡（熔断库层已备；区域爆单/价格杠杆真实场景 P2-2 未上线） |
+| `L6-M2` | 运力熔断机制 | `base/platform/circuit`（熔断库层）+ `base/platform/capacity-circuit.ts`（**区域运力四级状态机：NORMAL(util≤0.80)➔CONGESTED(≤0.95 ×1.15 微溢价)➔EXHAUSTED_SURGE(>0.95 或排队>30，×1.35 价格杠杆 + 排队蓄水)➔TRIPPED_THROTTLE(排队>100 或等待>1800s，阻断普通新需求强制排队)；判定短路按严重度降序、边界精确（0.80/0.95/30/100/1800s 全测锁定）；联动 L2-M2：recommendedSurgeMultiplier → capacitySurgeFactor 直传潮汐引擎自动价格杠杆；联动 L6-M3：mapRegionalCapacityToDegradation 桥接五级容灾（EXHAUSTED→RATE_LIMIT_QUEUE、TRIPPED→PRESERVE_CORE 仅放行 SOS 与在途履约）**）+ `performance` tier | circuit 测试 + capacity-circuit 状态机/联动测试 | 🟢（**2026-08-17 第三波终局攻坚闭环**：区域爆单/运力枯竭排队限流 + 价格杠杆供需平衡 + 核心履约与 SOS 保护全链路，纯确定性红线 1 实测满足） |
 | `L6-M3` | 多云多活容灾 | `base/platform/resilience` Part D（**五级容灾分流器：evaluateDegradationGate 25 组合确定性矩阵 + classifyApiPath 路径分类 + 全局等级控制器（注入式持久化适配器）**）+ `src/proxy.ts`（**Next16 网关拦截：503/429 降级响应 + x-degradation-* 标准头 + Retry-After，SOS/在途履约免死**）+ `app/api/admin/resilience`（**管理 API：GET 状态 / POST 切换 + 审计日志**）+ `components/admin/ResilienceControlPanel.tsx`（**五色等级卡 + 拦截规则矩阵 + 一键熔断/演练恢复**） | resilience 容灾矩阵/分类器/状态控制器 + ResilienceControlPanel 组件测试 | 🟢（**2026-08-17 闭环**：NORMAL→关非核心→限流→保核心→只读五级编排 + proxy 网关拦截 + 管理控制台全链路；持久化经 `.resilience-state.json` 跨 bundle 共享） |
 | `L6-M4` | 司法级存证数仓 | `base/platform/resilience`（数据湖哈希链）+ `signInsure` 签章 + `qr/scan`（链接存证） | 哈希链/签章测试 | 🟢（哈希链闭环；全量轨迹黑匣子待完备） |
 
@@ -297,14 +297,14 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
   - **L3 AI 神经**：LLM 意图解析转单（L3-M1，已 🟢）+ 智能仲裁小法官（L3-M3，已 🟢）+ 向量撮合推荐（L3-M2，Embedding 可选链接通）+ AIGC 图像鉴真（L3-M4，已 🟢 五信号融合闭环）。
   - **标杆弹药**：`meetup.ammo.ts`（⏳ **延期引信** `DELAY_FUZE_TEMPLATE`：预付定金冻结 + LBS 电子围栏解锁 + 反赌反诈过滤）+ `companion.ammo.ts`（📡 **近炸引信** `PROXIMITY_FUZE_TEMPLATE`：虚拟号 + 模糊定位 + AI 敏感词干预 + 一键 SOS）。
 - **阶段验收**：同底座换弹药（meetup ↔ companion）零 base 修改；引信随弹药切换（DELAY ↔ PROXIMITY）勾选即生效；跨场景钱包通兑（L2-M4）+ 信用飞轮（L2-M6，宪法 #6）。
-- **现状标注**：L3-M1 / M2 / M3 / M4 已 🟢（确定性版 + 五信号鉴真闭环）；L1-M1 / L2-M2 为 🟡 需补齐；跨场景钱包通兑 ⚪️。
+- **现状标注**：L3-M1 / M2 / M3 / M4 已 🟢（确定性版 + 五信号鉴真闭环）；**L2-M2 已 🟢（2026-08-17 第三波终局攻坚：潮汐动态溢价 + D2 护栏钳制闭环）**；L1-M1 为 🟡 需补齐；跨场景钱包通兑 ⚪️。
 
 ### 4.4 Phase 3：规模壁垒期（10 ➔ 100）
 
 - **核心目标**：全品类开放与生态互通，抵御极端意外与高并发洪峰，筑牢司法存证与多云容灾壁垒。
 - **建设范围**：弱网离线事务队列深度同步（L6-M1，已 🟢 基础上加固追回一致性）+ 多云多活降级（L6-M3，四步优雅降级编排：关非核心 ➔ 限流 ➔ 保核心 ➔ 只读）+ 运力熔断限流（L6-M2，区域爆单 / 价格杠杆真实场景 P2-2）+ 司法级哈希存证数仓（L6-M4，全量轨迹黑匣子完备可出证）。
 - **阶段验收**：断网操作追回零丢失；区域洪峰熔断限流有真实业务场景（P2-2 激活）；四步降级演练通过；司法黑匣子可提供完整出证链路。
-- **现状标注**：L6-M1 / M4 已 🟢；L6-M2 / M3 为 🟡（resilience / circuit 库层已备，真实编排待建设）。
+- **现状标注**：L6-M1 / M4 已 🟢；**L6-M2 / M3 已 🟢（2026-08-17 终局攻坚：capacity-circuit 区域运力四级状态机 + 价格杠杆联动 + mapRegionalCapacityToDegradation 桥接五级容灾）**，真实编排场景已闭环。
 
 ---
 

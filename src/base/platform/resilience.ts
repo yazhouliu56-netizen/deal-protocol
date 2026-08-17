@@ -324,3 +324,28 @@ export function setGlobalDegradationLevelMemory(level: DegradationLevel): Degrad
   memoryLevel = level;
   return level;
 }
+
+// ---------- L6-M2 区域运力熔断 ➔ 全站容灾等级联动桥接 ----------
+
+/**
+ * 区域运力熔断状态 → 五级容灾等级确定性映射（L6-M2 联动 L6-M3 全站保活）：
+ *   NORMAL            → NORMAL（全量放行）
+ *   CONGESTED         → NORMAL（×1.15 微溢价不断流，保持全量放行）
+ *   EXHAUSTED_SURGE   → RATE_LIMIT_QUEUE（×1.35 价格杠杆 + 新需求 429 排队限流）
+ *   TRIPPED_THROTTLE  → PRESERVE_CORE（爆单熔断：阻断普通新需求，仅放行一键 SOS 与在途履约）
+ * 与 evaluateDegradationGate 组合即得最终放行矩阵（纯确定性，零概率）。
+ */
+export function mapRegionalCapacityToDegradation(
+  capacityStatus: "NORMAL" | "CONGESTED" | "EXHAUSTED_SURGE" | "TRIPPED_THROTTLE"
+): DegradationLevel {
+  switch (capacityStatus) {
+    case "EXHAUSTED_SURGE":
+      return "RATE_LIMIT_QUEUE";
+    case "TRIPPED_THROTTLE":
+      return "PRESERVE_CORE";
+    case "CONGESTED":
+    case "NORMAL":
+    default:
+      return "NORMAL";
+  }
+}

@@ -30,3 +30,6 @@ export function yuan(value: number): string {
 export function raiseSuggestion(base: number, customCount: number): number {
   return suggestedPrice(base, customCount) + Math.round(base * 0.2);
 }
+
+/* ═══ L2-M2 潮汐动态与环境溢价门面（P2 战役第三波终局攻坚，surge-pricing 三因子引擎） ═══ */
+export * from "./surge-pricing.ts";
