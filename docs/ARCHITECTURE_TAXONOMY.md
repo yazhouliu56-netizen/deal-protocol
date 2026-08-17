@@ -130,7 +130,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 自然语言解析与结构化拆解 | `base/ai/cluster.ts`、`decompose.ts`、`voice/voiceIntent.ts` | 🟢 围栏容错 |
 | 语义撮合（bigram TF 余弦，零依赖） | `base/ai/embed.ts` | 🟢 确定性算法（LLM 可选链未接，宪法 #7 已记录） |
 | 智能仲裁定责（建议权） | `base/ai/judge.ts` + `app/api/judge` | 🟢 规则引擎兜底，仅出建议赔付 |
-| 对话式动态洞察（BI） | `base/ai/bi.ts` | 🟢 规则解析聚合（不耗 LLM） |
+| 对话式动态洞察（BI） | `base/ai/bi.ts`（对话式报表引擎 + 管理看板 ConversationalBiView） | 🟢 确定性规则链 + LLM 归因增强降级 + 看板闭环 |
 | 证据鉴真复核（LLM 复核降级链） | `base/ai/forgery.ts` | 🟢 五信号加权 + LLM 复核降级 |
 | 语音链路 | `base/ai/voice/`（asr/tts/audioStore） | 🟢 GLM→Web Speech / edge-tts→speechSynthesis 降级 |
 
@@ -221,7 +221,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L3-M2` | 向量匹配推荐 | `base/ai/embed.ts`（bigram TF 余弦，零依赖） | embed 语义测试 | 🟢（确定性版活产；LLM Embedding 可选链 P1-4 留口） |
 | `L3-M3` | 智能争议仲裁 | `base/ai/judge.ts` + `forgery.ts`（物证）+ 时间轨迹分析 + `app/api/judge` | judge/定责测试 | 🟢（规则引擎兜底，仅出建议赔付——红线 1 隔离墙） |
 | `L3-M4` | AIGC 鉴真检测 | `base/ai/forgery.ts`（EXIF/文件名/复用/时间/比例五信号 + LLM 复核降级） | forgery 鉴真测试 | 🟡（五信号闭环；像素合成痕迹扫描见 P0-3/P1-1） |
-| `L3-M5` | 对话式数据 BI | `base/ai/bi.ts`（规则解析聚合） | bi 报表测试 | 🟢（规则版落地；LLM 意图改写 P1-4 留口） |
+| `L3-M5` | 对话式数据 BI | `base/ai/bi.ts`（**对话式报表引擎：意图分流（品类违约 / 资金走势 / 服务者履约 / 全局兜底）→ 聚合 → `IBiReportPayload` 图表载荷（BAR/LINE/PIE/TABLE）**）+ `app/api/admin/bi`（管理端查数 API）+ `components/admin/ConversationalBiView.tsx`（**对话看板：快捷气泡 + AI 归因诊断卡 + KPI 指标网格 + 零依赖 SVG/CSS 图表 + 追问引导**） | bi 报表测试 + ConversationalBiView 组件测试 | 🟢（**2026-08-17 P2 战役 100% 闭环**：确定性规则链 + 5-provider Gateway LLM 归因增强（失败静默降级回规则摘要，红线 1）+ 管理看板接线 dashboard） |
 | `L4-M1` | 可插拔风控中枢 | `base/risk/*`（sentinel/roamGuard/fission/moderation）+ `ammo/risk-rule` 引信表 + `types/fuze-policy.ts`（三类引信模板） | sentinel/roam 测试 | 🟢（引信表驱动闭环；FuzeMatrix 自适应装载随 AmmoRunner P0-1） |
 | `L4-M2` | 终端反欺诈 | `base/risk/roamGuard`（设备指纹/多开）+ `lib/fraud-detection/*`、`modules`（黑名单） | roam 多开测试 | 🟡（设备指纹/多开闭环；模拟器检测/GPS 防作弊待建） |
 | `L4-M3` | 物理履约闭环 | `base/geo/geofence-watcher.ts`（**50m 高精 GPS 围栏：Haversine 距离 + 精度漂移过滤 + 停留时长防刷 + 300m 陪玩安全距离脱离**）+ `base/platform/nfc-adapter.ts`（**Web NFC 碰碰：HMAC 防重放载荷 + 动态码扫码降级**）+ `base/order/attendance`（到场签到） | geofence-watcher/nfc-adapter/attendance 测试 | 🟢（50m 围栏校验 + NFC/动态码碰一碰核销闭环） |
