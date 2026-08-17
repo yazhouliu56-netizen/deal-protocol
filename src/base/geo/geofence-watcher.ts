@@ -6,9 +6,19 @@
  * 距离复用 `base/geo/geo.ts` 的 Haversine 纯函数（同一地球模型，避免
  * 双实现漂移）；GPS 精度漂移过滤：设备上报 accuracy 时，若「距离 + 精度
  * 不确定带」越过围栏阈值则判为未到达（防漂移误触发），并给出 accuracyWarning。
+ *
+ * L5-M1 多通道适配：新增异步入口 `checkGeofenceArrivalViaHotSwap` —— 距离
+ * 经多厂商热备总线计算（MapLibre/OpenFreeMap ➔ 高德 ➔ 腾讯 ➔ 本地
+ * Haversine 纯数学兜底，宪法 #10），外部 LBS 全挂时自动回落本地确定性
+ * 计算，判定口径与同步入口完全一致。
  */
 
 import { distanceKm, type GeoPoint } from "./geo.ts";
+import {
+  calculateDistanceWithFallback,
+  type LbsDistanceInput,
+  type LbsDistanceOutput,
+} from "../platform/multi-channel-gateway.ts";
 
 /** 设备坐标（GPS 上报点；accuracy 缺省 = 无法获取精度信息）。 */
 export interface Coordinates {
@@ -107,6 +117,40 @@ export function evaluateProximityDeparture(
     return false;
   }
   return distanceKm(currentCoords, targetCoords) * 1000 >= safeDistanceMeters;
+}
+
+/**
+ * L5-M1 热备距离判定入口（异步）：距离经多厂商热备总线计算，
+ * 外部 LBS 服务全挂时回落本地 Haversine，判定口径与同步入口一致。
+ * 返回到达判定 + 本次实际使用的厂商与下跳次数（治理/审计用）。
+ */
+export async function checkGeofenceArrivalViaHotSwap(
+  currentCoords: Coordinates,
+  targetCoords: Coordinates,
+  thresholdMeters: number = GEOFENCE_DEFAULT_METERS,
+  channelKey = "geofence-arrival",
+): Promise<GeofenceArrivalResult & { usedVendor: string; fallbackHops: number }> {
+  const input: LbsDistanceInput = {
+    a: { lat: currentCoords.lat, lng: currentCoords.lng },
+    b: { lat: targetCoords.lat, lng: targetCoords.lng },
+  };
+  const dispatch = await calculateDistanceWithFallback(input, channelKey);
+  const distanceMeters = Math.round(dispatch.result.distanceMeters * 100) / 100;
+
+  const hasAccuracy = Number.isFinite(currentCoords.accuracy);
+  const accuracyWarning =
+    hasAccuracy &&
+    (currentCoords.accuracy as number) > GEOFENCE_ACCURACY_DRIFT_METERS;
+  const driftBand = hasAccuracy ? (currentCoords.accuracy as number) : 0;
+  const isArrived = distanceMeters <= thresholdMeters && distanceMeters + driftBand <= thresholdMeters;
+
+  return {
+    isArrived,
+    distanceMeters,
+    accuracyWarning,
+    usedVendor: dispatch.usedVendor,
+    fallbackHops: dispatch.fallbackHops,
+  };
 }
 
 /** 复合坐标类型兼容（GeoPoint = { lat, lng } ⊂ Coordinates）。 */

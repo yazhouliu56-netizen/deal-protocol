@@ -549,10 +549,9 @@ describe("useEdgeSwipeBack 屏幕左边缘手势返回 Hook（集成）", () => 
 
 describe("useDragToDismiss 半屏抽屉下拉关闭 Hook（集成）", () => {
   function makeSheet(onDismiss: () => void, enabled?: boolean) {
-    let dragRef: { current: HTMLElement | null } = { current: null };
     function Probe() {
-      dragRef = useDragToDismiss({ onDismiss, enabled }).dragRef;
-      return <div ref={(el) => { dragRef.current = el; }} data-testid="sheet" style={{ height: 500 }} />;
+      const { dragRef } = useDragToDismiss({ onDismiss, enabled });
+      return <div ref={dragRef} data-testid="sheet" style={{ height: 500 }} />;
     }
     const { container, root } = mount(<Probe />);
     const el = container.querySelector<HTMLElement>('[data-testid="sheet"]')!;

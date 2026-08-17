@@ -1,5 +1,6 @@
 import { getServiceClient } from '@/lib/supabase-client'
 import { wechatPayService } from '@/lib/wechat-pay-service'
+import { dispatchSmsWithFallback, type FallbackResult, type SmsDispatchOutput } from '@/base/platform/multi-channel-gateway'
 
 export interface EscalationInput {
   userId: string
@@ -128,32 +129,22 @@ async function rungSms(
   }
 
   try {
-    const smsService = process.env.SMS_PROVIDER ?? 'mock'
+    // L5-M1 多通道热备总线：阿里云 ➔ 腾讯云 ➔ 华为云 ➔ 本地 Mock 存根
+    // （任一厂商宕机平滑下跳，全挂时确定性落地站内日志，红线 1 不抛错）
+    const dispatched: FallbackResult<SmsDispatchOutput> = await dispatchSmsWithFallback({
+      phone: input.phone,
+      title: input.title,
+      content: input.content,
+    })
 
-    const aliyunAccessKeyId = process.env.ALIYUN_SMS_ACCESS_KEY_ID || process.env.ALIYUN_SMS_ACCESS_KEY
-
-    if (smsService === 'mock' || !aliyunAccessKeyId) {
+    const { usedVendor, fallbackHops } = dispatched
+    if (usedVendor === 'LOCAL_MOCK') {
       console.log(`[SMS MOCK] To: ${input.phone} — ${input.title}: ${input.content}`)
-    } else {
-      const aliyunParams = new URLSearchParams({
-        AccessKeyId: aliyunAccessKeyId,
-        Action: 'SendSms',
-        Format: 'JSON',
-        PhoneNumbers: input.phone,
-        SignName: process.env.ALIYUN_SMS_SIGN_NAME ?? 'DealProtocol',
-        TemplateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE ?? 'SMS_EMERGENCY',
-        TemplateParam: JSON.stringify({ title: input.title, content: input.content }),
-        Version: '2017-05-25',
-        Timestamp: new Date().toISOString(),
-      })
-
-      await fetch(
-        `https://dysmsapi.aliyuncs.com/?${aliyunParams.toString()}`,
-        { method: 'GET' },
-      )
+    } else if (fallbackHops > 0) {
+      console.warn(`[SMS Ladder] vendor=${usedVendor} after ${fallbackHops} fallback hops`)
     }
 
-    return { ladder: 'sms', sentAt: new Date().toISOString(), success: true }
+    return { ladder: 'sms', sentAt: new Date().toISOString(), success: dispatched.result.success }
   } catch (err) {
     console.warn('[NotificationLadder] SMS rung failed:', err)
     return { ladder: 'sms', sentAt: new Date().toISOString(), success: false }

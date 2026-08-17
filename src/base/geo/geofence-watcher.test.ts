@@ -9,6 +9,7 @@ import {
   GEOFENCE_ACCURACY_DRIFT_METERS,
   GEOFENCE_DEFAULT_METERS,
   checkGeofenceArrival,
+  checkGeofenceArrivalViaHotSwap,
   evaluateProximityDeparture,
   validateStayDuration,
 } from "./geofence-watcher.ts";
@@ -124,4 +125,31 @@ test("非法坐标防御：越界纬度/NaN → 不触发不抛异常", () => {
   assert.equal(checkGeofenceArrival({ lat: 999, lng: 116.4 }, TARGET, 50).isArrived, false);
   assert.equal(checkGeofenceArrival({ lat: NaN, lng: 116.4 }, TARGET, 50).isArrived, false);
   assert.equal(evaluateProximityDeparture({ lat: NaN, lng: 116.4 }, TARGET, 300), false);
+});
+
+test("热备入口：外部 LBS 全挂 → 本地 Haversine 兜底判定口径一致（红线 1）", async () => {
+  // 25m 内：外部通道全失败，回落 LOCAL_MOCK 后仍精确触发到达
+  const r = await checkGeofenceArrivalViaHotSwap(
+    { lat: TARGET.lat + 25 * DEG_PER_METER, lng: TARGET.lng },
+    TARGET,
+    GEOFENCE_DEFAULT_METERS,
+    "geofence-fallback-test",
+  );
+  assert.equal(r.isArrived, true);
+  assert.ok(Math.abs(r.distanceMeters - 25) < 0.5);
+  assert.equal(r.usedVendor, "LOCAL_MOCK");
+  assert.equal(r.fallbackHops, 3);
+});
+
+test("热备入口：外部 LBS 全挂 + 精度漂移 → 判未到达且给出 accuracyWarning", async () => {
+  const r = await checkGeofenceArrivalViaHotSwap(
+    { lat: TARGET.lat + 10 * DEG_PER_METER, lng: TARGET.lng, accuracy: 60 },
+    TARGET,
+    GEOFENCE_DEFAULT_METERS,
+    "geofence-drift-test",
+  );
+  // 距离 10m ≤ 50m 但不确定带 10+60 > 50 → 未到达
+  assert.equal(r.isArrived, false);
+  assert.equal(r.accuracyWarning, true);
+  assert.equal(r.usedVendor, "LOCAL_MOCK");
 });
