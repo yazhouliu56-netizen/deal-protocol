@@ -32,12 +32,27 @@ import type { MeetupSeat } from "./slots/MeetupSlot";
  * 5. 争议入口（⚖️ 有争议 + 插槽内申诉）→ ArbitrationSheet（W7 联动）。
  */
 
-/** 纯函数：wave → 场景插槽键（ammoId 优先，中文类目兜底）。 */
+/** 特化插槽键 → 制式场景映射（弹药 cockpitSlot 声明优先，宪法 #4 弹药可插拔）。 */
+export const COCKPIT_SLOT_SCENARIO: Record<string, CockpitScenario> = {
+  HousekeepingSlot: "housekeeping",
+  MeetupSlot: "meetup",
+  CompanionSlot: "companion",
+};
+
+/**
+ * 纯函数：wave → 场景插槽键（D8 弹药声明 cockpitSlot 优先，ammoId 次之，
+ * 中文类目兜底；未命中制式 → dynamic 通用插槽，零白屏）。
+ */
 export function resolveCockpitScenario(wave: {
   ammoId?: string;
   basics: { category: string };
 }): CockpitScenario {
   const ammoId = wave.ammoId ?? "";
+  // ① 动态弹药声明的特化插槽键优先（如 DRONE_CROP_SPRAY cockpitSlot=HousekeepingSlot → 家政）
+  if (ammoId) {
+    const slot = getAmmoById(ammoId).holographic?.cockpitSlot;
+    if (slot && COCKPIT_SLOT_SCENARIO[slot]) return COCKPIT_SLOT_SCENARIO[slot];
+  }
   if (ammoId === "housekeeping-v1") return "housekeeping";
   if (ammoId === "meetup-social-v1") return "meetup";
   if (ammoId === "companion-v1") return "companion";
@@ -45,7 +60,7 @@ export function resolveCockpitScenario(wave: {
   if (/家政|保洁|打扫|水电|维修|搬家/.test(cat)) return "housekeeping";
   if (/陪玩|交友|dating|social/.test(cat)) return "companion";
   if (/羽毛球|约局|组局|桌游|拼桌/.test(cat)) return "meetup";
-  return "meetup";
+  return "dynamic";
 }
 
 /** 纯函数：五态是否需要挂载履约座舱（MATCHED / IN_SERVICE / INSPECTED）。 */
@@ -196,6 +211,14 @@ export default function FulfillmentCenter({
     [activeWave, disputeAmount, evidencePhotos.length],
   );
 
+  // D8 动态弹药插槽透传：订单固化参数快照（basics 除 category/time/area 外的自定义键）
+  const bizParams = useMemo(() => {
+    if (!activeWave) return undefined;
+    const { category: _c, time: _t, area: _a, ...rest } =
+      activeWave.basics as unknown as Record<string, unknown>;
+    return Object.keys(rest).length > 0 ? rest : undefined;
+  }, [activeWave]);
+
   if (!activeWave || !currentState || !needsCockpit(currentState) || !scenario || !ammo) {
     return null;
   }
@@ -332,6 +355,23 @@ export default function FulfillmentCenter({
           isPrivacyShieldArmed: true,
           onTriggerFakeCall: () => setFakeCallOpen(true),
           onBlockUser: () => setDisputeOpen(true),
+        }}
+        dynamic={{
+          ammo: ammoDef,
+          bizParams,
+          evidencePhotos: {
+            before: evidencePhotos[0]?.photo ?? null,
+            after: evidencePhotos[1]?.photo ?? null,
+          },
+          onUploadProof: (phaseKey) => {
+            toast(
+              `📷 ${phaseKey === "before" ? "Before" : "After"} 拍照打卡已提交 · 水印相机时空存证`,
+              "success",
+            );
+          },
+          onActionClick: (actionKey) => {
+            if (actionKey === "dispute") setDisputeOpen(true);
+          },
         }}
         onDial={() => setDialOpen(true)}
         onChat={() => {

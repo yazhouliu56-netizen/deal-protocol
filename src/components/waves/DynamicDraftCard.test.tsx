@@ -2,11 +2,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import DynamicDraftCard, {
+  describeFormSchemaFields,
   describePricing,
   describeSafetyBadges,
   describeSopParams,
+  resolveDraftThemeClass,
 } from "@/components/waves/DynamicDraftCard";
+import { registerDynamicAmmo } from "@/ammo/factory";
 import { getAmmoDefinition } from "@/ammo/registry";
+import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
+import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
 describe("DynamicDraftCard 弹药驱动草稿卡", () => {
   it("保洁弹药（housekeeping-v1）：时薪计价 + 碰炸引信徽章 + SOP 默认参数", () => {
@@ -96,5 +101,103 @@ describe("DynamicDraftCard 弹药驱动草稿卡", () => {
       <DynamicDraftCard category="unmapped" ammo={custom} />,
     );
     expect(html).toContain('data-ammo="housekeeping-v1"');
+  });
+});
+
+/** D8 动态弹药草稿卡测试装配（formSchema 声明式驱动 + 默认主题）。 */
+function buildDraftConfig(): IHolographicAmmoConfig {
+  return {
+    ammoId: "longtail-farm-v1",
+    category: "LONGTAIL_FARM",
+    version: "1.0.0",
+    supplyCluster: "C1_MOBILITY",
+    pricingModel: { kind: "FIXED", amountYuan: 500 },
+    fuzePolicy: { ...DEFAULT_FUZE_POLICY, fuzeId: "fuze-longtail" },
+    requiredSensors: ["GPS_GEOFENCE", "WATERMARK_CAMERA"],
+    forwardHooks: [],
+    theme: "default",
+    formSchema: {
+      fields: [
+        { key: "fieldAreaMu", label: "作业亩数", type: "number", required: true },
+        {
+          key: "pesticideType",
+          label: "农药类型",
+          type: "picker",
+          options: ["除草剂", "杀菌剂"],
+          defaultValue: "除草剂",
+        },
+        { key: "cropKind", label: "作物", type: "text" },
+      ],
+    },
+  };
+}
+
+describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）", () => {
+  it("含 formSchema 的弹药：渲染扩展字段行（必填星标/选项提示/默认值）", () => {
+    const reg = registerDynamicAmmo(buildDraftConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    const html = renderToStaticMarkup(
+      <DynamicDraftCard category="LONGTAIL_FARM" ammo={reg.ammo} />,
+    );
+    expect(html).toContain('data-testid="draft-form-fields"');
+    // 数值必填字段：星标 + 无默认 → 待填写占位
+    expect(html).toContain('data-field="fieldAreaMu"');
+    expect(html).toContain("作业亩数");
+    expect(html).toContain('class="draft-card-required"');
+    expect(html).toContain("待填写");
+    // 选项字段：默认值 + 选项提示
+    expect(html).toContain('data-field="pesticideType"');
+    expect(html).toContain("农药类型");
+    expect(html).toContain("[除草剂/杀菌剂]");
+    expect(html).toContain(">除草剂<");
+    // 文本字段
+    expect(html).toContain('data-field="cropKind"');
+    // 主题类：default 安全回落
+    expect(html).toContain('class="draft-card draft-default"');
+  });
+
+  it("未声明 formSchema 的制式弹药：不渲染扩展字段区（渲染回归保护）", () => {
+    const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
+    expect(html).not.toContain('data-testid="draft-form-fields"');
+    expect(html).toContain('data-ammo="housekeeping-v1"');
+    // 制式弹药自带主题声明（theme: housekeeping）→ 相应主题类
+    expect(html).toContain('class="draft-card draft-housekeeping"');
+  });
+
+  it("弹药主题令牌 → 草稿卡主题类（D8 视觉微氛围）", () => {
+    const themed = registerDynamicAmmo({
+      ...buildDraftConfig(),
+      ammoId: "themed-farm-v1",
+      category: "THEMED_FARM",
+      theme: "housekeeping",
+    });
+    if (!themed.ok) throw new Error(themed.errors.join(";"));
+    const html = renderToStaticMarkup(
+      <DynamicDraftCard category="THEMED_FARM" ammo={themed.ammo} />,
+    );
+    expect(html).toContain('class="draft-card draft-housekeeping"');
+    expect(resolveDraftThemeClass(themed.ammo)).toBe("draft-housekeeping");
+  });
+
+  it("describeFormSchemaFields 纯函数：字段投影语义（类型归一/必填/默认值）", () => {
+    const reg = registerDynamicAmmo(buildDraftConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    const fields = describeFormSchemaFields(reg.ammo);
+    expect(fields).toHaveLength(3);
+    expect(fields[0]).toMatchObject({
+      key: "fieldAreaMu",
+      label: "作业亩数",
+      type: "number",
+      required: true,
+    });
+    expect(fields[1]).toMatchObject({
+      key: "pesticideType",
+      type: "enum",
+      options: ["除草剂", "杀菌剂"],
+      value: "除草剂",
+    });
+    expect(fields[2]).toMatchObject({ key: "cropKind", type: "string", required: false });
+    // 制式弹药无 formSchema → 空数组（不渲染扩展区）
+    expect(describeFormSchemaFields(getAmmoDefinition("housekeeping"))).toEqual([]);
   });
 });

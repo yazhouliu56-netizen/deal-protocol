@@ -82,6 +82,65 @@ export function describeSopParams(ammo: IAmmoDefinition): { key: string; label: 
   return rows;
 }
 
+/** 动态表单 Schema 字段投影（D8 formSchema 声明式驱动，非硬编码字典）。 */
+export type DraftFormFieldType = "string" | "number" | "enum" | "unknown";
+
+export interface DraftFormField {
+  /** 字段键（写入订单固化参数快照 bizParams）。 */
+  key: string;
+  /** 展示标签（缺省 = 字段键）。 */
+  label: string;
+  /** 输入形态：text/number → 文本数值微调；picker/select → 选项选择。 */
+  type: DraftFormFieldType;
+  /** 默认值（缺省 = 空串占位）。 */
+  value: unknown;
+  /** 选项列表（picker/select 类字段）。 */
+  options?: string[];
+  /** 是否必填（渲染 * 徽标）。 */
+  required: boolean;
+}
+
+/** 8 维全息 formSchema → 草稿卡字段行（纯函数，仅供渲染消费）。 */
+export function describeFormSchemaFields(ammo: IAmmoDefinition): DraftFormField[] {
+  const schema = ammo.holographic?.formSchema;
+  const fields = schema && Array.isArray(schema.fields) ? schema.fields : [];
+  const rows: DraftFormField[] = [];
+  for (const f of fields as Record<string, unknown>[]) {
+    if (!f || typeof f !== "object") continue;
+    const key = typeof f.key === "string" && f.key.trim() !== "" ? f.key : "field";
+    const typeKey = String(f.type ?? "");
+    const type: DraftFormFieldType =
+      typeKey === "text" || typeKey === "string"
+        ? "string"
+        : typeKey === "number"
+          ? "number"
+          : typeKey === "picker" || typeKey === "select" || typeKey === "enum"
+            ? "enum"
+            : "unknown";
+    const rawOptions =
+      Array.isArray(f.options)
+        ? f.options
+        : Array.isArray(f.choices)
+          ? f.choices
+          : undefined;
+    const options = rawOptions?.filter((o): o is string => typeof o === "string");
+    rows.push({
+      key,
+      label: typeof f.label === "string" && f.label.trim() !== "" ? f.label : key,
+      type,
+      value: f.defaultValue ?? f.value ?? "",
+      options: options && options.length > 0 ? options : undefined,
+      required: f.required === true,
+    });
+  }
+  return rows;
+}
+
+/** 弹药主题令牌 → 草稿卡主题类（D8 视觉微氛围；缺省 default 安全回落）。 */
+export function resolveDraftThemeClass(ammo: IAmmoDefinition): string {
+  return `draft-${ammo.holographic?.theme ?? "default"}`;
+}
+
 const DRAFT_CSS = `
 .draft-card{position:relative;max-width:420px;border-radius:20px;padding:18px 18px 14px;
   background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
@@ -106,6 +165,20 @@ const DRAFT_CSS = `
   box-shadow:0 6px 20px rgba(123,97,255,.45);transition:transform .15s,filter .15s}
 .draft-card-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
 .draft-card-cta:active{transform:scale(.98)}
+/* D8 视觉微氛围：弹药主题令牌 → 边框微染（缺省 default 无色变） */
+.draft-card.draft-housekeeping{border-color:rgba(56,132,255,.45)}
+.draft-card.draft-meetup{border-color:rgba(251,146,60,.45)}
+.draft-card.draft-companion{border-color:rgba(167,139,250,.5)}
+/* D8 动态扩展字段区（formSchema 声明式驱动，可点击微调） */
+.draft-card-form{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}
+.draft-card-form-row{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);
+  border:1px dashed rgba(255,255,255,.14);cursor:pointer;transition:background .15s}
+.draft-card-form-row:hover{background:rgba(255,255,255,.1)}
+.draft-card-form-row > span:first-child{display:flex;align-items:center;gap:4px;color:#cbd5e1}
+.draft-card-required{color:#f87171}
+.draft-card-form-options{font-size:10px;color:#94a3b8}
+.draft-card-form-value{color:#cbd5e1;font-size:12px}
 `;
 
 /** 拟物磨砂玻璃草稿卡：弹药驱动参数 + 计价 + 安全徽章 + 一键发布 CTA。 */
@@ -119,9 +192,11 @@ export default function DynamicDraftCard({
   const priceText = describePricing(definition.pricingModel);
   const badges = describeSafetyBadges(definition.fuzePolicy);
   const params = describeSopParams(definition);
+  const formFields = describeFormSchemaFields(definition);
+  const themeClass = resolveDraftThemeClass(definition);
 
   return (
-    <div className="draft-card" data-ammo={definition.ammoId} data-category={category}>
+    <div className={`draft-card ${themeClass}`} data-ammo={definition.ammoId} data-category={category}>
       <style>{DRAFT_CSS}</style>
       <div className="draft-card-title">
         <span>✦ 需求草稿</span>
@@ -141,6 +216,35 @@ export default function DynamicDraftCard({
           </button>
         ))}
       </div>
+      {formFields.length > 0 && (
+        <div className="draft-card-form" data-testid="draft-form-fields">
+          {formFields.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className="draft-card-form-row"
+              data-field={f.key}
+              onClick={() => onTweak?.(f.key)}
+            >
+              <span>
+                {f.required && (
+                  <span className="draft-card-required" aria-hidden="true">
+                    *
+                  </span>
+                )}
+                {f.label}
+                {f.options && f.options.length > 0 && (
+                  <span className="draft-card-form-options">[{f.options.join("/")}]</span>
+                )}
+              </span>
+              <span className="draft-card-form-value">
+                {String(f.value === "" ? "待填写" : f.value)}
+              </span>
+              <span aria-hidden="true">✎</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="draft-card-price">{priceText}</div>
       {badges.length > 0 && (
         <div className="draft-card-badges">

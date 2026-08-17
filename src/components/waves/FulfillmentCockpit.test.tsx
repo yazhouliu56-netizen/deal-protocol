@@ -10,6 +10,9 @@ import FulfillmentCockpit, {
   sixDimensionScores,
   type FulfillmentCockpitProps,
 } from "@/components/waves/FulfillmentCockpit";
+import { registerDynamicAmmo } from "@/ammo/factory";
+import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
+import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
 const BASE_PROPS: FulfillmentCockpitProps = {
   status: "IN_SERVICE",
@@ -163,6 +166,140 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
     expect(SCENARIO_THEME_META.housekeeping.accent).toBe("#3884ff");
     expect(SCENARIO_THEME_META.meetup.accent).toBe("#f97316");
     expect(SCENARIO_THEME_META.companion.accent).toBe("#a78bfa");
+  });
+
+  it("D8 动态场景：SCENARIO_THEME_META.dynamic 令牌与 CTA 文案", () => {
+    expect(SCENARIO_THEME_META.dynamic.themeClass).toBe("theme-dynamic");
+    expect(describeCompletionCta("dynamic")).toContain("按弹药契约核销");
+  });
+});
+
+/** 长尾动态弹药测试装配（三引信并联 + 水印相机传感 + formSchema）。 */
+function buildLongtailConfig(): IHolographicAmmoConfig {
+  return {
+    ammoId: "longtail-farm-v1",
+    category: "LONGTAIL_FARM",
+    version: "1.0.0",
+    supplyCluster: "C1_MOBILITY",
+    pricingModel: { kind: "FIXED", amountYuan: 500 },
+    fuzePolicy: {
+      ...DEFAULT_FUZE_POLICY,
+      fuzeId: "fuze-longtail",
+      fuzeTypes: ["IMPACT", "DELAY", "PROXIMITY"],
+      propertyInsurance: true,
+      deposit: { strategy: "RATIO", ratio: 0.2 },
+      advanceFreeze: { enabled: true, ratio: 0.3 },
+      geoFence: { enabled: true, radiusM: 800, unlockOnArrival: true },
+      privacy: {
+        virtualNumber: true,
+        blurLocation: true,
+        sensitiveWordIntervention: true,
+      },
+      sos: {
+        enabled: true,
+        autoLocationReport: true,
+        autoEvidenceAppend: true,
+        notifyEmergencyContacts: true,
+      },
+    },
+    requiredSensors: ["GPS_GEOFENCE", "WATERMARK_CAMERA"],
+    forwardHooks: [],
+    theme: "default",
+    formSchema: {
+      fields: [
+        { key: "fieldAreaMu", label: "作业亩数", type: "number", required: true },
+        {
+          key: "pesticideType",
+          label: "农药类型",
+          type: "picker",
+          options: ["除草剂", "杀菌剂"],
+          defaultValue: "除草剂",
+        },
+      ],
+    },
+  };
+}
+
+describe("FulfillmentCockpit D8 动态弹药插槽", () => {
+  it("dynamic 场景：DynamicAmmoSlot 渲染参数快照 + 水印打卡区 + 引信徽标 + 申诉入口", () => {
+    const reg = registerDynamicAmmo(buildLongtailConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    const html = renderStatic({
+      ...BASE_PROPS,
+      scenario: "dynamic",
+      dynamic: {
+        ammo: reg.ammo,
+        bizParams: { fieldAreaMu: 50, pesticideType: "除草剂" },
+        evidencePhotos: { before: "/b.jpg", after: null },
+        onUploadProof: () => {},
+        onActionClick: () => {},
+      },
+    });
+    expect(html).toContain('data-scenario="dynamic"');
+    expect(html).toContain('data-theme="theme-dynamic"');
+    expect(html).toContain("自适应 · 长尾动态弹药");
+    expect(html).toContain('data-slot="dynamic-ammo"');
+    expect(html).toContain("动态履约 · LONGTAIL_FARM");
+    // 动态参数快照（订单固化 bizParams 结构化展示）
+    expect(html).toContain('data-param="fieldAreaMu"');
+    expect(html).toContain(">50<");
+    expect(html).toContain('data-param="pesticideType"');
+    expect(html).toContain("除草剂");
+    // WATERMARK_CAMERA 传感声明 → Before/After 打卡区（before 已拍 / after 待拍）
+    expect(html).toContain('data-testid="dyn-proof"');
+    expect(html).toContain('alt="存证 Before 照片"');
+    expect(html).toContain('data-action="proof-after"');
+    expect(html).toContain("⚠️ 完成 Before/After 双拍后按弹药契约核销");
+    // 三引信并联徽标投影（🛡️财产险 / ⏳预付冻结 / 📞虚拟号）
+    expect(html).toContain("🛡️财产险");
+    expect(html).toContain("🔒定金托管");
+    expect(html).toContain("⏳预付冻结");
+    expect(html).toContain("📍LBS围栏 800m");
+    expect(html).toContain("📞虚拟号");
+    expect(html).toContain("🆘SOS联动");
+    // 标准申诉入口 + 底部核销 CTA
+    expect(html).toContain("⚖️ 申请调解 / 申诉");
+    expect(html).toContain(describeCompletionCta("dynamic"));
+  });
+
+  it("dynamic 无插槽透传：优雅降级不渲染插槽、不白屏", () => {
+    const html = renderStatic({ ...BASE_PROPS, scenario: "dynamic" });
+    expect(html).not.toContain('data-slot="dynamic-ammo"');
+    expect(html).toContain('data-theme="theme-dynamic"');
+    expect(html).toContain("场景主题");
+    expect(html).toContain('data-action="complete"');
+  });
+
+  it("dynamic 插槽：申诉按钮触发 onActionClick('dispute')", async () => {
+    const action = vi.fn();
+    const reg = registerDynamicAmmo(buildLongtailConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    await clickAction(
+      {
+        ...BASE_PROPS,
+        scenario: "dynamic",
+        dynamic: { ammo: reg.ammo, onActionClick: action },
+      },
+      "dispute",
+    );
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action).toHaveBeenCalledWith("dispute");
+  });
+
+  it("dynamic 插槽：拍照打卡按钮触发 onUploadProof 相位键", async () => {
+    const proof = vi.fn();
+    const reg = registerDynamicAmmo(buildLongtailConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    await clickAction(
+      {
+        ...BASE_PROPS,
+        scenario: "dynamic",
+        dynamic: { ammo: reg.ammo, onUploadProof: proof },
+      },
+      "proof-after",
+    );
+    expect(proof).toHaveBeenCalledTimes(1);
+    expect(proof).toHaveBeenCalledWith("after");
   });
 });
 

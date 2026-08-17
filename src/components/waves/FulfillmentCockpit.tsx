@@ -5,6 +5,7 @@ import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import HousekeepingSlot, { type HousekeepingSlotProps } from "./slots/HousekeepingSlot";
 import MeetupSlot, { type MeetupSlotProps } from "./slots/MeetupSlot";
 import CompanionSlot, { type CompanionSlotProps } from "./slots/CompanionSlot";
+import DynamicAmmoSlot, { type DynamicAmmoSlotProps } from "./slots/DynamicAmmoSlot";
 import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
 
 /**
@@ -20,7 +21,7 @@ import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
  * 主题微色（白皮书 5.7 维度 1）：housekeeping 清洁蓝 / meetup 活力橙 / companion 夜幕紫。
  */
 
-export type CockpitScenario = "housekeeping" | "meetup" | "companion";
+export type CockpitScenario = "housekeeping" | "meetup" | "companion" | "dynamic";
 
 export interface CockpitProvider {
   /** 头像（emoji 兜底或 URL）。 */
@@ -48,6 +49,8 @@ export interface FulfillmentCockpitProps {
   meetup?: MeetupSlotProps;
   /** 陪玩插槽透传（onTriggerFakeCall 兜底走 Cockpit 级回调）。 */
   companion?: CompanionSlotProps;
+  /** 长尾动态弹药插槽透传（非三大制式的动态/长尾弹药通用履约视口）。 */
+  dynamic?: DynamicAmmoSlotProps;
   /** Cockpit 级事件（测试/接入点）。 */
   onTriggerFakeCall?: () => void;
   onAcceptQuote?: () => void;
@@ -71,6 +74,7 @@ export const SCENARIO_THEME_META: Record<
   housekeeping: { themeClass: "theme-housekeeping", accent: "#3884ff", label: "清洁蓝 · 重入户" },
   meetup: { themeClass: "theme-meetup", accent: "#f97316", label: "活力橙 · 轻履约" },
   companion: { themeClass: "theme-companion", accent: "#a78bfa", label: "夜幕紫 · 高人身风险" },
+  dynamic: { themeClass: "theme-dynamic", accent: "#00f0ff", label: "自适应 · 长尾动态弹药" },
 };
 
 const COCKPIT_CSS = `
@@ -117,6 +121,8 @@ export function describeCompletionCta(scenario: CockpitScenario): string {
       return "🛡️ 组织者点选到场成员 · 解冻定金";
     case "companion":
       return "📡 300m 脱离自动完成 · 或手动确认";
+    case "dynamic":
+      return "✳️ 按弹药契约核销 · 或手动确认";
   }
 }
 
@@ -144,6 +150,7 @@ export default function FulfillmentCockpit({
   housekeeping,
   meetup,
   companion,
+  dynamic,
   onTriggerFakeCall,
   onAcceptQuote,
   onConfirmSplit,
@@ -238,6 +245,7 @@ export default function FulfillmentCockpit({
           onBlockUser={companion?.onBlockUser}
         />
       )}
+      {scenario === "dynamic" && dynamic && <DynamicAmmoSlot {...dynamic} />}
 
       <button
         type="button"
