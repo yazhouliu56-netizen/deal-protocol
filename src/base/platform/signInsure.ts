@@ -82,3 +82,6 @@ export function claim(
     payout: p.amount,
   };
 }
+
+/* ═══ L5-M2 外部合规生态门面（P2 战役第二波攻坚：电子合同存证签章 + 场景微保险） ═══ */
+export * from "./compliance-ecosystem.ts";
