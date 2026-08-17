@@ -201,13 +201,14 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L6-M3` | 多云多活容灾 | 四步优雅降级（关非核心 ➔ 限流 ➔ 保核心 ➔ 只读） |
 | `L6-M4` | 司法级存证数仓 | 业务全量轨迹、聊天流水哈希存证，提供司法黑匣子 |
 
-#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射，本战役战果 3 模块晋级 🟢）
+#### 3.4.2 代码落位与成熟度对照表（28 模块全仓映射，本战役战果 2 模块晋级 🟢）
 
 > 状态图例：🟢 已闭环（生产代码 + 测试覆盖） / 🟡 有雏形（主链路已落地，缺口待补） / ⚪️ 待建设
-> **P2 战役战果（截至 2026-08-17）**：L6-M3、L5-M1、L3-M4 三模块自 🟡/⚪️ 晋级 🟢（详见各行标注），
-> 当前 26 模块清单 = **🟢 20 / 🟡 6（L2-M2、L4-M2、L4-M4、L4-M5、L5-M2、L6-M2）/ ⚪️ 0**；
-> 标题口径「28」差量 2 席（口径说明见 §3.4）与剩余 🟡 模块（计价分摊/终端反欺诈/危机干预
-> 位置上报/外部合规直连/运力熔断真实场景）为后续战役清单，非本战役承诺范围。
+> **P2 战役战果（截至 2026-08-17 第一波攻坚）**：L6-M3、L5-M1、L3-M4（第一批）+ L4-M4、L4-M5（第一波）
+> 五模块自 🟡/⚪️ 晋级 🟢（详见各行标注），
+> 当前 26 模块清单 = **🟢 22 / 🟡 4（L2-M2、L4-M2、L5-M2、L6-M2）/ ⚪️ 0**；
+> 标题口径「28」差量 2 席（口径说明见 §3.4）与剩余 🟡 模块（计价分摊/终端反欺诈/
+> 外部合规直连/运力熔断真实场景）为后续战役清单，非本战役承诺范围。
 
 | 编号 | 模块 | 代码落位 | 856 测试覆盖 | 状态 |
 |------|------|----------|--------------|------|
@@ -229,8 +230,8 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L4-M1` | 可插拔风控中枢 | `base/risk/*`（sentinel/roamGuard/fission/moderation）+ `ammo/risk-rule` 引信表 + `types/fuze-policy.ts`（三类引信模板） | sentinel/roam 测试 | 🟢（引信表驱动闭环；FuzeMatrix 自适应装载随 AmmoRunner P0-1） |
 | `L4-M2` | 终端反欺诈 | `base/risk/roamGuard`（设备指纹/多开）+ `lib/fraud-detection/*`、`modules`（黑名单） | roam 多开测试 | 🟡（设备指纹/多开闭环；模拟器检测/GPS 防作弊待建） |
 | `L4-M3` | 物理履约闭环 | `base/geo/geofence-watcher.ts`（**50m 高精 GPS 围栏：Haversine 距离 + 精度漂移过滤 + 停留时长防刷 + 300m 陪玩安全距离脱离**）+ `base/platform/nfc-adapter.ts`（**Web NFC 碰碰：HMAC 防重放载荷 + 动态码扫码降级**）+ `base/order/attendance`（到场签到） | geofence-watcher/nfc-adapter/attendance 测试 | 🟢（50m 围栏校验 + NFC/动态码碰一碰核销闭环） |
-| `L4-M4` | 危机干预协议 | `base/safe/crisis`（EPA 通知链）+ `fuze-policy` sos 契约 | crisis 测试 | 🟡（EPA 链闭环；位置上报/录音证据联动 P1-3 待建） |
-| `L4-M5` | 隐私合规遗忘 | `base/safe/privacy` + `ageGate`（未成年人合规）+ `fuze-policy` privacy 契约 | privacy/ageGate 测试 | 🟡（脱敏/分级闭环；密态存储/过期销毁全域抹除 ⚪️） |
+| `L4-M4` | 危机干预协议 | `base/safe/crisis`（EPA 通知链）+ `base/safe/crisis-tracker.ts`（**轨迹面包屑 `recordBreadcrumbPoint` 最近 N 处 + `detectTrajectoryAnomaly` ≥120km/h 超速漂移预警 + `buildPoliceTrajectoryPayload` 压缩警方载荷 + `AudioChunkBuffer` 离线录音切片加密缓冲池（SHA-256 完整性校验/FIFO 逐出）+ `advanceCrisisEscalation` 60s 升级状态机 TRIGGERED(0s)➔ACKNOWLEDGED(≤30s)➔POLICE_ESCALATED(≥60s 未确认强升级)➔RESOLVED，每次跃迁生成紧急通知载荷**）+ `fuze-policy` sos 契约 | crisis 测试 + crisis-tracker 轨迹/音频/升级状态机测试 | 🟢（**2026-08-17 第一波攻坚闭环**：EPA 通知链 + 轨迹面包屑 + 录音缓冲 + 60s 分级升级全链路，纯确定性红线 1 实测满足） |
+| `L4-M5` | 隐私合规遗忘 | `base/safe/privacy` + `base/safe/privacy-erasure.ts`（**《个保法》§47 密态销毁管道 `executeCryptoShredding`：姓名→ANON_USER_<hash>/手机号→掩码/身份证→星号/精确坐标→置空的不可逆覆写，财务对账流水（order_no/amount_cents/split_plan_json/paid_at）依法保留不动，输出 `IShreddingCertificate`（销毁时间戳+执行人签名指纹+数据摘要 SHA-256）；`evaluateMediaRetention` 过期完工媒体清理调度器（正常 90 天/争议 180 天精准分流 toPurge/toRetain）**）+ `app/api/profile/delete`（**注销路由接通真实密态销毁**）+ `ageGate`（未成年人合规）+ `fuze-policy` privacy 契约 | privacy/ageGate 测试 + privacy-erasure 密态销毁/媒体保留测试 | 🟢（**2026-08-17 第一波攻坚闭环**：脱敏/分级 + 密态销毁 + 过期媒体清理 + 注销路由全链路，财务边界守恒实测满足） |
 | `L5-M1` | 多通道适配器 | `base/platform/multi-channel-gateway.ts`（**多厂商毫秒级动态热备总线：`executeWithFallback` 通用故障转移调度器 + 三态健康机（HEALTHY/DEGRADED/UNHEALTHY，三连败熔断 60s 冷却 → 半开探测自愈）+ 按 channelKey::vendor 独立熔断状态池 + Promise.race 超时控制 + LOCAL_MOCK 确定性兜底**）+ `dispatchSmsWithFallback`（阿里云➔腾讯云➔华为云➔本地 Mock 存根）+ `calculateDistanceWithFallback`（MapLibre/OpenFreeMap➔高德➔腾讯➔本地 Haversine 纯数学）+ `base/geo/geofence-watcher.ts`（**`checkGeofenceArrivalViaHotSwap` 热备距离判定入口，外部全挂回落本地判定口径一致**）+ `lib/notification-ladder.ts`（**SMS 号段升级为多通道热备总线**）+ `base/platform/p2p`、Gateway 多 provider 降级 | multi-channel-gateway 熔断/降级/门面测试 + geofence 热备入口测试 | 🟢（**2026-08-17 闭环**：SMS 三家短信 + LBS 两级地图厂商毫秒级热备全链路；全挂 100% 本地确定性兜底（红线 1），零单点依赖（宪法 #10）） |
 | `L5-M2` | 外部合规生态 | `base/platform/signInsure`（签章验签）+ modules（认证/类目）+ identity 实名模拟 | signInsure 测试 | 🟡（本地签章/实名模拟雏形；公安实名/电子合同/场景险直连 ⚪️） |
 | `L6-M1` | 弱网离线引擎 | `base/platform/offlineQueue` + `resilience` + `sw.js` 离线缓存 + `app/offline` | offlineQueue/韧性测试 | 🟢（离线队列/追回/缓存闭环） |

@@ -79,3 +79,6 @@ export function crisisSms(record: CrisisRecord, contactName: string): string {
   const lv = record.level === 3 ? "⚠️ 紧急" : record.level === 2 ? "提醒" : "请注意";
   return `[OTO 安全] ${contactName}：您的联系人发起了${lv}求助（${record.note}）${record.location ? `，最后位置 ${record.location}` : ""}。请尽快联系。`;
 }
+
+/* ═══ L4-M4 危机干预协议增强门面（P2 战役第一波攻坚，crisis-tracker 内聚闭环） ═══ */
+export * from "./crisis-tracker.ts";

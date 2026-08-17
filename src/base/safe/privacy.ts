@@ -83,3 +83,6 @@ export function anonymize<T extends Record<string, unknown>>(data: T, kind: Forg
   }
   return next;
 }
+
+/* ═══ L4-M5 隐私全生命周期遗忘门面（P2 战役第一波攻坚，privacy-erasure 密态销毁闭环） ═══ */
+export * from "./privacy-erasure.ts";
