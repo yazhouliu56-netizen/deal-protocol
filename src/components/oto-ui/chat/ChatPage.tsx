@@ -21,6 +21,7 @@ import {
   describeIntent,
 } from "@/base/ai/voice/voiceIntent";
 import type { VoiceIntent } from "@/base/ai/voice/types";
+import type { INormalizedCustomIntent } from "@/types/ammo-schema";
 import { voiceHint } from "@/base/platform/clientFlags";
 
 const SUGGESTIONS = [
@@ -85,6 +86,8 @@ export default function ChatPage() {
     ttsOnRef.current = ttsEnabled;
   }, [ttsEnabled]);
   const listRef = useRef<HTMLDivElement>(null);
+  /** 阶段4：最近一次语音意图的定制契约缓存（publish-wave 时写入，转正式订单时注入 Wave）。 */
+  const lastCustomRequirementsRef = useRef<INormalizedCustomIntent | undefined>(undefined);
   const waves = useWaveStore((s) => s.waves);
   const askBi = useWaveStore((s) => s.askBi);
   const createPendingWave = useWaveStore((s) => s.createPendingWave);
@@ -175,6 +178,8 @@ export default function ChatPage() {
 
     if (intent.kind === "publish-wave") {
       const w = intent.wave;
+      // 阶段4：语音定制契约随意图缓存，转正式订单时注入 Wave 实体（无损透传）
+      lastCustomRequirementsRef.current = w.customRequirements;
       const demand = `帮我发布：${w.category}，${w.time}，${w.area}，预算 ${w.budget} 元${
         w.capacity >= 2 ? `，${w.capacity} 人拼位` : ""
       }`;
@@ -353,6 +358,8 @@ export default function ChatPage() {
       expiresAt: Date.now() + 7_200_000,
       hotness: 2,
       ammoId: resolveAmmoIdForPublish(category),
+      // 阶段4：语义驯化定制契约随单固化（语音发单链路无损透传）
+      customRequirements: lastCustomRequirementsRef.current,
     });
     if (!pending) {
       toast("发布被拒：账号受限或内容命中风控，请到「安全中心」查看", "error");

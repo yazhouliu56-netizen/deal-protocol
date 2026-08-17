@@ -7,6 +7,7 @@ import { getAmmoById } from "@/ammo/registry";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { toAtomicFiveState } from "@/base/ammo/runner";
+import { evaluateRuntimeSafety } from "@/base/safe/runtime-monitor";
 import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
 import DialCard from "./DialCard";
 import ArbitrationSheet, {
@@ -219,6 +220,19 @@ export default function FulfillmentCenter({
     return Object.keys(rest).length > 0 ? rest : undefined;
   }, [activeWave]);
 
+  // 阶段4：运行时多因子安全评估（敏感定制/夜间/基础风险 → 引信自适应升级）。
+  // hourOfDay 取真实本地时刻（夜间 22:00-05:59 +20）；家政入户基础风险 20。
+  const safety = useMemo(() => {
+    if (!activeWave || !scenario) return null;
+    return evaluateRuntimeSafety({
+      ammoId: activeWave.ammoId ?? "",
+      orderId: activeWave.id,
+      baseRiskScore: scenario === "housekeeping" ? 20 : 0,
+      customRequirements: activeWave.customRequirements,
+      hourOfDay: new Date().getHours(),
+    });
+  }, [activeWave, scenario]);
+
   if (!activeWave || !currentState || !needsCockpit(currentState) || !scenario || !ammo) {
     return null;
   }
@@ -378,6 +392,9 @@ export default function FulfillmentCenter({
           toast("💬 隐私聊天已开启 · 双方脱敏直连（虚拟号保护）", "success");
         }}
         onComplete={() => void handleComplete()}
+        customRequirements={wave.customRequirements}
+        forceArmed={safety?.safetyLevel === "PROXIMITY_ENHANCED"}
+        safetyBadge={safety?.safetyBadge}
       />
 
       {/* W4：保洁增项 → 订单总额动态更新 */}

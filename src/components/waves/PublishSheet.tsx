@@ -13,6 +13,7 @@ import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
+import { normalizeCustomIntent } from "@/base/ai/intent-normalizer";
 import { pricingForCategory } from "@/ammo/pricing-formula";
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
@@ -218,6 +219,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       return;
     }
     const publishFee = free ? 0 : PUBLISH_FEE;
+    // 阶段4：需求备注（note）非标定制（着装/年龄/性别）经语义驯化中性化后随单固化；
+    // 违禁词命中（blockedReason）时仍正常发单（治理闸门 2 按 customs 词表扫描拦截）。
+    const customRequirements = note.trim()
+      ? normalizeCustomIntent(note)
+      : undefined;
     const out = createPendingWave({
       authorId: identity.id,
       basics: { category: category.trim(), time: time.trim(), area: area.trim(), radiusKm: 5 },
@@ -228,6 +234,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       })),
       negotiable: note.trim().length > 0,
       negotiableNote: note.trim() || undefined,
+      customRequirements,
       deposit,
       needApproval: people >= 2 ? needApproval : undefined,
       capacity: people,

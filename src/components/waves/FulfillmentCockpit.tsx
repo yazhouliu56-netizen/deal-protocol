@@ -1,6 +1,6 @@
 "use client";
 
-import type { AtomicFiveState } from "@/types/ammo-schema";
+import type { AtomicFiveState, INormalizedCustomIntent, IDressCodeType } from "@/types/ammo-schema";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import HousekeepingSlot, { type HousekeepingSlotProps } from "./slots/HousekeepingSlot";
 import MeetupSlot, { type MeetupSlotProps } from "./slots/MeetupSlot";
@@ -64,6 +64,18 @@ export interface FulfillmentCockpitProps {
   safetyReport?: IRuntimeSafetyReport;
   /** 家政插槽防坐地起价展示（基础金额 + 上限比例）。 */
   housekeepingCap?: { baseAmountYuan: number; maxSurchargeRatio?: number };
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化产物 · 阶段4 座舱可视化）：
+   * 存在且含 cleanText 时渲染中性化定制需求标签（如 [工作着装: 女仆主题]）。
+   */
+  customRequirements?: INormalizedCustomIntent;
+  /**
+   * 引信自适应升级标记（阶段3 PROXIMITY_ENHANCED 投影）：true 时渲染
+   * 强化安全守护条（强制虚拟号/行程守护/敏感词实时监听）。
+   */
+  forceArmed?: boolean;
+  /** 强化安全守护徽标文案（运行时多因子评分 ≥ 阈值时由上层注入，缺省走常量）。 */
+  safetyBadge?: string;
 }
 
 /** 场景 → 主题微色元数据（5.7 维度 1 的 Token 投影）。 */
@@ -100,6 +112,12 @@ const COCKPIT_CSS = `
 .cockpit-safety-guarded{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3)}
 .cockpit-safety-attention{color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3)}
 .cockpit-safety-threat{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
+.cockpit-armed{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:14px;
+  font-size:12px;font-weight:800;color:#34d399;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(251,191,36,.12));
+  border:1px solid rgba(52,211,153,.45);box-shadow:0 0 18px rgba(52,211,153,.18)}
+.cockpit-custom{display:flex;flex-wrap:wrap;gap:6px}
+.cockpit-custom-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+  background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
 /** 六维信用雷达预览（trustScore 拆分展示）。 */
@@ -133,6 +151,35 @@ export const SAFETY_PILL_META = {
   THREAT: { label: "🚨 安全守护 · 威胁已联动风控", className: "cockpit-safety-threat" },
 } as const;
 
+/** 阶段4 强化守护徽标默认文案（上层未注入 safetyBadge 时兜底）。 */
+export const ENHANCED_SAFETY_BADGE_DEFAULT = "🛡️ 强化安全守护中（虚拟号通话 + 全程行程守护 + 敏感词实时监听）";
+
+/** 定制着装类型 → 中性标签（结构化投影，杜绝原始粗糙词直显）。 */
+export const DRESS_CODE_TYPE_LABEL: Record<IDressCodeType, string> = {
+  THEMED_MAID: "女仆主题",
+  THEMED_COSPLAY: "角色扮演/制服",
+  FORMAL_UNIFORM: "正装/礼服",
+  CUSTOM: "指定着装",
+};
+
+/** 定制契约 → 中性化标签列表（纯函数，供测试直接断言）。 */
+export function describeCustomRequirementTags(
+  custom?: INormalizedCustomIntent,
+): string[] {
+  if (!custom) return [];
+  const tags: string[] = [];
+  if (custom.dressCode?.required && custom.dressCode.type) {
+    tags.push(`[工作着装: ${DRESS_CODE_TYPE_LABEL[custom.dressCode.type]}]`);
+  }
+  if (custom.ageRange) {
+    tags.push(`[期望年龄: ${custom.ageRange[0]}-${custom.ageRange[1]}岁]`);
+  }
+  if (custom.genderPreference && custom.genderPreference !== "ANY") {
+    tags.push(`[性别偏好: ${custom.genderPreference === "FEMALE" ? "女性" : "男性"}]`);
+  }
+  return tags;
+}
+
 /** 安全报告 → 徽标元数据投影（纯函数，供测试直接断言）。 */
 export function describeSafetyPill(
   report: IRuntimeSafetyReport,
@@ -159,10 +206,16 @@ export default function FulfillmentCockpit({
   onComplete,
   safetyReport,
   housekeepingCap,
+  customRequirements,
+  forceArmed,
+  safetyBadge,
 }: FulfillmentCockpitProps) {
   const theme = SCENARIO_THEME_META[scenario];
   const cta = describeCompletionCta(scenario);
   const safetyPill = safetyReport ? describeSafetyPill(safetyReport) : null;
+  const armed = forceArmed === true;
+  const customTags = describeCustomRequirementTags(customRequirements);
+  const customCleanText = customRequirements?.cleanText ?? "";
 
   return (
     <div className="cockpit" data-scenario={scenario} data-theme={theme.themeClass}>
@@ -175,6 +228,20 @@ export default function FulfillmentCockpit({
         🎨 场景主题 · {theme.label}
       </div>
 
+      {/* 阶段4：引信自适应升级（PROXIMITY_ENHANCED）→ 强化安全守护条 */}
+      {armed && (
+        <section
+          className="cockpit-armed"
+          data-force-armed="true"
+          data-testid="cockpit-armed-banner"
+        >
+          {safetyBadge ?? ENHANCED_SAFETY_BADGE_DEFAULT}
+          <span style={{ opacity: 0.7, fontSize: 10.5, fontWeight: 600 }}>
+            虚拟号 · 行程守护 · 敏感词监听 已强制开启
+          </span>
+        </section>
+      )}
+
       {safetyPill && (
         <section
           className={`cockpit-safety ${safetyPill.className}`}
@@ -185,6 +252,22 @@ export default function FulfillmentCockpit({
           {safetyReport && safetyReport.activeThreats.length > 0 && (
             <span style={{ opacity: 0.75 }}>
               · {safetyReport.activeThreats.join(" / ")}
+            </span>
+          )}
+        </section>
+      )}
+
+      {/* 阶段4：定制需求标签栏（仅渲染清洗后的中性化契约，杜绝原始粗糙词直显） */}
+      {(customTags.length > 0 || customCleanText) && (
+        <section className="cockpit-custom" data-testid="cockpit-custom-requirements" data-custom-requirements>
+          {customTags.map((tag) => (
+            <span key={tag} className="cockpit-custom-tag" data-custom-tag>
+              {tag}
+            </span>
+          ))}
+          {customCleanText && !customTags.some((t) => t.includes("工作着装")) && (
+            <span className="cockpit-custom-tag" data-custom-tag data-clean-text>
+              {customCleanText}
             </span>
           )}
         </section>
@@ -225,6 +308,7 @@ export default function FulfillmentCockpit({
           onClaimDamage={housekeeping?.onClaimDamage}
           baseAmountYuan={housekeepingCap?.baseAmountYuan ?? 0}
           maxSurchargeRatio={housekeepingCap?.maxSurchargeRatio ?? 0.5}
+          customRequirements={customRequirements}
         />
       )}
       {scenario === "meetup" && (
@@ -245,7 +329,9 @@ export default function FulfillmentCockpit({
           onBlockUser={companion?.onBlockUser}
         />
       )}
-      {scenario === "dynamic" && dynamic && <DynamicAmmoSlot {...dynamic} />}
+      {scenario === "dynamic" && dynamic && (
+        <DynamicAmmoSlot {...dynamic} customRequirements={customRequirements} />
+      )}
 
       <button
         type="button"

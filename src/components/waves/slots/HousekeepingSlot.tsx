@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { INormalizedCustomIntent } from "@/types/ammo-schema";
 
 /**
  * 家政保洁特化插槽（Housekeeping Slot · 清洁蓝 theme-housekeeping）。
@@ -36,6 +37,8 @@ export interface HousekeepingSlotProps {
   baseAmountYuan?: number;
   /** 现场加价上限比例（对齐弹药 maxSurchargeRatio；缺省 0.5 = 50%）。 */
   maxSurchargeRatio?: number;
+  /** 需求方定制要求（阶段3 语义驯化产物）：结构化渲染中性定制标签（着装/年龄/性别）。 */
+  customRequirements?: INormalizedCustomIntent;
 }
 
 const SLOT_CSS = `
@@ -61,9 +64,37 @@ const SLOT_CSS = `
   background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)}
 .hk-cap-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
 .hk-cap-over{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
+.hk-custom{display:flex;flex-wrap:wrap;gap:6px}
+.hk-custom-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+  background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
 /** 家政保洁插槽：增项改价确认单 + 双拍照片池 + 损坏包赔直连。 */
+const DRESS_LABEL_HK: Record<string, string> = {
+  THEMED_MAID: "女仆主题",
+  THEMED_COSPLAY: "角色扮演/制服",
+  FORMAL_UNIFORM: "正装/礼服",
+  CUSTOM: "指定着装",
+};
+
+/** 定制契约 → 插槽中性标签（纯函数，结构化投影）。 */
+export function describeSlotCustomTags(
+  custom?: INormalizedCustomIntent,
+): string[] {
+  if (!custom) return [];
+  const tags: string[] = [];
+  if (custom.dressCode?.required) {
+    tags.push(`[工作着装: ${DRESS_LABEL_HK[custom.dressCode.type] ?? "指定着装"}]`);
+  }
+  if (custom.ageRange) {
+    tags.push(`[期望年龄: ${custom.ageRange[0]}-${custom.ageRange[1]}岁]`);
+  }
+  if (custom.genderPreference && custom.genderPreference !== "ANY") {
+    tags.push(`[性别偏好: ${custom.genderPreference === "FEMALE" ? "女性" : "男性"}]`);
+  }
+  return tags;
+}
+
 export default function HousekeepingSlot({
   quote,
   photos,
@@ -72,14 +103,25 @@ export default function HousekeepingSlot({
   onClaimDamage,
   baseAmountYuan = 0,
   maxSurchargeRatio = 0.5,
+  customRequirements,
 }: HousekeepingSlotProps) {
   const hasBase = baseAmountYuan > 0;
   const capYuan = hasBase ? Math.round(baseAmountYuan * maxSurchargeRatio * 100) / 100 : null;
   const overCap =
     capYuan !== null && quote && !quote.confirmed && quote.amountYuan > capYuan;
+  const customTags = describeSlotCustomTags(customRequirements);
   return (
     <div className="hk-slot" data-slot="housekeeping">
       <style>{SLOT_CSS}</style>
+      {customTags.length > 0 && (
+        <section className="hk-custom" data-testid="hk-custom-requirements" data-custom-requirements>
+          {customTags.map((tag) => (
+            <span key={tag} className="hk-custom-tag" data-custom-tag>
+              {tag}
+            </span>
+          ))}
+        </section>
+      )}
       {hasBase && capYuan !== null && (
         <section
           className={`hk-cap ${overCap ? "hk-cap-over" : quote ? "hk-cap-ok" : ""}`}

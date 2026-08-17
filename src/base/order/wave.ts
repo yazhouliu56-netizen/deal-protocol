@@ -87,6 +87,12 @@ export interface Wave {
    * 供履约座舱按 ammoId 装载场景插槽（housekeeping-v1 / meetup-social-v1 …）。
    */
   ammoId?: string;
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化产物 · 宪法条文 #2 增补不改义）：
+   * 发单端注入的中性化定制契约，履约座舱 / 供给端准入 / 运行时风控消费。
+   * 可选字段，缺省 undefined（既有 Wave 构建零破坏）。
+   */
+  customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
   /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
   fissionCount?: number;
   /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
@@ -183,6 +189,13 @@ export interface CreateWaveInput {
   hotness?: number;
   /** 弹药标识（可选；发布时按品类反查写入，见 getAmmoDefinition）。 */
   ammoId?: string;
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化产物 · 宪法条文 #2 增补不改义）：
+   * 发单端（ChatPage/PublishSheet）将 intent-normalizer 清洗后的中性契约
+   * 随单固化，履约座舱与插槽按此渲染定制标签与运行时风控升级。
+   * 可选字段，缺省 undefined（既有调用零破坏）。
+   */
+  customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
 }
 
 /** Build a wave; validates essential fields (basic needs must be complete). */
@@ -214,6 +227,7 @@ export function createWave(input: CreateWaveInput): Wave {
     status: input.pending ? "pending" : "active",
     hotness: input.hotness ?? 0,
     ammoId: input.ammoId,
+    customRequirements: input.customRequirements,
   };
 }
 

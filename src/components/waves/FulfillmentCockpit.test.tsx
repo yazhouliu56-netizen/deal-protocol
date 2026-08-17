@@ -8,6 +8,8 @@ import FulfillmentCockpit, {
   describeCompletionCta,
   SCENARIO_THEME_META,
   sixDimensionScores,
+  describeCustomRequirementTags,
+  ENHANCED_SAFETY_BADGE_DEFAULT,
   type FulfillmentCockpitProps,
 } from "@/components/waves/FulfillmentCockpit";
 import { registerDynamicAmmo } from "@/ammo/factory";
@@ -408,5 +410,108 @@ describe("FulfillmentCockpit 事件回调", () => {
     expect(sos).toHaveBeenCalledTimes(1);
     root.unmount();
     container.remove();
+  });
+});
+
+/* =====================================================================
+ * 阶段4：强化安全守护徽标 + 定制需求参数可视化
+ * ===================================================================== */
+
+const CUSTOM_MAID_2025: import("@/types/ammo-schema").INormalizedCustomIntent = {
+  cleanText: "要求：指定工作着装(女仆主题) · 期望年龄: 20-25岁",
+  isSensitiveCustomization: true,
+  blockedReason: null,
+  dressCode: { required: true, type: "THEMED_MAID", rawKeyword: "女仆装" },
+  ageRange: [20, 25],
+  genderPreference: "ANY",
+};
+
+describe("FulfillmentCockpit 阶段4 强化安全守护徽标", () => {
+  it("forceArmed=true：渲染强化安全守护条（默认文案 + 三强制副标 + data 标记）", () => {
+    const html = renderStatic({ ...BASE_PROPS, forceArmed: true });
+    expect(html).toContain('data-force-armed="true"');
+    expect(html).toContain('data-testid="cockpit-armed-banner"');
+    expect(html).toContain(ENHANCED_SAFETY_BADGE_DEFAULT);
+    expect(html).toContain("虚拟号 · 行程守护 · 敏感词监听 已强制开启");
+  });
+
+  it("forceArmed=true + safetyBadge：引擎权威文案优先于默认常量", () => {
+    const html = renderStatic({
+      ...BASE_PROPS,
+      forceArmed: true,
+      safetyBadge: "🛡️ 强化安全守护中（虚拟号+实时存证）",
+    });
+    expect(html).toContain("🛡️ 强化安全守护中（虚拟号+实时存证）");
+    expect(html).not.toContain("敏感词实时监听）");
+  });
+
+  it("forceArmed=false：不渲染强化守护条（标准回退，布局零变化）", () => {
+    const html = renderStatic({ ...BASE_PROPS });
+    expect(html).not.toContain('data-force-armed="true"');
+    expect(html).not.toContain("强化安全守护中");
+    expect(html).toContain('data-action="complete"');
+  });
+});
+
+describe("FulfillmentCockpit 阶段4 定制需求参数可视化", () => {
+  it("customRequirements 存在：座舱渲染中性化定制标签（工作着装 + 期望年龄）", () => {
+    const html = renderStatic({ ...BASE_PROPS, customRequirements: CUSTOM_MAID_2025 });
+    expect(html).toContain('data-testid="cockpit-custom-requirements"');
+    expect(html).toContain("[工作着装: 女仆主题]");
+    expect(html).toContain("[期望年龄: 20-25岁]");
+    expect(html).not.toContain("女仆装");
+  });
+
+  it("customRequirements 透传至家政插槽（hk-custom-requirements 标签区）", () => {
+    const html = renderStatic({
+      ...BASE_PROPS,
+      customRequirements: CUSTOM_MAID_2025,
+      housekeeping: { photos: { before: null, after: null } },
+    });
+    expect(html).toContain('data-testid="hk-custom-requirements"');
+    expect(html).toContain("[期望年龄: 20-25岁]");
+  });
+
+  it("customRequirements 透传至动态插槽（dyn-custom-requirements 标签区）", () => {
+    const reg = registerDynamicAmmo(buildLongtailConfig());
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    const html = renderStatic({
+      ...BASE_PROPS,
+      scenario: "dynamic",
+      dynamic: { ammo: reg.ammo },
+      customRequirements: CUSTOM_MAID_2025,
+    });
+    expect(html).toContain('data-testid="dyn-custom-requirements"');
+    expect(html).toContain("[工作着装: 女仆主题]");
+    expect(html).toContain("[期望年龄: 20-25岁]");
+  });
+
+  it("无定制需求：零标签渲染，参数快照保持既有紧凑布局（标准回退）", () => {
+    const html = renderStatic({ ...BASE_PROPS });
+    expect(html).not.toContain('data-custom-requirements');
+    expect(html).not.toContain("[工作着装:");
+    expect(html).not.toContain("[期望年龄:");
+    expect(html).not.toContain("期望年龄");
+  });
+
+  it("describeCustomRequirementTags 纯函数：结构化投影 + 无定制空数组", () => {
+    expect(describeCustomRequirementTags(CUSTOM_MAID_2025)).toEqual([
+      "[工作着装: 女仆主题]",
+      "[期望年龄: 20-25岁]",
+    ]);
+    expect(describeCustomRequirementTags(undefined)).toEqual([]);
+    expect(
+      describeCustomRequirementTags({
+        ...CUSTOM_MAID_2025,
+        genderPreference: "FEMALE",
+      }),
+    ).toContain("[性别偏好: 女性]");
+    expect(
+      describeCustomRequirementTags({
+        cleanText: "",
+        isSensitiveCustomization: false,
+        blockedReason: null,
+      }),
+    ).toEqual([]);
   });
 });

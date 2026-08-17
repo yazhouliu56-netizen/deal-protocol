@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { IAmmoDefinition } from "@/types/ammo-schema";
+import type { IAmmoDefinition, INormalizedCustomIntent } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
 
 /**
@@ -30,6 +30,8 @@ export interface DynamicAmmoSlotProps {
   onUploadProof?: (phaseKey: string) => void;
   /** 插槽动作事件（"dispute" 申请调解/申诉等，由座舱上层接线）。 */
   onActionClick?: (actionKey: string) => void;
+  /** 需求方定制要求（阶段3 语义驯化产物）：参数快照区渲染中性定制标签。 */
+  customRequirements?: INormalizedCustomIntent;
 }
 
 /** 引信策略 → 安全徽标（DynamicAmmoSlot 自有投影，对齐 describeSafetyBadges 语义的子集）。 */
@@ -107,21 +109,52 @@ const SLOT_CSS = `
 .dyn-dispute{width:100%;min-height:44px;padding:9px 0;border-radius:12px;
   border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);
   color:#fbbf24;font-size:13px;font-weight:700;cursor:pointer}
+.dyn-custom{display:flex;flex-wrap:wrap;gap:6px;padding:8px 11px;border-radius:12px;
+  background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3)}
+.dyn-custom-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+  background:rgba(123,97,255,.16);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
 /** 长尾动态弹药通用履约插槽：参数快照 + 存证打卡 + 引信徽标 + 申诉入口。 */
+const DRESS_LABEL_DYN: Record<string, string> = {
+  THEMED_MAID: "女仆主题",
+  THEMED_COSPLAY: "角色扮演/制服",
+  FORMAL_UNIFORM: "正装/礼服",
+  CUSTOM: "指定着装",
+};
+
+/** 定制契约 → 参数快照区中性标签（结构化投影，杜绝原始粗糙词直显）。 */
+export function describeDynamicCustomTags(
+  custom?: INormalizedCustomIntent,
+): string[] {
+  if (!custom) return [];
+  const tags: string[] = [];
+  if (custom.dressCode?.required) {
+    tags.push(`[工作着装: ${DRESS_LABEL_DYN[custom.dressCode.type] ?? "指定着装"}]`);
+  }
+  if (custom.ageRange) {
+    tags.push(`[期望年龄: ${custom.ageRange[0]}-${custom.ageRange[1]}岁]`);
+  }
+  if (custom.genderPreference && custom.genderPreference !== "ANY") {
+    tags.push(`[性别偏好: ${custom.genderPreference === "FEMALE" ? "女性" : "男性"}]`);
+  }
+  return tags;
+}
+
 export default function DynamicAmmoSlot({
   ammo,
   bizParams,
   evidencePhotos,
   onUploadProof,
   onActionClick,
+  customRequirements,
 }: DynamicAmmoSlotProps) {
   const needsCamera = requiresWatermarkCamera(ammo);
   const badges = describeFuzeBadges(ammo.fuzePolicy);
   const paramRows = describeBizParamRows(bizParams);
   const themeClass = resolveSlotThemeClass(ammo);
   const twinVerified = Boolean(evidencePhotos?.before && evidencePhotos?.after);
+  const customTags = describeDynamicCustomTags(customRequirements);
 
   return (
     <div className={`dyn-slot ${themeClass}`} data-slot="dynamic-ammo" data-theme={`theme-${ammo.holographic?.theme ?? "default"}`}>
@@ -130,6 +163,16 @@ export default function DynamicAmmoSlot({
       <div className="dyn-meta">
         {ammo.ammoId} · v{ammo.version}
       </div>
+
+      {customTags.length > 0 && (
+        <section className="dyn-custom" data-testid="dyn-custom-requirements" data-custom-requirements>
+          {customTags.map((tag) => (
+            <span key={tag} className="dyn-custom-tag" data-custom-tag>
+              {tag}
+            </span>
+          ))}
+        </section>
+      )}
 
       <section className="dyn-params" data-testid="dyn-params">
         {paramRows.length > 0 ? (
