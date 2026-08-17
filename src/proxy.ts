@@ -1,5 +1,39 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import {
+  classifyApiPath,
+  evaluateDegradationGate,
+  getGlobalDegradationLevel,
+  DEGRADATION_ERROR_MESSAGES,
+} from "@/base/platform/resilience"
+import { installResiliencePersistence } from "@/lib/resilience-state"
+
+installResiliencePersistence()
+
+/** 容灾控制面通道永远放行（否则 READ_ONLY 下管理员无法恢复）。 */
+const RESILIENCE_ADMIN_PATH = "/api/admin/resilience"
+
+/**
+ * 容灾网关（L6-M3）：在认证之前拦截 /api/* 请求，按全局容灾等级输出
+ * 确定性 503/429 降级响应。SOS 与在途履约在任何非 READ_ONLY 等级下免死。
+ */
+function degradationResponse(request: NextRequest, status: number, errorCode: string, retryAfterSeconds?: number) {
+  const headers: Record<string, string> = {
+    "x-degradation-level": getGlobalDegradationLevel(),
+    "x-degradation-code": errorCode,
+    "content-type": "application/json; charset=utf-8",
+  }
+  if (retryAfterSeconds !== undefined) headers["retry-after"] = String(retryAfterSeconds)
+  return new NextResponse(
+    JSON.stringify({
+      error: "SERVICE_DEGRADED",
+      code: errorCode,
+      message: DEGRADATION_ERROR_MESSAGES[errorCode] ?? "服务暂不可用，请稍后再试",
+      degradedLevel: getGlobalDegradationLevel(),
+    }),
+    { status, headers },
+  )
+}
 
 function isProtectedRoute(pathname: string): boolean {
   if (
@@ -21,6 +55,22 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // ---- 容灾网关（L6-M3）：仅拦截 API 流量，静态资源/页面路由放行 ----
+  if (pathname.startsWith("/api/") && pathname !== RESILIENCE_ADMIN_PATH) {
+    const category = classifyApiPath(pathname, request.method)
+    const decision = evaluateDegradationGate(getGlobalDegradationLevel(), category)
+    if (!decision.isAllowed) {
+      return degradationResponse(
+        request,
+        decision.httpStatus ?? 503,
+        decision.errorCode ?? "SERVICE_DEGRADED",
+        decision.retryAfterSeconds,
+      )
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -47,8 +97,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  const { pathname } = request.nextUrl
 
   if (isProtectedRoute(pathname)) {
     if (!user) {

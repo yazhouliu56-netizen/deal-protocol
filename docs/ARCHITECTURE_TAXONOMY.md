@@ -231,7 +231,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L5-M2` | 外部合规生态 | `base/platform/signInsure`（签章验签）+ modules（认证/类目）+ identity 实名模拟 | signInsure 测试 | 🟡（本地签章/实名模拟雏形；公安实名/电子合同/场景险直连 ⚪️） |
 | `L6-M1` | 弱网离线引擎 | `base/platform/offlineQueue` + `resilience` + `sw.js` 离线缓存 + `app/offline` | offlineQueue/韧性测试 | 🟢（离线队列/追回/缓存闭环） |
 | `L6-M2` | 运力熔断机制 | `base/platform/circuit`（熔断库层）、`performance` tier | circuit 测试 | 🟡（熔断库层已备；区域爆单/价格杠杆真实场景 P2-2 未上线） |
-| `L6-M3` | 多云多活容灾 | `base/platform/resilience`（降级库层）+ `circuit` | resilience 测试 | 🟡（降级库层已备；四步优雅降级编排待建设） |
+| `L6-M3` | 多云多活容灾 | `base/platform/resilience` Part D（**五级容灾分流器：evaluateDegradationGate 25 组合确定性矩阵 + classifyApiPath 路径分类 + 全局等级控制器（注入式持久化适配器）**）+ `src/proxy.ts`（**Next16 网关拦截：503/429 降级响应 + x-degradation-* 标准头 + Retry-After，SOS/在途履约免死**）+ `app/api/admin/resilience`（**管理 API：GET 状态 / POST 切换 + 审计日志**）+ `components/admin/ResilienceControlPanel.tsx`（**五色等级卡 + 拦截规则矩阵 + 一键熔断/演练恢复**） | resilience 容灾矩阵/分类器/状态控制器 + ResilienceControlPanel 组件测试 | 🟢（**2026-08-17 闭环**：NORMAL→关非核心→限流→保核心→只读五级编排 + proxy 网关拦截 + 管理控制台全链路；持久化经 `.resilience-state.json` 跨 bundle 共享） |
 | `L6-M4` | 司法级存证数仓 | `base/platform/resilience`（数据湖哈希链）+ `signInsure` 签章 + `qr/scan`（链接存证） | 哈希链/签章测试 | 🟢（哈希链闭环；全量轨迹黑匣子待完备） |
 
 ### 3.5 父项目存量层（融合过渡归属，ADR-0018）
