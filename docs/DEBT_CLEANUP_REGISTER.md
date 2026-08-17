@@ -334,14 +334,14 @@
 
 | # | 协议文件 | 状态 | 调用方证据 | 双轨关系 |
 |---|---------|------|-----------|---------|
-| P1 | `lib/protocol/protocols/base.ts` | [🟢 双轨运行] | 唯一 import：`lib/protocol/registry.ts`（活跃） | 旧轨（垂直 SOP），ammo 为第二轨 |
-| P2 | `lib/protocol/protocols/housekeeping.ts`（250 行） | [🟢 双轨运行] | `registry.ts` import + `ammo/housekeeping.ammo.ts` 出处注释；ammo 版为新实现 | 双轨并行（ammo 文件头明示"原位保留，双轨并行不破坏引用方"） |
-| P3 | `lib/protocol/protocols/dating.ts`（202 行） | [🟢 双轨运行] | `registry.ts` import + `ammo/meetup.ammo.ts` 出处注释 | 双轨并行 |
+| P1 | `lib/protocol/protocols/base.ts` | [🗑 已出清（2026-08-17）] | ~~唯一 import：`lib/protocol/registry.ts`~~ → registry 内联 `BASE_PROTOCOL_DEF` 作为 ammo 投影继承父级 | 单轨：ammo 唯一事实源，registry 投影视图 |
+| P2 | `lib/protocol/protocols/housekeeping.ts`（250 行） | [🗑 已出清（2026-08-17）] | ~~`registry.ts` import~~ → `git rm` 物理删除；registry 从 `OFFICIAL_AMMO.housekeeping` 投影为 `protocol_housekeeping`（旧 id 语义等价） | 单轨：ammo 唯一事实源 |
+| P3 | `lib/protocol/protocols/dating.ts`（202 行） | [🗑 已出清（2026-08-17）] | ~~`registry.ts` import~~ → `git rm` 物理删除；registry 从 `OFFICIAL_AMMO.dating`（companion-v1）投影为 `protocol_dating`（旧 id 语义等价，工厂测试锁定 dating→companion-v1） | 单轨：ammo 唯一事实源 |
 
 **关联业务方（registry/engine 链路，收敛重定向的爆炸半径）**：
 `api/admin/protocols`（管理）、`api/admin/protocols/[id]`、`api/cron/check-timeouts`、`api/orders/[id]`、`api/reviews`、`lib/contract/satisfaction.ts`、`lib/dispute/resolver.ts`（engine 消费方，7 处）。
 
-**结论**：双轨为有意的渐进迁移期状态，收敛至 `src/ammo/` 需同步改 registry + engine + 7 个业务模块，列为独立重构任务（Batch 4），不在垃圾清运批次内。
+**结论**：✅ **已收敛出清（2026-08-17）**——3 个旧协议文件物理删除（合计 535 行），`registry.ts` 重构为 ammo 投影适配器（动态数值全取 ammo 八维配置：D7 分账→佣金、D6 违约阶梯→refundRules、超时代验收→autoTimeoutSeconds、D4 传感→evidence、派单硬门槛→classificationKeywords；静态行业语义合表：角色/资金状态机/评价/争议通道），`protocolRegistry`/`PROTOCOLS`/`getProtocol` 接口签名零变化，7 个业务方 + engine + admin API 零改动；新增 `protocol_meetup`（对齐 meetup-social-v1）。门禁：tsc 0 错 + 1251/1251 全绿（含新增 registry.test.ts 4 例）+ build exit 0 + 收敛门禁 exit 0。
 
 ## 4.3 `.gitkeep` 占位文件（3 项）与边缘页面（2 项）
 
@@ -415,7 +415,7 @@
 > **Batch 1-3 物理出清执行记录（Commit: 本次提交 `40b253e..`）**：创始人裁决后执行，git rm 删除 47 个文件（Batch 1: 20 项 / Batch 2: 21 项 / Batch 3: 2 项 + 4 项测试同步）。`A14 disputes/[id]` 经核实从未存在于文件系统（审计正则误记，无文件可删，销项状态：无需操作）；`A21 telecom/privacy-number` 与 `L4 agent-gateway` 按免死金牌保留。**测试同步清理（17 项断言/文件）**：`tests/m09-audit.test.ts`、`tests/m09-flydan.test.ts` 整文件删除（m09 已删）；`frontier-2026.test.ts` 删 AINegotiator 块（ai-negotiator 已删）；`global-mechanisms.test.ts` 删 tryFastWithdrawal 2 用例（m13 已删）；`p0-deviations.test.ts` 删 demands/create 断言（保留 demands/route 断言）；`world-class-fusion.test.ts` 删 tip/profile-delete 路由断言（保留纯逻辑断言）；`e2e-integration.test.ts` 移除 m13 资金段（hold/complete/settle→credit 链收敛至 escrow 引擎，标题同步更新）。全量门禁：`tsc 0 错` / `vitest 469 + node:test 573 = 1042/1042 全绿`（1061 - 19 失效测试） / `check:convergence exit 0` / 工作区无未追踪垃圾。
 
 ## Batch 4：结构级收敛（触发：单独立项，非垃圾清运）
-- [ ] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）
+- [x] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）✅ **2026-08-17（P1 攻坚战役步骤二）**：registry.ts 重构为 ammo 投影适配器（三枚官方弹药 → protocol_housekeeping / protocol_meetup / protocol_dating，旧 id 语义等价），3 个旧协议文件 `git rm` 物理删除（535 行出清）+ 空目录清理，PROTOCOLS/getProtocol 契约增补导出，7 业务方零改动
 - [x] C15 履约页地图从 Leaflet `MapComponent` 迁移至 MapLibre `MapView` 后废弃 Leaflet 轨（✅ 2026-08-17：迁移 + `git rm` + 三依赖出清，P1 攻坚战役步骤一）
 - [ ] C16 老控制台 4 件套：`/oto` 5 屏完全接管 `console/provider/incoming/grab` 页面后评估废弃
 - [ ] E1/E2 补 `/rights`、`/demo` 导航入口或转 dev-only 路由
