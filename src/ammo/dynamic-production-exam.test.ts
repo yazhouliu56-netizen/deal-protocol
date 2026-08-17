@@ -11,6 +11,7 @@
  * 考卷结构（全确定性纯函数断言，红线 1：零 LLM、零动态代码执行）：
  *   环节一 非标诉求 8 维动态参数化清单
  *   环节二 工厂审查：Linter 真实质检（资金守恒/安全红线）→ 动态热注册 → 检索第一顺位
+ *           + 发布端接线：resolveAmmoIdForPublish 中文类目别名直拨动态弹药（P0 闭环）
  *   环节三 状态机与资金分账全链路实测（CAS 乐观锁 0→4 + 托管 + 增项熔断 + 双拍 + 守恒）
  *   环节四 纯动态零静态文件实证（系统从未加载任何静态 drone.ammo.ts）
  */
@@ -23,7 +24,7 @@ import {
   registerDynamicAmmo,
   validateAmmoConfig,
 } from "./factory.ts";
-import { getAmmoById, getAmmoDefinition, OFFICIAL_AMMO } from "./registry.ts";
+import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish, OFFICIAL_AMMO, DEFAULT_AMMO } from "./registry.ts";
 import { advanceLifecycle, evaluateAmmoFuze } from "../base/ammo/runner.ts";
 import { generateComplianceSplitInstruction } from "../base/money/escrow.ts";
 import type { IHolographicAmmoConfig } from "../types/ammo-schema.ts";
@@ -117,6 +118,8 @@ function buildDroneConfig(): IHolographicAmmoConfig {
       ],
     },
     cockpitSlot: "HousekeepingSlot",
+    /* D8 发布端中文类目检索别名：前端以口语化中文直达本弹（声明式元数据，非字典） */
+    aliases: ["农田无人机植保", "无人机打药"],
   };
 }
 
@@ -241,6 +244,21 @@ test("[环节二] 动态热注册出厂 + 检索链第一顺位 + 全图冻结",
   assert.equal(hit.fiveStateHooks[0], HOOK_OPERATOR_REGISTRY["ArrivalCheckHook"]);
   assert.equal(hit.fiveStateHooks[1], HOOK_OPERATOR_REGISTRY["OnsiteQuoteHook"]);
   assert.equal(hit.fiveStateHooks[2], HOOK_OPERATOR_REGISTRY["CleaningCheckHook"]);
+});
+
+test("[环节二·发布端接线] resolveAmmoIdForPublish 动态池直拨（精确 key + 中文别名）", () => {
+  const r = registerDynamicAmmo(buildDroneConfig());
+  assert.equal(r.ok, true);
+  if (!r.ok) return;
+  // ① 精确 class key 直拨动态弹药（发布端可透传注册键）
+  assert.equal(resolveAmmoIdForPublish(CATEGORY), AMMO_ID);
+  // ② 中文类目别名直拨：前端发布端以口语化中文发单 → 写入动态弹药 ammoId
+  assert.equal(resolveAmmoIdForPublish("农田无人机植保"), AMMO_ID, "中文别名①直拨");
+  assert.equal(resolveAmmoIdForPublish("无人机打药"), AMMO_ID, "中文别名②直拨");
+  // ③ 官方中文映射语义零改动（家政/组局/陪玩回归护栏）
+  assert.equal(resolveAmmoIdForPublish("家政保洁"), "housekeeping-v1");
+  assert.equal(resolveAmmoIdForPublish("羽毛球约局"), "meetup-social-v1");
+  assert.equal(resolveAmmoIdForPublish("陪玩"), "companion-v1");
 });
 
 /* =====================================================================
@@ -471,4 +489,7 @@ test("[环节四] 纯动态零静态文件实证：系统从未加载任何静�
   // ④ 未注册类目回落默认保底（证明确实没有静态预置该品类）
   DYNAMIC_AMMO_POOL.delete(CATEGORY);
   assert.equal(getAmmoDefinition(CATEGORY).ammoId, "default-ammo");
+  // ⑤ 中文别名随池删除一并失效 → resolveAmmoIdForPublish 回落默认保底
+  //    （证明中文直拨检索位 100% 来自运行时动态池，无硬编码字典残留）
+  assert.equal(resolveAmmoIdForPublish("农田无人机植保"), DEFAULT_AMMO.ammoId);
 });

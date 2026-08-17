@@ -311,6 +311,13 @@ export interface IHolographicAmmoConfig {
   formSchema?: Record<string, unknown>;
   /** 履约座舱场景插槽键（五态视口特化插槽装载位）。 */
   cockpitSlot?: string;
+  /**
+   * 发布端中文类目检索别名（声明式元数据，非检索硬编码字典）：
+   * 动态长尾弹药让前端发布端用口语化中文类目直达本弹（如
+   * ["农田无人机植保", "无人机打药"] → drone-crop-spray-v1）。
+   * resolveAmmoIdForPublish 按别名遍历仅只读匹配，全图冻结后不可变。
+   */
+  aliases?: string[];
 }
 
 /**

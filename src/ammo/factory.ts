@@ -301,6 +301,13 @@ export function validateAmmoConfig(
     }
   }
 
+  // 8. 发布端中文类目检索别名（D8 声明式别名：非法条目拒绝出厂）
+  for (const alias of config.aliases ?? []) {
+    if (typeof alias !== "string" || alias.trim() === "") {
+      errors.push("INVALID_AMMO_ALIAS: aliases must be non-empty strings");
+    }
+  }
+
   return errors.length === 0 ? { ok: true } : { ok: false, errors };
 }
 

@@ -167,14 +167,32 @@ export function getAmmoDefinition(category: string): IAmmoDefinition {
 }
 
 /**
+ * 动态弹药池发布端检索（纯函数只读）：精确 class key 优先，其次按
+ * 弹药声明的中文类目别名（D8 aliases）遍历只读匹配。全图冻结弹药
+ * 只走读操作（Map.get / Array.includes），无任何写入路径。
+ * 未命中返回 undefined → 调用方回落官方映射 / 四表聚合 / 默认保底。
+ */
+export function resolveDynamicAmmoByInput(input: string): IAmmoDefinition | undefined {
+  const exact = DYNAMIC_AMMO_POOL.get(input);
+  if (exact) return exact;
+  for (const ammo of DYNAMIC_AMMO_POOL.values()) {
+    const aliases = ammo.holographic?.aliases;
+    if (aliases && aliases.includes(input)) return ammo;
+  }
+  return undefined;
+}
+
+/**
  * W1 总装：发布链路弹药标识解析（PublishSheet 发单时写入 Wave.ammoId）。
  *
- * 与 getAmmoDefinition 的差异：中文品类经 CATEGORY_TO_OFFICIAL 归一化后
- * 直挂官方弹药 ammoId（如「家政保洁」→ housekeeping-v1、「羽毛球约局」→
- * meetup-social-v1），供履约座舱按 ammoId 装载场景插槽（白皮书 §5.7）。
- * getAmmoDefinition 保持纯聚合语义（存量测试基线），本函数只服务发布落库。
+ * 检索链：动态弹药池（精确 key + 中文类目别名直拨）→ 中文类目归一化
+ * 官方弹药（CATEGORY_TO_OFFICIAL）→ getAmmoDefinition（聚合 / 保底）。
+ * 动态长尾弹药（registerDynamicAmmo 热注）经 aliases 中文直拨优先命中，
+ * 官方三大标杆弹药中文映射语义零改动。
  */
 export function resolveAmmoIdForPublish(category: string): string {
+  const dynamic = resolveDynamicAmmoByInput(category);
+  if (dynamic) return dynamic.ammoId;
   const officialKey = CATEGORY_TO_OFFICIAL[category];
   const official = OFFICIAL_AMMO[officialKey ?? category];
   if (official) return official.ammoId;
