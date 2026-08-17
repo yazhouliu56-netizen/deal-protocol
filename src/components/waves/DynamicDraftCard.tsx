@@ -42,6 +42,16 @@ export function describePricing(model: PricingModel): string {
   }
 }
 
+/**
+ * 草稿卡定价模型解析：8D 全息镜像优先（holographic.pricingModel 为装配出厂
+ * 权威源），缺省回落弹药顶层 pricingModel（历史/保底弹药零回归）。
+ * 消除「顶层旧字段与全息声明脱节」导致的起步时长显示偏差风险。
+ */
+export function resolveDraftPricing(ammo: IAmmoDefinition): PricingModel {
+  if (ammo.holographic?.pricingModel) return ammo.holographic.pricingModel;
+  return ammo.pricingModel;
+}
+
 /** 引信策略 → 安全底线徽章（IFuzePolicy 投影，随弹药自动装填）。 */
 export function describeSafetyBadges(fuze: IFuzePolicy): string[] {
   const badges: string[] = [];
@@ -189,7 +199,7 @@ export default function DynamicDraftCard({
   onPublish,
 }: DynamicDraftCardProps) {
   const definition = ammo ?? getAmmoDefinition(category);
-  const priceText = describePricing(definition.pricingModel);
+  const priceText = describePricing(resolveDraftPricing(definition));
   const badges = describeSafetyBadges(definition.fuzePolicy);
   const params = describeSopParams(definition);
   const formFields = describeFormSchemaFields(definition);

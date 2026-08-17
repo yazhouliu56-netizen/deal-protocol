@@ -139,18 +139,19 @@ test("[环节A2] mockDecompose 真实调用：口语诉求拆解为独立交付�
   }
 });
 
-test("[环节A3] mockVoiceIntent 真实调用：品类识别 + 标准格式时间可提取；口语「10点/打扫」断线点实证", () => {
-  // ① 口语诉求（无预算词）→ 如实降级 chat（真实行为，非修复对象）
+test("[环节A3] mockVoiceIntent 真实调用：品类识别 + 口语时间精确提取（修复实证）", () => {
+  // ① 口语诉求（无预算词）→ 按「缺预算一票 chat」设计降级（意图层铁律）
   const degraded = mockVoiceIntent(CONSUMER_PHRASE);
-  assert.equal(degraded.kind, "chat", "缺预算词 → 意图层降级 chat（真实断线点日志）");
-  // ② 断线点实证：publishHit 发布关键词表仅含「保洁」不含「打扫」——
-  // 即便补足预算词，「明天 10:00 找人打扫房间」仍降级 chat（口径不一致）；
-  // mockEngine 品类词表（/保洁|家政|打扫|整理|收纳/）则含「打扫」。
-  assert.equal(
-    mockVoiceIntent("明天 10:00 找人打扫房间，预算 150 元").kind,
-    "chat",
-    "打扫不在意图层发布关键词表 → 真实断线点（与引擎词表口径差异）",
-  );
+  assert.equal(degraded.kind, "chat", "缺预算词 → 意图层降级 chat（设计语义，非缺陷）");
+  // ② 修复实证：publishHit 已补齐「打扫」同义词 → 预算齐全时完整识别，
+  //    且「10:00」精确提取（voiceIntent.matchTime 时分规范化回归）
+  const fixed = mockVoiceIntent("明天 10:00 找人打扫房间，预算 150 元");
+  assert.equal(fixed.kind, "publish-wave", "打扫已入意图层发布关键词表（修复）");
+  if (fixed.kind === "publish-wave") {
+    assert.equal(fixed.wave.category, "保洁", "打扫 → 保洁类目归一");
+    assert.match(fixed.wave.time, /10:00/, "标准冒号时间提取（明天 10:00）");
+    assert.equal(fixed.wave.budget, 150);
+  }
   // ③ 标准格式（冒号数字时间 + 预算词 + 表内关键词「保洁」）→ 完整识别
   const parsed = mockVoiceIntent("明天 10:00 找人做保洁，预算 150 元");
   assert.equal(parsed.kind, "publish-wave");
@@ -178,7 +179,8 @@ test("[环节A4] MockEngine 真实调用：口语诉求首轮识别家政品类�
   const first = texts.join("");
   // 家政品类唯一专属追问：「希望什么时间上门」→ 品类已命中 housekeeping
   assert.match(first, /希望什么时间上门/);
-  // 断线点实证：「10点来人」不在时间词表（今天/明天/周X/上午/下午/晚）→ 未抽取
+  // Chat 链路（mockEngine）时间槽为词表追问式（今天/明天/周X/上午/下午/晚），
+  // 不直接抽取数字时刻 → 首问不含 10:00；意图层精确时分提取见 voiceIntent 修复
   assert.doesNotMatch(first, /10:00/);
 
   // ② 按词表口径补采「明天上午」→ 时间槽识别成功 → 追问频率
@@ -417,7 +419,7 @@ test("[环节C4] 现场增项报价钩子：先干后说价拦截 + 确认放行
  * 环节 D：结算分账（SETTLED 对账清单 + D7 三比 + 微信收付通指令）
  * ===================================================================== */
 
-test("[环节D1] SETTLED 引擎对账清单：守恒（平台 + 服务方 + 退款 ≡ 170）", async () => {
+test("[环节D1] SETTLED 引擎对账清单：D7 三比守恒（85+10+5 ≡ 170）", async () => {
   const ammo = getAmmoById("housekeeping-v1");
   const t = await advanceLifecycle({
     ammo,
@@ -428,7 +430,8 @@ test("[环节D1] SETTLED 引擎对账清单：守恒（平台 + 服务方 + 退�
     expectedVersion: 2,
     now: 1_783_100_000_000,
     payload: {
-      escrowPayload: { amount: TOTAL_YUAN, platformRate: 0.1, participants: 1 },
+      // 修复后缺省路径：不传 platformRate → 引擎强制消费弹药 D7 splitRules（85/10/5）
+      escrowPayload: { amount: TOTAL_YUAN, participants: 1 },
     },
   });
   assert.equal(t.ok, true, t.reason);
@@ -442,20 +445,29 @@ test("[环节D1] SETTLED 引擎对账清单：守恒（平台 + 服务方 + 退�
   const l = ledger.settlementLedger as unknown as {
     ammoId: string;
     hold: { totalAmount: number };
-    split: { platformIncome: number; providerIncome: number };
+    split: { platformIncome: number; providerIncome: number; insuranceFee: number };
     providerIncome: number;
     platformIncome: number;
     demanderRefund: number;
   };
   assert.equal(l.ammoId, "housekeeping-v1");
   assert.equal(l.hold.totalAmount, TOTAL_YUAN, "结算总额 = 170（含现场增项）");
-  // 引擎分账（platformRate 0.1 → 90/10）：17 + 153 = 170
+  // 引擎缺省分账（D7 三比 85/10/5）：17 + 144.5 + 8.5 = 170（保险计提入账对账单）
   assert.equal(l.split.platformIncome, 17);
-  assert.equal(l.split.providerIncome, 153);
-  assert.equal(l.providerIncome, 153);
+  assert.equal(l.split.providerIncome, 144.5);
+  assert.equal(l.split.insuranceFee, 8.5);
+  assert.equal(l.providerIncome, 144.5);
   assert.equal(l.platformIncome, 17);
   assert.equal(l.demanderRefund, 0);
-  assert.equal(l.split.platformIncome + l.split.providerIncome + l.demanderRefund, TOTAL_YUAN);
+  assert.equal(
+    l.split.providerIncome + l.split.platformIncome + l.split.insuranceFee + l.demanderRefund,
+    TOTAL_YUAN,
+  );
+  // 与 D7 分账指令分角一致：放款 144.5 + 平台 17 + 保险 8.5（裂隙 ¥8.50 已消除）
+  assert.equal(
+    round2c(l.split.providerIncome) + round2c(l.split.platformIncome) + round2c(l.split.insuranceFee),
+    round2c(TOTAL_YUAN),
+  );
   // 全款托管口径实证：押金锁 = 订单总额（服务前资金全程冻结在平台侧）
   assert.deepEqual(calculateEscrowHold(TOTAL_YUAN), {
     totalAmount: TOTAL_YUAN,
@@ -511,23 +523,31 @@ test("[环节D3] 合规分账指令（S4 防二清）：微信收付通路由 + 
   assert.equal(d7b.instructionId, d7.instructionId);
   assert.equal(d7b.instructionSignature, d7.instructionSignature, "确定性签名可复算验签");
 
-  /* ② 引擎对账清单直调（与 [环节D1] 同式）：验证 90/10 引擎口径与 D7 差口的确定性 */
+  /* ② 引擎对账清单直调（与 [环节D1] 同式）：缺省路径消费弹药 D7 三比 → 与指令分角一致 */
   const ledger = buildSettlementLedger({
     ammo: getAmmoById("housekeeping-v1"),
     orderId: ORDER_ID,
     amount: TOTAL_YUAN,
-    platformRate: 0.1,
     participants: 1,
   });
   assert.equal(ledger.hold.totalAmount, TOTAL_YUAN);
   assert.equal(ledger.split?.platformIncome, 17);
-  assert.equal(ledger.split?.providerIncome, 153);
-  assert.equal(ledger.providerIncome, 153);
+  assert.equal(ledger.split?.providerIncome, 144.5);
+  assert.equal(ledger.split?.insuranceFee, 8.5);
+  assert.equal(ledger.providerIncome, 144.5);
   assert.equal(ledger.platformIncome, 17);
   assert.equal(ledger.demanderRefund, 0);
-  assert.equal(ledger.providerIncome + ledger.platformIncome + ledger.demanderRefund, TOTAL_YUAN);
-  // 差口实证：引擎 90/10（153）≠ D7 85% 口径（144.5）→ 保险计提 5% 未进引擎
-  // 装配。该差口为既有实现语义（D7 splitRules 属声明字段），如实上报指挥部分级。
+  // 三比严格守恒 ≡ 指令（¥8.50 裂隙已消除：引擎放款不再 153，而是 144.5 + 保险 8.5）
+  assert.equal(
+    round2c(ledger.split!.providerIncome) +
+      round2c(ledger.split!.platformIncome) +
+      round2c(ledger.split!.insuranceFee!) +
+      ledger.demanderRefund,
+    TOTAL_YUAN,
+  );
+  // 指令侧同口径已是 85/10/5 → 对账单与微信分账指令完全一致
+  assert.equal(ledger.split!.providerIncome, d7.splitAmountYuan);
+  assert.equal(ledger.split!.platformIncome, d7.platformFeeYuan);
 
   /* ③ 阶梯退款路径守恒（退款 + 服务方 + 平台 ≡ 总额；万一违约/提前终止结算用） */
   const refundLedger = buildSettlementLedger({
@@ -635,31 +655,34 @@ test("[环节F1] 整卷执行窗口 ≤15s + 实测报告落印", () => {
       { orderId: ORDER_ID, receiverAccountId: "sub-wx-provider-wang-001" },
     ).instructionSignature}`,
     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    "断线点 / 观察项（如实上报，非本考卷修复范围）：",
-    "  1. 口语「10点来人」不在时间词表（今天/明天/周X/上午/下午/晚）→",
-    "     意图层降级 chat，需补词表或按标准格式引导（环节A3/A4 实证）。",
-    "  2. 意图层 publishHit 发布关键词表仅含「保洁」不含「打扫」——",
-    "     即使补足预算词，「打扫」类口语仍降级 chat；mockEngine 品类词表",
-    "     含「打扫」→ 两域词表口径不一致（环节A3② 实证）。",
+    "断线点 / 观察项（本批次修复登记 + 遗留如实上报）：",
+    "  1. 意图层口语时间提取：voiceIntent.matchTime 已修复——「10点」→「10:00」、",
+    "     「10点半」→「10:30」、「14点30分」→「14:30」（回归测试 voiceIntent.test +1）；",
+    "     注意：裸句（无预算）仍按「缺预算一票 chat」设计降级（意图层铁律）。",
+    "  2. 意图层 publishHit 发布关键词表已补齐口语同义词：打扫/做卫生/扫地/擦玻璃",
+    "     （+做保洁属既有「保洁」前缀），「打扫房间」类口语不再降级 chat；",
+    "     mockEngine 品类词表本就含「打扫」→ 两域口径已对齐（环节A3② 实证）。",
     "  3. 引擎算子 CleaningCheckHook 为 AFTER+SKIP 语义：无照片不阻断",
     "     跃迁，与「双拍必填」严格预期存在差距（环节C2③ 实证）；",
-    "     领域钩子直调为准入必填（环节C3④）。",
-    "  4. 引擎对账清单按 platformRate 90/10 装配，未消费弹药 D7 splitRules",
-    "     （85/10/5）→ 保险计提 5%（¥8.50）仅存在于弹药声明与指令侧；",
-    "     D7 指令 ¥144.50 与引擎放款 ¥153 差 ¥8.50（环节D1/D3② 实证）。",
+    "     领域钩子直调为准入必填（环节C3④）。【遗留观察项】",
+    "  4. 引擎缺省分账已修复：不传 platformRate 时强制消费弹药 D7 splitRules",
+    "     （家政 85/10/5），保险计提 ¥8.50 入账对账单 → 引擎放款 ¥144.50 与",
+    "     微信收付通指令分角一致，90/10 裂隙 ¥8.50 消除（环节D1/D3②实证）；",
+    "     显式 platformRate 仍尊重显式值（既有调用语义零变化）。",
     "  5. 任务书预想草稿卡含 📍LBS 围栏徽标，实测 IMPACT 模板未开启",
     "     geoFence → 家政草稿卡为 🛡️已投保财产险 + 🔒定金托管 20% 两枚",
-    "     （环节B1 实证；📍/⏳ 属 DELAY 模板 meetup-social-v1）。",
+    "     （环节B1 实证；📍/⏳ 属 DELAY 模板 meetup-social-v1）。【观察项】",
     "  6. Store 域（发单/托管/王姐接单/座舱装载）因 @/ 别名 + jsdom 分域，",
     "     由 src/components/waves/real-user-sim-store.test.tsx 承担（vitest）。",
-    "  7. 浏览器 CDP 实测（补充证据）：草稿卡「预估费用：¥60/小时 × 1小时起」",
-    "     消费旧 PricingModel(minHours=1)，未消费 8D 全息 minHours:2（起步",
-    "     2h=¥120 只存在于弹药域）；「该品类建议起价 ¥50」同为旧 scene 建议。",
+    "  7. 草稿卡起步时长：弹药顶层 pricingModel 本为 minHours:2（8D 全息化已",
+    "     校正），浏览器实测「1小时起」实为长期运行旧 dev server 陈旧产物；",
+    "     本批次 DynamicDraftCard 新增 resolveDraftPricing 全息优先解析兜底",
+    "     （holographic.pricingModel 为装配出厂权威源，缺省回落顶层）。",
     "  8. 浏览器 CDP 实测：AI 对话链路全通（口语→家政品类命中→时间追问→",
     "     频率→区域→预算→整理卡→时段卡，与环节A4/引擎考卷行为逐条一致）；",
-    "     发布弹层「关闭发布」按钮首击无效需二次点击（交互小缺陷）。",
+    "     发布弹层「关闭发布」按钮首击无效需二次点击（交互小缺陷）。【遗留】",
     "  9. 新用户登录实测 500「创建用户资料失败」（profiles 写库依赖 Supabase，",
-    "     本地环境未达）——/chat 会话守卫链路登录能力受环境限制，如实上报。",
+    "     本地环境未达）——/chat 会话守卫链路登录能力受环境限制，如实上报。【遗留】",
     "══════════════════════════════════════════════════════",
   ].join("\n");
   console.log(report);

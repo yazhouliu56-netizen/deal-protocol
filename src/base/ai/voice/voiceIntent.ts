@@ -62,7 +62,7 @@ export function mockVoiceIntent(text: string): VoiceIntent {
   const t = text.trim();
   const publishHit =
     /(发布|帮我发|我想发|组个|发起).*?(局|约|球局|拼位)/i.test(t) ||
-    /(羽毛球|篮球|乒乓球|跑步|爬山|钓鱼|写真|保洁|做饭|家教|遛狗)/i.test(t);
+    /(羽毛球|篮球|乒乓球|跑步|爬山|钓鱼|写真|保洁|打扫|做卫生|扫地|擦玻璃|做饭|家教|遛狗)/i.test(t);
   if (publishHit) {
     const category = matchCategory(t) ?? "本地服务";
     const time = matchTime(t);
@@ -114,7 +114,15 @@ function matchTime(t: string): string {
   const arabic = t.match(/(\d{1,2})[:点时](\d{0,2})/);
   let hm = "";
   if (arabic) {
-    hm = arabic[2] ? `${arabic[1]}:${arabic[2].padStart(2, "0")}` : `${arabic[1]}点`;
+    const h = arabic[1];
+    const mRaw = arabic[2];
+    if (mRaw) {
+      hm = `${h}:${mRaw.padStart(2, "0")}`;
+    } else {
+      // 口语延续：「10点半」→ 10:30；「10点」→ 10:00（精确时分，非字面「10点」）
+      const tail = t.slice((arabic.index ?? 0) + arabic[0].length);
+      hm = /^\s*半/.test(tail) ? `${h}:30` : `${h}:00`;
+    }
   } else {
     // 中文数字时间：下午三点 / 三点半
     const cn = t.match(/([一二两三四五六七八九十])\s*点(半)?/);

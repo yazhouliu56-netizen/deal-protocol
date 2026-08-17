@@ -102,6 +102,26 @@ test("mock: 服务类别映射（写真/保洁/做饭）", () => {
   if (cook.kind === "publish-wave") assert.equal(cook.wave.category, "上门做饭");
 });
 
+test("mock: 打扫同义词词表命中 + 口语时间精确时分（阶段1 缺陷修复回归）", () => {
+  // 「打扫」触发词 → publish-wave → 保洁类目；「10点」→ 10:00
+  const clean = mockVoiceIntent("我需要10点来人打扫房间，预算 120 元");
+  assert.equal(clean.kind, "publish-wave");
+  if (clean.kind === "publish-wave") {
+    assert.equal(clean.wave.category, "保洁");
+    assert.equal(clean.wave.time, "10:00");
+    assert.equal(clean.wave.budget, 120);
+  }
+  // 其余口语同义词均可触发发布意图
+  assert.equal(mockVoiceIntent("想找人做卫生，预算 100 元").kind, "publish-wave");
+  assert.equal(mockVoiceIntent("找人扫地，预算 80 元").kind, "publish-wave");
+  assert.equal(mockVoiceIntent("擦玻璃一次，预算 60 元").kind, "publish-wave");
+  // 「10点半」→ 10:30；「14点30分」→ 14:30
+  const half = mockVoiceIntent("下午 10点半来，预算 100 元");
+  if (half.kind === "publish-wave") assert.equal(half.wave.time, "10:30");
+  const minuted = mockVoiceIntent("14点30分到，预算 100 元");
+  if (minuted.kind === "publish-wave") assert.equal(minuted.wave.time, "14:30");
+});
+
 /* ---- 描述 / 动作标记 / prompt ---- */
 
 test("describeIntent: publish-wave 播报含关键字段", () => {

@@ -351,9 +351,13 @@ test("SETTLED 清结算：家政（HOURLY 单方）正常放款对账清单", as
   const ledger = r.afterData[r.afterData.length - 1] as {
     settlementLedger?: { ammoId: string; providerIncome: number; platformIncome: number };
   };
-  assert.equal(ledger.settlementLedger?.ammoId, "housekeeping-v1");
-  assert.equal(ledger.settlementLedger?.providerIncome, 270);
+assert.equal(ledger.settlementLedger?.ammoId, "housekeeping-v1");
+  // 缺省分账口径（不传 platformRate）：消费弹药 D7 splitRules（85/10/5）
+  // → 服务者 255 + 平台 30 + 保险 15 ≡ 300（90/10 旧缺省 270 已废弃）
+  assert.equal(ledger.settlementLedger?.providerIncome, 255);
   assert.equal(ledger.settlementLedger?.platformIncome, 30);
+  const split1 = (ledger.settlementLedger as { split?: { insuranceFee?: number } }).split;
+  assert.equal(split1?.insuranceFee, 15, "保险计提入账对账单（85/10/5 三比）");
 });
 
 test("SETTLED 清结算：组局（PER_SEAT AA 3 人）人均分账对账清单", async () => {
@@ -371,8 +375,12 @@ test("SETTLED 清结算：组局（PER_SEAT AA 3 人）人均分账对账清单"
   const ledger = r.afterData[r.afterData.length - 1] as {
     settlementLedger?: { split: { perSeatCost: number }; providerIncome: number };
   };
-  assert.equal(ledger.settlementLedger?.split?.perSeatCost, 80);
-  assert.equal(ledger.settlementLedger?.providerIncome, 216);
+assert.equal(ledger.settlementLedger?.split?.perSeatCost, 80);
+  // 缺省分账口径（不传 platformRate）：消费 meetup 弹药 D7 splitRules（88/10/2）
+  // → 服务者 211.2 + 平台 24 + 保险 4.8 ≡ 240（90/10 旧缺省 216 已废弃）
+  assert.equal(ledger.settlementLedger?.providerIncome, 211.2);
+  const split2 = (ledger.settlementLedger as { split?: { insuranceFee?: number } }).split;
+  assert.equal(split2?.insuranceFee, 4.8, "保险计提入账对账单（88/10/2 三比）");
 });
 
 test("SETTLED 清结算：陪玩（BREACH 违约终止）阶梯退款对账清单", async () => {

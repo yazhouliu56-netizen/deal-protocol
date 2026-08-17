@@ -167,8 +167,14 @@ export interface SettlementLedger {
   status: "SETTLED";
   /** 初始托管载荷（MATCHED 时锁定）。 */
   hold: { totalAmount: number; heldDeposit: number; payableAmount: number };
-  /** 正常结算分账（AA 人均 + 平台抽成 + 服务方净得）。 */
-  split?: { perSeatCost: number; platformIncome: number; providerIncome: number };
+  /** 正常结算分账（AA 人均 + 平台抽成 + 服务方净得；弹药 D7 三比装配时含保险计提）。 */
+  split?: {
+    perSeatCost: number;
+    platformIncome: number;
+    providerIncome: number;
+    /** 保险计提（履约险/兜底池；仅弹药 D7 splitRules 缺省装配路径产出，宪法 #2 增补）。 */
+    insuranceFee?: number;
+  };
   /** 违约/提前终止阶梯退款（守恒：refund + pay + fee ≡ total）。 */
   refund?: { refundToDemander: number; payToProvider: number; platformFee: number };
   providerIncome: number;
@@ -179,8 +185,31 @@ export interface SettlementLedger {
 }
 
 /**
+ * 弹药 D7 三比分账（缺省装配路径：未显式指定平台费率时强制消费弹药声明比例）。
+ * provider = 总额 × providerRatio，insurance = 总额 × insuranceRatio，
+ * platform = 总额 − provider − insurance（四舍五入尾差归平台，三方之和严格 ≡ 总额）。
+ * 与前序发动机口径（90/10）同守恒语义：provider + platform + insurance === total。
+ */
+function calculateAmmoThreeWaySplit(
+  totalAmount: number,
+  rules: { providerRatio: number; platformRatio: number; insuranceRatio: number },
+  participantsCount: number,
+): { perSeatCost: number; platformIncome: number; providerIncome: number; insuranceFee: number } {
+  const total = Number.isFinite(totalAmount) && totalAmount > 0 ? totalAmount : 0;
+  const count = Number.isInteger(participantsCount) && participantsCount > 0 ? participantsCount : 1;
+  const round2c = (n: number): number => Math.round(n * 100) / 100;
+  const providerIncome = round2c(total * rules.providerRatio);
+  const insuranceFee = round2c(total * rules.insuranceRatio);
+  const platformIncome = round2c(total - providerIncome - insuranceFee);
+  return { perSeatCost: round2c(total / count), platformIncome, providerIncome, insuranceFee };
+}
+
+/**
  * 结算对账清单装配（纯函数，确定性清结算——红线 1：零 LLM 判断）。
  * 违约/退款载荷存在 → 走阶梯退款；否则 → 多方分账（AA 人均 + 平台抽成）。
+ * 分账口径：显式传入 platformRate 时尊重显式费率（既有调用语义零变化）；
+ * 未显式传入且弹药声明 D7 splitRules 时，强制消费弹药三比（家政 85/10/5 等），
+ * 保险计提入账对账单——消除 90/10 兜底与分账指令间的 ¥8.50 口径裂隙。
  */
 export function buildSettlementLedger(input: {
   ammo: IAmmoDefinition;
@@ -228,11 +257,18 @@ export function buildSettlementLedger(input: {
         : undefined,
     };
   }
-  const split = calculateMultiPartySplit(
-    input.amount,
-    input.platformRate ?? 0.1,
-    input.participants ?? 1,
-  );
+  const split =
+    input.platformRate === undefined && input.ammo.holographic?.splitRules
+      ? calculateAmmoThreeWaySplit(
+          input.amount,
+          input.ammo.holographic.splitRules,
+          input.participants ?? 1,
+        )
+      : calculateMultiPartySplit(
+          input.amount,
+          input.platformRate ?? 0.1,
+          input.participants ?? 1,
+        );
   return {
     ammoId: input.ammo.ammoId,
     orderId: input.orderId,
