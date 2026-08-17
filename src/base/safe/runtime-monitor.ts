@@ -14,6 +14,7 @@ import {
   type Coordinates,
 } from "../geo/geofence-watcher.ts";
 import { autoFlag } from "../risk/moderation.ts";
+import type { INormalizedCustomIntent } from "../../types/ammo-schema.ts";
 
 /** 运行时安全输入（IN_SERVICE 期间由上层装配的各路信号）。 */
 export interface RuntimeSafetyInput {
@@ -34,6 +35,20 @@ export interface RuntimeSafetyInput {
   privacyArmed?: boolean;
   /** 当前时刻（epoch ms；注入化便于测试与事件流回放）。 */
   now?: number;
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化产物）。存在且 isSensitiveCustomization
+   * = true（着装/年龄/性别定制或违禁命中）→ 风险分 +30。
+   */
+  customRequirements?: INormalizedCustomIntent;
+  /**
+   * 履约发生的小时数（0-23；缺省 = 未知，不判定夜间加成）。
+   * 夜间时段（22:00 - 05:59）风险分 +20。
+   */
+  hourOfDay?: number;
+  /** 双方信用分（demander 需求方 / provider 服务者；缺省 = 未知，不判定）。 */
+  creditScores?: { demander: number; provider: number };
+  /** 基础风险分（0-100；缺省 0。入户保洁等高风险物理形态由上层注入，如 20）。 */
+  baseRiskScore?: number;
 }
 
 /** 运行时安全报告（统一输出形态）。 */
@@ -51,6 +66,27 @@ export interface IRuntimeSafetyReport {
    * - THREAT：存在高危威胁（如敏感词命中），红色警示并联动风控。
    */
   securityPillStatus: "GUARDED" | "ATTENTION" | "THREAT";
+  /**
+   * 多因子动态综合风险指数（0-100 整数，确定性加权）：
+   * 基础分（baseRiskScore，入户保洁 20）+ 敏感定制 +30 + 夜间时段 +20
+   * + 任一信用分 < 70 +20；clamp 0-100。
+   */
+  riskScore: number;
+  /**
+   * 自适应安全级别（阶段3 引信自适应升级）：
+   * - STANDARD：风险分 < 50，维持既有防护；
+   * - PROXIMITY_ENHANCED：风险分 ≥ 50 自动升级（即便家政品类），
+   *   强制开启虚拟号保护 / 行程守护 / 会话敏感词实时拦截。
+   */
+  safetyLevel: "STANDARD" | "PROXIMITY_ENHANCED";
+  /** 升级后强制武装位（PROXIMITY_ENHANCED 恒 true；STANDARD 反映输入侧缺省 false）。 */
+  forceArmed: {
+    virtualNumberActive: boolean;
+    tripGuardActive: boolean;
+    chatModerationActive: boolean;
+  };
+  /** 履约座舱安全徽标文案（升级态：「🛡️ 强化安全守护中（虚拟号+实时存证）」）。 */
+  safetyBadge: string;
   /** 各维度明细（供看板/审计展示）。 */
   details: {
     geofence: {
@@ -70,6 +106,59 @@ export const SAFE_MONITOR_THREAT_CODES = {
   SENSITIVE_CONTENT: "sensitive-content",
   PRIVACY_NOT_ARMED: "privacy-not-armed",
 } as const;
+
+/** 阶段3 多因子动态风险阈值：综合风险分 ≥ 50 → 自适应升级 PROXIMITY_ENHANCED。 */
+export const PROXIMITY_ENHANCED_THRESHOLD = 50;
+
+/** 夜间时段定义（22:00 - 05:59；闭开区间，确定性判定）。 */
+export const NIGHT_HOUR_MIN = 22;
+export const NIGHT_HOUR_MAX = 5;
+
+/** 信用分警戒线（任一 < 70 → 风险 +20）。 */
+export const RISK_LOW_CREDIT_THRESHOLD = 70;
+
+/** 各风险因子权重（任务书口径：基础 20 / 敏感定制 30 / 夜间 20 / 信用 20）。 */
+export const RISK_FACTOR_WEIGHTS = {
+  SENSITIVE_CUSTOMIZATION: 30,
+  NIGHTTIME: 20,
+  LOW_CREDIT: 20,
+} as const;
+
+/** 判定某小时是否属夜间时段（22:00-05:59，纯函数）。 */
+export function isNighttimeHour(hour: number): boolean {
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return false;
+  return hour >= NIGHT_HOUR_MIN || hour <= NIGHT_HOUR_MAX;
+}
+
+/** 多因子动态风险评分（纯函数，确定性加权，clamp 0-100）。 */
+export function computeRiskScore(input: {
+  baseRiskScore?: number;
+  customRequirements?: INormalizedCustomIntent;
+  hourOfDay?: number;
+  creditScores?: { demander: number; provider: number };
+}): number {
+  const base =
+    Number.isFinite(input.baseRiskScore) && (input.baseRiskScore ?? 0) > 0
+      ? Math.min(100, Math.max(0, Math.round(input.baseRiskScore ?? 0)))
+      : 0;
+  let score = base;
+  if (input.customRequirements?.isSensitiveCustomization) {
+    score += RISK_FACTOR_WEIGHTS.SENSITIVE_CUSTOMIZATION;
+  }
+  if (typeof input.hourOfDay === "number" && isNighttimeHour(input.hourOfDay)) {
+    score += RISK_FACTOR_WEIGHTS.NIGHTTIME;
+  }
+  const c = input.creditScores;
+  if (c && (c.demander < RISK_LOW_CREDIT_THRESHOLD || c.provider < RISK_LOW_CREDIT_THRESHOLD)) {
+    score += RISK_FACTOR_WEIGHTS.LOW_CREDIT;
+  }
+  return Math.min(100, Math.max(0, score));
+}
+
+/** 强化守护徽标文案（升级态统一口径）。 */
+export const ENHANCED_SAFETY_BADGE = "🛡️ 强化安全守护中（虚拟号+实时存证）";
+/** 常规守护徽标文案。 */
+export const STANDARD_SAFETY_BADGE = "🛡️ 安全守护中";
 
 /**
  * 运行时安全聚合评估（S3 SAFE_MONITOR 核心纯函数）。
@@ -137,12 +226,30 @@ export function evaluateRuntimeSafety(
         ? "THREAT"
         : "ATTENTION";
 
+  // 阶段3：多因子动态风险评分 + 引信自适应升级（纯函数确定性）
+  const riskScore = computeRiskScore({
+    baseRiskScore: input.baseRiskScore,
+    customRequirements: input.customRequirements,
+    hourOfDay: input.hourOfDay,
+    creditScores: input.creditScores,
+  });
+  const escalated = riskScore >= PROXIMITY_ENHANCED_THRESHOLD;
+  const safetyLevel = escalated ? "PROXIMITY_ENHANCED" : "STANDARD";
+  const forceArmed = escalated
+    ? { virtualNumberActive: true, tripGuardActive: true, chatModerationActive: true }
+    : { virtualNumberActive: false, tripGuardActive: false, chatModerationActive: false };
+  const safetyBadge = escalated ? ENHANCED_SAFETY_BADGE : STANDARD_SAFETY_BADGE;
+
   return {
     ammoId: input.ammoId,
     orderId: input.orderId,
     isGuarded: threats.length === 0,
     activeThreats: threats,
     securityPillStatus,
+    riskScore,
+    safetyLevel,
+    forceArmed,
+    safetyBadge,
     details,
   };
 }

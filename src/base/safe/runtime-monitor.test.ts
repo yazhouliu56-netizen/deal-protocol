@@ -8,6 +8,8 @@ import assert from "node:assert/strict";
 import {
   evaluateRuntimeSafety,
   SAFE_MONITOR_THREAT_CODES,
+  computeRiskScore,
+  isNighttimeHour,
   type IRuntimeSafetyReport,
 } from "./runtime-monitor.ts";
 
@@ -153,4 +155,89 @@ test("SAFE_MONITOR：报告结构完整性（输入透传 + 三字段输出）",
   assert.ok(["GUARDED", "ATTENTION", "THREAT"].includes(r.securityPillStatus));
   assert.ok(r.details);
   assert.equal(r.details.textFlag, null);
+});
+
+/* =====================================================================
+ * 阶段3：多因子动态风险评分 + 引信自适应升级（PROXIMITY_ENHANCED）
+ * ===================================================================== */
+
+const SENSITIVE_CUSTOM: import("../../types/ammo-schema.ts").INormalizedCustomIntent = {
+  cleanText: "要求：指定工作着装(女仆主题) · 期望年龄: 20-30岁",
+  isSensitiveCustomization: true,
+  blockedReason: null,
+  dressCode: { required: true, type: "THEMED_MAID", rawKeyword: "女仆装" },
+  ageRange: [20, 30],
+  genderPreference: "ANY",
+};
+
+/** 阶段3-1：风险评分纯函数矩阵（基础 20 + 各因子权重）。 */
+test("SAFE_MONITOR 阶段3：多因子风险评分矩阵（确定性加权）", () => {
+  // 基础 20（入户保洁）
+  assert.equal(computeRiskScore({ baseRiskScore: 20 }), 20);
+  // +30 敏感定制
+  assert.equal(computeRiskScore({ baseRiskScore: 20, customRequirements: SENSITIVE_CUSTOM }), 50);
+  // +20 夜间（22:00 / 05:00 属夜间；12:00 不属）
+  assert.equal(isNighttimeHour(22), true);
+  assert.equal(isNighttimeHour(23), true);
+  assert.equal(isNighttimeHour(0), true);
+  assert.equal(isNighttimeHour(5), true);
+  assert.equal(isNighttimeHour(6), false);
+  assert.equal(isNighttimeHour(12), false);
+  assert.equal(computeRiskScore({ baseRiskScore: 20, hourOfDay: 23 }), 40);
+  // +20 任一信用分 < 70
+  assert.equal(computeRiskScore({ baseRiskScore: 20, creditScores: { demander: 60, provider: 90 } }), 40);
+  // clamp 0-100 + 缺省零风险
+  assert.equal(computeRiskScore({}), 0);
+  assert.equal(computeRiskScore({ baseRiskScore: 999 }), 100);
+  assert.equal(computeRiskScore({ baseRiskScore: -5 }), 0);
+});
+
+/** 阶段3-2：风险分 ≥ 50 → PROXIMITY_ENHANCED 强制三武装 + 强化徽标。 */
+test("SAFE_MONITOR 阶段3：敏感定制 20+30=50 ≥ 阈值 → PROXIMITY_ENHANCED 自适应升级", () => {
+  const r = evaluateRuntimeSafety({
+    ...BASE_INPUT,
+    baseRiskScore: 20,
+    customRequirements: SENSITIVE_CUSTOM,
+  });
+  assert.equal(r.riskScore, 50);
+  assert.equal(r.safetyLevel, "PROXIMITY_ENHANCED");
+  assert.deepEqual(r.forceArmed, {
+    virtualNumberActive: true,
+    tripGuardActive: true,
+    chatModerationActive: true,
+  });
+  assert.equal(r.safetyBadge, "🛡️ 强化安全守护中（虚拟号+实时存证）");
+});
+
+/** 阶段3-3：夜间 + 低信用 → 升级；零定制夜间 40 < 50 → STANDARD。 */
+test("SAFE_MONITOR 阶段3：夜间+低信用叠加升级 / 未达阈值维持 STANDARD", () => {
+  const night = evaluateRuntimeSafety({
+    ...BASE_INPUT,
+    baseRiskScore: 20,
+    hourOfDay: 23,
+    creditScores: { demander: 95, provider: 60 },
+  });
+  assert.equal(night.riskScore, 60);
+  assert.equal(night.safetyLevel, "PROXIMITY_ENHANCED");
+
+  const plain = evaluateRuntimeSafety({ ...BASE_INPUT, baseRiskScore: 20, hourOfDay: 23 });
+  assert.equal(plain.riskScore, 40, "40 < 50 阈值");
+  assert.equal(plain.safetyLevel, "STANDARD");
+  assert.equal(plain.forceArmed.virtualNumberActive, false, "未升级不强制武装");
+  assert.equal(plain.safetyBadge, "🛡️ 安全守护中");
+});
+
+/** 阶段3-4：升级与既有威胁态共存（升级是独立维度，不吞并威胁判定）。 */
+test("SAFE_MONITOR 阶段3：升级态下敏感词命中仍 THREAT + 报告结构完整", () => {
+  const r = evaluateRuntimeSafety({
+    ...BASE_INPUT,
+    baseRiskScore: 20,
+    customRequirements: SENSITIVE_CUSTOM,
+    chatText: "提供上门服务 200",
+  });
+  assert.equal(r.securityPillStatus, "THREAT", "敏感词命中仍高危");
+  assert.equal(r.safetyLevel, "PROXIMITY_ENHANCED", "定制升级独立成立");
+  assert.equal(r.riskScore, 50);
+  assert.ok(Number.isInteger(r.riskScore));
+  assert.match(r.activeThreats[0], /^sensitive-content:/);
 });

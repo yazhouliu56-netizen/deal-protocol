@@ -7,6 +7,7 @@
  */
 
 import type { VoiceIntent } from "./types";
+import { normalizeCustomIntent } from "../intent-normalizer.ts";
 
 /** LLM 结构化输出 schema（JSON 对象）。 */
 export interface IntentLlmOut {
@@ -76,6 +77,8 @@ export function mockVoiceIntent(text: string): VoiceIntent {
         area: "附近",
         budget,
         capacity: /(拼位|开放局|\d+\s*人)/i.test(t) ? 2 : 1,
+        // 阶段3：口语发单自动完成非标定制清洗与中性化包装（纯函数，零概率）
+        customRequirements: normalizeCustomIntent(t),
       },
     };
   }

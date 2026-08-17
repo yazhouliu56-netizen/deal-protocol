@@ -9,7 +9,7 @@ import {
 } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { housekeepingAmmo } from "@/ammo/housekeeping.ammo";
-import type { IWorkerRequirement } from "@/types/ammo-schema";
+import type { IWorkerRequirement, ICustomRequirements } from "@/types/ammo-schema";
 
 function priceToNumber(price: string): number {
   const m = price.match(/(\d+)/);
@@ -19,23 +19,33 @@ function priceToNumber(price: string): number {
 /**
  * 服务者资质档案（S1 R_AUTH 准入判定数据源；本地演示画像，
  * 生产接入 provider_qualifications 表后由服务端下发）。
+ * age：实龄（阶段3 定制年龄硬门禁数据源）。
  */
 const WORKER_QUALIFICATIONS: Record<
   string,
-  { identityLevel: "BASIC" | "REAL_NAME" | "POLICE_VERIFIED"; safetyScore: number; certificates: string[] }
+  {
+    identityLevel: "BASIC" | "REAL_NAME" | "POLICE_VERIFIED";
+    safetyScore: number;
+    certificates: string[];
+    age: number;
+  }
 > = {
-  kail: { identityLevel: "REAL_NAME", safetyScore: 82, certificates: [] },
-  wang: { identityLevel: "REAL_NAME", safetyScore: 91, certificates: ["HEALTH_CERT"] },
+  kail: { identityLevel: "REAL_NAME", safetyScore: 82, certificates: [], age: 25 },
+  wang: { identityLevel: "REAL_NAME", safetyScore: 91, certificates: ["HEALTH_CERT"], age: 45 },
 };
+
+/** 演示需求方定制声明：期望服务者年龄 20-30 岁（语义驯化产物演示位）。 */
+const DEMO_AGE_GATE: ICustomRequirements = { ageRange: [20, 30] };
 
 /**
  * S1 R_AUTH 供给端准入判定（确定性纯函数，红线 1）：
- * 服务者资质是否满足目标弹药 workerRequirement。
+ * 服务者资质是否满足目标弹药 workerRequirement + 需求方定制要求。
  * 返回缺项清单（空数组 = 达标可接单）。
  */
 export function evaluateWorkerQualification(
   profileId: string,
   requirement?: IWorkerRequirement,
+  custom?: ICustomRequirements,
 ): string[] {
   if (!requirement) return [];
   const q = WORKER_QUALIFICATIONS[profileId];
@@ -52,6 +62,13 @@ export function evaluateWorkerQualification(
   }
   for (const cert of requirement.requiredCertificates ?? []) {
     if (!q.certificates.includes(cert)) missing.push(`需资格证书 ${cert}`);
+  }
+  // 阶段3 定制年龄硬门禁：需求方声明 ageRange 且实龄不匹配 → 明确拦截提示
+  if (custom?.ageRange) {
+    const [lo, hi] = custom.ageRange;
+    if (q.age < lo || q.age > hi) {
+      missing.push(`年龄条件不匹配（需 ${lo}-${hi} 岁，当前 ${q.age} 岁）`);
+    }
   }
   return missing;
 }
@@ -79,6 +96,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
   const qualificationMissing = evaluateWorkerQualification(
     providerId,
     housekeepingAmmo.workerRequirement,
+    DEMO_AGE_GATE,
   );
   const qualified = qualificationMissing.length === 0;
 
@@ -212,6 +230,12 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 actionLabel="接受订单"
                 onAction={() => acceptWorkerOrder(o.id)}
                 dimmed={!workerOnline}
+                blocked={!qualified}
+                blockedLabel={
+                  qualificationMissing.some((m) => m.includes("年龄条件不匹配"))
+                    ? "年龄条件不匹配"
+                    : "需补齐资质后方可接单"
+                }
               />
             ))}
           </div>
@@ -279,12 +303,16 @@ function WorkerOrderRow({
   actionLabel,
   done,
   dimmed,
+  blocked,
+  blockedLabel,
 }: {
   order: WorkerOrder;
   onAction?: () => void;
   actionLabel?: string;
   done?: boolean;
   dimmed?: boolean;
+  blocked?: boolean;
+  blockedLabel?: string;
 }) {
   return (
     <div
@@ -314,14 +342,20 @@ function WorkerOrderRow({
         <span className="text-[12px] font-extrabold text-brandCyan">
           {order.price}
         </span>
-        {onAction && (
-          <button
-            onClick={onAction}
-            disabled={dimmed}
-            className="px-3 py-1 rounded-full btn-primary text-[10px] font-bold glow-purple-strong disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition-[filter,transform]"
-          >
-            {actionLabel}
-          </button>
+        {blocked ? (
+          <span className="px-3 py-1 rounded-full bg-red-400/10 border border-red-400/30 text-red-300 text-[10px] font-bold shrink-0">
+            {blockedLabel ?? "不满足接单条件"}
+          </span>
+        ) : (
+          onAction && (
+            <button
+              onClick={onAction}
+              disabled={dimmed}
+              className="px-3 py-1 rounded-full btn-primary text-[10px] font-bold glow-purple-strong disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition-[filter,transform]"
+            >
+              {actionLabel}
+            </button>
+          )
         )}
       </div>
     </div>

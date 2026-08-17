@@ -9,7 +9,11 @@
  * 严禁任何概率性 LLM 判断介入准入或免押计算；红线 3：零 UI / Store 依赖。
  */
 
-import type { IAmmoDefinition, ITriDimensionalCredit } from "../../types/ammo-schema.ts";
+import type {
+  IAmmoDefinition,
+  ITriDimensionalCredit,
+  ICustomRequirements,
+} from "../../types/ammo-schema.ts";
 
 /** 入户/密闭空间类目安全分一票否决阈值（ESF 0-100 分制；弹药可经
  *  workerRequirement.minSafetyScore 收紧，缺省 70）。 */
@@ -33,7 +37,23 @@ const clampScore = (n: number): number => Math.min(100, Math.max(0, n));
 export function evaluateTriCreditAdmission(
   credit: ITriDimensionalCredit,
   ammo: IAmmoDefinition,
+  custom?: ICustomRequirements,
 ): { isAdmitted: boolean; reason?: string } {
+  /**
+   * 阶段3 定制年龄硬门禁（一票熔断，置于信用校验之前）：
+   * 需求方声明 customRequirements.ageRange 且服务者画像带 age 时，
+   * 实龄不在 [minAge, maxAge] 内 → 直接拒绝（AGE_MISMATCH）。
+   * 年龄未知（age 缺省）或未声明 ageRange → 跳过（零误杀兼容既有调用）。
+   */
+  if (custom?.ageRange && typeof credit.age === "number") {
+    const [lo, hi] = custom.ageRange;
+    if (credit.age < lo || credit.age > hi) {
+      return {
+        isAdmitted: false,
+        reason: `tri-credit-blocked: age ${credit.age} not in [${lo}, ${hi}] (AGE_MISMATCH 定制年龄硬门禁)`,
+      };
+    }
+  }
   if (
     !isFiniteScore(credit.bcsScore) ||
     !isFiniteScore(credit.esfScore)

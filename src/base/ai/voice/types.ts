@@ -1,5 +1,7 @@
 /** 语音闭环类型定义（L1 语音输入/输出 + L2 意图层 + 留证元数据）。 */
 
+import type { INormalizedCustomIntent } from "../../../types/ammo-schema.ts";
+
 /** 语音来源角色。 */
 export type VoiceSide = "user" | "assistant";
 
@@ -38,6 +40,11 @@ export interface PublishWaveIntent {
   area: string;
   budget: number;
   capacity: number;
+  /**
+   * 非标定制要求（阶段3 语义驯化产物）：口语发单自动完成清洗与中性化包装，
+   * 随 Wave 发布 / bizParams 承载。可选字段，缺省 = 无定制。
+   */
+  customRequirements?: INormalizedCustomIntent;
 }
 
 /** 客户端语音链路状态。 */

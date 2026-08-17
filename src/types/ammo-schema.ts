@@ -64,6 +64,12 @@ export interface ISubEventContext {
    * 缺省 = 未启用快照（兼容既有零快照调用）。
    */
   ammoSnapshot?: IAmmoDefinition;
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化产物）：口语化非标需求（着装/年龄/性别）
+   * 经 intent-normalizer 清洗后的中性化契约，随订单流透传至供给端准入与
+   * 运行时风控升级。可选字段，缺省 = 无定制（兼容既有调用零破坏）。
+   */
+  customRequirements?: INormalizedCustomIntent;
 }
 
 /** 伴生事件执行结果（ok=false 且 fallback=BLOCK 时底座阻止跃迁）。 */
@@ -321,6 +327,57 @@ export interface IHolographicAmmoConfig {
 }
 
 /**
+ * 非标定制着装类型（语义驯化标准化枚举）：
+ * - THEMED_MAID：女仆主题（重二次元角色化着装）；
+ * - THEMED_COSPLAY：Cosplay / JK 制服等角色扮演着装；
+ * - FORMAL_UNIFORM：正装 / 西装 / 礼服等商务正式着装；
+ * - CUSTOM：其余无法归类的指定着装（工装/围裙等）。
+ */
+export type IDressCodeType =
+  | "THEMED_MAID"
+  | "THEMED_COSPLAY"
+  | "FORMAL_UNIFORM"
+  | "CUSTOM";
+
+/**
+ * 定制要求契约（阶段3 语义驯化产出 · 中性化参数载体）。
+ * 口语非标定制（着装/年龄/性别偏好）经 intent-normalizer 清洗为结构化属性，
+ * 由 voiceIntent → Wave / bizParams / ISubEventContext 无损承载。
+ * 全部字段可选：缺省 = 无对应定制（零破坏兼容）。
+ */
+export interface ICustomRequirements {
+  /** 指定着装要求（命中着装词时 required=true 并归一为标准化类型）。 */
+  dressCode?: {
+    required: boolean;
+    type: IDressCodeType;
+    /** 原始命中关键词（如「女仆装」），供审计追溯。 */
+    rawKeyword: string;
+  };
+  /** 期望服务者年龄区间 [minAge, maxAge]（需求方硬筛选）。 */
+  ageRange?: [number, number];
+  /** 性别偏好（MALE / FEMALE / ANY；缺省 ANY）。 */
+  genderPreference?: "MALE" | "FEMALE" | "ANY";
+}
+
+/**
+ * 语义驯化完整输出契约（intent-normalizer 纯函数产出）。
+ * = ICustomRequirements + 中性化展示文案 + 敏感标记 + 违禁硬阻断标记。
+ * - cleanText：脱敏后的中性展示文案（公海/草稿卡展示位，杜绝擦边词直显）；
+ * - isSensitiveCustomization：是否包含需升级风控的非标定制（驱动运行时
+ *   多因子评分 + 引信自适应升级）；
+ * - blockedReason：命中绝对违禁词（涉黄涉赌涉暴，autoFlag 硬阻断）时
+ *   返回原因码，null = 未阻断（驯化通道正常）。
+ */
+export interface INormalizedCustomIntent extends ICustomRequirements {
+  /** 清洗后的中性化展示文案（如「要求：指定工作着装(女仆主题) · 期望年龄: 20-30岁」）。 */
+  cleanText: string;
+  /** 是否包含需升级风控的非标定制（着装/年龄/性别任一命中即 true）。 */
+  isSensitiveCustomization: boolean;
+  /** 绝对违禁词命中原因（autoFlag 标签；null = 未命中可正常驯化）。 */
+  blockedReason: string | null;
+}
+
+/**
  * 供给端准入要求（S1 R_AUTH 供给端准入网关 · 动态资质拦截）。
  * 弹药声明服务者进入该类目履约所需的最低资质门槛，WorkerWorkbench /
  * 接单链路按此拦截未达标服务者（补齐资质后方可接该类目订单）。
@@ -399,6 +456,11 @@ export interface ITriDimensionalCredit {
   esfScore: number;
   /** 是否通过公安无犯罪核验（入户/密闭空间类目强制要求）。 */
   isPoliceVerified: boolean;
+  /**
+   * 服务者实龄（实名档案画像；阶段3 定制年龄硬门禁数据源）。
+   * 可选：缺省 = 年龄未知（跳过 AGE_MISMATCH 校验，不误杀未知画像）。
+   */
+  age?: number;
 }
 
 export interface IAmmoDefinition {
@@ -439,4 +501,9 @@ export interface IAmmoDefinition {
    * 阶梯、违约阶梯、分账规则、视界令牌），宪法红线 6：前端视界投影隔离。
    */
   holographic?: IHolographicAmmoConfig;
+  /**
+   * 需求方非标定制要求（阶段3 语义驯化）：弹药级可选透传位，
+   * 供准入/风控在缺省订单级 customRequirements 时回落（零破坏）。
+   */
+  customRequirements?: INormalizedCustomIntent;
 }
