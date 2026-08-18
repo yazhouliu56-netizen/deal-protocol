@@ -48,9 +48,14 @@ try {
 await new Promise((r) => setTimeout(r, 1500));
 
 // 3. start — Start-Process 无 redirect（见文件头注释；日志进 NUL/隐藏窗口）
+//    ws 逃生舱：WS_NO_BUFFER_UTIL / WS_NO_UTF_8_VALIDATE（PS 5.1 Start-Process
+//    无 -Environment，故经 $env: 前缀注入，子进程自动继承）。
+//    serverExternalPackages 已让 ws 不被打包（运行时 require 失败→ws 内置
+//    try/catch→纯 JS 回退），此处 env 为第二道保险，双重防护 bufferutil 空桩。
 const nodeExe = process.execPath;
 const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next").replace(/\\/g, "/");
 const ps = [
+  `$env:WS_NO_BUFFER_UTIL='1'; $env:WS_NO_UTF_8_VALIDATE='1';`,
   `$p = Start-Process -FilePath '${nodeExe}'`,
   ` -ArgumentList @('${nextBin}','start','-p','${port}')`,
   ` -WorkingDirectory '${root}' -WindowStyle Hidden -PassThru;`,

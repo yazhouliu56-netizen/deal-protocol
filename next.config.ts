@@ -9,6 +9,7 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  serverExternalPackages: ["ws", "bufferutil", "utf-8-validate"],
   typescript: {
     ignoreBuildErrors: true,
   },
