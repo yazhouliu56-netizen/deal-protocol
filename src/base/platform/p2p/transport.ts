@@ -172,5 +172,7 @@ export function mergeByIdLevel(
       [...(next.policies ?? [])]
     ).sort((a, b) => a.issuedAt - b.issuedAt),
     circuitBreaker: baseOver.circuitBreaker,
+    // W5 履约回写位：next 优先（同 wave 最新流转结果覆盖，跨 tab 共享）。
+    fulfilment: baseOver.fulfilment,
   };
 }

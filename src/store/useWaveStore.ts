@@ -1798,6 +1798,9 @@ set((st) => ({
           favorites: s.favorites,
           initiatorBuffs: s.initiatorBuffs,
           disputes: s.disputes,
+          // P2 缺陷 3 修复：履约回写位持久化（W5 五态流转终局落库），
+          // 刷新后 SETTLED 终局不倒退回 MATCHED。
+          fulfilment: s.fulfilment,
           friendRequests: s.friendRequests,
           friendships: s.friendships,
           friendRequestRemovals: s.friendRequestRemovals,

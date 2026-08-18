@@ -74,6 +74,8 @@ export interface WaveBundle {
   signedDocs: SignedDoc[];
   /** ADR-0012：履约保险保单（N7 接线：投保扣保费、违约自动理赔）。 */
   policies: InsurePolicy[];
+  /** W5 履约回写位（五态流转终局落库）：waveId → 履约状态 + 结算标记。 */
+  fulfilment?: Record<string, { fulfilmentStatus?: "reported" | "confirmed"; isSettled?: boolean }>;
   /** 共享空间单调版本号（transport 写盘守卫用，防早态快照回退覆盖） */
   bundleVer?: number;
 }

@@ -91,3 +91,6 @@ supabase/.temp/
 # 容灾运行时状态（L6-M3：代理与路由跨 bundle 共享的持久化文件 + 审计）
 /.resilience-state.json
 /.resilience-audit.jsonl
+
+# E2E acceptance artifacts (screenshots)
+.e2e/

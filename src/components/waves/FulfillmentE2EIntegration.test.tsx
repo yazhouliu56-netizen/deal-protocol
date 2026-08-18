@@ -9,6 +9,7 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import ArbitrationSheet, {
   type ArbitrationEvidence,
+  type ArbitrationPhotoEvidence,
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import FulfillmentCenter, {
@@ -270,9 +271,9 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     resetStores();
   });
 
-  async function renderCenter() {
+  async function renderCenter(evidencePhotos?: ArbitrationPhotoEvidence[]) {
     await act(async () => {
-      root.render(<FulfillmentCenter />);
+      root.render(<FulfillmentCenter evidencePhotos={evidencePhotos} />);
     });
   }
 
@@ -301,14 +302,17 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     container.remove();
   });
 
-  it("核销 CTA 三次点击：MATCHED→IN_SERVICE→INSPECTED→SETTLED（advanceLifecycle 真实引擎 + store 回写）", async () => {
+  it("核销 CTA 三次点击（注入双拍照片）：MATCHED→IN_SERVICE→INSPECTED→SETTLED + 槽位归档", async () => {
     const wave = makeWave({
       id: "w-hk-2",
       status: "claimed" as const,
       ammoId: "housekeeping-v1",
     });
     useWaveStore.setState({ waves: [wave], claims: [makeAcceptedClaim(wave.id)] });
-    await renderCenter();
+    await renderCenter([
+      { photo: "cap-before", aiNote: "Before 水印存证" },
+      { photo: "cap-after", aiNote: "After 水印存证" },
+    ]);
 
     // ① MATCHED → IN_SERVICE（开始履约）
     let cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
@@ -319,7 +323,7 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("reported");
     expect(container.textContent).toContain("IN_SERVICE");
 
-    // ② IN_SERVICE → INSPECTED（扫码确认完工）
+    // ② IN_SERVICE → INSPECTED（扫码确认完工 · 双拍已齐 → 放行）
     cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
     await act(async () => {
       cta.click();
@@ -333,10 +337,59 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
       cta.click();
     });
     expect(useWaveStore.getState().fulfilment[wave.id]?.isSettled).toBe(true);
+    // P1 缺陷 2 修复：SETTLED 终局同步归档 wave（释放 activeWave 槽位）
+    expect(useWaveStore.getState().waves[0]?.status).toBe("closed");
     // SETTLED 后座舱卸载（needsCockpit=false）
     expect(container.querySelector('[data-testid="fulfillment-center"]')).toBeNull();
     root.unmount();
     container.remove();
+  });
+
+  it("红线 4 双拍门禁：家政弹药未完成 Before/After 双拍 → INSPECTED 跃迁被拦截", async () => {
+    const wave = makeWave({
+      id: "w-hk-gate",
+      status: "claimed" as const,
+      ammoId: "housekeeping-v1",
+    });
+    useWaveStore.setState({ waves: [wave], claims: [makeAcceptedClaim(wave.id)] });
+    await renderCenter();
+
+    // ① MATCHED → IN_SERVICE：开始履约无需双拍，放行
+    let cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
+    await act(async () => {
+      cta.click();
+    });
+    expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("reported");
+
+    // ② IN_SERVICE → INSPECTED：未双拍 → 100% 拦截，滞留 IN_SERVICE
+    cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
+    await act(async () => {
+      cta.click();
+    });
+    expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("reported");
+    expect(useWaveStore.getState().fulfilment[wave.id]?.isSettled).toBe(false);
+    expect(container.textContent).toContain("请先完成服务前后双拍存证");
+    expect(container.textContent).toContain("IN_SERVICE");
+    root.unmount();
+    container.remove();
+  });
+
+  it("P2 缺陷 3：fulfilment 纳入 persist 白名单（刷新后终局不回退）", async () => {
+    useWaveStore.getState().setFulfilment("w-persist-hk", { isSettled: true });
+    const raw = window.localStorage.getItem("oto-broadcast-v1") ?? "";
+    if (!raw) {
+      // persist 尚未写入：触发一次 setState 确保写入
+      useWaveStore.setState({ bundleVer: (useWaveStore.getState().bundleVer ?? 0) + 1 });
+    }
+    const raw2 = window.localStorage.getItem("oto-broadcast-v1") ?? "";
+    const persisted = JSON.parse(raw2);
+    expect(persisted.state?.fulfilment?.["w-persist-hk"]?.isSettled).toBe(true);
+    useWaveStore.getState().setFulfilment("w-persist-hk", {
+      fulfilmentStatus: "confirmed",
+      isSettled: true,
+    });
+    const raw3 = window.localStorage.getItem("oto-broadcast-v1") ?? "";
+    expect(JSON.parse(raw3).state.fulfilment["w-persist-hk"]?.fulfilmentStatus).toBe("confirmed");
   });
 
   it("争议入口 ⚖️ → ArbitrationSheet 呼出 → 接受调解 → BREACH_SETTLED 流转 SETTLED", async () => {
@@ -417,6 +470,61 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     // 旧静态演示桩文案彻底消失
     expect(sheet?.textContent).not.toContain("客厅角落仍有积灰");
     expect(sheet?.textContent).not.toContain("迟到 25 分钟");
+    root.unmount();
+    container.remove();
+  });
+
+  it("P2 缺陷 4：争议按钮静默 return 修复 —— 未选原因/未填凭证给出 Toast 指引，齐全后真实开争议", async () => {
+    const { useToastStore } = await import("@/base/platform/toast");
+    const { default: AcceptancePanel } = await import("./AcceptancePanel");
+    const wave = makeWave({
+      id: "w-dispute-btn",
+      status: "claimed" as const,
+      ammoId: "housekeeping-v1",
+    });
+    const claim = makeAcceptedClaim(wave.id);
+    useWaveStore.setState({ waves: [wave], claims: [claim], disputes: [] });
+    await act(async () => {
+      root.render(<AcceptancePanel claim={claim} wave={wave} />);
+    });
+
+    const submit = container.querySelectorAll("button");
+    const submitBtn = [...submit].find((b) => b.textContent?.includes("按原因自动判责")) as HTMLButtonElement;
+    expect(submitBtn).not.toBeNull();
+
+    // ① 未选原因未填凭证 → Toast 指引（不再静默）
+    await act(async () => {
+      submitBtn.click();
+    });
+    expect(useToastStore.getState().items.at(-1)?.text).toContain("请先选择争议原因");
+
+    // ② 选了原因但未填凭证 → Toast 指引
+    const reasonBtn = [...container.querySelectorAll("button")].find((b) =>
+      b.textContent?.includes("未到场")
+    ) as HTMLButtonElement;
+    await act(async () => {
+      reasonBtn.click();
+    });
+    await act(async () => {
+      submitBtn.click();
+    });
+    expect(useToastStore.getState().items.at(-1)?.text).toContain("请填写争议凭证");
+
+    // ③ 原因 + 凭证齐全 → openDispute 落库（disputes 新增，状态机无静默）
+    const input = container.querySelector('input[aria-label="争议凭证"]') as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    )?.set;
+    await act(async () => {
+      setter?.call(input, "约定 9 点上门，10 点未到");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      submitBtn.click();
+    });
+    expect(useWaveStore.getState().disputes.length).toBe(1);
+    expect(useWaveStore.getState().disputes[0]?.reason).toBe("no-show");
     root.unmount();
     container.remove();
   });

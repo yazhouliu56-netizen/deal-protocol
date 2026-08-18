@@ -140,6 +140,7 @@ export default function FulfillmentCenter({
   const claims = useWaveStore((s) => s.claims);
   const fulfilment = useWaveStore((s) => s.fulfilment);
   const setFulfilment = useWaveStore((s) => s.setFulfilment);
+  const closeWave = useWaveStore((s) => s.closeWave);
   const raiseCrisis = useWaveStore((s) => s.raiseCrisis);
   const identity = useIdentityStore((s) => s.identity);
 
@@ -246,10 +247,27 @@ export default function FulfillmentCenter({
   const dEvidence = disputeEvidence!;
   const dProposal = disputeProposal!;
 
+  // P1 缺陷 1 修复：双拍门禁 —— WATERMARK_CAMERA 弹药（家政入户）完工验收前必须
+  // 完成 Before/After 双拍存证（红线 4 零信任物理感知）。照片相位沿用动态插槽
+  // 既有约定：evidencePhotos[0]=Before、evidencePhotos[1]=After（ProofCamera 存证序列）。
+  const needsPhotoProof =
+    ammoDef.holographic?.requiredSensors?.includes("WATERMARK_CAMERA") ?? false;
+  const beforePhoto = evidencePhotos[0]?.photo ?? null;
+  const afterPhoto = evidencePhotos[1]?.photo ?? null;
+  function buildPhotoPayload() {
+    if (!needsPhotoProof || !beforePhoto || !afterPhoto) return {};
+    return { photos: { before: [beforePhoto], after: [afterPhoto] } };
+  }
+
   // W5：核销 CTA 生产首次调用引擎（advanceLifecycle 真实跃迁）
   async function handleComplete() {
     setTransitError(null);
     const to = nextCockpitState(state);
+    if (to === "INSPECTED" && needsPhotoProof && (!beforePhoto || !afterPhoto)) {
+      toast("⚠️ 请先完成服务前后双拍存证（红线 4 零信任物理感知）", "error");
+      setTransitError("请先完成服务前后双拍存证");
+      return;
+    }
     const res = await advanceLifecycle({
       ammo: ammoDef,
       orderId: wave.id,
@@ -259,6 +277,7 @@ export default function FulfillmentCenter({
         scenario: sc,
         totalYuan: orderTotal,
         quotedItems: hkQuote?.confirmed ? [hkQuote.item] : [],
+        ...buildPhotoPayload(),
       },
     });
     if (!res.ok) {
@@ -269,6 +288,10 @@ export default function FulfillmentCenter({
       fulfilmentStatus: res.state === "IN_SERVICE" ? "reported" : res.state === "INSPECTED" ? "confirmed" : undefined,
       isSettled: res.state === "SETTLED",
     });
+    // P1 缺陷 2 修复：SETTLED 终局 → 同步归档 wave（释放 activeWave 槽位，后续 MATCHED 单可正常载入座舱）
+    if (res.state === "SETTLED") {
+      closeWave(wave.id);
+    }
   }
 
   // W7 联动：接受调解方案 → 违约赔付载荷 → SETTLED
@@ -289,6 +312,8 @@ export default function FulfillmentCenter({
     });
     if (res.ok) {
       setFulfilment(wave.id, { isSettled: true });
+      // P1 缺陷 2 修复：争议调解达成（BREACH_SETTLED）同样归档 wave，释放活动槽位
+      closeWave(wave.id);
       setDisputeOpen(false);
     } else {
       setTransitError(res.reason ?? "调解结算失败");

@@ -8,6 +8,7 @@ import { confirmedCount } from "@/base/order/moduleFulfilment";
 import type { Claim, Wave } from "@/base/order/wave";
 import { checkTextEvidence } from "@/base/ai/forgery";
 import { verifyDoc } from "@/base/platform/signInsure";
+import { toast } from "@/base/platform/toast";
 
 /**
  * 验收 + 争议面板（需求方视角）：模块化验收（复杂任务）逐模块确认；
@@ -203,7 +204,14 @@ function DisputeForm({
       )}
       <button
         onClick={() => {
-          if (!reason || !evidence.trim()) return;
+          if (!reason) {
+            toast("⚠️ 请先选择争议原因（公平公正公开）", "error");
+            return;
+          }
+          if (!evidence.trim()) {
+            toast("⚠️ 请填写争议凭证（发生了什么、与你预期的偏差）", "error");
+            return;
+          }
           onOpen(reason, evidence.trim());
         }}
         className="w-full py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-[10.5px] font-bold text-amber-300"
