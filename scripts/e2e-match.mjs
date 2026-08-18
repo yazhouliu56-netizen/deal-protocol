@@ -45,7 +45,14 @@ try {
     if (m.type() !== "error") return;
     const t = m.text();
     // 容忍 LLM 上游不可用时的降级（429/5xx → MockEngine 是特性，不是 bug）
-    if (/429|Failed to load resource|LLM upstream failed/.test(t)) return;
+    // 及云端通道不可达噪音（Supabase Realtime WS 断连 / p2p_broadcast 404：
+    // 本地沙盒降级路径，既有 E2E 过滤器口径一致容忍）
+    if (
+      /429|Failed to load resource|LLM upstream failed|supabase\.co\/realtime|ERR_CONNECTION_CLOSED|WebSocket connection to/.test(
+        t
+      )
+    )
+      return;
     errors.push(t);
   });
   page.on("pageerror", (e) => errors.push(String(e)));

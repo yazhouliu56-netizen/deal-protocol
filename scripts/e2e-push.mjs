@@ -65,7 +65,15 @@ try {
   await pageB.getByLabel("实名认证模拟").click(); // 进家品类硬门槛
   await pageB.getByRole("textbox", { name: "添加标签" }).fill("生日");
   await pageB.getByRole("button", { name: "添加标签" }).click();
-  await pageB.waitForTimeout(400);
+  await waitUntil(
+    pageB,
+    () =>
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")?.state?.responders ?? []).some(
+        (r) => r.categories?.includes("厨师 · 上门做饭")
+      ),
+    10000,
+    "B 能力声明落库"
+  );
 
   const responders = await pageB.evaluate(() =>
     JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")

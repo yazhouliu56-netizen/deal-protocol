@@ -76,6 +76,12 @@ try {
   await pageA.getByRole("button", { name: "＋" }).click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
+  await waitUntil(
+    pageA,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    15000,
+    "A 进家门单落库"
+  );
   await pageA.waitForTimeout(400);
 
   // B 未实名 → 进家单不可见（feed 用定制条件指纹判定）
@@ -149,7 +155,7 @@ try {
   });
   assert.ok(bId, "B 身份 id 存在");
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("首页").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
@@ -213,7 +219,7 @@ try {
     bId
   );
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("首页").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),

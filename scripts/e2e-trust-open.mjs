@@ -251,7 +251,21 @@ try {
   // A 把 C 标未到场 → C breached 未结清（座位按加入顺序 B 在前、C 在后）
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
-  await pageA.waitForTimeout(400);
+  // 座位操作按钮（aria-label=标记未到场）在「出勤档案」折叠区内（MATCHED 态默认折叠）
+  // → 先展开再轮询（若已展开则「展开」字样不存在，自动跳过）
+  const expandSeat = pageA.getByRole("button", { name: /展开/ });
+  if (await expandSeat.count()) {
+    await expandSeat.first().click();
+  }
+  await waitUntil(
+    pageA,
+    () =>
+      Array.from(document.querySelectorAll("button")).filter((b) =>
+        (b.getAttribute("aria-label") ?? "").includes("标记未到场")
+      ).length >= 2,
+    20000,
+    "行程页两个座位按钮就绪"
+  );
   await pageA.getByRole("button", { name: /标记未到场/ }).nth(1).click();
   await pageA.waitForTimeout(500);
 
@@ -266,7 +280,12 @@ try {
   await publishOpen(pageA, "拼桌桌游", "周二 15:00", "城市书房", 60);
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
-  await pageA.waitForTimeout(400);
+  await waitUntil(
+    pageA,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    15000,
+    "局 4 发布落库"
+  );
   const w4 = (await readShared(pageA))?.state?.waves?.find(
     (w) => w.basics.area === "城市书房"
   );

@@ -82,6 +82,13 @@ try {
   // 不拆解 → 简单任务
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
+  // 支付/落库是异步管线 → 等 wave 确实入共享空间再让 B 刷新（负载无关的确定性等待）
+  await waitUntil(
+    pageA,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    15000,
+    "A 场景 A 发布落库"
+  );
 
   // Playwright 多 page 不触发 storage 事件 → reload B 等效"另一设备实时收到广播"
   await pageB.reload({ waitUntil: "domcontentloaded" });
@@ -170,10 +177,14 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   // 发布时 wave.modules 落库
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
-  const sB1 = await state(pageA);
-  assert.ok(
-    sB1?.waves?.some((w) => w.modules?.length >= 2),
-    "wave 携带模块定义"
+  await waitUntil(
+    pageA,
+    () =>
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).some(
+        (w) => w.modules?.length >= 2
+      ),
+    15000,
+    "wave 携带模块定义落库"
   );
 
   // Playwright 多 page 不触发 storage 事件 → reload B 等效实时收到广播
@@ -265,6 +276,12 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("基础预算").fill("120");
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
+  await waitUntil(
+    pageA,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    15000,
+    "A 场景 C 发布落库"
+  );
 
   // Playwright 多 page 不触发 storage 事件 → reload B 等效实时收到广播
   await pageB.reload({ waitUntil: "domcontentloaded" });

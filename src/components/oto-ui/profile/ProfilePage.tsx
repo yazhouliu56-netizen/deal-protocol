@@ -32,6 +32,7 @@ import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
 import DynamicFormView, { type FormField, type FormValues } from "@/components/oto-ui/DynamicFormView";
 import SeniorModeView from "@/components/oto-ui/SeniorModeView";
 import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
+import SafetyKit from "@/components/waves/SafetyKit";
 import {
   readAuthAccount,
   openAuthSheet,
@@ -473,6 +474,11 @@ export default function ProfilePage({
         <p className="text-[9px] text-white/25 mt-2">
           静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
         </p>
+      </div>
+
+      {/* 治理与安全四件套总入口（SafetyKit：紧急联系人 · 见面兜底 · 安全面基点 · 平台治理后台） */}
+      <div className="mb-2">
+        <SafetyKit />
       </div>
 
       {/* ADR-0013 安全中心：SOS 危机干预 + 数据脱敏/遗忘权（N8/N10 接线） */}

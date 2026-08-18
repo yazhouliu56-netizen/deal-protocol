@@ -137,9 +137,9 @@ try {
   });
   assert.equal(afterReport, 2, "自动 + 手动 = 2 条举报");
 
-  // --- 3. 管理后台看板（入口在首页底部"安全中心"） ---
+  // --- 3. 管理后台看板（入口在"我的"页 SafetyKit） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("首页").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
@@ -228,7 +228,7 @@ try {
 
   // 管理员：处理针对 B 的举报 → 封禁
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("首页").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
@@ -291,7 +291,7 @@ try {
 
   // --- 6. 审计记录留痕 ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
-  await pageB.getByLabel("首页").click();
+  await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),

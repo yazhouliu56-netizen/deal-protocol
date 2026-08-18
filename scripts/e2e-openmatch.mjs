@@ -83,7 +83,12 @@ try {
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   // 随单支付：发起人付自己那份(人均 50) → 激活上线
   await pageA.getByRole("button", { name: /立即支付/ }).click();
-  await pageA.waitForTimeout(500);
+  await waitUntil(
+    pageA,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    15000,
+    "Tab A 发布落库"
+  );
 
   const published = await readShared(pageA);
   const wave = published?.state?.waves?.[0];
