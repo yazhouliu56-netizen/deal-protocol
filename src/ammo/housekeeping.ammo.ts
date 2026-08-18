@@ -30,6 +30,7 @@ import type {
 } from "../types/ammo-schema.ts";
 import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
+import { HOME_ACCESS_KEYWORDS_MAP } from "./risk-rule.ts";
 import { AIGC_PHOTO_FORGERY_DETECTED } from "../base/ai/forgery.ts";
 
 /* =====================================================================
@@ -160,6 +161,14 @@ export const cleaningCheckHook: ISubEventHook = {
 /* =====================================================================
  * 8 维全息配置（AmmoFactory 装配原料 · 静态审查出厂）
  * ===================================================================== */
+
+/**
+ * D3 风控引信 · 进家词表（显式装配：直取自 ammo/risk-rule 权威类目映射
+ * HOME_ACCESS_KEYWORDS_MAP.housekeeping，供 sentinel 引信联动 ×1.2 加权）。
+ * 弹药层是业务词唯一声明点，底座 sentinel 仅做通用词表匹配。
+ */
+export const HOUSEKEEPING_HOME_ACCESS_KEYWORDS: ReadonlyArray<string> =
+  HOME_ACCESS_KEYWORDS_MAP.housekeeping;
 
 /** 家庭深度保洁 · 8 维全息声明（D1~D8，资金守恒/入户背调/加价熔断出厂硬检）。 */
 export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {

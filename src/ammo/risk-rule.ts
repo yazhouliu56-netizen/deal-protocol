@@ -58,8 +58,25 @@ export function isRuleEnabled(rules: RiskRule[], name: RiskRuleName): boolean {
 /**
  * 进家/上门类目词表（home-access 引信参数，弹药装填）。
  * 底座 sentinel 探针只做通用词表匹配，具体业务词在此声明。
+ *
+ * 键 = 弹药类目键（housekeeping 等英文键）与中文类目名（家政保洁/遛狗遛弯…）。
+ * 弹药层（housekeeping.ammo 等）与上层调用方经此映射显式装填词表；
+ * 命中 MAP 即返回专属词表，未命中回落引信参数（GLOBAL_RISK_RULES 全局表），
+ * 均未配置时回落空数组（零注入 → 零业务词，底座零加权）。
  */
+export const HOME_ACCESS_KEYWORDS_MAP: Record<string, string[]> = {
+  housekeeping: ["保洁", "上门", "入户", "打扫", "做卫生", "擦玻璃", "家政"],
+  "家政保洁": ["保洁", "上门", "入户", "打扫", "做卫生", "擦玻璃", "家政"],
+  "厨师 · 上门做饭": ["厨师", "上门", "做饭"],
+  "遛狗遛弯": ["遛狗", "上门"],
+  "水电维修": ["上门", "入户", "维修"],
+  "陪诊陪护": ["陪诊", "陪护", "上门"],
+  "按摩推拿": ["按摩", "上门"],
+};
+
 export function homeAccessKeywordsFor(category: string): string[] {
+  const mapped = HOME_ACCESS_KEYWORDS_MAP[category];
+  if (Array.isArray(mapped) && mapped.length > 0) return mapped;
   const rules = riskRulesFor(category);
   const params = rules.find((r) => r.rule === "home-access-verification")?.params;
   const list = params?.homeAccessKeywords;

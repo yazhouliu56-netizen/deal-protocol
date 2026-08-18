@@ -9,12 +9,14 @@ import assert from "node:assert/strict";
 import {
   HOUSEKEEPING_EVIDENCE,
   HOUSEKEEPING_HOLOGRAPHIC_CONFIG,
+  HOUSEKEEPING_HOME_ACCESS_KEYWORDS,
   HOUSEKEEPING_REFUND_RULES,
   HOUSEKEEPING_STAGES,
   cleaningCheckHook,
   housekeepingAmmo,
   onsiteQuoteHook,
 } from "./housekeeping.ammo.ts";
+import { HOME_ACCESS_KEYWORDS_MAP, homeAccessKeywordsFor } from "./risk-rule.ts";
 import {
   advanceLifecycle,
   evaluateAmmoFuze,
@@ -35,6 +37,22 @@ test("弹药装备完整性：housekeeping-v1 声明式装填无误", () => {
   assert.equal(housekeepingAmmo.fiveStateHooks.length, 2);
   assert.ok(housekeepingAmmo.fiveStateHooks.some((h) => h.hookId === "operator.onsite-quote"));
   assert.ok(housekeepingAmmo.fiveStateHooks.some((h) => h.hookId === "operator.cleaning-check"));
+});
+
+test("D-3 引信装配：housekeeping 弹药显式挂载进家词表（权威 MAP 直取）", () => {
+  assert.ok(HOUSEKEEPING_HOME_ACCESS_KEYWORDS.length >= 4, "housekeeping 专属词表非空");
+  assert.deepEqual(
+    [...HOUSEKEEPING_HOME_ACCESS_KEYWORDS],
+    HOME_ACCESS_KEYWORDS_MAP.housekeeping,
+    "弹药引信词表 = ammo/risk-rule 权威类目映射"
+  );
+  assert.ok(HOUSEKEEPING_HOME_ACCESS_KEYWORDS.includes("保洁"));
+  assert.ok(HOUSEKEEPING_HOME_ACCESS_KEYWORDS.includes("入户"));
+  assert.deepEqual(
+    homeAccessKeywordsFor("housekeeping"),
+    homeAccessKeywordsFor("家政保洁"),
+    "中英双键指向同一专属词表"
+  );
 });
 
 test("8D 全息出厂：D1 入户一票否决 / D2 计价护栏 / D4 传感降级 / D6 违约阶梯 / D7 分账守恒 / D8 视界", () => {

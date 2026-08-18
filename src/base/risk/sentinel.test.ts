@@ -89,6 +89,31 @@ test("引信联动：进家类目设备高危 → ×1.2 后仍 ≥70 封顶 100�
   assert.ok(!isHomeAccess("家政保洁"), "未注入词表 → 不加权（弹药语义）");
 });
 
+test("D-3 引信参数化：权威类目映射中英双键同表，未装填类目回落全局引信", () => {
+  const zh = homeAccessKeywordsFor("家政保洁");
+  const ammoKey = homeAccessKeywordsFor("housekeeping");
+  assert.deepEqual(zh, ammoKey, "中文类目键与弹药英文键指向同一专属词表");
+  assert.ok(zh.length > 0, "进家类目专属词表非空");
+  assert.ok(zh.some((k) => "家政保洁".includes(k)), "词表可命中该类目");
+  assert.ok(!["羽毛球", "夜骑巡航"].some((c) => isHomeAccess(c, zh)), "非进家类目不误命中");
+  const fallback = homeAccessKeywordsFor("不存在的类目");
+  assert.ok(Array.isArray(fallback) && fallback.length > 0, "MAP 未命中 → 回落全局引信参数（向后兼容）");
+  assert.ok(!isHomeAccess("羽毛球", fallback));
+  assert.ok(!isHomeAccess("家政保洁"), "未注入词表 → 不加权（底座默认零业务词）");
+});
+
+test("D-3 引信参数化：housekeeping 弹药键注入同样触发 ×1.2 加权", () => {
+  const r = sentinelCheck({
+    deviceRisk: "high",
+    category: "家政保洁",
+    homeAccessKeywords: homeAccessKeywordsFor("housekeeping"),
+    creditScore: 850,
+    amountYuan: 120,
+    publishCount: 2,
+  });
+  assert.equal(r.score, 96); // 80×1.2
+});
+
 test("宪法 #9：设备高危不被低危因子稀释 → 保持 high", () => {
   const r = sentinelCheck({
     deviceRisk: "high",

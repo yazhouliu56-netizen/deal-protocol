@@ -11,6 +11,7 @@
 
 | 日期 | Commit | 结构性改动 | 收敛的条文 | 收敛说明 |
 |------|--------|-----------|-----------|----------|
+| 2026-08-18 | （待 commit 回填） | **D-3 架构防腐战役：进家业务词汇彻底解耦与引信参数化（无 rename）**：`src/ammo/risk-rule.ts` 新增 `HOME_ACCESS_KEYWORDS_MAP` 权威类目映射（housekeeping/家政保洁/厨师·上门做饭/遛狗遛弯/水电维修/陪诊陪护/按摩推拿 7 键中英双键）+ `homeAccessKeywordsFor(category)` 行为增强（MAP 命中优先 → 引信参数回落 → 空数组，既有调用与断言零改动）；`src/ammo/housekeeping.ammo.ts` 新增显式引信词表导出 `HOUSEKEEPING_HOME_ACCESS_KEYWORDS`（直取 MAP.housekeeping）；`src/base/risk/sentinel.test.ts` +2、`src/ammo/housekeeping.ammo.test.ts` +1（中英双键同表/未装填回落全局引信/弹药键注入 ×1.2/显式装配=权威 MAP）；底座 `sentinel.ts` 复核零业务词零改动；白皮书 §5.2 D-3 🔴→🟢 并如实标注 decompose/llmEngine 意图识别词残余；验证：tsc 0 错 + 1465→**1468/1468 全绿** + build exit 0 + 门禁 exit 0 | #3 单向依赖（底座零业务词，词表唯一声明点=弹药层）/ #4 引信跟弹药走（进家词表经 MAP + 弹药显式装配注入）/ #5 引信跟弹药走（housekeeping 显式挂载 D3 引信词表） | 契约修订类收敛：homeAccessKeywordsFor 检索语义增强（MAP 优先，未命中回落引信参数，行为向后兼容——既有"家政保洁"路径原样返回可命中词表）；无文件 rename（git 门禁零检测项） |
 | 2026-07-23 | `382663d` | SW 源码移动：`src/app/sw.ts` → `src/app/sw.js`（修复 Vercel 构建，serwist manifest 注入冲突） | §2 历史遗留（宪法定稿 08-13 前） | 追认登记：PWA 构建文件位置调整，非九域结构化重构；补记确保登记册完整 |
 | 2026-07-23 | `0a64fbd` | SW 源码移动：`src/app/sw.js` → `sw.js`（移出 App Router 编译路径） | §2 历史遗留（宪法定稿 08-13 前） | 追认登记：sw.js 挪到项目根，next.config swSrc 同步；补记保持登记册唯一事实来源完整 |
 | 2026-07-23 | `7f868c3` | SW 源码回移：`sw.js` → `src/app/sw.ts`（移除 webpack-obfuscator 冲突后恢复 sw.ts） | §2 历史遗留（宪法定稿 08-13 前） | 追认登记：最终形态恢复为 src/app/sw.ts；三次移动（ts→js→root→ts）终态收敛，补记闭环 |
