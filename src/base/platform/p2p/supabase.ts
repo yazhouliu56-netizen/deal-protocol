@@ -57,7 +57,14 @@ export function createSupabaseTransport(
   url: string,
   key: string
 ): P2pTransport {
-  const client = createClient(url, key);
+  // 8s 上限：云端不可达（墙/超时/域名解析挂起）时快速走失败路径 → degrade，
+  // 避免 pull() 长时间悬挂导致「第一帧读空 → 降级迟迟不来」的窗口期（E2E flaky）。
+  const client = createClient(url, key, {
+    global: {
+      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, { ...init, signal: AbortSignal.timeout(8_000) }),
+    },
+  });
   let cache: WaveBundle | null = null;
   let sig = "";
   const listeners = new Set<() => void>();
@@ -71,6 +78,8 @@ export function createSupabaseTransport(
   /**
    * 静默降级迁移：云端表缺失（或无法联通）时切到本地通道。
    * 幂等（degraded 守卫）；迁移后 Realtime 订阅立即退订，杜绝后续 404 噪音。
+   * 降级完成即刻 notify：读方（zustand persist rehydrate）在 cache 转移后
+   * 立即重新拉取，杜绝「rehydrate 读空 → 降级后无人唤醒」的窗口期空态。
    */
   function degrade(): void {
     if (degraded) return;
@@ -83,6 +92,7 @@ export function createSupabaseTransport(
     // 本地通道接盘：既有缓存数据转移，后续读写全走 localStorage
     cache = localFallback.read() ?? cache;
     localFallback.subscribe(notify);
+    notify();
   }
 
   let channel: ReturnType<typeof client.channel> | null = null;

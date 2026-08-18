@@ -118,6 +118,9 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(400);
 
+  // Playwright 多 page 不触发 storage 事件 → reload B 等效"另一设备实时收到广播"
+  await pageB.reload({ waitUntil: "domcontentloaded" });
+
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("滨江球场"),

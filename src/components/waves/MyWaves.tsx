@@ -41,10 +41,12 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
   const myBuffs = initiatorBuffs[identity.id] ?? 0;
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
+  // waves 依赖：transport 降级恢复是异步的（首帧空 → degrade 后回灌），
+  // 若挂载时数据未到位，靠 waves 变化触发补跑，避免过期局漏结算（E2E flaky）
   useEffect(() => {
     runAutoFulfilments();
     settleExpiredOpen();
-  }, [runAutoFulfilments, settleExpiredOpen]);
+  }, [runAutoFulfilments, settleExpiredOpen, waves]);
 
   const cancelRefundLabel = (wave: Wave) => {
     if (wave.status !== "active") return "";
@@ -334,8 +336,11 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 <AttendancePanel wave={wave} />
               )}
 
-              {/* 已接单 → 见面 / 验收 / 违约 + 一次性虚拟线路 */}
-              {!isOpen && wave.status === "claimed" && accepted && (
+              {/* 已接单 → 见面 / 验收 / 违约 + 一次性虚拟线路
+                  claims 是接单事实源；wave.status 镜像可能被远端旧快照
+                  覆盖回退（active），此时 accepted claim 仍在 → 照常渲染
+                  履约流，避免验收/申报卡间歇缺失（E2E flaky 根因） */}
+              {!isOpen && accepted && (wave.status === "claimed" || wave.status === "active") && (
                 <LockedSeatFlow wave={wave} claim={accepted} />
               )}
 

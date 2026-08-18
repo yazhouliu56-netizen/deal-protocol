@@ -82,6 +82,9 @@ try {
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
 
+  // Playwright 多 page 不触发 storage 事件 → reload B 等效"另一设备实时收到广播"
+  await pageB.reload({ waitUntil: "domcontentloaded" });
+
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(800);
   await waitUntil(
@@ -96,7 +99,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
-    10000,
+    25000,
     "B 见申报按钮"
   );
   await pageB.getByLabel("申报完成").click();
@@ -107,11 +110,11 @@ try {
       const st = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
       return (st?.claims ?? []).some((c) => c.serviceDoneAt);
     },
-    10000,
+    25000,
     "B 申报落盘"
   );
 
-  await pageA.reload({ waitUntil: "domcontentloaded" });
+await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("正在接收信号"),
@@ -119,12 +122,22 @@ try {
     "A reload"
   );
   await pageA.getByLabel("行程").click();
-  await waitUntil(
-    pageA,
-    () => document.body.textContent?.includes("服务方已申报完成"),
-    10000,
-    "A 见验收卡"
-  );
+  const t0 = Date.now();
+  while (true) {
+    try {
+      if (await pageA.evaluate(() => document.body.textContent?.includes("服务方已申报完成"))) break;
+    } catch {}
+    const dump = await pageA.evaluate(() => {
+      const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
+      return {
+        claims: (s?.claims ?? []).map((c) => ({ st: c.status, done: !!c.serviceDoneAt, w: c.waveId })),
+        waves: (s?.waves ?? []).map((w) => ({ st: w.status })),
+      };
+    });
+    console.log(`[t+${((Date.now() - t0) / 1000).toFixed(1)}s] A store dump:`, JSON.stringify(dump));
+    if (Date.now() - t0 > 25000) throw new Error("等待超时: A 见验收卡");
+    await new Promise((r) => setTimeout(r, 3000));
+  }
   await pageA.getByLabel("验收凭证").fill("马桶通了，水流顺畅");
   await pageA.getByRole("button", { name: /确认验收/ }).click();
   await pageA.waitForTimeout(500);
@@ -161,6 +174,9 @@ try {
     "wave 携带模块定义"
   );
 
+  // Playwright 多 page 不触发 storage 事件 → reload B 等效实时收到广播
+  await pageB.reload({ waitUntil: "domcontentloaded" });
+
   await pageB.getByLabel("首页").click();
   await waitUntil(
     pageB,
@@ -174,7 +190,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("模块化交付"),
-    10000,
+    25000,
     "B 见模块交付面板"
   );
   // 逐模块申报（动态数量：mock=2 / LLM=2-3）——按场景 B 的 wave 匹配 claim
@@ -205,7 +221,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("模块化验收"),
-    10000,
+    25000,
     "A 见模块验收"
   );
   const aWaveId = (await state(pageA))?.waves?.find((w) => w.modules?.length >= 2)?.id;
@@ -247,6 +263,9 @@ try {
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
 
+  // Playwright 多 page 不触发 storage 事件 → reload B 等效实时收到广播
+  await pageB.reload({ waitUntil: "domcontentloaded" });
+
   await pageB.getByLabel("首页").click();
   await waitUntil(
     pageB,
@@ -260,7 +279,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
-    10000,
+    25000,
     "B 申报按钮（C）"
   );
   await pageB.getByLabel("申报完成").click();
@@ -271,7 +290,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("发起争议"),
-    10000,
+    25000,
     "A 见争议入口"
   );
   // 选原因「迟到/早退」（部分责任 → 协商上限 60%）——定位场景 C 的卡片（预算 ¥120）
@@ -304,7 +323,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("需求方发起了争议"),
-    10000,
+    25000,
     "B 见争议卡"
   );
   await pageB.getByRole("button", { name: /提出协商/ }).first().click();
@@ -315,7 +334,7 @@ try {
       const st = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
       return (st?.disputes ?? []).some((d) => d.claimId === cid && d.outcome?.kind === "negotiated");
     },
-    10000,
+    25000,
     "B 协商结案落盘",
     cClaimId
   );

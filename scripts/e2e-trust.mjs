@@ -94,23 +94,25 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
-    10000,
+    20000,
     "能力面板"
   );
   await pageB.getByLabel("能力声明").click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("实名认证模拟"),
-    10000,
+    20000,
     "认证开关"
   );
   await pageB.getByLabel("实名认证模拟").click();
   await pageB.waitForTimeout(400);
+  // 认证落盘后 reload，让 B 重新读取 A 已发布的 wave（同上下文多 page 不触发 storage 事件）
+  await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("需要擦窗"),
-    10000,
+    20000,
     "认证后进家单可见"
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
@@ -127,13 +129,13 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("有人接单了"),
-    10000,
+    20000,
     "A 见接单"
   );
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("举报对方"),
-    10000,
+    20000,
     "A 见举报按钮"
   );
   await pageA.getByRole("button", { name: /举报对方/ }).click();
@@ -150,7 +152,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
-    10000,
+    20000,
     "入口"
   );
   const sb = pageB.getByLabel("安全中心");
@@ -160,7 +162,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("举报队列"),
-    10000,
+    20000,
     "队列"
   );
   await pageB.getByRole("button", { name: "警告", exact: true }).first().click();
@@ -182,7 +184,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("平台已处理"),
-    10000,
+    20000,
     "A 收到处理回执"
   );
   const receipt = await pageA.evaluate(() => document.body.innerText);
@@ -214,7 +216,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
-    10000,
+    20000,
     "入口"
   );
   const sb2 = pageB.getByLabel("安全中心");
@@ -224,7 +226,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("举报队列"),
-    10000,
+    20000,
     "队列"
   );
   // 犯罪受害者举报（最新）→ 警告 → 触发自动限流

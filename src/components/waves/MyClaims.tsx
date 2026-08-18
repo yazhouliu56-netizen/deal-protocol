@@ -38,10 +38,11 @@ export default function MyClaims() {
   const removeGuest = useWaveStore((s) => s.removeGuest);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
+  // waves 依赖：transport 降级恢复异步（首帧空 → degrade 回灌），数据迟到时补跑
   useEffect(() => {
     runAutoFulfilments();
     settleExpiredOpen();
-  }, [runAutoFulfilments, settleExpiredOpen]);
+  }, [runAutoFulfilments, settleExpiredOpen, waves]);
 
   // 我的候补：开放局满员后排队（wave.waitlist 按加入顺序，有人退出自动补位）
   const myWaitlist = useMemo(
@@ -140,7 +141,11 @@ export default function MyClaims() {
           const turn = nextSpeaker(claim);
           const exhausted = claim.rounds >= MAX_ROUNDS;
           const isLocked =
-            (wave.status === "claimed" || wave.status === "assembled") &&
+            // wave.status 镜像可能被远端旧快照覆盖回退（active），
+            // claim.status === "accepted" 是接单事实源 → 照常进入履约流
+            (wave.status === "claimed" ||
+              wave.status === "assembled" ||
+              claim.status === "accepted") &&
             claim.status !== "withdrawn" &&
             claim.status !== "joined";
           const isJoined = claim.status === "joined";

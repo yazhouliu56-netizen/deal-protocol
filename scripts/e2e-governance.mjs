@@ -123,7 +123,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("羽毛球约局"),
-    10000,
+    20000,
     "B 看到 A 的正常需求"
   );
   // B 手动举报 A 的这条需求（响应者视角 WaveCard 举报按钮）
@@ -141,7 +141,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
-    10000,
+    20000,
     "治理入口可见"
   );
   const safetyBtn = pageB.getByLabel("安全中心");
@@ -150,7 +150,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("平台治理后台"),
-    10000,
+    20000,
     "安全中心打开"
   );
   await pageB.getByRole("button", { name: /平台治理后台/ }).click();
@@ -159,7 +159,7 @@ try {
     () =>
       document.body.textContent?.includes("待处理举报") &&
       document.body.textContent?.includes("自动拦截"),
-    10000,
+    20000,
     "看板指标加载"
   );
   const desk = await pageB.evaluate(() => document.body.innerText);
@@ -200,7 +200,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("羽毛球约局"),
-    10000,
+    20000,
     "B 再见正常需求"
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
@@ -212,8 +212,14 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("有人接单了"),
-    10000,
+    20000,
     "A 见接单"
+  );
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("举报对方"),
+    20000,
+    "A 见举报按钮"
   );
   await pageA.getByRole("button", { name: /举报对方/ }).click();
   await pageA.waitForTimeout(400);
@@ -224,7 +230,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
-    10000,
+    20000,
     "治理入口"
   );
   const safetyBtn2 = pageB.getByLabel("安全中心");
@@ -233,14 +239,14 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("平台治理后台"),
-    10000,
+    20000,
     "安全中心打开"
   );
   await pageB.getByRole("button", { name: /平台治理后台/ }).click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("responder"),
-    10000,
+    20000,
     "举报队列含行为举报"
   );
   // 行为举报 = open 队列最新一条（targetType responder）→ 封禁
@@ -285,7 +291,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
-    10000,
+    20000,
     "治理入口"
   );
   const safetyBtn3 = pageB.getByLabel("安全中心");
@@ -295,7 +301,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("裁定记录"),
-    10000,
+    20000,
     "审计记录区"
   );
   const audit = await pageB.evaluate(() => document.body.innerText);

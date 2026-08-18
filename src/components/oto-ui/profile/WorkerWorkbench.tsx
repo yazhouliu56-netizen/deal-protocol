@@ -100,6 +100,21 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
   );
   const qualified = qualificationMissing.length === 0;
 
+  /** 工作台演示订单 → 弹药准入门槛：仅家政单走 housekeeping-v1 供给门槛
+   *  （健康证等）；羽毛球/写真相机单无证书门槛（S1 R_AUTH 按弹药判定的粒度）。 */
+  const requirementFor = (order: WorkerOrder) =>
+    order.service.includes("保洁")
+      ? housekeepingAmmo.workerRequirement
+      : undefined;
+
+  /** 订单级准入缺项：无门槛弹药 → 达标；家政单 → 对照资质档案与年龄定制。 */
+  const missingFor = (order: WorkerOrder) =>
+    evaluateWorkerQualification(
+      providerId,
+      requirementFor(order),
+      requirementFor(order) ? DEMO_AGE_GATE : undefined,
+    );
+
   return (
     <div className="pointer-events-auto flex flex-col gap-4">
       <button
@@ -230,9 +245,9 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 actionLabel="接受订单"
                 onAction={() => acceptWorkerOrder(o.id)}
                 dimmed={!workerOnline}
-                blocked={!qualified}
+                blocked={missingFor(o).length > 0}
                 blockedLabel={
-                  qualificationMissing.some((m) => m.includes("年龄条件不匹配"))
+                  missingFor(o).some((m) => m.includes("年龄条件不匹配"))
                     ? "年龄条件不匹配"
                     : "需补齐资质后方可接单"
                 }

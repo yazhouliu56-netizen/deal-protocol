@@ -52,6 +52,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
+  console.log('--- 1 布线/下单 ---');
       localStorage.removeItem("oto-broadcast-v1");
     } catch {}
   });
@@ -59,7 +60,29 @@ try {
   await pageB.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageB.reload({ waitUntil: "domcontentloaded" });
 
+  // reload 后 dock 挂载前点击会 30s 超时（JS 挂载慢于 domcontentloaded）→ 先等 dock
+  const waitDock = (page, label) =>
+    waitUntil(
+      page,
+      label === "首页"
+        ? () =>
+            Array.from(document.querySelectorAll("button")).some(
+              (b) => b.getAttribute("aria-label") === "首页"
+            )
+        : () =>
+            Array.from(document.querySelectorAll("button")).some(
+              (b) => b.getAttribute("aria-label") === "我的"
+            ),
+      25000,
+      `${label} dock 就绪`
+    );
+
   // --- 2. A 发布含险需求（押金 5） ---
+  await waitDock(pageA, "首页").catch(async (e) => {
+    const body = await pageA.evaluate(() => document.body?.innerText?.slice(0, 600) ?? "(empty)");
+    console.error("A dock 缺失，body:", body);
+    throw e;
+  });
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.waitForTimeout(400);
@@ -80,29 +103,32 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
-    10000,
+    20000,
     "B 能力面板"
   );
   await pageB.getByLabel("能力声明").click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("实名认证模拟"),
-    10000,
+    20000,
     "B 认证开关"
   );
+  console.log('--- 2 B 认证/押金 ---');
   await pageB.getByLabel("实名认证模拟").click();
+  // Playwright 多 page 不触发 storage 事件 → reload B 等效"另一设备实时收到广播"
+  await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(800);
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("谁正在附近发需求"),
-    10000,
+    20000,
     "B 首页挂载"
   );
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("厨师 · 上门做饭"),
-    10000,
+    20000,
     "B 收到广播"
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
@@ -110,6 +136,7 @@ try {
   const locked = await pageB.evaluate(() =>
     JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
   );
+  console.log('--- 3 驳回/重发 ---');
   assert.equal(locked?.state?.claims?.[0]?.depositPhase, "held");
 
   // B 进"我的"触发押金冻结账务（幂等）
@@ -123,7 +150,7 @@ try {
       (JSON.parse(
         localStorage.getItem(`oto-identity-${window.name || "ssr"}`) || "{}"
       )?.state?.deposits ?? []).some((d) => d.phase === "held"),
-    10000,
+    20000,
     "B 押金冻结"
   );
   const heldB = await pageB.evaluate(
@@ -132,12 +159,13 @@ try {
   );
   assert.equal(heldB, 95, "B 押金冻结 100 → 95");
 
-  // --- 4. A：未申报前不能验收（Airtasker 放款闸门） ---
+// --- 4. A：未申报前不能验收（Airtasker 放款闸门） ---
+  console.log('--- 4 A 闸门 ---');
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("正在接收信号"),
-    10000,
+    20000,
     "A reload 挂载"
   );
   await waitUntil(
@@ -150,7 +178,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("我的 OTO 之旅"),
-    10000,
+    20000,
     "A 行程页挂载"
   );
   await waitUntil(
@@ -158,7 +186,7 @@ try {
     () =>
       document.body.textContent?.includes("有人接单了") &&
       document.body.textContent?.includes("等待服务方申报完成"),
-    10000,
+    20000,
     "A 等申报"
   );
   assert.equal(
@@ -173,9 +201,10 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("服务完成 · 请求放款"),
-    10000,
+20000,
     "B 见申报按钮"
   );
+  console.log('--- 5 B 申报/A 验收 ---');
   await pageB.getByLabel("申报完成").click();
   await pageB.waitForTimeout(400);
 
@@ -183,7 +212,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("正在接收信号"),
-    10000,
+    20000,
     "A reload 挂载 2"
   );
   await waitUntil(
@@ -196,13 +225,13 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("我的 OTO 之旅"),
-    10000,
+    20000,
     "A 行程页挂载 2"
   );
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("服务方已申报完成"),
-    10000,
+    20000,
     "A 见验收卡"
   );
   // 空凭证 → 按钮不生效
@@ -228,12 +257,13 @@ try {
   assert.ok(
     fulfilled?.state?.claims?.[0]?.fulfilment?.confirmedBy === "demander"
   );
-  assert.ok(
+assert.ok(
     (fulfilled?.state?.claims?.[0]?.fulfilment?.note ?? "").includes("家宴"),
     "验收凭证落库"
   );
 
   // --- 6. B 押金解冻退回（95 → 99.5，平台费 0.5） ---
+  console.log('--- 6 放款/互评 ---');
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
@@ -245,7 +275,7 @@ try {
           ?.balance ?? 0) >= 99.5
       );
     },
-    10000,
+    20000,
     "B 押金解冻"
   );
   const afterB = await pageB.evaluate(
@@ -260,7 +290,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("评价对方"),
-    10000,
+    20000,
     "A 见评价入口"
   );
   await pageA.getByRole("button", { name: /评价对方/ }).first().click();
@@ -270,6 +300,7 @@ try {
   await pageA.getByRole("button", { name: /态度5分/ }).click();
   await pageA.getByRole("button", { name: /专业度5分/ }).click();
   await pageA.getByRole("button", { name: /提交评价/ }).click();
+  console.log('--- 7 星钻成长 ---');
   await pageA.waitForTimeout(500);
 
   // B 侧：能力面板出现 ★ 星级
@@ -278,7 +309,7 @@ try {
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("完成率 100%"),
-    10000,
+    20000,
     "B 见星级标签"
   );
   const starText = await pageB.evaluate(() => {

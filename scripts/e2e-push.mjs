@@ -77,6 +77,10 @@ try {
     "B 的能力声明已入共享空间"
   );
 
+  // Playwright 多 page 不触发 storage 事件 → reload A，让发布端 store
+  // 立即拿到 B 的响应者声明（否则 clusterPushes 对空池生成零推送）
+  await pageA.reload({ waitUntil: "domcontentloaded" });
+
   // --- 3. Tab A 发布需求（触发 LLM 聚类推送） ---
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
@@ -95,6 +99,16 @@ try {
   await pageA.waitForTimeout(800);
 
   // --- 4. Tab B 雷达收到聚类推送（展开 → 适配理由 + 标签） ---
+  // 聚类推送经 /api/cluster 异步写盘（LLM 探测链可达数秒）→ 先等落盘再 reload，
+  // 等效"推送在另一设备生成后才打开收件箱"的实时语义
+  await waitUntil(
+    pageB,
+    () =>
+      JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")?.state
+        ?.pushes?.some((p) => !p.read),
+    20000,
+    "聚类推送已落盘"
+  );
   // Playwright 多 page 不触发 storage 事件 → reload 等效"另一设备收到广播"
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
