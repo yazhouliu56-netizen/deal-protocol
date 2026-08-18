@@ -2,7 +2,10 @@ import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
-import { calculateProviderSettlement } from "@/base/money/escrow"
+import {
+  calculateProviderSettlement,
+  generateComplianceSplitInstruction,
+} from "@/base/money/escrow"
 
 export const POST = withAuth(async (req, user) => {
   const { orderId } = await req.json()
@@ -101,6 +104,28 @@ export const POST = withAuth(async (req, user) => {
     console.warn("wallet_logs 写入失败，但资金已发放:", logError)
   }
 
+  // P0-2 收编：生成合规分账指令（信息流与资金流分离标准载荷，防二清），
+  // 落审计留痕 + 随响应返回；前端忽略多余字段零破坏。
+  const instruction = generateComplianceSplitInstruction(
+    { platformFee, providerNet },
+    "BANK_ESCROW",
+    { orderId, receiverAccountId: demand.matched_provider_id },
+  )
+
+  const { error: instructionLogError } = await supabase
+    .from("wallet_logs")
+    .insert({
+      provider_id: demand.matched_provider_id,
+      amount: 0,
+      type: "split_instruction",
+      order_id: orderId,
+      description: `合规分账指令 ${instruction.instructionId} 已生成（签名 ${instruction.instructionSignature.slice(0, 8)}…）`,
+    })
+
+  if (instructionLogError) {
+    console.warn("split_instruction 留痕失败（不影响资金发放）:", instructionLogError)
+  }
+
   revalidatePath(`/demands/${orderId}`)
   revalidatePath('/profile')
 
@@ -109,5 +134,6 @@ export const POST = withAuth(async (req, user) => {
     payout: providerNet,
     fee: platformFee,
     newBalance,
+    instruction,
   })
 })

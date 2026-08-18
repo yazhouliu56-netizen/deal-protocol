@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
+// P0-2 收编：可用余额估算不再内联 `totalEarned * 0.95` 硬编码比例，
+// 统一经 escrow 确定性净得口径（DEFAULT_PLATFORM_RATE 10% 平台费）。
+import { calculateProviderSettlement } from "@/base/money/escrow";
 
 export const GET = withAuth(async (request: Request, user) => {
   try {
@@ -36,7 +39,9 @@ export const GET = withAuth(async (request: Request, user) => {
       .eq("id", user.id)
       .single();
 
-    const availableBalance = Number(profile?.balance) || (totalEarned * 0.95);
+    const availableBalance =
+      Number(profile?.balance) ||
+      calculateProviderSettlement(totalEarned).providerNet;
     const pendingWithdrawal = Number(profile?.pending_withdrawal) || 0;
 
     return NextResponse.json({

@@ -151,11 +151,19 @@ try {
   await forceExpired(pageB, w1.id, Date.now() - 10_000);
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
-  await pageA.waitForTimeout(800);
 
-  shared = await readShared(pageA);
-  const w1After = shared?.state?.waves?.find((w) => w.id === w1.id);
+  // 轮询过期态落盘（行程页挂载 settleExpiredOpen 的时序抖动防御：
+  // 固定 sleep 在新 build/冷 JS 下偶发不足，改为条件轮询 6s 兜底）
+  const expiredDeadline = Date.now() + 6000;
+  let w1After;
+  while (Date.now() < expiredDeadline) {
+    const s = await readShared(pageA);
+    w1After = s?.state?.waves?.find((x) => x.id === w1.id);
+    if (w1After?.status === "expired") break;
+    await sleep(300);
+  }
   assert.equal(w1After?.status, "expired", "① 过期未成局 → wave expired");
+  shared = await readShared(pageA);
   const w1Orders = (shared?.state?.payOrders ?? []).filter(
     (o) => o.waveId === w1.id
   );

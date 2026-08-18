@@ -327,7 +327,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | D-1 | **base 反向 import UI/Store 层**（运行时依赖） | `src/base/ai/chat/llmEngine.ts:9`、`mockEngine.ts:10` → `import { useAppStore } from "@/store/useAppStore"`（读 chatMessages/workerOnline） | 红线 3 | 🔴 违规，需收敛 |
 | D-2 | **base 反向 import Store 类型**（type-only） | `src/base/platform/p2p/transport.ts:12`、`supabase.ts:23` → `import type { WaveBundle } from "@/store/useWaveStore"` | 红线 3 | 🟡 轻度（type-only，但 WaveBundle 契约应上收 `src/types/`） |
 | D-3 | **业务实体名词硬编码于 base** | `broadcast.ts:107` requiresVerified 默认含「陪诊陪护/家政保洁/厨师/上门」；`sentinel.ts:56` HOME_ACCESS_KEYWORDS 7 个业务词（进家判定未走 ammo 参数）；`decompose.ts:98` isOnsite 正则含业务词；`booking.ts:27-29` iconFor emoji 映射；`llmEngine/mockEngine` 分类话术硬编码 | 红线 3（严禁业务实体名词） | 🔴 主要违规；部分已有 ammo 覆盖路径（dispatch-rule），sentinel 进家词应迁入 `ammo/risk-rule` 引信参数 |
-| D-4 | **父项目 API 层隔离墙未闭合**：99 路由直连 Supabase，资金/状态跃迁不经 base 确定性引擎 | `app/api/payment/release/route.ts`、`app/api/orders/**`、`app/api/disputes/**` | 红线 1（精神） | 🟡 历史遗留（宪法 §2 不算违规，但每次结构性改动须收敛） |
+| D-4 | **父项目 API 层隔离墙未闭合**：99 路由直连 Supabase，资金/状态跃迁不经 base 确定性引擎 | ~~`app/api/payment/release/route.ts`、`app/api/orders/**`、`app/api/disputes/**`~~ → 2026-08-18 P0-2 战役收编：`orders/[id]` 争议分账默认五五开改经 `src/base/money/escrow.ts` `calculateMultiPartySplit` 原语（4 处 `amount * 0.5` 硬编码清零）+ 主写回带 `fund_status` CAS 乐观锁（并发 409 OPTIMISTIC_LOCK_CONFLICT）；`payment/release` 补 `generateComplianceSplitInstruction`（BANK_ESCROW 合规分账指令 + wallet_logs 留痕 + 响应携带）；`finance/overview` 可用余额估算改经 `calculateProviderSettlement`（0.95 硬编码清零）；`finance/withdraw` 余额校验改经 `verifyFundSafetyGuard`；`sos/trigger` 接入 `src/base/safe/crisis-tracker.ts`（`triggerCrisisEscalation` + `recordBreadcrumbPoint` 危机审计轨迹） | 红线 1（精神） | 🟢 已完全闭合（2026-08-18，P0-2 战役；7 项路由收编测试锁定：orders 5 + overview 2，1465/1465 单测全绿） |
 | D-5 | **两套状态机并存**：base 纯函数状态机（waves） vs 父项目 DB 状态机（orders/contracts） | `lib/protocol/engine.ts` + `supabase/migrations/001~` | 红线 1/3 | 🟡 融合期双轨，ADR-0018 后仍存 |
 | D-6 | **AmmoRunner 未实现**：四表被各引擎散点消费（`dispatchRuleFor`、`riskOf`…），无统一声明式解析执行器 | `src/ammo/index.ts`（仅 re-export） | 红线 2 | 🟡 表驱动已达成，统一运行时缺失 |
 | D-7 | **弹药层与存量协议层重复**：`lib/protocol/protocols/housekeeping.ts`、`dating.ts` 已是垂直 SOP，但未并入 ammo 声明式体系 | `src/lib/protocol/protocols/*` | 红线 2（精神） | 🟡 存量候选弹药，待收编 |
@@ -338,7 +338,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 优先级 | 缺口 | 哲学定位 | 六圈落位 | 现状 |
 |--------|------|----------|----------|------|
 | P0-1 | **AmmoRunner 统一声明式执行器**（DSL 解析 → 引擎装载 → 验舱单） | 红线 2 | ②业务圈 | 无（四表散点消费） |
-| P0-2 | **父项目 API 资金/状态跃迁收编 base 引擎**（隔离墙闭合） | 红线 1 | ②+⑤圈 | 99 路由未过 base |
+| P0-2 | **父项目 API 资金/状态跃迁收编 base 引擎**（隔离墙闭合） | 红线 1 | ②+⑤圈 | 🟢 已完全闭合（2026-08-18）：orders 争议分账/资金路由/提现校验/SOS 危机链 5 项收编落点见 D-4，路由层硬编码分账比例清零，legacy 状态跃迁网关（lib/contract-machine + engine 校验）保留，1465/1465 单测 + 12/12 E2E 全绿 |
 | P0-3 | **原生相机流防刷 + EXIF 时空锚定全链**（红线 4 完整闭环） | 红线 4 | ⑤风控圈 | 仅文本鉴真 + 部分 EXIF 信号 |
 | P1-1 | **轻量视觉防伪快筛**（图片指纹/复制检测） | 红线 4 | ⑤风控圈 | 无 |
 | P1-2 | **弹药动态加载**（运行时按类目发现/装载，非编译期静态表） | ②弹药即插即用 | ②业务圈 | 无 |

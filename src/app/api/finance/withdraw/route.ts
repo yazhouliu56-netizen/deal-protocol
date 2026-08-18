@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
+// P0-2 收编：余额充足性校验经 escrow 资金安全底线（NaN/负数一并拦截）。
+import { verifyFundSafetyGuard } from "@/base/money/escrow";
 
 export const POST = withAuth(async (request: Request, user) => {
   try {
@@ -26,7 +28,7 @@ export const POST = withAuth(async (request: Request, user) => {
     }
 
     const currentBalance = Number(profile?.balance) || 0;
-    if (amount > currentBalance) {
+    if (!verifyFundSafetyGuard(currentBalance, amount)) {
       return NextResponse.json({ error: `申请金额 ¥${amount} 超过当前可用余额 ¥${currentBalance}` }, { status: 400 });
     }
 

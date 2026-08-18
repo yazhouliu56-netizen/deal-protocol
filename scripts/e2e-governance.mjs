@@ -250,7 +250,8 @@ try {
     "举报队列含行为举报"
   );
   // 行为举报 = open 队列最新一条（targetType responder）→ 封禁
-  await pageB.getByRole("button", { name: "封禁", exact: true }).click();
+  // 队列可能并存多条待处理举报（多 tab 场景）→ 与下方「执行裁定 nth(0)」同源对齐
+  await pageB.getByRole("button", { name: "封禁", exact: true }).first().click();
   const actions3 = await pageB.getByRole("button", { name: /执行裁定/ });
   await actions3.nth(0).click();
   await pageB.waitForTimeout(500);

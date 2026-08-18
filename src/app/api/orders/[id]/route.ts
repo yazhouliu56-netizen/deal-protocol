@@ -17,6 +17,9 @@ import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
 import { trackWorkflowStageEvidence, type WorkflowStageInput } from "@/lib/workflow-evidence-tracker";
 import { maskPhone } from "@/lib/privacy-guard";
+// P0-2 隔离墙收编：资金分割一律经 base 确定性引擎（src/base/money/escrow.ts），
+// 路由不再内联任何分账比例硬编码（红线 1 精神）。
+import { calculateMultiPartySplit, generateComplianceSplitInstruction, type ComplianceChannel } from "@/base/money/escrow";
 
 async function insertNotification({
   userId, title, body, type,
@@ -409,8 +412,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .single();
     void dispute;
 
-    const providerAmount = (body.providerAmount as number) ?? contract.amount * 0.5;
-    const customerAmount = (body.customerAmount as number) ?? contract.amount * 0.5;
+    // P0-2 收编：默认五五开裁决不再内联 `amount * 0.5`，改由 escrow 确定性
+    // 分账原语承载（1 人群组 · 50% 口径 = 双方各半，金额守恒由 base 保证）。
+    const split = calculateMultiPartySplit(contract.amount, 0.5, 1);
+    const providerAmount = (body.providerAmount as number) ?? split.providerIncome;
+    const customerAmount = (body.customerAmount as number) ?? split.platformIncome;
     const verdict = { providerAmount, customerAmount };
 
     await supabase
@@ -471,8 +477,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .order('updated_at', { ascending: false })
       .limit(1);
 
-    let providerAmount = contract.amount * 0.5;
-    let customerAmount = contract.amount * 0.5;
+    // P0-2 收编：默认分账经 escrow 原语（与 resolve_dispute 同一口径，杜绝
+    // 路由内两处 0.5 各自实现的分叉风险）。
+    const settleSplit = calculateMultiPartySplit(contract.amount, 0.5, 1);
+    let providerAmount = settleSplit.providerIncome;
+    let customerAmount = settleSplit.platformIncome;
     const lastDispute = dispute?.[0];
     if (lastDispute?.llm_verdict) {
       try {
@@ -492,14 +501,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     updates.fund_status = "SETTLED";
   }
 
-  const { error: updateError } = await supabase
+  // P0-2 收编：资金/状态跃迁主写回带 fund_status CAS 乐观锁（等价于既有
+  // mvp 表 orders.version 语义；contracts 无 version 列时以状态为并发锚点），
+  // 并发/重复请求返回确定性 409，杜绝双写覆盖。
+  const { data: lockedRow, error: updateError } = await supabase
     .from('contracts')
     .update(updates)
-    .eq('id', id);
+    .eq('id', id)
+    .eq('fund_status', contract.fund_status)
+    .select("id")
+    .maybeSingle();
 
   if (updateError) {
     console.warn("Failed to update contract:", updateError.message);
     return NextResponse.json({ error: "更新订单失败" }, { status: 500 });
+  }
+
+  if (!lockedRow) {
+    return NextResponse.json(
+      { error: "订单状态已被其他操作变更，请刷新后重试", code: "OPTIMISTIC_LOCK_CONFLICT" },
+      { status: 409 },
+    );
   }
 
   const STAGE_NAMES = ['NOT_ACCEPTED', 'ACCEPTED', 'DEPARTED', 'ARRIVED', 'IN_PROGRESS', 'DONE'] as const;
