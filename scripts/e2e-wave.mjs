@@ -65,6 +65,7 @@ try {
 
   // --- 2. Tab A 发出一条带定制 + 磋商入口的信号波 ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
+  await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
   const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
   if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();

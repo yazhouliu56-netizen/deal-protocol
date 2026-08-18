@@ -64,6 +64,7 @@ try {
   // --- 1. A 发布进家需求（家政保洁） ---
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
+  await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
   const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
   if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();
@@ -245,6 +246,7 @@ try {
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
   await pageB.getByRole("button", { name: /发出你的需求/ }).click();
+  await pageB.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageB.waitForTimeout(400);
   await pageB.getByLabel("需求品类").fill("拼桌桌游");
   await pageB.getByLabel("需求时间").fill("明天 21:30");

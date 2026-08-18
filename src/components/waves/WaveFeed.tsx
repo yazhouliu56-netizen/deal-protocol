@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Wifi, WifiOff, Heart, Rocket, Sparkles } from "lucide-react";
+import { Wifi, WifiOff, Heart } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
@@ -10,14 +10,10 @@ import { dispatchRuleFor } from "@/ammo/dispatch-rule";
 import { perSeatPrice } from "@/base/order/wave";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { useOrganizerSubStore } from "@/store/useOrganizerSubStore";
-import { subStatus } from "@/base/money/organizerSubscription";
 import WaveCard from "./WaveCard";
-import PublishSheet from "./PublishSheet";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
-import OrganizerBoostCard from "./OrganizerBoostCard";
 import { setGeoSrc, WebGeoSrc, type GeoSrc } from "@/base/geo/geoAdapter";
 
 /** ADR-0015 N16 消费方：Web 真实定位开关（按需授权，降级演示坐标）。 */
@@ -82,11 +78,9 @@ function GeoSourceBadge() {
     </span>
   );
 }
-import BiddingSandboxCard from "./BiddingSandboxCard";
 import FavoritesSheet from "./FavoritesSheet";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import { toast } from "@/base/platform/toast";
-import { onboardGuide } from "@/base/platform/clientFlags";
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -103,12 +97,7 @@ export default function WaveFeed() {
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
   const setOnline = useIdentityStore((s) => s.setOnline);
-  const sub = useOrganizerSubStore((s) => s.sub);
-  const [publishOpen, setPublishOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
-  // P1-3 空态引导链：首次进入（未点过「知道了」）才显示三步引导
-  const { useFlag: useOnboardSeen, markSeen } = onboardGuide;
-  const showOnboard = !useOnboardSeen();
   const favorites = useWaveStore((s) => s.favorites);
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   // 拼位待支付：点「拼位加入」→ 弹模拟收银台 → 支付成功才真正占位
@@ -196,12 +185,6 @@ export default function WaveFeed() {
     return list;
   }, [waves, claims, identity, creditTier, invitedWaveId]);
 
-  // 组局加速联动（G-5 真实数据）：订阅 active 时自己活跃需求在雷达区优先曝光
-  const boosting = subStatus(sub) === "active";
-  const myActiveCount = waves.filter(
-    (w) => w.authorId === identity.id && w.status === "active" && !w.removed
-  ).length;
-
   return (
     <div className="pointer-events-auto relative">
       {/* LLM 聚类推送（雷达收件箱） */}
@@ -258,74 +241,8 @@ export default function WaveFeed() {
         </button>
       </div>
 
-      {/* 发布 CTA（主视觉）：核心漏斗动作，渐变 + 光晕 + 入场 */}
-      <motion.button
-        onClick={() => setPublishOpen(true)}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileTap={{ scale: 0.98 }}
-        className="mt-4 w-full flex items-center gap-3 px-4 py-4 rounded-2xl btn-primary glow-purple-strong hover:brightness-110 transition-[filter] text-left group"
-      >
-        <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-          <Plus size={18} className="text-white" />
-        </div>
-        <span className="flex-1 min-w-0">
-          <span className="block text-sm font-extrabold text-white">
-            发出你的需求
-          </span>
-          <span className="block text-[10px] text-white/70 truncate">
-            时间 / 地点 / 品类一句话说清 · 可选 AI 拆解定制
-          </span>
-        </span>
-        <span className="text-[10px] font-bold text-white shrink-0 px-2.5 py-1 rounded-full bg-white/15 border border-white/25 group-hover:bg-white/25 transition-colors">
-          发送 📡
-        </span>
-      </motion.button>
-
-      {/* P1-3 空态引导链：首次进入且无需求时，解释「发出→接单→履约」三步 */}
-      {showOnboard && feed.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 px-3 py-2.5 rounded-2xl bg-brandCyan/10 border border-brandCyan/30 text-[10px] text-white/70 flex items-start gap-2"
-        >
-          <Sparkles size={12} className="text-brandCyan shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            三步开始：<span className="font-bold text-white/90">① 上面发出需求</span>
-            <span className="text-white/40"> → </span>
-            <span className="font-bold text-white/90">② 响应者接单</span>
-            <span className="text-white/40"> → </span>
-            <span className="font-bold text-white/90">③ 履约评价</span>
-            <button
-              onClick={markSeen}
-              className="ml-1 px-2 py-1 min-h-8 text-[10px] text-white/40 hover:text-white underline underline-offset-2"
-            >
-              知道了
-            </button>
-          </p>
-        </motion.div>
-      )}
-
       {/* S1 匿名光点热力图：附近活跃信号波 */}
       <SpatialHeatMap />
-
-      {/* 组局者订阅（商业化前哨，纯本地 demo） */}
-      <OrganizerBoostCard />
-
-      {/* 订阅已生效：自己的活跃需求在雷达区优先曝光 */}
-      {boosting && myActiveCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 px-3 py-2 rounded-2xl bg-emerald-400/10 border border-emerald-400/35 text-[10px] font-bold text-emerald-300 flex items-center gap-1.5"
-        >
-          <Rocket size={11} />
-          组局加速已生效 · 你的 {myActiveCount} 个需求正优先曝光（「我的」跟进）
-        </motion.div>
-      )}
-
-      {/* 公开竞价（P8 前哨，接入真实需求局） */}
-      <BiddingSandboxCard />
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">
@@ -436,8 +353,6 @@ export default function WaveFeed() {
           ⚠ {joinError}
         </p>
       )}
-
-      <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
 
       {/* 关注的局（雷达心愿单） */}
       <FavoritesSheet

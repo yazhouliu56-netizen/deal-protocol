@@ -89,7 +89,7 @@ try {
 
   async function publishOpen(page, cat, time, area, budget) {
     await page.getByLabel("首页").click();
-    await page.getByRole("button", { name: /发出你的需求/ }).click();
+    await page.getByRole("button", { name: /发出你的需求/ }).click();    await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
     await page.waitForTimeout(400);
   const moreBtn = await page.getByRole("button", { name: /更多选项/ }).count();
   if (moreBtn) await page.getByRole("button", { name: /更多选项/ }).click();

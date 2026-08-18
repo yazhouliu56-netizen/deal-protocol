@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEdgeSwipeBack } from "@/base/platform/useEdgeSwipeBack";
 import { lockEdgeGesture, useEdgeGestureLock } from "@/components/oto-ui/edgeGestureLock";
@@ -10,9 +10,6 @@ import FloatingDock from "@/components/oto-ui/FloatingDock";
 import GlassCard from "@/components/oto-ui/GlassCard";
 import GlassIconButton from "@/components/oto-ui/GlassIconButton";
 import OtoBadge from "@/components/oto-ui/OtoBadge";
-import CategoryPill from "@/components/oto-ui/CategoryPill";
-import SearchBar from "@/components/oto-ui/SearchBar";
-import ScanMockSheet from "@/components/oto-ui/ScanMockSheet";
 import AuthSheet from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
@@ -22,43 +19,33 @@ import { toAtomicFiveState } from "@/base/ammo/runner";
 import { toast } from "@/base/platform/toast";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import DestinationCard from "@/components/oto-ui/destinations/DestinationCard";
-import DestinationHub from "@/components/oto-ui/destinations/DestinationHub";
 import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
-import SafetyKit from "@/components/waves/SafetyKit";
 import NotificationCenter from "@/components/waves/NotificationCenter";
 import FulfillmentCenter from "@/components/waves/FulfillmentCenter";
+import DynamicDraftCard from "@/components/waves/DynamicDraftCard";
+import PublishSheet from "@/components/waves/PublishSheet";
 import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import {
-  CATEGORY_LABELS,
-  OTO_CATEGORIES,
   formatActivityTime,
   otoActivities,
   otoExperiences,
   type OTOActivity,
-  type OTOCategory,
 } from "@/lib/mockData";
 import {
-  Bot,
-  Building2,
   Camera,
   Check,
   ChevronRight,
   Info,
-  Landmark,
   MapPin,
-  Mountain,
   Navigation,
-  Rocket,
   Rotate3d,
   ShoppingBag,
   Sparkles,
   Star,
   Trash2,
-  Umbrella,
 } from "lucide-react";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -67,11 +54,11 @@ const CATEGORY_EMOJI: Record<string, string> = {
   家政保洁: "🧹",
 };
 
-const AI_HOT_SERVICES = [
-  { emoji: "🏸", label: "羽毛球约局", draft: "周日下午想找人打羽毛球" },
-  { emoji: "📷", label: "摄影师约拍", draft: "想约摄影师拍一组日系写真" },
-  { emoji: "🧹", label: "家政保洁", draft: "周末找个保洁上门" },
-  { emoji: "👥", label: "陪诊陪护", draft: "想找人陪家人去医院看诊" },
+/** 首页三大官方标杆弹药快捷胶囊（点击 → 100% 呼出对应弹药拟物草稿卡）。 */
+const OFFICIAL_AMMO_CAPSULES = [
+  { key: "housekeeping", emoji: "🧽", label: "家政保洁" },
+  { key: "meetup", emoji: "🏸", label: "组局社交" },
+  { key: "companion", emoji: "👥", label: "陪伴交友" },
 ];
 
 const SWATCHES = [
@@ -81,23 +68,10 @@ const SWATCHES = [
   { color: "#F472B6", label: "粉红" },
 ];
 
-const CATEGORY_ICON: Record<OTOCategory, typeof Umbrella> = {
-  Beach: Umbrella,
-  Mountains: Mountain,
-  City: Building2,
-  Historical: Landmark,
-  Adventure: Rocket,
-};
-
 const screenVariants = {
   initial: { opacity: 0, y: 18, scale: 0.985 },
   animate: { opacity: 1, y: 0, scale: 1 },
   exit: { opacity: 0, y: -12, scale: 0.99 },
-};
-
-const listContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
 };
 
 export default function Home() {
@@ -175,24 +149,22 @@ export default function Home() {
 
 /* ============================ HOME ============================ */
 function HomePage() {
-  const activeCategory = useAppStore((s) => s.activeCategory);
-  const setActiveCategory = useAppStore((s) => s.setActiveCategory);
-  const openExperience = useAppStore((s) => s.openExperience);
   const setScreen = useAppStore((s) => s.setScreen);
+  const openExperience = useAppStore((s) => s.openExperience);
   const setAiDraft = useAppStore((s) => s.setAiDraft);
-  const [search, setSearch] = useState("");
   const [showCart, setShowCart] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
-  const [hubOpen, setHubOpen] = useState(false);
+  /** 唯一全局 AI 拟物发单条 / 三大弹药胶囊 → 拟物草稿卡（draft.key 为空串 = 全类目聚合弹药）。 */
+  const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
+  /** 草稿卡「扣动扳机」→ 完整发布面板（品类/时间/地点/预算，全链路发单 0 丢失）。 */
+  const [publishOpen, setPublishOpen] = useState(false);
 
-  // P2：Home 弹层（扫码 / 心愿单 / 目的地中心）打开期间锁定边缘滑动返回
+  // P2：Home 弹层（心愿单 / 拟物草稿卡）打开期间锁定边缘滑动返回
   useEffect(() => {
-    lockEdgeGesture(showCart || scanOpen || hubOpen);
-  }, [showCart, scanOpen, hubOpen]);
+    lockEdgeGesture(showCart || draft !== null || publishOpen);
+  }, [showCart, draft, publishOpen]);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
-  const destinationsRef = useRef<HTMLDivElement>(null);
 
   /* W2 总装：当前用户进行中活动 Wave → toAtomicFiveState 投影 → 顶栏五态胶囊 */
   const waves = useWaveStore((s) => s.waves);
@@ -221,30 +193,6 @@ function HomePage() {
       isSettled: flags?.isSettled,
     });
   }, [activeWave, claims, fulfilment]);
-
-  const visibleExperiences = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const byCategory = activeCategory
-      ? otoExperiences.filter((e) => e.category === activeCategory)
-      : otoExperiences;
-    if (!q) return byCategory;
-    return byCategory.filter(
-      (e) =>
-        e.title.toLowerCase().includes(q) ||
-        e.subtitle.toLowerCase().includes(q) ||
-        e.location.toLowerCase().includes(q) ||
-        CATEGORY_LABELS[e.category]?.toLowerCase().includes(q)
-    );
-  }, [activeCategory, search]);
-
-  const searchResultCategory = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return null;
-    return (
-      OTO_CATEGORIES.find((c) => CATEGORY_LABELS[c].toLowerCase().includes(q)) ??
-      null
-    );
-  }, [search]);
 
   return (
     <div className="pointer-events-auto">
@@ -294,158 +242,54 @@ function HomePage() {
         </div>
       </div>
 
-      {/* 雷达 Feed：主导首页 */}
-      <WaveFeed />
-
-      {/* AI 对话条：常驻需求入口 */}
-      <button
-        onClick={() => setScreen("ai")}
-        className="mt-4 w-full flex items-center gap-2.5 px-4 py-3 rounded-2xl glass-panel-interactive text-left group"
-      >
-        <div className="w-8 h-8 rounded-xl bg-linear-to-b from-[rgba(139,92,246,0.85)] to-[rgba(99,72,255,0.65)] border border-white/25 flex items-center justify-center shrink-0 shadow-[0_2px_14px_-2px_rgba(123,97,255,0.7),inset_0_1px_0_rgba(255,255,255,0.45)]">
-          <Bot size={15} className="text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <span className="block text-xs font-semibold text-white/90">
-            想找什么，直接说
+      {/* ═══ 第二层：核心行动区 —— 唯一的全局 AI 拟物发单条 + 三大官方标杆弹药快捷胶囊 ═══ */}
+      <div className="mt-3" data-layer="action">
+        <motion.button
+          onClick={() => setDraft({ key: "", label: "全类目需求" })}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileTap={{ scale: 0.98 }}
+          aria-label="想找什么？一句话告诉我 · 发出你的需求"
+          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl glass-panel-interactive hover:border-brandPurple/50 transition-[border] text-left group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-linear-to-b from-[rgba(139,92,246,0.85)] to-[rgba(99,72,255,0.65)] border border-white/25 flex items-center justify-center shrink-0 shadow-[0_2px_14px_-2px_rgba(123,97,255,0.7),inset_0_1px_0_rgba(255,255,255,0.45)]">
+            <Sparkles size={17} className="text-white" />
+          </div>
+          <span className="flex-1 min-w-0">
+            <span className="block text-sm font-extrabold text-white">
+              想找什么？一句话告诉我…
+            </span>
+            <span className="block text-[10px] text-white/50 truncate">
+              拟物草稿卡 · 弹药参数 / 计价 / 安全底线一键预览
+            </span>
           </span>
-          <span className="block text-[10px] text-white/45 truncate">
-            羽毛球约局 · 约拍 · 保洁…… AI 帮你撮合
+          <span className="text-[10px] font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
+            发出你的需求
           </span>
-        </div>
-        <span className="text-[10px] text-brandPurple font-semibold shrink-0 px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
-          去问问
-        </span>
-      </button>
+        </motion.button>
 
-      {/* AI 热门服务：点卡自动带需求进对话 */}
-      <div className="mt-3">
-        <span className="text-[10px] font-semibold text-white/40 flex items-center gap-1 mb-1.5">
-          <Sparkles size={10} className="text-brandPurple" /> AI 热门撮合 · 点一下直接说需求
-        </span>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5">
-          {AI_HOT_SERVICES.map((s) => (
+        {/* 三大官方标杆弹药：点击 → 100% 呼出对应弹药拟物草稿卡 */}
+        <div className="mt-2.5 flex items-center gap-2">
+          {OFFICIAL_AMMO_CAPSULES.map((c) => (
             <button
-              key={s.label}
-              onClick={() => {
-                setAiDraft(s.draft);
-                setScreen("ai");
-              }}
-              className="shrink-0 flex flex-col items-center gap-1 px-4 py-2.5 min-w-[76px] rounded-2xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+              key={c.key}
+              onClick={() => setDraft({ key: c.key, label: c.label })}
+              aria-label={`${c.emoji} ${c.label} 拟物发单`}
+              className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 min-h-10 rounded-xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
             >
-              <span className="text-lg">{s.emoji}</span>
-              <span className="text-[10px] font-bold text-white/80">
-                {s.label}
+              <span className="text-[15px]">{c.emoji}</span>
+              <span className="text-[10.5px] font-bold text-white/85">
+                {c.label}
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 搜索栏 */}
-      <div className="mt-4">
-        <SearchBar
-          placeholder="搜索 OTO 体验或线下门店……"
-          value={search}
-          onChange={setSearch}
-          onScan={() => setScanOpen(true)}
-          onFilter={() => setHubOpen(true)}
-          onSearch={() => {
-            const q = search.trim();
-            if (!q) return;
-            if (searchResultCategory) {
-              setActiveCategory(searchResultCategory);
-              setSearch("");
-              return;
-            }
-            setAiDraft(q);
-            setScreen("ai");
-          }}
-        />
+      {/* ═══ 第三层：雷达波浪视口 —— 直达 WaveFeed 实时需求波卡流 ═══ */}
+      <div className="mt-4" data-layer="wave-feed">
+        <WaveFeed />
       </div>
-
-      {search.trim() && (
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-[10.5px] text-white/50">
-            “{search.trim()}” 命中 {visibleExperiences.length} 个目的地
-          </span>
-          <span className="flex-1 h-px bg-white/10" />
-          <button
-            onClick={() => {
-              setAiDraft(search.trim());
-              setScreen("ai");
-            }}
-            className="text-[10.5px] font-bold text-brandPurple border border-brandPurple/40 bg-brandPurple/15 rounded-full px-2.5 py-1 hover:bg-brandPurple/25 transition-colors"
-          >
-            ✨ 让 AI 撮合
-          </button>
-        </div>
-      )}
-
-      {/* 分类胶囊 */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <CategoryPill
-          active={activeCategory === null}
-          onClick={() => setActiveCategory(null)}
-        >
-          全部
-        </CategoryPill>
-        {OTO_CATEGORIES.map((cat) => {
-          const Icon = CATEGORY_ICON[cat];
-          return (
-            <CategoryPill
-              key={cat}
-              active={activeCategory === cat}
-              onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
-            >
-              <Icon size={12} />
-              {CATEGORY_LABELS[cat]}
-            </CategoryPill>
-          );
-        })}
-      </div>
-
-      {/* Popular Destinations 高清阳光实景卡片 */}
-      <div className="flex items-center justify-between mt-6 mb-2.5">
-        <span className="text-[13px] font-semibold tracking-wide">
-          {activeCategory
-            ? `${CATEGORY_LABELS[activeCategory]}热门目的地`
-            : "热门目的地"}
-        </span>
-        <button
-          onClick={() => setHubOpen(true)}
-          aria-label="打开目的地中心进行筛选和浏览全部"
-          className="flex items-center gap-0.5 px-2.5 py-2 min-h-10 text-[11px] text-brandPurple font-medium hover:brightness-125 transition-[filter]"
-        >
-          查看全部 <ChevronRight size={12} />
-        </button>
-      </div>
-      <motion.div
-        ref={destinationsRef}
-        variants={listContainer}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5"
-      >
-        {visibleExperiences.map((item) => (
-          <DestinationCard
-            key={item.id}
-            item={item}
-            onOpen={() => openExperience(item)}
-          />
-        ))}
-      </motion.div>
-
-      {/* 安全四件套入口 */}
-      <div className="mt-5">
-        <SafetyKit />
-      </div>
-
-      {/* 扫码识别（本地模拟：扫分享 → 直达拼位局） */}
-      {scanOpen && <ScanMockSheet onClose={() => setScanOpen(false)} />}
-
-      {/* 目的地中心（筛选抽屉 + 全部列表） */}
-      <DestinationHub open={hubOpen} onClose={() => setHubOpen(false)} />
 
       {/* 心愿单面板 */}
       <AnimatePresence>
@@ -551,7 +395,83 @@ function HomePage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* 拟物草稿卡弹层：唯一发单条 / 弹药胶囊 → DynamicDraftCard（100% 呼出） */}
+      <DraftSheet
+        draft={draft}
+        onClose={() => setDraft(null)}
+        onContinue={() => {
+          setDraft(null);
+          setPublishOpen(true);
+        }}
+      />
+
+      {/* 完整发布面板：草稿卡「扣动扳机」→ 品类/时间/地点/预算 → 广播（全链路 0 丢失） */}
+      <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
     </div>
+  );
+}
+
+/* ============================ DRAFT SHEET ============================ */
+interface DraftSheetProps {
+  draft: null | { key: string; label: string };
+  onClose: () => void;
+  /** 草稿卡「扣动扳机·一键发布」→ 进入完整发布面板。 */
+  onContinue: () => void;
+}
+
+/**
+ * 拟物草稿卡弹层（首页核心行动区第一落点）：
+ * DynamicDraftCard 由弹药表驱动（参数行 / 计价 / 安全徽章 / D8 扩展字段），
+ * 「扣动扳机·一键发布」→ PublishSheet 完整发单链（createPendingWave → 支付 → 广播）。
+ */
+function DraftSheet({ draft, onClose, onContinue }: DraftSheetProps) {
+  return (
+    <AnimatePresence>
+      {draft && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 60, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
+            data-testid="draft-sheet"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
+                <Sparkles size={13} className="text-brandCyan" /> 拟物草稿 ·{" "}
+                {draft.label}
+              </h3>
+              <button
+                onClick={onClose}
+                aria-label="关闭拟物草稿"
+                className="text-white/40 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <DynamicDraftCard
+              category={draft.key}
+              onPublish={onContinue}
+              onTweak={(key) =>
+                toast(`「${key}」参数可在完整发布面板中微调`, "info")
+              }
+            />
+            <p className="text-[9.5px] text-white/40 mt-3 text-center">
+              扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
+            </p>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 

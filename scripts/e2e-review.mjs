@@ -63,6 +63,7 @@ try {
 
   // --- 2. Tab A 发布（含鸽子险，无磋商 → 直接接单） ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
+  await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
   const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
   if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();

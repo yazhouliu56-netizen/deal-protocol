@@ -68,6 +68,7 @@ try {
 
   // --- 2. Tab A 发布 3 人开放局（含自己 = 需 2 位拼位者） + 鸽子险 ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
+  await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
   const moreBtn = await pageA.getByRole("button", { name: /更多选项/ }).count();
   if (moreBtn) await pageA.getByRole("button", { name: /更多选项/ }).click();

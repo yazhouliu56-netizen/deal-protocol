@@ -1,6 +1,7 @@
 /**
- * E2E 补充分支：Home 热卡 → AI draft / 搜索过滤 / 心愿单闭环 /
- * 工作台多身份接单履约 / AR 锚点重置。前置：npm run start（3000）。
+ * E2E 补充分支：租壳琥珀金 3 层座舱冒烟 —— 弹药胶囊拟物草稿卡 / 全局发单条
+ * → 完整发布面板 / AI 助手冒烟 / 心愿单闭环（AR Dock 直达）/ 工作台接单履约 / AR 锚点重置。
+ * 前置：npm run start（3000）。
  */
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
@@ -54,60 +55,62 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(page, () => !!document.querySelector('button[aria-label="AI 助手"]'), 10000, "Dock");
 
-  // --- 1. Home 热卡 → AI draft 自动发送 ---
-  await page.getByRole("button", { name: "🏸 羽毛球约局" }).click();
-  // Mock 引擎问"水平/人数"；LLM 引擎追问语料更自由（可能问时段/预算）。
-  await waitUntil(
-    page,
-    () => {
-      const t = document.body.innerText;
-      return (
-        t.includes("可选时段") ||
-        t.includes("水平") ||
-        t.includes("几个人") ||
-        t.includes("想约在") ||
-        t.includes("预算")
-      );
-    },
-    25000,
-    "热卡撮合追问/时段卡"
-  );
-  const hotOk = await page.evaluate(() =>
-    document.body.innerText.includes("羽毛球") && document.body.innerText.includes("AI 撮合助手")
-  );
-  assert.ok(hotOk, "热卡应直达 AI 撮合");
-  // --- 2. 搜索过滤 ---
-  await page.getByRole("button", { name: "首页" }).click();
-  await page.getByRole("textbox", { name: "搜索 OTO 体验" }).fill("摄影");
-  await page.waitForTimeout(600);
-  const search = await page.evaluate(() => ({
-    hit: document.body.innerText.includes("命中"),
-    aiBtn: document.body.innerText.includes("让 AI 撮合"),
-  }));
-  assert.ok(search.hit && search.aiBtn, "搜索应显示命中数 + 让 AI 撮合");
-
-  // --- 3. 心愿单闭环：开卡 → 收藏 → 面板 → 条目直达 AR ---
-  await page.getByRole("textbox", { name: "搜索 OTO 体验" }).fill("");
-  await page.waitForTimeout(400);
-  const destName = await page.evaluate(() => {
-    const btns = [...document.querySelectorAll("button")];
-    const dest = btns.find((b) => /¥/.test(b.textContent || "") && /体育馆|公园|博物馆|球馆|中心|馆|岛|山|滩/.test(b.textContent || ""));
-    const full = dest?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-    const m = /^([^\d.·]+)/.exec(full);
-    return m ? m[1] : full.slice(0, 6);
+  // --- 1. 官方弹药胶囊 → 拟物草稿卡（DynamicDraftCard 100% 呼出）---
+  await page.getByRole("button", { name: "🧽 家政保洁 拟物发单" }).click();
+  await page.waitForTimeout(500);
+  const draft = await page.evaluate(() => {
+    const sheet = document.querySelector('[data-testid="draft-sheet"]');
+    return {
+      sheet: !!sheet,
+      ammo: sheet?.querySelector(".draft-card")?.getAttribute("data-ammo") ?? "",
+      title: document.body.innerText.includes("拟物草稿"),
+    };
   });
-  assert.ok(destName, "应找到目的地卡");
-  // HoloCard 常驻动画 → force click（跳过稳定性判定）；首页雷达 Feed 把
-  // 目的地卡推到了首屏下方，原生滚动进视口后点击（evaluate 绕开
-  // Playwright 的 actionability 等待，避免 3D 动画导致 scroll 判定卡死）。
-  const destCard = page.locator("button", { hasText: destName }).first();
-  await destCard.evaluate((el) => el.scrollIntoView({ block: "center" }));
-  await page.waitForTimeout(300);
-  await destCard.click({ force: true, timeout: 10000 });
+  assert.ok(draft.sheet && draft.title, "点击弹药胶囊应呼出拟物草稿卡");
+  assert.equal(draft.ammo, "housekeeping-v1", "家政弹药应装配 housekeeping-v1");
+  await page.getByRole("button", { name: "关闭拟物草稿" }).click();
+  await page.waitForTimeout(400);
+
+  // --- 2. 全局 AI 拟物发单条 → 全类目草稿卡 → 扣动扳机 → 完整发布面板 ---
+  await page.getByRole("button", { name: /想找什么/ }).click();
+  await page.waitForTimeout(400);
+  assert.ok(
+    await page.evaluate(() => document.body.innerText.includes("扣动扳机·一键发布")),
+    "发单条应呼出含发布 CTA 的草稿卡"
+  );
+  await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
+  await page.waitForTimeout(500);
+  await page.getByLabel("需求品类").waitFor({ state: "visible", timeout: 5000 });
+  await page.getByLabel("需求时间").waitFor({ state: "visible", timeout: 5000 });
+  await page.getByLabel("需求地点").waitFor({ state: "visible", timeout: 5000 });
+  assert.ok(
+    await page.evaluate(() => document.body.innerText.includes("广播出去")),
+    "草稿卡发布应进入完整发布面板（品类/时间/地点/预算）"
+  );
+  await page.getByRole("button", { name: "关闭发布" }).click();
+  await page.waitForTimeout(400);
+
+  // --- 2.5 AI 助手冒烟（ChatPage 从 Dock 直达）---
+  await page.getByRole("button", { name: "AI 助手" }).click();
   await page.waitForTimeout(800);
+  assert.ok(
+    await page.evaluate(() => document.body.innerText.includes("AI 撮合助手")),
+    "AI 屏应正常渲染"
+  );
+  await page.getByRole("button", { name: "首页" }).click();
+  await page.waitForTimeout(500);
+
+  // --- 3. 心愿单闭环：AR 直达 → 收藏 → 面板 → 条目直达 AR 预览 ---
+  await page.getByRole("button", { name: "AR 扫描" }).click();
+  await page.waitForTimeout(700);
   // AR 默认场景模式，先切"体验预览"才有收藏按钮
   await page.getByRole("button", { name: "✨ 体验预览" }).click();
   await page.waitForTimeout(600);
+  const destName = await page.evaluate(() => {
+    const h = document.querySelector("h3");
+    return (h?.textContent ?? "").split("·")[0].trim();
+  });
+  assert.ok(destName, "应读到体验预览标题");
   const wishBtn = page.locator("button", { hasText: /心愿单|已加入/ }).last();
   await wishBtn.click({ force: true, timeout: 10000 });
   await page.waitForTimeout(400);
@@ -168,7 +171,7 @@ try {
   // --- 6. 生产 console 无 error ---
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);
   await page.screenshot({ path: "e2e-app-final.png" });
-  console.log("E2E 补充分支 PASS ✓（热卡/搜索/心愿单闭环/工作台接单履约/AR 锚点重置）");
+  console.log("E2E 补充分支 PASS ✓（弹药草稿卡/全局发单条/心愿单闭环/工作台接单履约/AR 锚点重置）");
   await browser.close();
 } catch (err) {
   console.error("E2E 补充分支 FAIL:", err instanceof Error ? err.message : err);
