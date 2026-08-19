@@ -2,7 +2,7 @@
 
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
-import { getAmmoDefinition } from "@/ammo/registry";
+import { resolveAmmoIdForPublish, getAmmoById, getAmmoDefinition } from "@/ammo/registry";
 
 /**
  * 动态发布草稿卡（Dynamic Draft Card · A 需求发布视口首件）。
@@ -28,7 +28,10 @@ export interface DynamicDraftCardProps {
   onPublish?: () => void;
 }
 
-/** 计价模型 → 预估费用文案（弹药表驱动展示）。 */
+/**
+ * 计价模型 → 预估费用文案（弹药表驱动展示）。
+ * FORMULA（公式计价）：公式名 + 上门检测费（params.baseRate）保底呈现。
+ */
 export function describePricing(model: PricingModel): string {
   switch (model.kind) {
     case "FIXED":
@@ -38,7 +41,7 @@ export function describePricing(model: PricingModel): string {
     case "PER_SEAT":
       return `预估费用：¥${model.perSeatYuan}/人 · ${model.minSeats}人起（AA 均摊）`;
     case "FORMULA":
-      return `预估费用：按公式 ${model.formulaId} 计价`;
+      return `预估费用：按公式 ${model.formulaId} 计价（上门检测费 ¥${Number(model.params?.baseRate ?? 0).toFixed(2)}）`;
   }
 }
 
@@ -151,6 +154,13 @@ export function resolveDraftThemeClass(ammo: IAmmoDefinition): string {
   return `draft-${ammo.holographic?.theme ?? "default"}`;
 }
 
+/** D7 自动验收时效 → 质保徽标文案（缺省不渲染；48h → "⏱️ 48h 质保验收"）。 */
+export function describeWarrantyBadge(ammo: IAmmoDefinition): string | null {
+  const hours = ammo.autoAcceptanceTimeoutHours;
+  if (typeof hours !== "number" || hours <= 0) return null;
+  return `⏱️ ${hours}h 质保验收`;
+}
+
 const DRAFT_CSS = `
 .draft-card{position:relative;max-width:420px;border-radius:20px;padding:18px 18px 14px;
   background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
@@ -198,9 +208,14 @@ export default function DynamicDraftCard({
   onTweak,
   onPublish,
 }: DynamicDraftCardProps) {
-  const definition = ammo ?? getAmmoDefinition(category);
+  // 弹药解析对齐落库语义（W1）：发布链路写 Wave.ammoId 走 resolveAmmoIdForPublish
+  // （动态池 → 中文类目归一化直拨官方弹药），预览卡同链解析保证「所见即所发」——
+  // 中文别名（如「修空调」）在发布面板直拨 appliance-repair-v1 整弹而非聚合保底。
+  const definition = ammo ?? getAmmoById(resolveAmmoIdForPublish(category));
   const priceText = describePricing(resolveDraftPricing(definition));
   const badges = describeSafetyBadges(definition.fuzePolicy);
+  const warrantyBadge = describeWarrantyBadge(definition);
+  if (warrantyBadge) badges.push(warrantyBadge);
   const params = describeSopParams(definition);
   const formFields = describeFormSchemaFields(definition);
   const themeClass = resolveDraftThemeClass(definition);

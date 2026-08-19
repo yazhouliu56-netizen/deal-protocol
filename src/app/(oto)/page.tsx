@@ -157,6 +157,8 @@ function HomePage() {
   const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
   /** 草稿卡「扣动扳机」→ 完整发布面板（品类/时间/地点/预算，全链路发单 0 丢失）。 */
   const [publishOpen, setPublishOpen] = useState(false);
+  /** 草稿卡「扣动扳机」带入的品类别（胶囊中文品类直注 PublishSheet，发单条为空手动填）。 */
+  const [publishCategory, setPublishCategory] = useState("");
 
   // P2：Home 弹层（心愿单 / 拟物草稿卡）打开期间锁定边缘滑动返回
   useEffect(() => {
@@ -401,13 +403,15 @@ function HomePage() {
         draft={draft}
         onClose={() => setDraft(null)}
         onContinue={() => {
+          const label = draft?.label ?? "";
+          setPublishCategory(label === "全类目需求" ? "" : label);
           setDraft(null);
           setPublishOpen(true);
         }}
       />
 
       {/* 完整发布面板：草稿卡「扣动扳机」→ 品类/时间/地点/预算 → 广播（全链路 0 丢失） */}
-      <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} />
+      <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
     </div>
   );
 }

@@ -6,10 +6,11 @@ import DynamicDraftCard, {
   describePricing,
   describeSafetyBadges,
   describeSopParams,
+  describeWarrantyBadge,
   resolveDraftThemeClass,
 } from "@/components/waves/DynamicDraftCard";
 import { registerDynamicAmmo } from "@/ammo/factory";
-import { getAmmoDefinition } from "@/ammo/registry";
+import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
 import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
@@ -101,6 +102,31 @@ describe("DynamicDraftCard 弹药驱动草稿卡", () => {
       <DynamicDraftCard category="unmapped" ammo={custom} />,
     );
     expect(html).toContain('data-ammo="housekeeping-v1"');
+  });
+
+  it("FORMULA 公式计价呈现上门检测费（params.baseRate 保底）", () => {
+    expect(
+      describePricing({ kind: "FORMULA", formulaId: "appliance-repair-formula", params: { baseRate: 30 } }),
+    ).toContain("上门检测费 ¥30.00");
+    expect(describePricing({ kind: "FORMULA", formulaId: "f1" })).toContain("按公式 f1 计价");
+  });
+
+  it("describeWarrantyBadge 质保徽标（D7 autoAcceptanceTimeoutHours 投影）", () => {
+    const preview = getAmmoById(resolveAmmoIdForPublish("修空调"));
+    expect(preview.ammoId).toBe("appliance-repair-v1");
+    expect(describeWarrantyBadge(preview)).toBe("⏱️ 48h 质保验收");
+    expect(describeWarrantyBadge(getAmmoDefinition("housekeeping"))).toBe("⏱️ 24h 质保验收");
+    expect(describeWarrantyBadge(getAmmoDefinition("meetup"))).toBe("⏱️ 6h 质保验收");
+    expect(describeWarrantyBadge(getAmmoDefinition("不存在品类"))).toBeNull();
+  });
+
+  it("首页弹药胶囊 label 中文直拨回归护栏（所见即所发）", () => {
+    // 胶囊 label 与注册表中文别名必须一致，否则草稿卡（英文键）与落库（label）弹药标识分裂
+    expect(resolveAmmoIdForPublish("家政保洁")).toBe("housekeeping-v1");
+    expect(resolveAmmoIdForPublish("组局社交")).toBe("meetup-social-v1");
+    expect(resolveAmmoIdForPublish("陪伴交友")).toBe("companion-v1");
+    expect(resolveAmmoIdForPublish("摄影师约拍")).toBe("companion-v1");
+    expect(resolveAmmoIdForPublish("修空调")).toBe("appliance-repair-v1");
   });
 });
 

@@ -29,9 +29,12 @@ import type { TaskModule } from "@/base/ai/decompose";
 export default function PublishSheet({
   open,
   onClose,
+  initialCategory,
 }: {
   open: boolean;
   onClose: () => void;
+  /** 草稿卡「扣动扳机」带入的弹药品类（胶囊直拨中文品类，发单条缺省空串手动填）。 */
+  initialCategory?: string;
 }) {
 const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const payWave = useWaveStore((s) => s.payWave);
@@ -92,8 +95,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         window.clearTimeout(dismissTimerRef.current);
         dismissTimerRef.current = null;
       }
+      // 草稿卡带入的品类别在关闭后残留串单到下一次发布（如胶囊 → 家政保洁 → 改发其他）
+      if (initialCategory) setCategory(initialCategory);
     }
-  }, [open]);
+  }, [open, initialCategory]);
 
   useEffect(
     () => () => {
