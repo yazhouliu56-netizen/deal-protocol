@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { beforeEach, afterEach, describe, expect, it } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 import ChatPage from "./ChatPage";
 import { useAppStore } from "@/store/useAppStore";
@@ -18,7 +18,7 @@ function seedSuccessCard(overrides: { category?: string; price?: string } = {}) 
   const id = useIdentityStore.getState().identity.id;
   useWaveStore.setState({ waves: [], claims: [] });
   useAppStore.setState({
-    screen: "ai",
+    screen: "home",
     chatMessages: [
       {
         id: "m-ai-1",
@@ -119,5 +119,127 @@ describe("P1 AI 对话直通弹药发单闭环（ChatPage）", () => {
     const again = findConvert();
     expect(again).toBeUndefined();
     expect(useWaveStore.getState().waves.length).toBe(1);
+  });
+});
+
+/** 首页融合座舱（compact）：4 大意图快捷气泡 + 弹药草稿回钩（原地展开拟物草稿卡）。 */
+describe("P1.5 首页融合座舱（ChatPage compact 嵌入首页）", () => {
+  let container: HTMLDivElement;
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    useAppStore.setState({ chatMessages: [], bookings: [] });
+  });
+
+  afterEach(() => {
+    root.unmount();
+    container.remove();
+  });
+
+  /** 等待异步流式引擎（MockEngine 字符级流：chat 分支可达数秒）消费完成。 */
+  async function flushUntil(predicate: () => boolean, timeoutMs = 9000) {
+    const deadline = Date.now() + timeoutMs;
+    while (!predicate()) {
+      if (Date.now() > deadline) break;
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 25));
+      });
+    }
+  }
+
+  it("compact 渲染：4 大意图快捷气泡 + 统一输入框 + 拟物卡流动态区", async () => {
+    await act(async () => {
+      root.render(<ChatPage compact />);
+    });
+    const bubbles = [...container.querySelectorAll('[data-testid="intent-bubbles"] button')];
+    expect(bubbles).toHaveLength(4);
+    expect(bubbles.map((b) => b.getAttribute("aria-label"))).toEqual([
+      "🧽 周末日常保洁 拟物发单",
+      "🏸 周日羽毛球约局 拟物发单",
+      "📷 约拍日系写真 拟物发单",
+      "🔧 家电上门维修 拟物发单",
+    ]);
+    expect(container.querySelector('input[placeholder*="描述你的需求"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="compact-chat-flow"]')).not.toBeNull();
+  });
+
+  it("点击意图气泡：回钩弹药草稿（key + 中文类目）且对话引擎同步送话术", { timeout: 15000 }, async () => {
+    const onDraft = vi.fn();
+    await act(async () => {
+      root.render(<ChatPage compact onAmmoDraft={onDraft} />);
+    });
+    const bubble = container.querySelector<HTMLButtonElement>(
+      'button[data-ammo="meetup"]'
+    )!;
+    expect(bubble).not.toBeNull();
+    await act(async () => {
+      bubble.click();
+    });
+    expect(onDraft).toHaveBeenCalledWith("meetup", "羽毛球约局");
+    // 气泡按钮同步回钩草稿，流式引擎仍在异步产出 → 等回复落定（占位消息原地更新）
+    await flushUntil(() => {
+      const msgs = useAppStore.getState().chatMessages;
+      const last = msgs[msgs.length - 1];
+      return (
+        last.role === "assistant" &&
+        (last.content.length > 0 || (last.cards?.length ?? 0) > 0)
+      );
+    });
+    const msgs = useAppStore.getState().chatMessages;
+    expect(
+      msgs.some((m) => m.role === "user" && m.content.includes("羽毛球"))
+    ).toBe(true);
+    expect(
+      msgs.some(
+        (m) => m.role === "assistant" && (m.content.length > 0 || (m.cards?.length ?? 0) > 0)
+      )
+    ).toBe(true);
+  });
+
+  it("输入口语文本（擦玻璃）发送：对话流完成后原地回钩保洁弹药草稿", { timeout: 15000 }, async () => {
+    const onDraft = vi.fn();
+    await act(async () => {
+      root.render(<ChatPage compact onAmmoDraft={onDraft} />);
+    });
+    const input = container.querySelector<HTMLInputElement>('input[placeholder*="描述你的需求"]')!;
+    await act(async () => {
+      // React 受控输入需原生 setter 触发 onChange（直接赋值不更新内部 state）
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )!.set!;
+      setter.call(input, "明天下午找人擦玻璃");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('button[aria-label="发送"]')!.click();
+    });
+    await flushUntil(() => onDraft.mock.calls.length > 0);
+    expect(onDraft).toHaveBeenCalledWith("housekeeping", "擦玻璃");
+  });
+
+  it("非弹药闲聊（你好）：草稿回钩回落全类目 default 弹药", { timeout: 15000 }, async () => {
+    const onDraft = vi.fn();
+    await act(async () => {
+      root.render(<ChatPage compact onAmmoDraft={onDraft} />);
+    });
+    const input = container.querySelector<HTMLInputElement>('input[placeholder*="描述你的需求"]')!;
+    await act(async () => {
+      // React 受控输入需原生 setter 触发 onChange（直接赋值不更新内部 state）
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )!.set!;
+      setter.call(input, "你好呀");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('button[aria-label="发送"]')!.click();
+    });
+    await flushUntil(() => onDraft.mock.calls.length > 0);
+    expect(onDraft).toHaveBeenCalledWith("default-ammo", "全类目需求");
   });
 });

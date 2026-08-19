@@ -83,9 +83,9 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     page,
-    () => !!document.querySelector('button[aria-label="AI 助手"]'),
+    () => !!document.querySelector('input[placeholder*="描述你的需求"]'),
     10000,
-    "Dock"
+    "座舱渲染"
   );
 
   const closeIfPresent = async () => {
@@ -138,8 +138,8 @@ try {
     await closeIfPresent();
   };
 
-  // --- 1. 弹药1 日常保洁（家政保洁胶囊） ---
-  await page.getByRole("button", { name: "🧽 家政保洁 拟物发单" }).click();
+  // --- 1. 弹药1 日常保洁（意图气泡）---
+  await page.getByRole("button", { name: "🧽 周末日常保洁 拟物发单" }).click();
   await page.waitForTimeout(600);
   const hkDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -161,8 +161,8 @@ try {
     draftChecks: ["¥60/小时 × 2小时起", "🛡️已投保财产险"],
   });
 
-  // --- 2. 弹药2 组局社交（羽毛球约局胶囊） ---
-  await page.getByRole("button", { name: "🏸 组局社交 拟物发单" }).click();
+  // --- 2. 弹药2 组局社交（羽毛球意图气泡）---
+  await page.getByRole("button", { name: "🏸 周日羽毛球约局 拟物发单" }).click();
   await page.waitForTimeout(600);
   const mtDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -175,8 +175,8 @@ try {
   await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await page.waitForTimeout(500);
   await publishFlow({
-    label: "弹药2 组局社交",
-    category: "组局社交",
+    label: "弹药2 羽毛球约局",
+    category: "羽毛球约局",
     ammoId: "meetup-social-v1",
     time: "明天 09:00",
     area: "星羽羽毛球馆",
@@ -184,8 +184,8 @@ try {
     draftChecks: ["¥80/人 · 2人起（AA 均摊）", "⏳预付冻结", "📍LBS围栏"],
   });
 
-  // --- 3. 弹药3 同城陪伴（摄影师约拍胶囊→陪伴档） ---
-  await page.getByRole("button", { name: "👥 陪伴交友 拟物发单" }).click();
+  // --- 3. 弹药3 同城陪伴（摄影师约拍意图气泡→陪伴档）---
+  await page.getByRole("button", { name: "📷 约拍日系写真 拟物发单" }).click();
   await page.waitForTimeout(600);
   const cpDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -198,8 +198,8 @@ try {
   await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await page.waitForTimeout(500);
   await publishFlow({
-    label: "弹药3 同城陪伴",
-    category: "陪伴交友",
+    label: "弹药3 摄影师约拍",
+    category: "摄影师约拍",
     ammoId: "companion-v1",
     time: "后天 15:00",
     area: "滨江街拍点位",

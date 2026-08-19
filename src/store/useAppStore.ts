@@ -122,7 +122,8 @@ interface AppState {
   workerOrders: WorkerOrder[];
   workerOnline: boolean;
 
-  setScreen: (screen: DockPage) => void;
+  /** 历史旧值 'ai'（原独立 AI 助手屏）自动映射回落 'home'（4 键一体化主屏）。 */
+  setScreen: (screen: DockPage | "ai") => void;
   openExperience: (experience: OTOExperience) => void;
   setActiveCategory: (category: OTOCategory | null) => void;
   setActiveSwatch: (color: string) => void;
@@ -170,7 +171,7 @@ export const useAppStore = create<AppState>()(
       workerOrders: WORKER_SEED_ORDERS,
       workerOnline: true,
 
-      setScreen: (screen) => set({ screen }),
+      setScreen: (screen) => set({ screen: screen === "ai" ? "home" : screen }),
       openExperience: (experience) =>
         set({ selectedExperience: experience, screen: "ar" }),
       setActiveCategory: (activeCategory) => set({ activeCategory }),

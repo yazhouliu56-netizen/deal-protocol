@@ -54,13 +54,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
   家政保洁: "🧹",
 };
 
-/** 首页三大官方标杆弹药快捷胶囊（点击 → 100% 呼出对应弹药拟物草稿卡）。 */
-const OFFICIAL_AMMO_CAPSULES = [
-  { key: "housekeeping", emoji: "🧽", label: "家政保洁" },
-  { key: "meetup", emoji: "🏸", label: "组局社交" },
-  { key: "companion", emoji: "👥", label: "陪伴交友" },
-];
-
 const SWATCHES = [
   { color: "#7B61FF", label: "紫罗兰" },
   { color: "#00A3FF", label: "天蓝" },
@@ -122,7 +115,6 @@ export default function Home() {
         >
           <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
             {screen === "home" && <HomePage />}
-            {screen === "ai" && <ChatPage />}
             {screen === "ar" && (
               <ARPage
                 proofShots={proofShots}
@@ -244,25 +236,26 @@ function HomePage() {
         </div>
       </div>
 
-      {/* ═══ 第二层：核心行动区 —— 唯一的全局 AI 拟物发单条 + 三大官方标杆弹药快捷胶囊 ═══ */}
+      {/* ═══ 第二层：AI 对话发单区 + 返回中部拟物卡流动态区 ═══ */}
       <div className="mt-3" data-layer="action">
+        {/* 常驻 AI 智能问候发单条（入口零丢失：全类目拟物草稿卡 100% 直呼） */}
         <motion.button
-          onClick={() => setDraft({ key: "", label: "全类目需求" })}
+          onClick={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           whileTap={{ scale: 0.98 }}
           aria-label="想找什么？一句话告诉我 · 发出你的需求"
-          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl glass-panel-interactive hover:border-brandPurple/50 transition-[border] text-left group"
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl glass-panel-interactive hover:border-brandPurple/50 transition-[border] text-left group"
         >
           <div className="w-10 h-10 rounded-xl bg-linear-to-b from-[rgba(139,92,246,0.85)] to-[rgba(99,72,255,0.65)] border border-white/25 flex items-center justify-center shrink-0 shadow-[0_2px_14px_-2px_rgba(123,97,255,0.7),inset_0_1px_0_rgba(255,255,255,0.45)]">
             <Sparkles size={17} className="text-white" />
           </div>
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-extrabold text-white">
-              想找什么？一句话告诉我…
+              你好，我是 AI 撮合助手 ✨ 一句话告诉我…
             </span>
             <span className="block text-[10px] text-white/50 truncate">
-              拟物草稿卡 · 弹药参数 / 计价 / 安全底线一键预览
+              帮你秒级生成订单 · 匹配弹药 / 计价 / 安全底线一键预览
             </span>
           </span>
           <span className="text-[10px] font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
@@ -270,23 +263,60 @@ function HomePage() {
           </span>
         </motion.button>
 
-        {/* 三大官方标杆弹药：点击 → 100% 呼出对应弹药拟物草稿卡 */}
-        <div className="mt-2.5 flex items-center gap-2">
-          {OFFICIAL_AMMO_CAPSULES.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setDraft({ key: c.key, label: c.label })}
-              aria-label={`${c.emoji} ${c.label} 拟物发单`}
-              className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 min-h-10 rounded-xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
-            >
-              <span className="text-[15px]">{c.emoji}</span>
-              <span className="text-[10.5px] font-bold text-white/85">
-                {c.label}
-              </span>
-            </button>
-          ))}
+        {/* AI 意图中枢：4 大意图快捷气泡 + 统一输入框（文本 / 按住说话 / 发送）——
+            ChatPage compact 融合嵌入，多轮澄清与转正式订单能力 100% 保留 */}
+        <div className="mt-2.5">
+          <ChatPage
+            compact
+            onAmmoDraft={(key, category) => setDraft({ key, label: category })}
+          />
         </div>
       </div>
+
+      {/* ═══ 中部拟物卡流动态区：输入/说话/意图气泡 → 原地展开弹药草稿卡 ═══ */}
+      <AnimatePresence>
+        {draft && (
+          <motion.div
+            initial={{ opacity: 0, y: 14, scale: 0.985, height: 0 }}
+            animate={{ opacity: 1, y: 0, scale: 1, height: "auto" }}
+            exit={{ opacity: 0, y: -8, scale: 0.98, height: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="mt-3 overflow-hidden"
+            data-testid="draft-sheet"
+          >
+            <div className="relative rounded-3xl glass-panel p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-brandCyan" /> 拟物草稿 ·{" "}
+                  {draft.label}
+                </h3>
+                <button
+                  onClick={() => setDraft(null)}
+                  aria-label="关闭拟物草稿"
+                  className="text-white/40 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <DynamicDraftCard
+                category={draft.key}
+                onPublish={() => {
+                  const label = draft.label;
+                  setPublishCategory(label === "全类目需求" ? "" : label);
+                  setDraft(null);
+                  setPublishOpen(true);
+                }}
+                onTweak={(key) =>
+                  toast(`「${key}」参数可在完整发布面板中微调`, "info")
+                }
+              />
+              <p className="text-[9.5px] text-white/40 mt-3 text-center">
+                扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ═══ 第三层：雷达波浪视口 —— 直达 WaveFeed 实时需求波卡流 ═══ */}
       <div className="mt-4" data-layer="wave-feed">
@@ -384,7 +414,7 @@ function HomePage() {
                           .join("、");
                         setAiDraft(`${titles} 帮我撮合`);
                         setShowCart(false);
-                        setScreen("ai");
+                        setScreen("home");
                       }}
                       className="flex-1 py-2 rounded-xl btn-primary text-[11px] font-bold glow-purple-strong"
                     >
@@ -398,87 +428,11 @@ function HomePage() {
         )}
       </AnimatePresence>
 
-      {/* 拟物草稿卡弹层：唯一发单条 / 弹药胶囊 → DynamicDraftCard（100% 呼出） */}
-      <DraftSheet
-        draft={draft}
-        onClose={() => setDraft(null)}
-        onContinue={() => {
-          const label = draft?.label ?? "";
-          setPublishCategory(label === "全类目需求" ? "" : label);
-          setDraft(null);
-          setPublishOpen(true);
-        }}
-      />
-
       {/* 完整发布面板：草稿卡「扣动扳机」→ 品类/时间/地点/预算 → 广播（全链路 0 丢失） */}
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
     </div>
   );
 }
-
-/* ============================ DRAFT SHEET ============================ */
-interface DraftSheetProps {
-  draft: null | { key: string; label: string };
-  onClose: () => void;
-  /** 草稿卡「扣动扳机·一键发布」→ 进入完整发布面板。 */
-  onContinue: () => void;
-}
-
-/**
- * 拟物草稿卡弹层（首页核心行动区第一落点）：
- * DynamicDraftCard 由弹药表驱动（参数行 / 计价 / 安全徽章 / D8 扩展字段），
- * 「扣动扳机·一键发布」→ PublishSheet 完整发单链（createPendingWave → 支付 → 广播）。
- */
-function DraftSheet({ draft, onClose, onContinue }: DraftSheetProps) {
-  return (
-    <AnimatePresence>
-      {draft && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 60, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
-            data-testid="draft-sheet"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                <Sparkles size={13} className="text-brandCyan" /> 拟物草稿 ·{" "}
-                {draft.label}
-              </h3>
-              <button
-                onClick={onClose}
-                aria-label="关闭拟物草稿"
-                className="text-white/40 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-            <DynamicDraftCard
-              category={draft.key}
-              onPublish={onContinue}
-              onTweak={(key) =>
-                toast(`「${key}」参数可在完整发布面板中微调`, "info")
-              }
-            />
-            <p className="text-[9.5px] text-white/40 mt-3 text-center">
-              扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
-            </p>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
-
 
 /* ============================ AR ============================ */
 const AR_SCENE_POINTS = [
@@ -557,7 +511,7 @@ function ARPage({
 
   function goMatch(draft: string) {
     setAiDraft(draft);
-    setScreen("ai");
+    setScreen("home");
   }
 
   return (
@@ -1194,7 +1148,7 @@ function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[]
 
       {/* 探索更多 */}
       <button
-        onClick={() => setScreen("ai")}
+        onClick={() => setScreen("home")}
         className="mt-5 w-full py-2.5 rounded-2xl glass-panel text-xs font-semibold text-white/80 flex items-center justify-center gap-1.5 hover:border-brandPurple/50 transition-colors"
       >
         <Sparkles size={13} className="text-brandPurple" /> 预约更多线下体验

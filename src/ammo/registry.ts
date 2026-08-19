@@ -121,9 +121,12 @@ export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
  * 供履约座舱按 ammoId 装载场景插槽——白皮书 §5.7 scenario 键直挂）。
  */
 export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
-  "家政保洁": "housekeeping",
-  保洁: "housekeeping",
-  打扫: "housekeeping",
+   "家政保洁": "housekeeping",
+   保洁: "housekeeping",
+   打扫: "housekeeping",
+   做卫生: "housekeeping",
+   扫地: "housekeeping",
+   擦玻璃: "housekeeping",
   羽毛球约局: "meetup",
   羽毛球: "meetup",
   约局: "meetup",
@@ -214,6 +217,31 @@ export function resolveAmmoIdForPublish(category: string): string {
   const official = OFFICIAL_AMMO[officialKey ?? category];
   if (official) return official.ammoId;
   return getAmmoDefinition(category).ammoId;
+}
+
+/**
+ * 自由文本 → 弹药（首页 AI 拟物草稿卡原地展开的检索链，弹药表驱动零硬编码）：
+ * 动态池中文类目别名（D8 aliases 只读扫描）→ 中文类目词表（CATEGORY_TO_OFFICIAL 键
+ * 子串命中，首命即止）。未命中返回 null（调用方回落全类目 default 弹药草稿）。
+ */
+export function resolveAmmoByFreeText(
+  text: string,
+): { key: string; ammoId: string; label: string } | null {
+  for (const ammo of DYNAMIC_AMMO_POOL.values()) {
+    const aliases = ammo.holographic?.aliases;
+    if (!aliases) continue;
+    const hit = aliases.find((a) => text.includes(a));
+    if (hit) {
+      return { key: ammo.category ?? ammo.ammoId, ammoId: ammo.ammoId, label: hit };
+    }
+  }
+  for (const [category, officialKey] of Object.entries(CATEGORY_TO_OFFICIAL)) {
+    if (text.includes(category)) {
+      const official = OFFICIAL_AMMO[officialKey];
+      if (official) return { key: officialKey, ammoId: official.ammoId, label: category };
+    }
+  }
+  return null;
 }
 
 /**

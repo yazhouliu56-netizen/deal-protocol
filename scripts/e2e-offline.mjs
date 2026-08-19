@@ -66,13 +66,9 @@ try {
       if (b) b.click();
       await sleep(400);
     };
-    out.home = { have: doc.body.innerText.includes("谁正在附近发需求") };
-    await clickDock("AI 助手");
-    await sleep(500);
-    out.ai = {
-      have:
-        !!doc.querySelector('input[placeholder*="描述你的需求"]') ||
-        doc.body.innerText.includes("描述你的需求"),
+    out.home = {
+      have: doc.body.innerText.includes("谁正在附近发需求"),
+      chat: !!doc.querySelector('input[placeholder*="描述你的需求"]'),
     };
     await clickDock("AR 扫描");
     await sleep(600);
@@ -87,7 +83,7 @@ try {
   });
 
   assert.ok(screens.home.have, "离线首页可渲染");
-  assert.ok(screens.ai.have, "离线 AI 屏可渲染（MockEngine 降级）");
+  assert.ok(screens.home.chat, "离线 AI 对话区内嵌首页可渲染（MockEngine 降级）");
   assert.ok(screens.ar.have, "离线 AR 屏可渲染（2D 兜底）");
 
   // --- 3. 在线恢复 ---

@@ -40,7 +40,7 @@ const CATEGORY_PARSE: Array<{
 }> = [
   { match: /羽毛球|打球|球局|羽球|羽坛/, category: "badminton", label: "羽毛球约局" },
   { match: /约拍|拍照|摄影|写真|跟拍/, category: "photography", label: "摄影师约拍" },
-  { match: /保洁|家政|打扫|整理|收纳/, category: "housekeeping", label: "家政保洁" },
+  { match: /保洁|家政|打扫|整理|收纳|做卫生|扫地|擦玻璃/, category: "housekeeping", label: "家政保洁" },
 ];
 
 const FIELD_SCHEMAS: Record<Exclude<DemandCategory, null>, SchemaField[]> = {

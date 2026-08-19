@@ -53,10 +53,10 @@ try {
   await page.evaluate(() => localStorage.clear());
   // networkidle 在上游 LLM 流式响应慢时永不达成（in-flight 请求不结束）→ 改 domcontentloaded + 显式断言
   await page.reload({ waitUntil: "domcontentloaded" });
-  await waitUntil(page, () => !!document.querySelector('button[aria-label="AI 助手"]'), 10000, "Dock");
+  await waitUntil(page, () => !!document.querySelector('input[placeholder*="描述你的需求"]'), 10000, "座舱渲染");
 
-  // --- 1. 官方弹药胶囊 → 拟物草稿卡（DynamicDraftCard 100% 呼出）---
-  await page.getByRole("button", { name: "🧽 家政保洁 拟物发单" }).click();
+  // --- 1. 意图气泡胶囊 → 拟物草稿卡（DynamicDraftCard 100% 呼出）---
+  await page.getByRole("button", { name: "🧽 周末日常保洁 拟物发单" }).click();
   await page.waitForTimeout(500);
   const draft = await page.evaluate(() => {
     const sheet = document.querySelector('[data-testid="draft-sheet"]');
@@ -71,8 +71,8 @@ try {
   await page.getByRole("button", { name: "关闭拟物草稿" }).click();
   await page.waitForTimeout(400);
 
-  // --- 2. 全局 AI 拟物发单条 → 全类目草稿卡 → 扣动扳机 → 完整发布面板 ---
-  await page.getByRole("button", { name: /想找什么/ }).click();
+  // --- 2. 全局 AI 智能发单条 → 全类目草稿卡 → 扣动扳机 → 完整发布面板 ---
+  await page.getByRole("button", { name: "想找什么" }).click();
   await page.waitForTimeout(400);
   assert.ok(
     await page.evaluate(() => document.body.innerText.includes("扣动扳机·一键发布")),
@@ -90,12 +90,10 @@ try {
   await page.getByRole("button", { name: "关闭发布" }).click();
   await page.waitForTimeout(400);
 
-  // --- 2.5 AI 助手冒烟（ChatPage 从 Dock 直达）---
-  await page.getByRole("button", { name: "AI 助手" }).click();
-  await page.waitForTimeout(800);
+  // --- 2.5 AI 助手冒烟（ChatPage 已内嵌首页，输入框即达）---
   assert.ok(
     await page.evaluate(() => document.body.innerText.includes("AI 撮合助手")),
-    "AI 屏应正常渲染"
+    "AI 撮合助手应内嵌渲染在首页"
   );
   await page.getByRole("button", { name: "首页" }).click();
   await page.waitForTimeout(500);

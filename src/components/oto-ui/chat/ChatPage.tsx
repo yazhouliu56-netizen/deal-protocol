@@ -12,7 +12,7 @@ import VoiceBar from "@/components/oto-ui/VoiceBar";
 import { speak } from "@/base/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { resolveAmmoIdForPublish } from "@/ammo/registry";
+import { resolveAmmoIdForPublish, resolveAmmoByFreeText } from "@/ammo/registry";
 import { toast } from "@/base/platform/toast";
 import { recommend, type SemMatch } from "@/base/ai/embed";
 import {
@@ -30,6 +30,48 @@ const SUGGESTIONS = [
   "周末找个保洁上门",
 ];
 
+/** 首页融合：4 大意图快捷气泡（弹药表驱动 → 草稿卡 key + 中文类目 → 预设口语话术）。 */
+export interface IntentBubble {
+  ammoKey: string;
+  emoji: string;
+  label: string;
+  /** PublishSheet 中文类目（与 CATEGORY_TO_OFFICIAL 词表同键）。 */
+  category: string;
+  /** 点击气泡送入 AI 对话引擎的口语话术（多轮澄清链路照常）。 */
+  text: string;
+}
+
+export const INTENT_BUBBLES: IntentBubble[] = [
+  {
+    ammoKey: "housekeeping",
+    emoji: "🧽",
+    label: "周末日常保洁",
+    category: "家政保洁",
+    text: "周末找个保洁上门打扫，预算 150 元",
+  },
+  {
+    ammoKey: "meetup",
+    emoji: "🏸",
+    label: "周日羽毛球约局",
+    category: "羽毛球约局",
+    text: "周日找人打羽毛球，双打，预算 60 元",
+  },
+  {
+    ammoKey: "companion",
+    emoji: "📷",
+    label: "约拍日系写真",
+    category: "摄影师约拍",
+    text: "想约摄影师拍一组日系写真，预算 499 元",
+  },
+  {
+    ammoKey: "appliance_repair",
+    emoji: "🔧",
+    label: "家电上门维修",
+    category: "家电维修",
+    text: "家里空调坏了，想找师傅上门维修，预算 300 元",
+  },
+];
+
 /** Auto-send a Home hot-service draft once when the AI screen opens. */
 function useAiDraft(onSend: (text: string) => void, streaming: boolean) {
   const aiDraft = useAppStore((s) => s.aiDraft);
@@ -44,11 +86,19 @@ function useAiDraft(onSend: (text: string) => void, streaming: boolean) {
   }, [aiDraft, streaming]);
 }
 
+export interface ChatPageProps {
+  /** 首页融合座舱模式：问候 + 意图气泡 + 输入框置顶，消息流限高居中，无独立屏头。 */
+  compact?: boolean;
+  /** 文本/语音意图命中弹药时回调（首页据此原地展开拟物草稿卡：弹药 key + 中文类目）。 */
+  onAmmoDraft?: (ammoKey: string, category: string) => void;
+}
+
 /**
- * AI 对话助手屏：多轮追问（M1） + 生成式卡片交互（M2）。
+ * AI 对话助手屏（融合前独立屏）：多轮追问（M1） + 生成式卡片交互（M2）。
  * 卡片流：时间槽卡 → 服务者卡 → 确认单卡 → 预订（本地闭环）。
+ * compact 模式：首页「AI 对话发单区 + 拟物卡流动态区」一体化嵌入。
  */
-export default function ChatPage() {
+export default function ChatPage({ compact = false, onAmmoDraft }: ChatPageProps) {
   const chatMessages = useAppStore((s) => s.chatMessages);
   const addChatMessage = useAppStore((s) => s.addChatMessage);
   const updateChatMessage = useAppStore((s) => s.updateChatMessage);
@@ -234,8 +284,10 @@ export default function ChatPage() {
     const assistantId = crypto.randomUUID();
     addChatMessage({ id: assistantId, role: "assistant", content: "" });
     setStreaming(true);
+    let sentOk = false;
     try {
       await runStream(engine.send(trimmed), assistantId);
+      sentOk = true;
     } catch (err) {
       console.error("[chat] send failed", err);
       setInput(trimmed);
@@ -268,6 +320,12 @@ export default function ChatPage() {
       }
     } finally {
       setStreaming(false);
+    }
+    // 首页融合：对话流成功后，弹药表驱动检测输入 → 原地展开拟物草稿卡（命中整弹
+    // 即展示匹配弹药/计价/引信徽标；未命中回落全类目 default 弹药，扣动扳机可发单）。
+    if (sentOk) {
+      const hit = resolveAmmoByFreeText(trimmed);
+      onAmmoDraft?.(hit?.key ?? "default-ammo", hit?.label ?? "全类目需求");
     }
   }
 
@@ -397,61 +455,117 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="pointer-events-auto flex flex-col h-full min-h-0">
-      {/* 头部 */}
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center glow-purple">
-          <Bot size={17} className="text-brandPurple" />
-        </div>
-        <div className="flex-1">
-          <h2 className="text-[15px] font-extrabold tracking-tight">
+    <div className={`pointer-events-auto flex flex-col ${compact ? "min-h-0" : "h-full min-h-0"}`}>
+      {/* 头部：compact = 首页融合座舱的紧凑控制行（无独立屏头） */}
+      {compact ? (
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
+            <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center glow-purple">
+              <Bot size={13} className="text-brandPurple" />
+            </span>
             AI 撮合助手
           </h2>
-          <p className="text-[10px] text-white/50">
-            自然语言描述需求 · 自动撮合线下服务
-          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setTtsEnabled((v) => !v)}
+              aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
+              className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
+                ttsEnabled ? "text-brandCyan" : "text-white/40"
+              }`}
+            >
+              {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
+              语音
+            </button>
+            <button
+              onClick={() => {
+                useAppStore.getState().clearChat();
+                setSession((s) => s + 1);
+              }}
+              className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+            >
+              新对话
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setTtsEnabled((v) => !v)}
-          aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
-          className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
-            ttsEnabled ? "text-brandCyan" : "text-white/40"
-          }`}
-        >
-          {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
-          语音
-        </button>
-        <button
-          onClick={() => {
-            useAppStore.getState().clearChat();
-            setSession((s) => s + 1);
-          }}
-          className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
-        >
-          新对话
-        </button>
-      </div>
+      ) : (
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center glow-purple">
+            <Bot size={17} className="text-brandPurple" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-[15px] font-extrabold tracking-tight">
+              AI 撮合助手
+            </h2>
+            <p className="text-[10px] text-white/50">
+              自然语言描述需求 · 自动撮合线下服务
+            </p>
+          </div>
+          <button
+            onClick={() => setTtsEnabled((v) => !v)}
+            aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
+            className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
+              ttsEnabled ? "text-brandCyan" : "text-white/40"
+            }`}
+          >
+            {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
+            语音
+          </button>
+          <button
+            onClick={() => {
+              useAppStore.getState().clearChat();
+              setSession((s) => s + 1);
+            }}
+            className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+          >
+            新对话
+          </button>
+        </div>
+      )}
 
-      {/* 消息流 */}
-      <div
-        ref={listRef}
-        className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 h-[calc(100dvh-19rem)] lg:h-[calc(100vh-15rem)]"
-      >
-        {chatMessages.map((msg, i) => (
-          <ChatBubble
-            key={msg.id}
-            message={msg}
-            isLatest={streaming && i === chatMessages.length - 1}
-            onCardSelect={handleCardSelect}
-            onBook={handleBook}
-            onConvertToWave={handleConvertToWave}
-          />
-        ))}
-        {thinking && <ThinkingDot />}
-      </div>
+      {/* 首页融合：4 大意图快捷气泡（点击 = 送话术 + 原地展开匹配弹药草稿卡；
+          「想找什么？一句话告诉我」智能问候发单条由首页挂载，入口零丢失） */}
+      {compact && (
+        <div className="grid grid-cols-2 gap-2" data-testid="intent-bubbles">
+          {INTENT_BUBBLES.map((b) => (
+            <button
+              key={b.ammoKey}
+              onClick={() => {
+                onAmmoDraft?.(b.ammoKey, b.category);
+                void handleSend(b.text);
+              }}
+              aria-label={`${b.emoji} ${b.label} 拟物发单`}
+              data-ammo={b.ammoKey}
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+            >
+              <span className="text-[15px]">{b.emoji}</span>
+              <span className="text-[11px] font-bold text-white/85 truncate">
+                {b.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      {!compact && (
+        <div
+          ref={listRef}
+          className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 h-[calc(100dvh-19rem)] lg:h-[calc(100vh-15rem)]"
+        >
+          {chatMessages.map((msg, i) => (
+            <ChatBubble
+              key={msg.id}
+              message={msg}
+              isLatest={streaming && i === chatMessages.length - 1}
+              onCardSelect={handleCardSelect}
+              onBook={handleBook}
+              onConvertToWave={handleConvertToWave}
+            />
+          ))}
+          {thinking && <ThinkingDot />}
+        </div>
+      )}
 
-      {/* 快捷建议 */}
-      {chatMessages.length <= 2 && !streaming && (
+      {/* 快捷建议（融合模式由 4 大意图气泡取代） */}
+      {!compact && chatMessages.length <= 2 && !streaming && (
         <div className="flex flex-wrap gap-2 mt-3">
           {SUGGESTIONS.map((s) => (
             <button
@@ -485,7 +599,7 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* 输入框 */}
+      {/* 输入框（文本 + 按住说话 VoiceBar + 发送） */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -493,7 +607,7 @@ export default function ChatPage() {
           if (composingRef.current) return;
           handleSend(input);
         }}
-        className="mt-3 flex items-center gap-2 relative"
+        className={`flex items-center gap-2 relative ${compact ? "mt-2.5" : "mt-3"}`}
       >
         <input
           value={input}
@@ -531,6 +645,27 @@ export default function ChatPage() {
           </motion.div>
         )}
       </form>
+
+      {/* compact：拟物卡流动态区（消息流在输入框之下限高滚动，生成卡原地展开） */}
+      {compact && (
+        <div
+          ref={listRef}
+          className="mt-3 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 max-h-[12rem] lg:max-h-[16rem]"
+          data-testid="compact-chat-flow"
+        >
+          {chatMessages.map((msg, i) => (
+            <ChatBubble
+              key={msg.id}
+              message={msg}
+              isLatest={streaming && i === chatMessages.length - 1}
+              onCardSelect={handleCardSelect}
+              onBook={handleBook}
+              onConvertToWave={handleConvertToWave}
+            />
+          ))}
+          {thinking && <ThinkingDot />}
+        </div>
+      )}
     </div>
   );
 }
@@ -893,3 +1028,4 @@ function ThinkingDot() {
     </div>
   );
 }
+

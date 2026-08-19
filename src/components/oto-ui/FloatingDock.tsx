@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bot, Home, Map, Scan, User } from "lucide-react";
+import { Home, Map, Scan, User } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 
-export type DockPage = "home" | "ai" | "ar" | "trip" | "profile";
+/** 4 键一体化主屏导航（原 5 键收敛：AI 助手已深度融合进首页雷达主屏）。 */
+export type DockPage = "home" | "ar" | "trip" | "profile";
 
 const NAVS: { id: DockPage; label: string; icon: typeof Home }[] = [
   { id: "home", label: "首页", icon: Home },
-  { id: "ai", label: "AI 助手", icon: Bot },
   { id: "ar", label: "AR 扫描", icon: Scan },
   { id: "trip", label: "行程", icon: Map },
   { id: "profile", label: "我的", icon: User },
@@ -47,7 +47,7 @@ export default function FloatingDock() {
       transition={{ delay: 0.5, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="fixed o-safe-bottom o-safe-pb left-1/2 -translate-x-1/2 z-50 lg:left-auto lg:right-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:translate-x-0">
-        <div className="glass-panel rounded-full px-6 py-2.5 flex items-center justify-between gap-8 md:gap-12 shadow-2xl glow-purple lg:flex-col lg:px-3 lg:py-4 lg:gap-6">
+        <div className="glass-panel rounded-full px-6 py-2.5 flex items-center justify-between gap-8 md:gap-14 shadow-2xl glow-purple lg:flex-col lg:px-3 lg:py-4 lg:gap-7">
           {NAVS.map((nav) => {
             const Icon = nav.icon;
             const isActive = activeTab === nav.id;

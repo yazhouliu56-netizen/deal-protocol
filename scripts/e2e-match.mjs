@@ -57,7 +57,7 @@ try {
   });
   page.on("pageerror", (e) => errors.push(String(e)));
 
-  // --- 1. 进 AI 屏，清状态（先清 SW 缓存避免旧页面替换导致 detach）---
+  // --- 1. 首页融合座舱直连（ChatPage 内嵌首页，无需切屏）---
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
   await sleep(1500);
   await page.evaluate(async () => {
@@ -73,8 +73,7 @@ try {
   await page.evaluate(() => localStorage.clear());
   // networkidle 在上游 LLM 流式响应慢时永不达成 → domcontentloaded + 显式断言
   await page.reload({ waitUntil: "domcontentloaded" });
-  await waitUntil(page, () => !!document.querySelector('button[aria-label="AI 助手"]'), 10000, "Dock 渲染");
-  await page.getByRole("button", { name: "AI 助手" }).click();
+  await waitUntil(page, () => !!document.querySelector('input[placeholder*="描述你的需求"]'), 10000, "座舱渲染");
   await page.getByRole("button", { name: "新对话" }).click();
 
   // --- 2. 需求 → 时段卡（断言密度徽章可见）---
