@@ -28,6 +28,7 @@ import { sopForCategory, CATEGORY_SOP } from "./sop.ts";
 import { housekeepingAmmo } from "./housekeeping.ammo.ts";
 import { meetupAmmo } from "./meetup.ammo.ts";
 import { companionAmmo } from "./companion.ammo.ts";
+import { applianceRepairAmmo } from "./appliance_repair.ammo.ts";
 
 const hasKey = (table: Record<string, unknown>, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(table, key);
@@ -90,11 +91,12 @@ export const DEFAULT_AMMO: IAmmoDefinition = {
 
 /**
  * 官方标准弹药直挂表（类目 → 官方弹药，优先级高于四表聚合）。
- * 三大标杆业务弹药（家政 / 组局 / 陪玩）大满贯：
+ * 四大标杆业务弹药（家政 / 组局 / 陪玩 / 家电维修）大满贯：
  *   housekeeping-v1（💥 碰炸）/ meetup-social-v1（⏳延期 + 📡近炸）/
- *   companion-v1（纯 📡 近炸）；dating / escort 同人风险类目归 companion。
+ *   companion-v1（纯 📡 近炸）/ appliance-repair-v1（💥 碰炸 · 全仓首枚
+ *   C3_TECH_B2B 技术资产聚类）；dating / escort 同人风险类目归 companion。
  * 命中即整弹返回（含声明式钩子），不再走散装表聚合。
- * 注：三枚弹药均已按 8 维全息配置（IHolographicAmmoConfig）经 AmmoFactory
+ * 注：四枚弹药均已按 8 维全息配置（IHolographicAmmoConfig）经 AmmoFactory
  *   assembleAmmo 流水线静态审查出厂（模块加载期强制门禁，详见各弹药文件），
  *   本表直挂其出厂产物；动态弹药经 DYNAMIC_AMMO_POOL 热注册优先命中。
  */
@@ -105,6 +107,12 @@ export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
   escort: companionAmmo,
   companion: companionAmmo,
   social: meetupAmmo,
+  // 首枚 C3_TECH_B2B 品类弹药双键挂载：`appliance_repair` 为中文别名归一化
+  // 直拨键（CATEGORY_TO_OFFICIAL → OFFICIAL_AMMO），`APPLIANCE_REPAIR` 为
+  // 类目大写检索键（getAmmoDefinition('APPLIANCE_REPAIR') 精确命中整弹），
+  // 两键同一出厂产物引用（deepFreeze 后只读）。
+  appliance_repair: applianceRepairAmmo,
+  APPLIANCE_REPAIR: applianceRepairAmmo,
 };
 
 /**
@@ -128,6 +136,13 @@ export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
   "摄影师约拍": "companion",
   约拍: "companion",
   摄影: "companion",
+  "家电维修": "appliance_repair",
+  维修: "appliance_repair",
+  修空调: "appliance_repair",
+  修洗衣机: "appliance_repair",
+  修冰箱: "appliance_repair",
+  修油烟机: "appliance_repair",
+  "水电维修": "appliance_repair",
 };
 
 /** 四表任一命中即视为已配置类目（如「羽毛球」仅 SOP 表登记也算）。 */

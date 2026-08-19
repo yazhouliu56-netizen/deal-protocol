@@ -1131,6 +1131,43 @@ tsc 0 error；`npm run build` 通过；收敛门禁 exit 0。
    housekeeping 60 + isPoliceVerified:true（factory C2 policeOk 通道）、companion 65，
    base 层（tri-credit/escrow/runner）零改动。
 
+### 10.4 第 4 枚官方标杆弹药 appliance-repair-v1 8D 全息化出厂（扩品实战 · 2026-08-19）
+
+> **人类创始人注入 2026-08-19**：扩品实战（第 4 枚）——家电上门维修弹药
+> （appliance-repair-v1）首填 **C3_TECH_B2B**（技术资产与 B 端影子供给）运力聚类，
+> 三大标杆弹药（C2_IN_HOME 家政 / C1_MOBILITY 组局 · 陪玩）之外的全新供给侧
+> 资产池。沿用 `IHolographicAmmoConfig` 8 维配置 + `assembleAmmo` 流水线静态审查
+> 出厂范式（模块加载期强制门禁），注册表双键挂载后四大标杆弹药大满贯。
+
+| 维度 | housekeeping-v1 | meetup-social-v1 | companion-v1 | **appliance-repair-v1** |
+|------|-----------------|------------------|--------------|--------------------------|
+| D1 供给准入 | C2_IN_HOME（公安核验一票否决 + 健康证 + 安全分 ≥60） | C1_MOBILITY（BASIC 实名） | C1_MOBILITY（实名 + 安全分 ≥65） | **C3_TECH_B2B（实名 + 安全分 ≥70 + 公安核验 + 电工/家电维修双证书）** |
+| D2 计价护栏 | HOURLY ¥60/h 起步 2h；120~2000 元；熔断 ≤50%；安全分折抵 ≤50% | PER_SEAT ¥80/座 ≥2 人；30~1000 元；守时分折抵 ≤50% | HOURLY ¥100/h 起步 1h 超时 ×1.2；100~3000 元 | **FORMULA（¥30 上门检测费/60min 起步）；30~3000 元；熔断 ≤50%；技能分折抵 ≤30%** |
+| D3 风控引信 | 💥 IMPACT_FUZE_TEMPLATE | ⏳ DELAY + 📡 PROXIMITY 双引信并联 | 📡 PROXIMITY_FUZE_TEMPLATE | **💥 IMPACT_FUZE_TEMPLATE（入户高财产 + 双拍存证）** |
+| D4 传感降级 | GPS + 水印相机 → 基站粗定位/人工照片/原生摄像头 | GPS + NFC → 扫码核验 | GPS + 实时录音 → 离开人工确认 | **GPS + 水印相机 → 基站粗定位/人工照片审核/原生摄像头** |
+| D5 正向钩子 | OnsiteQuote + CleaningCheck 算子 | ArrivalCheck + AASplitSettle 算子 | PrivacyShield + DepartureFinish 算子 | **ArrivalCheck + OnsiteQuote + CleaningCheck 算子（增项确认→双拍验收两段式微流程）** |
+| D6 违约阶梯 | 4 档（匹配前 100% 退 / 途退 80%+20 元 / 现场 50% / 服务中 0%） | 2 档（匹配前 100% 退 / 服务中爽约扣 30%） | 2 档（匹配前 100% 退 / 途退 85% 扣 15%） | **4 档（100% 退 / 途退 80%+20 元 / 现场扣 30 元检测费退剩余 / 服务中 0%）** |
+| D7 清算仲裁 | 分账 0.85/0.10/0.05 守恒 + 24h 超时代验收 | 0.88/0.10/0.02 守恒 + 6h | 0.85/0.12/0.03 守恒 + 2h | **0.82/0.13/0.05 守恒 + 48h（质保观察期）** |
+| D8 视界表单 | theme=housekeeping + HousekeepingSlot | theme=meetup + MeetupSlot | theme=companion + CompanionSlot | **theme=default + HousekeepingSlot（复用履约座舱）+ 家电类型/故障描述表单** |
+
+关键要点：
+1. **首枚 C3_TECH_B2B 技术资产弹药**——运力池三大聚类（C1_MOBILITY / C2_IN_HOME /
+   C3_TECH_B2B）全量收编，资质认证（ELECTRICIAN_CERT + APPLIANCE_MAINTENANCE_CERT）
+   首次出现在 workerRequirement 声明（C2 家政用健康证、C3 技术类用实技双证书）。
+2. **注册表双键挂载**——`OFFICIAL_AMMO` 同时挂 `appliance_repair`（中文别名归一化
+   直拨键）与 `APPLIANCE_REPAIR`（类目大写检索键）指向同一出厂产物引用；
+   `CATEGORY_TO_OFFICIAL` 七连别名（家电维修/维修/修空调/修洗衣机/修冰箱/修油烟机/
+   水电维修）全部解析至 appliance-repair-v1。
+3. **FORMULA 公式计价**——`{ kind: "FORMULA", formulaId, params: { baseRate: 30,
+   baseDurationMin: 60 } }`：上门检测费 ¥30 / 60 分钟基准，地板 30 元 / 天花板
+   3000 元（3000/300000 分），SKILL_LEVEL 定向折抵 ≤30%（引擎零折抵位，声明保留）。
+4. **48h 质保验收期**——autoAcceptanceTimeoutHours: 48（家政 24h 的两倍观察期，
+   家电维修隐蔽故障通常在交付后数日暴露）。
+5. 复用而非新建——HousekeepingSlot 座舱插槽 + ArrivalCheck/OnsiteQuote/CleaningCheck
+   三算子全部白名单复用，零新增算子（宪法 #4 资产复用优先）；测试白名单扩列
+   `appliance_repair.ammo.test.ts`（16 例：8D 契约 / 别名直拨 / C3 准入双熔断 /
+   碰炸引信 / 增项熔断 50% 边界 / 全流程 / 分账守恒 / 违约阶梯）。
+
 ---
 
 ## 十一、收敛路线（宪法门禁衔接）
@@ -1146,6 +1183,7 @@ tsc 0 error；`npm run build` 通过；收敛门禁 exit 0。
 | 日期 | 修订 | 裁决人 |
 |------|------|--------|
 | 2026-08-16 | **三大标杆弹药 8D 全息化流水线出厂（方案 A 收官，100% 物理代码级闭环）**：§十 新增 10.3——三枚官方弹药（housekeeping-v1 / meetup-social-v1 / companion-v1）以 `IHolographicAmmoConfig` 8 维配置经 `assembleAmmo` 静态审查出厂（模块加载期强制门禁：资金守恒 / C2 入户一票否决 / 加价熔断 / 计价护栏 / 违约阶梯 / 钩子白名单）+ 8 维对照表 + 四项关键收敛（循环依赖根治：DYNAMIC_AMMO_POOL 归位 factory.ts + registry re-export；SensorKind +5 降级成员；钩子契约切换算子白名单 + 富钩子直测保留；minSafetyScore 双量表裁决恪守 base 0-100）；物理落点 `housekeeping.ammo.ts` / `meetup.ammo.ts` / `companion.ammo.ts`（8D 配置 + 出厂 + dispatchRule/sop 显式保留 + deepFreeze）+ `factory.ts`（DYNAMIC_AMMO_POOL 定义归位）+ `registry.ts`（re-export）+ `ammo-schema.ts`（SensorKind +5）+ 三测试文件同步 8D 契约断言；全仓 **1217/1217 全绿**（vitest 537 + node:test 680，node:test 673 → 680）+ tsc 0 + build exit 0 + 收敛门禁 exit 0 | 用户 |
+| 2026-08-19 | **第 4 枚官方标杆弹药 appliance-repair-v1 8D 全息化出厂（扩品实战，C3_TECH_B2B）**：§十 新增 10.4——家电上门维修弹药首填技术资产运力池（C3_TECH_B2B，三大聚类全量收编）：FORMULA 公式计价（¥30 上门检测费/60min）+ 双证书准入（ELECTRICIAN_CERT + APPLIANCE_MAINTENANCE_CERT，安全分 ≥70 + 公安核验）+ 💥 碰炸引信 + 三算子白名单复用（ArrivalCheck/OnsiteQuote/CleaningCheck）+ 4 档违约阶梯（现场扣 30 元检测费退剩余）+ 0.82/0.13/0.05 分账守恒 + **48h 质保验收期**；注册表双键挂载（appliance_repair + APPLIANCE_REPAIR）+ 七连中文别名直拨（家电维修/维修/修空调/修洗衣机/修冰箱/修油烟机/水电维修）；物理落点 `appliance_repair.ammo.ts` + `registry.ts`（双键 + 7 别名）+ `appliance_repair.ammo.test.ts`（16 例）+ `package.json`（test:oto:units 扩列仅追加）；全仓 **1492/1492 全绿**（vitest 606 不动 + node:test 870→886）+ tsc 0 + build exit 0 + 收敛门禁 exit 0（零 rename 无登记需求） | 用户 |
 | 2026-08-16 | 修复 Tailwind v4 自动扫描越界问题（source(none) 显式白名单）与 PWA 动态 manifest 路由冲突 | 用户 |
 | 2026-08-16 | **Design QA 与 PWA Handoff 规范注入（100% 物理代码级闭环）**：新增 §九——① Sprint -0.5 双轨敏捷协同模型（设计轨 Figma 变量/组件 × 工程轨 CSS Token/组件，W1~W10 里程碑产物清单，每周对齐）；② Figma 变量 → CSS Custom Properties 1:1 映射字典（`src/app/oto/globals.css` `:root` + `.oto-app` 双写：色彩 9 项 / 间距 6 级 / 触控 44/48px / 圆角 / 阴影 / 动效曲线，D-10 契约不触碰根主题）；③ Figma 图层 → Atomic 组件层级映射规则（验收 T-3：组件禁止硬编码色值）；④ Google Lighthouse 核心体验硬性基准表（LCP ≤ 2.0s / CLS ≤ 0.05 / a11y ≥ 95 / FCP ≤ 1.8s / TBT ≤ 200ms）；⑤ PWA 交互验收标准（A2HS 7 天静默期 `localStorage['a2hs_dismissed_until']` + 抽屉下拉 >35% 关闭）；物理落点 `layout.tsx`（Next 16 viewport：userScalable=false / viewportFit=cover + body 点击高亮消除）+ `A2HSPrompt.tsx`（isA2HSSuppressed/suppressA2HS 纯函数 + showInstallPrompt 前置拦截）+ `src/base/platform/useDragToDismiss.ts`（shouldDismissSheet 纯函数 + touch 三事件 Hook + 400px 基准回退）；新增 19 项双端单测（node:test 9 + vitest 10），全仓 **1180/1180 全绿**；原 §九→§十、§十→§十一 顺延 | 用户 |
 | 2026-08-16 | **PWA Native-Like UI/UX 架构与双端执行手册注入（100% 物理代码级闭环）**：新增 §八——① Canvas 时空防伪水印引擎 `src/base/platform/watermark-canvas.ts`（时间/坐标/订单哈希格式化 + 4:3 中心裁剪 + 右下角遮罩压制 + SHA-256 存证指纹 + 无 DOM 确定性降级，红线 5）② 屏幕左边缘手势返回 `src/base/platform/useEdgeSwipeBack.ts`（24px 边缘带 / 60px 阈值 / 1.5 垂直比纯函数 + touch Hook passive 抢占 + history.back 回退）③ 三组件：硬件权限预授权浮层 `PrePermissionSheet.tsx`（200m 围栏语义 / 防伪物证链双文案 + 永久拒绝「锁形图标」重置指引 + 48px 触控）、A2HS 安装价值时刻引导 `A2HSPrompt.tsx`（beforeinstallprompt 捕获延迟弹出 + Android prompt() + iOS Safari 分享气泡）、4:3 存证水印相机 `controls/ProofCamera.tsx`（capture=environment 禁相册 + 自动水印注入 + SHA-256 标签）；新增 50 项双端单测（node:test 28 + vitest jsdom 22），全仓 **1161/1161 全绿**；原 §八→§九、§九→§十 顺延 | 用户 |
