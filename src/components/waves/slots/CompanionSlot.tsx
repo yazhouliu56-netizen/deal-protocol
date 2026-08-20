@@ -24,19 +24,19 @@ export interface CompanionSlotProps {
 const SLOT_CSS = `
 .cp-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   background:linear-gradient(135deg,rgba(167,139,250,.16),rgba(167,139,250,.05));
-  border:1px solid rgba(167,139,250,.32);color:#e2e8f0;font-size:13px}
-.cp-slot h4{margin:0 0 6px;font-size:14px;color:#c4b5fd}
+  border:1px solid rgba(167,139,250,.32);color:#e2e8f0;font-size:14px;line-height:1.5}
+.cp-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#c4b5fd}
 .cp-shield{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
-.cp-shield-armed{color:#4ade80;font-size:12px}
-.cp-fakecall{width:100%;padding:11px 0;border-radius:14px;border:none;font-size:14px;font-weight:800;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-weight:500}
+.cp-shield-armed{color:#4ade80;font-size:13px;font-weight:600}
+.cp-fakecall{width:100%;padding:11px 0;border-radius:14px;border:none;font-size:15px;font-weight:800;
   cursor:pointer;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;
   box-shadow:0 6px 20px rgba(124,58,237,.4)}
 .cp-fakecall:active{transform:scale(.98)}
 .cp-distance{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.06);border:1px dashed rgba(167,139,250,.4)}
+  background:rgba(255,255,255,.06);border:1px dashed rgba(167,139,250,.4);font-weight:500}
 .cp-block{width:100%;padding:9px 0;border-radius:12px;border:1px solid rgba(239,68,68,.45);
-  background:rgba(239,68,68,.1);color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer}
+  background:rgba(239,68,68,.1);color:#fca5a5;font-size:14px;font-weight:700;cursor:pointer}
 `;
 
 /** 同城陪玩插槽：隐私盾 + 伪装假电话 + 300m 距离指示 + 一键拉黑。 */
@@ -67,7 +67,7 @@ export default function CompanionSlot({
       )}
       <div className="cp-distance">
         <span>📡 安全距离 {departureDistanceMeters}m</span>
-        <span style={{ color: "#94a3b8" }}>超出自动停表/结账</span>
+        <span style={{ color: "#cbd5e1" }}>超出自动停表/结账</span>
       </div>
       {onBlockUser && (
         <button type="button" className="cp-block" data-action="block-user" onClick={onBlockUser}>

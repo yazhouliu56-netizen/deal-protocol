@@ -118,34 +118,35 @@ export function resolveCockpitTheme(
 }
 
 const COCKPIT_CSS = `
-.cockpit{max-width:460px;border-radius:22px;padding:14px;color:#e2e8f0;font-size:13px;
-  display:flex;flex-direction:column;gap:12px}
+.cockpit{max-width:460px;border-radius:22px;padding:14px;color:#e2e8f0;font-size:14px;
+  display:flex;flex-direction:column;gap:12px;line-height:1.5}
 .cockpit-capsule{display:flex;justify-content:center}
-.cockpit-theme{font-size:11px;color:#94a3b8;text-align:center}
+.cockpit-theme{font-size:12px;color:rgba(255,255,255,.68);text-align:center;font-weight:500}
 .cockpit-provider{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
+.cockpit-provider-info strong{font-size:15px;font-weight:700;color:#f1f5f9}
 .cockpit-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:22px;background:rgba(255,255,255,.12)}
 .cockpit-provider-info{display:flex;flex-direction:column;gap:2px}
-.cockpit-trust{display:inline-flex;gap:6px;font-size:11px;color:#94a3b8}
+.cockpit-trust{display:inline-flex;gap:6px;font-size:12px;color:#cbd5e1;font-weight:500}
 .cockpit-actions{margin-left:auto;display:flex;gap:6px}
-.cockpit-pill{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.08);cursor:pointer;color:#cbd5e1}
-.cockpit-cta{width:100%;padding:13px 0;border-radius:16px;border:none;font-size:15px;font-weight:800;
+.cockpit-pill{padding:5px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);cursor:pointer;color:#e2e8f0}
+.cockpit-cta{width:100%;padding:13px 0;border-radius:16px;border:none;font-size:16px;font-weight:800;
   cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
   box-shadow:0 8px 24px var(--theme-glow);transition:transform .15s,filter .15s}
 .cockpit-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
 .cockpit-cta:active{transform:scale(.98)}
 .cockpit-safety{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;
-  font-size:11px;font-weight:600;border:1px solid}
+  font-size:12px;font-weight:600;border:1px solid;line-height:1.5}
 .cockpit-safety-guarded{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3)}
 .cockpit-safety-attention{color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3)}
 .cockpit-safety-threat{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
-.cockpit-armed{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:14px;
-  font-size:12px;font-weight:800;color:#34d399;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(251,191,36,.12));
-  border:1px solid rgba(52,211,153,.45);box-shadow:0 0 18px rgba(52,211,153,.18)}
+.cockpit-armed{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:9px 12px;border-radius:14px;
+  font-size:13px;font-weight:800;color:#34d399;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(251,191,36,.12));
+  border:1px solid rgba(52,211,153,.45);box-shadow:0 0 18px rgba(52,211,153,.18);line-height:1.5}
 .cockpit-custom{display:flex;flex-wrap:wrap;gap:6px}
-.cockpit-custom-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+.cockpit-custom-tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
   background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
@@ -267,7 +268,7 @@ export default function FulfillmentCockpit({
           data-testid="cockpit-armed-banner"
         >
           {safetyBadge ?? ENHANCED_SAFETY_BADGE_DEFAULT}
-          <span style={{ opacity: 0.7, fontSize: 10.5, fontWeight: 600 }}>
+          <span style={{ opacity: 0.85, fontSize: 12, fontWeight: 600 }}>
             虚拟号 · 行程守护 · 敏感词监听 已强制开启
           </span>
         </section>

@@ -141,39 +141,39 @@ export function paramIconOf(key: string): string {
 const SLOT_CSS = `
 .dyn-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   background:linear-gradient(135deg,var(--theme-surface-tint),rgba(123,97,255,.06));
-  border:1px solid var(--theme-border);color:#e2e8f0;font-size:13px}
-.dyn-slot h4{margin:0 0 6px;font-size:14px;color:#67e8f9}
-.dyn-meta{font-size:11px;color:#94a3b8}
+  border:1px solid var(--theme-border);color:#e2e8f0;font-size:14px;line-height:1.5}
+.dyn-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#67e8f9}
+.dyn-meta{font-size:12px;color:rgba(255,255,255,.68);font-weight:500}
 .dyn-params{display:flex;flex-direction:column;gap:6px;padding:10px 11px;border-radius:14px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)}
-.dyn-param{display:flex;align-items:center;gap:9px;font-size:12px;padding:8px 9px;border-radius:12px;
+.dyn-param{display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 9px;border-radius:12px;
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
   backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
 .dyn-param-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;
   justify-content:center;font-size:15px;flex-shrink:0;
   background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.08));
   border:1px solid var(--theme-border)}
-.dyn-param b{color:#e2e8f0;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;font-size:11.5px}
-.dyn-param span{color:#94a3b8;text-align:right;word-break:break-all;font-weight:600}
+.dyn-param b{color:#f1f5f9;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:13px;font-weight:600}
+.dyn-param span{color:#cbd5e1;text-align:right;word-break:break-all;font-weight:600}
 .dyn-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dyn-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;
-  overflow:hidden;background:rgba(255,255,255,.05);flex-direction:column;gap:6px}
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#cbd5e1;
+  overflow:hidden;background:rgba(255,255,255,.05);flex-direction:column;gap:6px;font-weight:500}
 .dyn-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.dyn-photo-btn{min-height:44px;padding:8px 14px;border-radius:12px;border:none;font-size:12px;font-weight:800;
+.dyn-photo-btn{min-height:44px;padding:8px 14px;border-radius:12px;border:none;font-size:13px;font-weight:800;
   cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
   box-shadow:0 6px 18px var(--theme-glow)}
-.dyn-verified{font-size:11px;color:#4ade80}
+.dyn-verified{font-size:12px;color:#4ade80;font-weight:600}
 .dyn-badges{display:flex;flex-wrap:wrap;gap:6px}
-.dyn-badge{font-size:11px;padding:3px 8px;border-radius:999px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+.dyn-badge{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dbe4f0}
 .dyn-dispute{width:100%;min-height:44px;padding:9px 0;border-radius:12px;
   border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);
-  color:#fbbf24;font-size:13px;font-weight:700;cursor:pointer}
+  color:#fbbf24;font-size:14px;font-weight:700;cursor:pointer}
 .dyn-custom{display:flex;flex-wrap:wrap;gap:6px;padding:8px 11px;border-radius:12px;
   background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3)}
-.dyn-custom-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+.dyn-custom-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
   background:rgba(123,97,255,.16);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
@@ -289,7 +289,7 @@ export default function DynamicAmmoSlot({
           {twinVerified ? (
             <span className="dyn-verified">✅ 双拍验真已通过（水印相机存证）</span>
           ) : (
-            <span style={{ fontSize: 11, color: "#94a3b8" }}>
+            <span style={{ fontSize: 12, color: "#cbd5e1" }}>
               ⚠️ 完成 Before/After 双拍后按弹药契约核销（红线 4 零信任物理感知）
             </span>
           )}

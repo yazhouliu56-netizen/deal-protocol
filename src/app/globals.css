@@ -92,6 +92,15 @@ body {
   --ring: 240 5.9% 10%;
   --radius: 0.75rem;
   --chart-1: 12 76% 61%;
+
+  /* 舒适字阶与对比度变量（三级深色文字：主标题 .95 / 正文·标签 .88 / 辅助描述 .68） */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --text-muted: rgba(255, 255, 255, 0.68);
+  --font-size-micro: 12px;
+  --font-size-caption: 13px;
+  --font-size-body: 15px;
+  --font-size-title: 18px;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
@@ -169,6 +178,8 @@ body {
       "PingFang SC", "Hiragino Sans GB", "Noto Sans SC",
       "Microsoft YaHei", sans-serif;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
@@ -247,18 +258,18 @@ body {
   font-feature-settings: "tnum" 1, "lnum" 1;
 }
 
-/* 六步字阶：Display 28 / Title 20 / Subtitle 17 / Body 15 / Caption 13 / Micro 11 */
+/* 六步字阶：Display 28 / Title 20 / Subtitle 17 / Body 15 / Caption 13 / Micro 12（字阶底线 ≥12px，抗锯齿渲染） */
 .t-display { font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
 .t-title { font-size: 20px; line-height: 1.2; font-weight: 700; }
 .t-subtitle { font-size: 17px; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 15px; line-height: 1.5; }
-.t-caption { font-size: 13px; line-height: 1.4; }
-.t-micro { font-size: 11px; line-height: 1.35; }
+.t-body { font-size: 15px; line-height: 1.6; }
+.t-caption { font-size: 13px; line-height: 1.5; }
+.t-micro { font-size: 12px; line-height: 1.45; }
 
-/* 六级深色文字对比度：主标题 .95 / 正文 .72 / 辅助 .48 / 次要 .32 / 装饰 .22 / 最弱 .14 */
+/* 三级深色文字对比度：主标题 .95 / 正文·标签 .88 / 辅助描述 .68（tx-4~6 为装饰性弱化保留） */
 .tx-1 { color: rgba(255, 255, 255, 0.95); }
-.tx-2 { color: rgba(255, 255, 255, 0.72); }
-.tx-3 { color: rgba(255, 255, 255, 0.48); }
+.tx-2 { color: rgba(255, 255, 255, 0.88); }
+.tx-3 { color: rgba(255, 255, 255, 0.68); }
 .tx-4 { color: rgba(255, 255, 255, 0.32); }
 .tx-5 { color: rgba(255, 255, 255, 0.22); }
 .tx-6 { color: rgba(255, 255, 255, 0.14); }

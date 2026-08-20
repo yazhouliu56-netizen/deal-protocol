@@ -178,8 +178,8 @@ export default function ProfilePage({
     <div className="pointer-events-auto flex flex-col gap-3">
       {/* 访客/登录行：数据来源 + 本地模式入口（G-5；登录后提示云端由数据化替换） */}
       <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25">
-        <span className="text-[11px]">💠</span>
-        <p className="flex-1 min-w-0 text-[9.5px] text-white/55">
+        <span className="text-xs">💠</span>
+        <p className="flex-1 min-w-0 text-xs text-white/68">
           {authAccount
             ? `已登录 · ${authAccount.nickname}（${authAccount.role === "employer" ? "需求方" : authAccount.role === "provider" ? "服务者" : "组局主理人"}）· 数据存本机浏览器`
             : `访客 · 本地演示身份「${identity.nickname}」 · 数据存本机浏览器`}
@@ -189,7 +189,7 @@ export default function ProfilePage({
             openAuthSheet();
           }}
           aria-label={authAccount ? "切换账号" : "登录"}
-          className="shrink-0 px-2 py-1 rounded-full btn-primary text-[9px] font-bold inline-flex items-center gap-1"
+          className="shrink-0 px-2 py-1 rounded-full btn-primary text-xs font-bold inline-flex items-center gap-1"
         >
           <LogIn size={9} />
           {authAccount ? "切换账号" : "登录 · 注册"}
@@ -197,14 +197,14 @@ export default function ProfilePage({
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"
-          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
+          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
         >
           数据模式
         </button>
         {onGoHome && (
           <button
             onClick={onGoHome}
-            className="shrink-0 px-2 py-1 rounded-full btn-primary text-[9px] font-bold"
+            className="shrink-0 px-2 py-1 rounded-full btn-primary text-xs font-bold"
           >
             去雷达
           </button>
@@ -223,7 +223,7 @@ export default function ProfilePage({
           title="点击上传本地头像（自动压缩为 96×96）"
         >
           <IdentityAvatar size="lg" />
-          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brandPurple border border-white/30 flex items-center justify-center text-[9px] shadow-md group-hover:scale-110 transition-transform">
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brandPurple border border-white/30 flex items-center justify-center text-xs shadow-md group-hover:scale-110 transition-transform">
             ✎
           </span>
           <input
@@ -239,11 +239,11 @@ export default function ProfilePage({
             <span className="text-[15px] font-extrabold">Alex</span>
             <BadgeCheck size={14} className="text-brandCyan" />
           </div>
-          <p className="text-[10px] text-white/50 mt-0.5">
+          <p className="text-xs text-white/68 mt-0.5">
             线下体验玩家 · 已撮合 {bookings.length} 单
           </p>
         </div>
-        <span className="text-[9px] px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple font-semibold shrink-0">
+        <span className="text-xs px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple font-semibold shrink-0">
           钻石会员
         </span>
       </motion.div>
@@ -263,7 +263,7 @@ export default function ProfilePage({
               <span className="text-lg font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
                 {s.value}
               </span>
-              <span className="text-[10px] text-white/50">{s.label}</span>
+              <span className="text-xs text-white/68">{s.label}</span>
             </div>
           ))}
         </div>
@@ -281,12 +281,12 @@ export default function ProfilePage({
           <ArrowRightLeft size={16} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-[12.5px] font-bold block">服务者工作台</span>
-          <span className="text-[10px] text-white/50 block mt-0.5 truncate">
+          <span className="text-[13px] font-bold block">服务者工作台</span>
+          <span className="text-xs text-white/68 block mt-0.5 truncate">
             切到服务者视角 · 资质准入 / 接单 / 履约 / 收益
           </span>
         </div>
-        <span className="text-white/30 text-lg shrink-0">›</span>
+        <span className="text-white/68 text-lg shrink-0">›</span>
       </button>
 
       {/* 3 大抽屉式二级菜单入口（安全中心 / 隐私合规 / 系统设置） */}
@@ -305,8 +305,8 @@ export default function ProfilePage({
             className="min-h-16 glass-panel-interactive rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
           >
             <span className="text-base leading-none">{d.icon}</span>
-            <span className="text-[10.5px] font-extrabold text-white/85">{d.title}</span>
-            <span className="text-[8.5px] text-white/40">{d.sub}</span>
+            <span className="text-xs font-extrabold text-white/95">{d.title}</span>
+            <span className="text-xs text-white/68">{d.sub}</span>
           </button>
         ))}
       </div>
@@ -319,7 +319,7 @@ export default function ProfilePage({
         </h3>
         {bookings.length === 0 ? (
           <div className="glass-panel rounded-2xl p-4 text-center">
-            <p className="text-[11px] text-white/40">
+            <p className="text-xs text-white/68">
               还没有订单——去 AI 助手说句需求，马上撮合
             </p>
           </div>
@@ -355,11 +355,11 @@ export default function ProfilePage({
       >
         {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
             撮合偏好
             <button
               onClick={() => resetPrefs()}
-              className="ml-auto text-[9px] text-white/30 hover:text-white/70 transition-colors"
+              className="ml-auto text-xs text-white/68 hover:text-white/88 transition-colors"
             >
               重置
             </button>
@@ -370,13 +370,13 @@ export default function ProfilePage({
                 key={key}
                 onClick={() => cycle(key)}
                 title="点击切换"
-                className="text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/60 hover:border-brandPurple/50 hover:text-white/80 active:scale-95 transition-all"
+                className="text-xs px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/88 hover:border-brandPurple/50 hover:text-white/88 active:scale-95 transition-all"
               >
                 {prefs[key]}
               </button>
             ))}
           </div>
-          <p className="text-[9px] text-white/25 mt-2">
+          <p className="text-xs text-white/68 mt-2 leading-relaxed">
             点击标签切换偏好，将用于撮合匹配排序（本地保存）
           </p>
         </div>
@@ -386,13 +386,13 @@ export default function ProfilePage({
 
         {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1.5">
             推送免打扰
-            <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
               自主设置 · 不绑付费
             </span>
           </h3>
-          <label className="flex items-center justify-between gap-2 text-[10.5px] text-white/70 cursor-pointer">
+          <label className="flex items-center justify-between gap-2 text-xs text-white/88 cursor-pointer">
             <span>开启免打扰</span>
             <input
               type="checkbox"
@@ -412,10 +412,10 @@ export default function ProfilePage({
                   <button
                     key={w.label}
                     onClick={() => toggleQuietWindow(w.start, w.end)}
-                    className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
                       on
                         ? "bg-brandPurple/25 border-brandPurple/50 text-brandPurple-foreground"
-                        : "bg-white/[0.06] border-white/10 text-white/60"
+                        : "bg-white/[0.06] border-white/10 text-white/88"
                     }`}
                   >
                     {on ? "✓ " : ""}{w.label}
@@ -424,7 +424,7 @@ export default function ProfilePage({
               })}
             </div>
           )}
-          <p className="text-[9px] text-white/25 mt-2">
+          <p className="text-xs text-white/68 mt-2 leading-relaxed">
             静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
           </p>
         </div>
@@ -450,9 +450,9 @@ export default function ProfilePage({
       >
         {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
             未成年人分级
-            <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
+            <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
               合规
             </span>
           </h3>
@@ -464,7 +464,7 @@ export default function ProfilePage({
               value={birthYearInput}
               onChange={(e) => setBirthYearInput(e.target.value)}
               placeholder="出生年份（如 2008）"
-              className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[11px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
+              className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/88 placeholder:text-white/68 focus:outline-none focus:border-brandPurple/50"
             />
             <button
               onClick={() => {
@@ -474,13 +474,13 @@ export default function ProfilePage({
                 }
                 setAge(by);
               }}
-              className="px-3 py-1.5 rounded-lg btn-primary text-[10px] font-bold"
+              className="px-3 py-1.5 rounded-lg btn-primary text-xs font-bold"
             >
               保存
             </button>
           </div>
           {identity.birthYear != null && (
-            <div className="mt-2 text-[9.5px] text-white/45 leading-relaxed">
+            <div className="mt-2 text-xs text-white/68 leading-relaxed">
               {(() => {
                 const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
                 const mode = modeOfAge(age);
@@ -493,11 +493,11 @@ export default function ProfilePage({
                 const moneyCheck = ageGate({ age, action: "publish-fee" });
                 return (
                   <>
-                    <p className="font-bold text-white/70">
+                    <p className="font-bold text-white/88">
                       {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
                     </p>
                     {age < 18 && (
-                      <p className="mt-1 text-white/40">
+                      <p className="mt-1 text-white/68">
                         资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
                         —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
                       </p>
@@ -511,7 +511,7 @@ export default function ProfilePage({
             identity.birthYear ?? new Date().getFullYear(),
             new Date().getFullYear()
           ) < 14 && (
-            <label className="mt-2 flex items-center gap-2 text-[10px] text-white/55 cursor-pointer">
+            <label className="mt-2 flex items-center gap-2 text-xs text-white/68 cursor-pointer">
               <input
                 type="checkbox"
                 checked={identity.guardianConsent ?? false}
@@ -525,9 +525,9 @@ export default function ProfilePage({
 
         {/* 数据脱敏预览（掩码效果演示） */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
             数据脱敏
-            <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+            <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
               对外展示即掩码
             </span>
           </h3>
@@ -540,9 +540,9 @@ export default function ProfilePage({
               { kind: "id", v: "110101199001011234" },
             ] as const
           ).map((r) => (
-            <div key={r.kind} className="flex items-center justify-between text-[9px]">
-              <span className="text-white/35">{r.kind}</span>
-              <span className="text-white/50 font-mono">
+            <div key={r.kind} className="flex items-center justify-between text-xs">
+              <span className="text-white/68">{r.kind}</span>
+              <span className="text-white/68 font-mono">
                 {mask(r.kind as SensitiveKind, r.v)}
               </span>
             </div>
@@ -551,7 +551,7 @@ export default function ProfilePage({
 
         {/* 遗忘权 */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1">
             遗忘权（《个保法》§47：删除或匿名化）
           </h3>
           <div className="flex flex-wrap gap-1.5">
@@ -570,22 +570,22 @@ export default function ProfilePage({
                   const out = requestForget(o.kind);
                   setLastForget(out.fresh ? o.kind : null);
                 }}
-                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] text-white/60 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
+                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-xs text-white/88 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
               >
                 {o.label}
               </button>
             ))}
           </div>
           {lastForget && (
-            <p className="text-[8.5px] text-emerald-300/80 mt-2">
+            <p className="text-xs text-emerald-300/80 mt-2">
               ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
             </p>
           )}
           {forgetRequests.length > 0 && (
             <div className="space-y-1 mt-2">
               {forgetRequests.map((r) => (
-                <div key={r.id} className="flex items-center justify-between text-[8.5px]">
-                  <span className="text-white/45">
+                <div key={r.id} className="flex items-center justify-between text-xs">
+                  <span className="text-white/68">
                     {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
                   </span>
                   <span
@@ -618,13 +618,13 @@ export default function ProfilePage({
 
         {/* ADR-0013 安全中心：SOS 危机干预（N8/N10 接线） */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1.5">
             紧急求助
-            <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
               EPA 递增通知
             </span>
           </h3>
-          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
+          <p className="text-xs font-bold text-white/88 flex items-center gap-1">
             紧急求助（紧急联系人 → 平台值班 → 警方通道）
           </p>
           <div className="flex gap-1.5 mt-2">
@@ -636,14 +636,14 @@ export default function ProfilePage({
               <button
                 key={o.lv}
                 onClick={() => setCrisisLevel(o.lv)}
-                className={`flex-1 px-2 py-1.5 rounded-lg text-[9.5px] font-bold border transition-all ${
+                className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                   crisisLevel === o.lv
                     ? o.lv === 3
                       ? "bg-red-400/25 border-red-400/60 text-red-300"
                       : o.lv === 2
                         ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
-                        : "bg-white/[0.1] border-white/25 text-white/85"
-                    : "bg-white/[0.04] border-white/10 text-white/50"
+                        : "bg-white/[0.1] border-white/25 text-white/95"
+                    : "bg-white/[0.04] border-white/10 text-white/68"
                 }`}
               >
                 {o.label}
@@ -654,7 +654,7 @@ export default function ProfilePage({
             value={crisisNote}
             onChange={(e) => setCrisisNote(e.target.value)}
             placeholder="备注（如：山野迷路，沿步道 2 号点等待）"
-            className="mt-2 w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-red-400/50"
+            className="mt-2 w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/88 placeholder:text-white/68 focus:outline-none focus:border-red-400/50"
           />
           <div className="flex items-center gap-2 mt-2">
             <button
@@ -669,14 +669,14 @@ export default function ProfilePage({
                   setCrisisSmsText(crisisSms(out.record, contacts[0]?.name ?? "联系人"));
                 }
               }}
-              className="flex-1 px-3 py-2 rounded-lg bg-red-400/20 border border-red-400/50 text-red-300 text-[10px] font-extrabold hover:bg-red-400/30 active:scale-95 transition-all"
+              className="flex-1 px-3 py-2 rounded-lg bg-red-400/20 border border-red-400/50 text-red-300 text-xs font-extrabold hover:bg-red-400/30 active:scale-95 transition-all"
             >
               发起求助
             </button>
             {myCrisis.length > 0 && (
               <button
                 onClick={() => resolveCrisis(myCrisis[0].id)}
-                className="px-3 py-2 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold hover:bg-emerald-400/25 active:scale-95 transition-all"
+                className="px-3 py-2 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold hover:bg-emerald-400/25 active:scale-95 transition-all"
               >
                 已平安，结束
               </button>
@@ -688,21 +688,21 @@ export default function ProfilePage({
                 {crisisTargets.map((t) => (
                   <span
                     key={t}
-                    className="px-2 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-[8.5px] font-bold text-red-300"
+                    className="px-2 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-xs font-bold text-red-300"
                   >
                     📢 已通知 {t}
                   </span>
                 ))}
               </div>
               {crisisSmsText && (
-                <p className="text-[8.5px] text-white/45 bg-white/[0.03] rounded-lg px-2 py-1.5 leading-relaxed">
+                <p className="text-xs text-white/68 bg-white/[0.03] rounded-lg px-2 py-1.5 leading-relaxed">
                   {crisisSmsText}
                 </p>
               )}
             </div>
           )}
           {myCrisis.length > 0 && (
-            <p className="text-[8.5px] text-red-300/80 mt-2">
+            <p className="text-xs text-red-300/80 mt-2">
               处置中：{myCrisis[0].note}（登记于{" "}
               {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
               ）
@@ -712,25 +712,25 @@ export default function ProfilePage({
 
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2">
+          <h3 className="text-xs font-bold text-white/88 mb-2">
             无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
           </h3>
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
-              className="flex-1 px-2 py-2 rounded-lg bg-amber-400/15 border border-amber-400/40 text-amber-300 text-[10px] font-extrabold hover:bg-amber-400/25 active:scale-95 transition-all"
+              className="flex-1 px-2 py-2 rounded-lg bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-extrabold hover:bg-amber-400/25 active:scale-95 transition-all"
             >
               👵 长辈模式
             </button>
             <button
               onClick={() => setStealthOpen(true)}
-              className="flex-1 px-2 py-2 rounded-lg bg-purple-400/15 border border-purple-400/40 text-purple-300 text-[10px] font-extrabold hover:bg-purple-400/25 active:scale-95 transition-all"
+              className="flex-1 px-2 py-2 rounded-lg bg-purple-400/15 border border-purple-400/40 text-purple-300 text-xs font-extrabold hover:bg-purple-400/25 active:scale-95 transition-all"
             >
               🛡️ 应急伪装
             </button>
           </div>
           {stealthAlarmed && (
-            <p className="text-[8.5px] text-red-300/80 mt-2">
+            <p className="text-xs text-red-300/80 mt-2">
               ⚠️ 静默报警已触发：录音就绪，红色危机流程已启动（界面无任何异常显示）
             </p>
           )}
@@ -738,7 +738,7 @@ export default function ProfilePage({
 
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
         <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-[11px] font-bold text-white/70 mb-2">
+          <h3 className="text-xs font-bold text-white/88 mb-2">
             紧急联系人（SOS 通知对象）
           </h3>
           <DynamicFormView
@@ -752,7 +752,7 @@ export default function ProfilePage({
             }}
           />
           {contactsSaved && (
-            <p className="text-[8.5px] text-emerald-300/80 mt-2">
+            <p className="text-xs text-emerald-300/80 mt-2">
               ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}
@@ -792,7 +792,7 @@ export default function ProfilePage({
             <button
               onClick={() => setStealthOpen(false)}
               aria-label="退出伪装模式"
-              className="absolute -top-8 right-0 text-[10px] text-white/50"
+              className="absolute -top-8 right-0 text-xs text-white/68"
             >
               ✕ 退出伪装
             </button>
@@ -832,15 +832,15 @@ function BookingRow({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[12.5px] font-bold truncate">
+          <span className="text-[13px] font-bold truncate">
             {booking.providerName}
           </span>
           <span
-            className={`text-[9px] px-1.5 py-px rounded-full font-semibold shrink-0 ${
+            className={`text-xs px-1.5 py-px rounded-full font-semibold shrink-0 ${
               booking.status === "upcoming"
                 ? "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple"
                 : booking.status === "cancelled"
-                  ? "bg-white/10 border border-white/20 text-white/50"
+                  ? "bg-white/10 border border-white/20 text-white/68"
                   : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
             }`}
           >
@@ -851,7 +851,7 @@ function BookingRow({
                 : "已完成"}
           </span>
         </div>
-        <p className="text-[10px] text-white/50 mt-0.5 truncate">
+        <p className="text-xs text-white/68 mt-0.5 truncate">
           {booking.time} · {booking.category}
         </p>
       </div>
@@ -877,7 +877,7 @@ function OrderDetail({
     <div className="pointer-events-auto flex flex-col gap-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[12px] text-white/60 hover:text-white w-fit"
+        className="flex items-center gap-1.5 text-[12px] text-white/88 hover:text-white w-fit"
       >
         <ArrowLeft size={14} /> 返回订单列表
       </button>
@@ -895,14 +895,14 @@ function OrderDetail({
             <h2 className="text-[14px] font-extrabold truncate">
               {booking.providerName}
             </h2>
-            <p className="text-[10px] text-white/50">{booking.category}</p>
+            <p className="text-xs text-white/68">{booking.category}</p>
           </div>
           <span
-            className={`text-[10px] px-2 py-1 rounded-full font-semibold shrink-0 ${
+            className={`text-xs px-2 py-1 rounded-full font-semibold shrink-0 ${
               booking.status === "upcoming"
                 ? "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple"
                 : booking.status === "cancelled"
-                  ? "bg-white/10 border border-white/20 text-white/50"
+                  ? "bg-white/10 border border-white/20 text-white/68"
                   : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
             }`}
           >
@@ -914,7 +914,7 @@ function OrderDetail({
           </span>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-white/10 pt-3 text-[11.5px]">
+        <div className="flex flex-col gap-2 border-t border-white/10 pt-3 text-[13px]">
           {[
             { k: "服务", v: booking.category },
             { k: "对象", v: booking.providerName },
@@ -923,8 +923,8 @@ function OrderDetail({
             { k: "订单号", v: booking.id.slice(0, 8).toUpperCase() },
           ].map((line) => (
             <div key={line.k} className="flex gap-2">
-              <span className="text-white/40 w-12 shrink-0">{line.k}</span>
-              <span className="text-white/85">{line.v}</span>
+              <span className="text-white/68 w-12 shrink-0">{line.k}</span>
+              <span className="text-white/95">{line.v}</span>
             </div>
           ))}
         </div>
@@ -933,15 +933,15 @@ function OrderDetail({
       {/* 履约时间线 */}
       {booking.status === "cancelled" ? (
         <div className="glass-panel rounded-2xl p-4">
-          <h3 className="text-[11px] font-bold text-white/70 mb-3">履约进度</h3>
-          <div className="flex items-center gap-2 text-[11.5px] text-white/45">
-            <span className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[9px]">✕</span>
+          <h3 className="text-xs font-bold text-white/88 mb-3">履约进度</h3>
+          <div className="flex items-center gap-2 text-[13px] text-white/68">
+            <span className="w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs">✕</span>
             订单已取消，工作台对应待接单已同步撤回
           </div>
         </div>
       ) : (
         <div className="glass-panel rounded-2xl p-4">
-        <h3 className="text-[11px] font-bold text-white/70 mb-3">履约进度</h3>
+        <h3 className="text-xs font-bold text-white/88 mb-3">履约进度</h3>
         <div className="flex flex-col gap-3">
           {[
             { label: "AI 撮合完成", done: true },
@@ -954,14 +954,14 @@ function OrderDetail({
                 className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                   step.done
                     ? "bg-emerald-400/15 border border-emerald-400/50 text-emerald-400"
-                    : "bg-white/[0.06] border border-white/15 text-white/30"
+                    : "bg-white/[0.06] border border-white/15 text-white/68"
                 }`}
               >
-                {step.done ? <Check size={11} /> : <span className="text-[9px]">{i + 1}</span>}
+                {step.done ? <Check size={11} /> : <span className="text-xs">{i + 1}</span>}
               </div>
               <span
-                className={`text-[11.5px] ${
-                  step.done ? "text-white/85" : "text-white/35"
+                className={`text-[13px] ${
+                  step.done ? "text-white/95" : "text-white/68"
                 }`}
               >
                 {step.label}
@@ -994,7 +994,7 @@ function OrderDetail({
           onClick={() => {
             cancelBooking(booking.id);
           }}
-          className="w-full py-2.5 rounded-2xl glass-panel text-xs font-bold text-white/60 hover:text-red-400 hover:border-red-400/40 transition-colors active:scale-[0.99]"
+          className="w-full py-2.5 rounded-2xl glass-panel text-xs font-bold text-white/88 hover:text-red-400 hover:border-red-400/40 transition-colors active:scale-[0.99]"
         >
           取消订单
         </button>
@@ -1033,12 +1033,12 @@ function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void 
           <Check size={22} className="text-emerald-400" />
         </div>
         <h2 className="text-[15px] font-extrabold">感谢评价！</h2>
-        <p className="text-[11px] text-white/50">
+        <p className="text-xs text-white/68">
           你的反馈会帮助 AI 撮合更准～ 已记录 {rating} 星
         </p>
         <button
           onClick={onBack}
-          className="mt-3 px-5 py-2 rounded-full btn-primary text-[11px] font-bold glow-purple-strong"
+          className="mt-3 px-5 py-2 rounded-full btn-primary text-xs font-bold glow-purple-strong"
         >
           完成
         </button>
@@ -1050,7 +1050,7 @@ function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void 
     <div className="pointer-events-auto flex flex-col gap-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[12px] text-white/60 hover:text-white w-fit"
+        className="flex items-center gap-1.5 text-[12px] text-white/88 hover:text-white w-fit"
       >
         <ArrowLeft size={14} /> 返回订单
       </button>
@@ -1060,7 +1060,7 @@ function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void 
         className="glass-panel rounded-3xl p-4"
       >
         <h2 className="text-[14px] font-extrabold">评价 {booking.providerName}</h2>
-        <p className="text-[10px] text-white/50 mt-0.5">{booking.time}</p>
+        <p className="text-xs text-white/68 mt-0.5">{booking.time}</p>
 
         <div className="flex items-center justify-center gap-2 my-5">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -1087,7 +1087,7 @@ function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void 
           onChange={(e) => setComment(e.target.value)}
           placeholder="说两句吧，比如：场地新、球友很会带节奏……"
           rows={3}
-          className="w-full px-3.5 py-2.5 rounded-2xl glass-panel outline-none text-[12px] placeholder:text-white/30 resize-none"
+          className="w-full px-3.5 py-2.5 rounded-2xl glass-panel outline-none text-[12px] placeholder:text-white/68 resize-none"
         />
         <button
           onClick={submit}
@@ -1096,7 +1096,7 @@ function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void 
         >
           {rating === 0 ? "先点星星再提交" : "提交评价"}
         </button>
-        <p className="text-[9px] text-white/35 mt-2 text-center flex items-center justify-center gap-1">
+        <p className="text-xs text-white/68 mt-2 text-center flex items-center justify-center gap-1">
           <MapPin size={9} /> AI 会把评价总结进撮合画像
         </p>
       </motion.div>

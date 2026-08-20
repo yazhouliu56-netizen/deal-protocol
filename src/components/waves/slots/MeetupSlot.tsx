@@ -41,24 +41,24 @@ export interface MeetupSlotProps {
 const SLOT_CSS = `
 .mt-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   background:linear-gradient(135deg,rgba(251,146,60,.14),rgba(251,146,60,.04));
-  border:1px solid rgba(251,146,60,.3);color:#e2e8f0;font-size:13px}
-.mt-slot h4{margin:0 0 6px;font-size:14px;color:#fdba74}
+  border:1px solid rgba(251,146,60,.3);color:#e2e8f0;font-size:14px;line-height:1.5}
+.mt-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#fdba74}
 .mt-seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
 .mt-seat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:12px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:11px;color:#cbd5e1}
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#e2e8f0;font-weight:500}
 .mt-seat-arrived{border-color:rgba(74,222,128,.5);color:#4ade80}
 .mt-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:16px;background:rgba(255,255,255,.1)}
 .mt-fence{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
-.mt-btn{padding:7px 12px;border-radius:10px;border:none;font-size:12px;font-weight:700;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-weight:500}
+.mt-btn{padding:7px 12px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;
   background:linear-gradient(135deg,#fbbf24,#f97316);color:#05060f}
 .mt-split{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:12px;
   background:rgba(255,255,255,.06)}
-.mt-split-row{display:flex;justify-content:space-between;font-size:12px}
+.mt-split-row{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
 .mt-pay{color:#4ade80}.mt-refund{color:#fbbf24}
 .mt-dispute{width:100%;padding:9px 0;border-radius:12px;border:1px solid rgba(251,191,36,.4);
-  background:rgba(251,191,36,.08);color:#fbbf24;font-size:13px;font-weight:700;cursor:pointer}
+  background:rgba(251,191,36,.08);color:#fbbf24;font-size:14px;font-weight:700;cursor:pointer}
 `;
 
 /** 组局社交插槽：座次表 + 500m 围栏签到 + AA 分摊对账 + 放鸽子申诉。 */

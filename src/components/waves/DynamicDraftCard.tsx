@@ -228,21 +228,21 @@ const DRAFT_CSS = `
   background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.05));
   border:1px solid var(--theme-border);box-shadow:0 12px 40px rgba(0,0,0,.35),
   inset 0 1px 0 rgba(255,255,255,.28),0 0 32px var(--theme-glow);backdrop-filter:blur(24px) saturate(170%);
-  color:#e2e8f0;font-size:13px}
-.draft-card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;
-  justify-content:space-between;align-items:center}
-.draft-card-ammo{font-size:11px;color:#94a3b8;font-weight:400}
+  color:#e2e8f0;font-size:14px;line-height:1.5}
+.draft-card-title{font-size:18px;font-weight:700;margin-bottom:10px;display:flex;
+  justify-content:space-between;align-items:center;color:#f1f5f9}
+.draft-card-ammo{font-size:12px;color:rgba(255,255,255,.68);font-weight:500}
 .draft-card-rows{display:flex;flex-direction:column;gap:6px}
 .draft-card-row{display:flex;justify-content:space-between;padding:7px 10px;border-radius:10px;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;
-  transition:background .15s}
+  transition:background .15s;font-size:14px;font-weight:500;color:#ecf1f8;line-height:1.5}
 .draft-card-row:hover{background:rgba(255,255,255,.12)}
-.draft-card-price{margin:10px 0;padding:8px 10px;border-radius:10px;font-weight:600;
-  background:linear-gradient(90deg,var(--theme-surface-tint),rgba(123,97,255,.16))}
+.draft-card-price{margin:10px 0;padding:8px 10px;border-radius:10px;font-weight:600;font-size:14px;
+  color:#f1f5f9;background:linear-gradient(90deg,var(--theme-surface-tint),rgba(123,97,255,.16))}
 .draft-card-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.draft-card-badge{font-size:11px;padding:3px 8px;border-radius:999px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
-.draft-card-cta{width:100%;padding:11px 0;border-radius:14px;font-weight:800;font-size:14px;
+.draft-card-badge{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dbe4f0}
+.draft-card-cta{width:100%;padding:11px 0;border-radius:14px;font-weight:800;font-size:15px;
   color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
   border:none;cursor:pointer;box-shadow:0 6px 20px var(--theme-glow);
   transition:transform .15s,filter .15s}
@@ -256,10 +256,11 @@ const DRAFT_CSS = `
   padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);
   border:1px dashed rgba(255,255,255,.14);cursor:pointer;transition:background .15s}
 .draft-card-form-row:hover{background:rgba(255,255,255,.1)}
-.draft-card-form-row > span:first-child{display:flex;align-items:center;gap:4px;color:#cbd5e1}
+.draft-card-form-row > span:first-child{display:flex;align-items:center;gap:4px;color:#d7dee9;font-size:14px;
+  font-weight:500}
 .draft-card-required{color:#f87171}
-.draft-card-form-options{font-size:10px;color:#94a3b8}
-.draft-card-form-value{color:#cbd5e1;font-size:12px}
+.draft-card-form-options{font-size:12px;color:#cbd5e1}
+.draft-card-form-value{color:#e2e8f0;font-size:13px;font-weight:600}
 /* 内联参数调节器（点击参数行展开抽屉式微调） */
 .draft-card-adj{display:flex;align-items:center;gap:8px;margin:-2px 0 8px;padding:8px 10px;
   border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(123,97,255,.35)}
@@ -268,11 +269,11 @@ const DRAFT_CSS = `
   user-select:none;transition:background .12s,transform .12s}
 .draft-adj-btn:hover{background:rgba(255,255,255,.16)}
 .draft-adj-btn:active{transform:scale(.92)}
-.draft-adj-value{flex:1;text-align:center;color:#f1f5f9;font-size:13px;font-weight:700;
+.draft-adj-value{flex:1;text-align:center;color:#f1f5f9;font-size:14px;font-weight:700;
   font-variant-numeric:tabular-nums}
-.draft-adj-hint{font-size:10px;color:#94a3b8}
-.draft-adj-reset{border:none;background:none;color:#94a3b8;font-size:10px;cursor:pointer;
-  padding:4px 6px;border-radius:6px}
+.draft-adj-hint{font-size:12px;color:#cbd5e1}
+.draft-adj-reset{border:none;background:none;color:#cbd5e1;font-size:12px;cursor:pointer;
+  padding:4px 6px;border-radius:6px;font-weight:500}
 .draft-adj-reset:hover{color:#e2e8f0;background:rgba(255,255,255,.08)}
 /* 深压 CTA 反馈：点击涟漪 + 按压内缩 */
 .draft-card-cta{position:relative;overflow:hidden}
@@ -488,7 +489,7 @@ export default function DynamicDraftCard({
       <div className="draft-card-price">
         <span className="font-tabular">{priceText}</span>
         {liveEstimate && (
-          <span key={liveEstimate} className="price-roll block mt-1 text-[11px] opacity-80 font-tabular">
+          <span key={liveEstimate} className="price-roll block mt-1 text-xs opacity-90 font-tabular">
             {liveEstimate}
           </span>
         )}

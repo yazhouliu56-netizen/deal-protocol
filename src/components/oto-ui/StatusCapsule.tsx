@@ -73,17 +73,17 @@ export const STATUS_CAPSULE_EMOJI: Record<AtomicFiveState, string> = {
 const CAPSULE_CSS = `
 .status-capsule{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;
   border-radius:999px;background:rgba(15,18,35,.72);border:1px solid rgba(255,255,255,.12);
-  backdrop-filter:blur(18px) saturate(160%);font-size:13px;color:#e2e8f0;position:relative}
+  backdrop-filter:blur(18px) saturate(160%);font-size:14px;font-weight:500;color:#f1f5f9;position:relative}
 .status-capsule-dot{width:9px;height:9px;border-radius:50%;animation:status-pulse 1.6s ease-in-out infinite}
 @keyframes status-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35);opacity:.85}
   50%{box-shadow:0 0 0 5px rgba(255,255,255,0);opacity:1}}
 .status-capsule-offline{margin-left:6px;display:inline-flex;align-items:center;gap:3px;
-  font-size:11px;color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;
-  padding:1px 7px;animation:offline-blink 1.2s ease-in-out infinite}
+  font-size:12px;font-weight:600;color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;
+  padding:2px 8px;animation:offline-blink 1.2s ease-in-out infinite}
 @keyframes offline-blink{0%,100%{opacity:1}50%{opacity:.45}}
 .status-capsule-sos{display:inline-flex;align-items:center;justify-content:center;
   width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);
-  color:#fff;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.35);
+  color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.35);
   box-shadow:0 0 10px rgba(239,68,68,.55);cursor:pointer;transition:transform .15s}
 .status-capsule-sos:hover{transform:scale(1.12)}
 .status-capsule-sos:active{transform:scale(.95)}
@@ -111,7 +111,7 @@ export default function StatusCapsule({
       <span className="status-capsule-label">
         {meta.label}
         {typeof distanceMeters === "number" && distanceMeters >= 0 && (
-          <span className="status-capsule-distance" style={{ marginLeft: 6, color: "#94a3b8" }}>
+          <span className="status-capsule-distance" style={{ marginLeft: 6, color: "#cbd5e1" }}>
             · 距服务者 {distanceMeters}m
           </span>
         )}

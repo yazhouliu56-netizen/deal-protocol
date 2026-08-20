@@ -44,28 +44,28 @@ export interface HousekeepingSlotProps {
 const SLOT_CSS = `
 .hk-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   background:linear-gradient(135deg,rgba(56,132,255,.14),rgba(56,132,255,.04));
-  border:1px solid rgba(56,132,255,.3);color:#e2e8f0;font-size:13px}
-.hk-slot h4{margin:0 0 6px;font-size:14px;color:#7fb2ff}
+  border:1px solid rgba(56,132,255,.3);color:#e2e8f0;font-size:14px;line-height:1.5}
+.hk-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#8ec3ff}
 .hk-quote{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 11px;
   border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
 .hk-quote-btns{display:flex;gap:6px}
-.hk-btn{padding:6px 12px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.hk-btn{padding:6px 12px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer}
 .hk-btn-accept{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
-.hk-btn-reject{background:rgba(255,255,255,.1);color:#cbd5e1;border:1px solid rgba(255,255,255,.2)}
+.hk-btn-reject{background:rgba(255,255,255,.1);color:#dbe4f0;border:1px solid rgba(255,255,255,.2)}
 .hk-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hk-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;
-  overflow:hidden;background:rgba(255,255,255,.05)}
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#cbd5e1;
+  overflow:hidden;background:rgba(255,255,255,.05);font-weight:500}
 .hk-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.hk-verified{margin-left:4px;font-size:11px;color:#4ade80}
-.hk-damage{width:100%;padding:9px 0;border-radius:12px;border:none;font-size:13px;font-weight:700;
+.hk-verified{margin-left:4px;font-size:12px;color:#4ade80;font-weight:600}
+.hk-damage{width:100%;padding:9px 0;border-radius:12px;border:none;font-size:14px;font-weight:700;
   cursor:pointer;background:linear-gradient(135deg,#f97316,#dc2626);color:#fff}
-.hk-cap{font-size:11px;color:#94a3b8;padding:6px 10px;border-radius:10px;
+.hk-cap{font-size:12px;color:#cbd5e1;padding:6px 10px;border-radius:10px;line-height:1.5;
   background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)}
 .hk-cap-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
 .hk-cap-over{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
 .hk-custom{display:flex;flex-wrap:wrap;gap:6px}
-.hk-custom-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+.hk-custom-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
   background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
 `;
 
@@ -170,7 +170,7 @@ export default function HousekeepingSlot({
           )}
         </div>
       </section>
-      <div style={{ fontSize: 11, color: "#94a3b8" }}>
+      <div style={{ fontSize: 12, color: "#cbd5e1" }}>
         {photos?.before && photos.after ? (
           <span className="hk-verified">✅ 双拍验真已通过</span>
         ) : (
