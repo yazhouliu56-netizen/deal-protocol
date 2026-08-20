@@ -2,7 +2,9 @@
 
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
+import type { ScenarioTheme } from "@/types/ui-viewport";
 import { resolveAmmoIdForPublish, getAmmoById, getAmmoDefinition } from "@/ammo/registry";
+import { normalizeAmmoTheme } from "./slots/DynamicAmmoSlot";
 
 /**
  * 动态发布草稿卡（Dynamic Draft Card · A 需求发布视口首件）。
@@ -149,9 +151,14 @@ export function describeFormSchemaFields(ammo: IAmmoDefinition): DraftFormField[
   return rows;
 }
 
-/** 弹药主题令牌 → 草稿卡主题类（D8 视觉微氛围；缺省 default 安全回落）。 */
+/** 弹药主题令牌 → 草稿卡主题类（D8 视觉微氛围；未知/缺失安全回落 default）。 */
 export function resolveDraftThemeClass(ammo: IAmmoDefinition): string {
-  return `draft-${ammo.holographic?.theme ?? "default"}`;
+  return `draft-${normalizeAmmoTheme(ammo.holographic?.theme)}`;
+}
+
+/** 弹药主题令牌 → `data-theme` 作用域键（D-8 视口主题注入；缺省 default 兜底）。 */
+export function resolveAmmoTheme(ammo: IAmmoDefinition): ScenarioTheme {
+  return normalizeAmmoTheme(ammo.holographic?.theme);
 }
 
 /** D7 自动验收时效 → 质保徽标文案（缺省不渲染；48h → "⏱️ 48h 质保验收"）。 */
@@ -163,9 +170,9 @@ export function describeWarrantyBadge(ammo: IAmmoDefinition): string | null {
 
 const DRAFT_CSS = `
 .draft-card{position:relative;max-width:420px;border-radius:20px;padding:18px 18px 14px;
-  background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
-  border:1px solid rgba(255,255,255,.22);box-shadow:0 12px 40px rgba(0,0,0,.35),
-  inset 0 1px 0 rgba(255,255,255,.28);backdrop-filter:blur(24px) saturate(170%);
+  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.05));
+  border:1px solid var(--theme-border);box-shadow:0 12px 40px rgba(0,0,0,.35),
+  inset 0 1px 0 rgba(255,255,255,.28),0 0 32px var(--theme-glow);backdrop-filter:blur(24px) saturate(170%);
   color:#e2e8f0;font-size:13px}
 .draft-card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;
   justify-content:space-between;align-items:center}
@@ -176,19 +183,18 @@ const DRAFT_CSS = `
   transition:background .15s}
 .draft-card-row:hover{background:rgba(255,255,255,.12)}
 .draft-card-price{margin:10px 0;padding:8px 10px;border-radius:10px;font-weight:600;
-  background:linear-gradient(90deg,rgba(0,240,255,.16),rgba(123,97,255,.16))}
+  background:linear-gradient(90deg,var(--theme-surface-tint),rgba(123,97,255,.16))}
 .draft-card-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .draft-card-badge{font-size:11px;padding:3px 8px;border-radius:999px;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
-.draft-card-cta{width:100%;padding:11px 0;border-radius:14px;font-weight:700;font-size:14px;
-  color:#05060f;background:linear-gradient(135deg,#00f0ff,#7b61ff);border:none;cursor:pointer;
-  box-shadow:0 6px 20px rgba(123,97,255,.45);transition:transform .15s,filter .15s}
+.draft-card-cta{width:100%;padding:11px 0;border-radius:14px;font-weight:800;font-size:14px;
+  color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
+  border:none;cursor:pointer;box-shadow:0 6px 20px var(--theme-glow);
+  transition:transform .15s,filter .15s}
 .draft-card-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
 .draft-card-cta:active{transform:scale(.98)}
-/* D8 视觉微氛围：弹药主题令牌 → 边框微染（缺省 default 无色变） */
-.draft-card.draft-housekeeping{border-color:rgba(56,132,255,.45)}
-.draft-card.draft-meetup{border-color:rgba(251,146,60,.45)}
-.draft-card.draft-companion{border-color:rgba(167,139,250,.5)}
+/* D8 视觉微氛围：弹药主题令牌经 [data-theme] 作用域注入（--theme-border/glow/primary），
+   draft-* 类保留输出以兼容既有断言；未知/缺失主题由 data-theme="default" 安全兜底 */
 /* D8 动态扩展字段区（formSchema 声明式驱动，可点击微调） */
 .draft-card-form{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}
 .draft-card-form-row{display:flex;justify-content:space-between;align-items:center;gap:8px;
@@ -221,7 +227,12 @@ export default function DynamicDraftCard({
   const themeClass = resolveDraftThemeClass(definition);
 
   return (
-    <div className={`draft-card ${themeClass}`} data-ammo={definition.ammoId} data-category={category}>
+    <div
+      className={`draft-card ${themeClass}`}
+      data-ammo={definition.ammoId}
+      data-category={category}
+      data-theme={resolveAmmoTheme(definition)}
+    >
       <style>{DRAFT_CSS}</style>
       <div className="draft-card-title">
         <span>✦ 需求草稿</span>

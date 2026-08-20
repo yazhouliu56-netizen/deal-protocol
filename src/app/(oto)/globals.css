@@ -112,6 +112,50 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* ============ D-8 弹药主题 Token · 5 大主题作用域 ============
+   红线 6 前端视界隔离：主题变量一律按 `[data-theme=…]` 严格限定在
+   动态视口容器内，外骨骼（StatusCapsule / FloatingDock / 全局骨架）
+   不消费任何 --theme-* 变量，保持深空中性色零污染。
+   变量承接弹药 `holographic.theme` 声明（housekeeping/meetup/companion/
+   tech），未声明或未知 → 安全回落 `default`（兜底蓝紫中性玻璃）。 */
+
+.oto-app [data-theme="housekeeping"] {
+  --theme-primary: #0f52ba;
+  --theme-primary-active: #0a3c85;
+  --theme-glow: rgba(15, 82, 186, 0.35);
+  --theme-border: rgba(15, 82, 186, 0.45);
+  --theme-surface-tint: rgba(15, 82, 186, 0.14);
+}
+.oto-app [data-theme="meetup"] {
+  --theme-primary: #f97316;
+  --theme-primary-active: #c2410c;
+  --theme-glow: rgba(249, 115, 22, 0.35);
+  --theme-border: rgba(249, 115, 22, 0.45);
+  --theme-surface-tint: rgba(249, 115, 22, 0.14);
+}
+.oto-app [data-theme="companion"] {
+  --theme-primary: #8b5cf6;
+  --theme-primary-active: #6d28d9;
+  --theme-glow: rgba(139, 92, 246, 0.4);
+  --theme-border: rgba(139, 92, 246, 0.5);
+  --theme-surface-tint: rgba(139, 92, 246, 0.16);
+}
+.oto-app [data-theme="tech"] {
+  --theme-primary: #10b981;
+  --theme-primary-active: #047857;
+  --theme-glow: rgba(16, 185, 129, 0.35);
+  --theme-border: rgba(16, 185, 129, 0.45);
+  --theme-surface-tint: rgba(16, 185, 129, 0.14);
+}
+.oto-app [data-theme="default"],
+.oto-app :not([data-theme]) {
+  --theme-primary: #3b82f6;
+  --theme-primary-active: #1d4ed8;
+  --theme-glow: rgba(59, 130, 246, 0.28);
+  --theme-border: rgba(255, 255, 255, 0.22);
+  --theme-surface-tint: rgba(123, 97, 255, 0.1);
+}
+
 .oto-app ::selection {
   background: rgba(123, 97, 255, 0.4);
   color: #ffffff;

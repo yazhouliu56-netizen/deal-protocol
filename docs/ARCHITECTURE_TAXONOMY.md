@@ -331,7 +331,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | D-5 | **两套状态机并存**：base 纯函数状态机（waves） vs 父项目 DB 状态机（orders/contracts） | `lib/protocol/engine.ts` + `supabase/migrations/001~` | 红线 1/3 | 🟡 融合期双轨，ADR-0018 后仍存 |
 | D-6 | ~~**AmmoRunner 未实现**：四表被各引擎散点消费（`dispatchRuleFor`、`riskOf`…），无统一声明式解析执行器~~ → **已闭环** | ~~`src/ammo/index.ts`（仅 re-export）~~ → **`src/base/ammo/runner.ts`**（`d4c7b23`「8 维全息解构模块 + AmmoFactory 工业级弹药流水线」创建，`5cc281d` 修复缺省分账消费弹药 D7 三比）：AmmoRunner 五态全链路统一执行器——CAS 乐观锁跃迁 0→4 / MATCHED 托管校验 / 增项报价熔断 / BEFORE·AFTER 钩子 + SKIP·BLOCK 确定性降级 / SETTLED 清结算对账守恒（微信收付通指令）/ `ammoSnapshot` 快照优先调度 + ctx 透传 | 红线 2 | 🟢 已完全闭合（2026-08-16 `d4c7b23`；长尾非标量产大考 `dynamic-production-exam.test.ts` 8 项实证，1225/1225 全绿） |
 | D-7 | ~~**弹药层与存量协议层重复**：`lib/protocol/protocols/housekeeping.ts`、`dating.ts` 已是垂直 SOP，但未并入 ammo 声明式体系~~ → **已物理出清** | ~~`src/lib/protocol/protocols/*`~~ → **`9e23bb3`「旧垂直协议旧轨完全收敛与物理删除」**：`git rm` 物理删除 `protocols/base.ts`（83 行）/`housekeeping.ts`（250 行）/`dating.ts`（202 行）共 535 行旧码；`registry.ts` 重构为 ammo 投影适配器——`OFFICIAL_AMMO` 直挂三枚官方弹药投影标准 `ProtocolDef`，动态数值全取 ammo 八维配置（D7 splitRules→佣金、D6 cancellationTiers→refundRules、D4 requiredSensors→evidence），旧三协议 id 兼容映射；复核：目录物理不存在（glob 零命中） | 红线 2（精神） | 🟢 已物理出清（2026-08-17 `9e23bb3`，契约锁定 `registry.test.ts` 4 例，1251/1251 全绿） |
-| D-8 | **前端视界投影未隔离**：全局单主题（oto-ui），无弹药专属主题 Token/Layout | `src/components/theme/`、`oto-ui/` | 红线 6 | 🔴 缺失（哲学架构已定义 §五 5.4，落地以 P2-1 弹药主题 Token 为第一执行点） |
+| D-8 | ~~**前端视界投影未隔离**：全局单主题（oto-ui），无弹药专属主题 Token/Layout~~ → **已闭环** | ~~`src/components/theme/`、`oto-ui/`~~ → **D-8 收官战役（2026-08-20）**：① `src/app/(oto)/globals.css` 在 `.oto-app` 作用域内建立 **5 大主题作用域 Token**——`[data-theme="housekeeping"]` 专业蓝 / `[data-theme="meetup"]` 活力橙 / `[data-theme="companion"]` 夜幕紫 / `[data-theme="tech"]` 工业绿 / `default`（含 `:not([data-theme])` 兜底），全套 `--theme-primary/primary-active/glow/border/surface-tint` 语义变量；② **三端视口精准注入**：DynamicDraftCard 草稿卡（`resolveAmmoTheme`）+ FulfillmentCockpit 座舱（`resolveCockpitTheme`，dynamic 场景按弹药 `holographic.theme` 投影）+ DynamicAmmoSlot 插槽统一消费，`ScenarioTheme` 契约增补 `tech` 键（`src/types/ui-viewport.ts`）；③ **归一兜底**：`normalizeAmmoTheme` 唯一归一点（未知/缺失 → default 安全回落，严禁样式崩溃）；④ **红线 6 隔离实证**：外骨骼 StatusCapsule / FloatingDock 零 `data-theme` 侵入（`ThemeIsolation.test.tsx` 21 断言锁定：三制式直映 / tech 直通 / 非法兜底 / 外骨骼隔离） | 红线 6 | 🟢 已完全闭合（2026-08-20 D-8 收官战役，1524/1524 单测 + tsc 0 + build exit 0 + 收敛门禁 exit 0） |
 
 ### 5.3 【愿景提及但完全缺失】— 空白缺口（按优先级）
 
@@ -345,9 +345,12 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | P1-3 | **一键 SOS 联动链增强**（位置上报 + 录音证据自动封装入链） | 六圈暴雷防御 | ⑤风控圈 | crisis.ts 已有 EPA 通知链，缺位置/证据联动 |
 | P1-4 | ~~**对话式 BI LLM 意图改写可选链**~~ → **已闭环（LLM 归因增强链，意图改写按宪法 #7 维持规则链专权）** | ③火控雷达 | ③AI 圈 | 🟢 已落地（`bi.ts:410` `await import("./gateway/engine.ts")` 动态 import 5-provider Gateway 归因诊断增强——仅增强 summary 归因文案，chartData 数值 100% 来自确定性聚合；失败静默降级回规则摘要，红线 1 离线/无 key 零异常；L3-M5 战役 2026-08-17 闭环，详见 §3.4.2 `L3-M5` 行） |
 | P1-5 | **弹药内嵌表单 schema**（DynamicForm 进一步表驱动：弹药携带所需传感器/表单） | 红线 2 | ①感知圈 | dynamicForm 通用引擎已有，弹药表单绑定无 |
-| P2-1 | **弹药主题 Token 系统**（红线 6 视界投影） | 红线 6 | ①感知圈 | 单主题 |
+| P2-1 | ~~**弹药主题 Token 系统**（红线 6 视界投影）~~ → **已闭环** | 红线 6 | ①感知圈 | 🟢 已完全闭合（2026-08-20 D-8 收官战役：5 大主题作用域 Token + 三端 data-theme 注入 + 归一兜底，凭据同 §5.2 D-8 行，`ThemeIsolation.test` 21 断言锁定） |
 | P2-2 | **AB 分流/degrades 真实场景**（resilience 库层已备） | ⑥基建圈 | ⑥圈 | 无真实分流场景，不硬造 |
 | P2-3 | **移动端融合**（RN 注册 base/geo、弹药表单） | 底座统一 | ①感知圈 | 已登记未融合 |
+
+> **✅ 全仓落差审计收官汇总（2026-08-20 D-8 战役落定）**：§5.2 偏差 D-1 ~ D-8（D-5 除外）与 §5.3 缺口 P0-1 ~ P2-1 中已排期项全部 **🟢 已完全闭合**，历史架构欠账清零——D-1/D-2/D-6 于 `a11d85e`+`d4c7b23`、D-3 于 2026-08-18 战役、D-4/P0-2 于 P0-2 战役、D-7 于 `9e23bb3`、D-8/P2-1 于本次 D-8 收官战役（5 大主题 Token + 三端注入 + 外骨骼隔离，1524/1524 全绿）。
+> **如实声明**：D-5（两套状态机并存，融合期双轨）属 ADR-0018 范围外存量，维持 🟡 状态不在本次战役消除——不虚构全量 100% 声明；P0-3/P1-1/P1-3/P1-5/P2-2/P2-3 为未排期的分阶段缺口，如实保持现状。
 
 ### 5.4 前端微内核与系统级交互架构（UI/UX 哲学注入）
 
@@ -1173,7 +1176,7 @@ tsc 0 error；`npm run build` 通过；收敛门禁 exit 0。
 ## 十一、收敛路线（宪法门禁衔接）
 
 1. **每个结构性改动收敛一处 D 类偏差**，commit 说明标注「宪法收敛：条文 #3」（或对应红线），登记 `docs/CONVERGENCE-LOG.md`，过 `npm run check:convergence`（exit 0）方可提交。
-2. **建议收敛顺序**：~~D-2（WaveBundle 契约上收 `src/types/`）~~ ✅ 已闭合（2026-08-15 `a11d85e`：上收至 `src/types/wave-bundle.ts`，详见 §5.2 D-2 行）→ ~~D-1（llmEngine/mockEngine 注入化）~~ ✅ 已闭合（同批 `a11d85e`：ChatEngineContext 注入契约，详见 §5.2 D-1 行）→ ~~D-3（sentinel 进家词迁 ammo/risk-rule）~~ ✅ 已闭合（2026-08-18 战役：风险层进家词表 100% 注入化 + `HOME_ACCESS_KEYWORDS_MAP` 权威类目映射 + housekeeping 弹药显式装配，4 断言锁定，详见 §5.2 D-3 行）→ ~~D-6（AmmoRunner 第一版，同时承载 P0-1）~~ ✅ 已闭合（2026-08-16 `d4c7b23`：`src/base/ammo/runner.ts`，详见 §5.2 D-6 行）→ ~~D-4（父项目 API 收编）~~ ✅ 已闭合（2026-08-18 P0-2 战役，详见 §5.2 D-4 行）→ ~~D-7（旧垂直协议收编/出清）~~ ✅ 已闭合（2026-08-17 `9e23bb3` 物理删除，详见 §5.2 D-7 行）→ **剩余**：D-5（两套状态机并存，融合期双轨）/ D-8（前端视界投影未隔离，落地以 P2-1 弹药主题 Token 为第一执行点）。
+2. **建议收敛顺序**：~~D-2（WaveBundle 契约上收 `src/types/`）~~ ✅ 已闭合（2026-08-15 `a11d85e`：上收至 `src/types/wave-bundle.ts`，详见 §5.2 D-2 行）→ ~~D-1（llmEngine/mockEngine 注入化）~~ ✅ 已闭合（同批 `a11d85e`：ChatEngineContext 注入契约，详见 §5.2 D-1 行）→ ~~D-3（sentinel 进家词迁 ammo/risk-rule）~~ ✅ 已闭合（2026-08-18 战役：风险层进家词表 100% 注入化 + `HOME_ACCESS_KEYWORDS_MAP` 权威类目映射 + housekeeping 弹药显式装配，4 断言锁定，详见 §5.2 D-3 行）→ ~~D-6（AmmoRunner 第一版，同时承载 P0-1）~~ ✅ 已闭合（2026-08-16 `d4c7b23`：`src/base/ammo/runner.ts`，详见 §5.2 D-6 行）→ ~~D-4（父项目 API 收编）~~ ✅ 已闭合（2026-08-18 P0-2 战役，详见 §5.2 D-4 行）→ ~~D-7（旧垂直协议收编/出清）~~ ✅ 已闭合（2026-08-17 `9e23bb3` 物理删除，详见 §5.2 D-7 行）→ ~~D-8（前端视界投影未隔离）~~ ✅ 已闭合（2026-08-20 D-8 收官战役：5 大主题 Token 作用域 + 三端 data-theme 注入 + 外骨骼隔离，详见 §5.2 D-8 行）→ **剩余**：D-5（两套状态机并存，融合期双轨，ADR-0018 范围外如实保持）。
 3. **空白缺口开工须走宪法 §4 模板**（六圈定位声明 + 宪法条文对照），P0 级缺口开工前由人类裁决排期。
 
 ---

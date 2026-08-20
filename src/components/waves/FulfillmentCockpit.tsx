@@ -1,11 +1,15 @@
 "use client";
 
-import type { AtomicFiveState, INormalizedCustomIntent, IDressCodeType } from "@/types/ammo-schema";
+import type { AtomicFiveState, INormalizedCustomIntent, IDressCodeType, IAmmoDefinition } from "@/types/ammo-schema";
+import type { ScenarioTheme } from "@/types/ui-viewport";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import HousekeepingSlot, { type HousekeepingSlotProps } from "./slots/HousekeepingSlot";
 import MeetupSlot, { type MeetupSlotProps } from "./slots/MeetupSlot";
 import CompanionSlot, { type CompanionSlotProps } from "./slots/CompanionSlot";
-import DynamicAmmoSlot, { type DynamicAmmoSlotProps } from "./slots/DynamicAmmoSlot";
+import DynamicAmmoSlot, {
+  normalizeAmmoTheme,
+  type DynamicAmmoSlotProps,
+} from "./slots/DynamicAmmoSlot";
 import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
 
 /**
@@ -51,6 +55,8 @@ export interface FulfillmentCockpitProps {
   companion?: CompanionSlotProps;
   /** 长尾动态弹药插槽透传（非三大制式的动态/长尾弹药通用履约视口）。 */
   dynamic?: DynamicAmmoSlotProps;
+  /** 当前弹药整弹（D-8 主题注入：dynamic 场景按弹药 `holographic.theme` 精准挂载 data-theme）。 */
+  ammo?: IAmmoDefinition;
   /** Cockpit 级事件（测试/接入点）。 */
   onTriggerFakeCall?: () => void;
   onAcceptQuote?: () => void;
@@ -89,6 +95,28 @@ export const SCENARIO_THEME_META: Record<
   dynamic: { themeClass: "theme-dynamic", accent: "#00f0ff", label: "自适应 · 长尾动态弹药" },
 };
 
+/**
+ * D-8 视口主题作用域键解析：`data-theme` 只携带弹药主题令牌键
+ * （housekeeping/meetup/companion/tech/default——对应 globals.css 5 大主题作用域）。
+ * 制式场景直映主题键；dynamic 场景按弹药 `holographic.theme` 精准挂载，
+ * 未传弹药 / 未声明 / 未知主题 → 安全回落 default（红线 6 + 兜底不白屏）。
+ */
+export function resolveCockpitTheme(
+  scenario: CockpitScenario,
+  ammo?: IAmmoDefinition,
+): ScenarioTheme {
+  switch (scenario) {
+    case "housekeeping":
+      return "housekeeping";
+    case "meetup":
+      return "meetup";
+    case "companion":
+      return "companion";
+    case "dynamic":
+      return normalizeAmmoTheme(ammo?.holographic?.theme);
+  }
+}
+
 const COCKPIT_CSS = `
 .cockpit{max-width:460px;border-radius:22px;padding:14px;color:#e2e8f0;font-size:13px;
   display:flex;flex-direction:column;gap:12px}
@@ -104,7 +132,8 @@ const COCKPIT_CSS = `
 .cockpit-pill{padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.08);cursor:pointer;color:#cbd5e1}
 .cockpit-cta{width:100%;padding:13px 0;border-radius:16px;border:none;font-size:15px;font-weight:800;
-  cursor:pointer;color:#05060f;transition:transform .15s,filter .15s}
+  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
+  box-shadow:0 8px 24px var(--theme-glow);transition:transform .15s,filter .15s}
 .cockpit-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
 .cockpit-cta:active{transform:scale(.98)}
 .cockpit-safety{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;
@@ -198,6 +227,7 @@ export default function FulfillmentCockpit({
   meetup,
   companion,
   dynamic,
+  ammo,
   onTriggerFakeCall,
   onAcceptQuote,
   onConfirmSplit,
@@ -211,6 +241,7 @@ export default function FulfillmentCockpit({
   safetyBadge,
 }: FulfillmentCockpitProps) {
   const theme = SCENARIO_THEME_META[scenario];
+  const cockpitTheme = resolveCockpitTheme(scenario, ammo);
   const cta = describeCompletionCta(scenario);
   const safetyPill = safetyReport ? describeSafetyPill(safetyReport) : null;
   const armed = forceArmed === true;
@@ -218,7 +249,7 @@ export default function FulfillmentCockpit({
   const customCleanText = customRequirements?.cleanText ?? "";
 
   return (
-    <div className="cockpit" data-scenario={scenario} data-theme={theme.themeClass}>
+    <div className="cockpit" data-scenario={scenario} data-theme={cockpitTheme}>
       <style>{COCKPIT_CSS}</style>
       <div className="cockpit-capsule">
         <StatusCapsule status={status} options={capsule} />
@@ -337,7 +368,6 @@ export default function FulfillmentCockpit({
         type="button"
         className="cockpit-cta"
         data-action="complete"
-        style={{ background: `linear-gradient(135deg, ${theme.accent}, #7b61ff)` }}
         onClick={onComplete}
       >
         {cta}

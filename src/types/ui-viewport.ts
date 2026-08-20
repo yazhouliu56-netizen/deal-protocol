@@ -16,9 +16,15 @@
 /**
  * 场景特化微主色令牌（第一层 · 设计令牌与微氛围层）：
  * `housekeeping` 家政专业蓝 / `meetup` 组局活力橙 / `companion` 交友夜幕紫 /
+ * `tech` 技术资产工业绿（首枚 C3_TECH_B2B 弹药 appliance-repair-v1 预留，声明即生效）/
  * `default` 全局通用兜底。
  */
-export type ScenarioTheme = "housekeeping" | "meetup" | "companion" | "default";
+export type ScenarioTheme =
+  | "housekeeping"
+  | "meetup"
+  | "companion"
+  | "tech"
+  | "default";
 
 /**
  * 五态镜像视口阶段（第三层 · 动态视图与插槽渲染层）：

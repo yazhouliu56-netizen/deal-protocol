@@ -352,6 +352,7 @@ export default function FulfillmentCenter({
       <FulfillmentCockpit
         status={state}
         scenario={sc}
+        ammo={ammoDef}
         capsule={{
           isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
           distanceMeters: scenario === "meetup" ? 500 : scenario === "companion" ? 300 : undefined,

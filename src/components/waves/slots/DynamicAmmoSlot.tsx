@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { IAmmoDefinition, INormalizedCustomIntent } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
+import type { ScenarioTheme } from "@/types/ui-viewport";
 
 /**
  * 长尾动态弹药通用履约插槽（Dynamic Ammo Slot · 自适应 theme-dynamic）。
@@ -56,10 +57,25 @@ export function requiresWatermarkCamera(ammo: IAmmoDefinition): boolean {
   return requiredSensorKinds(ammo).includes("WATERMARK_CAMERA");
 }
 
+/**
+ * 弹药主题令牌归一（D-8 唯一权威归一点，供草稿卡/座舱/插槽三端统一消费）：
+ * 白名单四枚业务主题 + `default` 直通；未知/缺失安全回落 `default`，严禁样式崩溃。
+ */
+export function normalizeAmmoTheme(value: unknown): ScenarioTheme {
+  if (
+    value === "housekeeping" ||
+    value === "meetup" ||
+    value === "companion" ||
+    value === "tech"
+  ) {
+    return value;
+  }
+  return "default";
+}
+
 /** 弹药主题令牌 → 插槽主题类（缺省 default 安全回落）。 */
 export function resolveSlotThemeClass(ammo: IAmmoDefinition): string {
-  const theme = ammo.holographic?.theme ?? "default";
-  return `dyn-${theme}`;
+  return `dyn-${normalizeAmmoTheme(ammo.holographic?.theme)}`;
 }
 
 /** 动态参数快照 → 展示行（标量直显、对象序列化、空值占位）。 */
@@ -80,14 +96,8 @@ export function describeBizParamRows(bizParams: Record<string, unknown> | undefi
 
 const SLOT_CSS = `
 .dyn-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(0,240,255,.12),rgba(123,97,255,.06));
-  border:1px solid rgba(0,240,255,.28);color:#e2e8f0;font-size:13px}
-.dyn-slot.dyn-housekeeping{background:linear-gradient(135deg,rgba(56,132,255,.14),rgba(56,132,255,.04));
-  border-color:rgba(56,132,255,.3)}
-.dyn-slot.dyn-meetup{background:linear-gradient(135deg,rgba(251,146,60,.14),rgba(251,146,60,.04));
-  border-color:rgba(251,146,60,.3)}
-.dyn-slot.dyn-companion{background:linear-gradient(135deg,rgba(167,139,250,.16),rgba(167,139,250,.05));
-  border-color:rgba(167,139,250,.32)}
+  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(123,97,255,.06));
+  border:1px solid var(--theme-border);color:#e2e8f0;font-size:13px}
 .dyn-slot h4{margin:0 0 6px;font-size:14px;color:#67e8f9}
 .dyn-meta{font-size:11px;color:#94a3b8}
 .dyn-params{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:12px;
@@ -100,8 +110,9 @@ const SLOT_CSS = `
   display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;
   overflow:hidden;background:rgba(255,255,255,.05);flex-direction:column;gap:6px}
 .dyn-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.dyn-photo-btn{min-height:44px;padding:8px 14px;border-radius:12px;border:none;font-size:12px;font-weight:700;
-  cursor:pointer;background:linear-gradient(135deg,#00f0ff,#7b61ff);color:#05060f}
+.dyn-photo-btn{min-height:44px;padding:8px 14px;border-radius:12px;border:none;font-size:12px;font-weight:800;
+  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
+  box-shadow:0 6px 18px var(--theme-glow)}
 .dyn-verified{font-size:11px;color:#4ade80}
 .dyn-badges{display:flex;flex-wrap:wrap;gap:6px}
 .dyn-badge{font-size:11px;padding:3px 8px;border-radius:999px;
@@ -157,7 +168,7 @@ export default function DynamicAmmoSlot({
   const customTags = describeDynamicCustomTags(customRequirements);
 
   return (
-    <div className={`dyn-slot ${themeClass}`} data-slot="dynamic-ammo" data-theme={`theme-${ammo.holographic?.theme ?? "default"}`}>
+    <div className={`dyn-slot ${themeClass}`} data-slot="dynamic-ammo" data-theme={normalizeAmmoTheme(ammo.holographic?.theme)}>
       <style>{SLOT_CSS}</style>
       <h4>⚙️ 动态履约 · {ammo.category}</h4>
       <div className="dyn-meta">

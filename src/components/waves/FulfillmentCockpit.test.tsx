@@ -57,7 +57,7 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
       },
     });
     expect(html).toContain('data-scenario="housekeeping"');
-    expect(html).toContain('data-theme="theme-housekeeping"');
+    expect(html).toContain('data-theme="housekeeping"');
     expect(html).toContain("清洁蓝");
     expect(html).toContain("现场增项：深度除螨");
     expect(html).toContain("+¥80");
@@ -91,7 +91,7 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
         onDisputeNoShow: () => {},
       },
     });
-    expect(html).toContain('data-theme="theme-meetup"');
+    expect(html).toContain('data-theme="meetup"');
     expect(html).toContain("活力橙");
     expect(html).toContain("实时座次表 · 1/2 已到场");
     expect(html).toContain('data-arrived="1"');
@@ -116,7 +116,7 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
         onBlockUser: () => {},
       },
     });
-    expect(html).toContain('data-theme="theme-companion"');
+    expect(html).toContain('data-theme="companion"');
     expect(html).toContain("夜幕紫");
     expect(html).toContain("🛡️ 隐私防骚扰盾");
     expect(html).toContain("虚拟号保护中 · 行程守护");
@@ -238,7 +238,7 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
       },
     });
     expect(html).toContain('data-scenario="dynamic"');
-    expect(html).toContain('data-theme="theme-dynamic"');
+    expect(html).toContain('data-theme="default"');
     expect(html).toContain("自适应 · 长尾动态弹药");
     expect(html).toContain('data-slot="dynamic-ammo"');
     expect(html).toContain("动态履约 · LONGTAIL_FARM");
@@ -267,7 +267,7 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
   it("dynamic 无插槽透传：优雅降级不渲染插槽、不白屏", () => {
     const html = renderStatic({ ...BASE_PROPS, scenario: "dynamic" });
     expect(html).not.toContain('data-slot="dynamic-ammo"');
-    expect(html).toContain('data-theme="theme-dynamic"');
+    expect(html).toContain('data-theme="default"');
     expect(html).toContain("场景主题");
     expect(html).toContain('data-action="complete"');
   });
