@@ -501,7 +501,7 @@ export default function FulfillmentCenter({
         <div className="fc-call-mask" data-testid="dial-overlay">
           <div className="glass-panel rounded-3xl p-4 w-[320px] max-w-[92vw]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold text-white/85">
+              <span className="text-xs font-extrabold text-white/85">
                 📞 一键虚拟通话
               </span>
               <button

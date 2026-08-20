@@ -74,7 +74,7 @@ export default function EnvBadge() {
       <button
         onClick={() => setOpen(true)}
         aria-label={`数据模式：${mode.label}`}
-        className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-white/50 hover:text-white transition-colors shrink-0"
+        className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-white/50 hover:text-white transition-colors shrink-0"
       >
         <ModeIcon size={9} className={iconColor} />
         {mode.label}
@@ -108,22 +108,22 @@ export default function EnvBadge() {
                   ✕
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-[11px] text-white/85">
+              <div className="flex items-center gap-2 text-xs text-white/85">
                 <ModeIcon size={14} className={iconColor} />
                 <span className="font-bold">{mode.label}</span>
               </div>
-              <p className="text-[10.5px] text-white/50 mt-1.5 leading-relaxed">
+              <p className="text-xs text-white/50 mt-1.5 leading-relaxed">
                 {mode.desc}。所有撮合、托管、争议都在本地模拟完成；上线后切换云端即无缝升级。
               </p>
               <button
                 onClick={install}
-                className="mt-3 w-full py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong flex items-center justify-center gap-1.5"
+                className="mt-3 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong flex items-center justify-center gap-1.5"
               >
                 <Download size={12} />
                 {installEvt ? "安装到桌面（PWA）" : "查看安装方式"}
               </button>
               {!installEvt && (
-                <p className="text-[9.5px] text-white/35 text-center mt-2">
+                <p className="text-xs text-white/35 text-center mt-2">
                   Chrome 可见「安装」；iOS 用 Safari 分享 → 添加到主屏幕
                 </p>
               )}

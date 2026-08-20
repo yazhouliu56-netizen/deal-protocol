@@ -34,7 +34,7 @@ export default function ToastHost() {
               exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               onClick={() => dismiss(t.id)}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl glass-panel border text-[11px] font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
+              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl glass-panel border text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
             >
               <Icon size={14} className="shrink-0" />
               {t.text}

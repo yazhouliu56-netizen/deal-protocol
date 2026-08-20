@@ -235,7 +235,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         {isDone ? <CheckCircle2 className="size-5" /> : step.icon}
                       </div>
                       <span className={cn(
-                        "mt-2 text-[10px] font-medium whitespace-nowrap",
+                        "mt-2 text-xs font-medium whitespace-nowrap",
                         isActive ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-600",
                       )}>{step.label}</span>
                     </div>
@@ -275,26 +275,26 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             {/* Participants */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 dark:border-zinc-800/60 dark:bg-zinc-900">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">客户</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">客户</p>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400">
                     {contract.customer.name?.[0] ?? "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{contract.customer.name}</p>
-                    <Badge className={cn("mt-0.5 border-0 text-[9px]", customerCredit.color)}>👑 {customerCredit.label}</Badge>
+                    <Badge className={cn("mt-0.5 border-0 text-xs", customerCredit.color)}>👑 {customerCredit.label}</Badge>
                   </div>
                 </div>
               </div>
               <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 dark:border-zinc-800/60 dark:bg-zinc-900">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">服务商</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">服务商</p>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                     {contract.provider.name?.[0] ?? "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{contract.provider.name}</p>
-                    <Badge className={cn("mt-0.5 border-0 text-[9px]", providerCredit.color)}>👑 {providerCredit.label} | {contract.provider.creditScore}分</Badge>
+                    <Badge className={cn("mt-0.5 border-0 text-xs", providerCredit.color)}>👑 {providerCredit.label} | {contract.provider.creditScore}分</Badge>
                   </div>
                 </div>
               </div>
@@ -320,7 +320,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                       <div key={event.id} className="relative flex gap-3 pb-4">
                         <div className="flex flex-col items-center">
                           <div className={cn(
-                            "z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold",
+                            "z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold",
                             isLast ? "bg-indigo-600 text-white" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
                           )}>{contract.events.length - idx}</div>
                           {idx < contract.events.length - 1 && <div className="mt-0.5 h-full w-px bg-zinc-100 dark:bg-zinc-800" />}
@@ -328,9 +328,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <div className="min-w-0 flex-1 pt-0">
                           <div className="flex items-center justify-between">
                             <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{actionLabels[event.action] || event.action}</p>
-                            <time className="shrink-0 text-[10px] text-zinc-400 dark:text-zinc-500">{new Date(event.created_at).toLocaleString("zh-CN")}</time>
+                            <time className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{new Date(event.created_at).toLocaleString("zh-CN")}</time>
                           </div>
-                          {event.reason && <p className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">{event.reason}</p>}
+                          {event.reason && <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{event.reason}</p>}
                         </div>
                       </div>
                     )
@@ -349,7 +349,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{review.reviewer.name}</span>
                         <span className="text-yellow-500 text-xs">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
-                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{new Date(review.created_at).toLocaleDateString("zh-CN")}</span>
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">{new Date(review.created_at).toLocaleDateString("zh-CN")}</span>
                       </div>
                       {review.comment && <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{review.comment}</p>}
                     </div>
@@ -370,18 +370,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <p className="mt-3 text-3xl font-black text-zinc-900 tabular-nums dark:text-zinc-100">
                   ¥{contract.amount.toFixed(2)}
                 </p>
-                <p className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">合约金额</p>
+                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">合约金额</p>
               </div>
 
               {/* Payment section */}
               {contract.payments.length > 0 && (
                 <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">支付明细</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">支付明细</p>
                   <div className="space-y-1.5">
                     {contract.payments.map((payment) => (
                       <div key={payment.id} className="flex items-center justify-between text-xs">
                         <span className="text-zinc-600 dark:text-zinc-400">¥{payment.amount.toFixed(2)}</span>
-                        <Badge className={cn("border-0 text-[9px]", payment.status === "RELEASED" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400" : payment.status === "ESCROW" ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400" : "bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400")}>
+                        <Badge className={cn("border-0 text-xs", payment.status === "RELEASED" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400" : payment.status === "ESCROW" ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400" : "bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400")}>
                           {payment.status === "RELEASED" ? "已释放" : payment.status === "ESCROW" ? "托管中" : "待支付"}
                         </Badge>
                       </div>
@@ -409,7 +409,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   {activePayment.qrCode && (
                     <div className="flex flex-col items-center gap-2">
                       <div className="rounded-lg border bg-white p-3"><Image unoptimized src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activePayment.qrCode)}`} alt="QR" width={160} height={160} className="h-40 w-40" /></div>
-                      <p className="text-[10px] text-zinc-500">请使用{activePayment.channel === "alipay" ? "支付宝" : "微信"}扫码</p>
+                      <p className="text-xs text-zinc-500">请使用{activePayment.channel === "alipay" ? "支付宝" : "微信"}扫码</p>
                     </div>
                   )}
                   {activePayment.payUrl && <Button size="lg" className="w-full rounded-xl" onClick={() => window.open(activePayment.payUrl!, "_blank")}><ExternalLink className="mr-2 size-4" />前往支付</Button>}

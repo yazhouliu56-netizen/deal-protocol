@@ -154,10 +154,10 @@ export default function PushEnableBar() {
     <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[10.5px] font-bold text-white/85">
+          <p className="text-xs font-bold text-white/85">
             📡 PWA 真推
             <span
-              className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold ${
+              className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-extrabold ${
                 state === "subscribed"
                   ? "bg-emerald-400/15 text-emerald-300"
                   : "bg-white/[0.05] text-white/40"
@@ -174,14 +174,14 @@ export default function PushEnableBar() {
                       : "未开启"}
             </span>
           </p>
-          <p className="text-[9px] text-white/40 mt-0.5">
+          <p className="text-xs text-white/40 mt-0.5">
             浏览器通知：关闭页面也能收到局信号 · 订阅记录当前端（endpoint）
           </p>
         </div>
         {state === "subscribed" ? (
           <button
             onClick={sendTest}
-            className="shrink-0 px-3 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-[10px] font-bold text-brandCyan"
+            className="shrink-0 px-3 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-xs font-bold text-brandCyan"
           >
             发送测试
           </button>
@@ -189,13 +189,13 @@ export default function PushEnableBar() {
           <button
             onClick={enable}
             disabled={state === "asking"}
-            className="shrink-0 px-3 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/50 text-[10px] font-bold text-brandPurple disabled:opacity-40"
+            className="shrink-0 px-3 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/50 text-xs font-bold text-brandPurple disabled:opacity-40"
           >
             {state === "denied" ? "重试" : "开启"}
           </button>
         )}
       </div>
-      {msg && <p className="text-[9px] text-white/45 mt-1.5">{msg}</p>}
+      {msg && <p className="text-xs text-white/45 mt-1.5">{msg}</p>}
     </div>
   );
 }

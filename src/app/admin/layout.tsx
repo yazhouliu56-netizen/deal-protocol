@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }`}
       >
         <div className="flex h-14 items-center gap-2 border-b border-zinc-200/60 px-5 dark:border-zinc-800/60">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-[10px] font-bold text-white">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
             dp
           </span>
           <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">

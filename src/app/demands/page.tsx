@@ -88,7 +88,7 @@ export default function GuildQuestBoardPage() {
 
         <div className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-slate-900 via-amber-950/30 to-purple-950/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(251,191,36,0.15)]">
           <div className="space-y-1.5 text-center md:text-left">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950">
               <Sparkles className="w-3 h-3" /> GACHA EVENT
             </span>
             <h2 className="text-lg sm:text-xl font-black text-amber-200">

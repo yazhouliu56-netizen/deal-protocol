@@ -43,19 +43,19 @@ export default function DisputesListPage() {
     switch (status) {
       case "PENDING_REVIEW":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
             <Clock className="w-3 h-3"/> 仲裁审理中
           </span>
         );
       case "RESOLVED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 className="w-3 h-3"/> 裁决成立
           </span>
         );
       case "REJECTED":
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+          <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
             <AlertCircle className="w-3 h-3"/> 申诉驳回
           </span>
         );
@@ -104,11 +104,11 @@ export default function DisputesListPage() {
               >
                 <div className="space-y-2 min-w-0 flex-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-zinc-500">DISPUTE: #{item.id.slice(0, 8)}</span>
+                    <span className="text-xs font-mono text-zinc-500">DISPUTE: #{item.id.slice(0, 8)}</span>
                     {renderStatusBadge(item.status)}
                   </div>
                   <p className="text-xs text-zinc-200 line-clamp-2">{item.reason}</p>
-                  <div className="text-[11px] font-mono text-zinc-400">
+                  <div className="text-xs font-mono text-zinc-400">
                     申诉退款金额: <span className="text-amber-400 font-bold">¥{item.requested_refund_amount?.toLocaleString()}</span>
                   </div>
                 </div>

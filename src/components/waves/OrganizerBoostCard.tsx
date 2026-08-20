@@ -48,10 +48,10 @@ export default function OrganizerBoostCard() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-extrabold text-white/90">
+          <p className="text-xs font-extrabold text-white/90">
             {active ? "组局加速已生效" : "组局加速 · ¥9.9/月"}
           </p>
-          <p className="text-[9px] text-white/45 truncate">
+          <p className="text-xs text-white/45 truncate">
             {active
               ? `到期 ${new Date(sub.expiresAt!).toLocaleDateString()}（剩 ${daysLeft} 天）`
               : "你的局在雷达区优先曝光 · 到期前提醒"}
@@ -61,7 +61,7 @@ export default function OrganizerBoostCard() {
           <button
             type="button"
             onClick={() => setConfirming(true)}
-            className={`shrink-0 px-3 py-2 min-h-10 rounded-full text-[10px] font-bold transition-colors ${
+            className={`shrink-0 px-3 py-2 min-h-10 rounded-full text-xs font-bold transition-colors ${
               active
                 ? "bg-white/5 border border-white/15 text-white/60"
                 : "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-extrabold hover:bg-brandPurple/30"
@@ -77,7 +77,7 @@ export default function OrganizerBoostCard() {
           animate={{ opacity: 1, height: "auto" }}
           className="mt-2.5 pt-2.5 border-t border-white/10"
         >
-          <p className="text-[10px] text-white/55">
+          <p className="text-xs text-white/55">
             模拟收银台 · 确认支付{" "}
             <span className="text-white font-extrabold">
               ¥{ORGANIZER_PLAN.priceYuan}
@@ -88,14 +88,14 @@ export default function OrganizerBoostCard() {
             <button
               type="button"
               onClick={handleConfirm}
-              className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold hover:bg-emerald-400/25 transition-colors"
+              className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold hover:bg-emerald-400/25 transition-colors"
             >
               确认支付
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white/60 text-[10px] font-bold hover:bg-white/10 transition-colors"
+              className="px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white/60 text-xs font-bold hover:bg-white/10 transition-colors"
             >
               取消
             </button>

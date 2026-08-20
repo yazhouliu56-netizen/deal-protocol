@@ -33,7 +33,7 @@ export const DemandCard: React.FC<DemandCardProps> = ({ demand, onSelect }) => {
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-md ${statusInfo.color}`}>
+          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border backdrop-blur-md ${statusInfo.color}`}>
             {statusInfo.label}
           </span>
           <div className="flex items-center gap-1 font-mono text-base font-black text-cyan-400">
@@ -53,11 +53,11 @@ export const DemandCard: React.FC<DemandCardProps> = ({ demand, onSelect }) => {
 
       <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-3">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] font-mono text-slate-500 uppercase">Chips:</span>
+          <span className="text-xs font-mono text-slate-500 uppercase">Chips:</span>
           {mockChips.map((chip, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-950/50 border border-purple-800/40 text-[10px] font-semibold text-purple-300"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-950/50 border border-purple-800/40 text-xs font-semibold text-purple-300"
             >
               {chip === 'chip-rush' ? <Zap className="w-3 h-3 text-amber-400" /> : <Cpu className="w-3 h-3 text-cyan-400" />}
               {chip === 'chip-rush' ? '加急' : 'AI雷达'}

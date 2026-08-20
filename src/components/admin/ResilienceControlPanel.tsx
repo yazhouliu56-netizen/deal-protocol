@@ -194,7 +194,7 @@ export default function ResilienceControlPanel() {
                 <p className={r.allowed ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-red-600 dark:text-red-400 font-bold"}>
                   {r.allowed ? "✓ 放行" : `✗ 阻断 ${r.httpStatus ?? ""}`}
                 </p>
-                {r.errorCode && <p className="text-[10px] text-zinc-400 mt-0.5 break-all">{r.errorCode}</p>}
+                {r.errorCode && <p className="text-xs text-zinc-400 mt-0.5 break-all">{r.errorCode}</p>}
               </div>
             ))}
           </div>
@@ -226,7 +226,7 @@ export default function ResilienceControlPanel() {
         >
           ⟳ 刷新状态
         </button>
-        <p className="text-[11px] text-zinc-400 self-center">
+        <p className="text-xs text-zinc-400 self-center">
           生命线保护：除 READ_ONLY 外，一键 SOS（/api/sos/trigger）与在途履约跃迁（/api/orders/*/transit）100% 无条件放行
         </p>
       </div>

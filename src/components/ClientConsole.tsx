@@ -135,7 +135,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                         <div className="flex-1 min-w-0 pt-1.5">
                           <p className="text-sm font-semibold text-slate-800">全网隐私脱敏广播</p>
                           <p className="text-xs text-slate-500 mt-0.5">大模型深度解析，1.2km 时空脱敏大纲已发布并完成撮合</p>
-                          <span className="text-[10px] font-mono text-slate-400">已于 2026-07-16 12:00 完成</span>
+                          <span className="text-xs font-mono text-slate-400">已于 2026-07-16 12:00 完成</span>
                         </div>
                       </div>
                     </div>
@@ -153,7 +153,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                         <div className="flex-1 min-w-0 pt-1.5">
                           <p className="text-sm font-semibold text-slate-800">交易资金进入独立的阶段性隔离锁定</p>
                           <p className="text-xs text-slate-500 mt-0.5">安全锁存 ¥1,200.00，系统启动一键单向解密通道</p>
-                          <span className="text-[10px] font-mono text-slate-400">已于 2026-07-16 12:02 完成</span>
+                          <span className="text-xs font-mono text-slate-400">已于 2026-07-16 12:02 完成</span>
                         </div>
                       </div>
                     </div>
@@ -176,7 +176,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                           {!isReleased && (
                             <div className="mt-3 p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-between">
                               <span className="text-xs text-slate-500">待履约方上传“现场完工存证照”...</span>
-                              <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500">等待中</span>
+                              <span className="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-500">等待中</span>
                             </div>
                           )}
                         </div>
@@ -223,8 +223,8 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                   <div>
                     <h4 className="font-bold text-slate-800 text-sm">浙江筑梦会展服务队</h4>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">信用分 99.8%</span>
-                      <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">距您 1.2km</span>
+                      <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">信用分 99.8%</span>
+                      <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">距您 1.2km</span>
                     </div>
                   </div>
                 </div>
@@ -303,7 +303,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-md shadow-slate-100/50 p-6">
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>现场执行存证凭证</span>
-                <span className="text-[10px] font-mono font-normal text-slate-400 flex items-center gap-1">
+                <span className="text-xs font-mono font-normal text-slate-400 flex items-center gap-1">
                   IPFS 存证 <ExternalLink className="w-2.5 h-2.5" />
                 </span>
               </h3>
@@ -313,7 +313,7 @@ export default function ClientConsole({ onBackToHome }: ClientConsoleProps) {
                   <FileText className="w-5 h-5" />
                 </div>
                 <p className="text-xs text-slate-500">待履约团队到达杭州滨江展馆现场后</p>
-                <p className="text-[10px] text-slate-400">其实拍的“物料现场照”与“GPS签到日志”将自动在此处生成并脱敏上链</p>
+                <p className="text-xs text-slate-400">其实拍的“物料现场照”与“GPS签到日志”将自动在此处生成并脱敏上链</p>
               </div>
             </div>
 

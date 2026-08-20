@@ -51,25 +51,25 @@ export default function DemoPage() {
               <div className="w-[35%] border-r border-border/60 bg-slate-100 dark:bg-zinc-800/20 p-3">
                 <div className="mb-2 flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-indigo-500" />
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-500">AI 协议助手</span>
-                  <Badge variant="outline" className="ml-auto text-[8px] px-1 py-0">在线</Badge>
+                  <span className="text-xs font-medium text-slate-500 dark:text-zinc-500">AI 协议助手</span>
+                  <Badge variant="outline" className="ml-auto text-xs px-1 py-0">在线</Badge>
                 </div>
                 <div className="space-y-2">
                   <div className="flex gap-1.5">
                     <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-slate-100 dark:bg-zinc-800" />
                     <div className="rounded-lg bg-slate-100 dark:bg-zinc-800/50 p-1.5 flex-1">
-                      <p className="text-[10px] text-slate-900 dark:text-zinc-100">空调不制冷了，需要加氟</p>
+                      <p className="text-xs text-slate-900 dark:text-zinc-100">空调不制冷了，需要加氟</p>
                     </div>
                   </div>
                   <div className="flex gap-1.5">
                     <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-indigo-200" />
                     <div className="rounded-lg bg-indigo-100 p-1.5 flex-1 dark:bg-indigo-900/30">
-                      <p className="text-[10px] text-indigo-700 dark:text-indigo-400">已识别需求，正在生成协议...</p>
+                      <p className="text-xs text-indigo-700 dark:text-indigo-400">已识别需求，正在生成协议...</p>
                     </div>
                   </div>
                   <div className="mt-1.5 flex gap-1">
                     {["空调加氟多少钱", "上门时间"].map((t) => (
-                      <span key={t} className="rounded-full border border-border/50 bg-background px-1.5 py-0.5 text-[8px] text-slate-500 dark:text-zinc-500">{t}</span>
+                      <span key={t} className="rounded-full border border-border/50 bg-background px-1.5 py-0.5 text-xs text-slate-500 dark:text-zinc-500">{t}</span>
                     ))}
                   </div>
                 </div>
@@ -77,19 +77,19 @@ export default function DemoPage() {
               <div className="flex-1 p-3">
                 <div className="mb-2 flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-500">智能协议预览</span>
-                  <span className="ml-auto rounded bg-emerald-100 px-1.5 py-0.5 text-[8px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">低风险 · 信用担保</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-zinc-500">智能协议预览</span>
+                  <span className="ml-auto rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">低风险 · 信用担保</span>
                 </div>
                 <div className="space-y-1.5">
                   <div className="rounded-lg border border-border/40 bg-card p-2">
-                    <div className="flex justify-between text-[10px]"><span className="text-slate-500 dark:text-zinc-500">品类</span><span>家电维修</span></div>
-                    <div className="flex justify-between text-[10px] mt-0.5"><span className="text-slate-500 dark:text-zinc-500">预估</span><span>¥80-150</span></div>
-                    <div className="flex justify-between text-[10px] mt-0.5"><span className="text-slate-500 dark:text-zinc-500">地址</span><span>朝阳区建国路</span></div>
-                    <div className="flex justify-between text-[10px] mt-0.5"><span className="text-slate-500 dark:text-zinc-500">时间</span><span>今天下午</span></div>
+                    <div className="flex justify-between text-xs"><span className="text-slate-500 dark:text-zinc-500">品类</span><span>家电维修</span></div>
+                    <div className="flex justify-between text-xs mt-0.5"><span className="text-slate-500 dark:text-zinc-500">预估</span><span>¥80-150</span></div>
+                    <div className="flex justify-between text-xs mt-0.5"><span className="text-slate-500 dark:text-zinc-500">地址</span><span>朝阳区建国路</span></div>
+                    <div className="flex justify-between text-xs mt-0.5"><span className="text-slate-500 dark:text-zinc-500">时间</span><span>今天下午</span></div>
                   </div>
                   <div className="h-5 rounded bg-slate-100 dark:bg-zinc-800/50" />
                   <div className="h-5 rounded bg-slate-100 dark:bg-zinc-800/50" />
-                  <div className="mt-2 rounded bg-indigo-600 p-1 text-center text-[10px] font-medium text-white">全网发布</div>
+                  <div className="mt-2 rounded bg-indigo-600 p-1 text-center text-xs font-medium text-white">全网发布</div>
                 </div>
               </div>
             </div>

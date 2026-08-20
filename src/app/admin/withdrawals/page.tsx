@@ -159,7 +159,7 @@ export default function AdminWithdrawalsWorkspace() {
                     {item.profiles?.full_name || "未知服务商"}
                     <span className="text-xs text-zinc-500 ml-2">({item.profiles?.email})</span>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
+                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
                     <span className="flex items-center gap-1">
                       <Landmark className="w-3 h-3 text-zinc-400" /> {item.channel}
                     </span>
@@ -179,7 +179,7 @@ export default function AdminWithdrawalsWorkspace() {
           {selectedItem ? (
             <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
-                <span className="text-[10px] uppercase font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
+                <span className="text-xs uppercase font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
                   当前审查账单
                 </span>
                 <div className="text-2xl font-black text-zinc-100 font-mono mt-3 text-emerald-400">
@@ -204,7 +204,7 @@ export default function AdminWithdrawalsWorkspace() {
                 </div>
               </div>
 
-              <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-2.5 mb-5 text-[11px] text-amber-400/90 leading-relaxed">
+              <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-2.5 mb-5 text-xs text-amber-400/90 leading-relaxed">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div>
                   审批提示：执行 [批准打款] 代表您已在线下或通过三方自动化代付网关成功打款。若选择 [拒绝申请]，冻结金额将原路全额无损退回服务商钱包。

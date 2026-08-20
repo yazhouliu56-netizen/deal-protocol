@@ -59,23 +59,23 @@ export default function DataPortCard() {
     <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-3.5">
       <div className="flex items-center gap-2">
         <Database size={13} className="text-brandPurple" />
-        <span className="text-[11px] font-extrabold text-white/85">
+        <span className="text-xs font-extrabold text-white/85">
           本地数据备份
         </span>
       </div>
-      <p className="text-[9.5px] text-white/45 mt-1 leading-relaxed">
+      <p className="text-xs text-white/45 mt-1 leading-relaxed">
         全量导出为 JSON 文件（本地模式数据自主权）· 导入会覆盖当前并重载
       </p>
       <div className="mt-2.5 flex gap-2">
         <button
           onClick={handleExport}
-          className="flex-1 py-2 rounded-xl btn-primary text-[10.5px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+          className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
         >
           <Download size={12} /> 导出备份
         </button>
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex-1 py-2 rounded-xl bg-white/5 border border-white/15 text-[10.5px] font-bold flex items-center justify-center gap-1.5 text-white/70 hover:bg-white/10 transition-colors"
+          className="flex-1 py-2 rounded-xl bg-white/5 border border-white/15 text-xs font-bold flex items-center justify-center gap-1.5 text-white/70 hover:bg-white/10 transition-colors"
         >
           <Upload size={12} /> 导入恢复
         </button>
@@ -89,12 +89,12 @@ export default function DataPortCard() {
         />
       </div>
       {msg && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-[9.5px] font-bold text-emerald-300 flex items-center gap-1">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-xs font-bold text-emerald-300 flex items-center gap-1">
           <Check size={10} /> {msg}
         </p>
       )}
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-red-400/10 border border-red-400/30 text-[9.5px] font-bold text-red-300">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-red-400/10 border border-red-400/30 text-xs font-bold text-red-300">
           ⚠ {error}
         </p>
       )}

@@ -65,7 +65,7 @@ export default function JudgePanel({
 
   return (
     <div className="rounded-2xl bg-sky-400/[0.06] border border-sky-400/25 p-2.5 space-y-2">
-      <p className="text-[10px] font-bold text-sky-300/90 flex items-center gap-1">
+      <p className="text-xs font-bold text-sky-300/90 flex items-center gap-1">
         <Scale size={11} /> AI 小法官 · 静态比对证据链给出赔付建议
       </p>
 
@@ -76,12 +76,12 @@ export default function JudgePanel({
             onChange={(e) => setDefense(e.target.value)}
             placeholder="你的反驳（如：已免费返工，是甲方没等晾干）"
             aria-label="小法官审查·你的反驳"
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-[10px] outline-none focus:border-sky-400/50"
+            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-xs outline-none focus:border-sky-400/50"
           />
           <button
             onClick={runJudge}
             disabled={loading || !evidence.trim()}
-            className={`w-full py-2 rounded-xl text-[10.5px] font-bold transition-colors ${
+            className={`w-full py-2 rounded-xl text-xs font-bold transition-colors ${
               loading
                 ? "bg-white/[0.06] text-white/40"
                 : "bg-sky-400/15 border border-sky-400/40 text-sky-300"
@@ -95,15 +95,15 @@ export default function JudgePanel({
       {verdict && (
         <div className="space-y-2">
           <div className="rounded-xl bg-white/[0.05] border border-white/10 p-2.5 space-y-1.5">
-            <p className="text-[10.5px] font-bold text-sky-200">
+            <p className="text-xs font-bold text-sky-200">
               {stanceLabel[verdict.stance] ?? verdict.stance} · 建议赔付 ¥
               {verdict.amountYuan}（{verdict.refundPct}%）
             </p>
-            <p className="text-[9px] text-white/50">{verdict.rationale}</p>
-            <p className="text-[9px] text-white/60 border-t border-white/10 pt-1.5">
+            <p className="text-xs text-white/50">{verdict.rationale}</p>
+            <p className="text-xs text-white/60 border-t border-white/10 pt-1.5">
               {verdict.replyScript}
             </p>
-            <p className="text-[8.5px] text-white/30">
+            <p className="text-xs text-white/30">
               置信 {Math.round(verdict.confidence * 100)}% ·{" "}
               {verdict.source === "llm" ? "LLM 语义比对" : "规则引擎（LLM 不可用回落）"}
             </p>
@@ -114,7 +114,7 @@ export default function JudgePanel({
                 onClick={() =>
                   onSettle(verdict.refundPct, `采纳小法官建议：${verdict.rationale}`)
                 }
-                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-[10px] font-bold text-emerald-300"
+                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
               >
                 采纳：退 {verdict.refundPct}%
               </button>
@@ -122,14 +122,14 @@ export default function JudgePanel({
             {verdict.stance === "demander" && (
               <button
                 onClick={() => onSettle(0, "小法官判定需求方责任，款项归服务方")}
-                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-[10px] font-bold text-emerald-300"
+                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
               >
                 采纳：不退款
               </button>
             )}
             <button
               onClick={() => setVerdict(null)}
-              className="px-3 py-2 rounded-xl bg-white/[0.06] border border-white/15 text-[10px] font-bold text-white/60"
+              className="px-3 py-2 rounded-xl bg-white/[0.06] border border-white/15 text-xs font-bold text-white/60"
             >
               重审
             </button>

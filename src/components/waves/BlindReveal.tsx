@@ -36,18 +36,18 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                 <span className="text-[13px] font-extrabold text-white/95">
                   {maskName(data.nickname)}
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/25 border border-brandPurple/40 text-brandPurple">
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/25 border border-brandPurple/40 text-brandPurple">
                   Lv.{data.creditTier}
                 </span>
                 {data.verified && (
                   <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
                 )}
               </div>
-              <span className="text-[10px] text-white/50 block truncate mt-0.5">
+              <span className="text-xs text-white/50 block truncate mt-0.5">
                 {data.meta}
               </span>
             </div>
-            <span className="flex items-center gap-1 text-[10px] text-brandCyan font-semibold shrink-0">
+            <span className="flex items-center gap-1 text-xs text-brandCyan font-semibold shrink-0">
               <Clock3 size={11} /> {data.responseTime}
             </span>
           </div>
@@ -62,10 +62,10 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
           >
             🎁
           </motion.span>
-          <span className="text-[11px] font-bold text-white/85">
+          <span className="text-xs font-bold text-white/85">
             有人接单了！
           </span>
-          <span className="text-[9.5px] text-white/40">盲盒揭晓中…</span>
+          <span className="text-xs text-white/40">盲盒揭晓中…</span>
         </div>
       </motion.div>
     </div>

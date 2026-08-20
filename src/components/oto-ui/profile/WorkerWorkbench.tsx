@@ -152,7 +152,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             key={p.id}
             onClick={() => setProviderId(p.id)}
             aria-pressed={providerId === p.id}
-            className={`flex-1 flex items-center gap-1.5 px-3 py-2 rounded-2xl text-[10.5px] font-bold transition-all ${
+            className={`flex-1 flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all ${
               providerId === p.id
                 ? "btn-primary glow-purple-strong"
                 : "glass-panel text-white/55 hover:text-white"
@@ -178,16 +178,16 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-[14px] font-extrabold">{profile.name}</span>
-              <span className="flex items-center gap-0.5 text-[11px] font-semibold text-yellow-400">
+              <span className="flex items-center gap-0.5 text-xs font-semibold text-yellow-400">
                 <Star size={10} className="fill-yellow-400" /> {profile.rating}
               </span>
             </div>
-            <p className="text-[10px] text-white/50 mt-0.5">{profile.desc}</p>
+            <p className="text-xs text-white/50 mt-0.5">{profile.desc}</p>
           </div>
           <button
             onClick={() => setWorkerOnline(!workerOnline)}
             aria-label="在线接单开关"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
               workerOnline
                 ? "bg-emerald-400/15 border border-emerald-400/40 text-emerald-400"
                 : "bg-white/[0.06] border border-white/15 text-white/40"
@@ -212,7 +212,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
               <span className="text-[13px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
                 {s.value}
               </span>
-              <span className="text-[9px] text-white/45">{s.label}</span>
+              <span className="text-xs text-white/45">{s.label}</span>
             </div>
           ))}
         </div>
@@ -241,11 +241,11 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
               >
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-sm leading-none shrink-0">{pill?.icon ?? "⚡"}</span>
-                  <span className="text-[11px] font-extrabold text-white/90 truncate flex-1">
+                  <span className="text-xs font-extrabold text-white/90 truncate flex-1">
                     {pill?.label ?? ammo.category}
                   </span>
                   <span
-                    className={`text-[9px] font-bold shrink-0 px-1.5 py-px rounded-full border ${
+                    className={`text-xs font-bold shrink-0 px-1.5 py-px rounded-full border ${
                       qualified
                         ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
                         : "text-red-300 border-red-400/30 bg-red-400/10"
@@ -254,22 +254,22 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                     {qualified ? "已达标" : "未达标"}
                   </span>
                 </div>
-                <p className="text-[9px] text-white/35 truncate">{ammo.ammoId}</p>
+                <p className="text-xs text-white/35 truncate">{ammo.ammoId}</p>
                 {!ammo.workerRequirement ? (
-                  <p className="text-[9.5px] text-white/45">无门槛 · 通用可接单</p>
+                  <p className="text-xs text-white/45">无门槛 · 通用可接单</p>
                 ) : missing.length > 0 ? (
                   <ul className="flex flex-col gap-0.5">
                     {missing.slice(0, 3).map((m) => (
-                      <li key={m} className="text-[9px] text-white/60 leading-tight">
+                      <li key={m} className="text-xs text-white/60 leading-tight">
                         · {m}
                       </li>
                     ))}
                     {missing.length > 3 && (
-                      <li className="text-[9px] text-white/40">+{missing.length - 3} 项待补齐</li>
+                      <li className="text-xs text-white/40">+{missing.length - 3} 项待补齐</li>
                     )}
                   </ul>
                 ) : (
-                  <p className="text-[9.5px] text-emerald-300/90">✅ 资质已达标 · 可接单</p>
+                  <p className="text-xs text-emerald-300/90">✅ 资质已达标 · 可接单</p>
                 )}
               </motion.div>
             );
@@ -281,12 +281,12 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       <section>
         <SectionTitle icon={<Inbox size={12} className="text-brandCyan" />} title="新订单请求" />
         {!workerOnline && (
-          <div className="glass-panel rounded-2xl px-4 py-3 text-[11px] text-white/45 flex items-center gap-2">
+          <div className="glass-panel rounded-2xl px-4 py-3 text-xs text-white/45 flex items-center gap-2">
             <Power size={12} /> 已暂停接单，AI 撮合会把你推荐给别的服务者
           </div>
         )}
         {pending.length === 0 ? (
-          <div className="glass-panel rounded-2xl px-4 py-3 text-[11px] text-white/40">
+          <div className="glass-panel rounded-2xl px-4 py-3 text-xs text-white/40">
             {workerOnline ? "没有待接单，AI 撮合正在为你找单～" : "开启接单后会收到新请求"}
           </div>
         ) : (
@@ -342,13 +342,13 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
               <WorkerOrderRow key={o.id} order={o} done />
             ))}
           </div>
-          <p className="text-[10px] text-emerald-400/80 mt-2 flex items-center gap-1">
+          <p className="text-xs text-emerald-400/80 mt-2 flex items-center gap-1">
             <Check size={11} /> 累计入账 ¥{income} · 评价已同步到你的撮合画像
           </p>
         </section>
       )}
 
-      <p className="text-[9px] text-white/30 text-center pb-1">
+      <p className="text-xs text-white/30 text-center pb-1">
         本轮演示 · 收益为虚拟结算 · 累计流水 ¥{incoming}
       </p>
     </div>
@@ -397,12 +397,12 @@ function WorkerOrderRow({
             {order.service}
           </span>
           {done && (
-            <span className="text-[9px] px-1.5 py-px rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 font-semibold shrink-0">
+            <span className="text-xs px-1.5 py-px rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 font-semibold shrink-0">
               已入账
             </span>
           )}
         </div>
-        <p className="text-[10px] text-white/50 mt-0.5 truncate">
+        <p className="text-xs text-white/50 mt-0.5 truncate">
           {order.client} · {order.time}
         </p>
       </div>
@@ -411,7 +411,7 @@ function WorkerOrderRow({
           {order.price}
         </span>
         {blocked ? (
-          <span className="px-3 py-1 rounded-full bg-red-400/10 border border-red-400/30 text-red-300 text-[10px] font-bold shrink-0">
+          <span className="px-3 py-1 rounded-full bg-red-400/10 border border-red-400/30 text-red-300 text-xs font-bold shrink-0">
             {blockedLabel ?? "不满足接单条件"}
           </span>
         ) : (
@@ -419,7 +419,7 @@ function WorkerOrderRow({
             <button
               onClick={onAction}
               disabled={dimmed}
-              className="px-3 py-1 rounded-full btn-primary text-[10px] font-bold glow-purple-strong disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition-[filter,transform]"
+              className="px-3 py-1 rounded-full btn-primary text-xs font-bold glow-purple-strong disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition-[filter,transform]"
             >
               {actionLabel}
             </button>

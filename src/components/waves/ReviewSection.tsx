@@ -78,13 +78,13 @@ export default function ReviewSection({
     label: string
   ) => (
     <div className="flex items-center justify-between">
-      <span className="text-[10px] text-white/60">{label}</span>
+      <span className="text-xs text-white/60">{label}</span>
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((v) => (
           <button
             key={v}
             onClick={() => setDims((d) => ({ ...d, [key]: v }))}
-            className={`w-6 h-6 rounded-full text-[10px] font-bold ${
+            className={`w-6 h-6 rounded-full text-xs font-bold ${
               dims[key] >= v
                 ? "bg-amber-400/25 text-amber-300 border border-amber-400/50"
                 : "bg-white/[0.05] text-white/30 border border-white/10"
@@ -102,7 +102,7 @@ export default function ReviewSection({
     <div className="space-y-1.5">
       {/* 对方给我的评价（脱敏 + 时间衰减） */}
       {theirs && (
-        <p className="text-[9.5px] font-bold px-2.5 py-1.5 rounded-xl bg-emerald-400/[0.07] border border-emerald-400/25 text-emerald-200/90 flex items-start gap-1.5">
+        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-emerald-400/[0.07] border border-emerald-400/25 text-emerald-200/90 flex items-start gap-1.5">
           <ShieldCheck size={10} className="mt-0.5 shrink-0" />
           <span>
             对方评价 ★{theirs.score} · {decayLabel(theirs.at, now)}
@@ -114,13 +114,13 @@ export default function ReviewSection({
 
       {/* 我的评价 / 评价入口 */}
       {mine ? (
-        <p className="text-[9.5px] font-bold px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/70">
+        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/70">
           ✅ 已评价 ★{mine.score} · {decayLabel(mine.at, now)}
         </p>
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="w-full py-2 rounded-xl bg-brandCyan/10 border border-brandCyan/30 text-brandCyan text-[10px] font-bold"
+          className="w-full py-2 rounded-xl bg-brandCyan/10 border border-brandCyan/30 text-brandCyan text-xs font-bold"
         >
           ⭐ 评价对方（72 小时内）
         </button>
@@ -132,7 +132,7 @@ export default function ReviewSection({
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl bg-white/[0.05] border border-white/15 p-3 space-y-2"
         >
-          <p className="text-[10.5px] font-bold text-white/85">给对方打分</p>
+          <p className="text-xs font-bold text-white/85">给对方打分</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((v) => (
               <button
@@ -166,18 +166,18 @@ export default function ReviewSection({
             }
             aria-label="评价留言"
             rows={2}
-            className={`w-full rounded-xl bg-white/[0.05] border px-2.5 py-2 text-[10.5px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 resize-none ${
+            className={`w-full rounded-xl bg-white/[0.05] border px-2.5 py-2 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 resize-none ${
               explainError ? "border-red-400/70" : "border-white/10"
             }`}
           />
           {explainError && (
-            <p className="text-[9px] font-bold text-red-300">
+            <p className="text-xs font-bold text-red-300">
               ⚠️ {REVIEW_EXPLANATION_THRESHOLD} 星及以下的低分评价必须填写理由
             </p>
           )}
           <button
             onClick={submit}
-            className="w-full py-2 rounded-xl btn-primary text-[10px] font-bold glow-purple-strong flex items-center justify-center gap-1"
+            className="w-full py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong flex items-center justify-center gap-1"
           >
             <Send size={11} /> 提交评价
           </button>

@@ -48,7 +48,7 @@ export const QueueAdventureModal: React.FC<QueueAdventureModalProps> = ({
                 <Clock className="w-6 h-6 animate-spin" />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">QUEUE ADVENTURE</span>
+                <span className="text-xs font-mono font-bold text-amber-400 uppercase">QUEUE ADVENTURE</span>
                 <h3 className="text-lg font-black text-white">前面还有 3 位冒险者在等候...</h3>
               </div>
             </div>
@@ -64,7 +64,7 @@ export const QueueAdventureModal: React.FC<QueueAdventureModalProps> = ({
                   <Zap className="w-5 h-5 text-purple-400" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-100">降级召唤 3.5 星黑马职人</h4>
-                    <p className="text-[11px] text-slate-400">等待缩短 80%，享受 9 折魔晶加成</p>
+                    <p className="text-xs text-slate-400">等待缩短 80%，享受 9 折魔晶加成</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-purple-400" />
@@ -78,7 +78,7 @@ export const QueueAdventureModal: React.FC<QueueAdventureModalProps> = ({
                   <Clock className="w-5 h-5 text-cyan-400" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-100">错峰预约奇遇</h4>
-                    <p className="text-[11px] text-slate-400">顺延至明日优先履约，赠 10% 算力券</p>
+                    <p className="text-xs text-slate-400">顺延至明日优先履约，赠 10% 算力券</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-cyan-400" />
@@ -92,7 +92,7 @@ export const QueueAdventureModal: React.FC<QueueAdventureModalProps> = ({
                   <Coffee className="w-5 h-5 text-pink-400" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-100">9元赛博奶茶奇遇</h4>
-                    <p className="text-[11px] text-slate-400">即刻退单离场，领 9 元无门槛奶茶御守</p>
+                    <p className="text-xs text-slate-400">即刻退单离场，领 9 元无门槛奶茶御守</p>
                   </div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-pink-400" />

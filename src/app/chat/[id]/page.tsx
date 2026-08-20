@@ -297,9 +297,9 @@ export default function ChatPage({
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{otherParty?.name ?? '对方'}</p>
               {session?.id === contract.customer.id ? (
-                <Badge variant="secondary" className="px-2 py-0 text-[10px]">提供服务方</Badge>
+                <Badge variant="secondary" className="px-2 py-0 text-xs">提供服务方</Badge>
               ) : (
-                <Badge variant="secondary" className="px-2 py-0 text-[10px]">客户</Badge>
+                <Badge variant="secondary" className="px-2 py-0 text-xs">客户</Badge>
               )}
             </div>
             <p className="truncate text-xs text-slate-500 dark:text-zinc-500">{parsedTerms.title}</p>
@@ -358,14 +358,14 @@ export default function ChatPage({
                       <div className={`mt-1.5 flex items-center gap-2 px-1 ${
                         isMe ? 'flex-row-reverse' : ''
                       }`}>
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-600">
+                        <span className="text-xs text-slate-400 dark:text-zinc-600">
                           {new Date(msg.created_at).toLocaleString('zh-CN', {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
                         </span>
                         {isFlagged(msg) && (
-                          <Badge variant="outline" className="border-orange-200 px-1.5 py-0 text-[10px] text-orange-600 dark:border-orange-900/30 dark:text-orange-400">
+                          <Badge variant="outline" className="border-orange-200 px-1.5 py-0 text-xs text-orange-600 dark:border-orange-900/30 dark:text-orange-400">
                             已标记
                           </Badge>
                         )}

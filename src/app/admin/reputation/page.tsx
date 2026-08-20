@@ -151,7 +151,7 @@ export default function AdminReputationWorkspace() {
                     {item.full_name}
                     <span className="text-xs text-zinc-500 ml-2">({item.email})</span>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
+                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
                     <span className="flex items-center gap-1 font-semibold text-zinc-400">
                       综合信誉分:
                       <span
@@ -178,7 +178,7 @@ export default function AdminReputationWorkspace() {
           {selectedProfile ? (
             <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
-                <span className="text-[10px] uppercase font-bold bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">
+                <span className="text-xs uppercase font-bold bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">
                   当前锁定的制裁对象
                 </span>
                 <div className="text-lg font-bold text-zinc-100 mt-3">
@@ -210,7 +210,7 @@ export default function AdminReputationWorkspace() {
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex gap-2.5 mb-5 text-[11px] text-zinc-400 leading-relaxed">
+              <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex gap-2.5 mb-5 text-xs text-zinc-400 leading-relaxed">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
                 <div>
                   风控介入法则：此控制台专用于应对由于不可抗力或客户恶意刷差评导致的优质服务商被{"\u201C"}误伤{"\u201D"}锁定的特赦修复通道。

@@ -215,7 +215,7 @@ export default function AdminComplaintsPage() {
                               ))}
                             </div>
                             {ev.hash && (
-                              <div className="mt-1 font-mono text-[10px] text-slate-500/60 dark:text-zinc-500/60">
+                              <div className="mt-1 font-mono text-xs text-slate-500/60 dark:text-zinc-500/60">
                                 hash: {ev.hash.slice(0, 16)}...
                                 {ev.prev_hash !== "GENESIS" && ev.prev_hash && <> | prev: {ev.prev_hash.slice(0, 16)}...</>}
                               </div>

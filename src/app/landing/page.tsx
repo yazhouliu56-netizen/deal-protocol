@@ -147,11 +147,11 @@ export default function LandingPage() {
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 dark:bg-indigo-950/30">
             <Sparkles className={cn("size-3 text-indigo-600 dark:text-indigo-400", generating && "animate-spin")} />
-            <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
               {generating ? "AI 智能解析中..." : "✨ AI 就绪"}
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 dark:text-zinc-500">{text.length} 字</span>
+          <span className="text-xs text-slate-400 dark:text-zinc-500">{text.length} 字</span>
         </div>
       </div>
 
@@ -230,7 +230,7 @@ export default function LandingPage() {
             <span
               key={level.value}
               className={cn(
-                "text-[10px]",
+                "text-xs",
                 severity === level.value ? level.color : "text-slate-400 dark:text-zinc-600",
               )}
             >
@@ -268,12 +268,12 @@ export default function LandingPage() {
                       style={{ width: `${file.progress}%` }}
                     />
                   </div>
-                  <span className="mt-1 text-[9px] text-slate-400">{file.progress}%</span>
+                  <span className="mt-1 text-xs text-slate-400">{file.progress}%</span>
                 </>
               ) : (
                 <>
                   <span className="text-xl">📷</span>
-                  <span className="mt-1 text-[9px] text-slate-400">已上传</span>
+                  <span className="mt-1 text-xs text-slate-400">已上传</span>
                 </>
               )}
             </div>

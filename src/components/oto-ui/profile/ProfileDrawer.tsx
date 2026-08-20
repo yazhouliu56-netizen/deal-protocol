@@ -63,7 +63,7 @@ export default function ProfileDrawer({
               </span>
               <div className="flex-1 min-w-0">
                 <h3 className="text-[13px] font-extrabold">{title}</h3>
-                <p className="text-[9.5px] text-white/45 truncate">{subtitle}</p>
+                <p className="text-xs text-white/45 truncate">{subtitle}</p>
               </div>
               <button
                 onClick={onClose}

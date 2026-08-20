@@ -160,19 +160,19 @@ const open = session.status === "open";
           <Gavel size={14} className="text-white/60" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-extrabold text-white/90 flex items-center gap-1.5">
+          <p className="text-xs font-extrabold text-white/90 flex items-center gap-1.5">
             公开竞价 · 演示沙盒
             {picked ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-[8.5px] text-emerald-300 font-extrabold">
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-xs text-emerald-300 font-extrabold">
                 你的真实需求局
               </span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded-full bg-white/5 border border-white/15 text-[8.5px] text-white/45 font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-white/5 border border-white/15 text-xs text-white/45 font-bold">
                 演示局 · 无真实资金
               </span>
             )}
           </p>
-          <p className="text-[9px] text-white/45 truncate">
+          <p className="text-xs text-white/45 truncate">
             {session.title} · 保留价 ¥{session.reserveYuan} · 已收到 {ranked.length} 个报价
           </p>
         </div>
@@ -180,7 +180,7 @@ const open = session.status === "open";
           <button
             type="button"
             onClick={reset}
-            className="shrink-0 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/15 text-white/60 text-[10px] font-bold hover:bg-white/10 transition-colors"
+            className="shrink-0 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/15 text-white/60 text-xs font-bold hover:bg-white/10 transition-colors"
           >
             再开一局
           </button>
@@ -199,7 +199,7 @@ const open = session.status === "open";
               else reset();
             }}
             aria-label="选择要竞价的真实需求局"
-            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2 py-1.5 text-[9.5px] font-bold text-white/80 outline-none focus:border-brandPurple/60"
+            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2 py-1.5 text-xs font-bold text-white/80 outline-none focus:border-brandPurple/60"
           >
             <option value="" className="bg-[#0b0e22]">
               演示局 · 小区保洁
@@ -221,7 +221,7 @@ const open = session.status === "open";
           return (
             <div
               key={b.bidderId}
-              className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-[10px] ${
+              className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs ${
                 leader
                   ? "bg-emerald-400/15 border border-emerald-400/40"
                   : mine
@@ -248,7 +248,7 @@ const open = session.status === "open";
           );
         })}
         {ranked.length === 0 && (
-          <p className="text-[10px] text-white/40 py-1 text-center">
+          <p className="text-xs text-white/40 py-1 text-center">
             还没有报价 —— 出价抢占榜一
           </p>
         )}
@@ -262,19 +262,19 @@ const open = session.status === "open";
             onChange={(e) => setMyPrice(e.target.value)}
             inputMode="numeric"
             aria-label="我的报价"
-            className="w-20 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2.5 py-2 text-[10px] font-mono text-white/90 outline-none focus:border-brandPurple/60"
+            className="w-20 min-h-10 rounded-xl bg-white/5 border border-white/15 px-2.5 py-2 text-xs font-mono text-white/90 outline-none focus:border-brandPurple/60"
           />
           <button
             type="button"
             onClick={handleBid}
-            className="flex-1 min-h-10 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-[10px] font-extrabold hover:bg-brandPurple/30 transition-colors"
+            className="flex-1 min-h-10 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-xs font-extrabold hover:bg-brandPurple/30 transition-colors"
           >
             {myLowest ? "保持最低价 · 稳住榜一" : "出价"}
           </button>
           <button
             type="button"
             onClick={handleAward}
-            className="shrink-0 min-h-10 px-3.5 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-[10px] font-extrabold hover:bg-emerald-400/25 transition-colors"
+            className="shrink-0 min-h-10 px-3.5 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold hover:bg-emerald-400/25 transition-colors"
           >
             立即开标
           </button>
@@ -288,7 +288,7 @@ const open = session.status === "open";
           animate={{ opacity: 1, height: "auto" }}
           className="mt-2.5 pt-2.5 border-t border-white/10"
         >
-          <div className="flex items-center gap-2 text-[10px] font-extrabold text-emerald-300">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-300">
             <Trophy size={12} />
             {session.award.winnerId === "me"
               ? "你中标了！"
@@ -302,7 +302,7 @@ const open = session.status === "open";
       )}
 
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-xl bg-red-400/10 border border-red-400/35 text-[10px] font-bold text-red-300">
+        <p className="mt-2 px-3 py-1.5 rounded-xl bg-red-400/10 border border-red-400/35 text-xs font-bold text-red-300">
           {error}
         </p>
       )}

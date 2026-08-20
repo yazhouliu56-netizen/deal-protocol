@@ -43,17 +43,17 @@ export default function RoamGuardPanel() {
     <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
       <div className="flex items-center gap-2 mb-2">
         <Smartphone size={12} className="text-brandCyan" />
-        <span className="text-[10px] font-semibold text-white/50">
+        <span className="text-xs font-semibold text-white/50">
           漫游 · 多开风控
         </span>
         <span
-          className={`ml-auto text-[9px] font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}
+          className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}
         >
           {badge.label}
         </span>
       </div>
 
-      <p className="text-[9.5px] text-white/40 break-all mb-2">
+      <p className="text-xs text-white/40 break-all mb-2">
         本设备 {mounted ? deviceId : "…"} · 同设备 {risk.count} 个身份 · {risk.reason}
         {risk.risk === "high" && (
           <span className="block mt-0.5 text-red-300/90 font-bold">
@@ -66,14 +66,14 @@ export default function RoamGuardPanel() {
         <button
           type="button"
           onClick={() => roamDemo(identityId)}
-          className="flex-1 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-brandCyan text-[10px] font-bold hover:bg-brandCyan/25 transition-colors"
+          className="flex-1 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-brandCyan text-xs font-bold hover:bg-brandCyan/25 transition-colors"
         >
           模拟新设备漫游
         </button>
         <button
           type="button"
           onClick={() => simulateMultiOpen(identityId)}
-          className="flex-1 py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-amber-300 text-[10px] font-bold hover:bg-amber-400/25 transition-colors"
+          className="flex-1 py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-bold hover:bg-amber-400/25 transition-colors"
         >
           模拟同设备多开 +1
         </button>
@@ -92,7 +92,7 @@ aria-label="重置多开风控演示"
           {events.slice(0, 3).map((e, i) => (
             <p
               key={`${e.at}-${i}`}
-              className="text-[8.5px] text-white/35 truncate"
+              className="text-xs text-white/35 truncate"
             >
               {e.kind === "alert" ? "⚠ " : "· "}
               {e.note}

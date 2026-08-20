@@ -63,7 +63,7 @@ export default function AcceptancePanel({
   // 复杂任务：逐模块验收 + 争议
   return (
     <div className="space-y-2.5">
-      <p className="text-[10px] font-bold text-white/70 flex items-center justify-between">
+      <p className="text-xs font-bold text-white/70 flex items-center justify-between">
         <span>🔍 模块化验收（{confirmed}/{done} 已确认）</span>
         <span className="text-white/35 font-normal">逐模块放款 · 全确认才放全款</span>
       </p>
@@ -77,11 +77,11 @@ export default function AcceptancePanel({
             className="rounded-xl bg-white/[0.04] border border-white/10 p-2.5"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10.5px] font-bold text-white/85 flex-1 truncate">
+              <span className="text-xs font-bold text-white/85 flex-1 truncate">
                 模块 {i + 1} · {def?.name ?? `模块${i + 1}`}
               </span>
               <span
-                className={`text-[9px] font-bold shrink-0 px-1.5 py-0.5 rounded-full ${
+                className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded-full ${
                   m.status === "confirmed"
                     ? "bg-emerald-400/15 text-emerald-300"
                     : m.status === "done"
@@ -92,12 +92,12 @@ export default function AcceptancePanel({
                 {label}
               </span>
             </div>
-            <p className="text-[9.5px] text-white/40 mt-1">{def?.acceptance}</p>
+            <p className="text-xs text-white/40 mt-1">{def?.acceptance}</p>
             {m.status === "done" && (
               <button
                 onClick={() => approveModule(claim.id, i)}
                 aria-label={`确认模块 ${def?.name ?? `模块${i + 1}`}`}
-                className="mt-1.5 w-full py-1.5 rounded-xl bg-emerald-400/12 border border-emerald-400/35 text-[10px] font-bold text-emerald-300"
+                className="mt-1.5 w-full py-1.5 rounded-xl bg-emerald-400/12 border border-emerald-400/35 text-xs font-bold text-emerald-300"
               >
                 确认此模块 ✅
               </button>
@@ -106,7 +106,7 @@ export default function AcceptancePanel({
         );
       })}
       {confirmed === done && (
-        <p className="text-[10px] text-emerald-300/90">
+        <p className="text-xs text-emerald-300/90">
           ✓ 全部模块已确认 —— 履约完成，全款已放
         </p>
       )}
@@ -162,7 +162,7 @@ function DisputeForm({
   );
   return (
     <div className="rounded-2xl bg-amber-400/[0.05] border border-amber-400/25 p-2.5 space-y-2">
-      <p className="text-[10px] font-bold text-amber-300/90 flex items-center gap-1">
+      <p className="text-xs font-bold text-amber-300/90 flex items-center gap-1">
         <AlertTriangle size={11} /> 发起争议（原因拆分优先 · 公平公正公开）
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -170,7 +170,7 @@ function DisputeForm({
           <button
             key={r.value}
             onClick={() => setReason(r.value)}
-            className={`px-2 py-1 rounded-full text-[9px] font-bold transition-colors ${
+            className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${
               reason === r.value
                 ? "bg-amber-400/25 border border-amber-400/60 text-amber-200"
                 : "bg-white/[0.04] border border-white/10 text-white/50"
@@ -185,11 +185,11 @@ function DisputeForm({
         onChange={(e) => setEvidence(e.target.value)}
         placeholder="凭证：发生了什么、与你预期的偏差（必填）"
         aria-label="争议凭证"
-        className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-[10px] outline-none focus:border-amber-400/50"
+        className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-xs outline-none focus:border-amber-400/50"
       />
       {forgery && (
         <p
-          className={`text-[8.5px] font-bold rounded-lg px-2 py-1 ${
+          className={`text-xs font-bold rounded-lg px-2 py-1 ${
             forgery.level === "highly-suspicious"
               ? "bg-red-400/10 border border-red-400/40 text-red-300"
               : forgery.level === "suspicious"
@@ -214,7 +214,7 @@ function DisputeForm({
           }
           onOpen(reason, evidence.trim());
         }}
-        className="w-full py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-[10.5px] font-bold text-amber-300"
+        className="w-full py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-xs font-bold text-amber-300"
       >
         提交争议 · 按原因自动判责
       </button>
@@ -245,10 +245,10 @@ function DisputeVerdictView({
 
   return (
     <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-3 space-y-2">
-      <p className="text-[10.5px] font-bold text-amber-200">
+      <p className="text-xs font-bold text-amber-200">
         ⚖️ 争议进行中 · {dispute.verdict.label}
       </p>
-      <p className="text-[9px] text-white/40">
+      <p className="text-xs text-white/40">
         凭证：{dispute.evidence} ·{" "}
         {dispute.appealDeadline > now
           ? "响应方 48h 内可申诉"
@@ -256,7 +256,7 @@ function DisputeVerdictView({
       </p>
       {sealCheck && (
         <p
-          className={`text-[8.5px] font-bold rounded-lg px-2 py-1 border ${
+          className={`text-xs font-bold rounded-lg px-2 py-1 border ${
             sealCheck.ok
               ? "bg-emerald-400/10 border-emerald-400/30 text-emerald-300"
               : "bg-red-400/10 border-red-400/40 text-red-300"
@@ -282,10 +282,10 @@ function DisputeVerdictView({
             }}
           />
           <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-[9.5px] text-white/60 flex-1">协商部分退款比例（%）：</p>
+          <p className="text-xs text-white/60 flex-1">协商部分退款比例（%）：</p>
           <button
             onClick={() => setProposed("30")}
-            className={`px-2 py-1 rounded-full text-[9px] font-bold ${
+            className={`px-2 py-1 rounded-full text-xs font-bold ${
               proposed === "30"
                 ? "bg-brandPurple/30 text-brandPurple border border-brandPurple/50"
                 : "bg-white/[0.04] border border-white/10 text-white/50"
@@ -295,7 +295,7 @@ function DisputeVerdictView({
           </button>
           <button
             onClick={() => setProposed("60")}
-            className={`px-2 py-1 rounded-full text-[9px] font-bold ${
+            className={`px-2 py-1 rounded-full text-xs font-bold ${
               proposed === "60"
                 ? "bg-brandPurple/30 text-brandPurple border border-brandPurple/50"
                 : "bg-white/[0.04] border border-white/10 text-white/50"
@@ -312,7 +312,7 @@ function DisputeVerdictView({
                 note: "需求方接受协商",
               })
             }
-            className="px-2.5 py-1 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-[9px] font-bold text-emerald-300"
+            className="px-2.5 py-1 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
           >
             接受协商
           </button>
@@ -325,7 +325,7 @@ function DisputeVerdictView({
                 note: "需求方拒绝协商",
               })
             }
-            className="px-2.5 py-1 rounded-xl bg-white/[0.06] border border-white/15 text-[9px] font-bold text-white/60"
+            className="px-2.5 py-1 rounded-xl bg-white/[0.06] border border-white/15 text-xs font-bold text-white/60"
           >
             拒绝回自动
           </button>
@@ -333,7 +333,7 @@ function DisputeVerdictView({
         </>
       )}
       {outcome && (
-        <p className="text-[9.5px] font-bold text-emerald-300">
+        <p className="text-xs font-bold text-emerald-300">
           ✓ 已结算：{outcome.note}
           {outcome.kind === "negotiated" && ` · 按 ${outcome.agreedAmount}% 退款`}
         </p>

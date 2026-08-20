@@ -133,7 +133,7 @@ export default function FinanceDashboardPage() {
             )}>
               ¥{overview.availableBalance.toLocaleString()}
             </div>
-            <div className="text-[10px] text-zinc-500">已自动扣除平台服务与系统结算费</div>
+            <div className="text-xs text-zinc-500">已自动扣除平台服务与系统结算费</div>
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 space-y-2 touch-feedback active:scale-[0.98]">
@@ -144,7 +144,7 @@ export default function FinanceDashboardPage() {
             <div className="text-2xl font-mono font-bold text-amber-400">
               ¥{overview.totalInEscrow.toLocaleString()}
             </div>
-            <div className="text-[10px] text-zinc-500">涉及 {overview.activeEscrowOrderCount} 个履约中订单</div>
+            <div className="text-xs text-zinc-500">涉及 {overview.activeEscrowOrderCount} 个履约中订单</div>
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 space-y-2 touch-feedback active:scale-[0.98]">
@@ -155,7 +155,7 @@ export default function FinanceDashboardPage() {
             <div className="text-2xl font-mono font-bold text-indigo-400">
               ¥{overview.totalEarned.toLocaleString()}
             </div>
-            <div className="text-[10px] text-zinc-500">累计完成 {overview.completedOrderCount} 笔交付订单</div>
+            <div className="text-xs text-zinc-500">累计完成 {overview.completedOrderCount} 笔交付订单</div>
           </div>
 
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 space-y-2 touch-feedback active:scale-[0.98]">
@@ -166,14 +166,14 @@ export default function FinanceDashboardPage() {
             <div className="text-2xl font-mono font-bold text-zinc-200">
               ¥{overview.pendingWithdrawal.toLocaleString()}
             </div>
-            <div className="text-[10px] text-zinc-500">预计 24 小时内划转完毕</div>
+            <div className="text-xs text-zinc-500">预计 24 小时内划转完毕</div>
           </div>
         </div>
 
         <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
             <h2 className="text-sm font-bold text-zinc-200">资金流动明细记录</h2>
-            <span className="text-[11px] font-mono text-zinc-500">近 50 条账单记录</span>
+            <span className="text-xs font-mono text-zinc-500">近 50 条账单记录</span>
           </div>
 
           {isLoading ? (
@@ -194,7 +194,7 @@ export default function FinanceDashboardPage() {
           ) : transactions.length === 0 ? (
             <div className="text-center py-12 space-y-2">
               <p className="text-xs text-zinc-500 font-mono">尚无任何交易流水记录</p>
-              <p className="text-[11px] text-zinc-600">当产生托管订单、验收结案或提现时，变动明细将在此罗列。</p>
+              <p className="text-xs text-zinc-600">当产生托管订单、验收结案或提现时，变动明细将在此罗列。</p>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-5 px-5">
@@ -203,7 +203,7 @@ export default function FinanceDashboardPage() {
                   <div key={item.id} className="py-3 flex items-center justify-between gap-4 text-xs">
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="font-medium text-zinc-200 truncate">{item.title || "订单结算 / 交易记录"}</div>
-                      <div className="text-[10px] font-mono text-zinc-500">
+                      <div className="text-xs font-mono text-zinc-500">
                         {new Date(item.created_at).toLocaleString("zh-CN")} · ID: {item.id.slice(0, 8)}
                       </div>
                     </div>
@@ -216,7 +216,7 @@ export default function FinanceDashboardPage() {
                       }`}>
                         {item.type === "INCOME" || item.status === "COMPLETED" ? "+" : ""}¥{Number(item.amount).toLocaleString()}
                       </div>
-                      <span className="inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                      <span className="inline-block text-xs font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
                         {item.status}
                       </span>
                     </div>

@@ -86,23 +86,23 @@ export default function ContactCard({
       {/* 弱网离线队列（ADR-0014 N11 接线）：离线消息已缓冲，恢复自动重放 */}
       {!online && pendingIm > 0 && (
         <div className="flex items-center justify-between rounded-lg bg-amber-400/10 border border-amber-400/40 px-2 py-1.5">
-          <span className="text-[8.5px] font-bold text-amber-300">
+          <span className="text-xs font-bold text-amber-300">
             📡 离线中 · {pendingIm} 条消息已入队，联网后自动发送
           </span>
           <button
             onClick={() => replayQueue()}
-            className="text-[8.5px] text-white/60 hover:text-white underline underline-offset-2"
+            className="text-xs text-white/60 hover:text-white underline underline-offset-2"
           >
             手动重发
           </button>
         </div>
       )}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-extrabold text-brandCyan flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-brandCyan flex items-center gap-1.5">
           <Phone size={11} /> 隐私通话（ADR-0010）
         </span>
         <span
-          className={`text-[9px] font-bold ${
+          className={`text-xs font-bold ${
             live ? "text-emerald-300" : "text-white/35"
           }`}
         >
@@ -118,7 +118,7 @@ export default function ContactCard({
             setDialed(true);
             window.setTimeout(() => setDialed(false), 1500);
           }}
-          className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold transition-colors ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-colors ${
             live
               ? "bg-brandCyan/20 text-brandCyan border border-brandCyan/40"
               : "bg-white/[0.04] text-white/30 border border-white/10"
@@ -129,18 +129,18 @@ export default function ContactCard({
         </button>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-white/[0.05] text-white/70 border border-white/10 ml-auto"
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-white/[0.05] text-white/70 border border-white/10 ml-auto"
         >
           <MessageSquare size={9} />
           私信对方
           {unread != null && unread > 0 && (
-            <span className="ml-0.5 px-1 rounded-full bg-brandCyan text-black text-[8px] font-extrabold">
+            <span className="ml-0.5 px-1 rounded-full bg-brandCyan text-black text-xs font-extrabold">
               {unread}
             </span>
           )}
         </button>
       </div>
-      <p className="text-[8.5px] text-white/35">
+      <p className="text-xs text-white/35">
         虚拟线路 · 双方号码均不落地真实号 · 订单终局自动回收
       </p>
 
@@ -148,14 +148,14 @@ export default function ContactCard({
         <div className="space-y-2 pt-1 border-t border-white/10">
           <div className="max-h-28 overflow-y-auto space-y-1">
             {threadMsgs.length === 0 && (
-              <p className="text-[9px] text-white/35 py-1 text-center">
+              <p className="text-xs text-white/35 py-1 text-center">
                 暂无消息，打个招呼吧
               </p>
             )}
             {threadMsgs.map((m) => (
               <div
                 key={m.id}
-                className={`px-2 py-1 rounded-lg text-[9.5px] max-w-[85%] ${
+                className={`px-2 py-1 rounded-lg text-xs max-w-[85%] ${
                   m.fromId === me
                     ? "ml-auto bg-brandCyan/20 text-white/85"
                     : "bg-white/[0.06] text-white/70"
@@ -171,11 +171,11 @@ export default function ContactCard({
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder="私信对方…（IM 中枢）"
-              className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-1.5 text-[9.5px] text-white/80 placeholder-white/25 outline-none focus:border-brandCyan/50"
+              className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white/80 placeholder-white/25 outline-none focus:border-brandCyan/50"
             />
             <button
               onClick={submit}
-              className="px-2.5 py-1 rounded-lg bg-brandCyan text-black text-[9px] font-extrabold"
+              className="px-2.5 py-1 rounded-lg bg-brandCyan text-black text-xs font-extrabold"
             >
               发送
             </button>

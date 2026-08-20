@@ -205,7 +205,7 @@ export default function ProfilePage() {
                   <User className="w-8 h-8" />
                 </div>
               </div>
-              <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 text-[10px] font-black">
+              <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 text-xs font-black">
                 Lv.42
               </span>
             </div>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
                 <h2 className="text-lg font-black text-white">
                   {profile.name}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800/40">
+                <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800/40">
                   {roleLabels.join(' + ') || 'ADVENTURER'}
                 </span>
               </div>
@@ -240,7 +240,7 @@ export default function ProfilePage() {
                 className="h-full bg-gradient-to-r from-amber-500 to-amber-300"
               />
             </div>
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-xs text-slate-500 font-mono">
               <span>EXP 经验值</span>
               <span className="text-cyan-400">4200 / 5000</span>
             </div>

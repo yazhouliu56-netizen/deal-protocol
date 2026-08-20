@@ -499,12 +499,12 @@ export default function SplitDemandView({ session, highlightedField }: { session
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-slate-900 dark:text-zinc-100">{name}</span>
                           {logFeed.length > 4 + i ? (
-                            <Badge className="border-0 bg-emerald-100 text-[10px] text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">已确认 ✓</Badge>
+                            <Badge className="border-0 bg-emerald-100 text-xs text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">已确认 ✓</Badge>
                           ) : (
-                            <Badge className="border-0 bg-amber-50 text-[10px] text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 animate-pulse">待确认</Badge>
+                            <Badge className="border-0 bg-amber-50 text-xs text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 animate-pulse">待确认</Badge>
                           )}
                         </div>
-                        <p className="mt-0.5 text-[10px] text-slate-400">信用评分 780 · 距离 1.2km</p>
+                        <p className="mt-0.5 text-xs text-slate-400">信用评分 780 · 距离 1.2km</p>
                       </div>
                     ))}
                   </div>

@@ -65,7 +65,7 @@ export default function DisputeDetailPage() {
         <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
             <div>
-              <div className="text-[10px] font-mono text-zinc-500">CASE ID: {dispute.id}</div>
+              <div className="text-xs font-mono text-zinc-500">CASE ID: {dispute.id}</div>
               <h1 className="text-base font-bold mt-1 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-amber-400"/> 仲裁案卷详情
               </h1>
@@ -85,11 +85,11 @@ export default function DisputeDetailPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <div className="text-[10px] text-zinc-500">申请退款额</div>
+                <div className="text-xs text-zinc-500">申请退款额</div>
                 <div className="text-sm font-mono font-bold text-amber-400 mt-1">¥{dispute.requested_refund_amount?.toLocaleString()}</div>
               </div>
               <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-                <div className="text-[10px] text-zinc-500">裁定退款额</div>
+                <div className="text-xs text-zinc-500">裁定退款额</div>
                 <div className="text-sm font-mono font-bold text-emerald-400 mt-1">
                   ¥{dispute.approved_refund_amount !== undefined ? dispute.approved_refund_amount.toLocaleString() : "待裁决"}
                 </div>

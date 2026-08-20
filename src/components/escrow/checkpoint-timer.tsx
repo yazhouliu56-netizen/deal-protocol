@@ -75,7 +75,7 @@ export const CheckpointTimer: React.FC<CheckpointTimerProps> = ({
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                'px-2 py-0.5 rounded-md text-[10px] font-black uppercase font-mono border',
+                'px-2 py-0.5 rounded-md text-xs font-black uppercase font-mono border',
                 isCompleted
                   ? 'bg-emerald-950 text-emerald-300 border-emerald-500/50'
                   : 'bg-cyan-950 text-cyan-300 border-cyan-500/50'
@@ -108,7 +108,7 @@ export const CheckpointTimer: React.FC<CheckpointTimerProps> = ({
 
       {!isCompleted && status === 'submitted' && (
         <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-cyan-400 animate-pulse" /> 24h 自动结算倒计时
             </span>

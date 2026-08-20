@@ -88,7 +88,7 @@ export default function DemandDetailPage({ params }: { params: Promise<{ id: str
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-500/40 uppercase font-mono">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-cyan-950 text-cyan-300 border border-cyan-500/40 uppercase font-mono">
                   BOUNTY CONTRACT
                 </span>
                 <span className="text-xs text-slate-400 font-mono">ID: {id.substring(0, 8)}</span>

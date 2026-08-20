@@ -77,14 +77,14 @@ export default function CockpitDemoCard() {
         <Clapperboard size={13} className="text-brandPurple" />
         <span className="text-[12px] font-extrabold text-white/85">演示座舱</span>
       </div>
-      <p className="text-[9.5px] text-white/45 mt-1 truncate">{note}</p>
+      <p className="text-xs text-white/45 mt-1 truncate">{note}</p>
 
       <div className="mt-2.5 grid grid-cols-3 gap-2">
         {actions.map((a) => (
           <button
             key={a.label}
             onClick={a.do}
-            className={`py-2.5 rounded-xl bg-white/5 border text-[10px] font-bold flex flex-col items-center gap-1 transition-colors active:scale-[0.98] ${
+            className={`py-2.5 rounded-xl bg-white/5 border text-xs font-bold flex flex-col items-center gap-1 transition-colors active:scale-[0.98] ${
               a.tone === "tone-red"
                 ? "border-red-400/30 text-red-300 hover:bg-red-400/10"
                 : "border-white/15 text-white/70 hover:bg-white/10"
@@ -98,7 +98,7 @@ export default function CockpitDemoCard() {
       <button
         onClick={resetAll}
         aria-label="复位演示座舱"
-        className="mt-2 w-full py-1.5 rounded-lg bg-white/[0.03] border border-dashed border-white/15 text-[9px] font-bold text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
+        className="mt-2 w-full py-1.5 rounded-lg bg-white/[0.03] border border-dashed border-white/15 text-xs font-bold text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
       >
         <span className="inline-flex items-center gap-1 justify-center">
           <RotateCcw size={10} /> 复位演示座舱

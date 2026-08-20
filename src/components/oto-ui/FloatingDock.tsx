@@ -83,12 +83,12 @@ export default function FloatingDock() {
                   )}
                   <Icon size={20} className="relative" />
                   {nav.id === "im" && msgUnread > 0 && (
-                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/40 text-[9px] font-bold text-white flex items-center justify-center font-tabular">
+                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/40 text-xs font-bold text-white flex items-center justify-center font-tabular">
                       {msgUnread}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-semibold tracking-wide">
+                <span className="text-xs font-semibold tracking-wide">
                   {nav.label}
                 </span>
                 {isActive && (

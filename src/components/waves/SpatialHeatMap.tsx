@@ -49,7 +49,7 @@ function ModeToggle({
 }) {
   return (
     <span className="ml-auto flex items-center gap-2">
-      <span className="text-[10px] text-white/35">{count} 条 · 位置模糊</span>
+      <span className="text-xs text-white/35">{count} 条 · 位置模糊</span>
       <button
         type="button"
         onClick={() => cycleMapPref()}
@@ -146,7 +146,7 @@ const pref = useMapPref();
       <div className="mt-3">
         <div className="flex items-center gap-1.5 mb-1.5">
           <MapPin size={12} className="text-brandCyan" />
-          <span className="text-[10px] font-bold text-white/60">
+          <span className="text-xs font-bold text-white/60">
             附近信号 · 3D 地图
           </span>
           <ModeToggle count={dots.length} pref={pref} />
@@ -176,7 +176,7 @@ const pref = useMapPref();
     <div className="mt-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         <MapPin size={12} className="text-brandCyan" />
-        <span className="text-[10px] font-bold text-white/60">
+        <span className="text-xs font-bold text-white/60">
           匿名热力 · 附近活跃信号波
         </span>
         <ModeToggle count={cssDots.length} pref={pref} />
@@ -195,7 +195,7 @@ const pref = useMapPref();
         {LOCALITIES.map((l) => (
           <span
             key={l.label}
-            className="absolute text-[8px] text-white/30 font-medium"
+            className="absolute text-xs text-white/30 font-medium"
             style={{
               left: `${l.x * 100}%`,
               top: `${l.y * 100}%`,
@@ -297,7 +297,7 @@ function WaveMiniSheet({
           <p className="text-[12px] font-extrabold text-white/90 truncate">
             {wave.basics.category}
           </p>
-          <p className="text-[9px] text-white/45 mt-0.5 flex items-center gap-1 truncate">
+          <p className="text-xs text-white/45 mt-0.5 flex items-center gap-1 truncate">
             <Clock size={9} /> {wave.basics.time} · {wave.basics.area}
           </p>
         </div>
@@ -323,7 +323,7 @@ function WaveMiniSheet({
         </div>
       </div>
 
-      <div className="mt-2.5 flex items-center gap-1.5 text-[9.5px] font-bold text-white/70">
+      <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-white/70">
         <span className="px-2 py-1 rounded-full bg-white/[0.06] border border-white/10">
           ¥{price}
         </span>
@@ -341,7 +341,7 @@ function WaveMiniSheet({
       <button
         onClick={handleShare}
         aria-label="复制分享链接，直达该局拼位"
-        className="mt-2 w-full py-2 rounded-xl bg-white/5 border border-white/15 text-[10px] font-bold text-white/70 flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors active:scale-[0.99]"
+        className="mt-2 w-full py-2 rounded-xl bg-white/5 border border-white/15 text-xs font-bold text-white/70 flex items-center justify-center gap-1.5 hover:bg-white/10 transition-colors active:scale-[0.99]"
       >
         <Share2 size={11} /> {copied ? "链接已复制" : "复制分享链接 · 直达拼位"}
       </button>

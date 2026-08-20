@@ -72,7 +72,7 @@ export function MediaPicker({ value, onChange, maxFiles = 3 }: MediaPickerProps)
             aria-label="上传照片或视频"
           >
             <Camera className="size-5 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {value.length === 0 ? "点击上传照片或视频" : "继续添加"}
             </span>
           </button>

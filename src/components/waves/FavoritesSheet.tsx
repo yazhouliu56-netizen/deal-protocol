@@ -57,7 +57,7 @@ export default function FavoritesSheet({
         </div>
 
         {favs.length === 0 ? (
-          <p className="text-[11px] text-white/40 text-center py-6">
+          <p className="text-xs text-white/40 text-center py-6">
             还没关注任何局 —— 在雷达里点 ♥ 收藏喜欢的信号波吧
           </p>
         ) : (
@@ -73,20 +73,20 @@ export default function FavoritesSheet({
                     {CATEGORY_EMOJI(w.basics.category)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11.5px] font-bold text-white/90 truncate">
+                    <p className="text-xs font-bold text-white/90 truncate">
                       {w.basics.category}
                       {gone && (
-                        <span className="ml-1.5 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full bg-white/10 text-white/40">
+                        <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-white/10 text-white/40">
                           已结束
                         </span>
                       )}
                     </p>
-                    <p className="text-[9.5px] text-white/45 flex items-center gap-1 truncate">
+                    <p className="text-xs text-white/45 flex items-center gap-1 truncate">
                       <MapPin size={9} className="text-brandCyan shrink-0" />
                       {w.basics.area} · {w.basics.time} · {yuan(w.budget)}
                     </p>
                     {gone && (
-                      <p className="text-[9px] text-emerald-300/80 flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-emerald-300/80 flex items-center gap-1 mt-0.5">
                         <CheckCircle2 size={9} /> 该局已被处理，保持关注可跟踪状态
                       </p>
                     )}
@@ -94,7 +94,7 @@ export default function FavoritesSheet({
                   <button
                     onClick={() => onToggle(w.id)}
                     aria-label={`取消关注 ${w.basics.category}`}
-                    className={`shrink-0 px-2 py-1 rounded-lg text-[9.5px] font-bold transition-colors ${
+                    className={`shrink-0 px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
                       gone
                         ? "bg-white/5 text-white/40"
                         : "bg-white/5 border border-white/15 text-white/55 hover:text-white"

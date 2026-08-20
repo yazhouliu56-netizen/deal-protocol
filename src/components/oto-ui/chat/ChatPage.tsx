@@ -477,7 +477,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               onClick={() => setTtsEnabled((v) => !v)}
               aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
-              className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
+              className={`text-xs px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
                 ttsEnabled ? "text-brandCyan" : "text-white/40"
               }`}
             >
@@ -489,7 +489,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
                 useAppStore.getState().clearChat();
                 setSession((s) => s + 1);
               }}
-              className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+              className="text-xs text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
             >
               新对话
             </button>
@@ -504,14 +504,14 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <h2 className="text-[15px] font-extrabold tracking-tight">
               AI 撮合助手
             </h2>
-            <p className="text-[10px] text-white/50">
+            <p className="text-xs text-white/50">
               自然语言描述需求 · 自动撮合线下服务
             </p>
           </div>
           <button
             onClick={() => setTtsEnabled((v) => !v)}
             aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
-            className={`text-[10px] px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
+            className={`text-xs px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
               ttsEnabled ? "text-brandCyan" : "text-white/40"
             }`}
           >
@@ -523,7 +523,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               useAppStore.getState().clearChat();
               setSession((s) => s + 1);
             }}
-            className="text-[10px] text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+            className="text-xs text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
           >
             新对话
           </button>
@@ -547,7 +547,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
             >
               <span className="text-[15px]">{b.emoji}</span>
-              <span className="text-[11px] font-bold text-white/85 truncate">
+              <span className="text-xs font-bold text-white/85 truncate">
                 {b.label}
               </span>
             </button>
@@ -580,7 +580,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={s}
               onClick={() => handleSend(s)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full glass-panel text-[11px] text-white/70 hover:text-white hover:border-brandPurple/50 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full glass-panel text-xs text-white/70 hover:text-white hover:border-brandPurple/50 transition-colors"
             >
               <Sparkles size={11} className="text-brandPurple" />
               {s}
@@ -596,11 +596,11 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={h.candidate.id}
               onClick={() => setScreen("home")}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/30 text-[10px] text-brandCyan hover:bg-brandCyan/20 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/30 text-xs text-brandCyan hover:bg-brandCyan/20 transition-colors"
             >
               <Sparkles size={9} />
               {h.candidate.label} · {h.candidate.text.split(" ")[1]}
-              <span className="text-[8.5px] text-white/40">
+              <span className="text-xs text-white/40">
                 {Math.round(h.score * 100)}%
               </span>
             </button>
@@ -641,7 +641,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-brandPurple/30 border border-brandPurple/50 text-[9.5px] font-bold text-white/90 flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+            className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-brandPurple/30 border border-brandPurple/50 text-xs font-bold text-white/90 flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
           >
             <Mic size={10} className="text-brandCyan" />
             按住说话 · 自动发布/查局
@@ -726,7 +726,7 @@ function ChatBubble({
         <button
           onClick={() => void speak(message.content ?? "")}
           aria-label="重播语音"
-          className="ml-9 mt-1 rounded-full px-2 py-0.5 glass-panel text-[9px] text-brandCyan hover:text-white flex items-center gap-1 transition-colors"
+          className="ml-9 mt-1 rounded-full px-2 py-0.5 glass-panel text-xs text-brandCyan hover:text-white flex items-center gap-1 transition-colors"
         >
           <Volume2 size={9} /> 重播
         </button>
@@ -773,7 +773,7 @@ function GenCardView({
               </span>
               {slot.density != null && (
                 <span
-                  className={`text-[9px] font-bold ${
+                  className={`text-xs font-bold ${
                     slot.density >= 75
                       ? "text-orange-400"
                       : slot.density <= 30
@@ -789,7 +789,7 @@ function GenCardView({
                 </span>
               )}
               {slot.sub && (
-                <span className="text-[9px] text-white/45">{slot.sub}</span>
+                <span className="text-xs text-white/45">{slot.sub}</span>
               )}
             </button>
           ))}
@@ -818,7 +818,7 @@ function GenCardView({
       >
         <div className="flex flex-col gap-1 mb-2.5">
           {card.lines.map((line) => (
-            <div key={line.k} className="flex items-start gap-2 text-[11px]">
+            <div key={line.k} className="flex items-start gap-2 text-xs">
               <span className="text-white/45 shrink-0 w-12">{line.k}</span>
               <span className="text-white/85">{line.v}</span>
             </div>
@@ -830,19 +830,19 @@ function GenCardView({
           </span>
           {booked ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30">
+              <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30">
                 <Check size={12} /> 已预订
               </span>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
               {card.lines.some((l) => l.k === "弹药单号") ? (
-                <span className="text-[11px] font-bold text-brandCyan px-3 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/40">
+                <span className="text-xs font-bold text-brandCyan px-3 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/40">
                   已转正式订单 ✅
                 </span>
               ) : (
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
                   aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full btn-primary text-[11px] font-bold glow-purple-strong active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold glow-purple-strong active:scale-95"
                 >
                   📡 转为正式订单
                 </button>
@@ -851,7 +851,7 @@ function GenCardView({
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full btn-primary text-[11px] font-bold glow-purple-strong active:scale-95"
+              className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold glow-purple-strong active:scale-95"
             >
               确认预订
             </button>
@@ -899,13 +899,13 @@ function ProviderRow({
               {provider.name}
             </span>
             {provider.tag && (
-              <span className="text-[9px] px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
+              <span className="text-xs px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
                 {provider.tag}
               </span>
             )}
             {match && (
               <span
-                className={`text-[9px] px-1.5 py-px rounded-full font-bold shrink-0 ${
+                className={`text-xs px-1.5 py-px rounded-full font-bold shrink-0 ${
                   match.badge === "极高匹配"
                     ? "bg-emerald-400/10 border border-emerald-400/40 text-emerald-400"
                     : match.badge === "高匹配"
@@ -919,7 +919,7 @@ function ProviderRow({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-white/50">
+          <div className="flex items-center gap-1 text-xs text-white/50">
             <span className="flex items-center gap-0.5 text-yellow-400">
               <Star size={9} className="fill-yellow-400" />
               {provider.rating}
@@ -931,24 +931,24 @@ function ProviderRow({
             <span className="truncate">· {provider.meta}</span>
           </div>
           {provider.availability === "本时段不可约" && (
-            <p className="text-[9px] text-orange-400/90 mt-0.5">
+            <p className="text-xs text-orange-400/90 mt-0.5">
               该时段已约满，建议改选空闲时段 ⏳
             </p>
           )}
           {provider.availability === "已下线" && (
-            <p className="text-[9px] text-white/40 mt-0.5">
+            <p className="text-xs text-white/40 mt-0.5">
               暂时未接单，换一个在线服务者更稳
             </p>
           )}
         </div>
-        <span className="text-[11px] font-bold text-brandCyan shrink-0">
+        <span className="text-xs font-bold text-brandCyan shrink-0">
           {provider.price}
         </span>
       </button>
       {provider.breakdown && (
         <button
           onClick={() => setShowDetail((v) => !v)}
-          className="w-full flex items-center justify-center gap-1 py-1 text-[9px] text-white/40 hover:text-white/70 transition-colors"
+          className="w-full flex items-center justify-center gap-1 py-1 text-xs text-white/40 hover:text-white/70 transition-colors"
         >
           <ChevronDown
             size={10}
@@ -964,7 +964,7 @@ function ProviderRow({
             const pct = Math.min(100, (value / row.max) * 100);
             return (
               <div key={row.key} className="flex items-center gap-2">
-                <span className="text-[9px] text-white/45 w-7 shrink-0">
+                <span className="text-xs text-white/45 w-7 shrink-0">
                   {row.label}
                 </span>
                 <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
@@ -975,7 +975,7 @@ function ProviderRow({
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-[9px] text-white/60 w-9 text-right shrink-0">
+                <span className="text-xs text-white/60 w-9 text-right shrink-0">
                   {value}/{row.max}
                 </span>
               </div>
@@ -1010,11 +1010,11 @@ function CardShell({
       }`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[11px] font-extrabold text-white/90">
+        <span className="text-xs font-extrabold text-white/90">
           {title}
         </span>
         {subtitle && !accent && (
-          <span className="text-[9px] text-white/40 truncate">{subtitle}</span>
+          <span className="text-xs text-white/40 truncate">{subtitle}</span>
         )}
       </div>
       {children}

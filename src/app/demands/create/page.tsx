@@ -256,10 +256,10 @@ export default function CreateDemandBountyPage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <Icon className={`w-4 h-4 ${isSelected ? 'text-purple-300' : 'text-slate-500'}`} />
-                      <span className="text-[10px] font-mono text-purple-400">+{chip.priceRatio * 100}%</span>
+                      <span className="text-xs font-mono text-purple-400">+{chip.priceRatio * 100}%</span>
                     </div>
                     <h4 className="text-xs font-bold text-slate-200">{chip.name}</h4>
-                    <p className="text-[11px] text-slate-400 mt-1 leading-normal">{chip.desc}</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-normal">{chip.desc}</p>
                   </div>
                 );
               })}

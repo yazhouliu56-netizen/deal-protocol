@@ -23,7 +23,7 @@ export default function NegotiationBox({
   return (
     <div className="w-full">
       {label && (
-        <span className="text-[10px] font-semibold text-white/40 block mb-1">
+        <span className="text-xs font-semibold text-white/40 block mb-1">
           {label}
         </span>
       )}
@@ -33,7 +33,7 @@ export default function NegotiationBox({
         placeholder={placeholder}
         rows={rows}
         aria-label={label ?? "磋商留言（可留空）"}
-        className={`w-full rounded-2xl bg-white/[0.04] border text-[11px] leading-relaxed placeholder:text-white/25 text-white/90 outline-none transition-colors resize-none ${
+        className={`w-full rounded-2xl bg-white/[0.04] border text-xs leading-relaxed placeholder:text-white/25 text-white/90 outline-none transition-colors resize-none ${
           compact ? "px-3 py-2" : "px-3.5 py-2.5"
         } ${
           value.trim()

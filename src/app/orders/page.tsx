@@ -136,7 +136,7 @@ export default function OrdersPage() {
                   <div className="rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md dark:border-zinc-800/60 dark:bg-zinc-900">
                     {/* Fund status badge */}
                     <div className="mb-3 flex items-center justify-between">
-                      <Badge className={cn("border-0 text-[10px]", fund.color)}>
+                      <Badge className={cn("border-0 text-xs", fund.color)}>
                         💠 {fund.label}
                       </Badge>
                       <span className="text-xs text-slate-400 dark:text-zinc-500 tabular-nums">

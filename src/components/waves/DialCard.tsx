@@ -34,10 +34,10 @@ export default function DialCard({
           <Timer size={13} className="text-white/40" />
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-white/60">
+          <p className="text-xs font-bold text-white/60">
             虚拟线路已失效（{mins} 分钟前）
           </p>
-          <p className="text-[9px] text-white/35">见面通过线下完成，P5 提供真实虚拟号</p>
+          <p className="text-xs text-white/35">见面通过线下完成，P5 提供真实虚拟号</p>
         </div>
       </div>
     );
@@ -50,10 +50,10 @@ export default function DialCard({
       className="rounded-2xl bg-emerald-400/[0.06] border border-emerald-400/30 p-3"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10.5px] font-extrabold text-emerald-300 flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
           <Phone size={12} /> 一次性虚拟线路
         </span>
-        <span className="text-[9px] text-white/45 flex items-center gap-1">
+        <span className="text-xs text-white/45 flex items-center gap-1">
           <Timer size={9} /> {mins} 分钟后失效
         </span>
       </div>
@@ -63,14 +63,14 @@ export default function DialCard({
         </span>
         <button
           onClick={() => setDialed(true)}
-          className="px-3.5 py-2 rounded-xl btn-primary text-[10.5px] font-bold glow-cyan flex items-center gap-1 shrink-0"
+          className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold glow-cyan flex items-center gap-1 shrink-0"
           aria-label="拨号"
         >
           <Phone size={12} /> 拨号
         </button>
       </div>
       {dialed && (
-        <p className="mt-1.5 text-[9.5px] text-emerald-300/80 flex items-center gap-1">
+        <p className="mt-1.5 text-xs text-emerald-300/80 flex items-center gap-1">
           <ShieldCheck size={10} /> 已模拟拨号 · 双方各自看到的是对方脱敏后的线路
         </p>
       )}

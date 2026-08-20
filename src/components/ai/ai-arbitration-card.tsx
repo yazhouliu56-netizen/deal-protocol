@@ -39,7 +39,7 @@ export const AiArbitrationCard: React.FC<AiArbitrationCardProps> = ({
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] font-mono text-slate-400">AI 置信度 (Confidence)</span>
+          <span className="text-xs font-mono text-slate-400">AI 置信度 (Confidence)</span>
           <div className={`text-lg font-black font-mono ${isLowConfidence ? 'text-amber-400' : 'text-cyan-400'}`}>
             {Math.round(confidenceScore * 100)}%
           </div>

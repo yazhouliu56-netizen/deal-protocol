@@ -35,10 +35,10 @@ export default function SafetyKit() {
           <ShieldCheck size={15} className="text-emerald-400" />
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block text-[11.5px] font-bold text-white/90">
+          <span className="block text-xs font-bold text-white/90">
             安全中心
           </span>
-          <span className="block text-[9.5px] text-white/45 truncate">
+          <span className="block text-xs text-white/45 truncate">
             紧急联系人 · 见面兜底 · 安全面基点
           </span>
         </span>
@@ -74,7 +74,7 @@ export default function SafetyKit() {
 
             {/* 1. 紧急联系人 */}
             <label className="block mb-1.5">
-              <span className="text-[10px] font-semibold text-white/50 flex items-center gap-1">
+              <span className="text-xs font-semibold text-white/50 flex items-center gap-1">
                 <Phone size={10} className="text-brandCyan" /> 紧急联系人
               </span>
               <input
@@ -82,7 +82,7 @@ export default function SafetyKit() {
                 onChange={(e) => setContact(e.target.value)}
                 placeholder="家人 / 好友手机号（仅见面时段可用）"
                 aria-label="紧急联系人"
-                className="mt-1 w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-[11px] placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
+                className="mt-1 w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
               />
             </label>
 
@@ -92,7 +92,7 @@ export default function SafetyKit() {
               className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 mb-1.5"
               aria-label="见面信息对联系人可见"
             >
-              <span className="flex items-center gap-2 text-[11px] text-white/80">
+              <span className="flex items-center gap-2 text-xs text-white/80">
                 <Eye size={12} className="text-brandCyan" /> 见面信息对联系人可见
               </span>
               <span
@@ -107,7 +107,7 @@ export default function SafetyKit() {
                 />
               </span>
             </button>
-            <p className="text-[9.5px] text-white/35 mb-3 -mt-1">
+            <p className="text-xs text-white/35 mb-3 -mt-1">
               开启后，见面时间/地点将同步给你的紧急联系人
             </p>
 
@@ -121,11 +121,11 @@ export default function SafetyKit() {
               }`}
               aria-label="到达见面点确认"
             >
-              <span className="flex items-center gap-2 text-[11px] text-white/80">
+              <span className="flex items-center gap-2 text-xs text-white/80">
                 <MapPin size={12} className="text-brandCyan" /> 到达见面点确认
               </span>
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   checkedIn
                     ? "bg-emerald-400/20 text-emerald-300"
                     : "bg-white/10 text-white/50"
@@ -136,7 +136,7 @@ export default function SafetyKit() {
             </button>
 
             {/* 4. 安全面基点推荐 */}
-            <span className="text-[10px] font-semibold text-white/50 flex items-center gap-1 mb-2">
+            <span className="text-xs font-semibold text-white/50 flex items-center gap-1 mb-2">
               <MapPin size={10} className="text-emerald-400" /> 推荐安全见面点
             </span>
             <div className="flex flex-col gap-1.5">
@@ -147,12 +147,12 @@ export default function SafetyKit() {
                 >
                   <span className="text-sm">📍</span>
                   <span className="flex-1 min-w-0">
-                    <span className="text-[11px] font-bold text-white/90 block truncate">
+                    <span className="text-xs font-bold text-white/90 block truncate">
                       {s.name}
                     </span>
-                    <span className="text-[9px] text-white/40">{s.type}</span>
+                    <span className="text-xs text-white/40">{s.type}</span>
                   </span>
-                  <span className="text-[9.5px] font-bold text-emerald-300">
+                  <span className="text-xs font-bold text-emerald-300">
                     {s.safe} 分安全
                   </span>
                 </button>
@@ -167,10 +167,10 @@ export default function SafetyKit() {
               onClick={() => setAdminOpen(true)}
               className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-emerald-400/40 transition-colors"
             >
-              <span className="flex items-center gap-2 text-[11px] text-white/80">
+              <span className="flex items-center gap-2 text-xs text-white/80">
                 <Gavel size={12} className="text-emerald-400" /> 平台治理后台
               </span>
-              <span className="text-[9px] text-white/40">举报裁定 · 下架 · 封禁</span>
+              <span className="text-xs text-white/40">举报裁定 · 下架 · 封禁</span>
             </button>
           </motion.div>
         </>

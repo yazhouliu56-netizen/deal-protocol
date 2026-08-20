@@ -34,7 +34,7 @@ function LoginContent() {
       <Card className="w-full max-w-sm rounded-2xl border-zinc-200/60 shadow-sm dark:border-zinc-800/60">
         <CardHeader className="text-center">
           <Link href="/" className="mx-auto mb-2 flex items-center justify-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-[10px] font-bold text-white shadow-sm">dp</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-sm">dp</span>
             <span className="text-sm font-semibold text-foreground">deal<span className="text-indigo-600">-protocol</span></span>
           </Link>
           <CardTitle className="text-xl">登录</CardTitle>

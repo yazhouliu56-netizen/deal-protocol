@@ -22,7 +22,7 @@ export default function Badge({
 }) {
   return (
     <span
-      className={`px-2 py-0.5 rounded-full border text-[9px] font-bold ${TONE_CLASS[tone]} ${className}`}
+      className={`px-2 py-0.5 rounded-full border text-xs font-bold ${TONE_CLASS[tone]} ${className}`}
     >
       {children}
     </span>

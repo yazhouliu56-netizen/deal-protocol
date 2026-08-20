@@ -31,7 +31,7 @@ function StatCard({ title, value, desc, href, icon: Icon, accent }: {
           <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", accent)}>
             <Icon className="size-5 text-white" />
           </div>
-          <Badge variant="outline" className="border-slate-200 text-[10px] dark:border-zinc-700">{desc}</Badge>
+          <Badge variant="outline" className="border-slate-200 text-xs dark:border-zinc-700">{desc}</Badge>
         </div>
         <p className="text-3xl font-black text-slate-900 tabular-nums dark:text-zinc-100">{count}</p>
         <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{title}</p>

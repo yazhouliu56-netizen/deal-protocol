@@ -63,7 +63,7 @@ export default function DestinationHub({
             <ScanSearch size={15} className="text-brandCyan" />
             目的地中心
           </span>
-          <span className="text-[10px] text-white/40 font-normal">
+          <span className="text-xs text-white/40 font-normal">
             {otoExperiences.length} 个体验 · 筛选后 {list.length}
           </span>
           <div className="flex-1" />
@@ -78,7 +78,7 @@ export default function DestinationHub({
 
         {/* 筛选区 */}
         <div className="px-4 pb-3 flex flex-col gap-2.5 border-b border-white/8">
-          <div className="flex items-center gap-1.5 text-[10px] text-white/45">
+          <div className="flex items-center gap-1.5 text-xs text-white/45">
             <SlidersHorizontal size={10} className="text-brandPurple" />
             价位档
           </div>
@@ -87,7 +87,7 @@ export default function DestinationHub({
               <button
                 key={b.id}
                 onClick={() => setBand(b.id)}
-                className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-colors ${
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
                   band === b.id
                     ? "btn-primary glow-purple-strong"
                     : "bg-white/5 border border-white/10 text-white/60 hover:text-white"
@@ -101,7 +101,7 @@ export default function DestinationHub({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
               onClick={() => setArOnly(!arOnly)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-colors ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
                 arOnly
                   ? "bg-brandCyan/20 border border-brandCyan/50 text-brandCyan"
                   : "bg-white/5 border border-white/10 text-white/45 hover:text-white"
@@ -124,7 +124,7 @@ export default function DestinationHub({
                 <button
                   key={s.id}
                   onClick={() => setSort(s.id)}
-                  className={`group flex items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                  className={`group flex items-center gap-0.5 px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
                     sort === s.id
                       ? "bg-brandPurple/25 border border-brandPurple/50 text-brandPurple-foreground"
                       : "bg-white/5 border border-white/10 text-white/40 hover:text-white"
@@ -149,13 +149,13 @@ export default function DestinationHub({
               <p className="text-[12px] font-bold text-white/80 mt-3">
                 没有符合筛选的目的地
               </p>
-              <p className="text-[10px] text-white/45 mt-1">
+              <p className="text-xs text-white/45 mt-1">
                 换个价位档，或关闭「仅 AR 预览」再试试
               </p>
             </div>
           ) : (
             <>
-              <p className="text-[10px] text-white/35 mb-2">
+              <p className="text-xs text-white/35 mb-2">
                 {list.length} 个目的地 · 排序与筛选即时生效
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

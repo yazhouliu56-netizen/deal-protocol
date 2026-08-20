@@ -66,11 +66,11 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
         aria-expanded={open}
         aria-label="出勤档案"
       >
-        <span className="text-[10px] font-bold text-white/70 flex items-center gap-1.5">
+        <span className="text-xs font-bold text-white/70 flex items-center gap-1.5">
           <ClipboardList size={11} className="text-brandPurple" />
           出勤档案（Meetup 组织者视图）
         </span>
-        <span className="text-[9px] font-bold text-brandPurple">
+        <span className="text-xs font-bold text-brandPurple">
           {roster.length} 人 {open ? "收起 ▴" : "展开 ▾"}
         </span>
       </button>
@@ -78,14 +78,14 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
         <div className="border-t border-white/10 divide-y divide-white/[0.06]">
           {roster.map((r) => (
             <div key={r.nickname + r.joinedWaves} className="px-3 py-2 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-brandPurple/20 border border-brandPurple/40 flex items-center justify-center text-[10px] shrink-0">
+              <span className="w-6 h-6 rounded-full bg-brandPurple/20 border border-brandPurple/40 flex items-center justify-center text-xs shrink-0">
                 <Users size={10} className="text-brandPurple" />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[10.5px] font-bold text-white/85 truncate">
+                <p className="text-xs font-bold text-white/85 truncate">
                   {r.nickname}
                 </p>
-                <p className="text-[9px] text-white/45">
+                <p className="text-xs text-white/45">
                   参与 {r.joinedWaves} 局 · 出勤率{" "}
                   <span className={r.showRate >= 0.8 ? "text-emerald-300" : r.showRate >= 0.5 ? "text-amber-300" : "text-red-300"}>
                     {Math.round(r.showRate * 100)}%
@@ -94,22 +94,22 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
               </div>
               <div className="flex gap-1.5 shrink-0">
                 {r.noShows > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-[9px] font-bold text-red-300">
+                  <span className="px-1.5 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-xs font-bold text-red-300">
                     鸽 {r.noShows}
                   </span>
                 )}
                 {r.withdrawn > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-[9px] font-bold text-white/60">
+                  <span className="px-1.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold text-white/60">
                     退 {r.withdrawn}
                   </span>
                 )}
                 {r.waitlisted > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-[9px] font-bold text-amber-300">
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-xs font-bold text-amber-300">
                     候补 {r.waitlisted}
                   </span>
                 )}
                 {r.guestCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/40 text-[9px] font-bold text-brandPurple">
+                  <span className="px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/40 text-xs font-bold text-brandPurple">
                     +1 ×{r.guestCount}
                   </span>
                 )}

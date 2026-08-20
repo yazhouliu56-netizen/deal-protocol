@@ -84,7 +84,7 @@ export const InventoryGrid: React.FC = () => {
                   : 'border-slate-800 bg-slate-950/60'
               )}
             >
-              <span className="absolute top-2 right-2 text-[10px] font-mono font-black text-slate-300 bg-slate-900/80 px-1.5 py-0.5 rounded-md border border-slate-800">
+              <span className="absolute top-2 right-2 text-xs font-mono font-black text-slate-300 bg-slate-900/80 px-1.5 py-0.5 rounded-md border border-slate-800">
                 x{item.count}
               </span>
 
@@ -130,7 +130,7 @@ export const InventoryGrid: React.FC = () => {
               </div>
 
               <div>
-                <span className="text-[10px] font-mono font-bold text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-800/40">
+                <span className="text-xs font-mono font-bold text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-800/40">
                   {selectedItem.rarity} · {selectedItem.type}
                 </span>
                 <h4 className="text-base font-bold text-white mt-2">{selectedItem.name}</h4>

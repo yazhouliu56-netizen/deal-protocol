@@ -120,7 +120,7 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
               <button
                 type="button"
                 onClick={() => setAmount(availableBalance)}
-                className="absolute right-2 top-2 text-[10px] font-mono text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded"
+                className="absolute right-2 top-2 text-xs font-mono text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded"
               >
                 全部提现
               </button>
@@ -141,7 +141,7 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
             />
           </div>
 
-          <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-[11px] text-zinc-400 space-y-1">
+          <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1">
             <div className="flex justify-between">
               <span>提现手续费 (0%)</span>
               <span className="font-mono text-emerald-400">¥0.00</span>

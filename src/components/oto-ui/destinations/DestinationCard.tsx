@@ -133,19 +133,19 @@ export default function DestinationCard({
             <span className="text-[13px] font-extrabold truncate">
               {item.title}
             </span>
-            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-400 bg-white/10 backdrop-blur-sm rounded-full px-1.5 py-0.5 shrink-0">
+            <span className="flex items-center gap-0.5 text-xs font-bold text-yellow-400 bg-white/10 backdrop-blur-sm rounded-full px-1.5 py-0.5 shrink-0">
               <Star size={9} className="fill-yellow-400" />
               {item.rating}
             </span>
           </div>
-          <span className="text-[10px] text-white/60 block truncate">
+          <span className="text-xs text-white/60 block truncate">
             {item.subtitle}
           </span>
           <span className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-[11px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
+            <span className="text-xs font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
               {priceParts[0]}
             </span>
-            <span className="text-[9px] font-light text-white/50">
+            <span className="text-xs font-light text-white/50">
               {priceParts[1]}
             </span>
           </span>

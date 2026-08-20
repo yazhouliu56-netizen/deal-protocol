@@ -77,7 +77,7 @@ export default function AIDemandsRadarWorkspace() {
           <div>
             <h1 className="text-xl font-bold tracking-tight flex items-center gap-1.5">
               AI 智能商机撮合雷达{" "}
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">
+              <span className="text-xs font-mono px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">
                 V2 Engine
               </span>
             </h1>
@@ -128,7 +128,7 @@ export default function AIDemandsRadarWorkspace() {
                   {item.description}
                 </p>
 
-                <div className="pt-3 border-t border-zinc-800/60 flex flex-wrap gap-4 text-[11px]">
+                <div className="pt-3 border-t border-zinc-800/60 flex flex-wrap gap-4 text-xs">
                   <div className="flex items-center gap-1">
                     <span className="text-zinc-500">向量语义相似度:</span>
                     <span className="font-mono text-zinc-300 font-semibold">
@@ -152,7 +152,7 @@ export default function AIDemandsRadarWorkspace() {
             <Sparkles className="w-3.5 h-3.5" /> 引擎状态自检控制
           </h2>
           <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 space-y-4 text-xs">
-            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 font-mono text-[11px] text-zinc-400">
+            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 font-mono text-xs text-zinc-400">
               <div className="flex justify-between">
                 <span className="text-zinc-500">EXTENSION:</span>
                 <span className="text-emerald-400">pgvector v0.5+</span>
@@ -166,7 +166,7 @@ export default function AIDemandsRadarWorkspace() {
                 <span className="text-indigo-400">REPUTATION ACTIVE</span>
               </div>
             </div>
-            <div className="text-[11px] text-zinc-400 leading-relaxed flex gap-2 border-t border-zinc-800/80 pt-4">
+            <div className="text-xs text-zinc-400 leading-relaxed flex gap-2 border-t border-zinc-800/80 pt-4">
               <ShieldCheck className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
               <div>
                 核心算法说明：此雷达无缝对接了第 3 阶段的【声誉画像风控】。如果用户的声誉状态判定为{" "}

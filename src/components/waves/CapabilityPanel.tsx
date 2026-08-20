@@ -86,12 +86,12 @@ export default function CapabilityPanel() {
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-[12.5px] font-bold block">能力声明</span>
-          <span className="text-[10px] text-white/50 block mt-0.5 truncate">
+          <span className="text-xs text-white/50 block mt-0.5 truncate">
             {identity.categories.length} 个品类 · {identity.tags.length} 个标签 ·{" "}
             {identity.distanceKm} km · {identity.online ? "在线" : "隐身"}
           </span>
           <span
-            className="text-[9.5px] font-bold text-amber-300/90 block mt-0.5 truncate"
+            className="text-xs font-bold text-amber-300/90 block mt-0.5 truncate"
             aria-label="服务商星级"
           >
             {rankLabel({ ...myStats, completion: myCompletion })}
@@ -108,7 +108,7 @@ export default function CapabilityPanel() {
         >
           {/* 状态总闸：在线 / 忙碌 / 隐身 */}
           <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 mb-3">
-            <span className="flex items-center gap-2 text-[11px] text-white/80">
+            <span className="flex items-center gap-2 text-xs text-white/80">
               {status === "online" ? (
                 <Wifi size={12} className="text-emerald-400" />
               ) : status === "busy" ? (
@@ -130,7 +130,7 @@ export default function CapabilityPanel() {
                   key={key}
                   onClick={() => setStatus(key)}
                   aria-label={`状态${label}`}
-                  className={`px-2 py-1 rounded-full text-[9.5px] font-bold transition-colors ${
+                  className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${
                     status === key
                       ? key === "online"
                         ? "bg-emerald-400/25 text-emerald-300 border border-emerald-400/50"
@@ -147,7 +147,7 @@ export default function CapabilityPanel() {
           </div>
 
           {/* 品类 */}
-          <span className="text-[10px] font-semibold text-white/50 block mb-1.5">
+          <span className="text-xs font-semibold text-white/50 block mb-1.5">
             服务品类（硬过滤：不声明的品类收不到广播）
           </span>
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -157,7 +157,7 @@ export default function CapabilityPanel() {
                 <button
                   key={c}
                   onClick={() => toggleCategory(c)}
-                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-colors ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
                     on
                       ? "btn-primary glow-purple-strong"
                       : "glass-panel text-white/50"
@@ -174,7 +174,7 @@ export default function CapabilityPanel() {
                 onChange={(e) => setCustomCat(e.target.value)}
                 placeholder="自定义品类"
                 aria-label="自定义品类"
-                className="w-24 rounded-full bg-white/[0.05] border border-white/10 px-2.5 py-1 text-[10px] outline-none focus:border-brandPurple/50"
+                className="w-24 rounded-full bg-white/[0.05] border border-white/10 px-2.5 py-1 text-xs outline-none focus:border-brandPurple/50"
               />
               <button
                 onClick={() => {
@@ -193,7 +193,7 @@ export default function CapabilityPanel() {
           </div>
 
           {/* 标签 */}
-          <span className="text-[10px] font-semibold text-white/50 block mb-1.5">
+          <span className="text-xs font-semibold text-white/50 block mb-1.5">
             能力标签（匹配定制条件 · 如：女性 / 熟手 / 日系）
           </span>
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -203,7 +203,7 @@ export default function CapabilityPanel() {
                 onClick={() =>
                   commit({ tags: identity.tags.filter((x) => x !== t) })
                 }
-                className="px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-[9.5px] font-bold text-brandPurple"
+                className="px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-xs font-bold text-brandPurple"
               >
                 {t} ✕
               </button>
@@ -214,7 +214,7 @@ export default function CapabilityPanel() {
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="加标签"
                 aria-label="添加标签"
-                className="w-24 rounded-full bg-white/[0.05] border border-white/10 px-2.5 py-1 text-[10px] outline-none focus:border-brandPurple/50"
+                className="w-24 rounded-full bg-white/[0.05] border border-white/10 px-2.5 py-1 text-xs outline-none focus:border-brandPurple/50"
               />
               <button
                 onClick={addTag}
@@ -225,14 +225,14 @@ export default function CapabilityPanel() {
               </button>
             </div>
           </div>
-          <p className="text-[9px] text-white/25 -mt-1 mb-2">
+          <p className="text-xs text-white/25 -mt-1 mb-2">
             兴趣标签最多 3 个 · 随时可换（{3 - identity.tags.length} 空位）
             {tagFull && <span className="text-amber-300"> 已满，先删再改</span>}
           </p>
 
           {/* 距离 */}
           <div className="mb-3">
-            <span className="text-[10px] font-semibold text-white/50 block mb-1">
+            <span className="text-xs font-semibold text-white/50 block mb-1">
               服务半径 · {identity.distanceKm} km
             </span>
             <input
@@ -255,11 +255,11 @@ export default function CapabilityPanel() {
             className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10"
             aria-label="实名认证模拟"
           >
-            <span className="text-[11px] text-white/80">
+            <span className="text-xs text-white/80">
               ✅ 实名认证模拟（信用加权 +5）
             </span>
             <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                 identity.verified
                   ? "bg-emerald-400/20 text-emerald-300"
                   : "bg-white/10 text-white/50"
@@ -272,7 +272,7 @@ export default function CapabilityPanel() {
             identity.categories.some((c) =>
               requiresVerification(c, dispatchRuleFor(c))
             ) && (
-              <p className="text-[9.5px] text-amber-300/90 mt-1.5">
+              <p className="text-xs text-amber-300/90 mt-1.5">
                 ⚠️ 陪诊/家政/上门做饭等进家品类需先实名认证（对标 Care.com 接单门槛）
               </p>
             )}

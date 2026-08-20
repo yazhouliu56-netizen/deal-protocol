@@ -76,12 +76,12 @@ export default function PaySheet({
         </div>
 
         <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-4 mb-3 text-center">
-          <p className="text-[10px] text-white/45 mb-1">{desc ?? "应付金额"}</p>
+          <p className="text-xs text-white/45 mb-1">{desc ?? "应付金额"}</p>
           <p className="text-[28px] font-extrabold text-brandCyan leading-none">
             ¥{amount}
           </p>
           {fee > 0 && (
-            <p className="text-[9.5px] text-white/50 mt-1.5">
+            <p className="text-xs text-white/50 mt-1.5">
               含发布费 ¥{fee}（超出每日 {FREE_PUBLISH_PER_DAY} 次免费后的固定发布费，一经支付不退） · 单子金额 ¥{amount - fee}
             </p>
           )}
@@ -95,7 +95,7 @@ export default function PaySheet({
           立即支付 ¥{amount}（模拟）
         </button>
 
-        <div className="flex items-center justify-between mt-3 text-[9px] text-white/40">
+        <div className="flex items-center justify-between mt-3 text-xs text-white/40">
           <span className="flex items-center gap-1">
             <Lock size={9} /> 随单支付 · 未上线不展示
           </span>

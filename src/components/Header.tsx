@@ -52,7 +52,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-10">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-600 text-[10px] font-bold tracking-tight text-white shadow-sm transition-shadow group-hover:shadow-md">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-500 to-purple-600 text-xs font-bold tracking-tight text-white shadow-sm transition-shadow group-hover:shadow-md">
             <Scroll className="w-4 h-4" />
           </span>
           <span className="text-sm font-semibold text-slate-100">

@@ -82,7 +82,7 @@ function FieldRenderer({
           {field.label}
           {field.required && <span className="text-red-500">*</span>}
           {missing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
               点击补充
             </span>
           )}
@@ -118,7 +118,7 @@ function FieldRenderer({
           {field.label}
           {field.required && <span className="text-red-500">*</span>}
           {missing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
               填写描述
             </span>
           )}
@@ -145,7 +145,7 @@ function FieldRenderer({
           {field.label}
           {field.required && <span className="text-red-500">*</span>}
           {missing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
               填写地址
             </span>
           )}
@@ -172,7 +172,7 @@ function FieldRenderer({
           {field.label}
           {field.required && <span className="text-red-500">*</span>}
           {missing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
               选择时间
             </span>
           )}
@@ -206,7 +206,7 @@ function FieldRenderer({
             {field.label}
             {field.required && <span className="text-red-500">*</span>}
             {missing && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
                 请确认
               </span>
             )}
@@ -226,7 +226,7 @@ function FieldRenderer({
           {field.label}
           {field.required && <span className="text-red-500">*</span>}
           {missing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
               输入数值
             </span>
           )}
@@ -254,7 +254,7 @@ function FieldRenderer({
         {field.label}
         {field.required && <span className="text-red-500">*</span>}
         {missing && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600 animate-pulse dark:bg-indigo-900/30 dark:text-indigo-400">
             填写
           </span>
         )}
@@ -326,7 +326,7 @@ export default function SmartProtocolCard({
                 <Sparkles className="size-3.5 text-indigo-600 dark:text-indigo-400" />
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">AI 协议预览</span>
-              <Badge variant="secondary" className="px-2 py-0 text-[10px]">{category}</Badge>
+              <Badge variant="secondary" className="px-2 py-0 text-xs">{category}</Badge>
             </div>
             <h3 className="mt-2 text-base font-bold leading-tight text-slate-900 dark:text-zinc-100">{title}</h3>
             <p className="mt-0.5 text-sm text-slate-500 dark:text-zinc-500">{description}</p>

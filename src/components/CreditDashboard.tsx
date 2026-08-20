@@ -70,11 +70,11 @@ export function CreditDashboard({
             <div className="mt-4 flex w-full gap-3">
               <div className="flex-1 rounded-lg bg-indigo-50 px-3 py-2 text-center dark:bg-indigo-950/20">
                 <p className="text-lg font-bold text-indigo-700 dark:text-indigo-400">{completedOrders}</p>
-                <p className="text-[10px] text-indigo-500">已完成</p>
+                <p className="text-xs text-indigo-500">已完成</p>
               </div>
               <div className="flex-1 rounded-lg bg-emerald-50 px-3 py-2 text-center dark:bg-emerald-950/20">
                 <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{satisfactionRate}</p>
-                <p className="text-[10px] text-emerald-500">好评率</p>
+                <p className="text-xs text-emerald-500">好评率</p>
               </div>
             </div>
           </div>

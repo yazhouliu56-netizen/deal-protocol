@@ -224,10 +224,10 @@ export default function OrderFulfillmentClient({
               const isPastOrCurrent = index <= currentStatusIndex
               return (
                 <div key={statusKey} className="flex flex-col items-center z-10 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-white" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-white" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400"}`}>
                     {index + 1}
                   </div>
-                  <span className="mt-1 text-[10px] scale-90">{STATUS_MAP[statusKey as keyof typeof STATUS_MAP].label}</span>
+                  <span className="mt-1 text-xs scale-90">{STATUS_MAP[statusKey as keyof typeof STATUS_MAP].label}</span>
                 </div>
               )
             })}
@@ -261,7 +261,7 @@ export default function OrderFulfillmentClient({
                   ) : (
                     <>
                       <span className="text-xl">📸</span>
-                      <span className="text-[10px] text-zinc-400 mt-1">现场拍照</span>
+                      <span className="text-xs text-zinc-400 mt-1">现场拍照</span>
                     </>
                   )}
                 </button>

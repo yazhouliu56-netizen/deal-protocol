@@ -35,7 +35,7 @@ export default function DynamicFormView({
         const err = errors.find((e) => e.key === n.key);
         return (
           <div key={n.key} className="space-y-1">
-            <label className="flex items-center gap-1 text-[10px] text-white/60">
+            <label className="flex items-center gap-1 text-xs text-white/60">
               {n.label}
               {n.required && <span className="text-red-400">*</span>}
             </label>
@@ -44,7 +44,7 @@ export default function DynamicFormView({
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
                 placeholder={n.placeholder}
-                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
+                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
               />
             )}
             {n.type === "textarea" && (
@@ -52,14 +52,14 @@ export default function DynamicFormView({
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
                 placeholder={n.placeholder}
-                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50 resize-none"
+                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50 resize-none"
               />
             )}
             {n.type === "picker" && (
               <select
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
-                className="w-full rounded-lg bg-white/[0.08] border border-white/10 px-2 py-1.5 text-[10px] text-white/80 focus:outline-none focus:border-brandPurple/50 [&>option]:bg-black"
+                className="w-full rounded-lg bg-white/[0.08] border border-white/10 px-2 py-1.5 text-xs text-white/80 focus:outline-none focus:border-brandPurple/50 [&>option]:bg-black"
               >
                 <option value="" disabled>
                   请选择
@@ -75,7 +75,7 @@ export default function DynamicFormView({
               <button
                 type="button"
                 onClick={() => set(n.key, !n.value)}
-                className={`w-full px-2.5 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all ${
+                className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold text-left transition-all ${
                   n.value
                     ? "bg-brandPurple/20 border-brandPurple/50 text-brandPurple-foreground"
                     : "bg-white/[0.04] border-white/10 text-white/50"
@@ -99,7 +99,7 @@ export default function DynamicFormView({
                           on ? arr.filter((v) => v !== o.value) : [...arr, o.value]
                         )
                       }
-                      className={`px-2.5 py-1 rounded-full border text-[9.5px] transition-all ${
+                      className={`px-2.5 py-1 rounded-full border text-xs transition-all ${
                         on
                           ? "bg-brandCyan/20 border-brandCyan/50 text-brandCyan"
                           : "bg-white/[0.04] border-white/10 text-white/50"
@@ -112,10 +112,10 @@ export default function DynamicFormView({
               </div>
             )}
             {n.hint && !err && (
-              <p className="text-[8.5px] text-white/30">{n.hint}</p>
+              <p className="text-xs text-white/30">{n.hint}</p>
             )}
             {err && (
-              <p className="text-[8.5px] text-red-300/90">{err.message}</p>
+              <p className="text-xs text-red-300/90">{err.message}</p>
             )}
           </div>
         );
@@ -125,7 +125,7 @@ export default function DynamicFormView({
           type="button"
           disabled={!ready}
           onClick={() => onSubmit(values)}
-          className={`w-full py-2 rounded-xl text-[10.5px] font-bold transition-all ${
+          className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
             compact ? "" : ""
           } ${
             ready

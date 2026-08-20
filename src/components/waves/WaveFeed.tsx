@@ -43,7 +43,7 @@ function GeoSourceBadge() {
     return (
       <span
         data-geo-src="web"
-        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-400/12 border border-emerald-400/35 text-[9px] font-bold text-emerald-300 cursor-help"
+        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-400/12 border border-emerald-400/35 text-xs font-bold text-emerald-300 cursor-help"
         title={tooltip}
       >
         📍 真实定位
@@ -52,7 +52,7 @@ function GeoSourceBadge() {
   }
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[9px] font-bold text-white/40"
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-bold text-white/40"
       title={
         state === "denied"
           ? tooltip
@@ -148,10 +148,10 @@ function MatchTicker() {
   return (
     <div className="ticker-marquee mt-3 overflow-hidden rounded-xl bg-white/[0.04] border border-white/10">
       <div className="ticker-track">
-        <span className="whitespace-nowrap px-3 py-1.5 text-[9.5px] text-white/45 tracking-wide">
+        <span className="whitespace-nowrap px-3 py-1.5 text-xs text-white/45 tracking-wide">
           {line}　·　{line}　·　
         </span>
-        <span className="whitespace-nowrap px-3 py-1.5 text-[9.5px] text-white/45 tracking-wide">
+        <span className="whitespace-nowrap px-3 py-1.5 text-xs text-white/45 tracking-wide">
           {line}　·　{line}　·　
         </span>
       </div>
@@ -275,7 +275,7 @@ export default function WaveFeed() {
           <p className="text-[15px] font-extrabold text-white/95 truncate leading-tight">
             雷达 · {identity.nickname}
           </p>
-          <p className="text-[10.5px] text-white/50 truncate mt-0.5 flex items-center gap-1">
+          <p className="text-xs text-white/50 truncate mt-0.5 flex items-center gap-1">
             <span
               className={`inline-block w-1.5 h-1.5 rounded-full ${
                 identity.online ? "bg-emerald-400" : "bg-white/30"
@@ -290,7 +290,7 @@ export default function WaveFeed() {
             toast(identity.online ? "已切换为隐身 · 暂停接收信号" : "已切换为在线 · 正在接收信号", "success");
           }}
           aria-label={`在线状态：${identity.online ? "在线" : "隐身"}`}
-          className={`flex items-center gap-1 px-3 py-2 min-h-10 rounded-full text-[10px] font-bold transition-colors ${
+          className={`flex items-center gap-1 px-3 py-2 min-h-10 rounded-full text-xs font-bold transition-colors ${
             identity.online
               ? "bg-emerald-400/15 border border-emerald-400/40 text-emerald-300"
               : "bg-white/5 border border-white/15 text-white/50"
@@ -305,13 +305,13 @@ export default function WaveFeed() {
         谁正在附近发需求
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
-        <p className="text-[11px] text-white/50">
+        <p className="text-xs text-white/50">
           广播式撮合 · 谁合适谁来 · 谁接单算谁的
         </p>
         <button
           onClick={() => setFavOpen(true)}
           aria-label={`查看我关注的局，共 ${favorites.length} 个`}
-          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/[0.05] border border-white/15 text-[9.5px] font-bold text-white/55 hover:border-brandCyan/50 hover:text-white transition-colors shrink-0"
+          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/[0.05] border border-white/15 text-xs font-bold text-white/55 hover:border-brandCyan/50 hover:text-white transition-colors shrink-0"
         >
           <Heart size={10} className={favorites.length ? "text-brandCyan fill-brandCyan/30" : ""} />
           关注 {favorites.length > 0 ? favorites.length : ""}
@@ -320,11 +320,11 @@ export default function WaveFeed() {
 
       {/* 战场3 · 新人信任背书胶囊（常驻：零押金启动 · 满意后分账 · 平台全保） */}
       <div className="mt-3 flex items-center gap-2 rounded-2xl glass-panel px-3 py-2">
-        <span className="text-[9px] font-extrabold text-emerald-300 shrink-0">
+        <span className="text-xs font-extrabold text-emerald-300 shrink-0">
           🛡️ 新人首单保障
         </span>
         <span className="h-2.5 w-px bg-white/15 shrink-0" />
-        <p className="text-[9.5px] text-white/55 truncate">
+        <p className="text-xs text-white/55 truncate">
           0 押金启动 · 满意后分账 · 平台财产意外险全包
         </p>
       </div>
@@ -344,10 +344,10 @@ export default function WaveFeed() {
             className="glass-panel rounded-3xl p-4"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold text-white/85">
+              <span className="text-xs font-extrabold text-white/85">
                 📡 周边在线供给雷达
               </span>
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/40 text-emerald-300 font-bold">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/40 text-emerald-300 font-bold">
                 活跃供给在线
               </span>
             </div>
@@ -360,16 +360,16 @@ export default function WaveFeed() {
                   <span
                     className={`relative w-2 h-2 rounded-full ${b.color} radar-blob ${b.delayClass}`}
                   />
-                  <span className="text-[10.5px] text-white/80">
+                  <span className="text-xs text-white/80">
                     <span className="font-tabular">{b.dist}</span> · {b.text}
                   </span>
-                  <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] text-white/45 font-tabular shrink-0">
+                  <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-white/45 font-tabular shrink-0">
                     {b.count} 人在线
                   </span>
                 </div>
               ))}
             </div>
-            <p className="text-[9.5px] text-white/40 mt-2 text-center">
+            <p className="text-xs text-white/40 mt-2 text-center">
               在线声明能力或发出你的第一条需求，光斑即刻点亮 → 你被精准匹配
             </p>
           </motion.div>
@@ -456,7 +456,7 @@ export default function WaveFeed() {
         }}
       />
       {joinError && (
-        <p className="mt-2 px-3 py-2 rounded-2xl bg-red-400/10 border border-red-400/35 text-[10px] font-bold text-red-300">
+        <p className="mt-2 px-3 py-2 rounded-2xl bg-red-400/10 border border-red-400/35 text-xs font-bold text-red-300">
           ⚠ {joinError}
         </p>
       )}

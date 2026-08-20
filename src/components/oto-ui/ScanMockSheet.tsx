@@ -129,7 +129,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center gap-2 mb-3">
           <QrCode size={14} className="text-brandCyan" />
-          <span className="text-[11px] font-bold text-white/80">扫码识别</span>
+          <span className="text-xs font-bold text-white/80">扫码识别</span>
           <button
             onClick={onClose}
             aria-label="关闭扫码"
@@ -148,7 +148,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 className="absolute inset-0 m-auto text-brandCyan animate-pulse"
               />
             </div>
-            <p className="text-[11px] text-white/55">正在调起摄像头…</p>
+            <p className="text-xs text-white/55">正在调起摄像头…</p>
           </div>
         ) : phase === "scanning" ? (
           <div className="relative overflow-hidden rounded-2xl border border-brandCyan/40 aspect-[4/3] bg-black">
@@ -166,7 +166,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 className="absolute left-0 right-0 h-0.5 rounded-full bg-brandCyan/80"
               />
             </div>
-            <p className="absolute bottom-2.5 inset-x-0 text-center text-[10px] text-white/60">
+            <p className="absolute bottom-2.5 inset-x-0 text-center text-xs text-white/60">
               对准对方屏幕上的二维码，自动识别
             </p>
           </div>
@@ -181,16 +181,16 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
               />
               <ScanLine size={30} className="absolute inset-0 m-auto text-brandCyan" />
             </div>
-            <p className="text-[11px] text-white/55">
+            <p className="text-xs text-white/55">
               正在调起摄像头（本地模拟）…
             </p>
-            <p className="text-[9.5px] text-white/30">
+            <p className="text-xs text-white/30">
               摄像头不可用，已回退模拟演示
             </p>
           </div>
         ) : (
           <div className="py-2">
-            <p className="text-[10px] font-semibold text-emerald-300 flex items-center gap-1">
+            <p className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
               <CheckCircle2 size={11} /> 识别成功 · 分享的线下局
             </p>
             {wave ? (
@@ -198,25 +198,25 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 <p className="text-[12px] font-extrabold text-white/90">
                   {wave.basics.category}
                 </p>
-                <p className="text-[10px] text-white/50 mt-0.5">
+                <p className="text-xs text-white/50 mt-0.5">
                   {wave.basics.area} · {wave.basics.time}
                   {(wave.capacity ?? 1) >= 2 && ` · 拼位 ${wave.capacity} 人`}
                 </p>
                 <button
                   onClick={join}
-                  className="mt-2.5 w-full py-2.5 rounded-2xl btn-primary font-bold text-[11px] glow-purple-strong"
+                  className="mt-2.5 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong"
                 >
                   加入拼位
                 </button>
               </div>
             ) : (
-              <p className="text-[10.5px] text-white/40 mt-3 text-center py-2">
+              <p className="text-xs text-white/40 mt-3 text-center py-2">
                 码内局已结束 —— 先去雷达看看附近新的信号波
               </p>
             )}
             <button
               onClick={onClose}
-              className="mt-2 w-full py-2 rounded-xl text-white/40 text-[10px] hover:text-white transition-colors"
+              className="mt-2 w-full py-2 rounded-xl text-white/40 text-xs hover:text-white transition-colors"
             >
               取消
             </button>

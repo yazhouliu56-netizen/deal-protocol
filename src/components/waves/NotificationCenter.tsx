@@ -37,8 +37,8 @@ function NotifyRow({ item }: { item: NotifyItem }) {
     <div className={`flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 ${bg}`}>
       <span className="text-lg">{item.emoji}</span>
       <span className="flex-1 min-w-0">
-        <span className={`block text-[11.5px] font-bold ${fg}`}>{item.title}</span>
-        <span className="block text-[9.5px] text-white/45 truncate">{item.desc}</span>
+        <span className={`block text-xs font-bold ${fg}`}>{item.title}</span>
+        <span className="block text-xs text-white/45 truncate">{item.desc}</span>
       </span>
     </div>
   );
@@ -143,7 +143,7 @@ export default function NotificationCenter() {
       >
         <Bell size={13} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-400 text-white text-[8.5px] font-extrabold flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-400 text-white text-xs font-extrabold flex items-center justify-center">
             {unread}
           </span>
         )}
@@ -179,7 +179,7 @@ export default function NotificationCenter() {
                 </button>
               </div>
               {items.length === 0 ? (
-                <p className="text-[11px] text-white/40 text-center py-6">
+                <p className="text-xs text-white/40 text-center py-6">
                   还没有通知 —— 雷达适配、报价应答、接单进度都会汇总到这里
                 </p>
               ) : (
@@ -189,7 +189,7 @@ export default function NotificationCenter() {
                   ))}
                   <button
                     onClick={() => setOpen(false)}
-                    className="w-full py-1.5 text-[9.5px] text-white/35 flex items-center justify-center gap-1"
+                    className="w-full py-1.5 text-xs text-white/35 flex items-center justify-center gap-1"
                   >
                     <Check size={9} /> 已读，收起
                   </button>
@@ -200,7 +200,7 @@ export default function NotificationCenter() {
                   setNotifPerm(await requestNotifyPermission());
                 }}
                 disabled={notifPerm !== "default"}
-                className="w-full mt-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[9.5px] text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full mt-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {notifPerm === "granted"
                   ? "🔔 系统通知已开启"

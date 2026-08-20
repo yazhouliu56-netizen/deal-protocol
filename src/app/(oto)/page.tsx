@@ -239,7 +239,7 @@ function HomePage() {
           >
             <ShoppingBag size={15} className="text-white/80" />
             {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center">
                 {cart.length}
               </span>
             )}
@@ -265,11 +265,11 @@ function HomePage() {
             <span className="block text-sm font-extrabold text-white">
               你好，我是 AI 撮合助手 ✨ 一句话告诉我…
             </span>
-            <span className="block text-[10px] text-white/50 truncate">
+            <span className="block text-xs text-white/50 truncate">
               帮你秒级生成订单 · 匹配弹药 / 计价 / 安全底线一键预览
             </span>
           </span>
-          <span className="text-[10px] font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
+          <span className="text-xs font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">
             发出你的需求
           </span>
         </motion.button>
@@ -301,7 +301,7 @@ function HomePage() {
               }}
             >
               <span className="text-sm leading-none">{pill.icon}</span>
-              <span className="text-[11px] font-extrabold text-white/90 whitespace-nowrap">
+              <span className="text-xs font-extrabold text-white/90 whitespace-nowrap">
                 {pill.label}
               </span>
             </motion.button>
@@ -326,11 +326,11 @@ function HomePage() {
           return (
             <div className="mt-2.5" data-layer="inspiration-chips">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-[9.5px] font-bold tx-3 tracking-wide">
+                <span className="text-xs font-bold tx-3 tracking-wide">
                   {insp.emoji} {insp.period}灵感
                 </span>
                 <span className="h-px flex-1 bg-white/10" />
-                <span className="text-[9px] tx-5" aria-hidden="true">
+                <span className="text-xs tx-5" aria-hidden="true">
                   {insp.caption}
                 </span>
               </div>
@@ -341,7 +341,7 @@ function HomePage() {
                     whileTap={{ scale: 0.94 }}
                     onClick={() => setDraft({ key: c.ammo, label: c.ammo })}
                     aria-label={`灵感：${c.label}`}
-                    className="shrink-0 px-3 py-2 rounded-full glass-panel-interactive text-[11px] font-bold text-white/85 active:scale-95 transition-transform"
+                    className="shrink-0 px-3 py-2 rounded-full glass-panel-interactive text-xs font-bold text-white/85 active:scale-95 transition-transform"
                   >
                     <span className="font-tabular">{c.label}</span>
                   </motion.button>
@@ -386,7 +386,7 @@ function HomePage() {
                   setPublishOpen(true);
                 }}
               />
-              <p className="text-[9.5px] text-white/40 mt-3 text-center">
+              <p className="text-xs text-white/40 mt-3 text-center">
                 扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
               </p>
             </div>
@@ -430,7 +430,7 @@ function HomePage() {
                 </button>
               </div>
               {cart.length === 0 ? (
-                <p className="text-[11px] text-white/40 text-center py-6">
+                <p className="text-xs text-white/40 text-center py-6">
                   还没有收藏——打开任意目的地卡片收藏起来吧 ♥
                 </p>
               ) : (
@@ -456,10 +456,10 @@ function HomePage() {
                               {CATEGORY_EMOJI[exp.category] ?? "📍"}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="text-[11.5px] font-bold text-white/90 block truncate">
+                              <span className="text-xs font-bold text-white/90 block truncate">
                                 {exp.title}
                               </span>
-                              <span className="text-[9.5px] text-white/45 block truncate">
+                              <span className="text-xs text-white/45 block truncate">
                                 {exp.location} · {exp.rating} 分
                               </span>
                             </div>
@@ -478,7 +478,7 @@ function HomePage() {
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={clearCart}
-                      className="flex-1 py-2 rounded-xl glass-panel text-[11px] font-bold text-white/50 hover:text-white transition-colors"
+                      className="flex-1 py-2 rounded-xl glass-panel text-xs font-bold text-white/50 hover:text-white transition-colors"
                     >
                       清空
                     </button>
@@ -492,7 +492,7 @@ function HomePage() {
                         setShowCart(false);
                         setScreen("home");
                       }}
-                      className="flex-1 py-2 rounded-xl btn-primary text-[11px] font-bold glow-purple-strong"
+                      className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong"
                     >
                       ✨ 全部让 AI 撮合
                     </button>
@@ -515,7 +515,7 @@ function HomePage() {
         whileTap={{ scale: 0.94 }}
         onClick={() => setScreen("ar")}
         aria-label="AR 扫描"
-        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-[11px] font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
+        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-xs font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
       >
         <Camera size={14} className="text-brandCyan" />
         AR 扫描
@@ -655,12 +655,12 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-[17px] font-extrabold tx-1">消息</h2>
-          <p className="text-[10px] tx-3">
+          <p className="text-xs tx-3">
             即时通讯 · 48h 隐私号会话中枢（双方号码均不落地）
           </p>
         </div>
         {unread > 0 && (
-          <span className="px-2 py-1 rounded-full bg-brandPurple border border-white/30 text-[11px] font-bold font-tabular">
+          <span className="px-2 py-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold font-tabular">
             {unread} 条未读
           </span>
         )}
@@ -670,12 +670,12 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
         <div className="glass-panel rounded-3xl p-6 text-center">
           <span className="text-3xl inline-block">💬</span>
           <p className="text-[12px] font-bold tx-1 mt-2">还没有私密会话</p>
-          <p className="text-[10px] tx-3 mt-1">
+          <p className="text-xs tx-3 mt-1">
             去首页发单撮合，订单锁定后隐私号与 IM 私信自动出现在这里 · 48h 后自动回收
           </p>
           <button
             onClick={onGoHome}
-            className="mt-4 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-[11px] font-bold active:scale-95 transition-[filter,transform]"
+            className="mt-4 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-xs font-bold active:scale-95 transition-[filter,transform]"
           >
             ✨ 去首页发单
           </button>
@@ -694,7 +694,7 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
                     <p className="text-[12px] font-bold tx-1 truncate">
                       {c.wave?.basics.category ?? "订单会话"}
                     </p>
-                    <p className="text-[9.5px] tx-3 truncate font-mono">
+                    <p className="text-xs tx-3 truncate font-mono">
                       {maskNumber(myNumber)} ·{" "}
                       {c.live
                         ? `${minutesLeft(c.session, Date.now())} 分钟后失效`
@@ -702,13 +702,13 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
                     </p>
                   </div>
                   {c.unreadForMe > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-brandCyan text-black text-[9px] font-extrabold font-tabular">
+                    <span className="px-1.5 py-0.5 rounded-full bg-brandCyan text-black text-xs font-extrabold font-tabular">
                       {c.unreadForMe}
                     </span>
                   )}
                 </div>
                 {c.last && (
-                  <p className="text-[10px] tx-3 truncate mb-1.5">
+                  <p className="text-xs tx-3 truncate mb-1.5">
                     {c.last.fromId === me ? "我：" : "对方："}
                     {c.last.text}
                   </p>
@@ -820,7 +820,7 @@ function ARPage({
               // 切回场景探索时重置锚点，避免上次的锚点残留
               setActivePoint(null);
             }}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               mode === m.id
                 ? "btn-primary glow-purple-strong"
                 : "glass-panel text-white/60 hover:text-white"
@@ -843,7 +843,7 @@ function ARPage({
             <div className="absolute left-[15%] bottom-[12%] text-[56px] opacity-20 blur-[2px]">🏠</div>
             {/* 取景框角标 */}
             <div className="absolute inset-x-6 top-4 bottom-6 rounded-2xl border border-white/15 pointer-events-none">
-              <span className="absolute -top-[7px] left-3 px-1 text-[8px] tracking-[0.3em] text-white/40 bg-black/30 rounded">
+              <span className="absolute -top-[7px] left-3 px-1 text-xs tracking-[0.3em] text-white/40 bg-black/30 rounded">
                 AR 取景框
               </span>
             </div>
@@ -862,10 +862,10 @@ function ARPage({
                       activePoint?.id === p.id ? "bg-emerald-400" : "bg-brandCyan"
                     } animate-ping-once`}
                   />
-                  <span className="mt-1.5 px-2 py-1 rounded-full glass-panel text-[10px] font-bold text-white/90 whitespace-nowrap">
+                  <span className="mt-1.5 px-2 py-1 rounded-full glass-panel text-xs font-bold text-white/90 whitespace-nowrap">
                     {p.emoji} {p.name}
                   </span>
-                  <span className="mt-0.5 text-[9px] text-white/45">
+                  <span className="mt-0.5 text-xs text-white/45">
                     {p.distance}
                   </span>
                 </button>
@@ -877,7 +877,7 @@ function ARPage({
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50">
                 <Rotate3d size={13} className="text-brandCyan" />
-                <span className="text-[10px] tracking-wide">
+                <span className="text-xs tracking-wide">
                   拖拽鼠标/手指 360° 旋转查看 3D 模型
                 </span>
               </div>
@@ -885,7 +885,7 @@ function ARPage({
 
             {/* 左侧 4 色 Swatches */}
             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2.5 z-20 pointer-events-auto">
-              <span className="text-[8px] tracking-[0.25em] text-white/40 font-medium mb-0.5">
+              <span className="text-xs tracking-[0.25em] text-white/40 font-medium mb-0.5">
                 材质
               </span>
               {SWATCHES.map((s) => (
@@ -905,7 +905,7 @@ function ARPage({
 
             {/* 右侧控制列 */}
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20 pointer-events-auto">
-              <GlassIconButton size="sm" aria-label="重置视角" onClick={resetView} className="text-brandCyan font-bold text-[10px] glow-cyan">
+              <GlassIconButton size="sm" aria-label="重置视角" onClick={resetView} className="text-brandCyan font-bold text-xs glow-cyan">
                 360
               </GlassIconButton>
               <GlassIconButton size="sm" aria-label="查看详情" onClick={toggleShowInfo}>
@@ -922,7 +922,7 @@ function ARPage({
               >
                 <Camera size={14} />
                 {proofShots.length > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center">
                     {proofShots.length}
                   </span>
                 )}
@@ -953,15 +953,15 @@ function ARPage({
                       <h3 className="font-bold text-[14px] truncate">
                         {activePoint.name}
                       </h3>
-                      <span className="flex items-center gap-0.5 text-[11px] font-semibold text-yellow-400 shrink-0">
+                      <span className="flex items-center gap-0.5 text-xs font-semibold text-yellow-400 shrink-0">
                         <Star size={10} className="fill-yellow-400" />
                         {activePoint.rating}
                       </span>
                     </div>
-                    <p className="text-[10px] text-white/55 mt-0.5 truncate">
+                    <p className="text-xs text-white/55 mt-0.5 truncate">
                       {activePoint.meta}
                     </p>
-                    <p className="text-[10px] text-brandCyan font-bold mt-0.5">
+                    <p className="text-xs text-brandCyan font-bold mt-0.5">
                       {activePoint.price} · 距你 {activePoint.distance}
                     </p>
                   </div>
@@ -976,7 +976,7 @@ function ARPage({
             ) : (
               <div className="glass-panel px-4 py-3 rounded-2xl flex items-center gap-2 animate-float-slow">
                 <Navigation size={13} className="text-brandCyan shrink-0" />
-                <p className="text-[10.5px] text-white/60">
+                <p className="text-xs text-white/60">
                   对准真实场景，点击光点探索附近可撮合服务
                 </p>
               </div>
@@ -994,7 +994,7 @@ function ARPage({
                   className="overflow-hidden"
                 >
                   <GlassCard className="p-3.5 rounded-2xl">
-                    <p className="text-[11px] text-white/80 leading-relaxed">
+                    <p className="text-xs text-white/80 leading-relaxed">
                       {selectedExperience.description}
                     </p>
                   </GlassCard>
@@ -1008,7 +1008,7 @@ function ARPage({
                   <h3 className="font-bold text-[15px]">
                     {selectedExperience.title} · {selectedExperience.location}
                   </h3>
-                  <p className="text-[11px] text-white/60 mt-0.5">
+                  <p className="text-xs text-white/60 mt-0.5">
                     {selectedExperience.subtitle} · {selectedExperience.price}
                   </p>
                 </div>
@@ -1093,7 +1093,7 @@ function ARPage({
               </button>
             </div>
             {proofShots.length > 0 && (
-              <p className="text-[10px] text-emerald-300/80 mb-2">
+              <p className="text-xs text-emerald-300/80 mb-2">
                 ✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）
               </p>
             )}
@@ -1178,12 +1178,12 @@ function TripPage({
           setPhotoOpen(true);
         }}
         aria-label="拍照存证"
-        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-[11px] font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
+        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-xs font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
       >
         <Camera size={14} className="text-brandCyan" />
         拍照存证
         {proofShots.length > 0 && (
-          <span className="min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center font-tabular">
+          <span className="min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center font-tabular">
             {proofShots.length}
           </span>
         )}
@@ -1204,12 +1204,12 @@ function TripPage({
           <p className="text-[12px] font-extrabold text-white/85 mt-3">
             当前暂无进行中行程
           </p>
-          <p className="text-[10px] text-white/45 mt-1">
+          <p className="text-xs text-white/45 mt-1">
             去首页发单，或去雷达抢单 · 履约座舱在此实时接管
           </p>
           <button
             onClick={() => setScreen("home")}
-            className="mt-3 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-[11px] font-bold active:scale-95 transition-[filter,transform]"
+            className="mt-3 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-xs font-bold active:scale-95 transition-[filter,transform]"
           >
             ✨ 去首页发单
           </button>
@@ -1222,15 +1222,15 @@ function TripPage({
       {/* 我的预订：AI 对话产生的真实订单汇入行程中枢 */}
       {bookings.length > 0 && (
         <div className="mt-3">
-          <span className="text-[11px] font-semibold text-white/50 mb-2 flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-white/50 mb-2 flex items-center gap-1.5">
             <span className="w-1 h-3 rounded-full bg-linear-to-b from-brandCyan to-brandPurple" />
             我的预订
           </span>
           <div className="flex justify-between items-baseline mb-2">
-            <p className="text-[10px] text-white/40">
+            <p className="text-xs text-white/40">
               共 {bookings.length} 个真实预订 · 点按进入订单详情
             </p>
-            <span className="text-[9px] px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan font-bold">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan font-bold">
               履约中枢
             </span>
           </div>
@@ -1247,11 +1247,11 @@ function TripPage({
                 <div className="flex-1 min-w-0">
                   <span className="flex items-center gap-2">
                     <span className="text-[12.5px] font-bold truncate">{b.title}</span>
-                    <span className="text-[9px] px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
+                    <span className="text-xs px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
                       待出行
                     </span>
                   </span>
-                  <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                  <p className="text-xs text-white/50 mt-0.5 truncate">
                     {b.time} · {b.providerName}
                   </p>
                 </div>
@@ -1273,7 +1273,7 @@ function TripPage({
                   <span className="flex items-center gap-2">
                     <span className="text-[12.5px] font-bold truncate">{b.title}</span>
                     <span
-                      className={`text-[9px] px-1.5 py-px rounded-full font-semibold shrink-0 ${
+                      className={`text-xs px-1.5 py-px rounded-full font-semibold shrink-0 ${
                         b.status === "cancelled"
                           ? "bg-white/10 border border-white/20 text-white/50"
                           : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
@@ -1282,7 +1282,7 @@ function TripPage({
                       {b.status === "cancelled" ? "已取消" : "已完成"}
                     </span>
                   </span>
-                  <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                  <p className="text-xs text-white/50 mt-0.5 truncate">
                     {b.time} · {b.providerName}
                   </p>
                 </div>
@@ -1297,7 +1297,7 @@ function TripPage({
 
       {bookings.length === 0 && (
         <div className="mt-4 glass-panel rounded-2xl p-4 text-center">
-          <p className="text-[11px] text-white/40">
+          <p className="text-xs text-white/40">
             还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢
           </p>
         </div>
@@ -1332,7 +1332,7 @@ function TripPage({
               </button>
             </div>
             {proofShots.length > 0 && (
-              <p className="text-[10px] text-emerald-300/80 mb-2">
+              <p className="text-xs text-emerald-300/80 mb-2">
                 ✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）
               </p>
             )}

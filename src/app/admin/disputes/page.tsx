@@ -168,7 +168,7 @@ export default function AdminDisputesWorkspace() {
                   <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
                     {item.reason}
                   </p>
-                  <div className="mt-3.5 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
+                  <div className="mt-3.5 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
                     <span>申诉人ID: {item.initiator_id}</span>
                     <span>提交于: {new Date(item.created_at).toLocaleString()}</span>
                   </div>
@@ -186,7 +186,7 @@ export default function AdminDisputesWorkspace() {
           {selectedDispute ? (
             <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
-                <span className="text-[10px] uppercase tracking-widest text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                <span className="text-xs uppercase tracking-widest text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   当前审阅案件
                 </span>
                 <h3 className="text-base font-bold text-zinc-100 mt-2">
@@ -207,11 +207,11 @@ export default function AdminDisputesWorkspace() {
                 </p>
 
                 <div className="mt-4 pt-3.5 border-t border-zinc-900">
-                  <h5 className="text-[11px] font-medium text-zinc-500 mb-2 flex items-center gap-1">
+                  <h5 className="text-xs font-medium text-zinc-500 mb-2 flex items-center gap-1">
                     <ImageIcon className="w-3.5 h-3.5" /> 双端履约及现场证据链 (0)
                   </h5>
                   <div className="flex gap-2">
-                    <div className="w-16 h-16 border border-dashed border-zinc-800 bg-zinc-900/50 rounded-lg flex items-center justify-center text-[10px] text-zinc-600">
+                    <div className="w-16 h-16 border border-dashed border-zinc-800 bg-zinc-900/50 rounded-lg flex items-center justify-center text-xs text-zinc-600">
                       无图证
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export default function AdminDisputesWorkspace() {
               触发最高管理员上帝裁决权？
             </h3>
             <p className="text-xs text-zinc-400 mt-2.5 leading-relaxed">您当前正在启动由平台总控介入的终极硬核分账判决。一旦确认执行：</p>
-            <ul className="list-disc list-inside text-[11px] text-zinc-400 mt-2 space-y-1 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+            <ul className="list-disc list-inside text-xs text-zinc-400 mt-2 space-y-1 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
               <li>资金将发生不可逆转的物理层面划扣。</li>
               <li>{showModal.type === "refund" ? "客户将重新获得全部工单款项。" : "师傅将按照 90% 的比例获得最终结款报酬。"}</li>
               <li>全站相关的自动化订单流水流水线会自动增量更新。</li>

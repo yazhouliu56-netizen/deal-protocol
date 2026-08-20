@@ -58,7 +58,7 @@ export default function FriendKit({
 
   if (friends) {
     return (
-      <p className="text-[9.5px] font-bold px-2.5 py-1.5 rounded-xl bg-emerald-400/[0.07] border border-emerald-400/25 text-emerald-300/90 flex items-center gap-1.5">
+      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-emerald-400/[0.07] border border-emerald-400/25 text-emerald-300/90 flex items-center gap-1.5">
         <ShieldCheck size={10} /> 已是好友 · 下次见面有优先匹配
       </p>
     );
@@ -73,19 +73,19 @@ export default function FriendKit({
         animate={{ opacity: 1, y: 0 }}
         className="rounded-xl bg-brandPurple/10 border border-brandPurple/30 px-2.5 py-2"
       >
-        <p className="text-[10px] font-bold text-brandPurple flex items-center gap-1">
+        <p className="text-xs font-bold text-brandPurple flex items-center gap-1">
           <Heart size={10} /> 对方想和你成为好友 · {hours}h 后自动撤回
         </p>
         <div className="mt-1.5 flex gap-1.5">
           <button
             onClick={() => acceptFriendRequest(inbound.id)}
-            className="flex-1 py-1.5 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-[10px] font-bold text-emerald-300 hover:brightness-110"
+            className="flex-1 py-1.5 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300 hover:brightness-110"
           >
             接受 💞
           </button>
           <button
             onClick={() => ignoreFriendRequest(inbound.id)}
-            className="flex-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[10px] font-bold text-white/50 hover:text-white"
+            className="flex-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-white/50 hover:text-white"
           >
             忽略
           </button>
@@ -98,7 +98,7 @@ export default function FriendKit({
   if (outbound) {
     const hours = Math.ceil(requestTtlLeft(outbound, now) / 3_600_000);
     return (
-      <p className="text-[9.5px] font-bold px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 flex items-center gap-1.5">
+      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 flex items-center gap-1.5">
         <UserPlus size={10} /> 已发出好友请求 · 等待对方确认（{hours}h 后自动撤回）
       </p>
     );
@@ -128,16 +128,16 @@ export default function FriendKit({
           }
         }}
         aria-label="成为好友"
-        className="w-full py-2 rounded-xl bg-brandPurple/10 border border-brandPurple/30 text-brandPurple text-[10px] font-bold hover:bg-brandPurple/20 transition-colors"
+        className="w-full py-2 rounded-xl bg-brandPurple/10 border border-brandPurple/30 text-brandPurple text-xs font-bold hover:bg-brandPurple/20 transition-colors"
       >
         💗 成为好友（自愿 · 对方确认后互认）
       </button>
       {sent && (
-        <p className="text-[9.5px] text-emerald-300/90 mt-1 flex items-center gap-1">
+        <p className="text-xs text-emerald-300/90 mt-1 flex items-center gap-1">
           <Heart size={9} /> 已发出，对方 {Math.ceil(FRIEND_REQUEST_TTL_MS / 3_600_000)}h 内确认即成好友
         </p>
       )}
-      {error && <p className="text-[9.5px] text-amber-300/90 mt-1">{error}</p>}
+      {error && <p className="text-xs text-amber-300/90 mt-1">{error}</p>}
     </div>
   );
 }

@@ -256,7 +256,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
                   <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
                     平台已为您匹配到 {demands.length} 个可用服务需求。点击下方卡片查看详情并抢单。
                   </p>
-                  <div className="inline-flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[11px] text-slate-400 font-mono">
+                  <div className="inline-flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-xs text-slate-400 font-mono">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     已就绪 - {demands.length} 个待接需求
                   </div>
@@ -283,9 +283,9 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] bg-amber-500/10 text-amber-400 font-medium px-2 py-0.5 rounded border border-amber-500/20">{demand.urgency}</span>
+                            <span className="text-xs bg-amber-500/10 text-amber-400 font-medium px-2 py-0.5 rounded border border-amber-500/20">{demand.urgency}</span>
                             {demand.customer && (
-                              <span className="text-[10px] bg-slate-800 text-slate-400 font-mono px-2 py-0.5 rounded border border-slate-700">信用: {demand.customer.creditScore}</span>
+                              <span className="text-xs bg-slate-800 text-slate-400 font-mono px-2 py-0.5 rounded border border-slate-700">信用: {demand.customer.creditScore}</span>
                             )}
                           </div>
                           <h5 className="font-semibold text-sm text-slate-100 mt-1.5">{demand.title}</h5>
@@ -293,7 +293,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
 
                         <div className="text-right self-start sm:self-center">
                           <span className="text-xl font-extrabold text-emerald-400 font-mono">¥{demand.budget_range?.[1] ?? '??'}</span>
-                          <p className="text-[10px] text-slate-500">预算上限</p>
+                          <p className="text-xs text-slate-500">预算上限</p>
                         </div>
                       </div>
 
@@ -416,7 +416,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-300">上传完工凭证</p>
-                          <p className="text-[10px] text-slate-500 mt-1">凭证将被记录到证据链中并生成哈希存证</p>
+                          <p className="text-xs text-slate-500 mt-1">凭证将被记录到证据链中并生成哈希存证</p>
                         </div>
                         <button
                           onClick={() => handleUploadProof(contract.id)}
@@ -441,10 +441,10 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
                             <CheckCircle2 className="w-5 h-5" />
                           </div>
                           <div className="space-y-1.5 flex-1">
-                            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/20">
+                            <span className="text-xs bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/20">
                               ✓ 已存证
                             </span>
-                            <p className="text-[10px] font-mono text-indigo-400 bg-slate-950 p-2 rounded border border-slate-800 select-all max-w-full overflow-hidden text-ellipsis">
+                            <p className="text-xs font-mono text-indigo-400 bg-slate-950 p-2 rounded border border-slate-800 select-all max-w-full overflow-hidden text-ellipsis">
                               {ipfsHash}
                             </p>
                           </div>

@@ -148,23 +148,23 @@ export default function AdminReviewPage() {
 
                     <div className="grid gap-3 text-sm sm:grid-cols-3">
                       <div>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">分类</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">分类</span>
                         <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100">{item.category}</p>
                       </div>
                       {item.type === "provider_qualification" && (
                         <div>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">资质类型</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">资质类型</span>
                           <p className="mt-0.5 font-medium text-slate-900">{item.qualification_type}</p>
                         </div>
                       )}
                       {item.final_price != null && (
                         <div>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">金额</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">金额</span>
                           <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100 tabular-nums">¥{item.final_price.toFixed(2)}</p>
                         </div>
                       )}
                       <div>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">提交时间</span>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">提交时间</span>
                         <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100">{new Date(item.created_at).toLocaleString("zh-CN")}</p>
                       </div>
                     </div>

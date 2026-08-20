@@ -92,7 +92,7 @@ export default function AdminPanel({
                 key={it.k}
                 className="rounded-2xl bg-white/[0.04] border border-white/10 p-2.5"
               >
-                <p className="text-[9px] text-white/45">{it.k}</p>
+                <p className="text-xs text-white/45">{it.k}</p>
                 <p className="text-[15px] font-extrabold text-white/95 mt-0.5 flex items-center gap-1">
                   {it.k.includes("举报") || it.k.includes("拦截") ? (
                     <Flag size={11} className="text-amber-400" />
@@ -107,12 +107,12 @@ export default function AdminPanel({
 
           {/* 举报队列 */}
           <div>
-            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+            <h3 className="text-xs font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
               <Flag size={11} className="text-amber-400" /> 举报队列（
               {openQueue.length}）
             </h3>
             {openQueue.length === 0 && (
-              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+              <p className="text-xs text-white/40 px-2 py-4 text-center">
                 无待处理举报
               </p>
             )}
@@ -123,19 +123,19 @@ export default function AdminPanel({
                   className="rounded-2xl bg-white/[0.04] border border-white/10 p-2.5 space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10.5px] font-bold text-white/90 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white/90 flex items-center gap-1.5">
                       {r.targetType} #{r.targetId.slice(-6)}
                       {r.auto && (
-                        <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-red-300">
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-red-300">
                           ⚡ 敏感词自动
                         </span>
                       )}
                     </span>
-                    <span className="text-[9px] text-white/40">
+                    <span className="text-xs text-white/40">
                       {new Date(r.at).toLocaleTimeString("zh-CN")}
                     </span>
                   </div>
-                  <p className="text-[9.5px] text-white/60 line-clamp-2">
+                  <p className="text-xs text-white/60 line-clamp-2">
                     [{r.reason}] {r.detail}
                   </p>
                   <div className="flex gap-1.5 flex-wrap">
@@ -146,7 +146,7 @@ export default function AdminPanel({
                           onClick={() =>
                             setPending((p) => ({ ...p, [r.id]: a }))
                           }
-                          className={`px-2 py-1 rounded-lg text-[9px] font-bold border ${
+                          className={`px-2 py-1 rounded-lg text-xs font-bold border ${
                             (pending[r.id] ?? "dismiss") === a
                               ? "bg-emerald-400/20 border-emerald-400/60 text-emerald-300"
                               : "bg-white/[0.03] border-white/10 text-white/60"
@@ -166,12 +166,12 @@ export default function AdminPanel({
                       }
                       placeholder="裁定备注（可选）"
                       aria-label={`裁定备注 ${r.id}`}
-                      className="min-w-[90px] flex-1 rounded-lg bg-white/[0.04] border border-white/10 px-2 py-1 text-[9.5px] outline-none focus:border-emerald-400/50"
+                      className="min-w-[90px] flex-1 rounded-lg bg-white/[0.04] border border-white/10 px-2 py-1 text-xs outline-none focus:border-emerald-400/50"
                     />
                     <button
                       onClick={() => act(r.id)}
                       aria-label={`执行裁定 ${r.id}`}
-                      className="px-3 py-1 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-[9.5px] font-bold text-emerald-300"
+                      className="px-3 py-1 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
                     >
                       执行裁定
                     </button>
@@ -183,16 +183,16 @@ export default function AdminPanel({
 
           {/* 漫游风控监控（P8） */}
           <div>
-            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+            <h3 className="text-xs font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={11} className="text-brandCyan" /> 漫游安全监控
             </h3>
             {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-red-300" : r.risk === "watch" ? "text-amber-300" : "text-emerald-300"; return (
-            <p className={`text-[9.5px] font-bold mb-2 ${cls}`}>
+            <p className={`text-xs font-bold mb-2 ${cls}`}>
               本设备 {deviceId ?? "…"} · 同设备 {r.count} 个身份 · {r.reason}
             </p>
             ); })()}
             {roamEvents.length === 0 ? (
-              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+              <p className="text-xs text-white/40 px-2 py-4 text-center">
                 暂无漫游事件
               </p>
             ) : (
@@ -200,7 +200,7 @@ export default function AdminPanel({
                 {roamEvents.slice(0, 8).map((e, i) => (
                   <div
                     key={`${e.at}-${i}`}
-                    className="flex items-center justify-between gap-2 text-[9.5px] px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                    className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
                   >
                     <span className="text-white/70 truncate">
                       {e.kind === "alert" ? "⚠ " : ""}
@@ -220,7 +220,7 @@ export default function AdminPanel({
 
           {/* 数据湖存证（ADR-0014 N14 接线）：哈希链校验 + 最近事件 */}
           <div>
-            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+            <h3 className="text-xs font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
               <Database size={11} className="text-brandCyan" /> 数据湖存证（
               {lake.length} 条 ·{" "}
               <span
@@ -241,7 +241,7 @@ export default function AdminPanel({
               ）
             </h3>
             {lake.length === 0 && (
-              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+              <p className="text-xs text-white/40 px-2 py-4 text-center">
                 尚无存证事件（验收/争议终局会写入哈希链）
               </p>
             )}
@@ -249,7 +249,7 @@ export default function AdminPanel({
               {lake.slice(-6).reverse().map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 px-2.5 py-1.5 text-[9px]"
+                  className="flex items-center gap-2 rounded-xl bg-white/[0.03] border border-white/10 px-2.5 py-1.5 text-xs"
                 >
                   <span className="font-bold text-brandCyan/90 shrink-0">
                     {r.kind}
@@ -265,11 +265,11 @@ export default function AdminPanel({
 
           {/* 审计记录 */}
           <div>
-            <h3 className="text-[11px] font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
+            <h3 className="text-xs font-extrabold text-white/85 mb-2 flex items-center gap-1.5">
               <ShieldCheck size={11} className="text-emerald-400" /> 裁定记录（审计）
             </h3>
             {resolvedList.length === 0 && (
-              <p className="text-[10px] text-white/40 px-2 py-4 text-center">
+              <p className="text-xs text-white/40 px-2 py-4 text-center">
                 暂无裁定记录
               </p>
             )}
@@ -277,7 +277,7 @@ export default function AdminPanel({
               {resolvedList.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between gap-2 text-[9.5px] px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+                  className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
                 >
                   <span className="text-white/70">
                     #{r.targetId.slice(-6)} · {ACTION_LABEL[r.action ?? "dismiss"]}

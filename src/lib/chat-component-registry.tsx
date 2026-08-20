@@ -39,7 +39,7 @@ export function ClassifyDemandResult({ result }: { result: unknown }) {
       <div className="flex items-center gap-2 text-sm text-foreground">
         <Sparkles className="size-4 text-indigo-500" />
         <span>AI 已理解您的需求</span>
-        <Badge variant="secondary" className="text-[10px]">{str(r.category)}</Badge>
+        <Badge variant="secondary" className="text-xs">{str(r.category)}</Badge>
       </div>
       <div className="rounded-lg border border-border/40 bg-muted/40 p-3 text-sm text-muted-foreground">
         <p className="font-medium text-foreground">{str(r.title)}</p>

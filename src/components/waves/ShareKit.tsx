@@ -55,7 +55,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl glass-panel-interactive text-[9.5px] font-bold text-brandCyan hover:border-brandCyan/50 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl glass-panel-interactive text-xs font-bold text-brandCyan hover:border-brandCyan/50 transition-colors"
         aria-label="分享拼位 · 拉新裂变"
         aria-expanded={open}
       >
@@ -74,10 +74,10 @@ export default function ShareKit({ wave }: { wave: Wave }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl glass-panel p-3 space-y-2.5 shadow-2xl"
         >
-          <p className="text-[10px] font-bold text-white/80">
+          <p className="text-xs font-bold text-white/80">
             邀请拼位 · 拉新
           </p>
-          <p className="text-[9px] leading-relaxed text-white/45">
+          <p className="text-xs leading-relaxed text-white/45">
             别人通过你的分享加入并回应/成交，才计裂变
             <span className="text-brandCyan">（分享本身不计，防自刷）</span>。
           </p>
@@ -85,7 +85,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
           {/* 真二维码：扫码直达分享局 */}
           <div className="flex justify-center">
             {qrFailed ? (
-              <span className="w-28 h-28 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[9px] text-white/40 px-2 text-center">
+              <span className="w-28 h-28 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs text-white/40 px-2 text-center">
                 二维码生成失败，请用「复制分享文案」
               </span>
             ) : (
@@ -100,7 +100,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
 
           <button
             onClick={copy}
-            className="w-full py-2 rounded-xl btn-primary text-[10px] font-bold glow-purple-strong flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong flex items-center justify-center gap-1.5"
           >
             {copied ? (
               <>
