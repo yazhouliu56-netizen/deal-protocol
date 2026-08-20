@@ -32,8 +32,9 @@ try {
     if (m.type() !== "error") return;
     const t = m.text();
     // 容忍 LLM 上游不可用时的降级（429/5xx → MockEngine 是特性，不是 bug）；
-    // 地图瓦片（OpenFreeMap）为第三方外部资源，本机网络不可达时降级不是产品缺陷
-    if (/429|Failed to load resource|LLM upstream failed|openfreemap/i.test(t)) return;
+    // 地图瓦片（OpenFreeMap）为第三方外部资源，本机网络不可达时降级不是产品缺陷；
+    // Supabase Realtime WS 断连为云端不可达环境噪音（与 e2e-match 容忍口径一致）
+    if (/429|Failed to load resource|LLM upstream failed|openfreemap|WebSocket connection to/i.test(t)) return;
     errors.push(t);
   });
   page.on("pageerror", (e) => errors.push(String(e)));
@@ -55,9 +56,26 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(page, () => !!document.querySelector('input[placeholder*="描述你的需求"]'), 10000, "座舱渲染");
 
-  // --- 1. 意图气泡胶囊 → 拟物草稿卡（DynamicDraftCard 100% 呼出）---
-  await page.getByRole("button", { name: "🧽 周末日常保洁 拟物发单" }).click();
-  await page.waitForTimeout(500);
+  // --- 1. 弹药胶囊 → 拟物草稿卡（DynamicDraftCard 100% 呼出；slim 后意图气泡移除，胶囊即入口）---
+  // 冷启动水合未完成时点击可能落空 → 轮询点击直至草稿卡呼出（与既有 e2e 等待口径一致）
+  {
+    const start = Date.now();
+    const hit = async () => {
+      const btn = page.getByRole("button", { name: "家政保洁 · 一键弹药发单" });
+      if (await btn.count()) {
+        try {
+          await btn.click({ timeout: 400 });
+        } catch {
+          /* 未水合 → 重试 */
+        }
+      }
+    };
+    while (Date.now() - start < 10000) {
+      await hit();
+      if (await page.evaluate(() => !!document.querySelector('[data-testid="draft-sheet"]'))) break;
+      await sleep(300);
+    }
+  }
   const draft = await page.evaluate(() => {
     const sheet = document.querySelector('[data-testid="draft-sheet"]');
     return {
@@ -144,7 +162,9 @@ try {
   const wang = await page.evaluate(() => document.body.innerText);
   assert.ok(wang.includes("王阿姨") && wang.includes("保洁"), "王姐身份应见保洁单");
 
-  // --- 5. AR 锚点重置：场景点锚 → 预览 → 切回场景无残留 ---
+  // --- 5. AR 锚点重置：场景点锚 → 预览 → 切回场景无残留（AR 键现为首页上下文悬浮按钮）---
+  await page.getByRole("button", { name: "首页" }).click();
+  await page.waitForTimeout(500);
   await page.getByRole("button", { name: "AR 扫描" }).click();
   await page.waitForTimeout(700);
   const anchor = page.getByRole("button", { name: /星羽羽毛球馆|滨江街拍点位|王姐保洁/ }).first();

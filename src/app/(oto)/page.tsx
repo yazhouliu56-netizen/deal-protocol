@@ -29,11 +29,20 @@ import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
 import { otoExperiences } from "@/lib/mockData";
+import ContactCard from "@/components/waves/ContactCard";
+import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";
+import {
+  dialInNumber,
+  findSession,
+  maskNumber,
+  minutesLeft,
+} from "@/base/comm/privacyNumber";
 import {
   Camera,
   Check,
   ChevronRight,
   Info,
+  MessageCircle,
   Navigation,
   Rotate3d,
   ShoppingBag,
@@ -109,13 +118,19 @@ export default function Home() {
         >
           <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
             {screen === "home" && <HomePage />}
+            {screen === "im" && <MessagesPage onGoHome={() => setScreen("home")} />}
             {screen === "ar" && (
               <ARPage
                 proofShots={proofShots}
                 onProofShot={(r) => setProofShots((prev) => [...prev, r])}
               />
             )}
-            {screen === "trip" && <TripPage proofShots={proofShots} />}
+            {screen === "trip" && (
+              <TripPage
+                proofShots={proofShots}
+                onProofShot={(r) => setProofShots((prev) => [...prev, r])}
+              />
+            )}
             {screen === "profile" && <ProfilePage onGoHome={() => setScreen("home")} />}
           </div>
         </motion.div>
@@ -303,6 +318,38 @@ function HomePage() {
             onAmmoDraft={(key, category) => setDraft({ key, label: category })}
           />
         </div>
+
+        {/* 战场3 · 冷启动商业活化：时段化灵感轮播 —— 输入框下方按当前时间自动切换场景灵感，
+            点击 1 秒原地出弹药草稿卡（本时段场景即点即发）。 */}
+        {(() => {
+          const insp = inspirationSetFor(new Date().getHours());
+          return (
+            <div className="mt-2.5" data-layer="inspiration-chips">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-[9.5px] font-bold tx-3 tracking-wide">
+                  {insp.emoji} {insp.period}灵感
+                </span>
+                <span className="h-px flex-1 bg-white/10" />
+                <span className="text-[9px] tx-5" aria-hidden="true">
+                  {insp.caption}
+                </span>
+              </div>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                {insp.chips.map((c) => (
+                  <motion.button
+                    key={c.label}
+                    whileTap={{ scale: 0.94 }}
+                    onClick={() => setDraft({ key: c.ammo, label: c.ammo })}
+                    aria-label={`灵感：${c.label}`}
+                    className="shrink-0 px-3 py-2 rounded-full glass-panel-interactive text-[11px] font-bold text-white/85 active:scale-95 transition-transform"
+                  >
+                    <span className="font-tabular">{c.label}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ═══ 中部拟物卡流动态区：输入/说话/意图气泡 → 原地展开弹药草稿卡 ═══ */}
@@ -338,9 +385,6 @@ function HomePage() {
                   setDraft(null);
                   setPublishOpen(true);
                 }}
-                onTweak={(key) =>
-                  toast(`「${key}」参数可在完整发布面板中微调`, "info")
-                }
               />
               <p className="text-[9.5px] text-white/40 mt-3 text-center">
                 扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
@@ -462,6 +506,219 @@ function HomePage() {
 
       {/* 完整发布面板：草稿卡「扣动扳机」→ 品类/时间/地点/预算 → 广播（全链路 0 丢失） */}
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
+
+      {/* 战场1 · AR / ProofCamera 收纳为首页上下文悬浮按钮（原 Dock AR 键收纳于此） */}
+      <motion.button
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={() => setScreen("ar")}
+        aria-label="AR 扫描"
+        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-[11px] font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
+      >
+        <Camera size={14} className="text-brandCyan" />
+        AR 扫描
+      </motion.button>
+    </div>
+  );
+}
+
+/* ============================ MESSAGE / IM ============================ */
+
+/** 时段化灵感场景集（战场3：冷启动商业活化 · 输入框下方按当前时间自动切换）。 */
+export interface InspirationChip {
+  label: string;
+  ammo: string;
+}
+export interface InspirationSet {
+  range: [number, number];
+  period: string;
+  emoji: string;
+  caption: string;
+  chips: InspirationChip[];
+}
+
+const INSPIRATION_SETS: InspirationSet[] = [
+  {
+    range: [5, 11],
+    period: "清晨",
+    emoji: "☀️",
+    caption: "零押金启动 · 满意后分账",
+    chips: [
+      { label: "🧘 晨间拉伸陪练", ammo: "陪伴交友" },
+      { label: "☕ 咖啡馆拼桌学习", ammo: "组局社交" },
+      { label: "🧹 上午深度保洁", ammo: "家政保洁" },
+    ],
+  },
+  {
+    range: [11, 14],
+    period: "午间",
+    emoji: "🍱",
+    caption: "急速撮合 · 30 分钟送达",
+    chips: [
+      { label: "🍱 午餐饭搭子", ammo: "组局社交" },
+      { label: "🧹 午间保洁上门", ammo: "家政保洁" },
+      { label: "📷 光影人像外拍", ammo: "摄影师约拍" },
+    ],
+  },
+  {
+    range: [14, 18],
+    period: "午后",
+    emoji: "🏸",
+    caption: "周边服务者在线待命",
+    chips: [
+      { label: "🏸 午后羽毛球局", ammo: "组局社交" },
+      { label: "👥 电影搭子", ammo: "陪伴交友" },
+      { label: "🧽 下午家庭保洁", ammo: "家政保洁" },
+    ],
+  },
+  {
+    range: [18, 23],
+    period: "晚间",
+    emoji: "🌆",
+    caption: "夜间服务 · 平台意外险全包",
+    chips: [
+      { label: "🍲 晚餐搭子", ammo: "组局社交" },
+      { label: "📷 夜景街拍点位", ammo: "摄影师约拍" },
+      { label: "🧘 夜间拉伸放松", ammo: "陪伴交友" },
+    ],
+  },
+  {
+    range: [23, 5],
+    period: "深夜",
+    emoji: "🌙",
+    caption: "深夜不打烊 · 全时在线",
+    chips: [
+      { label: "🛏 深夜倾诉陪聊", ammo: "陪伴交友" },
+      { label: "🧹 明早保洁预约", ammo: "家政保洁" },
+      { label: "🏸 夜场羽毛球局", ammo: "组局社交" },
+    ],
+  },
+];
+
+/** 纯函数：当前小时 → 对应时段灵感组（支持跨零点区间，测试可注入 hour）。 */
+export function inspirationSetFor(hour: number): InspirationSet {
+  const hit = INSPIRATION_SETS.find((s) => {
+    const [a, b] = s.range;
+    return a <= b ? hour >= a && hour < b : hour >= a || hour < b;
+  });
+  return hit ?? INSPIRATION_SETS[0];
+}
+
+/** 消息屏：即时通讯与 48h 隐私会话中枢（ADR-0010 会话实时投影 · 号码不落地）。 */
+function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
+  const sessions = useWaveStore((s) => s.privacySessions);
+  const imThreads = useWaveStore((s) => s.imThreads);
+  const imMessages = useWaveStore((s) => s.imMessages);
+  const waves = useWaveStore((s) => s.waves);
+  const identity = useIdentityStore((s) => s.identity);
+  const me = identity.id;
+  const unread = unreadTotal(imThreads, me);
+
+  const convos = useMemo(() => {
+    const now = Date.now();
+    const groups = new Map<string, {
+      session: ReturnType<typeof findSession> extends null ? never : NonNullable<ReturnType<typeof findSession>>["session"];
+      live: boolean;
+      peerId: string;
+      last: { fromId: string; text: string; at: number } | null;
+      wave: (typeof waves)[number] | undefined;
+      unreadForMe: number;
+    }>();
+    for (const s of sessions) {
+      const found = findSession(sessions, s.waveId, me, now);
+      if (!found) continue;
+      const { session, live } = found;
+      const peerId = session.aId === me ? session.bId : session.aId;
+      const thread = imThreads.find((t) => t.id === keyOf(me, peerId));
+      const msgs = thread ? threadMessages(imMessages, thread.id) : [];
+      const last = msgs[msgs.length - 1] ?? null;
+      const wave = waves.find((w) => w.id === session.waveId);
+      const unreadForMe = thread
+        ? thread.aId === me
+          ? thread.unreadA
+          : thread.unreadB
+        : 0;
+      groups.set(session.waveId, { session, live, peerId, last, wave, unreadForMe });
+    }
+    return [...groups.values()].sort(
+      (a, b) => (b.last?.at ?? 0) - (a.last?.at ?? 0)
+    );
+  }, [sessions, imThreads, imMessages, waves, me]);
+
+  return (
+    <div className="pointer-events-auto">
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center shrink-0">
+          <MessageCircle size={17} className="text-brandCyan" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-[17px] font-extrabold tx-1">消息</h2>
+          <p className="text-[10px] tx-3">
+            即时通讯 · 48h 隐私号会话中枢（双方号码均不落地）
+          </p>
+        </div>
+        {unread > 0 && (
+          <span className="px-2 py-1 rounded-full bg-brandPurple border border-white/30 text-[11px] font-bold font-tabular">
+            {unread} 条未读
+          </span>
+        )}
+      </div>
+
+      {convos.length === 0 ? (
+        <div className="glass-panel rounded-3xl p-6 text-center">
+          <span className="text-3xl inline-block">💬</span>
+          <p className="text-[12px] font-bold tx-1 mt-2">还没有私密会话</p>
+          <p className="text-[10px] tx-3 mt-1">
+            去首页发单撮合，订单锁定后隐私号与 IM 私信自动出现在这里 · 48h 后自动回收
+          </p>
+          <button
+            onClick={onGoHome}
+            className="mt-4 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-[11px] font-bold active:scale-95 transition-[filter,transform]"
+          >
+            ✨ 去首页发单
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {convos.map((c) => {
+            const myNumber = dialInNumber(c.session, me);
+            return (
+              <div key={c.session.waveId} className="glass-panel rounded-3xl p-3">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-9 h-9 rounded-xl glass-panel flex items-center justify-center text-base shrink-0">
+                    {CATEGORY_EMOJI[c.wave?.basics.category ?? ""] ?? "🎟️"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-bold tx-1 truncate">
+                      {c.wave?.basics.category ?? "订单会话"}
+                    </p>
+                    <p className="text-[9.5px] tx-3 truncate font-mono">
+                      {maskNumber(myNumber)} ·{" "}
+                      {c.live
+                        ? `${minutesLeft(c.session, Date.now())} 分钟后失效`
+                        : "会话已过期"}
+                    </p>
+                  </div>
+                  {c.unreadForMe > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-brandCyan text-black text-[9px] font-extrabold font-tabular">
+                      {c.unreadForMe}
+                    </span>
+                  )}
+                </div>
+                {c.last && (
+                  <p className="text-[10px] tx-3 truncate mb-1.5">
+                    {c.last.fromId === me ? "我：" : "对方："}
+                    {c.last.text}
+                  </p>
+                )}
+                <ContactCard waveId={c.session.waveId} peerId={c.peerId} />
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -864,12 +1121,26 @@ function ARPage({
 
 /* ============================ TRIP ============================ */
 /** Trip 屏：以通用五态履约座舱为唯一核心的行程与活动订单中枢（旅游假数据已彻底出清）。 */
-function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[] }) {
+function TripPage({
+  proofShots = [],
+  onProofShot,
+}: {
+  proofShots?: ArbitrationPhotoEvidence[];
+  /** 存证照片上抛到根视图（跨屏供给履约争议物证链）。 */
+  onProofShot?: (shot: ArbitrationPhotoEvidence) => void;
+}) {
   const bookings = useAppStore((s) => s.bookings);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const setScreen = useAppStore((s) => s.setScreen);
   const waves = useWaveStore((s) => s.waves);
   const identity = useIdentityStore((s) => s.identity);
+
+  /** 战场1 · ProofCamera 收纳为履约座舱上下文悬浮按钮（拍照 → 时间地点水印存证）。 */
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [cameraOrderNo, setCameraOrderNo] = useState("trip-001");
+  useEffect(() => {
+    lockEdgeGesture(photoOpen);
+  }, [photoOpen]);
 
   /** 当前用户进行中订单（与 FulfillmentCenter 同源投影：决定顶部渲染座舱还是空态）。 */
   const activeOrder = useMemo(() => {
@@ -893,6 +1164,31 @@ function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[]
 
   return (
     <div className="pointer-events-auto">
+      {/* 战场1 · 履约座舱上下文悬浮存证按钮（原 Dock AR 通路收纳于首页与行程双端） */}
+      <motion.button
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={() => {
+          const active = waves.find(
+            (w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired"
+          );
+          setCameraOrderNo(`TRIP-${active?.id ?? "visit"}-${Date.now().toString(36)}`);
+          setPhotoOpen(true);
+        }}
+        aria-label="拍照存证"
+        className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-[11px] font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform"
+      >
+        <Camera size={14} className="text-brandCyan" />
+        拍照存证
+        {proofShots.length > 0 && (
+          <span className="min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-[9px] font-bold text-white flex items-center justify-center font-tabular">
+            {proofShots.length}
+          </span>
+        )}
+      </motion.button>
+
       {/* 核心视口：进行中订单 → 通用五态履约座舱（无进行中单则由 FulfillmentCenter 自隐藏） */}
       <FulfillmentCenter evidencePhotos={proofShots} />
 
@@ -1005,6 +1301,58 @@ function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[]
             还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢
           </p>
         </div>
+      )}
+
+      {/* 战场1 · ProofCamera 4:3 存证水印相机模态（照片直通履约争议物证链） */}
+      {photoOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={() => setPhotoOpen(false)}
+          />
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
+                <Camera size={13} className="text-brandCyan" /> 拍照存证 · 时间地点水印
+              </h3>
+              <button
+                onClick={() => setPhotoOpen(false)}
+                aria-label="关闭相机"
+                className="text-white/40 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            {proofShots.length > 0 && (
+              <p className="text-[10px] text-emerald-300/80 mb-2">
+                ✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）
+              </p>
+            )}
+            <ProofCamera
+              orderNo={cameraOrderNo}
+              geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }}
+              onCaptured={(result) => {
+                onProofShot?.({
+                  photo: result.dataUrl,
+                  aiNote: `水印存证 · 时间地点注入 · 哈希 ${result.sha256.slice(0, 8)}`,
+                });
+                setPhotoOpen(false);
+                toast(
+                  "✅ 存证照片已生成 · 时间地点水印 + 哈希指纹已记录",
+                  "success"
+                );
+              }}
+            />
+          </motion.div>
+        </>
       )}
     </div>
   );

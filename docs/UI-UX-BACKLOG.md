@@ -15,7 +15,7 @@
 
 | # | 项 | 说明 | 状态 |
 |---|----|------|------|
-| 4 | 行程屏英文残留 | `otoActivities` 的 location 为英文（Maldives/Bali），渲染进 AR 指南（`{act.location}`）与地图视图 tab | ✅ location 中文化（mockData.ts 4 处：马尔代夫/巴厘岛） |
+| 4 | 行程屏英文残留 | `otoActivities` 的 location 当初为英文目的地（已整体中文化），渲染进 AR 指南（`{act.location}`）与地图视图 tab | ✅ location 中文化（mockData.ts 4 处）；后续行程屏已整体转型履约座舱，该数据源随之移除 |
 | 5 | AR 屏英文角标 | 取景框角标 `AR VIEWFINDER`（8px 英文 tech 装饰） | ✅ →「AR 取景框」（page.tsx:578） |
 | 6 | 发布弹层分组 | PublishSheet 为长单列（品类→广播，9+ 区块全摊开），核心要素被可选配置稀释 | ✅ 核心表单（品类/时间/地点/预算）+「更多选项」折叠开关（定制条件/磋商留言/AI 拆解/开放局/鸽子险/有效期/开始时间/配额 收起），实测折叠/展开完整（PublishSheet.tsx） |
 

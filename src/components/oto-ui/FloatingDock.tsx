@@ -1,15 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Home, Map, Scan, User } from "lucide-react";
+import { Home, Map, MessageCircle, User } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { useWaveStore } from "@/store/useWaveStore";
+import { useIdentityStore } from "@/store/useIdentityStore";
+import { unreadTotal } from "@/base/comm/im";
 
-/** 4 键一体化主屏导航（原 5 键收敛：AI 助手已深度融合进首页雷达主屏）。 */
-export type DockPage = "home" | "ar" | "trip" | "profile";
+/** 4 键一体化主屏导航（AR/ProofCamera 已收纳为首页及履约座舱的上下文悬浮按钮）。 */
+export type DockPage = "home" | "ar" | "im" | "trip" | "profile";
 
 const NAVS: { id: DockPage; label: string; icon: typeof Home }[] = [
   { id: "home", label: "首页", icon: Home },
-  { id: "ar", label: "AR 扫描", icon: Scan },
+  { id: "im", label: "消息", icon: MessageCircle },
   { id: "trip", label: "行程", icon: Map },
   { id: "profile", label: "我的", icon: User },
 ];
@@ -39,6 +42,10 @@ export default function FloatingDock() {
   const activeTab = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
   const isDesktop = useIsDesktop();
+  // 消息键未读角标：IM 私信中枢总未读（ADR-0010 会话未读实时投影）
+  const imThreads = useWaveStore((s) => s.imThreads);
+  const me = useIdentityStore((s) => s.identity.id);
+  const msgUnread = unreadTotal(imThreads, me);
 
   return (
     <motion.div
@@ -75,6 +82,11 @@ export default function FloatingDock() {
                     />
                   )}
                   <Icon size={20} className="relative" />
+                  {nav.id === "im" && msgUnread > 0 && (
+                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/40 text-[9px] font-bold text-white flex items-center justify-center font-tabular">
+                      {msgUnread}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[10px] font-semibold tracking-wide">
                   {nav.label}

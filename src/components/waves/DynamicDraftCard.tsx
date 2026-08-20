@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
@@ -95,6 +97,59 @@ export function describeSopParams(ammo: IAmmoDefinition): { key: string; label: 
   }
   if (rows.length === 0) rows.push({ key: "base", label: "基础要素按默认执行" });
   return rows;
+}
+
+/** SOP 行 → 内联调节器描述（岗位级微调：数值/单位/步长/护栏，弹药表驱动零硬编码）。 */
+export interface SopAdjuster {
+  key: string;
+  base: number;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+}
+
+export function describeSopAdjusters(ammo: IAmmoDefinition): SopAdjuster[] {
+  const sop = ammo.sop ?? {};
+  const rows: SopAdjuster[] = [];
+  if (typeof sop.depositRate === "number") {
+    rows.push({ key: "deposit", base: Math.round(sop.depositRate * 100), unit: "%", min: 0, max: 50, step: 5 });
+  }
+  if (sop.expiresInMs) {
+    const minutes = Math.round(sop.expiresInMs / 60_000);
+    rows.push({ key: "ttl", base: minutes, unit: " 分钟内有效", min: 30, max: 1440, step: 30 });
+  }
+  if (typeof sop.capacityDefault === "number") {
+    rows.push({ key: "capacity", base: sop.capacityDefault, unit: " 人", min: 1, max: 20, step: 1 });
+  }
+  if (typeof sop.buffSeats === "number") {
+    rows.push({ key: "buff", base: sop.buffSeats, unit: " 席", min: 0, max: 5, step: 1 });
+  }
+  if (typeof sop.maxRounds === "number") {
+    rows.push({ key: "rounds", base: sop.maxRounds, unit: " 轮", min: 1, max: 6, step: 1 });
+  }
+  return rows;
+}
+
+/** 内联微调后的实时费用估算（PER_SEAT × 人数 / HOURLY × 时长；无联动参数 → null 不渲染）。 */
+export function describeLiveEstimate(
+  ammo: IAmmoDefinition,
+  overrides: Record<string, number | string>
+): string | null {
+  const pm = resolveDraftPricing(ammo);
+  if (pm.kind === "PER_SEAT" && typeof overrides.capacity === "number") {
+    return `按当前参数估算：¥${pm.perSeatYuan * overrides.capacity}（${overrides.capacity} 人 AA 均摊）`;
+  }
+  if (pm.kind === "HOURLY" && typeof overrides.ttl === "number") {
+    const h = Math.max(1, Math.ceil(overrides.ttl / 60));
+    return `按当前参数估算：¥${pm.rateYuan} × ${h}h = ¥${pm.rateYuan * h}`;
+  }
+  return null;
+}
+
+/** 数值夹取（调节器护栏 min/max）。 */
+export function clampAdj(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 /** 动态表单 Schema 字段投影（D8 formSchema 声明式驱动，非硬编码字典）。 */
@@ -205,6 +260,27 @@ const DRAFT_CSS = `
 .draft-card-required{color:#f87171}
 .draft-card-form-options{font-size:10px;color:#94a3b8}
 .draft-card-form-value{color:#cbd5e1;font-size:12px}
+/* 内联参数调节器（点击参数行展开抽屉式微调） */
+.draft-card-adj{display:flex;align-items:center;gap:8px;margin:-2px 0 8px;padding:8px 10px;
+  border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(123,97,255,.35)}
+.draft-adj-btn{min-width:28px;height:26px;border-radius:8px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);color:#e2e8f0;font-size:14px;font-weight:800;cursor:pointer;
+  user-select:none;transition:background .12s,transform .12s}
+.draft-adj-btn:hover{background:rgba(255,255,255,.16)}
+.draft-adj-btn:active{transform:scale(.92)}
+.draft-adj-value{flex:1;text-align:center;color:#f1f5f9;font-size:13px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.draft-adj-hint{font-size:10px;color:#94a3b8}
+.draft-adj-reset{border:none;background:none;color:#94a3b8;font-size:10px;cursor:pointer;
+  padding:4px 6px;border-radius:6px}
+.draft-adj-reset:hover{color:#e2e8f0;background:rgba(255,255,255,.08)}
+/* 深压 CTA 反馈：点击涟漪 + 按压内缩 */
+.draft-card-cta{position:relative;overflow:hidden}
+.draft-card-cta:active{transform:scale(.97)}
+.draft-card-ripple{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;
+  border-radius:50%;background:rgba(255,255,255,.35);pointer-events:none;
+  animation:draft-ripple-kf .55s ease-out forwards}
+@keyframes draft-ripple-kf{from{transform:scale(.05);opacity:.85}to{transform:scale(3);opacity:0}}
 `;
 
 /** 拟物磨砂玻璃草稿卡：弹药驱动参数 + 计价 + 安全徽章 + 一键发布 CTA。 */
@@ -226,6 +302,18 @@ export default function DynamicDraftCard({
   const formFields = describeFormSchemaFields(definition);
   const themeClass = resolveDraftThemeClass(definition);
 
+  // 内联微调状态：正在展开的参数行 + 用户覆盖值（初始 = 弹药出厂默认，SSR 逐字一致）
+  const [editing, setEditing] = useState<string | null>(null);
+  const [overrides, setOverrides] = useState<Record<string, number | string>>({});
+  const [ripple, setRipple] = useState(0);
+  const adjusters = describeSopAdjusters(definition);
+  const adjByKey = new Map(adjusters.map((a) => [a.key, a]));
+  const liveEstimate = describeLiveEstimate(definition, overrides);
+
+  const setAdj = (key: string, value: number) => {
+    setOverrides((prev) => ({ ...prev, [key]: clampAdj(value, adjByKey.get(key)?.min ?? 0, adjByKey.get(key)?.max ?? 9999) }));
+  };
+
   return (
     <div
       className={`draft-card ${themeClass}`}
@@ -239,49 +327,172 @@ export default function DynamicDraftCard({
         <span className="draft-card-ammo">{definition.ammoId} · v{definition.version}</span>
       </div>
       <div className="draft-card-rows">
-        {params.map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            className="draft-card-row"
-            data-param={row.key}
-            onClick={() => onTweak?.(row.key)}
-          >
-            <span>{row.label}</span>
-            <span aria-hidden="true">✎</span>
-          </button>
-        ))}
+        {params.map((row) => {
+          const adj = adjByKey.get(row.key);
+          if (editing === row.key && adj) {
+            const current = typeof overrides[row.key] === "number" ? (overrides[row.key] as number) : adj.base;
+            return (
+              <div key={row.key}>
+                <button
+                  type="button"
+                  className="draft-card-row"
+                  data-param={row.key}
+                  onClick={() => { setEditing(null); onTweak?.(row.key); }}
+                >
+                  <span>{row.label}</span>
+                  <span aria-hidden="true">▲</span>
+                </button>
+                <div className="draft-card-adj" data-testid={`sop-adjuster-${row.key}`}>
+                  <button type="button" data-minus className="draft-adj-btn" onClick={() => setAdj(row.key, current - adj.step)}>−</button>
+                  <span className="draft-adj-value">{current}{adj.unit}</span>
+                  <button type="button" data-plus className="draft-adj-btn" onClick={() => setAdj(row.key, current + adj.step)}>+</button>
+                  <button
+                    type="button"
+                    className="draft-adj-reset"
+                    onClick={() => setOverrides((prev) => {
+                      const next = { ...prev };
+                      delete next[row.key];
+                      return next;
+                    })}
+                  >
+                    重置
+                  </button>
+                </div>
+              </div>
+            );
+          }
+          if (editing === row.key) {
+            return (
+              <div key={row.key}>
+                <button
+                  type="button"
+                  className="draft-card-row"
+                  data-param={row.key}
+                  onClick={() => { setEditing(null); onTweak?.(row.key); }}
+                >
+                  <span>{row.label}</span>
+                  <span aria-hidden="true">▲</span>
+                </button>
+                <div className="draft-card-adj" data-testid={`sop-adjuster-${row.key}`}>
+                  <span className="draft-adj-value" style={{ flex: "none" }}>已按出厂默认锁定</span>
+                  <span className="draft-adj-hint">完整发布面板可再微调</span>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <button
+              key={row.key}
+              type="button"
+              className="draft-card-row"
+              data-param={row.key}
+              onClick={() => { setEditing(row.key); onTweak?.(row.key); }}
+            >
+              <span>{row.label}</span>
+              <span aria-hidden="true">✎</span>
+            </button>
+          );
+        })}
       </div>
       {formFields.length > 0 && (
         <div className="draft-card-form" data-testid="draft-form-fields">
-          {formFields.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className="draft-card-form-row"
-              data-field={f.key}
-              onClick={() => onTweak?.(f.key)}
-            >
-              <span>
-                {f.required && (
-                  <span className="draft-card-required" aria-hidden="true">
-                    *
+          {formFields.map((f) => {
+            const current = typeof overrides[f.key] !== "undefined" ? overrides[f.key] : f.value;
+            const active = editing === f.key;
+            const type: "number" | "enum" | "string" =
+              f.type === "number"
+                ? "number"
+                : f.type === "enum"
+                  ? "enum"
+                  : "string";
+            const num = (t: number) => setOverrides((prev) => ({ ...prev, [f.key]: clampAdj(t, 0, 9999) }));
+            return (
+              <div key={f.key}>
+                <button
+                  type="button"
+                  className="draft-card-form-row"
+                  data-field={f.key}
+                  onClick={() => { setEditing(active ? null : f.key); onTweak?.(f.key); }}
+                >
+                  <span>
+                    {f.required && (
+                      <span className="draft-card-required" aria-hidden="true">
+                        *
+                      </span>
+                    )}
+                    {f.label}
+                    {f.options && f.options.length > 0 && (
+                      <span className="draft-card-form-options">[{f.options.join("/")}]</span>
+                    )}
                   </span>
+                  <span className="draft-card-form-value">
+                    {String(current === "" ? "待填写" : current)}
+                  </span>
+                  <span aria-hidden="true">{active ? "▲" : "✎"}</span>
+                </button>
+                {active && (
+                  <div className="draft-card-adj" data-testid={`field-adjuster-${f.key}`}>
+                    {type === "number" && (
+                      <>
+                        <button type="button" data-minus className="draft-adj-btn" onClick={() => num(typeof current === "number" ? current - 1 : 0)}>−</button>
+                        <span className="draft-adj-value">{String(current === "" ? 0 : current)}</span>
+                        <button type="button" data-plus className="draft-adj-btn" onClick={() => num(typeof current === "number" ? current + 1 : 1)}>+</button>
+                      </>
+                    )}
+                    {type === "enum" && f.options && f.options.length > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          data-minus
+                          className="draft-adj-btn"
+                          onClick={() => {
+                            const i = f.options!.indexOf(String(current));
+                            const next = f.options![(i - 1 + f.options!.length) % f.options!.length];
+                            setOverrides((prev) => ({ ...prev, [f.key]: next }));
+                          }}
+                        >
+                          ‹
+                        </button>
+                        <span className="draft-adj-value">{String(current === "" ? "请选择" : current)}</span>
+                        <button
+                          type="button"
+                          data-plus
+                          className="draft-adj-btn"
+                          onClick={() => {
+                            const i = f.options!.indexOf(String(current));
+                            const next = f.options![(i + 1) % f.options!.length];
+                            setOverrides((prev) => ({ ...prev, [f.key]: next }));
+                          }}
+                        >
+                          ›
+                        </button>
+                      </>
+                    )}
+                    {type === "string" && (
+                      <input
+                        data-input
+                        name={`draft-field-${f.key}`}
+                        className="draft-adj-value flex-1 bg-transparent border border-white/20 rounded-lg px-2 py-1.5 outline-none"
+                        value={String(current)}
+                        placeholder="填写"
+                        onChange={(e) => setOverrides((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                      />
+                    )}
+                  </div>
                 )}
-                {f.label}
-                {f.options && f.options.length > 0 && (
-                  <span className="draft-card-form-options">[{f.options.join("/")}]</span>
-                )}
-              </span>
-              <span className="draft-card-form-value">
-                {String(f.value === "" ? "待填写" : f.value)}
-              </span>
-              <span aria-hidden="true">✎</span>
-            </button>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
-      <div className="draft-card-price">{priceText}</div>
+      <div className="draft-card-price">
+        <span className="font-tabular">{priceText}</span>
+        {liveEstimate && (
+          <span key={liveEstimate} className="price-roll block mt-1 text-[11px] opacity-80 font-tabular">
+            {liveEstimate}
+          </span>
+        )}
+      </div>
       {badges.length > 0 && (
         <div className="draft-card-badges">
           {badges.map((badge) => (
@@ -291,7 +502,13 @@ export default function DynamicDraftCard({
           ))}
         </div>
       )}
-      <button type="button" className="draft-card-cta" onClick={onPublish}>
+      <button
+        type="button"
+        className="draft-card-cta"
+        onPointerDown={() => setRipple((n) => n + 1)}
+        onClick={onPublish}
+      >
+        {ripple > 0 && <span key={ripple} className="draft-card-ripple" />}
         扣动扳机·一键发布
       </button>
     </div>

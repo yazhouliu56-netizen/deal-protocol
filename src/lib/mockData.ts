@@ -1,7 +1,6 @@
 /* ============================================================
  * OTO (Online-To-Offline) Data Model
- * Bright, sun-drenched destination photography with high-luxury
- * resort copy - matching the VisionOS spatial reference build.
+ * Local-life experience previews for the AR/spatial reference demo.
  * ============================================================ */
 
 export type OTOCategory =
@@ -28,19 +27,6 @@ export interface OTOExperience {
   };
 }
 
-export type OTOActivityType = "adventure" | "cruise" | "dining" | "trip";
-
-export interface OTOActivity {
-  id: string;
-  type: OTOActivityType;
-  title: string;
-  subtitle: string;
-  /** ISO-8601 local time, sortable for timeline rendering */
-  time: string;
-  location: string;
-  imageUrl: string;
-}
-
 export const CATEGORY_LABELS: Record<OTOCategory, string> = {
   Beach: "海滩",
   Mountains: "山脉",
@@ -59,26 +45,11 @@ export const OTO_CATEGORIES: OTOCategory[] = [
 
 export const otoExperiences: OTOExperience[] = [
   {
-    id: "oto-bali-villa",
-    title: "水上别墅",
-    subtitle: "印尼 · 巴厘岛",
-    category: "Beach",
-    price: "¥2,280/晚",
-    rating: 4.8,
-    location: "Bali",
-    hasAR: true,
-    imageUrl:
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80",
-    description:
-      "巴厘岛私人水上别墅 —— 无边泳池、珊瑚礁玻璃地板，印度洋上的金色日落甲板。",
-    coordinates: { lat: -8.4095, lng: 115.1889 },
-  },
-  {
     id: "oto-santorini-suite",
     title: "白色洞穴套房",
     subtitle: "希腊 · 圣托里尼",
     category: "Historical",
-    price: "¥1,990/晚",
+    price: "¥1,290/晚",
     rating: 4.9,
     location: "Santorini",
     hasAR: true,
@@ -102,21 +73,6 @@ export const otoExperiences: OTOExperience[] = [
     description:
       "正对埃菲尔铁塔的奥斯曼式阁楼 —— 香槟日落、塞纳河与蒙马特天际线尽收眼底。",
     coordinates: { lat: 48.8566, lng: 2.3522 },
-  },
-  {
-    id: "oto-maldives-snorkel",
-    title: "珊瑚礁浮潜",
-    subtitle: "印度洋 · 马尔代夫",
-    category: "Adventure",
-    price: "¥1,070/晚",
-    rating: 4.8,
-    location: "Maldives",
-    hasAR: true,
-    imageUrl:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80",
-    description:
-      "跃入翡翠潟湖 —— 与海龟和彩虹珊瑚礁同游，退潮时在沙洲上随波漂流。",
-    coordinates: { lat: 3.2028, lng: 73.2207 },
   },
   {
     id: "oto-dubai-marina",
@@ -179,58 +135,3 @@ export const otoExperiences: OTOExperience[] = [
     coordinates: { lat: 38.9067, lng: 1.4206 },
   },
 ];
-
-export const otoActivities: OTOActivity[] = [
-  {
-    id: "act-snorkel",
-    type: "adventure",
-    title: "珊瑚礁浮潜",
-    subtitle: "海龟潟湖 · 全套装备",
-    time: "2026-08-05T09:00",
-    location: "马尔代夫",
-    imageUrl:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=300&q=70",
-  },
-  {
-    id: "act-sunset-cruise",
-    type: "cruise",
-    title: "潟湖日落巡航",
-    subtitle: "香槟与现场弹唱",
-    time: "2026-08-05T17:30",
-    location: "巴厘岛",
-    imageUrl:
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=300&q=70",
-  },
-  {
-    id: "act-beach-dinner",
-    type: "dining",
-    title: "私人海滩晚宴",
-    subtitle: "7 道岛屿品鉴菜单",
-    time: "2026-08-06T19:00",
-    location: "马尔代夫",
-    imageUrl:
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=300&q=70",
-  },
-  {
-    id: "act-island-hop",
-    type: "trip",
-    title: "跳岛一日游",
-    subtitle: "沙洲与隐秘海湾",
-    time: "2026-08-07T10:00",
-    location: "巴厘岛",
-    imageUrl:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=70",
-  },
-];
-
-/** Format ISO time as Chinese: 8月5日上午9:00 */
-export function formatActivityTime(iso: string): string {
-  const date = new Date(iso);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const meridiem = hours < 12 ? "上午" : "下午";
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-  return `${month}月${day}日${meridiem}${hour12}:${minutes}`;
-}

@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import DynamicDraftCard, {
   describeFormSchemaFields,
+  describeLiveEstimate,
   describePricing,
   describeSafetyBadges,
+  describeSopAdjusters,
   describeSopParams,
   describeWarrantyBadge,
   resolveDraftThemeClass,
@@ -225,5 +227,52 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
     expect(fields[2]).toMatchObject({ key: "cropKind", type: "string", required: false });
     // 制式弹药无 formSchema → 空数组（不渲染扩展区）
     expect(describeFormSchemaFields(getAmmoDefinition("housekeeping"))).toEqual([]);
+  });
+
+  it("describeSopAdjusters 纯函数：SOP 行 → 内联调节器（数值护栏/步长/单位，弹药表驱动）", () => {
+    const hk = getAmmoDefinition("housekeeping");
+    const adj = describeSopAdjusters(hk);
+    const byKey = Object.fromEntries(adj.map((a) => [a.key, a]));
+    // 押金 20% → 基数 20 步长 5 护栏 0-50
+    expect(byKey.deposit).toMatchObject({ base: 20, unit: "%", min: 0, max: 50, step: 5 });
+    // 120 分钟 TTL
+    expect(byKey.ttl).toMatchObject({ base: 120, min: 30, max: 1440, step: 30 });
+    // 容量 1 人
+    expect(byKey.capacity).toMatchObject({ base: 1, unit: " 人", min: 1, max: 20, step: 1 });
+    // 磋商 3 轮
+    expect(byKey.rounds).toMatchObject({ base: 3, unit: " 轮", min: 1, max: 6, step: 1 });
+    // 组局弹药：拼位缓冲 1 席
+    const meetup = getAmmoDefinition("meetup");
+    expect(describeSopAdjusters(meetup).find((a) => a.key === "buff")).toMatchObject({
+      base: 1,
+      unit: " 席",
+      min: 0,
+      max: 5,
+      step: 1,
+    });
+  });
+
+  it("describeLiveEstimate 纯函数：内联微调后实时费用联动（PER_SEAT×人数 / HOURLY×时长）", () => {
+    const meetup = getAmmoDefinition("meetup");
+    // 未调整 → 不渲染联动估算
+    expect(describeLiveEstimate(meetup, {})).toBeNull();
+    // 人数 2 → 4：¥80 × 4 = ¥320
+    expect(describeLiveEstimate(meetup, { capacity: 4 })).toBe("按当前参数估算：¥320（4 人 AA 均摊）");
+    // 家政时薪：时长 120→180 分钟 = 3h × ¥60 = ¥180
+    const hk = getAmmoDefinition("housekeeping");
+    expect(describeLiveEstimate(hk, { ttl: 180 })).toBe("按当前参数估算：¥60 × 3h = ¥180");
+    // FIXED 计价无联动 → null
+    expect(describeLiveEstimate(getAmmoDefinition("不存在品类"), { capacity: 2 })).toBeNull();
+  });
+
+  it("内联调节器渲染：初始 DOM 与出厂默认逐字一致（含 data-param 与调节器容器）", () => {
+    const html = renderToStaticMarkup(<DynamicDraftCard category="meetup" />);
+    // 初始不展开：无调节器容器（数据属性粒度断言，style 块内类名不参与判定）
+    expect(html).not.toContain('data-testid="sop-adjuster-');
+    expect(html).not.toContain("data-minus");
+    // 参数行仍然可点（data-param + 待展开样式）
+    expect(html).toContain('data-param="capacity"');
+    expect(html).toContain('data-param="buff"');
+    expect(html).toContain("扣动扳机·一键发布");
   });
 });
