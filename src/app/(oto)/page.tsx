@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEdgeSwipeBack } from "@/base/platform/useEdgeSwipeBack";
 import { lockEdgeGesture, useEdgeGestureLock } from "@/components/oto-ui/edgeGestureLock";
@@ -9,7 +10,7 @@ import ProfilePage from "@/components/oto-ui/profile/ProfilePage";
 import FloatingDock from "@/components/oto-ui/FloatingDock";
 import GlassCard from "@/components/oto-ui/GlassCard";
 import GlassIconButton from "@/components/oto-ui/GlassIconButton";
-import AuthSheet from "@/components/oto-ui/auth/AuthSheet";
+import AuthSheet, { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
@@ -69,6 +70,55 @@ const screenVariants = {
   animate: { opacity: 1, y: 0, scale: 1 },
   exit: { opacity: 0, y: -12, scale: 0.99 },
 };
+
+/**
+ * 纯函数：URL ?auth 参数是否应唤起登录抽屉（open|login → true，其余 → false）。
+ * /login、/register 服务端 307 → /?auth=open，本判定作为唯一唤起口径。
+ */
+export function shouldAutoOpenAuth(param: string | null): boolean {
+  return param === "open" || param === "login";
+}
+
+/**
+ * URL 门卫：/login、/register 已服务端 307 → /?auth=open，本网关在 DpLoginPage
+ * 迁出前台后承担「落地即唤起」职责：
+ * - auth=open|login → 自动唤起 OTO AuthSheet（openAuthSheet 全局事件）；
+ * - 抽屉关闭（[data-testid="auth-sheet"] 自 DOM 移除）→ 平滑清除 URL 参数
+ *   （history.replaceState，零整页刷新，SSR 无害）。
+ */
+export function AuthUrlGate() {
+  const searchParams = useSearchParams();
+  const shouldOpen = shouldAutoOpenAuth(searchParams.get("auth"));
+
+  useEffect(() => {
+    if (!shouldOpen) return;
+    openAuthSheet();
+  }, [shouldOpen]);
+
+  useEffect(() => {
+    if (!shouldOpen) return;
+    const sheetSel = '[data-testid="auth-sheet"]';
+    let seenSheet = false;
+    const observer = new MutationObserver(() => {
+      if (typeof document === "undefined") return;
+      const present = !!document.querySelector(sheetSel);
+      if (present) {
+        seenSheet = true;
+        return;
+      }
+      if (seenSheet) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("auth");
+        window.history.replaceState(null, "", url.pathname + url.search);
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [shouldOpen]);
+
+  return null;
+}
 
 export default function Home() {
   const screen = useAppStore((s) => s.screen);
@@ -141,6 +191,11 @@ export default function Home() {
 
       {/* 方案 A：空间毛玻璃登录抽屉（全局呼出 oto:auth-open，前台零整页跳出） */}
       <AuthSheet />
+
+      {/* auth=open|login URL 门卫：落地 → 自动唤起抽屉；抽屉关闭 → 清除 URL 参数 */}
+      <Suspense fallback={null}>
+        <AuthUrlGate />
+      </Suspense>
 
       {/* 数据源徽章：全屏面常驻（HomePage 内不再单独挂） */}
       <EnvBadge />
