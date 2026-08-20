@@ -94,17 +94,68 @@ export function describeBizParamRows(bizParams: Record<string, unknown> | undefi
   });
 }
 
+/** 拟物参数图标映射（键名子串匹配，大小写不敏感；缺省 ⚙️ 兜底）。 */
+const PARAM_ICON_RULES: Array<[string, string]> = [
+  ["area", "🌾"],
+  ["mu", "📐"],
+  ["crop", "🌱"],
+  ["plant", "🌿"],
+  ["pesticide", "🧪"],
+  ["fertilizer", "🧫"],
+  ["drone", "🚁"],
+  ["height", "📏"],
+  ["model", "🔧"],
+  ["brand", "🏭"],
+  ["count", "🔢"],
+  ["times", "🔁"],
+  ["duration", "⏱"],
+  ["hours", "⏱"],
+  ["distance", "📏"],
+  ["date", "📅"],
+  ["time", "⏰"],
+  ["address", "📍"],
+  ["location", "📍"],
+  ["amount", "💰"],
+  ["price", "💰"],
+  ["size", "📦"],
+  ["level", "📶"],
+  ["color", "🎨"],
+  ["material", "🧱"],
+  ["power", "⚡"],
+  ["water", "💧"],
+  ["type", "🏷"],
+  ["remark", "📝"],
+  ["note", "📝"],
+  ["name", "🏷"],
+];
+
+/** 参数键 → 拟物图标（毛玻璃标签左置；无规则命中 → ⚙️）。 */
+export function paramIconOf(key: string): string {
+  const lower = key.toLowerCase();
+  for (const [rule, icon] of PARAM_ICON_RULES) {
+    if (lower.includes(rule)) return icon;
+  }
+  return "⚙️";
+}
+
 const SLOT_CSS = `
 .dyn-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
   background:linear-gradient(135deg,var(--theme-surface-tint),rgba(123,97,255,.06));
   border:1px solid var(--theme-border);color:#e2e8f0;font-size:13px}
 .dyn-slot h4{margin:0 0 6px;font-size:14px;color:#67e8f9}
 .dyn-meta{font-size:11px;color:#94a3b8}
-.dyn-params{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
-.dyn-param{display:flex;justify-content:space-between;gap:8px;font-size:12px}
-.dyn-param b{color:#cbd5e1;font-weight:600}
-.dyn-param span{color:#94a3b8;text-align:right;word-break:break-all}
+.dyn-params{display:flex;flex-direction:column;gap:6px;padding:10px 11px;border-radius:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)}
+.dyn-param{display:flex;align-items:center;gap:9px;font-size:12px;padding:8px 9px;border-radius:12px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.dyn-param-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:15px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.08));
+  border:1px solid var(--theme-border)}
+.dyn-param b{color:#e2e8f0;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:11.5px}
+.dyn-param span{color:#94a3b8;text-align:right;word-break:break-all;font-weight:600}
 .dyn-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dyn-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
   display:flex;align-items:center;justify-content:center;font-size:11px;color:#94a3b8;
@@ -189,12 +240,16 @@ export default function DynamicAmmoSlot({
         {paramRows.length > 0 ? (
           paramRows.map((row) => (
             <div key={row.key} className="dyn-param" data-param={row.key}>
+              <span className="dyn-param-icon" data-param-icon aria-hidden="true">
+                {paramIconOf(row.key)}
+              </span>
               <b>{row.key}</b>
               <span>{row.display}</span>
             </div>
           ))
         ) : (
           <div className="dyn-param" data-empty-params>
+            <span className="dyn-param-icon" aria-hidden="true">⚙️</span>
             <b>自定义参数</b>
             <span>未固化</span>
           </div>

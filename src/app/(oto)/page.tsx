@@ -28,6 +28,7 @@ import PublishSheet from "@/components/waves/PublishSheet";
 import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
+import { listAmmoPillDescriptors } from "@/ammo/registry";
 import {
   formatActivityTime,
   otoActivities,
@@ -156,6 +157,8 @@ function HomePage() {
   useEffect(() => {
     lockEdgeGesture(showCart || draft !== null || publishOpen);
   }, [showCart, draft, publishOpen]);
+  /** 弹药胶囊栏（注册表单一真理源：官方四枚 + 动态池热注弹药，工厂上新首页自动长出）。 */
+  const ammoPills = useMemo(() => listAmmoPillDescriptors(), []);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
@@ -262,6 +265,40 @@ function HomePage() {
             发出你的需求
           </span>
         </motion.button>
+
+        {/* 弹药胶囊栏：注册表动态驱动（官方四枚 + 动态池热注；每枚挂 data-ammo / data-theme
+            主题色作用域 —— 点击精准唤起对应弹药拟物草稿卡） */}
+        <div
+          className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-0.5"
+          data-layer="ammo-pills"
+          data-testid="ammo-pill-bar"
+        >
+          {ammoPills.map((pill) => (
+            <motion.button
+              key={pill.ammoId}
+              whileTap={{ scale: 0.95 }}
+              onClick={() =>
+                setDraft({ key: pill.label, label: pill.label })
+              }
+              data-ammo={pill.ammoId}
+              data-category={pill.category}
+              data-theme={pill.theme}
+              aria-label={`${pill.label} · 一键弹药发单`}
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full glass-panel-interactive transition-[border,transform]"
+              style={{
+                borderColor: "var(--theme-border)",
+                boxShadow: `0 2px 12px -3px var(--theme-glow), inset 0 1px 0 rgba(255,255,255,0.35)`,
+                background:
+                  "linear-gradient(135deg, var(--theme-surface-tint), rgba(255,255,255,0.05))",
+              }}
+            >
+              <span className="text-sm leading-none">{pill.icon}</span>
+              <span className="text-[11px] font-extrabold text-white/90 whitespace-nowrap">
+                {pill.label}
+              </span>
+            </motion.button>
+          ))}
+        </div>
 
         {/* AI 意图中枢：4 大意图快捷气泡 + 统一输入框（文本 / 按住说话 / 发送）——
             ChatPage compact 融合嵌入，多轮澄清与转正式订单能力 100% 保留 */}

@@ -9,6 +9,9 @@ import {
   DEFAULT_AMMO,
   getAmmoDefinition,
   isConfiguredCategory,
+  listAmmoPillDescriptors,
+  listRegisteredAmmos,
+  resolveAmmoRequirementForText,
   toDispatchRule,
   toFuzePolicy,
   toPricingModel,
@@ -106,4 +109,61 @@ test("四表聚合互不污染：家政与遛狗计价/派单不同", () => {
   const 遛狗 = getAmmoDefinition("遛狗遛弯");
   assert.notDeepEqual(家政.pricingModel, 遛狗.pricingModel);
   assert.notEqual(家政.dispatchRule?.weights.distance, 遛狗.dispatchRule?.weights.distance);
+});
+
+test("listRegisteredAmmos：官方四唯一弹药（别名键去重不重复计）", () => {
+  const ammos = listRegisteredAmmos();
+  const ammoIds = ammos.map((a) => a.ammoId);
+  assert.equal(ammoIds.length, new Set(ammoIds).size, "不得出现重复 ammoId");
+  for (const id of [
+    "housekeeping-v1",
+    "meetup-social-v1",
+    "companion-v1",
+    "appliance-repair-v1",
+  ]) {
+    assert.ok(ammoIds.includes(id), `应包含 ${id}`);
+  }
+  // OFFICIAL_AMMO 别名键（dating/escort/social/APPLIANCE_REPAIR）指向同一产物，不得重复计数
+  assert.ok(ammoIds.filter((id) => id === "companion-v1").length === 1);
+});
+
+test("listAmmoPillDescriptors：官方四枚胶囊元数据（图标/名称/主题）", () => {
+  const pills = listAmmoPillDescriptors();
+  const byId = new Map(pills.map((p) => [p.ammoId, p]));
+  assert.deepEqual(byId.get("housekeeping-v1")?.label, "家政保洁");
+  assert.deepEqual(byId.get("housekeeping-v1")?.icon, "🧽");
+  assert.deepEqual(byId.get("housekeeping-v1")?.theme, "housekeeping");
+  assert.deepEqual(byId.get("meetup-social-v1")?.label, "组局社交");
+  assert.deepEqual(byId.get("meetup-social-v1")?.icon, "🏸");
+  assert.deepEqual(byId.get("meetup-social-v1")?.theme, "meetup");
+  assert.deepEqual(byId.get("companion-v1")?.label, "陪伴交友");
+  assert.deepEqual(byId.get("companion-v1")?.icon, "📷");
+  assert.deepEqual(byId.get("companion-v1")?.theme, "companion");
+  assert.deepEqual(byId.get("appliance-repair-v1")?.label, "家电维修");
+  assert.deepEqual(byId.get("appliance-repair-v1")?.icon, "🔧");
+  assert.deepEqual(byId.get("appliance-repair-v1")?.theme, "default", "appliance-repair 目前声明 theme=default");
+  assert.equal(pills.length, 4, "无动态池时胶囊 = 官方四枚");
+});
+
+test("listAmmoPillDescriptors：limit 截断生效（默认仅官方四枚）", () => {
+  const limited = listAmmoPillDescriptors(2);
+  assert.equal(limited.length, 2);
+  assert.deepEqual(limited[0].ammoId, "housekeeping-v1");
+});
+
+test("resolveAmmoRequirementForText：注册表单一真理源文本→门槛", () => {
+  const hk = resolveAmmoRequirementForText("深度保洁 · 180㎡");
+  assert.ok(hk);
+  assert.deepEqual(hk.requiredCertificates, ["HEALTH_CERT"]);
+  assert.deepEqual(hk.minSafetyScore, 60);
+  assert.deepEqual(hk.isPoliceVerified, true);
+  const mu = resolveAmmoRequirementForText("羽毛球 4 人双打");
+  assert.deepEqual(mu?.requiredIdentityLevel, "BASIC");
+  const tech = resolveAmmoRequirementForText("空调坏了，需要修空调");
+  assert.deepEqual(tech?.requiredCertificates, [
+    "ELECTRICIAN_CERT",
+    "APPLIANCE_MAINTENANCE_CERT",
+  ]);
+  assert.equal(resolveAmmoRequirementForText("日系写真 · 滨江"), undefined, "写实类不在注册表别名 → 无门槛");
+  assert.equal(resolveAmmoRequirementForText("无关文本"), undefined);
 });

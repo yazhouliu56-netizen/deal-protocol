@@ -1,14 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, CircleDollarSign, Clock3, Inbox, Power, ShieldAlert, Star } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
 import {
   useAppStore,
   WORKER_PROFILES,
   type WorkerOrder,
 } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { housekeepingAmmo } from "@/ammo/housekeeping.ammo";
+import {
+  listRegisteredAmmos,
+  listAmmoPillDescriptors,
+  resolveAmmoRequirementForText,
+} from "@/ammo/registry";
 import type { IWorkerRequirement, ICustomRequirements } from "@/types/ammo-schema";
 
 function priceToNumber(price: string): number {
@@ -28,10 +32,11 @@ const WORKER_QUALIFICATIONS: Record<
     safetyScore: number;
     certificates: string[];
     age: number;
+    isPoliceVerified: boolean;
   }
 > = {
-  kail: { identityLevel: "REAL_NAME", safetyScore: 82, certificates: [], age: 25 },
-  wang: { identityLevel: "REAL_NAME", safetyScore: 91, certificates: ["HEALTH_CERT"], age: 45 },
+  kail: { identityLevel: "REAL_NAME", safetyScore: 82, certificates: [], age: 25, isPoliceVerified: false },
+  wang: { identityLevel: "REAL_NAME", safetyScore: 91, certificates: ["HEALTH_CERT"], age: 45, isPoliceVerified: true },
 };
 
 /** 演示需求方定制声明：期望服务者年龄 20-30 岁（语义驯化产物演示位）。 */
@@ -51,8 +56,19 @@ export function evaluateWorkerQualification(
   const q = WORKER_QUALIFICATIONS[profileId];
   if (!q) return ["资质档案缺失"];
   const missing: string[] = [];
-  if (requirement.requiredIdentityLevel && q.identityLevel !== requirement.requiredIdentityLevel) {
+  const IDENTITY_RANK: Record<string, number> = {
+    BASIC: 0,
+    REAL_NAME: 1,
+    POLICE_VERIFIED: 2,
+  };
+  if (
+    requirement.requiredIdentityLevel &&
+    (IDENTITY_RANK[q.identityLevel] ?? -1) < IDENTITY_RANK[requirement.requiredIdentityLevel]
+  ) {
     missing.push(`需实名等级 ${requirement.requiredIdentityLevel}（当前 ${q.identityLevel}）`);
+  }
+  if (requirement.isPoliceVerified && !q.isPoliceVerified) {
+    missing.push("需公安核验通过（扫脸比对公安底库）");
   }
   if (
     requirement.minSafetyScore !== undefined &&
@@ -93,19 +109,24 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
   const completed = mine.filter((o) => o.status === "completed");
   const income = completed.reduce((sum, o) => sum + priceToNumber(o.price), 0);
   const incoming = workerOrders.reduce((sum, o) => sum + priceToNumber(o.price), 0);
-  const qualificationMissing = evaluateWorkerQualification(
-    providerId,
-    housekeepingAmmo.workerRequirement,
-    DEMO_AGE_GATE,
-  );
-  const qualified = qualificationMissing.length === 0;
 
-  /** 工作台演示订单 → 弹药准入门槛：仅家政单走 housekeeping-v1 供给门槛
-   *  （健康证等）；羽毛球/写真相机单无证书门槛（S1 R_AUTH 按弹药判定的粒度）。 */
+  /** 资质看板判定（登记表驱动）：housekeeping 卡叠加演示年龄定制（既有语义保留）。 */
+  const ammoQualification = (ammo: (typeof registeredAmmos)[number]) => {
+    const custom = ammo.ammoId === "housekeeping-v1" ? DEMO_AGE_GATE : undefined;
+    const missing = evaluateWorkerQualification(providerId, ammo.workerRequirement, custom);
+    return { missing, qualified: missing.length === 0 };
+  };
+
+  /** 全弹药注册表（单一真理源）：工作台资质看板 + 订单门槛匹配均由此驱动。 */
+  const registeredAmmos = useMemo(() => listRegisteredAmmos(), []);
+  const ammoPills = useMemo(() => {
+    const map = new Map(listAmmoPillDescriptors().map((p) => [p.ammoId, p]));
+    return map;
+  }, []);
+
+  /** 订单服务文本 → 弹药准入门槛（注册表中文别名/官方映射只读匹配，零手写业务词）。 */
   const requirementFor = (order: WorkerOrder) =>
-    order.service.includes("保洁")
-      ? housekeepingAmmo.workerRequirement
-      : undefined;
+    resolveAmmoRequirementForText(order.service);
 
   /** 订单级准入缺项：无门槛弹药 → 达标；家政单 → 对照资质档案与年龄定制。 */
   const missingFor = (order: WorkerOrder) =>
@@ -197,32 +218,64 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
         </div>
       </motion.div>
 
-      {/* S1 R_AUTH 供给端准入拦截（动态资质校验） */}
-      {!qualified && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3"
-          data-auth-gate="blocked"
-        >
-          <div className="flex items-center gap-2 text-[11px] font-bold text-red-300">
-            <ShieldAlert size={13} /> 需补齐资质认证后方可承接家政上门订单
-          </div>
-          <ul className="mt-1.5 flex flex-col gap-1 text-[10px] text-white/55">
-            {qualificationMissing.map((m) => (
-              <li key={m}>· {m}</li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
-      {qualified && (
-        <div
-          className="rounded-2xl border border-emerald-400/25 bg-emerald-400/8 px-4 py-2.5 text-[10.5px] text-emerald-300 flex items-center gap-2"
-          data-auth-gate="passed"
-        >
-          <Check size={12} /> 资质已达标（实名 + 安全背调 + 健康证），可承接家政上门订单
+      {/* S1 R_AUTH 全弹药资质准入看板（注册表单一真理源：每个当前注册弹药
+          的 workerRequirement 均跑一遍资质审查，工厂热注新弹药自动长出卡片） */}
+      <section data-testid="ammo-qualification-board">
+        <SectionTitle icon={<BadgeCheck size={12} className="text-brandCyan" />} title={`全弹药资质准入（${registeredAmmos.length}）`} />
+        <div className="grid grid-cols-2 gap-2">
+          {registeredAmmos.map((ammo) => {
+            const pill = ammoPills.get(ammo.ammoId);
+            const { missing, qualified } = ammoQualification(ammo);
+            return (
+              <motion.div
+                key={ammo.ammoId}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                data-ammo={ammo.ammoId}
+                data-qualified={qualified}
+                className={`rounded-2xl border p-2.5 flex flex-col gap-1.5 ${
+                  qualified
+                    ? "border-emerald-400/25 bg-emerald-400/[0.06]"
+                    : "border-red-400/25 bg-red-400/[0.07]"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-sm leading-none shrink-0">{pill?.icon ?? "⚡"}</span>
+                  <span className="text-[11px] font-extrabold text-white/90 truncate flex-1">
+                    {pill?.label ?? ammo.category}
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold shrink-0 px-1.5 py-px rounded-full border ${
+                      qualified
+                        ? "text-emerald-300 border-emerald-400/30 bg-emerald-400/10"
+                        : "text-red-300 border-red-400/30 bg-red-400/10"
+                    }`}
+                  >
+                    {qualified ? "已达标" : "未达标"}
+                  </span>
+                </div>
+                <p className="text-[9px] text-white/35 truncate">{ammo.ammoId}</p>
+                {!ammo.workerRequirement ? (
+                  <p className="text-[9.5px] text-white/45">无门槛 · 通用可接单</p>
+                ) : missing.length > 0 ? (
+                  <ul className="flex flex-col gap-0.5">
+                    {missing.slice(0, 3).map((m) => (
+                      <li key={m} className="text-[9px] text-white/60 leading-tight">
+                        · {m}
+                      </li>
+                    ))}
+                    {missing.length > 3 && (
+                      <li className="text-[9px] text-white/40">+{missing.length - 3} 项待补齐</li>
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-[9.5px] text-emerald-300/90">✅ 资质已达标 · 可接单</p>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
-      )}
+      </section>
 
       {/* 待接单 */}
       <section>

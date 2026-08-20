@@ -17,9 +17,11 @@ import type {
   IAmmoDefinition,
   IAmmoSopOverrides,
   IDispatchRule,
+  IWorkerRequirement,
   PricingModel,
 } from "../types/ammo-schema.ts";
 import type { IFuzePolicy } from "../types/fuze-policy.ts";
+import type { ScenarioTheme } from "../types/ui-viewport.ts";
 import { DEFAULT_FUZE_POLICY, IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { pricingForCategory, CATEGORY_PRICING, type PricingFormula } from "./pricing-formula.ts";
 import { dispatchRuleFor, CATEGORY_DISPATCH } from "./dispatch-rule.ts";
@@ -256,4 +258,92 @@ export function getAmmoById(ammoId: string): IAmmoDefinition {
   const hit = Object.values(OFFICIAL_AMMO).find((a) => a.ammoId === ammoId);
   if (hit) return hit;
   return getAmmoDefinition(ammoId);
+}
+
+/**
+ * 首页品类胶囊展示元数据（唯一弹药 → 胶囊名 / 拟物图标；注册表即单一真理源，
+ * 严禁 .tsx 页面手写品类数组——工厂热注新弹药后首页自动长出新入口）。
+ */
+const PILL_META: Record<string, { label: string; icon: string }> = {
+  "housekeeping-v1": { label: "家政保洁", icon: "🧽" },
+  "meetup-social-v1": { label: "组局社交", icon: "🏸" },
+  "companion-v1": { label: "陪伴交友", icon: "📷" },
+  "appliance-repair-v1": { label: "家电维修", icon: "🔧" },
+};
+
+/**
+ * 弹药主题令牌归一（注册表侧与 D-8 视界契约同语义：白名单四弹 + default 直通，
+ * 未知/缺失安全回落 default——供胶囊主题色投影）。
+ */
+function pillThemeOf(ammo: IAmmoDefinition): ScenarioTheme {
+  const t = ammo.holographic?.theme;
+  return t === "housekeeping" || t === "meetup" || t === "companion" || t === "tech"
+    ? t
+    : "default";
+}
+
+/**
+ * 全量注册弹药聚合（单一真理源，演示/工作台/首页共用）：
+ * 官方标杆弹药按 ammoId 去重（别名键不重复计）+ DYNAMIC_AMMO_POOL 全部热注弹药。
+ */
+export function listRegisteredAmmos(): IAmmoDefinition[] {
+  const seen = new Set<string>();
+  const out: IAmmoDefinition[] = [];
+  const push = (ammo: IAmmoDefinition) => {
+    if (seen.has(ammo.ammoId)) return;
+    seen.add(ammo.ammoId);
+    out.push(ammo);
+  };
+  for (const ammo of Object.values(OFFICIAL_AMMO)) push(ammo);
+  for (const ammo of DYNAMIC_AMMO_POOL.values()) push(ammo);
+  return out;
+}
+
+/**
+ * 首页品类胶囊描述符（弹药表驱动零硬编码）：
+ * 官方四枚（图标/中文名取注册表元数据）在前，动态池弹药随注册顺序追加
+ * （图标缺省 ⚡，中文名取弹药声明的第一个别名，主题令牌经 pillThemeOf 归一）。
+ * `limit` 控制首页展示上限（默认 8：官方 4 + 动态池前 4，杜绝长尾爆棚）。
+ */
+export function listAmmoPillDescriptors(
+  limit = 8,
+): Array<{ ammoId: string; category: string; label: string; icon: string; theme: ScenarioTheme }> {
+  return listRegisteredAmmos()
+    .slice(0, limit)
+    .map((ammo) => {
+      const meta = PILL_META[ammo.ammoId];
+      return {
+        ammoId: ammo.ammoId,
+        category: ammo.category,
+        label:
+          meta?.label ??
+          ammo.holographic?.aliases?.[0] ??
+          ammo.category ??
+          ammo.ammoId,
+        icon: meta?.icon ?? "⚡",
+        theme: pillThemeOf(ammo),
+      };
+    });
+}
+
+/**
+ * 订单服务文本 → 弹药准入门槛（工作台订单级判定，注册表单一真理源）：
+ * 中文类目映射键子串命中（「深度保洁」→ 家政门槛）→ 官方弹药门槛；
+ * 动态池弹药中文别名子串命中 → 动态门槛；未命中无门槛（通用可接单）。
+ */
+export function resolveAmmoRequirementForText(
+  text: string,
+): IWorkerRequirement | undefined {
+  for (const [category, officialKey] of Object.entries(CATEGORY_TO_OFFICIAL)) {
+    if (category && text.includes(category)) {
+      return OFFICIAL_AMMO[officialKey]?.workerRequirement;
+    }
+  }
+  for (const ammo of DYNAMIC_AMMO_POOL.values()) {
+    const aliases = ammo.holographic?.aliases;
+    if (aliases && aliases.some((a) => text.includes(a))) {
+      return ammo.workerRequirement;
+    }
+  }
+  return undefined;
 }
