@@ -9,7 +9,6 @@ import ProfilePage from "@/components/oto-ui/profile/ProfilePage";
 import FloatingDock from "@/components/oto-ui/FloatingDock";
 import GlassCard from "@/components/oto-ui/GlassCard";
 import GlassIconButton from "@/components/oto-ui/GlassIconButton";
-import OtoBadge from "@/components/oto-ui/OtoBadge";
 import AuthSheet from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
@@ -29,18 +28,12 @@ import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationShe
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
-import {
-  formatActivityTime,
-  otoActivities,
-  otoExperiences,
-  type OTOActivity,
-} from "@/lib/mockData";
+import { otoExperiences } from "@/lib/mockData";
 import {
   Camera,
   Check,
   ChevronRight,
   Info,
-  MapPin,
   Navigation,
   Rotate3d,
   ShoppingBag,
@@ -300,11 +293,13 @@ function HomePage() {
           ))}
         </div>
 
-        {/* AI 意图中枢：4 大意图快捷气泡 + 统一输入框（文本 / 按住说话 / 发送）——
-            ChatPage compact 融合嵌入，多轮澄清与转正式订单能力 100% 保留 */}
+        {/* AI 发单中枢（slim 灭双头怪）：常驻发单对话框（文本输入 + 按住说话 + 发射按钮）+ 限高消息流
+            重复的 AI 撮合标题 / 四大意图气泡 / 初始重播问候卡在 slim 模式下收敛隐藏；
+            多轮澄清与订单卡转化能力 100% 保留；文本/语音意图命中弹药 → 原地展开拟物草稿卡 */}
         <div className="mt-2.5">
           <ChatPage
             compact
+            slim
             onAmmoDraft={(key, category) => setDraft({ key, label: category })}
           />
         </div>
@@ -868,60 +863,134 @@ function ARPage({
 }
 
 /* ============================ TRIP ============================ */
+/** Trip 屏：以通用五态履约座舱为唯一核心的行程与活动订单中枢（旅游假数据已彻底出清）。 */
 function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[] }) {
-  const tabs = ["行程", "AR 指南", "地图视图", "分享行程"];
-  const [activeTab, setActiveTab] = useState("行程");
-  const [shareCopied, setShareCopied] = useState(false);
   const bookings = useAppStore((s) => s.bookings);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const setScreen = useAppStore((s) => s.setScreen);
+  const waves = useWaveStore((s) => s.waves);
+  const identity = useIdentityStore((s) => s.identity);
 
-  const sortedActivities = useMemo(
-    () =>
-      [...otoActivities].sort(
-        (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-      ),
-    []
-  );
+  /** 当前用户进行中订单（与 FulfillmentCenter 同源投影：决定顶部渲染座舱还是空态）。 */
+  const activeOrder = useMemo(() => {
+    const mine = waves.filter(
+      (w) =>
+        w.authorId === identity.id &&
+        w.status !== "closed" &&
+        w.status !== "expired" &&
+        w.status !== "pending" &&
+        !w.removed,
+    );
+    return mine[0] ?? null;
+  }, [waves, identity.id]);
 
   function openOrder(bookingId: string) {
     setSelectedBooking(bookingId);
     setScreen("profile");
   }
 
-  function goTripHome() {
-    setActiveTab("行程");
-  }
+  const upcoming = bookings.filter((b) => b.status === "upcoming");
 
   return (
     <div className="pointer-events-auto">
-      {/* W3 总装：进行中订单（MATCHED / IN_SERVICE / INSPECTED）→ 顶部主视口优先渲染履约座舱 */}
+      {/* 核心视口：进行中订单 → 通用五态履约座舱（无进行中单则由 FulfillmentCenter 自隐藏） */}
       <FulfillmentCenter evidencePhotos={proofShots} />
+
+      {/* 无进行中订单 → 极简科技感雷达空态 */}
+      {!activeOrder && (
+        <div className="mt-2 glass-panel rounded-3xl p-6 flex flex-col items-center text-center"
+          data-testid="trip-empty-state">
+          <div className="relative w-20 h-20 flex items-center justify-center">
+            <span className="absolute inset-0 rounded-full border border-brandCyan/30 animate-ping" />
+            <span className="absolute inset-2.5 rounded-full border border-brandPurple/30" />
+            <span className="text-2xl">📡</span>
+          </div>
+          <p className="text-[12px] font-extrabold text-white/85 mt-3">
+            当前暂无进行中行程
+          </p>
+          <p className="text-[10px] text-white/45 mt-1">
+            去首页发单，或去雷达抢单 · 履约座舱在此实时接管
+          </p>
+          <button
+            onClick={() => setScreen("home")}
+            className="mt-3 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-[11px] font-bold active:scale-95 transition-[filter,transform]"
+          >
+            ✨ 去首页发单
+          </button>
+        </div>
+      )}
 
       {/* 我的需求：需求方视角（信号波 + 接单 + 磋商 + 违约） */}
       <MyWaves />
 
-      {/* 我的预订：AI 对话产生的订单汇入行程 */}
+      {/* 我的预订：AI 对话产生的真实订单汇入行程中枢 */}
       {bookings.length > 0 && (
         <div className="mt-3">
-          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
+          <span className="text-[11px] font-semibold text-white/50 mb-2 flex items-center gap-1.5">
+            <span className="w-1 h-3 rounded-full bg-linear-to-b from-brandCyan to-brandPurple" />
             我的预订
           </span>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
-            {bookings.map((b) => (
+          <div className="flex justify-between items-baseline mb-2">
+            <p className="text-[10px] text-white/40">
+              共 {bookings.length} 个真实预订 · 点按进入订单详情
+            </p>
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan font-bold">
+              履约中枢
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {upcoming.map((b) => (
               <button
                 key={b.id}
                 onClick={() => openOrder(b.id)}
-                className="shrink-0 w-44 glass-panel rounded-2xl p-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.98]"
+                className="w-full glass-panel rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"
               >
-                <span className="text-lg block">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</span>
-                <span className="text-[11.5px] font-bold text-white/90 block truncate mt-1">
-                  {b.providerName}
+                <div className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-lg shrink-0">
+                  {CATEGORY_EMOJI[b.category] ?? "🎟️"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="flex items-center gap-2">
+                    <span className="text-[12.5px] font-bold truncate">{b.title}</span>
+                    <span className="text-[9px] px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
+                      待出行
+                    </span>
+                  </span>
+                  <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                    {b.time} · {b.providerName}
+                  </p>
+                </div>
+                <span className="text-[12px] font-extrabold text-brandCyan shrink-0">
+                  {b.price}
                 </span>
-                <span className="text-[9.5px] text-white/45 block truncate mt-0.5">
-                  {b.time}
-                </span>
-                <span className="text-[11px] font-extrabold text-brandCyan block mt-1">
+              </button>
+            ))}
+            {bookings.filter((b) => b.status !== "upcoming").map((b) => (
+              <button
+                key={b.id}
+                onClick={() => openOrder(b.id)}
+                className="w-full glass-panel rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"
+              >
+                <div className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-lg shrink-0">
+                  {CATEGORY_EMOJI[b.category] ?? "🎟️"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="flex items-center gap-2">
+                    <span className="text-[12.5px] font-bold truncate">{b.title}</span>
+                    <span
+                      className={`text-[9px] px-1.5 py-px rounded-full font-semibold shrink-0 ${
+                        b.status === "cancelled"
+                          ? "bg-white/10 border border-white/20 text-white/50"
+                          : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
+                      }`}
+                    >
+                      {b.status === "cancelled" ? "已取消" : "已完成"}
+                    </span>
+                  </span>
+                  <p className="text-[10px] text-white/50 mt-0.5 truncate">
+                    {b.time} · {b.providerName}
+                  </p>
+                </div>
+                <span className="text-[12px] font-extrabold text-brandCyan shrink-0">
                   {b.price}
                 </span>
               </button>
@@ -929,311 +998,14 @@ function TripPage({ proofShots = [] }: { proofShots?: ArbitrationPhotoEvidence[]
           </div>
         </div>
       )}
-      {/* 页面标题 */}
-      <h2 className="text-[24px] leading-tight font-extrabold bg-clip-text text-transparent bg-linear-to-r from-white via-purple-200 to-brandPurple tracking-tight">
-        我的 OTO 之旅
-      </h2>
-      <p className="text-[11px] text-white/60 mt-1">
-        {bookings.length > 0
-          ? `${bookings.length} 个真实预订已入行程 · 演示活动补充`
-          : "马尔代夫 · 巴厘岛 · 3 天行程"}
-      </p>
-      {/* 3D 路线地图卡片 + 活动时间线：移动端纵向堆叠，桌面端左右并排 */}
-      <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
-        <div>
-          <div className="relative h-52 lg:h-72 rounded-3xl overflow-hidden mt-3 glass-panel-interactive bg-[rgba(13,16,32,0.45)]">
-        {/* 3D 透视街道网格 */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              linear-gradient(rgba(123, 97, 255, 0.22) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(123, 97, 255, 0.22) 1px, transparent 1px)`,
-            backgroundSize: "26px 26px",
-            transform: "perspective(600px) rotateX(58deg) scale(1.9)",
-            transformOrigin: "50% 45%",
-          }}
-        />
-        {/* 路线微光 */}
-        <div className="absolute left-[10%] top-[52%] w-3/4 h-16 bg-brandPurple/20 blur-2xl" />
 
-        {/* 轨迹线（Pin 1 → Pin 2） */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 200">
-          <defs>
-            <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#7B61FF" />
-              <stop offset="100%" stopColor="#00F0FF" />
-            </linearGradient>
-          </defs>
-          <line
-            x1="88"
-            y1="84"
-            x2="300"
-            y2="124"
-            stroke="url(#routeGrad)"
-            strokeWidth="2.5"
-            strokeDasharray="7 6"
-            strokeLinecap="round"
-          />
-        </svg>
-
-        {/* Pin 1 */}
-        <div className="absolute left-[14%] top-[30%] flex flex-col items-center gap-1">
-          <span className="px-2 py-0.5 rounded-full bg-brandPurple/30 backdrop-blur-md border border-brandPurple/50 text-[9px] font-bold">
-            Pin 1
-          </span>
-          <MapPin
-            size={22}
-            className="text-brandPurple drop-shadow-[0_0_10px_rgba(123,97,255,0.9)]"
-          />
-          <span className="text-[9px] font-semibold text-white/90 bg-white/10 backdrop-blur-md border border-white/25 rounded-full px-2 py-0.5">
-            马尔代夫
-          </span>
-        </div>
-
-        {/* Pin 2 */}
-        <div className="absolute right-[8%] bottom-[18%] flex flex-col items-center gap-1">
-          <span className="px-2 py-0.5 rounded-full bg-brandCyan/30 backdrop-blur-md border border-brandCyan/50 text-[9px] font-bold text-cyan-200">
-            Pin 2
-          </span>
-          <MapPin
-            size={22}
-            className="text-brandCyan drop-shadow-[0_0_10px_rgba(0,240,255,0.9)]"
-          />
-          <span className="text-[9px] font-semibold text-white/90 bg-white/10 backdrop-blur-md border border-white/25 rounded-full px-2 py-0.5">
-            巴厘岛
-          </span>
-        </div>
-
-        {/* 顶部徽章 */}
-        <OtoBadge tone="cyan" className="absolute top-3 right-3 px-2.5 py-1 text-[10px]">
-          3D 城市路线图 • 距离 1.2 公里
-        </OtoBadge>
-
-        {/* 底部标签 */}
-        <div className="absolute bottom-0 inset-x-0 p-3 flex items-end justify-between">
-          <div className="flex items-center gap-1 text-xs font-bold drop-shadow">
-            <MapPin size={13} className="text-brandPurple" /> 马尔代夫 ➔ 巴厘岛
-          </div>
-        </div>
-      </div>
-      </div>
-
-      {/* 右侧列：选项卡 + 活动时间线（桌面端内部滚动防溢出） */}
-      <div className="mt-4 lg:mt-3 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto lg:pr-1 no-scrollbar">
-      {/* 选项卡 */}
-      <div className="flex gap-1.5">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 rounded-xl text-[10px] font-medium transition-all ${
-              activeTab === tab
-                ? "btn-primary text-white glow-purple-strong"
-                : "glass-panel text-white/60 hover:text-white"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab 内容 */}
-      {activeTab === "行程" && (
-        <>
-          <span className="text-[11px] font-semibold text-white/50 mt-4 mb-2 block">
-            即将开展的活动
-          </span>
-          <div className="relative">
-            <div className="absolute left-[19px] top-2 bottom-2 w-px bg-linear-to-b from-brandPurple/60 via-white/20 to-brandCyan/50" />
-            <div className="space-y-3">
-              {/* 真实预订优先入时间线（AI 撮合 / waves 成局产生） */}
-              {bookings
-                .filter((b) => b.status === "upcoming")
-                .map((b) => (
-                  <div key={b.id} className="flex items-start gap-3">
-                    <div className="relative shrink-0 mt-0.5">
-                      <div className="w-10 h-10 rounded-2xl glass-panel flex items-center justify-center">
-                        <span className="text-base">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => openOrder(b.id)}
-                      className="flex-1 glass-panel p-3 rounded-2xl text-left hover:border-brandCyan/50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold text-brandCyan tracking-wide">
-                          {b.time}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] text-white/50">
-                          <Check size={10} className="text-emerald-400" />
-                          <span className="truncate max-w-[120px]">已确认</span>
-                        </span>
-                      </div>
-                      <h4 className="text-xs font-bold mt-1.5 truncate">{b.title}</h4>
-                      <p className="text-[10px] text-white/50 truncate">{b.providerName}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold">
-                          {b.price}
-                        </span>
-                        <span className="text-[10px] text-white/40">点按查看订单</span>
-                      </div>
-                    </button>
-                  </div>
-                ))}
-              {sortedActivities.map((act) => (
-                <ActivityRow
-                  key={act.id}
-                  activity={act}
-                  onNavigate={() => {
-                    setActiveTab("地图视图");
-                    toast(`🧭 已规划导航路线 · 下一站 ${act.title}（${act.location}）`, "success");
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === "AR 指南" && (
-        <div className="mt-4 space-y-2.5">
-          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
-            🥽 落地即开 · 每站一条 AR 指南
-          </span>
-          {sortedActivities.map((act, i) => (
-            <div
-              key={act.id}
-              className="flex items-center gap-3 glass-panel rounded-2xl p-3"
-            >
-              <div className="w-10 h-10 rounded-2xl glass-panel flex items-center justify-center text-lg shrink-0">
-                {act.type === "adventure" ? "🤿" : act.type === "cruise" ? "🚤" : act.type === "dining" ? "🍽️" : "🏝️"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-bold truncate">{act.title}</h4>
-                <p className="text-[10px] text-white/50 truncate">
-                  {formatActivityTime(act.time)} · {act.location}
-                </p>
-              </div>
-              <span className="text-[9px] font-bold px-2 py-1 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan shrink-0">
-                AR 导航 {i + 1}/{sortedActivities.length}
-              </span>
-            </div>
-          ))}
-          <p className="text-[9px] text-white/35 pt-1">
-            到站后打开相机，光点会引导你找到集合点与向导 🤖
+      {bookings.length === 0 && (
+        <div className="mt-4 glass-panel rounded-2xl p-4 text-center">
+          <p className="text-[11px] text-white/40">
+            还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢
           </p>
         </div>
       )}
-
-      {activeTab === "地图视图" && (
-        <div className="mt-4">
-          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
-            🗺️ 全览地图 · 马尔代夫 ⇄ 巴厘岛
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {sortedActivities.map((act, i) => (
-              <div
-                key={act.id}
-                className="glass-panel rounded-2xl p-2.5 text-center"
-              >
-                <span className="text-base">{act.type === "adventure" ? "🤿" : act.type === "cruise" ? "🚤" : act.type === "dining" ? "🍽️" : "🏝️"}</span>
-                <p className="text-[10px] font-bold text-white/85 mt-1 truncate">{act.title}</p>
-                <p className="text-[9px] text-white/40">{act.location}</p>
-                <span className="inline-block mt-1.5 text-[8.5px] font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/40 text-brandPurple">
-                  Pin {i + 1}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2.5 flex items-center gap-1.5 text-[9.5px] text-white/45">
-            <MapPin size={10} className="text-brandPurple" />
-            共 {sortedActivities.length} 站 · 直线距离 1,200 km · 全程 3 天
-          </div>
-        </div>
-      )}
-
-      {activeTab === "分享行程" && (
-        <div className="mt-4">
-          <span className="text-[11px] font-semibold text-white/50 mb-2 block">
-            📤 分享给同行人
-          </span>
-          <div className="glass-panel rounded-2xl p-3.5">
-            <p className="text-[11px] font-bold text-white/90">
-              我的 OTO 之旅 · 马尔代夫 ⇄ 巴厘岛
-            </p>
-            <p className="text-[9.5px] text-white/45 mt-0.5">
-              3 天 4 站 · {sortedActivities[0] ? formatActivityTime(sortedActivities[0].time) : ""} 出发
-            </p>
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => setShareCopied(true)}
-                className="flex-1 py-2 rounded-xl btn-primary text-[10.5px] font-bold glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
-              >
-                {shareCopied ? "✓ 已复制" : "复制行程链接"}
-              </button>
-              <button
-                onClick={() => goTripHome()}
-                className="flex-1 py-2 rounded-xl glass-panel text-[10.5px] font-bold text-white/80 hover:text-white transition-colors"
-              >
-                ✈️ 继续安排
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 探索更多 */}
-      <button
-        onClick={() => setScreen("home")}
-        className="mt-5 w-full py-2.5 rounded-2xl glass-panel text-xs font-semibold text-white/80 flex items-center justify-center gap-1.5 hover:border-brandPurple/50 transition-colors"
-      >
-        <Sparkles size={13} className="text-brandPurple" /> 预约更多线下体验
-      </button>
-      </div>
-      </div>
-    </div>
-  );
-}
-
-function ActivityRow({
-  activity,
-  onNavigate,
-}: {
-  activity: OTOActivity;
-  onNavigate?: () => void;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      {/* 时间线节点 */}
-      <div className="relative shrink-0 mt-0.5">
-        <div className="w-10 h-10 rounded-2xl glass-panel flex items-center justify-center">
-          <Sparkles size={15} className="text-brandCyan" />
-        </div>
-      </div>
-      {/* 卡片 */}
-      <div className="flex-1 glass-panel p-3 rounded-2xl hover:border-brandPurple/50 transition-colors">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold text-brandCyan tracking-wide">
-            {formatActivityTime(activity.time)}
-          </span>
-          <span className="flex items-center gap-1 text-[10px] text-white/50">
-            <MapPin size={10} className="text-brandPurple" />
-            <span className="truncate max-w-[120px]">{activity.location}</span>
-          </span>
-        </div>
-        <h4 className="text-xs font-bold mt-1.5 truncate">{activity.title}</h4>
-        <p className="text-[10px] text-white/50 truncate">{activity.subtitle}</p>
-        <div className="flex items-center gap-2 mt-2">
-          <button
-            onClick={onNavigate}
-            className="flex items-center gap-1 px-2.5 min-h-8 rounded-full border border-brandCyan/40 text-brandCyan text-[10px] font-semibold hover:bg-brandCyan/10 transition-colors"
-          >
-            <Navigation size={10} /> 导航
-          </button>
-          <span className="text-[10px] text-white/40">{activity.location}</span>
-        </div>
-      </div>
     </div>
   );
 }

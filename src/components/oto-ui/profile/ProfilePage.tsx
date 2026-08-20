@@ -33,6 +33,7 @@ import DynamicFormView, { type FormField, type FormValues } from "@/components/o
 import SeniorModeView from "@/components/oto-ui/SeniorModeView";
 import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
 import SafetyKit from "@/components/waves/SafetyKit";
+import ProfileDrawer from "./ProfileDrawer";
 import {
   readAuthAccount,
   openAuthSheet,
@@ -91,6 +92,8 @@ export default function ProfilePage({
 
   const [showReviewFor, setShowReviewFor] = useState<string | null>(null);
   const [view, setView] = useState<"profile" | "workbench">("profile");
+  /** 3 大抽屉式二级菜单（信息架构重组：18 层平铺 → 安全中心 / 隐私合规 / 系统设置）。 */
+  const [drawer, setDrawer] = useState<null | "safety" | "privacy" | "system">(null);
   const setAvatar = useIdentityStore((s) => s.setAvatar);
   const setAge = useIdentityStore((s) => s.setAge);
   const quietPref = useQuietPrefStore((s) => s.pref);
@@ -172,9 +175,8 @@ export default function ProfilePage({
   const reviewed = reviews.length;
 
   return (
-    <div className="pointer-events-auto flex flex-col gap-4">
-      {/* G-5 访客引导：数据来源 + 本地模式入口（登录后提示云端，由数据化替换）
-          方案 A：未登录 → 呼出 AuthSheet 登录；已登录 → 切换/退出账号 */}
+    <div className="pointer-events-auto flex flex-col gap-3">
+      {/* 访客/登录行：数据来源 + 本地模式入口（G-5；登录后提示云端由数据化替换） */}
       <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25">
         <span className="text-[11px]">💠</span>
         <p className="flex-1 min-w-0 text-[9.5px] text-white/55">
@@ -209,7 +211,7 @@ export default function ProfilePage({
         )}
       </div>
 
-      {/* 资料卡 */}
+      {/* 用户主身份卡（头像 / 昵称 / 认证状态 / 会员标识） */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,26 +248,31 @@ export default function ProfilePage({
         </span>
       </motion.div>
 
-      {/* 统计 */}
-      <div className="grid grid-cols-3 gap-2.5">
-        {[
-          { label: "总订单", value: bookings.length },
-          { label: "待出行", value: upcoming },
-          { label: "已评价", value: reviewed },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="glass-panel rounded-2xl py-3 flex flex-col items-center gap-0.5"
-          >
-            <span className="text-lg font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
-              {s.value}
-            </span>
-            <span className="text-[10px] text-white/50">{s.label}</span>
-          </div>
-        ))}
+      {/* 资产与钱包卡（总订单 / 待出行 / 已评价 + 点账钱包余额 / 信用等级 / 充值提现） */}
+      <div className="glass-panel rounded-3xl p-3.5">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "总订单", value: bookings.length },
+            { label: "待出行", value: upcoming },
+            { label: "已评价", value: reviewed },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-2xl bg-white/[0.04] border border-white/10 py-2.5 flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
+                {s.value}
+              </span>
+              <span className="text-[10px] text-white/50">{s.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3">
+          <WalletView />
+        </div>
       </div>
 
-      {/* 服务者工作台入口 */}
+      {/* 服务者工作台入口卡（四大工种资质准入全景看板） */}
       <button
         onClick={() => setView("workbench")}
         className="glass-panel rounded-2xl p-3.5 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"
@@ -276,33 +283,37 @@ export default function ProfilePage({
         <div className="flex-1 min-w-0">
           <span className="text-[12.5px] font-bold block">服务者工作台</span>
           <span className="text-[10px] text-white/50 block mt-0.5 truncate">
-            切到服务者视角 · 接单 / 履约 / 收益
+            切到服务者视角 · 资质准入 / 接单 / 履约 / 收益
           </span>
         </div>
         <span className="text-white/30 text-lg shrink-0">›</span>
       </button>
 
-      {/* P2P 钱包与信用前台 */}
-      <WalletView />
+      {/* 3 大抽屉式二级菜单入口（安全中心 / 隐私合规 / 系统设置） */}
+      <div className="grid grid-cols-3 gap-2" data-testid="drawer-entries">
+        {(
+          [
+            { key: "safety", icon: "🛡️", title: "安全中心", sub: "求助·防护" },
+            { key: "privacy", icon: "🔒", title: "隐私合规", sub: "分级·脱敏" },
+            { key: "system", icon: "⚙️", title: "系统设置", sub: "偏好·备份" },
+          ] as const
+        ).map((d) => (
+          <button
+            key={d.key}
+            onClick={() => setDrawer(d.key)}
+            data-testid={`drawer-entry-${d.key}`}
+            className="min-h-16 glass-panel-interactive rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+          >
+            <span className="text-base leading-none">{d.icon}</span>
+            <span className="text-[10.5px] font-extrabold text-white/85">{d.title}</span>
+            <span className="text-[8.5px] text-white/40">{d.sub}</span>
+          </button>
+        ))}
+      </div>
 
-      {/* 演示座舱：三视角一键切换 */}
-      <CockpitDemoCard />
-
-      {/* 本地数据备份 */}
-      <DataPortCard />
-
-      {/* 能力声明编辑 */}
-      <CapabilityPanel />
-
-      {/* 我的接单（响应者视角） */}
-      <MyClaims />
-
-      {/* S3 关系沉淀：好友 + 待确认的转友请求 */}
-      <FriendList />
-
-      {/* 我的订单 */}
+      {/* 我的订单（内容区：查看 / 评价 / 取消） */}
       <div>
-        <h3 className="text-[13px] font-bold mb-2 flex items-center gap-1.5">
+        <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5">
           <span className="w-1 h-3.5 rounded-full bg-linear-to-b from-brandCyan to-brandPurple" />
           我的订单
         </h3>
@@ -325,176 +336,298 @@ export default function ProfilePage({
         )}
       </div>
 
-      {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
-          撮合偏好
-          <button
-            onClick={() => resetPrefs()}
-            className="ml-auto text-[9px] text-white/30 hover:text-white/70 transition-colors"
-          >
-            重置
-          </button>
-        </h3>
-        <div className="flex flex-wrap gap-1.5">
-          {PREF_KEYS.map((key) => (
-            <button
-              key={key}
-              onClick={() => cycle(key)}
-              title="点击切换"
-              className="text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/60 hover:border-brandPurple/50 hover:text-white/80 active:scale-95 transition-all"
-            >
-              {prefs[key]}
-            </button>
-          ))}
-        </div>
-        <p className="text-[9px] text-white/25 mt-2">
-          点击标签切换偏好，将用于撮合匹配排序（本地保存）
-        </p>
-      </div>
+      {/* 我的接单（响应者视角） */}
+      <MyClaims />
 
-      {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
-          未成年人分级
-          <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
-            合规
-          </span>
-        </h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={1970}
-            max={new Date().getFullYear()}
-            value={birthYearInput}
-            onChange={(e) => setBirthYearInput(e.target.value)}
-            placeholder="出生年份（如 2008）"
-            className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[11px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
-          />
-          <button
-            onClick={() => {
-              const by = parseInt(birthYearInput, 10);
-              if (!Number.isFinite(by) || by < 1970 || by > new Date().getFullYear()) {
-                return;
-              }
-              setAge(by);
-            }}
-            className="px-3 py-1.5 rounded-lg btn-primary text-[10px] font-bold"
-          >
-            保存
-          </button>
-        </div>
-        {identity.birthYear != null && (
-          <div className="mt-2 text-[9.5px] text-white/45 leading-relaxed">
-            {(() => {
-              const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
-              const mode = modeOfAge(age);
-              const label =
-                mode === "adult"
-                  ? "成年用户，完整功能"
-                  : mode === "teen"
-                    ? "青少年模式（14-17）：可发免费局/响应，涉资金功能受限"
-                    : "儿童模式（<14）：须监护人同意，仅浏览";
-              const moneyCheck = ageGate({ age, action: "publish-fee" });
-              return (
-                <>
-                  <p className="font-bold text-white/70">
-                    {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
-                  </p>
-                  {age < 18 && (
-                    <p className="mt-1 text-white/40">
-                      资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
-                      —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
-                    </p>
-                  )}
-                </>
-              );
-            })()}
+      {/* S3 关系沉淀：好友 + 待确认的转友请求 */}
+      <FriendList />
+
+      {/* ═══ 3 大抽屉式二级菜单（信息架构重组：设置类控件全部收纳，主屏高度缩短 70%） ═══ */}
+
+      {/* ⚙️ 系统设置与高级工具抽屉 */}
+      <ProfileDrawer
+        open={drawer === "system"}
+        onClose={() => setDrawer(null)}
+        title="系统设置与高级工具"
+        subtitle="撮合偏好 · 推送管控 · 数据备份 · 演示座舱"
+        icon="⚙️"
+        testId="drawer-system"
+      >
+        {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+            撮合偏好
+            <button
+              onClick={() => resetPrefs()}
+              className="ml-auto text-[9px] text-white/30 hover:text-white/70 transition-colors"
+            >
+              重置
+            </button>
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {PREF_KEYS.map((key) => (
+              <button
+                key={key}
+                onClick={() => cycle(key)}
+                title="点击切换"
+                className="text-[10px] px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/60 hover:border-brandPurple/50 hover:text-white/80 active:scale-95 transition-all"
+              >
+                {prefs[key]}
+              </button>
+            ))}
           </div>
-        )}
-        {ageFromBirthYear(
-          identity.birthYear ?? new Date().getFullYear(),
-          new Date().getFullYear()
-        ) < 14 && (
-          <label className="mt-2 flex items-center gap-2 text-[10px] text-white/55 cursor-pointer">
+          <p className="text-[9px] text-white/25 mt-2">
+            点击标签切换偏好，将用于撮合匹配排序（本地保存）
+          </p>
+        </div>
+
+        {/* LAUNCH-GAP E 组：PWA 真推（VAPID 订阅 + 测试发送） */}
+        <PushEnableBar />
+
+        {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+            推送免打扰
+            <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+              自主设置 · 不绑付费
+            </span>
+          </h3>
+          <label className="flex items-center justify-between gap-2 text-[10.5px] text-white/70 cursor-pointer">
+            <span>开启免打扰</span>
             <input
               type="checkbox"
-              checked={identity.guardianConsent ?? false}
-              onChange={(e) => setAge(identity.birthYear, e.target.checked)}
+              checked={quietPref.enabled}
+              onChange={(e) => setQuietEnabled(e.target.checked)}
               className="accent-brandPurple"
             />
-            监护人已同意我使用本平台（《未保法》§72）
           </label>
-        )}
-      </div>
-
-      {/* LAUNCH-GAP E 组：PWA 真推（VAPID 订阅 + 测试发送） */}
-      <PushEnableBar />
-
-      {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
-          推送免打扰
-          <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
-            自主设置 · 不绑付费
-          </span>
-        </h3>
-        <label className="flex items-center justify-between gap-2 text-[10.5px] text-white/70 cursor-pointer">
-          <span>开启免打扰</span>
-          <input
-            type="checkbox"
-            checked={quietPref.enabled}
-            onChange={(e) => setQuietEnabled(e.target.checked)}
-            className="accent-brandPurple"
-          />
-        </label>
-        {quietPref.enabled && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {[
-              { label: "00:00–06:00", start: 0, end: 360 },
-              { label: "22:00–07:00", start: 1320, end: 420 },
-            ].map((w) => {
-              const on = quietPref.windows.some((x) => x.start === w.start && x.end === w.end);
-              return (
-                <button
-                  key={w.label}
-                  onClick={() => toggleQuietWindow(w.start, w.end)}
-                  className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
-                    on
-                      ? "bg-brandPurple/25 border-brandPurple/50 text-brandPurple-foreground"
-                      : "bg-white/[0.06] border-white/10 text-white/60"
-                  }`}
-                >
-                  {on ? "✓ " : ""}{w.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <p className="text-[9px] text-white/25 mt-2">
-          静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
-        </p>
-      </div>
-
-      {/* 治理与安全四件套总入口（SafetyKit：紧急联系人 · 见面兜底 · 安全面基点 · 平台治理后台） */}
-      <div className="mb-2">
-        <SafetyKit />
-      </div>
-
-      {/* ADR-0013 安全中心：SOS 危机干预 + 数据脱敏/遗忘权（N8/N10 接线） */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
-          安全中心
-          <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
-            危机干预 · 数据主权
-          </span>
-        </h3>
-        {/* SOS 危机干预 */}
-        <div className="rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
-          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
-            紧急求助（EPA 递增通知：紧急联系人 → 平台值班 → 警方通道）
+          {quietPref.enabled && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[
+                { label: "00:00–06:00", start: 0, end: 360 },
+                { label: "22:00–07:00", start: 1320, end: 420 },
+              ].map((w) => {
+                const on = quietPref.windows.some((x) => x.start === w.start && x.end === w.end);
+                return (
+                  <button
+                    key={w.label}
+                    onClick={() => toggleQuietWindow(w.start, w.end)}
+                    className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
+                      on
+                        ? "bg-brandPurple/25 border-brandPurple/50 text-brandPurple-foreground"
+                        : "bg-white/[0.06] border-white/10 text-white/60"
+                    }`}
+                  >
+                    {on ? "✓ " : ""}{w.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <p className="text-[9px] text-white/25 mt-2">
+            静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
           </p>
-          <div className="flex gap-1.5">
+        </div>
+
+        {/* 演示座舱：三视角一键切换 */}
+        <CockpitDemoCard />
+
+        {/* 本地数据备份 */}
+        <DataPortCard />
+
+        {/* 能力声明编辑 */}
+        <CapabilityPanel />
+      </ProfileDrawer>
+
+      {/* 🔒 隐私与数据合规抽屉 */}
+      <ProfileDrawer
+        open={drawer === "privacy"}
+        onClose={() => setDrawer(null)}
+        title="隐私与数据合规"
+        subtitle="未成年人分级 · 数据脱敏 · 遗忘权（个保法 §47）"
+        icon="🔒"
+        testId="drawer-privacy"
+      >
+        {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+            未成年人分级
+            <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
+              合规
+            </span>
+          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1970}
+              max={new Date().getFullYear()}
+              value={birthYearInput}
+              onChange={(e) => setBirthYearInput(e.target.value)}
+              placeholder="出生年份（如 2008）"
+              className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[11px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
+            />
+            <button
+              onClick={() => {
+                const by = parseInt(birthYearInput, 10);
+                if (!Number.isFinite(by) || by < 1970 || by > new Date().getFullYear()) {
+                  return;
+                }
+                setAge(by);
+              }}
+              className="px-3 py-1.5 rounded-lg btn-primary text-[10px] font-bold"
+            >
+              保存
+            </button>
+          </div>
+          {identity.birthYear != null && (
+            <div className="mt-2 text-[9.5px] text-white/45 leading-relaxed">
+              {(() => {
+                const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
+                const mode = modeOfAge(age);
+                const label =
+                  mode === "adult"
+                    ? "成年用户，完整功能"
+                    : mode === "teen"
+                      ? "青少年模式（14-17）：可发免费局/响应，涉资金功能受限"
+                      : "儿童模式（<14）：须监护人同意，仅浏览";
+                const moneyCheck = ageGate({ age, action: "publish-fee" });
+                return (
+                  <>
+                    <p className="font-bold text-white/70">
+                      {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
+                    </p>
+                    {age < 18 && (
+                      <p className="mt-1 text-white/40">
+                        资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
+                        —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
+          {ageFromBirthYear(
+            identity.birthYear ?? new Date().getFullYear(),
+            new Date().getFullYear()
+          ) < 14 && (
+            <label className="mt-2 flex items-center gap-2 text-[10px] text-white/55 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={identity.guardianConsent ?? false}
+                onChange={(e) => setAge(identity.birthYear, e.target.checked)}
+                className="accent-brandPurple"
+              />
+              监护人已同意我使用本平台（《未保法》§72）
+            </label>
+          )}
+        </div>
+
+        {/* 数据脱敏预览（掩码效果演示） */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center">
+            数据脱敏
+            <span className="ml-auto text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+              对外展示即掩码
+            </span>
+          </h3>
+          {(
+            [
+              { kind: "phone", v: "138-0000-0001" },
+              { kind: "name", v: "张三" },
+              { kind: "address", v: "幸福家园小区 3 栋" },
+              { kind: "email", v: "zhangsan@oto.app" },
+              { kind: "id", v: "110101199001011234" },
+            ] as const
+          ).map((r) => (
+            <div key={r.kind} className="flex items-center justify-between text-[9px]">
+              <span className="text-white/35">{r.kind}</span>
+              <span className="text-white/50 font-mono">
+                {mask(r.kind as SensitiveKind, r.v)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* 遗忘权 */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1">
+            遗忘权（《个保法》§47：删除或匿名化）
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            {(
+              [
+                { kind: "profile", label: "资料" },
+                { kind: "wallet", label: "钱包" },
+                { kind: "waves", label: "需求/接单" },
+                { kind: "reviews", label: "评价" },
+                { kind: "all", label: "全部" },
+              ] as const
+            ).map((o) => (
+              <button
+                key={o.kind}
+                onClick={() => {
+                  const out = requestForget(o.kind);
+                  setLastForget(out.fresh ? o.kind : null);
+                }}
+                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] text-white/60 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {lastForget && (
+            <p className="text-[8.5px] text-emerald-300/80 mt-2">
+              ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
+            </p>
+          )}
+          {forgetRequests.length > 0 && (
+            <div className="space-y-1 mt-2">
+              {forgetRequests.map((r) => (
+                <div key={r.id} className="flex items-center justify-between text-[8.5px]">
+                  <span className="text-white/45">
+                    {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
+                  </span>
+                  <span
+                    className={`px-1.5 py-px rounded-full font-bold ${
+                      r.status === "anonymized"
+                        ? "bg-emerald-400/15 text-emerald-300"
+                        : "bg-amber-400/15 text-amber-300"
+                    }`}
+                  >
+                    {r.status === "anonymized" ? "已匿名化" : "处理中"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </ProfileDrawer>
+
+      {/* 🛡️ 安全中心与应急防护抽屉 */}
+      <ProfileDrawer
+        open={drawer === "safety"}
+        onClose={() => setDrawer(null)}
+        title="安全中心与应急防护"
+        subtitle="紧急求助 · 长辈模式 · 应急伪装 · 紧急联系人"
+        icon="🛡️"
+        testId="drawer-safety"
+      >
+        {/* 治理与安全四件套总入口（SafetyKit：见面兜底 · 安全面基点 · 平台治理后台） */}
+        <SafetyKit />
+
+        {/* ADR-0013 安全中心：SOS 危机干预（N8/N10 接线） */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2 flex items-center gap-1.5">
+            紧急求助
+            <span className="text-[8.5px] px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/40">
+              EPA 递增通知
+            </span>
+          </h3>
+          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
+            紧急求助（紧急联系人 → 平台值班 → 警方通道）
+          </p>
+          <div className="flex gap-1.5 mt-2">
             {([
               { lv: 1, label: "轻微不适" },
               { lv: 2, label: "危险信号" },
@@ -521,9 +654,9 @@ export default function ProfilePage({
             value={crisisNote}
             onChange={(e) => setCrisisNote(e.target.value)}
             placeholder="备注（如：山野迷路，沿步道 2 号点等待）"
-            className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-red-400/50"
+            className="mt-2 w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-[10px] text-white/80 placeholder:text-white/25 focus:outline-none focus:border-red-400/50"
           />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2">
             <button
               onClick={() => {
                 const out = raiseCrisis({
@@ -550,7 +683,7 @@ export default function ProfilePage({
             )}
           </div>
           {crisisTargets.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1 mt-2">
               <div className="flex flex-wrap gap-1">
                 {crisisTargets.map((t) => (
                   <span
@@ -569,18 +702,19 @@ export default function ProfilePage({
             </div>
           )}
           {myCrisis.length > 0 && (
-            <p className="text-[8.5px] text-red-300/80">
+            <p className="text-[8.5px] text-red-300/80 mt-2">
               处置中：{myCrisis[0].note}（登记于{" "}
               {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
               ）
             </p>
           )}
         </div>
+
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
-        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
-          <p className="text-[9.5px] font-bold text-white/60">
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2">
             无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
-          </p>
+          </h3>
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
@@ -596,16 +730,17 @@ export default function ProfilePage({
             </button>
           </div>
           {stealthAlarmed && (
-            <p className="text-[8.5px] text-red-300/80">
+            <p className="text-[8.5px] text-red-300/80 mt-2">
               ⚠️ 静默报警已触发：录音就绪，红色危机流程已启动（界面无任何异常显示）
             </p>
           )}
         </div>
+
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
-        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
-          <p className="text-[9.5px] font-bold text-white/60">
+        <div className="glass-panel rounded-2xl p-3.5">
+          <h3 className="text-[11px] font-bold text-white/70 mb-2">
             紧急联系人（SOS 通知对象）
-          </p>
+          </h3>
           <DynamicFormView
             fields={CONTACT_SCHEMA}
             values={contactForm}
@@ -617,87 +752,12 @@ export default function ProfilePage({
             }}
           />
           {contactsSaved && (
-            <p className="text-[8.5px] text-emerald-300/80">
+            <p className="text-[8.5px] text-emerald-300/80 mt-2">
               ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}
         </div>
-        {/* 数据脱敏预览（掩码效果演示） */}
-        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-1">
-          <p className="text-[9.5px] font-bold text-white/60">
-            数据脱敏（对外展示即掩码）
-          </p>
-          {(
-            [
-              { kind: "phone", v: "138-0000-0001" },
-              { kind: "name", v: "张三" },
-              { kind: "address", v: "幸福家园小区 3 栋" },
-              { kind: "email", v: "zhangsan@oto.app" },
-              { kind: "id", v: "110101199001011234" },
-            ] as const
-          ).map((r) => (
-            <div key={r.kind} className="flex items-center justify-between text-[9px]">
-              <span className="text-white/35">{r.kind}</span>
-              <span className="text-white/50 font-mono">
-                {mask(r.kind as SensitiveKind, r.v)}
-              </span>
-            </div>
-          ))}
-        </div>
-        {/* 遗忘权 */}
-        <div className="mt-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 space-y-2">
-          <p className="text-[9.5px] font-bold text-white/60 flex items-center gap-1">
-            遗忘权（《个保法》§47：删除或匿名化）
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                { kind: "profile", label: "资料" },
-                { kind: "wallet", label: "钱包" },
-                { kind: "waves", label: "需求/接单" },
-                { kind: "reviews", label: "评价" },
-                { kind: "all", label: "全部" },
-              ] as const
-            ).map((o) => (
-              <button
-                key={o.kind}
-                onClick={() => {
-                  const out = requestForget(o.kind);
-                  setLastForget(out.fresh ? o.kind : null);
-                }}
-                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[9.5px] text-white/60 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          {lastForget && (
-            <p className="text-[8.5px] text-emerald-300/80">
-              ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
-            </p>
-          )}
-          {forgetRequests.length > 0 && (
-            <div className="space-y-1">
-              {forgetRequests.map((r) => (
-                <div key={r.id} className="flex items-center justify-between text-[8.5px]">
-                  <span className="text-white/45">
-                    {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
-                  </span>
-                  <span
-                    className={`px-1.5 py-px rounded-full font-bold ${
-                      r.status === "anonymized"
-                        ? "bg-emerald-400/15 text-emerald-300"
-                        : "bg-amber-400/15 text-amber-300"
-                    }`}
-                  >
-                    {r.status === "anonymized" ? "已匿名化" : "处理中"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      </ProfileDrawer>
 
       {/* W6 总装：长辈模式全屏覆盖（5.8.2：双主按钮 + 1.4x 字阶 AAA） */}
       {seniorMode && (

@@ -89,6 +89,11 @@ function useAiDraft(onSend: (text: string) => void, streaming: boolean) {
 export interface ChatPageProps {
   /** 首页融合座舱模式：问候 + 意图气泡 + 输入框置顶，消息流限高居中，无独立屏头。 */
   compact?: boolean;
+  /** 首页瘦身模式（在 compact 之上再收敛【信息架构重组·灭双头怪】）：
+   *  隐藏与首页问候条重复的「AI 撮合助手」标题头、与四大弹药胶囊重复的意图气泡、
+   *  以及初始 greeting 重播卡；保留常驻发单对话框（输入框 + VoiceBar + 发射）、
+   *  新对话/语音控制与限高消息流（多轮澄清 / 订单卡转化能力零丢弃）。 */
+  slim?: boolean;
   /** 文本/语音意图命中弹药时回调（首页据此原地展开拟物草稿卡：弹药 key + 中文类目）。 */
   onAmmoDraft?: (ammoKey: string, category: string) => void;
 }
@@ -98,7 +103,7 @@ export interface ChatPageProps {
  * 卡片流：时间槽卡 → 服务者卡 → 确认单卡 → 预订（本地闭环）。
  * compact 模式：首页「AI 对话发单区 + 拟物卡流动态区」一体化嵌入。
  */
-export default function ChatPage({ compact = false, onAmmoDraft }: ChatPageProps) {
+export default function ChatPage({ compact = false, slim = false, onAmmoDraft }: ChatPageProps) {
   const chatMessages = useAppStore((s) => s.chatMessages);
   const addChatMessage = useAppStore((s) => s.addChatMessage);
   const updateChatMessage = useAppStore((s) => s.updateChatMessage);
@@ -456,15 +461,18 @@ export default function ChatPage({ compact = false, onAmmoDraft }: ChatPageProps
 
   return (
     <div className={`pointer-events-auto flex flex-col ${compact ? "min-h-0" : "h-full min-h-0"}`}>
-      {/* 头部：compact = 首页融合座舱的紧凑控制行（无独立屏头） */}
+{/* 头部：compact = 首页融合座舱的紧凑控制行（无独立屏头）；
+           slim = 再隐藏与首页问候条重复的标题，仅保留语音/新对话控制行（右对齐） */}
       {compact ? (
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
-            <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center glow-purple">
-              <Bot size={13} className="text-brandPurple" />
-            </span>
-            AI 撮合助手
-          </h2>
+        <div className={`flex items-center mb-2 ${slim ? "justify-end gap-1.5" : "justify-between"}`}>
+          {!slim && (
+            <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
+              <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center glow-purple">
+                <Bot size={13} className="text-brandPurple" />
+              </span>
+              AI 撮合助手
+            </h2>
+          )}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setTtsEnabled((v) => !v)}
@@ -522,9 +530,10 @@ export default function ChatPage({ compact = false, onAmmoDraft }: ChatPageProps
         </div>
       )}
 
-      {/* 首页融合：4 大意图快捷气泡（点击 = 送话术 + 原地展开匹配弹药草稿卡；
-          「想找什么？一句话告诉我」智能问候发单条由首页挂载，入口零丢失） */}
-      {compact && (
+{/* 首页融合：4 大意图快捷气泡（点击 = 送话术 + 原地展开匹配弹药草稿卡；
+          「想找什么？一句话告诉我」智能问候发单条由首页挂载，入口零丢失）
+          信息架构重组：四大意念气泡与首页四大词典弹药胶囊重复 → slim 模式隐藏 */}
+      {compact && !slim && (
         <div className="grid grid-cols-2 gap-2" data-testid="intent-bubbles">
           {INTENT_BUBBLES.map((b) => (
             <button
@@ -646,23 +655,26 @@ export default function ChatPage({ compact = false, onAmmoDraft }: ChatPageProps
         )}
       </form>
 
-      {/* compact：拟物卡流动态区（消息流在输入框之下限高滚动，生成卡原地展开） */}
+{/* compact：拟物卡流动态区（消息流在输入框之下限高滚动，生成卡原地展开）
+          信息架构重组：slim 过滤与首页问候条重复的初始 greeting 重播卡 */}
       {compact && (
         <div
           ref={listRef}
           className="mt-3 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pr-0.5 max-h-[12rem] lg:max-h-[16rem]"
           data-testid="compact-chat-flow"
         >
-          {chatMessages.map((msg, i) => (
-            <ChatBubble
-              key={msg.id}
-              message={msg}
-              isLatest={streaming && i === chatMessages.length - 1}
-              onCardSelect={handleCardSelect}
-              onBook={handleBook}
-              onConvertToWave={handleConvertToWave}
-            />
-          ))}
+          {chatMessages
+            .filter((m) => !(slim && m.id === "greeting" && m.role === "assistant"))
+            .map((msg, i) => (
+              <ChatBubble
+                key={msg.id}
+                message={msg}
+                isLatest={streaming && i === chatMessages.length - 1}
+                onCardSelect={handleCardSelect}
+                onBook={handleBook}
+                onConvertToWave={handleConvertToWave}
+              />
+            ))}
           {thinking && <ThinkingDot />}
         </div>
       )}

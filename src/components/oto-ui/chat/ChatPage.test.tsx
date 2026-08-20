@@ -123,6 +123,17 @@ describe("P1 AI 对话直通弹药发单闭环（ChatPage）", () => {
 });
 
 /** 首页融合座舱（compact）：4 大意图快捷气泡 + 弹药草稿回钩（原地展开拟物草稿卡）。 */
+/** 等待异步流式引擎（MockEngine 字符级流：chat 分支可达数秒）消费完成。 */
+async function flushUntil(predicate: () => boolean, timeoutMs = 9000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    if (Date.now() > deadline) break;
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 25));
+    });
+  }
+}
+
 describe("P1.5 首页融合座舱（ChatPage compact 嵌入首页）", () => {
   let container: HTMLDivElement;
   let root: ReturnType<typeof createRoot>;
@@ -138,17 +149,6 @@ describe("P1.5 首页融合座舱（ChatPage compact 嵌入首页）", () => {
     root.unmount();
     container.remove();
   });
-
-  /** 等待异步流式引擎（MockEngine 字符级流：chat 分支可达数秒）消费完成。 */
-  async function flushUntil(predicate: () => boolean, timeoutMs = 9000) {
-    const deadline = Date.now() + timeoutMs;
-    while (!predicate()) {
-      if (Date.now() > deadline) break;
-      await act(async () => {
-        await new Promise((r) => setTimeout(r, 25));
-      });
-    }
-  }
 
   it("compact 渲染：4 大意图快捷气泡 + 统一输入框 + 拟物卡流动态区", async () => {
     await act(async () => {
@@ -241,5 +241,68 @@ describe("P1.5 首页融合座舱（ChatPage compact 嵌入首页）", () => {
     });
     await flushUntil(() => onDraft.mock.calls.length > 0);
     expect(onDraft).toHaveBeenCalledWith("default-ammo", "全类目需求");
+  });
+});
+
+describe("信息架构重组：ChatPage slim（首页灭双头怪）", () => {
+  let container: HTMLDivElement;
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(() => {
+    useAppStore.setState({
+      chatMessages: [
+        {
+          id: "greeting",
+          role: "assistant",
+          content: "你好呀，我是 AI 撮合助手 ✨ 本地线下面基服务都能帮你安排",
+        },
+      ],
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    root.unmount();
+    container.remove();
+  });
+
+  it("slim 收敛重复：无 AI 撮合标题 / 无意图气泡 / 无 greeting 重播卡，保留常驻发单对话框与消息流", async () => {
+    await act(async () => {
+      root.render(<ChatPage compact slim />);
+    });
+    expect(container.querySelector('[data-testid="intent-bubbles"]')).toBeNull();
+    expect(container.textContent).not.toContain("AI 撮合助手");
+    expect(container.textContent).not.toContain("你好呀，我是 AI 撮合助手");
+    expect(container.textContent).not.toContain("重播语音");
+    // 常驻发单对话框：文本输入 + 发送 + 按住说话（VoiceBar 数据属性）
+    expect(container.querySelector('input[placeholder*="描述你的需求"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="发送"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="compact-chat-flow"]')).not.toBeNull();
+    // 新对话 / 语音控制保留（功能零丢失）
+    expect(container.textContent).toContain("新对话");
+    expect(container.textContent).toContain("语音");
+  });
+
+  it("slim 发送口语文本：弹药草稿回钩能力 100% 保留", { timeout: 15000 }, async () => {
+    const onDraft = vi.fn();
+    await act(async () => {
+      root.render(<ChatPage compact slim onAmmoDraft={onDraft} />);
+    });
+    const input = container.querySelector<HTMLInputElement>('input[placeholder*="描述你的需求"]')!;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )!.set!;
+      setter.call(input, "明天下午找人擦玻璃");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('button[aria-label="发送"]')!.click();
+    });
+    await flushUntil(() => onDraft.mock.calls.length > 0);
+    expect(onDraft).toHaveBeenCalledWith("housekeeping", "擦玻璃");
   });
 });
