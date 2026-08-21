@@ -288,20 +288,33 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
     expect(action).toHaveBeenCalledWith("dispute");
   });
 
-  it("dynamic 插槽：拍照打卡按钮触发 onUploadProof 相位键", async () => {
+  it("dynamic 插槽：拍照打卡按钮打开水印相机模态（P0-3 全链）", async () => {
     const proof = vi.fn();
     const reg = registerDynamicAmmo(buildLongtailConfig());
     if (!reg.ok) throw new Error(reg.errors.join(";"));
-    await clickAction(
-      {
-        ...BASE_PROPS,
-        scenario: "dynamic",
-        dynamic: { ammo: reg.ammo, onUploadProof: proof },
-      },
-      "proof-after",
-    );
-    expect(proof).toHaveBeenCalledTimes(1);
-    expect(proof).toHaveBeenCalledWith("after");
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <FulfillmentCockpit
+          {...BASE_PROPS}
+          scenario="dynamic"
+          dynamic={{ ammo: reg.ammo, onUploadProof: proof }}
+        />,
+      );
+    });
+    const btn = container.querySelector<HTMLButtonElement>('button[data-action="proof-after"]');
+    expect(btn).not.toBeNull();
+    await act(async () => {
+      btn!.click();
+    });
+    expect(container.querySelector('[data-testid="dyn-proof-modal"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="proof-camera"]')).not.toBeNull();
+    // 拍照入口为 ProofCamera 模态，旧 onUploadProof 不再立即触发（待 ProofCamera onCaptured 结构化回传）
+    expect(proof).not.toHaveBeenCalled();
+    root.unmount();
+    container.remove();
   });
 });
 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
 import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
@@ -7,8 +7,8 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
-import DynamicDraftCard from "./DynamicDraftCard";
-import { resolveAmmoIdForPublish } from "@/ammo/registry";
+import DynamicDraftCard, { describeFormSchemaFields } from "./DynamicDraftCard";
+import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
@@ -25,6 +25,9 @@ import type { TaskModule } from "@/base/ai/decompose";
  * 开放局（人数 ≥ 2）：C 端互相组队拼位 —— 满员成局，人均 = 预算 ÷ 人数。
  * 复杂任务（一句话需求）：AI 拆解成独立模块 → 发起人确认（可增删/改价）→
  * 接单前自由调整，接单后锁定。
+ *
+ * P1-5 声明式表单闭环：动态字段 100% 由弹药 D8 formSchema 驱动渲染，
+ * 输入值结构化写入 bizParams 随单落库（红线 2：零品类硬编码分支）。
  */
 export default function PublishSheet({
   open,
@@ -68,6 +71,44 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   /** P2：拖拽收起过渡态（下拉 >35% → 平滑下滑离场 → 关闭） */
   const [dismissing, setDismissing] = useState(false);
   const dismissTimerRef = useRef<number | null>(null);
+  /** P1-5 声明式表单：动态参数快照（按 ammo.holographic.formSchema 驱动，零硬编码分支） */
+  const [bizParams, setBizParams] = useState<Record<string, unknown>>({});
+
+  // P1-5：当前选定弹药的声明式表单字段（纯函数投影，红线 2）
+  // 复用 DynamicDraftCard 同链：中文别名（家电维修/修空调）经 resolveAmmoIdForPublish 直达整弹，所见即所发
+  const ammoForForm = useMemo(() => {
+    const cat = category.trim();
+    if (!cat) return null;
+    try {
+      return getAmmoById(resolveAmmoIdForPublish(cat));
+    } catch {
+      try {
+        return getAmmoDefinition(cat);
+      } catch {
+        return null;
+      }
+    }
+  }, [category]);
+
+  const formFields = useMemo(() => {
+    if (!ammoForForm) return [];
+    return describeFormSchemaFields(ammoForForm);
+  }, [ammoForForm]);
+
+  // P1-5：弹药切换时按声明式默认值重置 bizParams（SSR 逐字一致，零硬编码）
+  useEffect(() => {
+    if (formFields.length === 0) {
+      setBizParams((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+      return;
+    }
+    const next: Record<string, unknown> = {};
+    for (const f of formFields) {
+      if (f.value !== "" && f.value !== undefined && f.value !== null) {
+        next[f.key] = f.value;
+      }
+    }
+    setBizParams(next);
+  }, [formFields]);
 
   // P2：顶部把手下拉 >35% 平滑关闭（enabled=open 使 open 时重绑到已挂载的把手）
   const { dragRef: sheetDragRef } = useDragToDismiss({
@@ -86,11 +127,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   // 重开抽屉时清除残留过渡态与定时器
   useEffect(() => {
     if (open) {
-      const reset = async () => {
+      const resetAnim = async () => {
         await Promise.resolve()
         setDismissing(false)
       }
-      reset()
+      resetAnim()
       if (dismissTimerRef.current !== null) {
         window.clearTimeout(dismissTimerRef.current);
         dismissTimerRef.current = null;
@@ -131,6 +172,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     setNeedApproval(false);
     setError("");
     setModules(null);
+    setBizParams({});
   }
 
   /** AI 拆解：一句话需求 → 独立模块清单（含建议价权重）→ 发起人确认。 */
@@ -181,6 +223,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       setError("预算需为有效金额");
       return;
     }
+    // P1-5 声明式表单必填校验（零硬编码，表单即契约）
+    for (const f of formFields) {
+      if (f.required) {
+        const v = bizParams[f.key];
+        if (v === undefined || v === null || String(v).trim() === "") {
+          setError(`请填写 ${f.label}（必填）`);
+          return;
+        }
+      }
+    }
     // ADR-0016 未成年人分级：发布前先过年龄闸（监护人同意 / 资金动作受限）
     const birthYear = identity.birthYear;
     const age = birthYear == null ? null : ageFromBirthYear(birthYear, new Date().getFullYear());
@@ -229,6 +281,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     const customRequirements = note.trim()
       ? normalizeCustomIntent(note)
       : undefined;
+    const sanitizedBizParams = Object.keys(bizParams).length > 0 ? { ...bizParams } : undefined;
     const out = createPendingWave({
       authorId: identity.id,
       basics: { category: category.trim(), time: time.trim(), area: area.trim(), radiusKm: 5 },
@@ -240,6 +293,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       negotiable: note.trim().length > 0,
       negotiableNote: note.trim() || undefined,
       customRequirements,
+      bizParams: sanitizedBizParams,
       deposit,
       needApproval: people >= 2 ? needApproval : undefined,
       capacity: people,
@@ -373,6 +427,97 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               {pricingForCategory(category.trim()).warrantyText ?? "按单协商"}
             </span>
           </p>
+        )}
+
+        {/* P1-5 声明式表单：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支 */}
+        {formFields.length > 0 && (
+          <div className="mb-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3" data-testid="publish-dynamic-form" data-dynamic-form>
+            <div className="text-xs font-bold text-white/85 mb-2 flex items-center gap-1.5">📋 弹药专属表单 <span className="text-white/35 font-normal">· {ammoForForm?.ammoId} · {formFields.length} 项</span></div>
+            <div className="space-y-2">
+              {formFields.map((field) => {
+                const val = bizParams[field.key];
+                const strVal = val === undefined || val === null ? "" : String(val);
+                if (field.type === "enum" && field.options && field.options.length > 0) {
+                  return (
+                    <label key={field.key} className="block">
+                      <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
+                        {field.label} {field.required && <span className="text-red-400">*</span>}
+                      </span>
+                      <select
+                        value={strVal}
+                        onChange={(e) => setBizParams((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                        aria-label={field.label}
+                        data-field={field.key}
+                        className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 outline-none focus:border-brandPurple/50"
+                      >
+                        <option value="" className="bg-[#1a1a2e]">请选择{field.label}</option>
+                        {field.options.map((opt) => (
+                          <option key={opt} value={opt} className="bg-[#1a1a2e]">{opt}</option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                }
+                if (field.type === "number") {
+                  return (
+                    <label key={field.key} className="block">
+                      <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
+                        {field.label} {field.required && <span className="text-red-400">*</span>}
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={strVal}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setBizParams((prev) => ({ ...prev, [field.key]: v === "" ? "" : Number(v) }));
+                        }}
+                        placeholder={`请输入${field.label}`}
+                        aria-label={field.label}
+                        data-field={field.key}
+                        className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
+                      />
+                    </label>
+                  );
+                }
+                if (field.type === "boolean") {
+                  return (
+                    <label key={field.key} className="flex items-center justify-between min-h-[48px] rounded-2xl bg-white/[0.04] border border-white/10 px-3.5">
+                      <span className="text-xs font-semibold text-white/70 flex items-center gap-1">
+                        {field.label} {field.required && <span className="text-red-400">*</span>}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={Boolean(val)}
+                        aria-label={field.label}
+                        data-field={field.key}
+                        onClick={() => setBizParams((prev) => ({ ...prev, [field.key]: !Boolean(prev[field.key]) }))}
+                        className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-emerald-400/70" : "bg-white/15"}`}
+                      >
+                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${Boolean(val) ? "left-[22px]" : "left-0.5"}`} />
+                      </button>
+                    </label>
+                  );
+                }
+                return (
+                  <label key={field.key} className="block">
+                    <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
+                      {field.label} {field.required && <span className="text-red-400">*</span>}
+                    </span>
+                    <input
+                      value={strVal}
+                      onChange={(e) => setBizParams((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      placeholder={`请输入${field.label}`}
+                      aria-label={field.label}
+                      data-field={field.key}
+                      className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* W1 总装：弹药驱动草稿预览卡（ammoId/计价模型/安全徽章自动投影），

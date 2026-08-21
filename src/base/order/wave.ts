@@ -93,6 +93,14 @@ export interface Wave {
    * 可选字段，缺省 undefined（既有 Wave 构建零破坏）。
    */
   customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
+  /**
+   * 动态表单参数快照（P1-5 声明式表单闭环 · 宪法 #2 只增补）：
+   * PublishSheet 按 ammo.holographic.formSchema 声明式驱动收集的
+   * 结构化业务参数（如 { applianceType: "空调", faultDescription: "不制冷" }），
+   * 随单落库供履约插槽回显（DynamicAmmoSlot / HousekeepingSlot 参数胶囊）。
+   * 可选字段，缺省 undefined 向后兼容（既有 Wave 零破坏）。
+   */
+  bizParams?: Record<string, unknown>;
   /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
   fissionCount?: number;
   /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
@@ -196,6 +204,12 @@ export interface CreateWaveInput {
    * 可选字段，缺省 undefined（既有调用零破坏）。
    */
   customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
+  /**
+   * 动态表单参数快照（P1-5 声明式表单闭环 · 宪法 #2 只增补）：
+   * PublishSheet 按 ammo.holographic.formSchema 声明式驱动收集，
+   * 结构化写入 wave.bizParams 供履约插槽回显。
+   */
+  bizParams?: Record<string, unknown>;
 }
 
 /** Build a wave; validates essential fields (basic needs must be complete). */
@@ -228,6 +242,7 @@ export function createWave(input: CreateWaveInput): Wave {
     hotness: input.hotness ?? 0,
     ammoId: input.ammoId,
     customRequirements: input.customRequirements,
+    bizParams: input.bizParams,
   };
 }
 

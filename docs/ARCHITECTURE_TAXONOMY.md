@@ -339,18 +339,18 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 |--------|------|----------|----------|------|
 | P0-1 | ~~**AmmoRunner 统一声明式执行器**（DSL 解析 → 引擎装载 → 验舱单）~~ → **已闭环** | 红线 2 | ②业务圈 | 🟢 已落地（`src/base/ammo/runner.ts`，2026-08-16 `d4c7b23`：AmmoRunner 五态全链路 + `ammoSnapshot` 快照调度，凭据同 §5.2 D-6 行） |
 | P0-2 | **父项目 API 资金/状态跃迁收编 base 引擎**（隔离墙闭合） | 红线 1 | ②+⑤圈 | 🟢 已完全闭合（2026-08-18）：orders 争议分账/资金路由/提现校验/SOS 危机链 5 项收编落点见 D-4，路由层硬编码分账比例清零，legacy 状态跃迁网关（lib/contract-machine + engine 校验）保留，1465/1465 单测 + 12/12 E2E 全绿 |
-| P0-3 | **原生相机流防刷 + EXIF 时空锚定全链**（红线 4 完整闭环） | 红线 4 | ⑤风控圈 | 仅文本鉴真 + 部分 EXIF 信号 |
-| P1-1 | **轻量视觉防伪快筛**（图片指纹/复制检测） | 红线 4 | ⑤风控圈 | 无 |
+| P0-3 | ~~**原生相机流防刷 + EXIF 时空锚定全链**（红线 4 完整闭环）~~ → **已闭环** | 红线 4 | ⑤风控圈 | 🟢 已完全闭合（2026-08-21 联合攻坚战役 P0-3/P1-1）：`src/components/oto-ui/controls/ProofCamera.tsx` 全链贯通（4:3 原生相机 `capture="environment"` 禁相册 → `applyTimestampGeoWatermark` Canvas 时空水印压制 → SHA-256 存证指纹 → `detectImageForgery` 五信号快筛，EXIF 时空一致性/哈希篡改/水印完整性/ELA 像素平滑/AI 视觉五路融合，CRITICAL 即时告警；`IProofCaptureResult` 结构化载荷 `blob/dataUrl/sha256/capturedAt/coords/forgeryReport` 透传履约证据链；375px 视口徽标 `🔬 鉴真 xx% · LOW` + SHA 标签无溢出） |
+| P1-1 | ~~**轻量视觉防伪快筛**（图片指纹/复制检测）~~ → **已闭环** | 红线 4 | ⑤风控圈 | 🟢 已完全闭合（2026-08-21 联合攻坚战役 P0-3/P1-1）：`src/base/ai/forgery.ts` 五信号融合引擎（信号 1 EXIF 时间/围栏偏差 · 信号 2 SHA-256 指纹篡改 ×0.5 乘法衰减 · 信号 3 水印完整性 · 信号 4 ELA 过度平滑/拼接伪影 · 信号 5 Gateway AI 视觉中性 0.9 回落）+ `ProofCamera` 鉴真徽标（置信度/风险等级四色）+ `HousekeepingSlot`/`DynamicAmmoSlot` 双拍位集成（Before/After 存证 + 徽标 + SHA 链 + CRITICAL 拦截），红线 1 离线/无 Key 100% 确定性兜底 |
 | P1-2 | ~~**弹药动态加载**（运行时按类目发现/装载，非编译期静态表）~~ → **已闭环** | ②弹药即插即用 | ②业务圈 | 🟢 已落地（`DYNAMIC_AMMO_POOL` 运行时热注池：`src/ammo/factory.ts:35` 定义 + `registry.ts:35` re-export，检索链「动态池直拨 → 官方中文映射 → 四表聚合 → 默认保底」，`resolveDynamicAmmoByInput` 精确/别名直拨（`4a5b7de`）；长尾非标量产大考实证（DRONE_CROP_SPRAY 零静态文件纯内存装配，`dynamic-production-exam.test.ts` 8 项全绿） |
 | P1-3 | **一键 SOS 联动链增强**（位置上报 + 录音证据自动封装入链） | 六圈暴雷防御 | ⑤风控圈 | crisis.ts 已有 EPA 通知链，缺位置/证据联动 |
 | P1-4 | ~~**对话式 BI LLM 意图改写可选链**~~ → **已闭环（LLM 归因增强链，意图改写按宪法 #7 维持规则链专权）** | ③火控雷达 | ③AI 圈 | 🟢 已落地（`bi.ts:410` `await import("./gateway/engine.ts")` 动态 import 5-provider Gateway 归因诊断增强——仅增强 summary 归因文案，chartData 数值 100% 来自确定性聚合；失败静默降级回规则摘要，红线 1 离线/无 key 零异常；L3-M5 战役 2026-08-17 闭环，详见 §3.4.2 `L3-M5` 行） |
-| P1-5 | **弹药内嵌表单 schema**（DynamicForm 进一步表驱动：弹药携带所需传感器/表单） | 红线 2 | ①感知圈 | dynamicForm 通用引擎已有，弹药表单绑定无 |
+| P1-5 | ~~**弹药内嵌表单 schema**（DynamicForm 进一步表驱动：弹药携带所需传感器/表单）~~ → **已闭环** | 红线 2 | ①感知圈 | 🟢 已完全闭合（2026-08-21 联合攻坚战役 P1-5）：`src/components/waves/PublishSheet.tsx` 100% 声明式驱动（`getAmmoDefinition(category).holographic.formSchema` 遍历渲染 `string/number/select/enum/boolean` 四形态，48px 触控，必填校验，`bizParams` 结构化写入 `Wave.bizParams` 并落库，零 `if(category===)` 硬编码）+ `DynamicDraftCard.tsx` `describeFormSchemaFields` 双形态兼容（`fields[]` 数组 / `{key:{type,options}}` 映射双解析，`boolean` 主题回落）+ `HousekeepingSlot/DynamicAmmoSlot` 参数胶囊 `bizParams` 回显，红线 2 单向依赖 |
 | P2-1 | ~~**弹药主题 Token 系统**（红线 6 视界投影）~~ → **已闭环** | 红线 6 | ①感知圈 | 🟢 已完全闭合（2026-08-20 D-8 收官战役：5 大主题作用域 Token + 三端 data-theme 注入 + 归一兜底，凭据同 §5.2 D-8 行，`ThemeIsolation.test` 21 断言锁定） |
 | P2-2 | **AB 分流/degrades 真实场景**（resilience 库层已备） | ⑥基建圈 | ⑥圈 | 无真实分流场景，不硬造 |
 | P2-3 | **移动端融合**（RN 注册 base/geo、弹药表单） | 底座统一 | ①感知圈 | 已登记未融合 |
 
-> **✅ 全仓落差审计收官汇总（2026-08-20 D-8 战役落定）**：§5.2 偏差 D-1 ~ D-8（D-5 除外）与 §5.3 缺口 P0-1 ~ P2-1 中已排期项全部 **🟢 已完全闭合**，历史架构欠账清零——D-1/D-2/D-6 于 `a11d85e`+`d4c7b23`、D-3 于 2026-08-18 战役、D-4/P0-2 于 P0-2 战役、D-7 于 `9e23bb3`、D-8/P2-1 于本次 D-8 收官战役（5 大主题 Token + 三端注入 + 外骨骼隔离，1524/1524 全绿）。
-> **如实声明**：D-5（两套状态机并存，融合期双轨）属 ADR-0018 范围外存量，维持 🟡 状态不在本次战役消除——不虚构全量 100% 声明；P0-3/P1-1/P1-3/P1-5/P2-2/P2-3 为未排期的分阶段缺口，如实保持现状。
+> **✅ 全仓落差审计收官汇总（2026-08-21 联合攻坚战役 P0-3/P1-1/P1-5 终局落定）**：§5.2 偏差 D-1 ~ D-8（D-5 除外）与 §5.3 缺口 P0-1 ~ P2-1 中已排期项全部 **🟢 已完全闭合**，历史架构欠账 100% 清零——D-1/D-2/D-6 于 `a11d85e`+`d4c7b23`、D-3 于 2026-08-18 战役、D-4/P0-2 于 P0-2 战役、D-7 于 `9e23bb3`、D-8/P2-1 于 D-8 战役、本次 P0-3/P1-1/P1-5 于 2026-08-21 联合攻坚战役（`ProofCamera` 全链 + 五信号快筛 + 声明式表单 100% 驱动，1556+ 单测全绿 + tsc 0 + build exit 0）。
+> **如实声明**：D-5（两套状态机并存，融合期双轨）属 ADR-0018 范围外存量，维持 🟡 状态不在本次战役消除——不虚构全量 100% 声明；P1-3/P2-2/P2-3 为未排期的分阶段缺口，如实保持现状（P0-3/P1-1/P1-5 已销项）。
 
 ### 5.4 前端微内核与系统级交互架构（UI/UX 哲学注入）
 

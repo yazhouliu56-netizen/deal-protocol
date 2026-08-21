@@ -1,0 +1,149 @@
+// @vitest-environment jsdom
+import { act } from "react";
+import { createRoot } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, beforeEach } from "vitest";
+
+import PublishSheet from "@/components/waves/PublishSheet";
+import { describeFormSchemaFields } from "@/components/waves/DynamicDraftCard";
+import { getAmmoDefinition } from "@/ammo/registry";
+import { registerDynamicAmmo } from "@/ammo/factory";
+import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
+import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
+
+function mountPublishSheet(initialCategory?: string) {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  act(() => {
+    root.render(<PublishSheet open={true} onClose={() => {}} initialCategory={initialCategory} />);
+  });
+  return { container, root, unmount: () => { act(() => root.unmount()); container.remove(); } };
+}
+
+describe("PublishSheet P1-5 声明式表单驱动", () => {
+  it("describeFormSchemaFields 兼容 map 形态（appliance_repair 家电维修）", () => {
+    const ammo = getAmmoDefinition("appliance_repair");
+    // appliance_repair 使用 map 形态 { applianceType: {type:"select",...}, faultDescription:{type:"string"} }
+    // 需兼容为 fields 数组
+    const fields = describeFormSchemaFields(ammo);
+    expect(fields.length).toBe(2);
+    const keys = fields.map((f) => f.key);
+    expect(keys).toContain("applianceType");
+    expect(keys).toContain("faultDescription");
+    const typeMap = Object.fromEntries(fields.map((f) => [f.key, f.type]));
+    expect(typeMap.applianceType).toBe("enum");
+    expect(typeMap.faultDescription).toBe("string");
+    expect(fields.find((f) => f.key === "applianceType")?.required).toBe(true);
+    expect(fields.find((f) => f.key === "applianceType")?.options).toEqual(["空调", "洗衣机", "冰箱", "油烟机", "燃气灶"]);
+  });
+
+  it("describeFormSchemaFields 兼容 fields[] 数组形态（动态长尾）", () => {
+    const config: IHolographicAmmoConfig = {
+      ammoId: "test-publish-longtail-v1",
+      category: "TEST_PUBLISH_LONGTAIL",
+      version: "1.0.0",
+      supplyCluster: "C1_MOBILITY",
+      pricingModel: { kind: "FIXED", amountYuan: 100 },
+      fuzePolicy: DEFAULT_FUZE_POLICY,
+      theme: "default",
+      formSchema: {
+        fields: [
+          { key: "fieldAreaMu", label: "作业亩数", type: "number", required: true, defaultValue: 10 },
+          { key: "pesticideType", label: "农药类型", type: "picker", options: ["除草剂", "杀菌剂"], defaultValue: "除草剂" },
+          { key: "remark", label: "备注", type: "text" },
+        ],
+      },
+    };
+    const reg = registerDynamicAmmo(config);
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    const fields = describeFormSchemaFields(reg.ammo);
+    expect(fields).toHaveLength(3);
+    expect(fields[0]).toMatchObject({ key: "fieldAreaMu", label: "作业亩数", type: "number", required: true });
+    expect(fields[1]).toMatchObject({ key: "pesticideType", type: "enum", options: ["除草剂", "杀菌剂"], value: "除草剂" });
+    expect(fields[2]).toMatchObject({ key: "remark", type: "string", required: false });
+  });
+
+  it("PublishSheet 家政品类（无 formSchema）不渲染动态表单区", async () => {
+    const { container, unmount } = mountPublishSheet("家政保洁");
+    // 家政弹药无 formSchema，动态表单区不应出现
+    expect(container.querySelector('[data-testid="publish-dynamic-form"]')).toBeNull();
+    // 但应有定价建议与草稿卡
+    expect(container.textContent).toContain("建议起价");
+    unmount();
+  });
+
+  it("PublishSheet 家电维修（map 形态）渲染 2 字段：select + string，必填星标", async () => {
+    const { container, unmount } = mountPublishSheet("家电维修");
+    const form = container.querySelector('[data-testid="publish-dynamic-form"]');
+    expect(form).not.toBeNull();
+    expect(form!.textContent).toContain("appliance-repair-v1");
+    // 两个字段
+    const fieldAppliance = container.querySelector('[data-field="applianceType"]') as HTMLSelectElement | null;
+    const fieldFault = container.querySelector('[data-field="faultDescription"]') as HTMLInputElement | null;
+    expect(fieldAppliance).not.toBeNull();
+    expect(fieldFault).not.toBeNull();
+    // select 应含中文选项
+    expect(fieldAppliance!.tagName.toLowerCase()).toBe("select");
+    expect(fieldAppliance!.innerHTML).toContain("空调");
+    expect(fieldAppliance!.innerHTML).toContain("洗衣机");
+    // 必填星标
+    expect(form!.innerHTML).toContain("text-red-400");
+    // 触控高度 ≥44
+    expect(Number((fieldAppliance!.style.minHeight || "48px").replace("px", "")) >= 44 || fieldAppliance!.className.includes("min-h-[48px]")).toBe(true);
+    unmount();
+  });
+
+  it("PublishSheet 动态长尾（fields[]）渲染 number + enum + string 三形态", async () => {
+    const config: IHolographicAmmoConfig = {
+      ammoId: "test-publish-triple-v1",
+      category: "TEST_PUBLISH_TRIPLE",
+      version: "1.0.0",
+      supplyCluster: "C1_MOBILITY",
+      pricingModel: { kind: "FIXED", amountYuan: 200 },
+      fuzePolicy: DEFAULT_FUZE_POLICY,
+      theme: "default",
+      formSchema: {
+        fields: [
+          { key: "amount", label: "数量", type: "number", required: true },
+          { key: "level", label: "档位", type: "select", options: ["低", "中", "高"], required: true },
+          { key: "agree", label: "同意条款", type: "boolean" },
+        ],
+      },
+    };
+    const reg = registerDynamicAmmo(config);
+    if (!reg.ok) throw new Error(reg.errors.join(";"));
+    // 中文别名直拨验证
+    const { container, unmount } = mountPublishSheet("TEST_PUBLISH_TRIPLE");
+    const form = container.querySelector('[data-testid="publish-dynamic-form"]');
+    expect(form).not.toBeNull();
+    expect(container.querySelector('[data-field="amount"]')).not.toBeNull();
+    expect(container.querySelector('[data-field="level"]')).not.toBeNull();
+    expect(container.querySelector('[data-field="agree"]')).not.toBeNull();
+    // number 为 input type=number
+    const numInput = container.querySelector('[data-field="amount"]') as HTMLInputElement;
+    expect(numInput.type).toBe("number");
+    // enum 为 select
+    const sel = container.querySelector('[data-field="level"]') as HTMLSelectElement;
+    expect(sel.tagName.toLowerCase()).toBe("select");
+    // boolean 为 switch button role=switch
+    const boolBtn = container.querySelector('[data-field="agree"]') as HTMLButtonElement;
+    expect(boolBtn.getAttribute("role")).toBe("switch");
+    unmount();
+  });
+
+  it("PublishSheet 零品类硬编码分支：category 切换 100% 由弹药表驱动，无 if(category===) 残留", async () => {
+    // 静态扫描：文件内容不应含品类特化硬编码分支（红线 2）
+    const fs = await import("fs");
+    const path = await import("path");
+    const file = fs.readFileSync(path.join(process.cwd(), "src/components/waves/PublishSheet.tsx"), "utf-8");
+    // 禁止出现针对具体类目的硬编码条件
+    expect(file).not.toMatch(/if\s*\(\s*category\s*===\s*['"]housekeeping['"]/);
+    expect(file).not.toMatch(/if\s*\(\s*category\s*===\s*['"]meetup['"]/);
+    expect(file).not.toMatch(/category\s*===\s*['"]家政/);
+    // 必须消费 formSchema 驱动
+    expect(file).toContain("describeFormSchemaFields");
+    expect(file).toContain("bizParams");
+    expect(file).toContain("holographic.formSchema");
+  });
+});

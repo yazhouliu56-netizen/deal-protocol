@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import type { IAmmoDefinition, INormalizedCustomIntent } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
+import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/controls/ProofCamera";
 
 /**
  * 长尾动态弹药通用履约插槽（Dynamic Ammo Slot · 自适应 theme-dynamic）。
@@ -11,7 +13,8 @@ import type { ScenarioTheme } from "@/types/ui-viewport";
  * 非三大官方标杆（housekeeping / meetup / companion）之外的任意长尾/动态
  * 弹药（如 DRONE_CROP_SPRAY 农田植保热注册弹药）在此获得通用履约视口：
  * - 动态参数快照：订单固化 bizParams（亩数 / 农药类型 / 作物种类等）结构化展示；
- * - 存证打卡区：声明 WATERMARK_CAMERA 的弹药展示 Before/After 双拍位拍照打卡；
+ * - 存证打卡区：声明 WATERMARK_CAMERA 的弹药展示 Before/After 双拍位拍照打卡，
+ *   集成 ProofCamera 全链（原生相机 ➔ 水印压制 ➔ SHA-256 ➔ 五信号快筛）；
  * - 安全引信徽标：fuzePolicy 投影（🛡️财产险 / ⏳预付冻结 / 📞虚拟号 / 📍围栏 / 🆘SOS）；
  * - 争议售后：标准【申请调解/申诉】入口。
  *
@@ -27,12 +30,18 @@ export interface DynamicAmmoSlotProps {
   bizParams?: Record<string, unknown>;
   /** Before/After 存证照片（验真徽标依据弹药传感声明）。 */
   evidencePhotos?: { before?: string | null; after?: string | null };
-  /** 拍照打卡上传请求（携带相位键 "before" | "after"，由调用方完成真实上传）。 */
-  onUploadProof?: (phaseKey: string) => void;
+  /** 拍照打卡上传请求（携带相位键 "before" | "after"，由调用方完成真实上传；P0-3 全链新增第二参结构化载荷）。 */
+  onUploadProof?: (phaseKey: string, result?: IProofCaptureResult) => void;
+  /** 结构化存证回调（与 onUploadProof 同步触发，供履约证据链入账）。 */
+  onProofCaptured?: (phaseKey: "before" | "after", result: IProofCaptureResult) => void;
   /** 插槽动作事件（"dispute" 申请调解/申诉等，由座舱上层接线）。 */
   onActionClick?: (actionKey: string) => void;
   /** 需求方定制要求（阶段3 语义驯化产物）：参数快照区渲染中性定制标签。 */
   customRequirements?: INormalizedCustomIntent;
+  /** 关联订单号（水印订单哈希，P0-3 全链透传）。 */
+  orderNo?: string;
+  /** 当前 GPS（水印坐标，缺省占位）。 */
+  geo?: { lat: number; lng: number; accuracyMeters?: number };
 }
 
 /** 引信策略 → 安全徽标（DynamicAmmoSlot 自有投影，对齐 describeSafetyBadges 语义的子集）。 */
@@ -175,6 +184,15 @@ const SLOT_CSS = `
   background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3)}
 .dyn-custom-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
   background:rgba(123,97,255,.16);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
+.dyn-proof-modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:16px}
+.dyn-proof-sheet{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#0f172a,#1e293b);
+  border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px}
+.dyn-forgery{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid;display:inline-flex;align-items:center;gap:4px}
+.dyn-forgery-low{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#86efac}
+.dyn-forgery-medium{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4);color:#fde68a}
+.dyn-forgery-high{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.4);color:#fed7aa}
+.dyn-forgery-critical{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);color:#fecaca}
 `;
 
 /** 长尾动态弹药通用履约插槽：参数快照 + 存证打卡 + 引信徽标 + 申诉入口。 */
@@ -203,20 +221,53 @@ export function describeDynamicCustomTags(
   return tags;
 }
 
+function forgeryClass(level: string): string {
+  switch (level) {
+    case "LOW":
+      return "dyn-forgery-low";
+    case "MEDIUM":
+      return "dyn-forgery-medium";
+    case "HIGH":
+      return "dyn-forgery-high";
+    case "CRITICAL":
+      return "dyn-forgery-critical";
+    default:
+      return "dyn-forgery-low";
+  }
+}
+
 export default function DynamicAmmoSlot({
   ammo,
   bizParams,
   evidencePhotos,
   onUploadProof,
+  onProofCaptured,
   onActionClick,
   customRequirements,
+  orderNo,
+  geo,
 }: DynamicAmmoSlotProps) {
   const needsCamera = requiresWatermarkCamera(ammo);
   const badges = describeFuzeBadges(ammo.fuzePolicy);
   const paramRows = describeBizParamRows(bizParams);
   const themeClass = resolveSlotThemeClass(ammo);
-  const twinVerified = Boolean(evidencePhotos?.before && evidencePhotos?.after);
+  const [capturing, setCapturing] = useState<"before" | "after" | null>(null);
+  const [beforeResult, setBeforeResult] = useState<IProofCaptureResult | null>(null);
+  const [afterResult, setAfterResult] = useState<IProofCaptureResult | null>(null);
+
+  const beforeDisplay = beforeResult?.dataUrl ?? evidencePhotos?.before ?? null;
+  const afterDisplay = afterResult?.dataUrl ?? evidencePhotos?.after ?? null;
+  const twinVerified = Boolean(beforeDisplay && afterDisplay);
+  const twinCritical = beforeResult?.forgeryReport.riskLevel === "CRITICAL" || afterResult?.forgeryReport.riskLevel === "CRITICAL";
   const customTags = describeDynamicCustomTags(customRequirements);
+
+  const handleCaptured = (phase: "before" | "after", result: IProofCaptureResult) => {
+    if (phase === "before") setBeforeResult(result);
+    else setAfterResult(result);
+    onUploadProof?.(phase, result);
+    onProofCaptured?.(phase, result);
+    setCapturing(null);
+  };
 
   return (
     <div className={`dyn-slot ${themeClass}`} data-slot="dynamic-ammo" data-theme={normalizeAmmoTheme(ammo.holographic?.theme)}>
@@ -258,25 +309,39 @@ export default function DynamicAmmoSlot({
 
       {needsCamera && (
         <section className="dyn-photos" data-testid="dyn-proof">
-          <div className="dyn-photo">
-            {evidencePhotos?.before ? (
-              <Image src={evidencePhotos.before} alt="存证 Before 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
+          <div className="dyn-photo" data-photo="before">
+            {beforeDisplay ? (
+              <>
+                <Image src={beforeDisplay} alt="存证 Before 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
+                {beforeResult && (
+                  <span className={`dyn-forgery ${forgeryClass(beforeResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="dyn-before-forgery">
+                    🔬 {Math.round(beforeResult.forgeryReport.overallConfidence * 100)}% · {beforeResult.forgeryReport.riskLevel}
+                  </span>
+                )}
+              </>
             ) : (
               <>
                 <span>📷 Before 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-before" onClick={() => onUploadProof?.("before")}>
+                <button type="button" className="dyn-photo-btn" data-action="proof-before" onClick={() => setCapturing("before")}>
                   拍照打卡
                 </button>
               </>
             )}
           </div>
-          <div className="dyn-photo">
-            {evidencePhotos?.after ? (
-              <Image src={evidencePhotos.after} alt="存证 After 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
+          <div className="dyn-photo" data-photo="after">
+            {afterDisplay ? (
+              <>
+                <Image src={afterDisplay} alt="存证 After 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
+                {afterResult && (
+                  <span className={`dyn-forgery ${forgeryClass(afterResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="dyn-after-forgery">
+                    🔬 {Math.round(afterResult.forgeryReport.overallConfidence * 100)}% · {afterResult.forgeryReport.riskLevel}
+                  </span>
+                )}
+              </>
             ) : (
               <>
                 <span>📷 After 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-after" onClick={() => onUploadProof?.("after")}>
+                <button type="button" className="dyn-photo-btn" data-action="proof-after" onClick={() => setCapturing("after")}>
                   拍照打卡
                 </button>
               </>
@@ -287,12 +352,23 @@ export default function DynamicAmmoSlot({
       {needsCamera && (
         <div data-testid="dyn-proof-status">
           {twinVerified ? (
-            <span className="dyn-verified">✅ 双拍验真已通过（水印相机存证）</span>
+            twinCritical ? (
+              <span style={{ fontSize: 12, color: "#fca5a5", fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
+            ) : (
+              <span className="dyn-verified">✅ 双拍验真已通过（水印相机存证 + 🔬 {beforeResult && afterResult ? `${Math.round(((beforeResult.forgeryReport.overallConfidence + afterResult.forgeryReport.overallConfidence)/2)*100)}%` : ""} 鉴真）</span>
+            )
           ) : (
             <span style={{ fontSize: 12, color: "#cbd5e1" }}>
               ⚠️ 完成 Before/After 双拍后按弹药契约核销（红线 4 零信任物理感知）
             </span>
           )}
+        </div>
+      )}
+      {twinVerified && !twinCritical && beforeResult && afterResult && (
+        <div className="dyn-badges" data-testid="dyn-sha-chain" style={{ flexDirection: "column" }}>
+          <span className="dyn-badge" style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, wordBreak: "break-all" }}>
+            SHA-256 Before {beforeResult.sha256.slice(0, 12)}… · After {afterResult.sha256.slice(0, 12)}…
+          </span>
         </div>
       )}
 
@@ -314,6 +390,22 @@ export default function DynamicAmmoSlot({
       >
         ⚖️ 申请调解 / 申诉
       </button>
+
+      {capturing && (
+        <div className="dyn-proof-modal" data-testid="dyn-proof-modal" onClick={() => setCapturing(null)}>
+          <div className="dyn-proof-sheet" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <strong style={{ fontSize: 13, color: "#e2e8f0" }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
+              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} style={{ color: "#94a3b8", background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
+            </div>
+            <ProofCamera
+              orderNo={orderNo ?? `dyn-${capturing}-${Date.now().toString(36)}`}
+              geo={geo}
+              onCaptured={(result) => handleCaptured(capturing, result)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

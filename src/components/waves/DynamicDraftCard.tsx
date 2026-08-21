@@ -153,7 +153,7 @@ export function clampAdj(value: number, min: number, max: number): number {
 }
 
 /** 动态表单 Schema 字段投影（D8 formSchema 声明式驱动，非硬编码字典）。 */
-export type DraftFormFieldType = "string" | "number" | "enum" | "unknown";
+export type DraftFormFieldType = "string" | "number" | "enum" | "boolean" | "unknown";
 
 export interface DraftFormField {
   /** 字段键（写入订单固化参数快照 bizParams）。 */
@@ -172,10 +172,19 @@ export interface DraftFormField {
 
 /** 8 维全息 formSchema → 草稿卡字段行（纯函数，仅供渲染消费）。 */
 export function describeFormSchemaFields(ammo: IAmmoDefinition): DraftFormField[] {
-  const schema = ammo.holographic?.formSchema;
-  const fields = schema && Array.isArray(schema.fields) ? schema.fields : [];
+  const schema = ammo.holographic?.formSchema as Record<string, unknown> | undefined;
+  let fields: Record<string, unknown>[] = [];
+  if (schema && Array.isArray((schema as { fields?: unknown }).fields)) {
+    fields = (schema as { fields: Record<string, unknown>[] }).fields;
+  } else if (schema && typeof schema === "object") {
+    const entries = Object.entries(schema as Record<string, unknown>);
+    const isMap = entries.some(([, v]) => v !== null && typeof v === "object" && "type" in (v as Record<string, unknown>));
+    if (isMap) {
+      fields = entries.map(([key, def]) => ({ key, ...(def as Record<string, unknown>) }));
+    }
+  }
   const rows: DraftFormField[] = [];
-  for (const f of fields as Record<string, unknown>[]) {
+  for (const f of fields) {
     if (!f || typeof f !== "object") continue;
     const key = typeof f.key === "string" && f.key.trim() !== "" ? f.key : "field";
     const typeKey = String(f.type ?? "");
@@ -186,7 +195,9 @@ export function describeFormSchemaFields(ammo: IAmmoDefinition): DraftFormField[
           ? "number"
           : typeKey === "picker" || typeKey === "select" || typeKey === "enum"
             ? "enum"
-            : "unknown";
+            : typeKey === "boolean" || typeKey === "bool" || typeKey === "switch"
+              ? "boolean"
+              : "unknown";
     const rawOptions =
       Array.isArray(f.options)
         ? f.options
@@ -198,7 +209,7 @@ export function describeFormSchemaFields(ammo: IAmmoDefinition): DraftFormField[
       key,
       label: typeof f.label === "string" && f.label.trim() !== "" ? f.label : key,
       type,
-      value: f.defaultValue ?? f.value ?? "",
+      value: f.defaultValue ?? f.value ?? f.default ?? "",
       options: options && options.length > 0 ? options : undefined,
       required: f.required === true,
     });
@@ -305,11 +316,11 @@ export default function DynamicDraftCard({
 
   // 内联微调状态：正在展开的参数行 + 用户覆盖值（初始 = 弹药出厂默认，SSR 逐字一致）
   const [editing, setEditing] = useState<string | null>(null);
-  const [overrides, setOverrides] = useState<Record<string, number | string>>({});
+  const [overrides, setOverrides] = useState<Record<string, number | string | boolean>>({});
   const [ripple, setRipple] = useState(0);
   const adjusters = describeSopAdjusters(definition);
   const adjByKey = new Map(adjusters.map((a) => [a.key, a]));
-  const liveEstimate = describeLiveEstimate(definition, overrides);
+  const liveEstimate = describeLiveEstimate(definition, overrides as Record<string, number | string>);
 
   const setAdj = (key: string, value: number) => {
     setOverrides((prev) => ({ ...prev, [key]: clampAdj(value, adjByKey.get(key)?.min ?? 0, adjByKey.get(key)?.max ?? 9999) }));
@@ -400,12 +411,14 @@ export default function DynamicDraftCard({
           {formFields.map((f) => {
             const current = typeof overrides[f.key] !== "undefined" ? overrides[f.key] : f.value;
             const active = editing === f.key;
-            const type: "number" | "enum" | "string" =
+            const type: "number" | "enum" | "string" | "boolean" =
               f.type === "number"
                 ? "number"
                 : f.type === "enum"
                   ? "enum"
-                  : "string";
+                  : f.type === "boolean"
+                    ? "boolean"
+                    : "string";
             const num = (t: number) => setOverrides((prev) => ({ ...prev, [f.key]: clampAdj(t, 0, 9999) }));
             return (
               <div key={f.key}>
@@ -478,6 +491,18 @@ export default function DynamicDraftCard({
                         placeholder="填写"
                         onChange={(e) => setOverrides((prev) => ({ ...prev, [f.key]: e.target.value }))}
                       />
+                    )}
+                    {type === "boolean" && (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={Boolean(current)}
+                        data-testid={`field-boolean-${f.key}`}
+                        className={`draft-adj-btn ${Boolean(current) ? "bg-emerald-500/30 border-emerald-400/50" : ""}`}
+                        onClick={() => setOverrides((prev) => ({ ...prev, [f.key]: !Boolean(current) }))}
+                      >
+                        {Boolean(current) ? "✅ 已开启" : "⭕ 已关闭"}
+                      </button>
                     )}
                   </div>
                 )}
