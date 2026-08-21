@@ -287,7 +287,7 @@
 | C13 | `components/escrow/encounter-contract-modal.tsx` | 会面合同弹窗 | 0 引用 | 零 | 彻底删除 |
 | C14 | `components/ProviderCheckinModal.tsx` | 服务者签到弹窗 | 0 引用 | 零 | 彻底删除 |
 | ~~C15~~ | ~~`components/MapComponent.tsx`（Leaflet）~~ | ~~履约地图~~ | ✅ **已收敛归一（2026-08-17）**：履约页迁移 MapLibre `MapView`（focus 锚定 + 单点光晕），`git rm` 物理删除，leaflet/react-leaflet/@types/leaflet 依赖出清 | 无 | 已删除 |
-| C16 | 老控制台 4 件套（`ClientConsole`/`ProviderConsole`/`SwipeableCard`/`GrabConsole`） | 老 5 屏时代组件 | 全部仍有页面引用（`console`、`provider`、`provider/incoming`、`provider/grab` 页面活跃） | 未取代 | 保留（待 `/oto` 5 屏完全接管后评估） |
+| ~~C16~~ | ~~老控制台 4 件套（`ClientConsole`/`ProviderConsole`/`SwipeableCard`/`GrabConsole`）~~ | ✅ **已收敛归一（2026-08-21）**：4 组件保留于 `src/components/`（`ClientConsole.tsx:1` 调试资金托管/`ProviderConsole.tsx:1` 雷达+接单/`SwipeableCard.tsx:1` 滑动接单/`GrabConsole.tsx:1` 竞抢动效，红线 3 单向依赖）+ 4 路由平移至 `/dp` 协议专区（`src/app/dp/console/page.tsx:1`、`src/app/dp/provider/page.tsx:1`、`src/app/dp/provider/incoming/page.tsx:1`、`src/app/dp/provider/grab/[id]/page.tsx:1` 复用原组件，管理台资产 100% 保留）+ 根路由 `src/app/console/page.tsx:1` 与 `src/app/provider/*:1` 四文件重定向至 `/dp`（307 优雅过渡，命名空间清理）+ `src/components/Header.tsx:26,96` 导航更新至 `/dp/provider/incoming` | 0 | 已收编（`oto` 5 屏 `WorkerWorkbench`/`FulfillmentCockpit` 已接管前台，协议后台归位 `/dp`） |
 
 ---
 
@@ -417,7 +417,7 @@
 ## Batch 4：结构级收敛（触发：单独立项，非垃圾清运）
 - [x] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）✅ **2026-08-17（P1 攻坚战役步骤二）**：registry.ts 重构为 ammo 投影适配器（三枚官方弹药 → protocol_housekeeping / protocol_meetup / protocol_dating，旧 id 语义等价），3 个旧协议文件 `git rm` 物理删除（535 行出清）+ 空目录清理，PROTOCOLS/getProtocol 契约增补导出，7 业务方零改动
 - [x] C15 履约页地图从 Leaflet `MapComponent` 迁移至 MapLibre `MapView` 后废弃 Leaflet 轨（✅ 2026-08-17：迁移 + `git rm` + 三依赖出清，P1 攻坚战役步骤一）
-- [ ] C16 老控制台 4 件套：`/oto` 5 屏完全接管 `console/provider/incoming/grab` 页面后评估废弃
+- [x] C16 老控制台 4 件套：`/oto` 5 屏完全接管 `console/provider/incoming/grab` 页面后评估废弃 ✅ **2026-08-21（C16 收编战役）**：4 组件保留于 `src/components/` + 4 路由平移至 `src/app/dp/` 协议专区（`dp/console`/`dp/provider`/`dp/provider/incoming`/`dp/provider/grab/[id]`）+ 根路由四文件 307 重定向至 `/dp`（命名空间清理）+ `Header.tsx` 导航更新至 `/dp/provider/incoming`，管理台资产 100% 保留，红线 3 单向依赖
 - [ ] E1/E2 补 `/rights`、`/demo` 导航入口或转 dev-only 路由
 
 ## 保留观察区（不进任何批次）

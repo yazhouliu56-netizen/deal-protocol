@@ -23,7 +23,7 @@ export default function Header() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname === "/") return null
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname?.startsWith("/dp/console") || pathname?.startsWith("/dp/provider") || pathname === "/") return null
 
   const isLoggedIn = !!session
 
@@ -93,7 +93,7 @@ export default function Header() {
                     <FileText className="mr-2 size-4" /> 发布悬赏
                   </DropdownMenuItem>
                   {isProvider && (
-                    <DropdownMenuItem onClick={() => router.push("/provider/incoming")} className="hover:bg-slate-800 focus:bg-slate-800">
+                    <DropdownMenuItem onClick={() => router.push("/dp/provider/incoming")} className="hover:bg-slate-800 focus:bg-slate-800">
                       <ShieldCheck className="mr-2 size-4" /> 待接悬赏
                     </DropdownMenuItem>
                   )}

@@ -1,18 +1,9 @@
-import React from "react"
-import { getSupabase } from "@/lib/supabase-client"
-import IncomingListClient from "./IncomingListClient"
-import type { IncomingDemand } from "@/components/SwipeableCard"
+import { redirect } from "next/navigation"
 
-export const dynamic = "force-dynamic"
-
-export default async function IncomingPage() {
-  const supabase = getSupabase()
-
-  const { data: demands } = await supabase
-    .from("demands")
-    .select("id, title, price, latitude, longitude, created_at")
-    .eq("status", "OPEN")
-    .order("created_at", { ascending: false })
-
-  return <IncomingListClient initialDemands={(demands as IncomingDemand[]) ?? []} />
+/**
+ * 根路由重定向（C16 收编）：/provider/incoming → /dp/provider/incoming
+ * SwipeableCard 滑动接单逻辑已平移至协议专区，本页保留重定向。
+ */
+export default function IncomingPage() {
+  redirect("/dp/provider/incoming")
 }
