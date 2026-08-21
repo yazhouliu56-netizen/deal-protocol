@@ -12,7 +12,7 @@ import DynamicDraftCard, {
   resolveDraftThemeClass,
 } from "@/components/waves/DynamicDraftCard";
 import { registerDynamicAmmo } from "@/ammo/factory";
-import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
+import { getAmmoById, getAmmoDefinition, listAmmoPillDescriptors, resolveAmmoIdForPublish } from "@/ammo/registry";
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
 import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
@@ -274,5 +274,37 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
     expect(html).toContain('data-param="capacity"');
     expect(html).toContain('data-param="buff"');
     expect(html).toContain("扣动扳机·一键发布");
+  });
+
+  it("出卡动效：Framer Motion spring 驱动（will-change transform/opacity，零重排）", () => {
+    const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
+    // 静态渲染保留 draft-card 结构，且内联 will-change 硬件加速标记
+    expect(html).toContain('class="draft-card');
+    expect(html).toContain("will-change");
+    // 源码动效参数校验
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require("fs");
+    const path = require("path");
+    const src = fs.readFileSync(path.join(process.cwd(), "src/components/waves/DynamicDraftCard.tsx"), "utf-8");
+    expect(src).toContain('stiffness: 400');
+    expect(src).toContain('damping: 30');
+    expect(src).toContain("willChange");
+  });
+
+  it("两步极速发单：品类胶囊 4 枚直拨弹药（无需打字，点胶囊→点扣动扳机 2 步发射）", () => {
+    const pills = listAmmoPillDescriptors();
+    const labels = pills.map((p: { label: string }) => p.label);
+    expect(labels).toContain("家政保洁");
+    expect(labels).toContain("组局社交");
+    // 陪伴交友/摄影师约拍 同属 companion 族，至少含其一
+    expect(labels.some((l: string) => ["陪伴交友", "摄影师约拍"].includes(l))).toBe(true);
+    expect(labels).toContain("家电维修");
+    // 每枚胶囊直拨对应弹药（点胶囊即出草稿卡，所见即所发）
+    for (const pill of pills as Array<{ label: string; ammoId: string; category: string }>) {
+      const html = renderToStaticMarkup(<DynamicDraftCard category={pill.label} />);
+      expect(html).toContain(`data-ammo="${pill.ammoId}"`);
+      expect(html).toContain(`data-category="${pill.label}"`);
+      expect(html).toContain("扣动扳机·一键发布");
+    }
   });
 });

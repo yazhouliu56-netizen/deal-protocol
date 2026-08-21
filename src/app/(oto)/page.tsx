@@ -155,18 +155,23 @@ export default function Home() {
       <div className="starfield" />
       <div className="noise-overlay" />
 
-      {/* 满屏响应式内容层：移动端 100% 视口，桌面端居中大画幅 */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={screen}
-          variants={screenVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 z-10 overflow-y-auto pointer-events-none"
-        >
-          <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
+      {/* 满屏响应式内容层：移动端 100% 视口，桌面端居中大画幅 — 景深微缩容器（两步发单/抽屉/AuthSheet 打开时 scale 0.96 + brightness 0.85，250ms 硬件加速） */}
+      <div
+        className={`absolute inset-0 z-10 overflow-hidden transition-all duration-250 ease-out origin-top will-change-transform ${gestureLocked ? "scale-[0.96] brightness-[0.85]" : "scale-100 brightness-100"}`}
+        style={{ willChange: "transform, filter" }}
+        data-depth-active={gestureLocked ? "true" : "false"}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={screen}
+            variants={screenVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 overflow-y-auto pointer-events-none"
+          >
+            <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
             {screen === "home" && <HomePage />}
             {screen === "im" && <MessagesPage onGoHome={() => setScreen("home")} />}
             {screen === "ar" && (
@@ -185,8 +190,9 @@ export default function Home() {
           </div>
         </motion.div>
       </AnimatePresence>
+      </div>
 
-      {/* 底部悬浮 Dock：固定在真实屏幕底部（store 驱动） */}
+      {/* 底部悬浮 Dock：固定在真实屏幕底部（store 驱动，不受景深微缩影响） */}
       <FloatingDock />
 
       {/* 方案 A：空间毛玻璃登录抽屉（全局呼出 oto:auth-open，前台零整页跳出） */}

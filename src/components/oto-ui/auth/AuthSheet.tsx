@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toast } from "@/base/platform/toast";
 
 /**
@@ -170,6 +171,12 @@ export default function AuthSheet() {
     },
     enabled: open,
   });
+
+  // 景深微缩：抽屉打开期间锁定边缘手势并驱动底层视口 scale/brightness
+  useEffect(() => {
+    lockEdgeGesture(open);
+    return () => lockEdgeGesture(false);
+  }, [open]);
 
   function beginDismiss() {
     if (dismissing) return;

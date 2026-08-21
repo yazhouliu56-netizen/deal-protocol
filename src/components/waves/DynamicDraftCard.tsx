@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
@@ -327,11 +328,15 @@ export default function DynamicDraftCard({
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={`draft-card ${themeClass}`}
       data-ammo={definition.ammoId}
       data-category={category}
       data-theme={resolveAmmoTheme(definition)}
+      style={{ willChange: "transform, opacity" }}
     >
       <style>{DRAFT_CSS}</style>
       <div className="draft-card-title">
@@ -537,6 +542,6 @@ export default function DynamicDraftCard({
         {ripple > 0 && <span key={ripple} className="draft-card-ripple" />}
         扣动扳机·一键发布
       </button>
-    </div>
+    </motion.div>
   );
 }

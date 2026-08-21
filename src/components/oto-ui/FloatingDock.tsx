@@ -63,12 +63,24 @@ export default function FloatingDock() {
                 key={nav.id}
                 onClick={() => setScreen(nav.id)}
                 aria-label={nav.label}
+                data-testid={`dock-tab-${nav.id}`}
+                data-active={isActive ? "true" : "false"}
                 className={`relative flex flex-col items-center gap-1 transition-all duration-300 ${
                   isActive
                     ? "text-brandPurple scale-110"
                     : "text-white/55 hover:text-white hover:scale-105"
                 }`}
               >
+                {/* Spring Glider：半透明高光胶囊，Tab 间弹簧滑行吸附（transform/opacity 硬件加速，60fps） */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeDockPill"
+                    data-testid="dock-glider"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 -inset-x-1 -top-1 -bottom-1 rounded-2xl bg-white/[0.08] border border-white/10 shadow-[0_0_20px_rgba(123,97,255,0.25)] backdrop-blur-md"
+                    aria-hidden="true"
+                  />
+                )}
                 <div
                   className={`relative p-2.5 rounded-full transition-colors duration-300 ${
                     isActive ? "bg-brandPurple/20" : ""
@@ -88,7 +100,7 @@ export default function FloatingDock() {
                     </span>
                   )}
                 </div>
-                <span className="text-xs font-semibold tracking-wide">
+                <span className="text-xs font-semibold tracking-wide relative">
                   {nav.label}
                 </span>
                 {isActive && (
