@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
-import Header from "@/components/Header";
 import { UXProvider } from "@/components/providers/UXProvider";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
@@ -90,7 +89,6 @@ export default function RootLayout({
         <SessionProvider>
           <UXProvider>
             <ThemeProvider>
-              <Header />
               <main className="flex-1">{children}</main>
             </ThemeProvider>
           </UXProvider>
