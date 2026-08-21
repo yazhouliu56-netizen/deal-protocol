@@ -7,8 +7,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { Zap } from "lucide-react"
+import { notFound } from "next/navigation"
 
 export default function DemoPage() {
+  if (process.env.NODE_ENV === "production") {
+    notFound()
+  }
   const [price, setPrice] = useState(180)
 
   const protocolResult = {

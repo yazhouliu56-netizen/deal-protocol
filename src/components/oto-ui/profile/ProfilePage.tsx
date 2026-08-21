@@ -34,6 +34,7 @@ import SeniorModeView from "@/components/oto-ui/SeniorModeView";
 import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
 import SafetyKit from "@/components/waves/SafetyKit";
 import ProfileDrawer from "./ProfileDrawer";
+import Link from "next/link";
 import {
   readAuthAccount,
   openAuthSheet,
@@ -601,6 +602,23 @@ export default function ProfilePage({
               ))}
             </div>
           )}
+        </div>
+
+        {/* E2 合规公示入口：消费者权益与平台规则 */}
+        <div className="glass-panel rounded-2xl p-3.5">
+          <Link
+            href="/rights"
+            data-testid="rights-entry"
+            className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-brandPurple/40 hover:bg-white/[0.06] active:scale-[0.98] transition-all"
+          >
+            <span className="text-xs font-bold text-white/88 flex items-center gap-1.5">
+              ⚖️ 消费者权益与平台保障公示
+            </span>
+            <span className="text-white/40 text-sm">›</span>
+          </Link>
+          <p className="text-xs text-white/68 mt-1.5 leading-relaxed">
+            依据《电子商务法》《消费者权益保护法》法定公示：知情权·申诉权·建议权·信用等级·争议仲裁·隐私保护
+          </p>
         </div>
       </ProfileDrawer>
 

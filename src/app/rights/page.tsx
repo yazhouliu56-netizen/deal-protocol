@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -110,11 +111,21 @@ const rightsData = [
 ];
 
 export default function RightsPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-zinc-950">
       <div className="mx-auto max-w-5xl">
+        {/* 返回导航（E2 合规收口：48px 触控 + 高对比度） */}
+        <button
+          onClick={() => router.push("/")}
+          data-testid="rights-back"
+          aria-label="返回主页"
+          className="min-h-12 inline-flex items-center gap-1.5 px-3.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          ‹ 返回主页
+        </button>
       {/* Header */}
-      <div className="text-center">
+      <div className="text-center mt-6">
 <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
            用户权利与平台规则
         </h1>

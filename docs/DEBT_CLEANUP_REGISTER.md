@@ -350,8 +350,8 @@
 | G1 | `src/components/encounter/.gitkeep` | 目录有活跃文件（`queue-adventure-modal.tsx`），占位文件多余 | 清理 `.gitkeep` 文件本身（目录保留） |
 | G2 | `src/components/escrow/.gitkeep` | 目录有 2 文件（`checkpoint-timer` 活跃 / `encounter-contract-modal` C13 待删） | 清理 `.gitkeep`（C13 删除后目录仍保留活跃文件） |
 | G3 | `src/components/onboarding/.gitkeep` | 目录有活跃文件（`guild-registration-modal.tsx`） | 清理 `.gitkeep` |
-| E1 | `src/app/rights/page.tsx` | 权利公示页（内容完整，非白板）；`href="/rights"` 0 导航入口 | 保留（法规合规页，建议补导航入口） |
-| E2 | `src/app/demo/page.tsx`（165 行） | 组件演示页；引用的 MediaPicker/PriceSlider 同时被 SmartProtocolCard（活跃）消费；`href="/demo"` 0 导航入口 | 保留（开发演示资产，可挂 dev 路由） |
+| ~~E1~~ | ~~`src/app/rights/page.tsx`~~ | ~~权利公示页（内容完整，非白板）；`href="/rights"` 0 导航入口~~ | ✅ **已收敛闭环（2026-08-21）**：`ProfilePage.tsx:443` 隐私抽屉新增 `⚖️ 消费者权益与平台保障公示` 入口（`Link href="/rights" data-testid="rights-entry" min-h-12` 48px 触控 + 法条文案）+ `rights/page.tsx:112` 顶部 `[‹ 返回主页]` 按钮（`router.push("/") data-testid="rights-back" min-h-12` 高对比度，深浅自适应） |
+| ~~E2~~ | ~~`src/app/demo/page.tsx`（165 行）~~ | ~~组件演示页；引用的 MediaPicker/PriceSlider 同时被 SmartProtocolCard（活跃）消费；`href="/demo"` 0 导航入口~~ | ✅ **已收敛闭环（2026-08-21）**：`demo/page.tsx:1` 增加生产环境守卫 `if (process.env.NODE_ENV === "production") notFound()`（`next/navigation` 404 阻断，开发/测试环境保持可用），防止内部调试页泄漏生产 |
 
 ---
 
@@ -418,7 +418,7 @@
 - [x] P1-P3 垂直协议 `lib/protocol/protocols/*` 收敛重定向至 `src/ammo/`（爆炸半径：registry + engine + 7 个业务方；须走宪法收敛门禁）✅ **2026-08-17（P1 攻坚战役步骤二）**：registry.ts 重构为 ammo 投影适配器（三枚官方弹药 → protocol_housekeeping / protocol_meetup / protocol_dating，旧 id 语义等价），3 个旧协议文件 `git rm` 物理删除（535 行出清）+ 空目录清理，PROTOCOLS/getProtocol 契约增补导出，7 业务方零改动
 - [x] C15 履约页地图从 Leaflet `MapComponent` 迁移至 MapLibre `MapView` 后废弃 Leaflet 轨（✅ 2026-08-17：迁移 + `git rm` + 三依赖出清，P1 攻坚战役步骤一）
 - [x] C16 老控制台 4 件套：`/oto` 5 屏完全接管 `console/provider/incoming/grab` 页面后评估废弃 ✅ **2026-08-21（C16 收编战役）**：4 组件保留于 `src/components/` + 4 路由平移至 `src/app/dp/` 协议专区（`dp/console`/`dp/provider`/`dp/provider/incoming`/`dp/provider/grab/[id]`）+ 根路由四文件 307 重定向至 `/dp`（命名空间清理）+ `Header.tsx` 导航更新至 `/dp/provider/incoming`，管理台资产 100% 保留，红线 3 单向依赖
-- [ ] E1/E2 补 `/rights`、`/demo` 导航入口或转 dev-only 路由
+- [x] E1/E2 补 `/rights`、`/demo` 导航入口或转 dev-only 路由 ✅ **2026-08-21（边缘收口战役）**：E1 `/rights` 隐私抽屉挂载入口 + 返回导航补齐（合规公示 6 项完整）+ E2 `/demo` 生产守卫 `notFound()` 404 隔离，2 项 100% 闭环，门禁 1567/1567 全绿、tsc 0、build exit 0
 
 ## 保留观察区（不进任何批次）
 - B1-B9 全部基础设施路由（cron ×3 / webhook ×3 / gateway / health / wechat-callback）
