@@ -16,6 +16,23 @@ import { getAmmoById, getAmmoDefinition, listAmmoPillDescriptors, resolveAmmoIdF
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
 import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
+describe("DynamicDraftCard P1 第 4 步：内嵌模式 hideLaunchButton", () => {
+  it("默认渲染含发射按钮（独立卡片行为零变化）", () => {
+    const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
+    expect(html).toContain("扣动扳机·一键发布");
+  });
+
+  it("hideLaunchButton=true 隐藏发射按钮，参数摘要与微调区保留", () => {
+    const html = renderToStaticMarkup(
+      <DynamicDraftCard category="housekeeping" hideLaunchButton={true} />,
+    );
+    expect(html).not.toContain("扣动扳机·一键发布");
+    // 参数摘要职责不丢：D2 计价与 SOP 参数仍在
+    expect(html).toContain("预估费用：¥60/小时 × 2小时起");
+    expect(html).toContain("默认 1 人");
+  });
+});
+
 describe("DynamicDraftCard 弹药驱动草稿卡", () => {
   it("保洁弹药（housekeeping-v1）：时薪计价 + 碰炸引信徽章 + SOP 默认参数", () => {
     const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);

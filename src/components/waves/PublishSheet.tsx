@@ -7,14 +7,31 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
-import DynamicDraftCard, { describeFormSchemaFields } from "./DynamicDraftCard";
+import DynamicDraftCard, {
+  describeFormSchemaFields,
+  describePricing,
+} from "./DynamicDraftCard";
 import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import { normalizeCustomIntent } from "@/base/ai/intent-normalizer";
-import { pricingForCategory } from "@/ammo/pricing-formula";
+import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
+
+/** P1 第 4 步：弹药起步底价投影（组件层消费 D2，零硬编码；未识别结构 → 0）。 */
+function pricingFloorYuan(model: PricingModel): number {
+  switch (model.kind) {
+    case "HOURLY":
+      return model.rateYuan * model.minHours;
+    case "PER_SEAT":
+      return model.perSeatYuan * model.minSeats;
+    case "FORMULA":
+      return Number(model.params?.baseRate ?? 0);
+    case "FIXED":
+      return model.amountYuan;
+  }
+}
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
 
@@ -136,8 +153,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         window.clearTimeout(dismissTimerRef.current);
         dismissTimerRef.current = null;
       }
-      // 草稿卡带入的品类别在关闭后残留串单到下一次发布（如胶囊 → 家政保洁 → 改发其他）
-      if (initialCategory) setCategory(initialCategory);
+    // 草稿卡带入的品类别在关闭后残留串单到下一次发布（如胶囊 → 家政保洁 → 改发其他）
+    // P1 第 4 步：扳机入口与快捷胶囊同链装配 —— 品类 + 预算起步底价一次到位
+    if (initialCategory) applySopDefaults(initialCategory);
     }
   }, [open, initialCategory]);
 
@@ -150,13 +168,21 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
-  /** 选品类 → 应用 SOP 弹药表默认（鸽子险/有效期/容量，宪法 #3：先配表后写码）。 */
+  /** 选品类 → 应用 SOP 弹药表默认（鸽子险/有效期/容量 + 预算起步底价，宪法 #3：先配表后写码）。 */
   function applySopDefaults(cat: string) {
     setCategory(cat);
     const s = sopForCategory(cat.trim());
     if (s.depositDefault !== undefined) setDeposit(s.depositDefault);
     if (s.expiresInMs !== undefined) setTtl(s.expiresInMs);
     if (s.capacityDefault !== undefined) setPeople(s.capacityDefault);
+    // P1 第 4 步：预算默认值对齐弹药起步底价（D2 SSOT，杜绝同屏多价格口径互殴）
+    try {
+      const ammo = getAmmoById(resolveAmmoIdForPublish(cat.trim()));
+      const floor = pricingFloorYuan(ammo.pricingModel);
+      if (floor > 0) setBudget(String(floor));
+    } catch {
+      // 未命中官方弹药（自定义长尾）→ 保持当前预算值
+    }
   }
 
   function reset() {
@@ -418,14 +444,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           inputMode="numeric"
           className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-1"
         />
-        {/* 定价弹药表建议（ammo/pricing-formula 驱动）：地板价起点 + 服务保修 */}
-        {category.trim() && (
-          <p className="text-xs text-brandCyan/80 mb-3">
-            该品类建议起价 ¥{pricingForCategory(category.trim()).minPriceYuan ?? "—"}
-            <span className="text-white/35">
-              {" · "}
-              {pricingForCategory(category.trim()).warrantyText ?? "按单协商"}
-            </span>
+        {/* P1 第 4 步：价格权威单一源 —— 起步口径 100% 取自当前弹药 D2 计价契约，
+            旧「建议起价 ¥{minPriceYuan}」scene 残留出清（底座表保留，UI 不再消费） */}
+        {category.trim() && ammoForForm && (
+          <p className="text-xs text-brandCyan/80 mb-3" data-testid="ammo-floor-price">
+            弹药起步 {describePricing(ammoForForm.pricingModel)}
           </p>
         )}
 
@@ -526,6 +549,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           <div className="mb-3">
             <DynamicDraftCard
               category={category.trim()}
+              hideLaunchButton={true}
               onPublish={() => publish()}
               onTweak={(key) => {
                 // 草稿卡参数行点击微调：聚焦对应表单（开放局容量 → 展开更多选项）

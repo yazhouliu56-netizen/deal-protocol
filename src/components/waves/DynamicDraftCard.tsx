@@ -23,14 +23,20 @@ import { normalizeAmmoTheme } from "./slots/DynamicAmmoSlot";
  */
 
 export interface DynamicDraftCardProps {
-  /** 业务类目键（如 "housekeeping" / "meetup" / "social"），经注册表整弹解析。 */
+  /** 业务品类名（如 "housekeeping" / "meetup" / "social"，兼容注音别名容错） */
   category: string;
-  /** 弹药覆盖（测试/预览注入；缺省走 getAmmoDefinition(category)）。 */
+  /** 弹药覆盖（测试/预览注入；缺省走 getAmmoDefinition(category)） */
   ammo?: IAmmoDefinition;
-  /** 点击微调参数（结构化参数行可点）。 */
+  /** 参数微调回调（参数行全部可点） */
   onTweak?: (key: string) => void;
-  /** 「扣动扳机·一键发布」CTA。 */
+  /** 扣动扳机·一键发布（CTA） */
   onPublish?: () => void;
+  /**
+   * P1 第 4 步：内嵌模式 —— 被 PublishSheet 等父级收编为「可微调参数摘要」时，
+   * 隐藏卡片自带的发射按钮，保证视口单一操作出口（单 CTA 原则）。
+   * 默认 false：独立卡片（首页 DraftSheet 入口）行为零变化。
+   */
+  hideLaunchButton?: boolean;
 }
 
 /**
@@ -302,6 +308,7 @@ export default function DynamicDraftCard({
   ammo,
   onTweak,
   onPublish,
+  hideLaunchButton = false,
 }: DynamicDraftCardProps) {
   // 弹药解析对齐落库语义（W1）：发布链路写 Wave.ammoId 走 resolveAmmoIdForPublish
   // （动态池 → 中文类目归一化直拨官方弹药），预览卡同链解析保证「所见即所发」——
@@ -533,15 +540,18 @@ export default function DynamicDraftCard({
           ))}
         </div>
       )}
-      <button
-        type="button"
-        className="draft-card-cta"
-        onPointerDown={() => setRipple((n) => n + 1)}
-        onClick={onPublish}
-      >
-        {ripple > 0 && <span key={ripple} className="draft-card-ripple" />}
-        扣动扳机·一键发布
-      </button>
+      {/* P1 第 4 步：hideLaunchButton=true 时隐藏发射按钮（内嵌参数摘要模式，父级持有唯一 CTA） */}
+      {!hideLaunchButton && (
+        <button
+          type="button"
+          className="draft-card-cta"
+          onPointerDown={() => setRipple((n) => n + 1)}
+          onClick={onPublish}
+        >
+          {ripple > 0 && <span key={ripple} className="draft-card-ripple" />}
+          扣动扳机·一键发布
+        </button>
+      )}
     </motion.div>
   );
 }

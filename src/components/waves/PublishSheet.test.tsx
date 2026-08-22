@@ -68,8 +68,10 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     const { container, unmount } = mountPublishSheet("家政保洁");
     // 家政弹药无 formSchema，动态表单区不应出现
     expect(container.querySelector('[data-testid="publish-dynamic-form"]')).toBeNull();
-    // 但应有定价建议与草稿卡
-    expect(container.textContent).toContain("建议起价");
+    // 但应有定价口径与草稿卡（P1 第 4 步：旧「建议起价」scene 残留已出清，
+    // 价格权威收敛为弹药 D2 起步口径 —— 原断言锁定的正是被移除的旧文案）
+    expect(container.textContent).toContain("弹药起步 预估费用：¥60/小时 × 2小时起");
+    expect(container.textContent).not.toContain("建议起价");
     unmount();
   });
 
@@ -145,5 +147,51 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     expect(file).toContain("describeFormSchemaFields");
     expect(file).toContain("bizParams");
     expect(file).toContain("holographic.formSchema");
+  });
+
+  describe("P1 第 4 步：单 CTA 收敛 + 价格权威单一源", () => {
+    it("面板内嵌草稿卡隐藏发射按钮：视口内唯一主按钮为「广播出去」", () => {
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      const html = container.textContent ?? "";
+      // 内嵌草稿卡的「扣动扳机」必须被 hideLaunchButton 隐藏
+      expect(html).not.toContain("扣动扳机·一键发布");
+      // 唯一主行动按钮存在
+      const primaryCtas = Array.from(container.querySelectorAll("button")).filter(
+        (b) => (b.textContent ?? "").includes("广播出去"),
+      );
+      expect(primaryCtas.length).toBe(1);
+      unmount();
+    });
+
+    it("价格口径归一：家政显示 D2 起步 ¥60/小时 × 2小时起，¥50 残留彻底出清", () => {
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      const html = container.textContent ?? "";
+      expect(html).toContain("¥60/小时 × 2小时起");
+      expect(html).not.toContain("建议起价");
+      expect(html).not.toContain("¥50");
+      unmount();
+    });
+
+    it("组局价格口径：PER_SEAT ¥80/人 · 2人起（AA 均摊）", () => {
+      const { container, unmount } = mountPublishSheet("羽毛球约局");
+      expect(container.textContent).toContain("¥80/人 · 2人起（AA 均摊）");
+      unmount();
+    });
+
+    it("预算默认值对齐弹药起步底价（点击家政快捷胶囊 → 120）", () => {
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      // 模拟用户点击品类快捷胶囊触发 SOP 默认装配（applySopDefaults）
+      const pill = Array.from(container.querySelectorAll("button")).find((b) =>
+        (b.textContent ?? "").includes("家政保洁"),
+      );
+      act(() => {
+        pill?.click();
+      });
+      const budgetInput = container.querySelector(
+        'input[aria-label="基础预算"]',
+      ) as HTMLInputElement | null;
+      expect(budgetInput?.value).toBe("120");
+      unmount();
+    });
   });
 });
