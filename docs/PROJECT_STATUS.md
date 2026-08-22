@@ -154,11 +154,11 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-22 ｜ HEAD：`092f094`+未提交（广播命名空间隔离战役 · verify-prod 12/12×2 全绿）｜ 摘要：P2P 传输层 ns 参数化（探针 SSR 守卫 + 默认键字节兼容）+ 固定 12 席 `oto::e2e::<script>` 自清零 Upsert + e2e-channel.mjs 助手统一接入 13 脚本 + 56 处直读键隔离 + 根治四连先在缺陷（readShared 闭包传参/Bot 未关/浮层遮挡 force 点击/identity 撞号）+ FORCE_LOCAL 确定性降级探针
+> 日期：2026-08-22 ｜ HEAD：`1d6f771`（广播命名空间隔离战役 · verify-prod 12/12×2 全绿）｜ 摘要：P2P 传输层 ns 参数化（探针 SSR 守卫 + 默认键字节兼容）+ 固定 12 席 `oto::e2e::<script>` 自清零 Upsert + e2e-channel.mjs 助手统一接入 13 脚本 + 56 处直读键隔离 + 根治四连先在缺陷（readShared 闭包传参/Bot 未关/浮层遮挡 force 点击/identity 撞号）+ FORCE_LOCAL 确定性降级探针
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
-| 2026-08-22 | `092f094`+未提交 | **广播命名空间隔离战役**：① transport/supabase 双通道 ns 参数化（默认字节兼容零生产影响）；② 固定席位自清零方案落地（零 DDL）；③ 13 脚本接入助手层 + 56 处直读键命名空间化；④ 先在缺陷根治 ×4（openmatch readShared 闭包 / push·trust-open·governance Bot 干扰 / governance 浮层遮挡 / identity 撞号熵扩 36⁶）；⑤ 门禁：**verify-prod 连续两轮 12/12 全绿** + four-ammos 独立 PASS + 1623 单测 0 skipped + lint 0/0 + tsc 0 + 收敛 exit 0；⑥ E2E 基线口径修正（12 条非 13） |
+| 2026-08-22 | `1d6f771` | **广播命名空间隔离战役**：① transport/supabase 双通道 ns 参数化（默认字节兼容零生产影响）；② 固定席位自清零方案落地（零 DDL）；③ 13 脚本接入助手层 + 56 处直读键命名空间化；④ 先在缺陷根治 ×4（openmatch readShared 闭包 / push·trust-open·governance Bot 干扰 / governance 浮层遮挡 / identity 撞号熵扩 36⁶）；⑤ 门禁：**verify-prod 连续两轮 12/12 全绿** + four-ammos 独立 PASS + 1623 单测 0 skipped + lint 0/0 + tsc 0 + 收敛 exit 0；⑥ E2E 基线口径修正（12 条非 13） |
 | 2026-08-22 | `f117d4d` | **Lint 回锁战役**：① globalIgnores 删 src/base/**、src/ammo/** 纳管 193 核心文件（备份 eslint.config.mjs.bak-20260822）；② 实测 43 处告警全清零；③ 13 条规则回锁 error；④ e2e-four-ammos.mjs 断线修复 5/5 PASS；⑤ lint 0 errors/0 warnings + tsc 0 + **1623/1623 全绿 0 skipped** + build/restart/E2E 双脚本/收敛门禁全过；⑥ PROJECT_STATUS Lint 行与单测基线同步实测真值 |
 | 2026-08-22 | `121702d` | **战役三 · 商业语言去黑话 + a11y + E2E 对齐**：① 方案 B 治本替换 111+ 处（爽约保障险/多人拼单局/方案系词汇，算法与 testid 零改动）；② a11y 运行时枚举 13 字段补 name/id 归零；③ E2E 抽屉化对齐（能力声明×5 系统抽屉 / 安全中心双层组合点击 / Bot 确定性开关 / fulfillment-center 锚点 / 轮询化）→ verify-prod **11/13 PASS**（余 4 条为套件顺序云端污染不稳定，单跑皆绿，已立项专项）；④ 附修访客工作台 React#300（hooks 早退违规）；⑤ 授权断言修订：app 阿凯→看板挂载、match 我（Alex）→同、家政建议起价→方案起步 |
 | 2026-08-22 | `3184afe` | **发布面板单 CTA + 价格权威归一 D2（P1 第 4 步）**：① hideLaunchButton 内嵌模式，面板唯一「广播出去 📡」；② 旧「建议起价 ¥50」UI 出清（底座 CATEGORY_PRICING 保留），价格行改读 describePricing(D2)，pricingFloorYuan 投影装配预算默认=起步价（扳机/胶囊同链）；③ 测试 +6 → **1620/1620 全绿**、tsc 0、build exit 0；④ CDP：内嵌扳机 0 / 广播按钮 1 / ¥60×2h 无 ¥50 / 预算 120 |
