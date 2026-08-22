@@ -16,6 +16,7 @@ import ArbitrationSheet, {
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
+import { personaAvatarForBot } from "@/base/platform/sandbox-bot";
 import type { HousekeepingQuote } from "./slots/HousekeepingSlot";
 import type { MeetupSeat } from "./slots/MeetupSlot";
 
@@ -138,6 +139,7 @@ export default function FulfillmentCenter({
 }) {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
+  const responders = useWaveStore((s) => s.responders);
   const fulfilment = useWaveStore((s) => s.fulfilment);
   const setFulfilment = useWaveStore((s) => s.setFulfilment);
   const closeWave = useWaveStore((s) => s.closeWave);
@@ -326,11 +328,21 @@ export default function FulfillmentCenter({
     setDisputeOpen(false);
   }
 
+  // P0 Bot 人设绑定：服务者名片从 responders 注册表解析（Bot 接单显示真实人设
+  // 昵称/信用；未注册响应者回落既有 responderId 后四位兜底，零回归）。
+  const activeResponderCap = activeClaim
+    ? responders.find((r) => r.id === activeClaim.responderId)
+    : undefined;
   const provider = {
-    avatar: "🧑‍🔧",
-    name: `服务者 · ${(activeClaim?.responderId ?? "待接单").slice(-4)}`,
-    verified: true,
-    trustScore: 88,
+    avatar:
+      (activeClaim && personaAvatarForBot(activeClaim.responderId)) ?? "🧑‍🔧",
+    name: activeResponderCap
+      ? `服务者 · ${activeResponderCap.nickname}`
+      : `服务者 · ${(activeClaim?.responderId ?? "待接单").slice(-4)}`,
+    verified: activeResponderCap ? activeResponderCap.verified !== false : true,
+    trustScore: activeResponderCap?.rating
+      ? Math.round(activeResponderCap.rating * 20)
+      : 88,
   };
 
   return (

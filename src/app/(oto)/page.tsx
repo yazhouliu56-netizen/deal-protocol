@@ -17,6 +17,11 @@ import EnvBadge from "@/components/oto-ui/EnvBadge";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { toast } from "@/base/platform/toast";
+import type { ResponderCapability } from "@/base/dispatch/broadcast";
+import {
+  BOT_RESPONSE_DELAY_MS,
+  scheduleBotResponse,
+} from "@/base/platform/sandbox-bot";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import WaveFeed from "@/components/waves/WaveFeed";
@@ -120,6 +125,59 @@ export function AuthUrlGate() {
   return null;
 }
 
+/**
+ * 沙盒 Bot 服务者自动接单宿主（P0 双边市场空转治理）：
+ * 根视图常驻（不随屏切换卸载），监听本人 active 且尚无 claim 的 Wave，
+ * 5 秒后经真实 Store 状态机派单 —— 1v1 openClaim→acceptClaim（locked + 隐私号
+ * 自动分配），组局 joinSeat 占 1 席。防重复三重防线：组件层 waves 过滤 +
+ * 调度器会话 Set + 执行时刻持久化 claims 判定；SANDBOX_BOT_ENABLED 为生产
+ * 云端模式关闭位（切真实供需时置 false，改由「无供给」提示兜底）。
+ */
+const SANDBOX_BOT_ENABLED = true;
+
+function SandboxBotHost() {
+  const waves = useWaveStore((s) => s.waves);
+  const claims = useWaveStore((s) => s.claims);
+  const me = useIdentityStore((s) => s.identity.id);
+
+  useEffect(() => {
+    if (!SANDBOX_BOT_ENABLED) return;
+    const botActions = {
+      getLatestWave: (id: string) =>
+        useWaveStore.getState().waves.find((x) => x.id === id),
+      hasClaimForWave: (id: string) =>
+        useWaveStore.getState().claims.some((c) => c.waveId === id),
+      registerResponder: (cap: ResponderCapability) =>
+        useWaveStore.getState().registerResponder(cap),
+      openClaim: (p: {
+        waveId: string;
+        responderId: string;
+        price: number;
+        note?: string;
+      }) => useWaveStore.getState().openClaim(p),
+      acceptClaim: (claimId: string) => useWaveStore.getState().acceptClaim(claimId),
+      joinSeat: (p: { waveId: string; responderId: string }) =>
+        useWaveStore.getState().joinSeat(p),
+    };
+    for (const w of waves) {
+      if (w.authorId !== me || w.status !== "active" || w.removed) continue;
+      if (claims.some((c) => c.waveId === w.id)) continue;
+      scheduleBotResponse(
+        w.id,
+        botActions,
+        BOT_RESPONSE_DELAY_MS,
+        (res) => {
+          if (res.success && res.personaName) {
+            toast(`🤖 ${res.personaName}已接单 · 到行程查看进度`, "success");
+          }
+        }
+      );
+    }
+  }, [waves, claims, me]);
+
+  return null;
+}
+
 export default function Home() {
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -202,6 +260,9 @@ export default function Home() {
       <Suspense fallback={null}>
         <AuthUrlGate />
       </Suspense>
+
+      {/* 沙盒 Bot 服务者自动接单宿主（P0 双边市场空转治理） */}
+      <SandboxBotHost />
 
       {/* 数据源徽章：全屏面常驻（HomePage 内不再单独挂） */}
       <EnvBadge />
