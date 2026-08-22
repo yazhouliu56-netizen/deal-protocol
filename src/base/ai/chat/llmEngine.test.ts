@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseDirective } from "./llmDirective.ts";
+import { SYSTEM_PROMPT } from "./llmEngine.ts";
 
 test("parseDirective: clean json", () => {
   const d = parseDirective(
@@ -44,4 +45,20 @@ test("parseDirective: garbled output -> null", () => {
   assert.equal(parseDirective("抱歉我没看懂"), null);
   assert.equal(parseDirective('{"text":'), null);
   assert.equal(parseDirective(""), null);
+});
+
+test("SYSTEM_PROMPT 契约：含槽位回显与追问纪律指引（P2 遗留销项）", () => {
+  assert.ok(SYSTEM_PROMPT.includes("槽位回显与追问纪律"));
+  assert.ok(SYSTEM_PROMPT.includes('[✓ 服务:'));
+  assert.ok(SYSTEM_PROMPT.includes("严禁重复询问用户已提供的信息"));
+  assert.ok(SYSTEM_PROMPT.includes('"10点"→"今天 10:00"'), "timeParser 规范化口径对齐");
+});
+
+test("SYSTEM_PROMPT 契约：无旧黑话残留，JSON 结构守恒", () => {
+  for (const jargon of ["鸽子险", "开放局", "弹药", "扣动扳机"]) {
+    assert.equal(SYSTEM_PROMPT.includes(jargon), false, "不应出现黑话: " + jargon);
+  }
+  // 结构守恒：JSON 输出规范与三动作枚举未被措辞调整破坏
+  assert.ok(SYSTEM_PROMPT.includes('"action":"ask|slots|done"'));
+  assert.ok(SYSTEM_PROMPT.includes('{"text":'));
 });
