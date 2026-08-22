@@ -39,7 +39,7 @@ import type { TaskModule } from "@/base/ai/decompose";
  * 发布需求 = 发出一个信号波。
  * 基本要素先快速填（硬过滤），定制条件可选（软加权 + 递增加价），
  * 磋商对话框"内容即开关"。
- * 开放局（人数 ≥ 2）：C 端互相组队拼位 —— 满员成局，人均 = 预算 ÷ 人数。
+ * 多人拼单局（人数 ≥ 2）：C 端互相组队拼位 —— 满员成局，人均 = 预算 ÷ 人数。
  * 复杂任务（一句话需求）：AI 拆解成独立模块 → 发起人确认（可增删/改价）→
  * 接单前自由调整，接单后锁定。
  *
@@ -72,7 +72,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [note, setNote] = useState("");
   const [deposit, setDeposit] = useState(false);
   const [people, setPeople] = useState(1);
-  /** 组织者把关层：开放局开启审批制后，拼位需申请并由发起人批准。 */
+  /** 组织者把关层：多人拼单局开启审批制后，拼位需申请并由发起人批准。 */
   const [needApproval, setNeedApproval] = useState(false);
   const DEFAULT_TTL = 2 * 3600_000;
   const [ttl, setTtl] = useState<number>(DEFAULT_TTL);
@@ -83,7 +83,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   /** AI 拆解出的模块草案（发起人确认后随单发布，接单后锁定）。 */
   const [modules, setModules] = useState<TaskModule[] | null>(null);
   const [decomposing, setDecomposing] = useState(false);
-  /** P2-6 弹层分组：可选配置（定制/拆解/开放局/鸽子险/有效期/配额）默认折叠，核心表单常显 */
+  /** P2-6 弹层分组：可选配置（定制/拆解/多人拼单局/爽约保障险/有效期/配额）默认折叠，核心表单常显 */
   const [showMore, setShowMore] = useState(false);
   /** P2：拖拽收起过渡态（下拉 >35% → 平滑下滑离场 → 关闭） */
   const [dismissing, setDismissing] = useState(false);
@@ -168,7 +168,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
 
   const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
 
-  /** 选品类 → 应用 SOP 弹药表默认（鸽子险/有效期/容量 + 预算起步底价，宪法 #3：先配表后写码）。 */
+  /** 选品类 → 应用 SOP 弹药表默认（爽约保障险/有效期/容量 + 预算起步底价，宪法 #3：先配表后写码）。 */
   function applySopDefaults(cat: string) {
     setCategory(cat);
     const s = sopForCategory(cat.trim());
@@ -272,7 +272,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         setError(`发布被拒：${gate.reason}`);
         return;
       }
-      // 青少年可发免费局，但不能加鸽子险（资金动作）
+      // 青少年可发免费局，但不能加爽约保障险（资金动作）
       if (deposit) {
         setError(`发布被拒：${ageGate({ age, action: "deposit", guardianConsent: identity.guardianConsent }).reason}`);
         return;
@@ -286,7 +286,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         return;
       }
     }
-    // 随单支付：1:1 服务 = 付全款；开放局 = 发起人付自己那份(人均价)。
+    // 随单支付：1:1 服务 = 付全款；多人拼单局 = 发起人付自己那份(人均价)。
     const payAmount =
       people >= 2
         ? Math.max(1, Math.round(budgetNum / people))
@@ -416,6 +416,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         <input
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          name="wave-category"
           placeholder="品类（如：厨师 · 上门做饭）*"
           aria-label="需求品类"
           className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-2"
@@ -424,6 +425,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           <input
             value={time}
             onChange={(e) => setTime(e.target.value)}
+            name="wave-time"
             placeholder="时间 *（如：明天 11:00）"
             aria-label="需求时间"
             className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
@@ -431,6 +433,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           <input
             value={area}
             onChange={(e) => setArea(e.target.value)}
+            name="wave-area"
             placeholder="地点 *"
             aria-label="需求地点"
             className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
@@ -439,6 +442,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         <input
           value={budget}
           onChange={(e) => setBudget(e.target.value)}
+          name="wave-budget"
           placeholder="基础预算 ¥（如 100）"
           aria-label="基础预算"
           inputMode="numeric"
@@ -448,14 +452,14 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             旧「建议起价 ¥{minPriceYuan}」scene 残留出清（底座表保留，UI 不再消费） */}
         {category.trim() && ammoForForm && (
           <p className="text-xs text-brandCyan/80 mb-3" data-testid="ammo-floor-price">
-            弹药起步 {describePricing(ammoForForm.pricingModel)}
+            方案起步 {describePricing(ammoForForm.pricingModel)}
           </p>
         )}
 
         {/* P1-5 声明式表单：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支 */}
         {formFields.length > 0 && (
           <div className="mb-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3" data-testid="publish-dynamic-form" data-dynamic-form>
-            <div className="text-xs font-bold text-white/85 mb-2 flex items-center gap-1.5">📋 弹药专属表单 <span className="text-white/35 font-normal">· {ammoForForm?.ammoId} · {formFields.length} 项</span></div>
+            <div className="text-xs font-bold text-white/85 mb-2 flex items-center gap-1.5">📋 方案专属表单 <span className="text-white/35 font-normal">· {ammoForForm?.ammoId} · {formFields.length} 项</span></div>
             <div className="space-y-2">
               {formFields.map((field) => {
                 const val = bizParams[field.key];
@@ -470,6 +474,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                         value={strVal}
                         onChange={(e) => setBizParams((prev) => ({ ...prev, [field.key]: e.target.value }))}
                         aria-label={field.label}
+                        name={field.key}
                         data-field={field.key}
                         className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 outline-none focus:border-brandPurple/50"
                       >
@@ -497,6 +502,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                         }}
                         placeholder={`请输入${field.label}`}
                         aria-label={field.label}
+                        name={field.key}
                         data-field={field.key}
                         className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
                       />
@@ -514,6 +520,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                         role="switch"
                         aria-checked={Boolean(val)}
                         aria-label={field.label}
+                        name={field.key}
                         data-field={field.key}
                         onClick={() => setBizParams((prev) => ({ ...prev, [field.key]: !Boolean(prev[field.key]) }))}
                         className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-emerald-400/70" : "bg-white/15"}`}
@@ -533,6 +540,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                       onChange={(e) => setBizParams((prev) => ({ ...prev, [field.key]: e.target.value }))}
                       placeholder={`请输入${field.label}`}
                       aria-label={field.label}
+                      name={field.key}
                       data-field={field.key}
                       className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
                     />
@@ -552,7 +560,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               hideLaunchButton={true}
               onPublish={() => publish()}
               onTweak={(key) => {
-                // 草稿卡参数行点击微调：聚焦对应表单（开放局容量 → 展开更多选项）
+                // 草稿卡参数行点击微调：聚焦对应表单（多人拼单局容量 → 展开更多选项）
                 if (key === "capacity" || key === "deposit" || key === "rounds") {
                   setShowMore(true);
                 }
@@ -567,7 +575,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           aria-expanded={showMore}
           className="w-full mb-3 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-xs font-bold text-white/65 hover:text-white transition-colors"
         >
-          <span>更多选项（定制 / 磋商留言 / AI 拆解 / 开放局 / 鸽子险）</span>
+          <span>更多选项（定制 / 磋商留言 / AI 拆解 / 多人拼单局 / 爽约保障险）</span>
           <span className="text-xs text-white/40">{showMore ? "收起 ▴" : "展开 ▾"}</span>
         </button>
 
@@ -597,6 +605,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           <input
             value={customText}
             onChange={(e) => setCustomText(e.target.value)}
+            name="custom-text"
             placeholder="如：30 岁左右女性厨师、穿 JK 装"
             aria-label="定制条件"
             className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
@@ -619,7 +628,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           value={note}
           onChange={setNote}
           label="磋商留言（可留空）"
-          placeholder="想告诉响应者什么？填了就开放磋商，留空则直接接单"
+                        placeholder="想告诉响应者什么？填了就开放磋商，留空则直接接单"
         />
 
         {/* AI 拆解：复杂任务 → 独立模块（接单前可增删/改价，接单后锁定） */}
@@ -689,11 +698,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           )}
         </div>
 
-        {/* 开放局：人数 ≥ 2 = 拼位组队（C 端互相找搭子） */}
+        {/* 多人拼单局：人数 ≥ 2 = 拼位组队（C 端互相找搭子） */}
         <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-white/85 flex items-center gap-1.5">
-              🎯 开放局 · 拼位组队
+              🎯 多人拼单局 · 拼位组队
             </span>
             {people >= 2 && (
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple">
@@ -702,7 +711,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             )}
           </div>
           <p className="text-xs text-white/40 mb-2">
-            1 人 = 普通服务需求；≥ 2 人 = 开放局，你算第 1 位，拼满成局（如羽毛球约局、拼车、拼饭）
+            1 人 = 普通服务需求；≥ 2 人 = 多人拼单局，你算第 1 位，拼满成局（如羽毛球约局、拼车、拼饭）
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -737,14 +746,14 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           )}
         </div>
 
-        {/* 鸽子险：履约保证金 */}
+        {/* 爽约保障险：履约保证金 */}
         <button
           onClick={() => setDeposit(!deposit)}
           className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10"
-          aria-label="开启鸽子险"
+          aria-label="开启爽约保障险"
         >
           <span className="flex flex-col text-left">
-            <span className="text-xs font-bold text-white/85">🕊️ 鸽子险（双方履约保障）</span>
+            <span className="text-xs font-bold text-white/85">🕊️ 爽约保障险（双方履约保障）</span>
             <span className="text-xs text-white/40 mt-0.5">
               响应者接单冻结 ¥5 押金 · 履约解冻退回 / 爽约赔付给你
             </span>
@@ -862,7 +871,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         open={!!paying}
         amount={paying?.amount ?? 0}
         title={people >= 2 ? "支付你的拼位份额" : "支付全款"}
-        desc={people >= 2 ? `开放局：你算第 1 位，先付自己那份（人均 ${Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))} 元）` : "服务单：全款托管，验收后放款"}
+        desc={people >= 2 ? `多人拼单局：你算第 1 位，先付自己那份（人均 ${Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))} 元）` : "服务单：全款托管，验收后放款"}
         fee={paying?.fee ?? 0}
         onCancel={() => setPaying(null)}
         onPaid={() => {

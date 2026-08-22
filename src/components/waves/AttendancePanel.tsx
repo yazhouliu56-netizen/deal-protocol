@@ -8,7 +8,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 
 /**
  * 组织者出勤档案（Meetup 吸收项 ④）：
- * 开放局已成局后，发起人查看该局每位成员的跨局出勤历史
+ * 多人拼单局已成局后，发起人查看该局每位成员的跨局出勤历史
  * （到场履约 / no-show / 中途退出 / 候补）——宪法 #6 信任数据沉淀。
  */
 export default function AttendancePanel({ wave }: { wave: Wave }) {

@@ -41,7 +41,7 @@ export function diffNotifEvents(
   const prevFriend = new Set(prev.friendRequests.map((f) => f.id));
   const nextWaveById = new Map(next.waves.map((w) => [w.id, w]));
 
-  // 成局：我的开放局（≥2 人）首次进入 assembled（拼满）。
+  // 成局：我的多人拼单局（≥2 人）首次进入 assembled（拼满）。
   for (const w of next.waves) {
     if (w.authorId !== next.meId) continue;
     if ((w.capacity ?? 1) < 2) continue;

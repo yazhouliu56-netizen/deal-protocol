@@ -28,6 +28,7 @@ export default function NegotiationBox({
         </span>
       )}
       <textarea
+          name="negotiation-note"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

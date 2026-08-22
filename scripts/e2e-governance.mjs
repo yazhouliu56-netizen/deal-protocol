@@ -129,7 +129,10 @@ try {
     "B 看到 A 的正常需求"
   );
   // B 手动举报 A 的这条需求（响应者视角 WaveCard 举报按钮）
-  await pageB.getByLabel("举报").first().click();
+  const reportBtn = pageB.getByLabel("举报").first();
+  await reportBtn.scrollIntoViewIfNeeded();
+  await pageB.waitForTimeout(300); // 入场动画稳定
+  await reportBtn.click({ force: true, timeout: 15000 });
   await pageB.waitForTimeout(400);
   const afterReport = await pageB.evaluate(() => {
     const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
@@ -140,15 +143,16 @@ try {
   // --- 3. 管理后台看板（入口在"我的"页 SafetyKit） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-safety").click(); // 外层安全抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
     20000,
     "治理入口可见"
   );
-  const safetyBtn = pageB.getByLabel("安全中心");
-  await safetyBtn.scrollIntoViewIfNeeded();
-  await safetyBtn.click({ force: true });
+  const skBtn1 = pageB.getByRole("button", { name: "安全中心", exact: true });
+  await skBtn1.scrollIntoViewIfNeeded();
+  await skBtn1.click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("平台治理后台"),
@@ -229,15 +233,16 @@ try {
   // 管理员：处理针对 B 的举报 → 封禁
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-safety").click(); // 外层安全抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
     20000,
     "治理入口"
   );
-  const safetyBtn2 = pageB.getByLabel("安全中心");
-  await safetyBtn2.scrollIntoViewIfNeeded();
-  await safetyBtn2.click({ force: true });
+  const skBtn2 = pageB.getByRole("button", { name: "安全中心", exact: true });
+  await skBtn2.scrollIntoViewIfNeeded();
+  await skBtn2.click();
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("平台治理后台"),
@@ -292,15 +297,16 @@ try {
   // --- 6. 审计记录留痕 ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-safety").click(); // 外层安全抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
     20000,
     "治理入口"
   );
-  const safetyBtn3 = pageB.getByLabel("安全中心");
-  await safetyBtn3.scrollIntoViewIfNeeded();
-  await safetyBtn3.click({ force: true });
+  const skBtn3 = pageB.getByRole("button", { name: "安全中心", exact: true });
+  await skBtn3.scrollIntoViewIfNeeded();
+  await skBtn3.click();
   await pageB.getByRole("button", { name: /平台治理后台/ }).click();
   await waitUntil(
     pageB,

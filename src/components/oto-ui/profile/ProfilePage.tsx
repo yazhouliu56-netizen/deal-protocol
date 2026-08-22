@@ -111,6 +111,62 @@ export default function ProfilePage({
   const waves = useWaveStore((s) => s.waves);
   const claimsAgg = useWaveStore((s) => s.claims);
   const fulfilment = useWaveStore((s) => s.fulfilment);
+
+  /* ═══ P1 第 3 步：我的订单双源聚合视图（waves 弹药单 + bookings 预订卡） ═══
+   * 治理「行程屏有单、个人中心空」的丢单假象：waves 与 bookings 统一结构、
+   * createdAt 倒序混排、类型徽标显式区分；WAVE 条目点击直达 Trip 履约座舱。 */
+  const FIVE_STATE_LABEL: Record<AtomicFiveState, string> = {
+    PUBLISHED: "广播中",
+    MATCHED: "已接单",
+    IN_SERVICE: "履约中",
+    INSPECTED: "待验收",
+    SETTLED: "已结算",
+  };
+  const BOOKING_STATUS_LABEL: Record<Booking["status"], string> = {
+    upcoming: "待出行",
+    completed: "已完成",
+    cancelled: "已取消",
+  };
+  const unifiedOrders = useMemo(() => {
+    const waveItems = waves
+      .filter((w) => w.authorId === identity.id && !w.removed)
+      .map((w) => {
+        let statusDisplay: string;
+        if (w.status === "pending") {
+          statusDisplay = "待支付";
+        } else {
+          const acceptedClaim = claimsAgg.find(
+            (c) => c.waveId === w.id && (c.status === "accepted" || c.status === "joined"),
+          );
+          const flags = fulfilment[w.id];
+          const five = toAtomicFiveState({
+            waveStatus: w.status,
+            claimStatus: acceptedClaim?.status,
+            fulfilmentStatus: flags?.fulfilmentStatus,
+            isSettled: flags?.isSettled,
+          });
+          statusDisplay = FIVE_STATE_LABEL[five] ?? "进行中";
+        }
+        return {
+          id: w.id,
+          title: w.basics.category,
+          amountDisplay: `¥${w.budget}`,
+          createdAt: w.createdAt,
+          sourceType: "WAVE" as const,
+          statusDisplay,
+        };
+      });
+    const bookingItems = bookings.map((b) => ({
+      id: b.id,
+      title: b.title,
+      amountDisplay: b.price,
+      createdAt: b.createdAt,
+      sourceType: "BOOKING" as const,
+      statusDisplay: BOOKING_STATUS_LABEL[b.status],
+    }));
+    return [...waveItems, ...bookingItems].sort((a, b) => b.createdAt - a.createdAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waves, claimsAgg, fulfilment, bookings, identity.id]);
   const setScreen = useAppStore((s) => s.setScreen);
   const myCrisis = crisisRecords.filter(
     (c) => c.userId === identity.id && !c.resolved
@@ -181,61 +237,6 @@ export default function ProfilePage({
 
   const upcoming = bookings.filter((b) => b.status === "upcoming").length;
 
-  /* ═══ P1 第 3 步：我的订单双源聚合视图（waves 弹药单 + bookings 预订卡） ═══
-   * 治理「行程屏有单、个人中心空」的丢单假象：waves 与 bookings 统一结构、
-   * createdAt 倒序混排、类型徽标显式区分；WAVE 条目点击直达 Trip 履约座舱。 */
-  const FIVE_STATE_LABEL: Record<AtomicFiveState, string> = {
-    PUBLISHED: "广播中",
-    MATCHED: "已接单",
-    IN_SERVICE: "履约中",
-    INSPECTED: "待验收",
-    SETTLED: "已结算",
-  };
-  const BOOKING_STATUS_LABEL: Record<Booking["status"], string> = {
-    upcoming: "待出行",
-    completed: "已完成",
-    cancelled: "已取消",
-  };
-  const unifiedOrders = useMemo(() => {
-    const waveItems = waves
-      .filter((w) => w.authorId === identity.id && !w.removed)
-      .map((w) => {
-        let statusDisplay: string;
-        if (w.status === "pending") {
-          statusDisplay = "待支付";
-        } else {
-          const acceptedClaim = claimsAgg.find(
-            (c) => c.waveId === w.id && (c.status === "accepted" || c.status === "joined"),
-          );
-          const flags = fulfilment[w.id];
-          const five = toAtomicFiveState({
-            waveStatus: w.status,
-            claimStatus: acceptedClaim?.status,
-            fulfilmentStatus: flags?.fulfilmentStatus,
-            isSettled: flags?.isSettled,
-          });
-          statusDisplay = FIVE_STATE_LABEL[five] ?? "进行中";
-        }
-        return {
-          id: w.id,
-          title: w.basics.category,
-          amountDisplay: `¥${w.budget}`,
-          createdAt: w.createdAt,
-          sourceType: "WAVE" as const,
-          statusDisplay,
-        };
-      });
-    const bookingItems = bookings.map((b) => ({
-      id: b.id,
-      title: b.title,
-      amountDisplay: b.price,
-      createdAt: b.createdAt,
-      sourceType: "BOOKING" as const,
-      statusDisplay: BOOKING_STATUS_LABEL[b.status],
-    }));
-    return [...waveItems, ...bookingItems].sort((a, b) => b.createdAt - a.createdAt);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waves, claimsAgg, fulfilment, bookings, identity.id]);
   const reviewed = reviews.length;
 
   return (
@@ -292,6 +293,7 @@ export default function ProfilePage({
           </span>
           <input
             type="file"
+            name="avatar-upload"
             accept="image/*"
             className="hidden"
             aria-label="上传本地头像"
@@ -408,7 +410,7 @@ export default function ProfilePage({
                 <button
                   key={o.id}
                   onClick={() => setScreen("trip")}
-                  aria-label={`查看弹药单 ${o.title} 履约进度`}
+                  aria-label={`查看方案单 ${o.title} 履约进度`}
                   data-testid="order-item-wave"
                   className="glass-panel rounded-2xl p-3 flex items-center gap-2.5 text-left hover:border-brandPurple/50 active:scale-[0.99] transition-[border,transform]"
                 >
@@ -418,7 +420,7 @@ export default function ProfilePage({
                       {o.title} · {o.amountDisplay}
                     </span>
                     <span className="text-[11px] text-white/50 block mt-0.5">
-                      [ 弹药单 ] · 点击查看履约进度
+                      [ 方案单 ] · 点击查看履约进度
                     </span>
                   </span>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/30 text-brandCyan shrink-0">
@@ -510,6 +512,7 @@ export default function ProfilePage({
             <span>开启免打扰</span>
             <input
               type="checkbox"
+              name="quiet-toggle"
               checked={quietPref.enabled}
               onChange={(e) => setQuietEnabled(e.target.checked)}
               className="accent-brandPurple"
@@ -628,6 +631,7 @@ export default function ProfilePage({
             <label className="mt-2 flex items-center gap-2 text-xs text-white/68 cursor-pointer">
               <input
                 type="checkbox"
+                name="guardian-consent"
                 checked={identity.guardianConsent ?? false}
                 onChange={(e) => setAge(identity.birthYear, e.target.checked)}
                 className="accent-brandPurple"

@@ -100,7 +100,7 @@ export default function PaySheet({
             <Lock size={9} /> 随单支付 · 未上线不展示
           </span>
           <span>
-            占位 {mm}:{ss} <span className="text-white/25">(模拟通道)</span>
+            支付锁定剩余 {mm}:{ss} <span className="text-white/25">(模拟通道)</span>
           </span>
         </div>
       </motion.div>

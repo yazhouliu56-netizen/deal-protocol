@@ -1,14 +1,14 @@
 /**
- * 弹药属性表 · SOP 参数（ADR-0007 §一：鸽子险/有效期/容量默认值）。
+ * 弹药属性表 · SOP 参数（ADR-0007 §一：爽约保障险/有效期/容量默认值）。
  * 每类目一行：新弹药只需在此填 SOP 默认值，底座按表消费。
  */
 
 export interface SopParams {
-  /** 鸽子险（押金）默认开启。 */
+  /** 爽约保障险（押金）默认开启。 */
   depositDefault?: boolean;
   /** 有效期 TTL 默认值（ms）。 */
   expiresInMs?: number;
-  /** 默认容量（1 = 单对单，≥2 = 开放局拼位）。 */
+  /** 默认容量（1 = 单对单，≥2 = 多人拼单局拼位）。 */
   capacityDefault?: number;
   /** 拼位缓冲名额（发起人 no-show buff 默认值）。 */
   buffSeats?: number;
@@ -16,7 +16,7 @@ export interface SopParams {
   maxRounds?: number;
   /** 验收窗（ms，超时自动好评/放款）。 */
   reviewWindowMs?: number;
-  /** 鸽子险保费占单比例（0-1）。 */
+  /** 爽约保障险保费占单比例（0-1）。 */
   depositRate?: number;
 }
 

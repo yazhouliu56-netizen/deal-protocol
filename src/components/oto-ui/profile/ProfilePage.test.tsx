@@ -116,7 +116,7 @@ describe("我的订单双源聚合", () => {
     renderPage();
     const t = text();
     expect(t).not.toContain("还没有订单");
-    expect(t).toContain("[ 弹药单 ]");
+    expect(t).toContain("[ 方案单 ]");
     expect(t).toContain("广播中");
     expect(t).toContain("摄影师约拍 · ¥300");
     expect(t).toContain("家政保洁 · ¥100");

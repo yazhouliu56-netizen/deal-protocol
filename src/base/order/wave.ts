@@ -10,12 +10,12 @@
  *   - direct claim (甲): responder hits accept, wave locks immediately.
  *   - negotiation (丙): each pair (demander ↔ responder) gets 3 offer/counter
  *     rounds; beyond that the offer is locked to accept / withdraw.
- *   - 开放局 (open match, capacity ≥ 2): responders 拼位 (joinSeat) instead of
+ *   - 多人拼单局 (open match, capacity ≥ 2): responders 拼位 (joinSeat) instead of
  *     claiming the whole wave. Each joiner holds one seat as a "joined" claim;
  *     once the table fills (joiners = capacity − 1, the demander counts first)
  *     the wave auto-assembles (status assembled, joined → accepted). The
  *     demander can also assemble early once at least one seat is taken.
- *   - 鸽子险 (deposit): when wave.deposit is set, the locking claim carries a
+ *   - 爽约保障险 (deposit): when wave.deposit is set, the locking claim carries a
  *     DepositPhase — held on lock, released / paid out / refunded at verdict.
  */
 
@@ -63,11 +63,11 @@ export interface Wave {
   /** Filled demander "磋商" dialog → claimers may negotiate price. */
   negotiable: boolean;
   negotiableNote?: string;
-  /** 鸽子险: responder holds a deposit when the deal locks. */
+  /** 爽约保障险: responder holds a deposit when the deal locks. */
   deposit?: boolean;
   /** 平台下架标记 — removed by moderation; hidden from the feed. */
   removed?: boolean;
-  /** How many people this demand expects (1 = solo, ≥2 = 开放局 open match). */
+  /** How many people this demand expects (1 = solo, ≥2 = 多人拼单局 open match). */
   capacity: number;
   /** 发起人 no-show buff：该局所需拼位数减 N（成局面降标准）。 */
   buffSeats?: number;
@@ -111,7 +111,7 @@ export interface Wave {
   needApproval?: boolean;
   /** 待审批的拼位申请（responderId → 申请时刻）。审批通过才占用座位。 */
   joinRequests?: Array<{ responderId: string; at: number }>;
-  /** 候补队列（开放局满员后加入；有人退出/撤单时按序自动补位转正）。 */
+  /** 候补队列（多人拼单局满员后加入；有人退出/撤单时按序自动补位转正）。 */
   waitlist?: Array<{ responderId: string; at: number }>;
   /** 公开竞价结算（P8 商业化）：组局主开标后写回真实局，持久可见。 */
   biddingSettled?: {
@@ -148,7 +148,7 @@ export interface Claim {
   lastMessage?: string;
   /** Who made the last move — alternation is enforced by counterOffer. */
   lastBy?: ClaimActor;
-  /** 鸽子险 phase on this claim (held once the deal locks). */
+  /** 爽约保障险 phase on this claim (held once the deal locks). */
   depositPhase?: DepositPhase;
   /** Responder reported the job done (Request payment — opens the gate). */
   serviceDoneAt?: number;
@@ -177,13 +177,13 @@ export interface CreateWaveInput {
   customs?: WaveCustom[];
   negotiable?: boolean;
   negotiableNote?: string;
-  /** 鸽子险: responder holds a deposit when the deal locks. */
+  /** 爽约保障险: responder holds a deposit when the deal locks. */
   deposit?: boolean;
-  /** 开放局: demander counts as first seat, capacity ≥ 2 = open match. */
+  /** 多人拼单局: demander counts as first seat, capacity ≥ 2 = open match. */
   capacity?: number;
   /** 发起人 no-show buff 抵扣拼位数（成局面降标准）。 */
   buffSeats?: number;
-  /** 组织者把关层：true = 拼位需申请并获发起人审批（开放局可用）。 */
+  /** 组织者把关层：true = 拼位需申请并获发起人审批（多人拼单局可用）。 */
   needApproval?: boolean;
   /** TTL in ms from now, or absolute epoch — after it the wave expires. */
   expiresAt: number;
@@ -399,7 +399,7 @@ export function breachClaim(claim: Claim): Claim {
 }
 
 /* ---------------------------------------------------------------------------
- * 开放局 / 拼位 (Open Match, Playtomic-style)
+ * 多人拼单局 / 拼位 (Open Match, Playtomic-style)
  *
  * capacity ≥ 2 → the demander counts as the first seat; the wave needs
  * capacity − 1 joiners. Each joiner reserves a seat via `joinSeat` (claim
@@ -474,7 +474,7 @@ export function joinSeat(
 }
 
 /**
- * 组织者把关层（Request to spot）：开放局发起人开启审批制（needApproval）后，
+ * 组织者把关层（Request to spot）：多人拼单局发起人开启审批制（needApproval）后，
  * 拼位者先提交申请（入 joinRequests），不占实际座位、不付钱；发起人审批通过
  * 才走 joinSeat 占座 + 押金。幂等：同人重复申请不叠加。
  */
@@ -561,7 +561,7 @@ export function rejectRequest(
 /* ---------------------------------------------------------------------------
  * 候补（waitlist，对标 Meetup 候补转正）
  *
- * 开放局满员后，仍想加入的响应者进入候补队列（wave.waitlist，FIFO）。
+ * 多人拼单局满员后，仍想加入的响应者进入候补队列（wave.waitlist，FIFO）。
  * 有人退出拼位/撤单释放座位时，按序自动补位转正（promoteFromWaitlist），
  * 由 store 侧生成 joined claim 并收取拼位份额。
  * 候补是 wave 级队列，不占 ClaimStatus 枚举（宪法 #2 接口保守）。
@@ -579,7 +579,7 @@ export function sortWaitlist(
   });
 }
 
-/** 进入候补（幂等：已在队列不重复追加）。要求活跃的开放局或已成局开放局（成局后入队 = 等让位）。 */
+/** 进入候补（幂等：已在队列不重复追加）。要求活跃的多人拼单局或已成局多人拼单局（成局后入队 = 等让位）。 */
 export function joinWaitlist(
   wave: Wave,
   responderId: string,
@@ -688,7 +688,7 @@ export function assembleWave(
 }
 
 /**
- * 开放局 no-show（付了全款没来）：款不退，改为——
+ * 多人拼单局 no-show（付了全款没来）：款不退，改为——
  *   ① 分摊补偿给在场其他玩家（每人 = floor(noShow金额 ÷ 在场人数)）
  *   ② 发起人获得「下次成局面降标准」buff（neededJoiners −1）
  * 纯函数：只计算分摊名单与是否发 buff，钱的实际移动由调用方（store）

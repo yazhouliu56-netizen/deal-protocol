@@ -114,7 +114,7 @@ describe("P1 AI 对话直通弹药发单闭环（ChatPage）", () => {
 
     // 卡更新为已转单态，再点同类按钮不再产生（按钮已变为禁用徽标）
     expect(useAppStore.getState().chatMessages[1].cards?.[0]).toMatchObject({
-      lines: expect.arrayContaining([{ k: "弹药单号", v: expect.any(String) }]),
+      lines: expect.arrayContaining([{ k: "方案单号", v: expect.any(String) }]),
     });
     const again = findConvert();
     expect(again).toBeUndefined();

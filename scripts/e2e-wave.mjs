@@ -77,8 +77,8 @@ try {
   await pageA.getByRole("button", { name: "＋" }).click();
   // 磋商入口 = 内容即开关：填了 → 开放磋商（negotiable）
   await pageA.getByLabel("磋商留言（可留空）").fill("价格可以谈");
-  // 鸽子险：双方履约保障（响应者冻结 ¥5 押金）
-  await pageA.getByLabel("开启鸽子险").click();
+  // 爽约保障险：双方履约保障（响应者冻结 ¥5 押金）
+  await pageA.getByLabel("开启爽约保障险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   // 随单支付：钱到位才激活上线
   await pageA.getByRole("button", { name: /立即支付/ }).click();
@@ -96,7 +96,7 @@ try {
     (sharedWave?.state?.waves ?? []).length >= 1 &&
       sharedWave.state.waves[0].negotiable === true &&
       sharedWave.state.waves[0].deposit === true,
-    "Tab A 发布后共享空间应存在可磋商 + 鸽子险信号波"
+    "Tab A 发布后共享空间应存在可磋商 + 爽约保障险信号波"
   );
 
   // --- 3. Tab B 收到广播 → 发起磋商（丙） ---
@@ -105,6 +105,7 @@ try {
 await pageB.reload({ waitUntil: "domcontentloaded" });
   // P7.1 进家硬筛：B 先声明品类 + 实名认证才能看到家政进家单
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-system").click(); // P2 抽屉化 IA：能力声明已收纳于「系统设置」抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -226,7 +227,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   });
   assert.equal(dialA, dialB, "双方应看到同一个虚拟号码");
 
-  // --- 6.5 B 锁定后：鸽子险押金冻结（B 本地账户 100 → 95） ---
+  // --- 6.5 B 锁定后：爽约保障险押金冻结（B 本地账户 100 → 95） ---
   const idKeyB = await pageB.evaluate(
     () => `oto-identity-${window.name || "ssr"}`
   );
@@ -266,7 +267,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   const after = await pageA.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKey
   );
-  // 鸽子险赔付 +5 入账，违约裁决 -30 → 净 -25
+  // 爽约保障险赔付 +5 入账，违约裁决 -30 → 净 -25
   assert.equal(
     (before?.state?.account?.balance ?? 100) -
       (after?.state?.account?.balance ?? 0),
@@ -275,7 +276,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   );
   assert.ok(
     (after?.state?.ledger ?? []).some((e) => e.kind === "payout"),
-    "钱包应有鸽子险赔付入账记录"
+    "钱包应有爽约保障险赔付入账记录"
   );
 
   // B 侧：押金没收（balance 保持 95，deposits 终态 forfeited）
@@ -310,9 +311,9 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   );
   assert.ok(
     await pageA.evaluate(() =>
-      document.body.innerText.includes("鸽子险赔付到账")
+      document.body.innerText.includes("爽约保障险赔付到账")
     ),
-    "钱包流水应含鸽子险赔付"
+    "钱包流水应含爽约保障险赔付"
   );
 
   console.log("P2P 广播 + 磋商闭环 E2E：全部通过");

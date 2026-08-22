@@ -17,7 +17,7 @@ import { visibleGuests } from "@/base/order/guest";
  * 响应者视角：我接的单（claim story）。
  * 磋商线：等待需求方还价 / 回应还价（counterOffer actor=responder）/ 放弃。
  * 锁定后：一次性虚拟线路拨号卡。
- * 开放局：拼位后等待满员成局（joined），成局后与锁定单同链路。
+ * 多人拼单局：拼位后等待满员成局（joined），成局后与锁定单同链路。
  */
 export default function MyClaims() {
   const waves = useWaveStore((s) => s.waves);
@@ -37,14 +37,14 @@ export default function MyClaims() {
   const addGuest = useWaveStore((s) => s.addGuest);
   const removeGuest = useWaveStore((s) => s.removeGuest);
 
-  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
+  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的多人拼单局退款
   // waves 依赖：transport 降级恢复异步（首帧空 → degrade 回灌），数据迟到时补跑
   useEffect(() => {
     runAutoFulfilments();
     settleExpiredOpen();
   }, [runAutoFulfilments, settleExpiredOpen, waves]);
 
-  // 我的候补：开放局满员后排队（wave.waitlist 按加入顺序，有人退出自动补位）
+  // 我的候补：多人拼单局满员后排队（wave.waitlist 按加入顺序，有人退出自动补位）
   const myWaitlist = useMemo(
     () =>
       waves
@@ -71,7 +71,7 @@ export default function MyClaims() {
     [claims, waves, identity]
   );
 
-  // 鸽子险幂等记账：共享 claim 的 phase 驱动本地账户动账
+  // 爽约保障险幂等记账：共享 claim 的 phase 驱动本地账户动账
   useEffect(() => {
     mine.forEach(({ claim, wave }) => {
       if (wave.deposit && claim.depositPhase) {
@@ -162,7 +162,7 @@ export default function MyClaims() {
                     {wave.basics.category}
                     {wave.capacity >= 2 && (
                       <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple align-middle">
-                        🎯 开放局
+                        🎯 多人拼单局
                       </span>
                     )}
                   </h3>
@@ -238,7 +238,7 @@ export default function MyClaims() {
                 />
               )}
 
-              {/* 鸽子险押金状态 */}
+              {/* 爽约保障险押金状态 */}
               {wave.deposit && (
                 <DepositBadge
                   claimId={claim.id}
@@ -500,7 +500,7 @@ function ResponderThread({
   );
 }
 
-/** 鸽子险押金状态行（响应者本地账务视角）。 */
+/** 爽约保障险押金状态行（响应者本地账务视角）。 */
 function DepositBadge({
   claimId,
   phase,
@@ -572,7 +572,7 @@ function ResponderDispute({ claim }: { claim: Claim }) {
 
 /**
  * Meetup 吸收项 ⑤：+1 携伴登记（实名 + ageGate 合规 + 电话脱敏展示）。
- * 座位锁定后（开放局）可登记 1 位携伴；展示一律脱敏（宪法 #8）。
+ * 座位锁定后（多人拼单局）可登记 1 位携伴；展示一律脱敏（宪法 #8）。
  */
 function GuestSection({
   claim,

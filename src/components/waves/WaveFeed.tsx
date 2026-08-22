@@ -206,7 +206,7 @@ export default function WaveFeed() {
       (w) =>
         !w.removed &&
         w.authorId !== identity.id &&
-        // active 正常进 feed；已成局开放局保留展示（满员卡片变候补入口，Meetup waitlist）
+        // active 正常进 feed；已成局多人拼单局保留展示（满员卡片变候补入口，Meetup waitlist）
         (w.status === "active" ||
           (w.status === "assembled" && (w.capacity ?? 1) >= 2))
     );
@@ -220,7 +220,7 @@ export default function WaveFeed() {
         .map((c) => c.waveId)
     );
     const list = active
-      // 我已拼位的开放局不再出现在 feed（去我的接单里看进度）
+      // 我已拼位的多人拼单局不再出现在 feed（去我的接单里看进度）
       .filter((w) => !joinedIds.has(w.id))
       .map((w) => ({
         wave: w,

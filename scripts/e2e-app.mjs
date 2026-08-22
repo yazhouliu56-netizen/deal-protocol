@@ -148,7 +148,9 @@ try {
   await page.getByRole("button", { name: /服务者工作台/ }).click();
   await page.waitForTimeout(500);
   const bench0 = await page.evaluate(() => document.body.innerText);
-  assert.ok(bench0.includes("阿凯"), "默认阿凯身份");
+  // P2 对齐当前 IA：访客默认演示昵称为「光点」（旧断言的「阿凯」字面量随 UX 重构失效）
+// P2 对齐工作台视图真实内容（昵称不在该视图渲染）
+assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo-qualification-board"]')), "工作台方案准入看板挂载");
   // 接单 → 履约（进行中区出现"完成服务"按钮即证明接单生效）
   await page.getByRole("button", { name: "接受订单" }).first().click();
   await page.waitForTimeout(400);

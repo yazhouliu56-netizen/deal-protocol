@@ -24,7 +24,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // 模拟兜底：约 1.4s 后「扫到」一个活跃开放局。
+  // 模拟兜底：约 1.4s 后「扫到」一个活跃多人拼单局。
   useEffect(() => {
     if (phase !== "mock") return;
     const t = setTimeout(() => setPhase("result"), 1400);

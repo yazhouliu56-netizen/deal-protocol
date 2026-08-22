@@ -40,7 +40,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
   const myBuffs = initiatorBuffs[identity.id] ?? 0;
 
-  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的开放局退款
+  // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的多人拼单局退款
   // waves 依赖：transport 降级恢复是异步的（首帧空 → degrade 后回灌），
   // 若挂载时数据未到位，靠 waves 变化触发补跑，避免过期局漏结算（E2E flaky）
   useEffect(() => {
@@ -100,7 +100,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
       {myBuffs > 0 && (
         <p className="mb-3 px-3 py-2 rounded-2xl bg-emerald-400/10 border border-emerald-400/35 text-xs font-bold text-emerald-300 flex items-center gap-1.5">
-          ✨ 持有 {myBuffs} 次「成局面降标准」：下次开放局发布自动少拼 {myBuffs} 人
+          ✨ 持有 {myBuffs} 次「成局面降标准」：下次多人拼单局发布自动少拼 {myBuffs} 人
         </p>
       )}
 
@@ -120,7 +120,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
           );
           const isOpen = wave.capacity >= 2;
           const joinedSeats = waveClaims.filter((c) => c.status === "joined");
-          // 开放局成局后，每位拼位者各自走拨号/验收/互评流程；
+          // 多人拼单局成局后，每位拼位者各自走拨号/验收/互评流程；
           // breached（no-show 违约未结清）的座位保留在局内 → 发起人可结清解锁
           const assembledClaims = isOpen
             ? waveClaims.filter(
@@ -131,7 +131,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
             ? acceptedReveal(accepted)
             : undefined;
 
-          // 开放局成局后，每位拼位者各自走拨号/验收/互评流程
+          // 多人拼单局成局后，每位拼位者各自走拨号/验收/互评流程
           const lockSeats = wave.status === "assembled" ? assembledClaims : [];
 
           return (
@@ -149,7 +149,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                     {wave.basics.category}
                     {isOpen && wave.status === "active" && (
                       <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple align-middle">
-                        🎯 开放局 · {neededJoiners(wave)} 位拼位
+                        🎯 多人拼单局 · {neededJoiners(wave)} 位拼位
                       </span>
                     )}
                     {isOpen && (wave.buffSeats ?? 0) > 0 && (
@@ -192,7 +192,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 </div>
               </div>
 
-              {/* 组织者把关层：审批制开放局的待审批申请（发起人批/拒） */}
+              {/* 组织者把关层：审批制多人拼单局的待审批申请（发起人批/拒） */}
               {isOpen && wave.status === "active" && wave.needApproval && (
                 <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/25 p-3 space-y-2">
                   <div className="flex items-center justify-between">
@@ -258,7 +258,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 </div>
               )}
 
-              {/* 开放局：拼位队列 + 提前成局 */}
+              {/* 多人拼单局：拼位队列 + 提前成局 */}
               {isOpen && wave.status === "active" && (
                 <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3">
                   <div className="flex items-center justify-between">
@@ -323,7 +323,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 </div>
               )}
 
-              {/* 开放局：已满员成局 → 每位拼位者各自走履约流程 */}
+              {/* 多人拼单局：已满员成局 → 每位拼位者各自走履约流程 */}
                 {isOpen && wave.status === "assembled" && (
                   <p className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
                     <Users size={11} /> 已成局 · {lockSeats.length} 位拼位者
@@ -344,7 +344,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 <LockedSeatFlow wave={wave} claim={accepted} />
               )}
 
-              {/* 开放局成局 → 每个座位独立流程 */}
+              {/* 多人拼单局成局 → 每个座位独立流程 */}
               {isOpen &&
                 lockSeats.map((seat) => (
                   <LockedSeatFlow key={seat.id} wave={wave} claim={seat} />
@@ -393,7 +393,7 @@ function acceptedReveal(claim: Claim): BlindRevealData {
 
 /**
  * 一席的履约流程（需求方视角）：一次性虚拟线路 → 申报验收 → 违约裁决 →
- * 履约后互评。开放局成局后每个座位各渲染一份；普通单也复用。
+ * 履约后互评。多人拼单局成局后每个座位各渲染一份；普通单也复用。
  */
 function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const identity = useIdentityStore((s) => s.identity);

@@ -1,5 +1,5 @@
 /**
- * 开放局信任闭环 (Trust loop) — the three uncapped gaps that close the money
+ * 多人拼单局信任闭环 (Trust loop) — the three uncapped gaps that close the money
  * flow around open match (Playtomic / BlaBlaCar 对标):
  *
  *   ① 成团失败退款 (group-fail refund): an open match expires without filling —
@@ -19,7 +19,7 @@ import type { PayOrder } from "../money/pay";
 
 /** 24h 免费取消窗口（standards: ≥24h lead 全额退）。 */
 export const FREE_CANCEL_MS = 24 * 3600_000;
-/** 分级扣留比例（<24h 取消：只退 80%，20% 当鸽子险/场地押金）。 */
+/** 分级扣留比例（<24h 取消：只退 80%，20% 当爽约保障险/场地押金）。 */
 export const PARTIAL_RATIO = 0.8;
 
 const isOpenMatch = (wave: Pick<Wave, "capacity">): boolean =>
@@ -60,7 +60,7 @@ export interface GroupFailSettlement {
 
 /**
  * 成团失败结算：open match active 且过期 → 该局所有已付订单原路全退。
- * 幂等：已非 active / 非开放局 / 未过期 → settled=false，调用方不动 state。
+ * 幂等：已非 active / 非多人拼单局 / 未过期 → settled=false，调用方不动 state。
  */
 export function settleGroupFail(input: {
   wave: Wave;
@@ -105,7 +105,7 @@ export interface TierRatio {
 /**
  * Cancellation tier by lead time to `startsAt`:
  *   ≥24h         → free    (1.0)
- *   [0, 24h)     → partial (0.8 — 20% 鸽子险/场地押金)
+ *   [0, 24h)     → partial (0.8 — 20% 爽约保障险/场地押金)
  *   already past / missing startsAt → none (0)
  */
 export function tierRatio(
@@ -123,7 +123,7 @@ export function tierRatio(
     return {
       tier: "partial",
       ratio: PARTIAL_RATIO,
-      label: "24h 内取消：退 80%（20% 鸽子险/场地押金）",
+      label: "24h 内取消：退 80%（20% 爽约保障险/场地押金）",
     };
   }
   return { tier: "none", ratio: 0, label: "已开始（临场取消）：不退钱" };

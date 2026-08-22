@@ -146,7 +146,7 @@ interface WaveStore extends WaveBundle {
   createPendingWave: (
     input: Omit<CreateWaveInput, "id" | "authorId" | "createdAt" | "pending"> & {
       authorId: string;
-      /** 应付金额：服务型 = 全款；开放局 = 发起人自己那份(人均价)。 */
+      /** 应付金额：服务型 = 全款；多人拼单局 = 发起人自己那份(人均价)。 */
       payAmount: number;
       /**
        * 免费发布次数用完 → 需付发布费（独立于单子金额，一经支付不退）。
@@ -179,14 +179,14 @@ interface WaveStore extends WaveBundle {
     note?: string;
   }) => { claim?: Claim; error?: string };
   /**
-   * 开放局拼位: reserve one seat of an open match (capacity ≥ 2). When the
+   * 多人拼单局拼位: reserve one seat of an open match (capacity ≥ 2). When the
    * last seat is taken the wave assembles automatically.
    */
   joinSeat: (p: {
     waveId: string;
     responderId: string;
   }) => { claim?: Claim; assembled?: boolean; error?: string };
-  /** 候补（waitlist）：开放局满员后进入候补队列（幂等；有人退出自动补位）。 */
+  /** 候补（waitlist）：多人拼单局满员后进入候补队列（幂等；有人退出自动补位）。 */
   joinWaitlist: (p: {
     waveId: string;
     responderId: string;
@@ -196,7 +196,7 @@ interface WaveStore extends WaveBundle {
     waveId: string;
     responderId: string;
   }) => void;
-  /** 组织者把关层：审批制开放局提交拼位申请（幂等，不占座不付钱）。 */
+  /** 组织者把关层：审批制多人拼单局提交拼位申请（幂等，不占座不付钱）。 */
   requestSeat: (p: { waveId: string; responderId: string }) => { ok: boolean; error?: string };
   /** 发起人审批拼位申请：通过 → 占座（满员即成局）；拒绝 → 移除申请。 */
   decideRequest: (p: {
@@ -206,7 +206,7 @@ interface WaveStore extends WaveBundle {
     /** 审批发起者（须为该局发起人，防自批自申）。 */
     initiatorId: string;
   }) => { claim?: Claim; assembled?: boolean; error?: string };
-  /** 开放局: demander closes the table early (at least one seat taken). */
+  /** 多人拼单局: demander closes the table early (at least one seat taken). */
   assembleWave: (waveId: string) => void;
   /** One more counter-offer round (每对独立 3 轮；lastBy 交替制由纯函数强制). */
   counterOffer: (p: {
@@ -285,13 +285,13 @@ interface WaveStore extends WaveBundle {
   /** Entire wave = lock negotiation / close manually. */
   closeWave: (waveId: string) => void;
   /**
- * 开放局 no-show：款不退 → 分摊补偿在场玩家（进钱包）+ 发起人获
+ * 多人拼单局 no-show：款不退 → 分摊补偿在场玩家（进钱包）+ 发起人获
  * 「下次成局面降标准」buff（neededJoiners −1）。
  */
   resolveNoShow: (waveId: string, claimId: string) => void;
-  /** 结算到期未成局的开放局 → 该局所有已付订单全额自动退回（幂等）。 */
+  /** 结算到期未成局的多人拼单局 → 该局所有已付订单全额自动退回（幂等）。 */
   settleExpiredOpen: (now?: number) => void;
-  /** 需求方取消开放局：≤24h 分级退款（≥24h 全退 / <24h 部分 / 已开始不退）。 */
+  /** 需求方取消多人拼单局：≤24h 分级退款（≥24h 全退 / <24h 部分 / 已开始不退）。 */
   cancelOpenWave: (waveId: string) => void;
   /** 关注/取消关注一个局（雷达心愿单，幂等 toggle）。 */
   toggleFavorite: (waveId: string) => void;
@@ -671,7 +671,7 @@ createPendingWave: (input) => {
         if (wave.capacity >= 2) {
           return { error: "wave-open-match-use-join" };
         }
-        // 未成年人资金闸：带鸽子险（押金）的局未成年人不能接
+        // 未成年人资金闸：带爽约保障险（押金）的局未成年人不能接
         if (wave.deposit) {
           const gate = gateMoneyAction("deposit");
           if (gate) return { error: gate };
@@ -749,13 +749,13 @@ set((st) => ({
         const wave = s.waves.find((w) => w.id === waveId);
         if (!wave) return { error: "wave-not-found" };
         if (wave.status !== "active") return { error: "wave-not-active" };
-        // 组织者把关层：审批制开放局禁止直接拼位，必须先 requestSeat 申请
+        // 组织者把关层：审批制多人拼单局禁止直接拼位，必须先 requestSeat 申请
         if (wave.needApproval) return { error: "approval-required" };
         // no-show 欠款锁定：违约未结不能拼位
         if (hasUnsettledBreach(s.claims, responderId)) {
           return { error: "debt-unsettled" };
         }
-        // 未成年人资金闸：带鸽子险（押金）的局未成年人不能拼位
+        // 未成年人资金闸：带爽约保障险（押金）的局未成年人不能拼位
         if (wave.deposit) {
           const gate = gateMoneyAction("deposit");
           if (gate) return { error: gate };
@@ -999,7 +999,7 @@ set((st) => ({
             claims: out.claims,
           }));
         } catch {
-          // 无座位 / 非开放局 / 已锁定 → 忽略
+          // 无座位 / 非多人拼单局 / 已锁定 → 忽略
         }
       },
 
@@ -1486,7 +1486,7 @@ set((st) => ({
 
       settleExpiredOpen: (now = Date.now()) =>
         set((s) => {
-          // 幂等：只处理 active 的开放局；成团失败结算后 wave 置 expired，
+          // 幂等：只处理 active 的多人拼单局；成团失败结算后 wave 置 expired，
           // 已退订单不会再退（settleGroupFail 只认 paid）。
           const settledWaves = s.waves.filter(
             (w) => w.status === "active" && w.capacity >= 2

@@ -95,12 +95,13 @@ try {
   await pageA.getByLabel("基础预算").fill("100");
   await pageA.getByLabel("定制条件").fill("家宴");
   await pageA.getByRole("button", { name: "＋" }).click();
-  await pageA.getByLabel("开启鸽子险").click(); // 含险
+  await pageA.getByLabel("开启爽约保障险").click(); // 含险
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
 
   // --- 3. B 接单（进家品类 → 先实名认证）→ 押金冻结 ---
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-system").click(); // P2 抽屉化 IA：能力声明已收纳于「系统设置」抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -178,7 +179,7 @@ try {
   await pageA.getByLabel("行程").click();
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("我的 OTO 之旅"),
+    () => !!document.querySelector('[data-testid="fulfillment-center"]'),
     20000,
     "A 行程页挂载"
   );
@@ -225,7 +226,7 @@ try {
   await pageA.getByLabel("行程").click();
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("我的 OTO 之旅"),
+    () => !!document.querySelector('[data-testid="fulfillment-center"]'),
     20000,
     "A 行程页挂载 2"
   );
@@ -307,6 +308,7 @@ assert.ok(
   // B 侧：能力面板出现 ★ 星级
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+await pageB.getByTestId("drawer-entry-system").click(); // 星级看板在系统设置抽屉（P2 IA）
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("完成率 100%"),

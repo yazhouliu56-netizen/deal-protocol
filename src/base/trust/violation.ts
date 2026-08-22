@@ -2,7 +2,7 @@
  * Breach handling — the demander is the judge, the platform is the ledger.
  *
  * MVP uses a virtual balance (initial ¥100) — the real-money pipeline
- * (鸽子险 / 微信支付) lands in P5; the state machine stays identical.
+ * (爽约保障险 / 微信支付) lands in P5; the state machine stays identical.
  *
  *   responder breaches → must explain, ask for forgiveness
  *   demander forgives  → ¥5 light penalty
@@ -54,7 +54,7 @@ export function settleBreach(
       },
       creditDelta: 0,
       penalty: FORGIVE_PENALTY,
-      message: "已获谅解，扣除轻微保证金（鸽子险象征）¥5",
+      message: "已获谅解，扣除轻微保证金（爽约保障险象征）¥5",
     };
   }
   return {

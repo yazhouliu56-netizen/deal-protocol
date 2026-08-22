@@ -60,6 +60,7 @@ try {
 
   // --- 2. Tab B 已默认声明全品类能力（含厨师）；补充兴趣标签（聚类基础） ---
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-system").click(); // P2 抽屉化 IA：能力声明已收纳于「系统设置」抽屉
   await pageB.getByLabel("能力声明").click();
   await pageB.waitForTimeout(300);
   await pageB.getByLabel("实名认证模拟").click(); // 进家品类硬门槛

@@ -1,7 +1,7 @@
 /**
- * 鸽子险 (pigeon insurance) — performance deposit loop.
+ * 爽约保障险 (pigeon insurance) — performance deposit loop.
  *
- * Latest agreed rule (2026-08): the demander toggles 鸽子险 at publish;
+ * Latest agreed rule (2026-08): the demander toggles 爽约保障险 at publish;
  * when a responder claims (direct lock OR negotiation accepted) the platform
  * auto-holds a small deposit from their virtual balance. The deposit is:
  *   - released (refunded) once both sides confirm the service is done,

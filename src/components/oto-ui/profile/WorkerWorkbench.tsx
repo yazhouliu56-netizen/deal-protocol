@@ -218,10 +218,10 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
         </div>
       </motion.div>
 
-      {/* S1 R_AUTH 全弹药资质准入看板（注册表单一真理源：每个当前注册弹药
+      {/* S1 R_AUTH 全方案资质准入看板（注册表单一真理源：每个当前注册弹药
           的 workerRequirement 均跑一遍资质审查，工厂热注新弹药自动长出卡片） */}
       <section data-testid="ammo-qualification-board">
-        <SectionTitle icon={<BadgeCheck size={12} className="text-brandCyan" />} title={`全弹药资质准入（${registeredAmmos.length}）`} />
+        <SectionTitle icon={<BadgeCheck size={12} className="text-brandCyan" />} title={`全方案资质准入（${registeredAmmos.length}）`} />
         <div className="grid grid-cols-2 gap-2">
           {registeredAmmos.map((ammo) => {
             const pill = ammoPills.get(ammo.ammoId);

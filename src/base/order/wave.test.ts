@@ -146,7 +146,7 @@ test("counterOffer enforces alternation (lastBy / same-side throws)", () => {
   );
 });
 
-/* ------------------------- 开放局 / 拼位 ------------------------- */
+/* ------------------------- 多人拼单局 / 拼位 ------------------------- */
 
 test("open match: capacity ≥ 2, per-seat price = budget ÷ capacity", () => {
   const wave = baseWave({ capacity: 4, budget: 200 });
@@ -173,7 +173,7 @@ test("joinSeat fills the table → wave assembles (last seat)", () => {
   const first = joinSeat(wave, "r1", "c1", 0, now);
   const second = joinSeat(first.wave, "r2", "c2", 1, now);
   assert.equal(second.claim.status, "accepted", "最后一位直接 accepted");
-  assert.equal(second.claim.depositPhase, undefined, "无鸽子险不冻结");
+  assert.equal(second.claim.depositPhase, undefined, "无爽约保障险不冻结");
   assert.equal(second.wave.status, "assembled", "满员成局");
 });
 
@@ -194,7 +194,7 @@ test("claimDirect refuses open-match waves (拼位专用)", () => {
   assert.throws(() => claimDirect(wave, "r1", "c1", 120, now), /open-match-use-join/);
 });
 
-test("joinSeat with 鸽子险 holds deposit on the filling seat", () => {
+test("joinSeat with 爽约保障险 holds deposit on the filling seat", () => {
   const wave = baseWave({ capacity: 2, budget: 100, deposit: true });
   const out = joinSeat(wave, "r1", "c1", 0, now);
   assert.equal(out.claim.status, "accepted");
@@ -265,7 +265,7 @@ test("resolveNoShow �ܾ�δ�ɾ� / �� accepted ��λ", () => {
 
 // --- Request to spot（组织者把关层，对标 Meetup 成员审批） ---
 
-test("requestSeat: 开启审批制的开放局可提交申请，未开启拒绝", () => {
+test("requestSeat: 开启审批制的多人拼单局可提交申请，未开启拒绝", () => {
   const plain = baseWave({ capacity: 3 });
   assert.throws(() => requestSeat(plain, "r1", now), /approval-off/);
   const open = baseWave({ capacity: 3, needApproval: true });
@@ -320,7 +320,7 @@ test("rejectRequest: 拒绝仅移除申请，无占座副作用", () => {
 
 /* ---------- 候补（waitlist，Meetup 吸收项 ②） ---------- */
 
-test("joinWaitlist: 满员开放局支持入队，幂等不重复", () => {
+test("joinWaitlist: 满员多人拼单局支持入队，幂等不重复", () => {
   const wave = baseWave({ capacity: 2, budget: 100 });
   const once = joinWaitlist(wave, "r1", now);
   assert.equal(once.wave.waitlist?.length, 1);
@@ -376,7 +376,7 @@ test("promoteFromWaitlist: 同一时刻入队按信用分降序补位", () => {
   assert.equal(out.claim?.responderId, "high", "同 at 信用分高者优先");
 });
 
-test("promoteFromWaitlist: 与鸽子险联动 —— 补位 claim 持有押金", () => {
+test("promoteFromWaitlist: 与爽约保障险联动 —— 补位 claim 持有押金", () => {
   const wave = baseWave({ capacity: 2, budget: 100, deposit: true });
   const queued = joinWaitlist(wave, "r1", now).wave;
   const out = promoteFromWaitlist(queued, "c9", now + 100);

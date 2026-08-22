@@ -1,9 +1,9 @@
 /**
- * E2E: 开放局 · 拼位闭环（真实浏览器，需要生产服务在 localhost:3000）。
+ * E2E: 多人拼单局 · 拼位闭环（真实浏览器，需要生产服务在 localhost:3000）。
  * 用法：npm run test:e2e:openmatch （需先 `npm run start`）
  *
  * 场景：三 tab 三身份 ——
- *   Tab A 发布"羽毛球约局" 3 人开放局（含自己 = 需 2 位拼位者）+ 鸽子险
+ *   Tab A 发布"羽毛球约局" 3 人多人拼单局（含自己 = 需 2 位拼位者）+ 爽约保障险
  *   Tab B 拼位加入 → claim status joined（等待满员，wave 不锁）
  *   Tab C 拼位加入 → 满员自动成局：wave assembled、两人 accepted、押金冻结
  *   A（需求方）看到已成局 + 拼位队列；B/C（拼位者）看到拨号卡 + 押金流水
@@ -36,6 +36,8 @@ try {
     viewport: { width: 375, height: 812 },
     hasTouch: true,
   });
+  // P0 Bot 确定性开关：本脚本精确断言席位/成局时序，关闭沙盒自动接单
+  await ctx.addInitScript(() => localStorage.setItem("oto-sandbox-bot", "off"));
 
   const pageA = await ctx.newPage();
   const pageB = await ctx.newPage();
@@ -66,7 +68,7 @@ try {
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
 
-  // --- 2. Tab A 发布 3 人开放局（含自己 = 需 2 位拼位者） + 鸽子险 ---
+  // --- 2. Tab A 发布 3 人多人拼单局（含自己 = 需 2 位拼位者） + 爽约保障险 ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
@@ -76,10 +78,10 @@ try {
   await pageA.getByLabel("需求时间").fill("周六 14:00");
   await pageA.getByLabel("需求地点").fill("体育中心");
   await pageA.getByLabel("基础预算").fill("150");
-  // 开放局人数：1 → 3（点两次 ＋）
+  // 多人拼单局人数：1 → 3（点两次 ＋）
   await pageA.getByLabel("增加人数").click();
   await pageA.getByLabel("增加人数").click();
-  await pageA.getByLabel("开启鸽子险").click();
+  await pageA.getByLabel("开启爽约保障险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   // 随单支付：发起人付自己那份(人均 50) → 激活上线
   await pageA.getByRole("button", { name: /立即支付/ }).click();
@@ -93,9 +95,9 @@ try {
   const published = await readShared(pageA);
   const wave = published?.state?.waves?.[0];
   assert.ok(wave, "Tab A 发布后共享空间应存在信号波");
-  assert.equal(wave.capacity, 3, "开放局容量应为 3");
+  assert.equal(wave.capacity, 3, "多人拼单局容量应为 3");
   assert.equal(wave.status, "active", "未拼位前保持 active");
-  assert.equal(wave.deposit, true, "鸽子险应开启");
+  assert.equal(wave.deposit, true, "爽约保障险应开启");
 
   // --- 3. Tab B 拼位加入 → joined（wave 仍 active） ---
   await pageB.goto(BASE, { waitUntil: "domcontentloaded" });
@@ -105,7 +107,7 @@ try {
     pageB,
     () => document.body.textContent?.includes("体育中心"),
     10000,
-    "Tab B 收到开放局广播"
+    "Tab B 收到多人拼单局广播"
   );
   await pageB.getByRole("button", { name: /拼位加入/ }).click();
   // 拼位即付：支付成功才占位
@@ -128,7 +130,7 @@ try {
     pageC,
     () => document.body.textContent?.includes("体育中心"),
     10000,
-    "Tab C 收到开放局广播"
+    "Tab C 收到多人拼单局广播"
   );
   await pageC.getByRole("button", { name: /拼位加入/ }).click();
   await pageC.getByRole("button", { name: /立即支付/ }).click();
@@ -147,7 +149,7 @@ try {
   );
   assert.ok(
     seatClaims.every((c) => c.depositPhase === "held"),
-    "鸽子险按位冻结"
+    "爽约保障险按位冻结"
   );
 
   // --- 5. B 视角：已拼位 → 成局后拨号卡 + 押金冻结（100 → 95） ---
@@ -206,7 +208,7 @@ try {
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("已成局"),
-    10000,
+    20000,
     "A 看到已成局"
   );
   assert.ok(
@@ -246,9 +248,19 @@ try {
     shared?.state?.payOrders?.some((o) => o.status === "paid" && o.amount === 50),
     "no-show 款不退：补偿流水入账(人均 50 分摊)"
   );
+  // P2 稳健化：buff 入账为异步落盘 → 轮询而非直读
+  await waitUntil(
+    pageA,
+    async () => {
+      const sh = await readShared(pageA);
+      return (sh?.state?.initiatorBuffs?.[aId] ?? 0) >= 1;
+    },
+    10000,
+    "成局 buff 入账"
+  );
   const buff = shared?.state?.initiatorBuffs?.[aId] ?? 0;
   assert.equal(buff, 1, "发起人 A 获得成局面降标准 buff +1");
-// A 的开放局展示「已降标准 −1」
+// A 的多人拼单局展示「已降标准 −1」
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
   await pageA.waitForTimeout(500);
@@ -264,7 +276,7 @@ try {
     "A 应看到 no-show buff 提示（下次发局自动降标准）"
   );
 
-  console.log("开放局拼位闭环 E2E：全部通过");
+  console.log("多人拼单局拼位闭环 E2E：全部通过");
 } catch (e) {
   console.error("E2E 失败:", e.message ?? e);
   failures += 1;

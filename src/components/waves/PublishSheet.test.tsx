@@ -70,7 +70,7 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     expect(container.querySelector('[data-testid="publish-dynamic-form"]')).toBeNull();
     // 但应有定价口径与草稿卡（P1 第 4 步：旧「建议起价」scene 残留已出清，
     // 价格权威收敛为弹药 D2 起步口径 —— 原断言锁定的正是被移除的旧文案）
-    expect(container.textContent).toContain("弹药起步 预估费用：¥60/小时 × 2小时起");
+    expect(container.textContent).toContain("方案起步 预估费用：¥60/小时 × 2小时起");
     expect(container.textContent).not.toContain("建议起价");
     unmount();
   });
@@ -178,7 +178,7 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
       unmount();
     });
 
-    it("预算默认值对齐弹药起步底价（点击家政快捷胶囊 → 120）", () => {
+    it("预算默认值对齐方案起步底价（点击家政快捷胶囊 → 120）", () => {
       const { container, unmount } = mountPublishSheet("家政保洁");
       // 模拟用户点击品类快捷胶囊触发 SOP 默认装配（applySopDefaults）
       const pill = Array.from(container.querySelectorAll("button")).find((b) =>

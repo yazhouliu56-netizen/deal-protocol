@@ -1,9 +1,9 @@
 /**
- * E2E: 鸽子险履约 + 互评闭环双 tab 测试（真实浏览器，需要生产服务在 localhost:3000）。
+ * E2E: 爽约保障险履约 + 互评闭环双 tab 测试（真实浏览器，需要生产服务在 localhost:3000）。
  * 用法：npm run test:e2e:review （需先 `npm run start`）
  *
  * 场景：双 tab 双身份 ——
- *   Tab A 发布"宠物代遛 + 鸽子险"信号波（无磋商）
+ *   Tab A 发布"宠物代遛 + 爽约保障险"信号波（无磋商）
  *   Tab B 直接接单 → 押金冻结（100 → 95）
  *   Tab A 确认履约 → 押金解冻退回（B 95 → 99.5，含平台服务费 0.5）
  *   A 评价 B（三维全 5）→ B 信用 Lv 3 → 5
@@ -61,7 +61,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageB.goto(BASE, { waitUntil: "domcontentloaded" });
 
-  // --- 2. Tab A 发布（含鸽子险，无磋商 → 直接接单） ---
+  // --- 2. Tab A 发布（含爽约保障险，无磋商 → 直接接单） ---
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
   await pageA.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await pageA.waitForTimeout(400);
@@ -71,7 +71,7 @@ try {
   await pageA.getByLabel("需求时间").fill("明天 19:00");
   await pageA.getByLabel("需求地点").fill("幸福家园小区");
   await pageA.getByLabel("基础预算").fill("60");
-  await pageA.getByLabel("开启鸽子险").click();
+  await pageA.getByLabel("开启爽约保障险").click();
   await pageA.getByRole("button", { name: /广播出去/ }).click();
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(500);
@@ -80,6 +80,7 @@ try {
   await pageB.reload({ waitUntil: "domcontentloaded" });
   // 品类硬筛：B 默认品类不含"宠物代遛" → 先加自定义品类
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-system").click(); // P2 抽屉化 IA：能力声明已收纳于「系统设置」抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -280,7 +281,7 @@ try {
     "评价带时间衰减标签（脱敏）"
   );
 
-  console.log("鸽子险履约 + 互评闭环 E2E：全部通过");
+  console.log("爽约保障险履约 + 互评闭环 E2E：全部通过");
 } catch (e) {
   console.error("E2E 失败:", String(e).slice(0, 500));
   failures += 1;

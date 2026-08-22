@@ -450,12 +450,12 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
     const message = chatMessages.find((m) => m.id === msgId);
     const waveNo = pending.id.slice(0, 8).toUpperCase();
     const converted = (message?.cards ?? []).map((c) =>
-      c.type === "success" && !c.lines.some((l) => l.k === "弹药单号")
-        ? { ...c, lines: [...c.lines, { k: "弹药单号", v: waveNo }] }
+      c.type === "success" && !c.lines.some((l) => l.k === "方案单号")
+        ? { ...c, lines: [...c.lines, { k: "方案单号", v: waveNo }] }
         : c,
     );
     updateChatCards(msgId, converted);
-    toast(`📡 已转为正式弹药订单 · ${category} · ¥${budget}`, "success");
+    toast(`📡 已转为正式方案订单 · ${category} · ¥${budget}`, "success");
     setScreen("home");
   }
 
@@ -623,6 +623,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
           onChange={(e) => setInput(e.target.value)}
           onCompositionStart={() => (composingRef.current = true)}
           onCompositionEnd={() => (composingRef.current = false)}
+          name="ai-demand-input"
           placeholder="描述你的需求，比如：周六下午 2 人羽毛球"
           className="flex-1 min-w-0 px-4 py-3 rounded-2xl glass-panel outline-none text-xs placeholder:text-white/35"
           enterKeyHint="send"
@@ -834,7 +835,7 @@ function GenCardView({
                 <Check size={12} /> 已预订
               </span>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
-              {card.lines.some((l) => l.k === "弹药单号") ? (
+              {card.lines.some((l) => l.k === "方案单号") ? (
                 <span className="text-xs font-bold text-brandCyan px-3 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/40">
                   已转正式订单 ✅
                 </span>

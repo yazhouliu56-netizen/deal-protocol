@@ -32,7 +32,7 @@ test("diff: 无变化 → 无通知", () => {
   assert.deepEqual(diffNotifEvents(a, a), []);
 });
 
-test("diff: 我的开放局首次拼满 → 成局通知", () => {
+test("diff: 我的多人拼单局首次拼满 → 成局通知", () => {
   const prev = frame({ waves: [wave("w1", "active")] });
   const next = frame({ waves: [wave("w1", "assembled")] });
   const out = diffNotifEvents(prev, next);
@@ -69,7 +69,7 @@ test("diff: 拼位占座（joined）→ 占座通知", () => {
   assert.match(out[0].title, /拼位占座/);
 });
 
-test("diff: 单人局被正式接单 → 接单通知；开放局满员 accepted → 成局通知", () => {
+test("diff: 单人局被正式接单 → 接单通知；多人拼单局满员 accepted → 成局通知", () => {
   const solo = frame({ waves: [wave("w1", "active", 1)] });
   const soloNext = frame({
     waves: [wave("w1", "assembled", 1)],

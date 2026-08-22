@@ -68,7 +68,7 @@ interface IdentityState {
   status: "online" | "busy" | "offline";
   /** Virtual balance ledger — every deduction is visible in the wallet. */
   ledger: LedgerEntry[];
-  /** My 鸽子险 deposits (responder side) — idempotent accounting. */
+  /** My 爽约保障险 deposits (responder side) — idempotent accounting. */
   deposits: DepositRecord[];
 
   setCapability: (patch: Partial<Pick<Identity, "categories" | "tags" | "distanceKm" | "verified">>) => void;
@@ -85,7 +85,7 @@ interface IdentityState {
   settle: (claimId: string, verdict: "forgive" | "unforgiven", now?: number) => void;
   /** Credit tier re-derived from received reviews (评价驱动分层). */
   recalcCredit: (reviews: Review[]) => void;
-  /** Idempotent 鸽子险 accounting driven by the shared claim phase. */
+  /** Idempotent 爽约保障险 accounting driven by the shared claim phase. */
   syncDeposit: (claimId: string, phase: DepositPhase, amount?: number) => void;
   /** Idempotent payout received (demander side, breach unforgiven / 履约险理赔). */
   receivePayout: (claimId: string, amount?: number, kind?: "deposit" | "insurance") => void;
@@ -239,7 +239,7 @@ export const useIdentityStore = create<IdentityState>()(
             if (phase !== "held") return {};
             return {
               account: holdDeposit(s.account, amount),
-              ledger: [entry("deposit", -amount, `鸽子险押金冻结 · 订单 ${claimId}`), ...s.ledger].slice(0, 50),
+              ledger: [entry("deposit", -amount, `爽约保障险押金冻结 · 订单 ${claimId}`), ...s.ledger].slice(0, 50),
               deposits: [...s.deposits, { claimId, phase, amount, at: now }],
             };
           }
@@ -250,12 +250,12 @@ export const useIdentityStore = create<IdentityState>()(
           let ledger = s.ledger;
           if (phase === "confirmed") {
             account = releaseDeposit(account, amount);
-            ledger = [entry("deposit", +((amount - PLATFORM_FEE).toFixed(1)), `鸽子险解冻退回（含平台服务费）· 订单 ${claimId}`), ...ledger].slice(0, 50);
+            ledger = [entry("deposit", +((amount - PLATFORM_FEE).toFixed(1)), `爽约保障险解冻退回（含平台服务费）· 订单 ${claimId}`), ...ledger].slice(0, 50);
           } else if (phase === "refunded") {
             account = refundDeposit(account, amount);
-            ledger = [entry("deposit", amount, `鸽子险全额退回（获得谅解）· 订单 ${claimId}`), ...ledger].slice(0, 50);
+            ledger = [entry("deposit", amount, `爽约保障险全额退回（获得谅解）· 订单 ${claimId}`), ...ledger].slice(0, 50);
           } else if (phase === "forfeited") {
-            ledger = [entry("deposit", 0, `鸽子险没收（爽约赔付需求方）· 订单 ${claimId}`), ...ledger].slice(0, 50);
+            ledger = [entry("deposit", 0, `爽约保障险没收（爽约赔付需求方）· 订单 ${claimId}`), ...ledger].slice(0, 50);
           }
           return {
             account,
@@ -266,9 +266,9 @@ export const useIdentityStore = create<IdentityState>()(
 
       receivePayout: (claimId, amount = 5, kind = "deposit") =>
         set((s) => {
-          // 幂等键 = kind + claimId：鸽子险赔付与履约险理赔互不覆盖
+          // 幂等键 = kind + claimId：爽约保障险赔付与履约险理赔互不覆盖
           const noteKey =
-            kind === "insurance" ? "履约保险理赔到账" : "鸽子险赔付到账";
+            kind === "insurance" ? "履约保险理赔到账" : "爽约保障险赔付到账";
           if (
             s.ledger.some(
               (e) =>

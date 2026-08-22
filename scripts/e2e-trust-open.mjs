@@ -1,5 +1,5 @@
 /**
- * E2E: 开放局信任闭环三缺口（真实浏览器，需生产服务）。用法：npm run test:e2e:trustopen
+ * E2E: 多人拼单局信任闭环三缺口（真实浏览器，需生产服务）。用法：npm run test:e2e:trustopen
  *
  * 三个场景（三 tab）：
  *  ① 成团失败退款：A 发 3 人局 → B 拼位 → 手动把该局 expiresAt 改到过去
@@ -237,6 +237,16 @@ try {
     await p.waitForTimeout(500);
   }
 
+  {
+    const t0 = Date.now();
+    let ok = false;
+    while (Date.now() - t0 < 12000 && !ok) {
+      const sh = await readShared(pageA);
+      ok = sh?.state?.waves?.find((w) => w.basics.area === "高校体育馆")?.status === "assembled";
+      if (!ok) await sleep(300);
+    }
+    if (!ok) throw new Error("等待超时: 局3 满员成局（异步落盘）");
+  }
   shared = await readShared(pageA);
   const w3 = shared?.state?.waves?.find((w) => w.basics.area === "高校体育馆");
   assert.equal(w3?.status, "assembled", "③ 局 3 满员成局");
@@ -359,7 +369,7 @@ try {
     "③ 结清后 C 拼位成功"
   );
 
-  console.log("开放局信任闭环三缺口 E2E：全部通过");
+  console.log("多人拼单局信任闭环三缺口 E2E：全部通过");
 } catch (e) {
   console.error("E2E 失败:", String(e).slice(0, 500));
   failures += 1;

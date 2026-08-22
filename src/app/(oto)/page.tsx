@@ -142,6 +142,12 @@ function SandboxBotHost() {
 
   useEffect(() => {
     if (!SANDBOX_BOT_ENABLED) return;
+    // E2E 确定性开关：openmatch 等精确断言席位的脚本以 initScript 置 off 关闭 Bot
+    try {
+      if (window.localStorage.getItem("oto-sandbox-bot") === "off") return;
+    } catch {
+      /* SSR/隐私模式忽略 */
+    }
     const botActions = {
       getLatestWave: (id: string) =>
         useWaveStore.getState().waves.find((x) => x.id === id),
@@ -388,7 +394,7 @@ function HomePage() {
               你好，我是 AI 撮合助手 ✨ 一句话告诉我…
             </span>
             <span className="block text-xs text-white/50 truncate">
-              帮你秒级生成订单 · 匹配弹药 / 计价 / 安全底线一键预览
+              帮你秒级生成订单 · 匹配方案 / 计价 / 安全底线一键预览
             </span>
           </span>
           <span className="text-xs font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">

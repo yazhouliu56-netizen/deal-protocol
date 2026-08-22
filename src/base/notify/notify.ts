@@ -116,7 +116,7 @@ export function buildNotifyItems(src: NotifySource): NotifyItem[] {
         key: `push:${p.id}`,
         kind: "push" as NotifyKind,
         emoji: "🎟️",
-        title: `${w ? w.basics.category : "开放局"} 候补转正`,
+        title: `${w ? w.basics.category : "多人拼单局"} 候补转正`,
         desc: "有人让出座位，你已补位成功 · 去「我的接单」确认",
         at: p.at,
       });

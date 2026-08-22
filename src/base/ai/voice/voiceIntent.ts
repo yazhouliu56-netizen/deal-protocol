@@ -77,7 +77,7 @@ export function mockVoiceIntent(text: string): VoiceIntent {
         time,
         area: "附近",
         budget,
-        capacity: /(拼位|开放局|\d+\s*人)/i.test(t) ? 2 : 1,
+        capacity: /(拼位|多人拼单局|开放局|\d+\s*人)/i.test(t) ? 2 : 1,
         // 阶段3：口语发单自动完成非标定制清洗与中性化包装（纯函数，零概率）
         customRequirements: normalizeCustomIntent(t),
       },

@@ -38,14 +38,14 @@ function seedSession(title = "小区保洁 · 名额 1", reserve = 60): BiddingS
 
 /**
  * 公开竞价（P8 商业化前哨，本地沙盒）—— 现在接入真实需求局：
- * 从「我发出的开放局」里选一个作为拍品（保留价 = 局的人均价），
+ * 从「我发出的多人拼单局」里选一个作为拍品（保留价 = 局的人均价），
  * 模拟响应者报价 + 你也能参与。开标仅演示结算，不写回真实局。
  */
 export default function BiddingSandboxCard() {
   const waves = useWaveStore((s) => s.waves);
   const settleBidding = useWaveStore((s) => s.settleBidding);
   const identity = useIdentityStore((s) => s.identity);
-  // 我发出的活跃开放局（拍卖品候选）
+  // 我发出的活跃多人拼单局（拍卖品候选）
   const myActive = useMemo(
     () =>
       waves.filter(
@@ -187,7 +187,7 @@ const open = session.status === "open";
         )}
       </div>
 
-      {/* 真实局选择：我发出的活跃开放局即拍品候选 */}
+      {/* 真实局选择：我发出的活跃多人拼单局即拍品候选 */}
       {myActive.length > 0 && (
         <div className="mt-2.5 flex items-center gap-2">
           <Layers size={10} className="text-brandCyan shrink-0" />

@@ -1,6 +1,6 @@
 /**
  * 生产模拟验收（上线演练）— 一键跑通「上线状态」：
- *   npm run build → 生产服务 :3000 → 按序跑全部 e2e（撮合/开放局/推送/治理/
+ *   npm run build → 生产服务 :3000 → 按序跑全部 e2e（撮合/多人拼单局/推送/治理/
  *   履约/评价/信任/离线降级/应用）→ 汇总。任一失败即退出非零。
  * 用法：node scripts/verify-prod.mjs
  * 说明：每个 e2e 脚本独立浏览器上下文（多用户/多端模拟），全部基于纯本地
@@ -42,6 +42,7 @@ if (process.argv.includes("--dev-server")) {
 
 let failed = false;
 for (const script of suite) {
+  await new Promise((r) => setTimeout(r, 2500)); // P2 稳健化：脚本间冷却，规避共享服务端时序脆弱
   try {
     run(`node scripts/${script}`, script);
   } catch {

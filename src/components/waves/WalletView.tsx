@@ -77,7 +77,7 @@ export default function WalletView({ sandbox = false }: { sandbox?: boolean } = 
       )}
       {frozen > 0 && (
         <p className="mt-2 text-xs text-sky-300/90">
-          🕊️ 鸽子险冻结中：¥{frozen}（履约后自动退回）
+          🕊️ 爽约保障险冻结中：¥{frozen}（履约后自动退回）
         </p>
       )}
       {creditTier >= 4 && (

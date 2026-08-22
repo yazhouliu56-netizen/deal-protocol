@@ -87,6 +87,12 @@ test("mock: 拼位关键词 → capacity 2", () => {
   if (i.kind === "publish-wave") assert.equal(i.wave.capacity, 2);
 });
 
+test("mock: 新商业话术「多人拼单局」同义识别 → capacity 2（P2 去黑话配套）", () => {
+  const i = mockVoiceIntent("发起一个多人拼单局羽毛球，预算 100 元");
+  assert.equal(i.kind, "publish-wave");
+  if (i.kind === "publish-wave") assert.equal(i.wave.capacity, 2);
+});
+
 test("mock: 无预算 → chat", () => {
   assert.equal(mockVoiceIntent("帮我发个羽毛球局").kind, "chat");
 });

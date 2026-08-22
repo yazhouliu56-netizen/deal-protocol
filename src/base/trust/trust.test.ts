@@ -46,7 +46,7 @@ function paidOrder(id: string, waveId: string, payerId: string, kind: "seat" | "
 
 /* ------------------------- ① 成团失败退款 ------------------------- */
 
-test("settleGroupFail: 过期未满员的开放局 → 全部 paid 订单全额退", () => {
+test("settleGroupFail: 过期未满员的多人拼单局 → 全部 paid 订单全额退", () => {
   const w = wave({ capacity: 3, expiresAt: now - 1000 });
   const orders = [
     paidOrder("p1", "w1", "me"),

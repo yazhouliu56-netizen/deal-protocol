@@ -13,7 +13,7 @@ import NegotiationBox from "./NegotiationBox";
  * A signal-wave demand card — shown in the radar feed to responders.
  * Custom conditions glow (they're the emotional-value surcharge drivers);
  * the interest number mixes real claims with a virtual base.
- * 开放局 (capacity ≥ 2) renders a join-seat CTA + seat progress instead of
+ * 多人拼单局 (capacity ≥ 2) renders a join-seat CTA + seat progress instead of
  * the solo 抢单 CTA.
  */
 export default function WaveCard({
@@ -34,25 +34,25 @@ export default function WaveCard({
   wave: Wave;
   /** Real claim count for this wave. */
   interests: number;
-  /** 开放局：当前拼位数（已占座）。 */
+  /** 多人拼单局：当前拼位数（已占座）。 */
   joined?: number;
-  /** 开放局：我是否已占座。 */
+  /** 多人拼单局：我是否已占座。 */
   joinedByMe?: boolean;
-  /** 审批制开放局：待审批申请数。 */
+  /** 审批制多人拼单局：待审批申请数。 */
   requested?: number;
-  /** 审批制开放局：我是否已提交申请（待审批）。 */
+  /** 审批制多人拼单局：我是否已提交申请（待审批）。 */
   requestedByMe?: boolean;
-  /** 开放局：我是否在候补队列。 */
+  /** 多人拼单局：我是否在候补队列。 */
   waitlistedByMe?: boolean;
-  /** 开放局：我的候补排队位置（1 起）。 */
+  /** 多人拼单局：我的候补排队位置（1 起）。 */
   waitlistPos?: number;
-  /** 开放局：当前候补人数。 */
+  /** 多人拼单局：当前候补人数。 */
   waitlistCount?: number;
   onClaim: (p: { price: number; note?: string }) => { error?: string } | void;
   onJoin?: () => void;
-  /** 审批制开放局：提交拼位申请。 */
+  /** 审批制多人拼单局：提交拼位申请。 */
   onRequestJoin?: () => void;
-  /** 开放局：满员后进入候补队列。 */
+  /** 多人拼单局：满员后进入候补队列。 */
   onWaitlist?: () => void;
 }) {
   const identity = useIdentityStore((s) => s.identity);
@@ -137,12 +137,12 @@ export default function WaveCard({
         <Clock3 size={10} className="text-brandCyan shrink-0" /> {wave.basics.time}
         {isOpen && (
           <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple ml-0.5">
-            🎯 开放局 {wave.capacity} 人
+            🎯 多人拼单局 {wave.capacity} 人
           </span>
         )}
       </p>
 
-      {/* 开放局：拼位进度条 */}
+      {/* 多人拼单局：拼位进度条 */}
       {isOpen && (
         <div className="mt-2">
           <div className="flex items-center justify-between text-xs mb-1">
@@ -215,7 +215,7 @@ export default function WaveCard({
         )}
         {wave.deposit && (
           <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-sky-400/15 border border-sky-400/40 text-sky-300">
-            🕊️ 鸽子险 ¥5
+            🕊️ 爽约保障险 ¥5
           </span>
         )}
       </div>

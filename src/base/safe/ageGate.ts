@@ -19,7 +19,7 @@
 /** 资金动作语义：需要资金托管的撮合动作（发布费/押金/竞拍/保险/托管结算）。 */
 export type MoneyAction =
   | "publish-fee" // 发布费（免费次数用尽后）
-  | "deposit" // 押金 / 鸽子险
+  | "deposit" // 押金 / 爽约保障险
   | "bidding" // 竞价出价
   | "insurance" // 履约保险投保
   | "escrow-settle"; // 托管结算（资金进账/出账）
@@ -46,7 +46,7 @@ export interface AgeGateResult {
 
 const MONEY_REASONS: Record<MoneyAction, string> = {
   "publish-fee": "未成年人模式：涉及发布费的资金动作不可用（14-17 岁可用每日免费次数发布，超出部分由监护人处理）",
-  deposit: "未成年人模式：押金/鸽子险涉及资金托管，不可用",
+  deposit: "未成年人模式：押金/爽约保障险涉及资金托管，不可用",
   bidding: "未成年人模式：竞价出价涉及资金，不可用",
   insurance: "未成年人模式：履约保险投保涉及资金，不可用",
   "escrow-settle": "未成年人模式：托管结算涉及资金往来，不可用",

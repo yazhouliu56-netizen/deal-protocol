@@ -337,6 +337,7 @@ export default function AuthSheet() {
                   <div className="auth-phone-row">
                     <input
                       className="auth-input"
+                      name="auth-phone"
                       type="tel"
                       inputMode="numeric"
                       maxLength={11}
@@ -359,6 +360,7 @@ export default function AuthSheet() {
                   {smsSent && (
                     <input
                       className="auth-input"
+                      name="auth-sms-code"
                       style={{ marginTop: 8 }}
                       inputMode="numeric"
                       maxLength={4}

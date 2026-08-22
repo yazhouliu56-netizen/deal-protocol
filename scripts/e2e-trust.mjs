@@ -98,6 +98,7 @@ try {
 
   // B 实名认证 → 单出现且可接
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-system").click(); // P2 抽屉化 IA：能力声明已收纳于「系统设置」抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("能力声明"),
@@ -156,15 +157,16 @@ try {
   assert.ok(bId, "B 身份 id 存在");
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-safety").click(); // 外层安全抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
     20000,
     "入口"
   );
-  const sb = pageB.getByLabel("安全中心");
-  await sb.scrollIntoViewIfNeeded();
-  await sb.click({ force: true });
+  const skBtn1 = pageB.getByRole("button", { name: "安全中心", exact: true });
+  await skBtn1.scrollIntoViewIfNeeded();
+  await skBtn1.click();
   await pageB.getByRole("button", { name: /平台治理后台/ }).click();
   await waitUntil(
     pageB,
@@ -220,15 +222,16 @@ try {
   );
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
+  await pageB.getByTestId("drawer-entry-safety").click(); // 外层安全抽屉
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("安全中心"),
     20000,
     "入口"
   );
-  const sb2 = pageB.getByLabel("安全中心");
-  await sb2.scrollIntoViewIfNeeded();
-  await sb2.click({ force: true });
+  const skBtn2 = pageB.getByRole("button", { name: "安全中心", exact: true });
+  await skBtn2.scrollIntoViewIfNeeded();
+  await skBtn2.click();
   await pageB.getByRole("button", { name: /平台治理后台/ }).click();
   await waitUntil(
     pageB,

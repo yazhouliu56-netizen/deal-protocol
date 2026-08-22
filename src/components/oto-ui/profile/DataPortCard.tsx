@@ -81,6 +81,7 @@ export default function DataPortCard() {
         </button>
         <input
           ref={fileRef}
+          name="backup-import"
           type="file"
           accept="application/json,.json"
           className="hidden"
