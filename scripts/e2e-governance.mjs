@@ -10,6 +10,7 @@
  *   6. 审计记录留痕
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -30,9 +31,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "governance", { sandboxBotOff: true });
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("governance");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -54,7 +60,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::governance");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -77,11 +83,21 @@ try {
   await pageB.getByRole("button", { name: /广播出去/ }).click();
   await pageB.waitForTimeout(400);
   const flagged = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
+    const w0 = s?.state?.waves?.[0];
     return {
-      removed: s?.state?.waves?.[0]?.removed,
+      removed: w0?.removed,
       reports: s?.state?.reports?.length ?? 0,
       auto: s?.state?.reports?.[0]?.auto,
+      waveCount: (s?.state?.waves ?? []).length,
+      w0dump: w0
+        ? {
+            cat: w0.basics?.category,
+            customs: (w0.customs ?? []).map((c) => c.text),
+            note: w0.negotiableNote ?? null,
+            removed: w0.removed ?? null,
+          }
+        : null,
     };
   });
   assert.equal(flagged.removed, true, "敏感词内容被自动下架");
@@ -91,7 +107,7 @@ try {
     pageB,
     () =>
       !document.querySelector('[aria-label="关闭发布"]') &&
-      JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state
+      JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}").state
         ?.waves?.[0]?.removed === true,
     8000,
     "弹层关闭且内容已转审核"
@@ -121,21 +137,41 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await pageA.waitForTimeout(400);
   await pageB.reload({ waitUntil: "domcontentloaded" });
+  await pageB.waitForTimeout(800); // 等水合：水合前点 Dock 会丢点击（落在静态壳上被替换）
   await pageB.getByLabel("首页").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
-    () => document.body.textContent?.includes("羽毛球约局"),
+    () =>
+      // 必须锚定 feed 层实体——供给光斑/跑马灯文案含「羽毛球」字样，纯文本判定会被误满足
+      !!document.querySelector("[data-layer='wave-feed']") &&
+      (() => {
+        const feed = document.querySelector("[data-layer='wave-feed']");
+        return (feed?.textContent ?? "").includes("羽毛球约局");
+      })(),
     20000,
-    "B 看到 A 的正常需求"
+    "B 在雷达 feed 看到 A 的正常需求"
   );
-  // B 手动举报 A 的这条需求（响应者视角 WaveCard 举报按钮）
-  const reportBtn = pageB.getByLabel("举报").first();
-  await reportBtn.scrollIntoViewIfNeeded();
-  await pageB.waitForTimeout(300); // 入场动画稳定
-  await reportBtn.click({ force: true, timeout: 15000 });
+  // B 手动举报 A 的这条需求（响应者视角 WaveCard 举报按钮）。
+  // 注意：访客 reload 后「AI 撮合助手」问候浮层会自动展开并覆盖 feed 卡片，
+  // 物理坐标点击（含 force）会命中最上层浮层而非按钮 → 改 DOM 直触发，
+  // 等价驱动真实 React 处理链且不受层叠遮挡影响。
+  await waitUntil(
+    pageB,
+    () => {
+      const b = document.querySelector('button[aria-label="举报"]');
+      return !!b && !b.disabled;
+    },
+    10000,
+    "A 波卡片的举报按钮就绪"
+  );
+  await pageB.evaluate(() => {
+    const b = document.querySelector('button[aria-label="举报"]');
+    if (b && !b.disabled) b.click();
+  });
   await pageB.waitForTimeout(400);
   const afterReport = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
     return (s?.state?.reports ?? []).length;
   });
   assert.equal(afterReport, 2, "自动 + 手动 = 2 条举报");
@@ -180,7 +216,7 @@ try {
   await actions.nth(0).click(); // 手动举报（最新）→ 默认驳回
   await pageB.waitForTimeout(400);
   const afterDismiss = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
     const reports = s?.state?.reports ?? [];
     return {
       resolved: reports.filter((r) => r.status === "resolved").length,
@@ -195,7 +231,7 @@ try {
   await pageB.getByRole("button", { name: /执行裁定/ }).first().click();
   await pageB.waitForTimeout(400);
   const removed = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
     return (s?.state?.waves ?? []).find((w) => w.removed)?.id;
   });
   assert.ok(removed, "敏感词需求保持下架");
@@ -264,7 +300,7 @@ try {
   await pageB.waitForTimeout(500);
 
   const banned = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
     return Object.values(s?.state?.bans ?? {})[0];
   });
   assert.ok(banned, "封禁落库");
@@ -289,7 +325,7 @@ try {
     "被封禁者发布被拒"
   );
   const wavesAfterBan = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
     return (s?.state?.waves ?? []).filter((w) => w.basics.category === "拼桌桌游").length;
   });
   assert.equal(wavesAfterBan, 0, "被拒需求未落库");

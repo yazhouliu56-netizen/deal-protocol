@@ -9,6 +9,7 @@
  *   A（需求方）看到已成局 + 拼位队列；B/C（拼位者）看到拨号卡 + 押金流水
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -29,9 +30,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "openmatch");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("openmatch");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -56,14 +62,14 @@ try {
 
   const readShared = (page) =>
     page.evaluate(() =>
-      JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+      JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::openmatch") || "{}")
     );
 
   // --- 1. 清空共享广播空间 ---
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::openmatch");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -87,7 +93,7 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::openmatch") || "{}").state?.waves ?? []).length > 0,
     15000,
     "Tab A 发布落库"
   );
@@ -248,16 +254,23 @@ try {
     shared?.state?.payOrders?.some((o) => o.status === "paid" && o.amount === 50),
     "no-show 款不退：补偿流水入账(人均 50 分摊)"
   );
-  // P2 稳健化：buff 入账为异步落盘 → 轮询而非直读
-  await waitUntil(
-    pageA,
-    async () => {
+  // P2 稳健化：buff 入账为异步落盘 → Node 侧轮询共享空间（readShared 为 Node 助手，
+  // 严禁作为 page.evaluate 闭包传入——Playwright 只序列化函数源码，闭包不随行）
+  {
+    const t0 = Date.now();
+    let ok = false;
+    while (Date.now() - t0 < 25000 && !ok) {
       const sh = await readShared(pageA);
-      return (sh?.state?.initiatorBuffs?.[aId] ?? 0) >= 1;
-    },
-    10000,
-    "成局 buff 入账"
-  );
+      ok = (sh?.state?.initiatorBuffs?.[aId] ?? 0) >= 1;
+      if (!ok) await sleep(300);
+    }
+    if (!ok) {
+      const sh2 = await readShared(pageA);
+      throw new Error(
+        `等待超时: 成局 buff 入账 | aId=${aId} | 本键buffs=${JSON.stringify(sh2?.state?.initiatorBuffs)} | waves=${JSON.stringify((sh2?.state?.waves ?? []).map((w) => ({ id: w.id?.slice(-6), st: w.status, auth: String(w.authorId ?? "").slice(-8) })))} | claims=${JSON.stringify((sh2?.state?.claims ?? []).map((c) => ({ st: c.status, rid: String(c.responderId ?? "").slice(-8) })))}`
+      );
+    }
+  }
   const buff = shared?.state?.initiatorBuffs?.[aId] ?? 0;
   assert.equal(buff, 1, "发起人 A 获得成局面降标准 buff +1");
 // A 的多人拼单局展示「已降标准 −1」

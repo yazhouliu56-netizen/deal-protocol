@@ -11,6 +11,7 @@
  *   双方脱敏展示（时间衰减标签）
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -31,9 +32,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "review");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("review");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -55,7 +61,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::review");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -102,7 +108,7 @@ try {
   await pageB.waitForTimeout(500);
 
   const sharedLock = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::review") || "{}")
   );
   assert.equal(sharedLock?.state?.claims?.[0]?.status, "accepted");
   assert.equal(sharedLock?.state?.claims?.[0]?.depositPhase, "held");
@@ -172,7 +178,7 @@ try {
   await pageA.getByRole("button", { name: /确认验收/ }).click();
   await pageA.waitForTimeout(500);
   const sharedFulfilled = await pageA.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::review") || "{}")
   );
   assert.equal(
     sharedFulfilled?.state?.claims?.[0]?.depositPhase,
@@ -230,7 +236,7 @@ try {
   await pageB.waitForTimeout(500);
 
   const sharedReviews = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::review") || "{}")
   );
   assert.equal(
     (sharedReviews?.state?.reviews ?? []).length,

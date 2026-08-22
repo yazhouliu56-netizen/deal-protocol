@@ -8,6 +8,7 @@
  *   B 协商（上限内比例）→ A 接受协商 → 结算 + 信用联动落库。
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -24,7 +25,7 @@ async function waitUntil(page, fn, timeout = 15000, label = "条件", arg) {
 
 const state = (p) =>
   p.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state
   );
 
 const browser = await chromium.launch(
@@ -33,9 +34,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "acceptance");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("acceptance");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -57,7 +63,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::acceptance");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -85,7 +91,7 @@ try {
   // 支付/落库是异步管线 → 等 wave 确实入共享空间再让 B 刷新（负载无关的确定性等待）
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state?.waves ?? []).length > 0,
     15000,
     "A 场景 A 发布落库"
   );
@@ -115,7 +121,7 @@ try {
   await waitUntil(
     pageB,
     () => {
-      const st = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
+      const st = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state;
       return (st?.claims ?? []).some((c) => c.serviceDoneAt);
     },
     25000,
@@ -136,7 +142,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
       if (await pageA.evaluate(() => document.body.textContent?.includes("服务方已申报完成"))) break;
     } catch {}
     const dump = await pageA.evaluate(() => {
-      const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
+      const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state;
       return {
         claims: (s?.claims ?? []).map((c) => ({ st: c.status, done: !!c.serviceDoneAt, w: c.waveId })),
         waves: (s?.waves ?? []).map((w) => ({ st: w.status })),
@@ -180,7 +186,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
     () =>
-      (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).some(
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state?.waves ?? []).some(
         (w) => w.modules?.length >= 2
       ),
     15000,
@@ -278,7 +284,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state?.waves ?? []).length > 0,
     15000,
     "A 场景 C 发布落库"
   );
@@ -351,7 +357,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageB,
     (cid) => {
-      const st = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state;
+      const st = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state;
       return (st?.disputes ?? []).some((d) => d.claimId === cid && d.outcome?.kind === "negotiated");
     },
     25000,

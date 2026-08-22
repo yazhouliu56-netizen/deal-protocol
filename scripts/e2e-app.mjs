@@ -4,6 +4,7 @@
  * 前置：npm run start（3000）。
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -24,7 +25,12 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "app");
+
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("app");
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
   const page = await ctx.newPage();
   const errors = [];

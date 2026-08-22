@@ -8,6 +8,7 @@
  *   B 一键接单 → wave claimed、B 余额押金冻结、推送已读
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -28,9 +29,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "push", { sandboxBotOff: true });
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("push");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -52,7 +58,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::push");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -69,7 +75,7 @@ try {
   await waitUntil(
     pageB,
     () =>
-      (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")?.state?.responders ?? []).some(
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::push") || "{}")?.state?.responders ?? []).some(
         (r) => r.categories?.includes("厨师 · 上门做饭")
       ),
     10000,
@@ -77,7 +83,7 @@ try {
   );
 
   const responders = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::push") || "{}")
   );
   assert.ok(
     (responders?.state?.responders ?? []).some(
@@ -114,7 +120,7 @@ try {
   await waitUntil(
     pageB,
     () =>
-      JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")?.state
+      JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::push") || "{}")?.state
         ?.pushes?.some((p) => !p.read),
     20000,
     "聚类推送已落盘"
@@ -138,7 +144,7 @@ try {
     "推送卡片含适配理由"
   );
   const pushState = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::push") || "{}")
   );
   const myPushes = (pushState?.state?.pushes ?? []).filter(
     (p) => p.toId !== undefined && !p.read
@@ -161,14 +167,15 @@ try {
   await pageB.waitForTimeout(800);
 
   const after = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::push") || "{}")
   );
-  assert.ok(
-    (after?.state?.claims ?? []).some(
-      (c) => c.waveId === after?.state?.waves?.[0]?.id && c.status === "negotiating"
-    ),
-    "一键接单生成进行中的磋商 claim（P2 交替制）"
-  );
+  if (!(after?.state?.claims ?? []).some(
+    (c) => c.waveId === after?.state?.waves?.[0]?.id && c.status === "negotiating"
+  )) {
+    throw new Error(
+      `一键接单应生成磋商 claim | waves=${JSON.stringify((after?.state?.waves ?? []).map((w) => ({ id: w.id?.slice(-6), neg: w.negotiable })))} | claims=${JSON.stringify((after?.state?.claims ?? []).map((c) => ({ st: c.status })))}`
+    );
+  }
   assert.ok(
     (after?.state?.pushes ?? []).every((p) => p.read === true),
     "接单后推送全部已读"

@@ -25,11 +25,10 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { P2pTransport } from "./transport";
-import { createLocalTransport } from "./transport";
+import { createLocalTransport, DEFAULT_P2P_NS } from "./transport";
 import type { WaveBundle } from "@/types/wave-bundle";
 
 const TABLE = "p2p_broadcast";
-const ROW_ID = "oto";
 
 interface P2pErrorLike {
   code?: string;
@@ -55,8 +54,11 @@ function isMissingTable(err: P2pErrorLike | null | undefined): boolean {
 
 export function createSupabaseTransport(
   url: string,
-  key: string
+  key: string,
+  /** 命名空间 = 本通道专属行 id（默认「oto」与生产行字节兼容；E2E 注入专属行物理隔离）。 */
+  ns: string = DEFAULT_P2P_NS
 ): P2pTransport {
+  const ROW_ID = ns;
   // 8s 上限：云端不可达（墙/超时/域名解析挂起）时快速走失败路径 → degrade，
   // 避免 pull() 长时间悬挂导致「第一帧读空 → 降级迟迟不来」的窗口期（E2E flaky）。
   const client = createClient(url, key, {
@@ -68,7 +70,8 @@ export function createSupabaseTransport(
   let cache: WaveBundle | null = null;
   let sig = "";
   const listeners = new Set<() => void>();
-  const localFallback = createLocalTransport();
+  // 降级分支与主通道同命名空间：云端不可达切本地时仍保持物理隔离。
+  const localFallback = createLocalTransport(ns);
   let degraded = false;
 
   function notify(): void {

@@ -94,9 +94,11 @@ interface IdentityState {
 }
 
 function makeIdentity(): Identity {
-  const n = Math.floor(Math.random() * 100_000);
+  // 熵空间 36^6 ≈ 2.2e9：多标签近同时冷启动不再可能撞号（旧 1e5 空间在
+  // 高频 E2E/多开场景下会碰撞——同 ID 会被 feed 的 authorId 隔离误判为自己）
+  const n = Math.floor(Math.random() * 2_176_782_336);
   return {
-    id: `me-${n.toString(36)}`,
+    id: `me-${n.toString(36).padStart(6, "0")}`,
     nickname: "光点",
     emoji: "✨",
     // Newcomers are both sides by default — "人人既需求方又响应方".

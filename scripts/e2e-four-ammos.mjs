@@ -14,6 +14,7 @@
  *  注册表驱动 aria-label「XX · 一键弹药发单」，品类预填随胶囊中文 label 直拨。）
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -34,6 +35,9 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "four-ammos");
+
 /** 记录每枚弹药实测明细，供最终 PASS/FAIL 汇总打印。 */
 const verdicts = [];
 const summary = (label, passed, detail) => {
@@ -42,19 +46,21 @@ const summary = (label, passed, detail) => {
 };
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("four-ammos");
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
   const page = await ctx.newPage();
 
   const wavesLen = () =>
     page.evaluate(
       () =>
-        (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? [])
+        (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::four-ammos") || "{}").state?.waves ?? [])
           .length,
     );
   const lastWave = () =>
     page.evaluate(
       () =>
-        (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).at(-1) ??
+        (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::four-ammos") || "{}").state?.waves ?? []).at(-1) ??
         null,
     );
   const errors = [];
@@ -127,7 +133,7 @@ try {
     await waitUntil(
       page,
       (before) =>
-        (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? [])
+        (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::four-ammos") || "{}").state?.waves ?? [])
           .length > before,
       15000,
       `${label} 发射落库`,
@@ -245,7 +251,7 @@ try {
   await waitUntil(
     page,
     (before) =>
-      (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? [])
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::four-ammos") || "{}").state?.waves ?? [])
         .length > before,
     15000,
     "家电维修发射落库",

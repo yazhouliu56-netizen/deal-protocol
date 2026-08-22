@@ -8,6 +8,7 @@
  *   → 反推：改造"验收凭证"为必填，空凭证按钮禁用
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -28,9 +29,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "fulfil");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("fulfil");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -53,7 +59,7 @@ try {
   await pageA.evaluate(() => {
     try {
   console.log('--- 1 布线/下单 ---');
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::fulfil");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -136,7 +142,7 @@ try {
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(500);
   const locked = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::fulfil") || "{}")
   );
   console.log('--- 3 驳回/重发 ---');
   assert.equal(locked?.state?.claims?.[0]?.depositPhase, "held");
@@ -240,7 +246,7 @@ try {
   await pageA.getByRole("button", { name: /确认验收/ }).click();
   await pageA.waitForTimeout(300);
   const stillHeld = await pageA.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::fulfil") || "{}")
   );
   assert.equal(
     stillHeld?.state?.claims?.[0]?.depositPhase,
@@ -252,7 +258,7 @@ try {
   await pageA.getByRole("button", { name: /确认验收/ }).click();
   await pageA.waitForTimeout(500);
   const fulfilled = await pageA.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::fulfil") || "{}")
   );
   assert.equal(fulfilled?.state?.claims?.[0]?.depositPhase, "confirmed");
   assert.ok(fulfilled?.state?.claims?.[0]?.fulfilledAt > 0, "评价窗口开启");

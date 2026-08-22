@@ -11,6 +11,7 @@
  * 同时验证共享 localStorage 跨 tab 同步。
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -31,9 +32,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "wave");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("wave");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -57,7 +63,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::wave");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -84,13 +90,13 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}").state?.waves ?? []).length > 0,
     15000,
     "Tab A 发布落库"
   );
 
   const sharedWave = await pageA.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}")
   );
   assert.ok(
     (sharedWave?.state?.waves ?? []).length >= 1 &&
@@ -138,7 +144,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.waitForTimeout(500);
 
   const afterBClaim = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}")
   );
   assert.equal(
     afterBClaim?.state?.claims?.[0]?.status,
@@ -178,7 +184,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.waitForTimeout(400);
 
   const afterCounter = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}")
   );
   assert.equal(afterCounter?.state?.claims?.[0]?.rounds, 3);
   assert.equal(afterCounter?.state?.claims?.[0]?.lastBy, "responder");
@@ -288,7 +294,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyB
   );
   const sharedAfter = await pageB.evaluate(() =>
-    JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}")
   );
   assert.equal(sharedAfter?.state?.claims?.[0]?.depositPhase, "forfeited");
   assert.equal(afterB?.state?.account?.balance, 95, "押金没收不退回");

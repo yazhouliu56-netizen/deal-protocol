@@ -23,6 +23,41 @@ export interface P2pTransport {
 
 export const BROADCAST_KEY = "oto-broadcast-v1";
 
+/** 默认命名空间：生产与既有测试的物理通道标识（行 id / 存储键字节兼容）。 */
+export const DEFAULT_P2P_NS = "oto";
+
+/** 命名空间净化：仅允许安全字符（Supabase 行 id + localStorage 键共用），超长截断。 */
+export function sanitizeP2pNamespace(raw: string): string {
+  const cleaned = raw.replace(/[^A-Za-z0-9:_-]/g, "").slice(0, 80);
+  return cleaned || DEFAULT_P2P_NS;
+}
+
+/**
+ * 命名空间探针（E2E 物理隔离通道，2026-08-22 战役）：
+ * 优先级 window.__OTO_CHANNEL_NS__ > URL ?channel_ns= > 默认「oto」。
+ * SSR/Node 守卫：window 未定义时严格返回默认值——服务端渲染与客户端首帧
+ * 锁定同一默认通道，杜绝通道分裂与水合不一致。
+ */
+export function resolveP2pNamespace(): string {
+  if (typeof window === "undefined") return DEFAULT_P2P_NS;
+  try {
+    const w = window as { __OTO_CHANNEL_NS__?: unknown };
+    if (typeof w.__OTO_CHANNEL_NS__ === "string" && w.__OTO_CHANNEL_NS__.trim()) {
+      return sanitizeP2pNamespace(w.__OTO_CHANNEL_NS__);
+    }
+    const param = new URLSearchParams(window.location.search).get("channel_ns");
+    if (param && param.trim()) return sanitizeP2pNamespace(param);
+  } catch {
+    // 探针失败不阻断启动——回退默认通道（宪法 #10）
+  }
+  return DEFAULT_P2P_NS;
+}
+
+/** 命名空间 → 本地存储键。默认通道保持原键字节兼容；测试通道派生隔离键。 */
+export function broadcastKeyFor(ns: string): string {
+  return ns === DEFAULT_P2P_NS ? BROADCAST_KEY : `${BROADCAST_KEY}::${ns}`;
+}
+
 /** Current transport — lazy singleton so tests can reset it. */
 let active: P2pTransport | null = null;
 
@@ -36,6 +71,16 @@ export function getP2pTransport(): P2pTransport {
 }
 
 function createTransport(): P2pTransport {
+  const ns = resolveP2pNamespace();
+  // E2E 确定性探针（initScript 注入）：云表不可用场景下跳过 supabase 尝试，
+  // 从第一帧即锁定本地通道——消除「boot-pull 悬挂窗口内发布→写云端悬空」
+  // 的非确定延迟。生产环境无此标记，行为不变。
+  if (
+    typeof window !== "undefined" &&
+    (window as { __OTO_P2P_FORCE_LOCAL__?: unknown }).__OTO_P2P_FORCE_LOCAL__ === true
+  ) {
+    return createLocalTransport(ns);
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && key) {
@@ -43,19 +88,20 @@ function createTransport(): P2pTransport {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mod = require("@/base/platform/p2p/supabase");
-      return mod.createSupabaseTransport(url, key);
+      return mod.createSupabaseTransport(url, key, ns);
     } catch {
       // supabase dependency not installed → local fallback
     }
   }
-  return createLocalTransport();
+  return createLocalTransport(ns);
 }
 
 /** Same-browser transport: localStorage + storage event (current behavior). */
-export function createLocalTransport(): P2pTransport {
+export function createLocalTransport(ns: string = DEFAULT_P2P_NS): P2pTransport {
+  const storageKey = broadcastKeyFor(ns);
   const read = (): WaveBundle | null => {
     try {
-      const raw = localStorage.getItem(BROADCAST_KEY);
+      const raw = localStorage.getItem(storageKey);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       const state = parsed?.state ?? parsed;
@@ -77,7 +123,7 @@ export function createLocalTransport(): P2pTransport {
         const existing = read();
         const merged = existing ? mergeByIdLevel(existing, state) : state;
         localStorage.setItem(
-          BROADCAST_KEY,
+          storageKey,
           JSON.stringify({ state: merged, version: 0 })
         );
       } catch {
@@ -86,7 +132,7 @@ export function createLocalTransport(): P2pTransport {
     },
     subscribe: (cb) => {
       const handler = (e: StorageEvent) => {
-        if (e.key === BROADCAST_KEY) cb();
+        if (e.key === storageKey) cb();
       };
       window.addEventListener("storage", handler);
       return () => window.removeEventListener("storage", handler);

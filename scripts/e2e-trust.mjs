@@ -10,6 +10,7 @@
  *      累计 2 次有效 → 自动限流 suspend → B 发布被拒
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -30,9 +31,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "trust");
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("trust");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -54,7 +60,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::trust");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -78,7 +84,7 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust") || "{}").state?.waves ?? []).length > 0,
     15000,
     "A 进家门单落库"
   );
@@ -126,7 +132,7 @@ try {
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(400);
   const claimed = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust") || "{}");
     return s?.state?.claims?.[0]?.status
   });
   assert.equal(claimed, "accepted", "认证响应者接单成功");
@@ -178,7 +184,7 @@ try {
   await pageB.getByRole("button", { name: /执行裁定/ }).first().click();
   await pageB.waitForTimeout(400);
   const warnState = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust") || "{}");
     return {
       claims: (s?.state?.claims ?? []).length,
       reports: (s?.state?.reports ?? []).length,
@@ -203,7 +209,7 @@ try {
   await pageB.evaluate(
     (target) => {
       const s = JSON.parse(
-        localStorage.getItem("oto-broadcast-v1") || "{}"
+        localStorage.getItem("oto-broadcast-v1::oto::e2e::trust") || "{}"
       );
       const victimReport = {
         id: `rep-victim2-${target}-v2`,
@@ -216,7 +222,7 @@ try {
         status: "open",
       };
       s.state.reports.push(victimReport);
-      localStorage.setItem("oto-broadcast-v1", JSON.stringify(s));
+      localStorage.setItem("oto-broadcast-v1::oto::e2e::trust", JSON.stringify(s));
     },
     bId
   );
@@ -244,7 +250,7 @@ try {
   await pageB.getByRole("button", { name: /执行裁定/ }).first().click();
   await pageB.waitForTimeout(500);
   const auto = await pageB.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust") || "{}");
     const ban = s?.state?.bans;
     return Object.values(ban ?? {}).slice(0, 1)[0] ?? null;
   });

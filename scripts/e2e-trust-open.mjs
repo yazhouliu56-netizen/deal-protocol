@@ -12,6 +12,7 @@
  * 用法：npm run test:e2e:trustopen（需先 `npm run start`）
  */
 import { chromium } from "playwright-core";
+import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
 const BASE = "http://localhost:3000";
@@ -32,9 +33,14 @@ const browser = await chromium.launch(
     : { channel: "chrome", headless: true }
 );
 
+// 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
+isolateBrowserChannels(browser, "trust-open", { sandboxBotOff: true });
+
 let failures = 0;
 
 try {
+  // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
+  await resetE2eChannelRow("trust-open");
   const ctx = await browser.newContext({
     viewport: { width: 375, height: 812 },
     hasTouch: true,
@@ -56,7 +62,7 @@ try {
 
   const readShared = (page) =>
     page.evaluate(() =>
-      JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}")
+      JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust-open") || "{}")
     );
   // 注入过期时间并确保落盘成功。异步写回（clusterPushes 后台 fetch）在发布后
   // 短暂存在，可能用内存旧 expiresAt 覆盖注入值 → 用「注入 + 重读校验」重试兜底。
@@ -66,19 +72,19 @@ try {
       await page
         .evaluate(
           ({ waveId, epochPast }) => {
-            const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+            const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust-open") || "{}");
             const waves = (s?.state?.waves ?? []).map((w) =>
               w.id === waveId ? { ...w, expiresAt: epochPast } : w
             );
             s.state = { ...s.state, waves };
-            localStorage.setItem("oto-broadcast-v1", JSON.stringify(s));
+            localStorage.setItem("oto-broadcast-v1::oto::e2e::trust-open", JSON.stringify(s));
           },
           { waveId, epochPast }
         )
         .catch(() => {});
       await sleep(400);
       const ok = await page.evaluate(({ waveId }) => {
-        const s = JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}");
+        const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust-open") || "{}");
         const w = (s?.state?.waves ?? []).find((x) => x.id === waveId);
         return !w || w.expiresAt < Date.now() - 5000;
       }, { waveId });
@@ -105,7 +111,7 @@ try {
   await pageA.goto(BASE, { waitUntil: "domcontentloaded" });
   await pageA.evaluate(() => {
     try {
-      localStorage.removeItem("oto-broadcast-v1");
+      localStorage.removeItem("oto-broadcast-v1::oto::e2e::trust-open");
     } catch {}
   });
   await pageA.reload({ waitUntil: "domcontentloaded" });
@@ -275,7 +281,13 @@ try {
       ).length >= 2,
     20000,
     "行程页两个座位按钮就绪"
-  );
+  ).catch(async (e) => {
+    const s = await readShared(pageA);
+    const w3 = s?.state?.waves?.find((w) => w.basics.area === "高校体育馆");
+    throw new Error(
+      `${e.message} | w3=${JSON.stringify({ st: w3?.status, cap: w3?.capacity })} | claims=${JSON.stringify((s?.state?.claims ?? []).filter((c) => c.waveId === w3?.id).map((c) => ({ rid: String(c.responderId ?? "").slice(-6), st: c.status })))}`
+    );
+  });
   await pageA.getByRole("button", { name: /标记未到场/ }).nth(1).click();
   await pageA.waitForTimeout(500);
 
@@ -292,7 +304,7 @@ try {
   await pageA.getByRole("button", { name: /立即支付/ }).click();
   await waitUntil(
     pageA,
-    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1") || "{}").state?.waves ?? []).length > 0,
+    () => (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::trust-open") || "{}").state?.waves ?? []).length > 0,
     15000,
     "局 4 发布落库"
   );
