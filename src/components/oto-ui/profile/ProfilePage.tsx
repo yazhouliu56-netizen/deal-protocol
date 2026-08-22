@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -11,6 +11,8 @@ import {
   Star,
 } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
+import { toAtomicFiveState } from "@/base/ammo/runner";
+import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { usePrefStore } from "@/store/usePrefStore";
 import { PREF_KEYS } from "@/ammo/prefs";
@@ -105,6 +107,11 @@ export default function ProfilePage({
   const raiseCrisis = useWaveStore((s) => s.raiseCrisis);
   const resolveCrisis = useWaveStore((s) => s.resolveCrisis);
   const requestForget = useWaveStore((s) => s.requestForget);
+  // P1 第 3 步：我的订单双源聚合数据面（waves 弹药单 + bookings 预订卡）
+  const waves = useWaveStore((s) => s.waves);
+  const claimsAgg = useWaveStore((s) => s.claims);
+  const fulfilment = useWaveStore((s) => s.fulfilment);
+  const setScreen = useAppStore((s) => s.setScreen);
   const myCrisis = crisisRecords.filter(
     (c) => c.userId === identity.id && !c.resolved
   );
@@ -173,6 +180,62 @@ export default function ProfilePage({
   }
 
   const upcoming = bookings.filter((b) => b.status === "upcoming").length;
+
+  /* ═══ P1 第 3 步：我的订单双源聚合视图（waves 弹药单 + bookings 预订卡） ═══
+   * 治理「行程屏有单、个人中心空」的丢单假象：waves 与 bookings 统一结构、
+   * createdAt 倒序混排、类型徽标显式区分；WAVE 条目点击直达 Trip 履约座舱。 */
+  const FIVE_STATE_LABEL: Record<AtomicFiveState, string> = {
+    PUBLISHED: "广播中",
+    MATCHED: "已接单",
+    IN_SERVICE: "履约中",
+    INSPECTED: "待验收",
+    SETTLED: "已结算",
+  };
+  const BOOKING_STATUS_LABEL: Record<Booking["status"], string> = {
+    upcoming: "待出行",
+    completed: "已完成",
+    cancelled: "已取消",
+  };
+  const unifiedOrders = useMemo(() => {
+    const waveItems = waves
+      .filter((w) => w.authorId === identity.id && !w.removed)
+      .map((w) => {
+        let statusDisplay: string;
+        if (w.status === "pending") {
+          statusDisplay = "待支付";
+        } else {
+          const acceptedClaim = claimsAgg.find(
+            (c) => c.waveId === w.id && (c.status === "accepted" || c.status === "joined"),
+          );
+          const flags = fulfilment[w.id];
+          const five = toAtomicFiveState({
+            waveStatus: w.status,
+            claimStatus: acceptedClaim?.status,
+            fulfilmentStatus: flags?.fulfilmentStatus,
+            isSettled: flags?.isSettled,
+          });
+          statusDisplay = FIVE_STATE_LABEL[five] ?? "进行中";
+        }
+        return {
+          id: w.id,
+          title: w.basics.category,
+          amountDisplay: `¥${w.budget}`,
+          createdAt: w.createdAt,
+          sourceType: "WAVE" as const,
+          statusDisplay,
+        };
+      });
+    const bookingItems = bookings.map((b) => ({
+      id: b.id,
+      title: b.title,
+      amountDisplay: b.price,
+      createdAt: b.createdAt,
+      sourceType: "BOOKING" as const,
+      statusDisplay: BOOKING_STATUS_LABEL[b.status],
+    }));
+    return [...waveItems, ...bookingItems].sort((a, b) => b.createdAt - a.createdAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waves, claimsAgg, fulfilment, bookings, identity.id]);
   const reviewed = reviews.length;
 
   return (
@@ -237,16 +300,29 @@ export default function ProfilePage({
         </label>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-extrabold">Alex</span>
+            {/* P1 第 3 步：名字动态化（登录态=账号昵称，访客态=本地演示身份昵称），根治 Alex 硬编码 */}
+            <span className="text-[15px] font-extrabold">
+              {authAccount?.nickname ?? identity.nickname}
+            </span>
             <BadgeCheck size={14} className="text-brandCyan" />
           </div>
           <p className="text-xs text-white/68 mt-0.5">
             线下体验玩家 · 已撮合 {bookings.length} 单
           </p>
         </div>
-        <span className="text-xs px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple font-semibold shrink-0">
-          钻石会员
-        </span>
+        {/* P1 第 3 步：会员徽标仅登录态展示，访客态换中性「演示体验」徽标（根治虚假钻石会员） */}
+        {authAccount ? (
+          <span className="text-xs px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple font-semibold shrink-0">
+            钻石会员
+          </span>
+        ) : (
+          <span
+            data-testid="guest-demo-badge"
+            className="text-xs px-2 py-1 rounded-full bg-white/[0.06] border border-white/15 text-white/60 font-semibold shrink-0"
+          >
+            [ 演示体验 ]
+          </span>
+        )}
       </motion.div>
 
       {/* 资产与钱包卡（总订单 / 待出行 / 已评价 + 点账钱包余额 / 信用等级 / 充值提现） */}
@@ -269,7 +345,8 @@ export default function ProfilePage({
           ))}
         </div>
         <div className="mt-3">
-          <WalletView />
+          {/* P1 第 3 步：访客态钱包显式标注沙盒模拟余额 */}
+          <WalletView sandbox={!authAccount} />
         </div>
       </div>
 
@@ -312,13 +389,13 @@ export default function ProfilePage({
         ))}
       </div>
 
-      {/* 我的订单（内容区：查看 / 评价 / 取消） */}
-      <div>
+      {/* 我的订单（P1 第 3 步：waves+bookings 双源聚合 · createdAt 倒序 · 类型徽标） */}
+      <div data-testid="my-orders">
         <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5">
           <span className="w-1 h-3.5 rounded-full bg-linear-to-b from-brandCyan to-brandPurple" />
           我的订单
         </h3>
-        {bookings.length === 0 ? (
+        {unifiedOrders.length === 0 ? (
           <div className="glass-panel rounded-2xl p-4 text-center">
             <p className="text-xs text-white/68">
               还没有订单——去 AI 助手说句需求，马上撮合
@@ -326,13 +403,49 @@ export default function ProfilePage({
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {bookings.map((b) => (
-              <BookingRow
-                key={b.id}
-                booking={b}
-                onClick={() => setSelectedBooking(b.id)}
-              />
-            ))}
+            {unifiedOrders.map((o) =>
+              o.sourceType === "WAVE" ? (
+                <button
+                  key={o.id}
+                  onClick={() => setScreen("trip")}
+                  aria-label={`查看弹药单 ${o.title} 履约进度`}
+                  data-testid="order-item-wave"
+                  className="glass-panel rounded-2xl p-3 flex items-center gap-2.5 text-left hover:border-brandPurple/50 active:scale-[0.99] transition-[border,transform]"
+                >
+                  <span className="text-base shrink-0">🧾</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-xs font-extrabold text-white/90 block truncate">
+                      {o.title} · {o.amountDisplay}
+                    </span>
+                    <span className="text-[11px] text-white/50 block mt-0.5">
+                      [ 弹药单 ] · 点击查看履约进度
+                    </span>
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/30 text-brandCyan shrink-0">
+                    {o.statusDisplay}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  key={o.id}
+                  onClick={() => setSelectedBooking(o.id)}
+                  aria-label={`查看预订卡 ${o.title}`}
+                  data-testid="order-item-booking"
+                  className="glass-panel rounded-2xl p-3 flex items-center gap-2.5 text-left hover:border-brandPurple/50 active:scale-[0.99] transition-[border,transform]"
+                >
+                  <span className="text-base shrink-0">🎟️</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-xs font-extrabold text-white/90 block truncate">
+                      {o.title} · {o.amountDisplay}
+                    </span>
+                    <span className="text-[11px] text-white/50 block mt-0.5">[ 预订卡 ]</span>
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple shrink-0">
+                    {o.statusDisplay}
+                  </span>
+                </button>
+              ),
+            )}
           </div>
         )}
       </div>
@@ -833,52 +946,6 @@ export default function ProfilePage({
   );
 }
 
-function BookingRow({
-  booking,
-  onClick,
-}: {
-  booking: Booking;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full glass-panel rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"
-    >
-      <div className="w-10 h-10 rounded-xl glass-panel flex items-center justify-center text-lg shrink-0">
-        {CATEGORY_EMOJI[booking.category] ?? "🎟️"}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-[13px] font-bold truncate">
-            {booking.providerName}
-          </span>
-          <span
-            className={`text-xs px-1.5 py-px rounded-full font-semibold shrink-0 ${
-              booking.status === "upcoming"
-                ? "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple"
-                : booking.status === "cancelled"
-                  ? "bg-white/10 border border-white/20 text-white/68"
-                  : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
-            }`}
-          >
-            {booking.status === "upcoming"
-              ? "待出行"
-              : booking.status === "cancelled"
-                ? "已取消"
-                : "已完成"}
-          </span>
-        </div>
-        <p className="text-xs text-white/68 mt-0.5 truncate">
-          {booking.time} · {booking.category}
-        </p>
-      </div>
-      <span className="text-[12px] font-extrabold text-brandCyan shrink-0">
-        {booking.price}
-      </span>
-    </button>
-  );
-}
 
 function OrderDetail({
   booking,

@@ -12,7 +12,7 @@ import { decayLabel, dailyQuotaForTier } from "@/base/trust/review";
  * breach ledger / masked review list. Makes the P1 virtual-economy
  * transparent in the UI; credit tier re-derives from received reviews.
  */
-export default function WalletView() {
+export default function WalletView({ sandbox = false }: { sandbox?: boolean } = {}) {
   const identity = useIdentityStore((s) => s.identity);
   const account = useIdentityStore((s) => s.account);
   const creditTier = useIdentityStore((s) => s.creditTier);
@@ -40,9 +40,9 @@ export default function WalletView() {
     <div className="glass-panel rounded-2xl p-3.5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-bold text-white/70 flex items-center gap-1.5">
-          <Wallet size={12} className="text-brandCyan" /> 虚拟钱包
+          <Wallet size={12} className="text-brandCyan" /> 虚拟钱包{sandbox ? "（沙盒模拟余额）" : ""}
         </h3>
-        <span className="text-xs text-white/35">MVP 模拟 · P5 接入真实账户</span>
+        <span className="text-xs text-white/35">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
