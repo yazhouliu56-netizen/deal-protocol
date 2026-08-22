@@ -230,7 +230,9 @@ test("[B5] 意图解析：『年龄20-30岁』『女仆装』已被驯化为 wav
  * ===================================================================== */
 
 test("[B6] 时间规范化变形：10点半/14点30分/带日期前缀均输出精确时分", () => {
-  const half = mockVoiceIntent("下午 10点半来打扫，预算 100 元");
+  // SSOT 收敛注：原输入「下午 10点半」在新语义下正确归一为 22:30（见 timeParser.test），
+  // 本用例锁定的是半点解析变形本身 → 改用上午口径保持断言值不变
+  const half = mockVoiceIntent("上午 10点半来打扫，预算 100 元");
   assert.equal(half.kind, "publish-wave");
   if (half.kind === "publish-wave") assert.equal(half.wave.time, "10:30", "10点半 → 10:30");
 

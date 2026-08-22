@@ -8,6 +8,7 @@ import {
   type TimeslotSlot,
 } from "./types";
 import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
+import { parseNaturalTime } from "@/base/ai/timeParser";
 import { decorateWeekendLabels } from "./slots";
 
 export type DemandCategory = "badminton" | "photography" | "housekeeping" | null;
@@ -293,11 +294,14 @@ export const MOCK_PROVIDERS: Record<Exclude<DemandCategory, null>, ProviderItem[
   ],
 };
 
+/**
+ * SSOT 收敛（P0 第 2 步）：时间槽解析唯一真理源为 base/ai/timeParser.ts。
+ * 返回 displayLabel（"明天 14:30" / "周六下午" / "今天 10:00" 口径由回显层补日期）；
+ * 未命中 → null（沿用「缺失即追问」既有状态机）。
+ */
 function parseTime(s: string): string | null {
-  const day = /今天/.test(s) ? "今天" : /明天|明晚/.test(s) ? "明天" : /周六|礼拜六/.test(s) ? "周六" : /周日|礼拜天/.test(s) ? "周日" : /周末|双休/.test(s) ? "周末" : /周[一二三四五]/.exec(s)?.[0] ?? null;
-  const part = /上午/.test(s) ? "上午" : /下午/.test(s) ? "下午" : /晚上|晚间/.test(s) ? "晚上" : /中午/.test(s) ? "中午" : null;
-  if (!day && !part) return null;
-  return [day, part].filter(Boolean).join("");
+  const parsed = parseNaturalTime(s);
+  return parsed ? parsed.displayLabel : null;
 }
 
 /**
@@ -362,7 +366,9 @@ export class MockEngine implements ChatEngine {
     const category = this.slot.category as Exclude<DemandCategory, null>;
     const missing = FIELD_SCHEMAS[category].find((f) => this.slot[f.key] === null);
     if (missing) {
-      yield* this.streamText(missing.question);
+      // P0 第 2 步 · 槽位回显：先回显已识别要素，再仅追问缺失项 —— 已知槽位绝不重复反问
+      const echo = this.echoSlots(category);
+      yield* this.streamText(echo ? `${echo}\n${missing.question}` : missing.question);
       yield { type: "done" };
       return;
     }
@@ -418,6 +424,22 @@ export class MockEngine implements ChatEngine {
 
   private timeslotCard(): GenCard {
     return { type: "timeslot", id: "timeslot", title: "可选时段", slots: this.slotOptions };
+  }
+
+  /**
+   * 槽位回显行（P0 第 2 步 · Slot Echo）：`[✓ 服务: …] [✓ 时间: …]`。
+   * 裸钟点（HH:mm，未携带日期词）由回显层补「今天」前缀 —— 解析层保持
+   * 忠实输入（timeParser 不推断日期），展示层负责口语完整化。
+   */
+  private echoSlots(category: Exclude<DemandCategory, null>): string {
+    const parts: string[] = [`[✓ 服务: ${CATEGORY_LABEL[category]}]`];
+    if (this.slot.time) {
+      const decorated = /^\d{1,2}:\d{2}$/.test(this.slot.time)
+        ? `今天 ${this.slot.time}`
+        : this.slot.time;
+      parts.push(`[✓ 时间: ${decorated}]`);
+    }
+    return parts.join(" ");
   }
 
   private providerCard(category: Exclude<DemandCategory, null>): GenCard {

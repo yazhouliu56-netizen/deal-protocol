@@ -8,6 +8,7 @@
 
 import type { VoiceIntent } from "./types";
 import { normalizeCustomIntent } from "../intent-normalizer.ts";
+import { parseNaturalTime } from "../timeParser.ts";
 
 /** LLM 结构化输出 schema（JSON 对象）。 */
 export interface IntentLlmOut {
@@ -107,37 +108,15 @@ function matchCategory(t: string): string | null {
   return null;
 }
 
-const CN_DIGIT: Record<string, string> = {
-  一: "1", 二: "2", 两: "2", 三: "3", 四: "4", 五: "5",
-  六: "6", 七: "7", 八: "8", 九: "9", 十: "10", 零: "0",
-};
-
+/**
+ * SSOT 收敛（P0 第 2 步）：时间解析唯一真理源为 base/ai/timeParser.ts。
+ * 本函数只做「解析结果 → wave.time 字符串值域」的映射层：
+ * - 命中 → displayLabel（"明天 10:00" / "10:00" / "周六下午"）；
+ * - 未命中任何时间要素 → 既有兜底 "尽快"（voiceIntent.test 值域契约锁定）。
+ */
 function matchTime(t: string): string {
-  const day = t.match(/(今天|明天|后天|周[一二三四五六日天]|周末)/i)?.[1] ?? "";
-  const arabic = t.match(/(\d{1,2})[:点时](\d{0,2})/);
-  let hm = "";
-  if (arabic) {
-    const h = arabic[1];
-    const mRaw = arabic[2];
-    if (mRaw) {
-      hm = `${h}:${mRaw.padStart(2, "0")}`;
-    } else {
-      // 口语延续：「10点半」→ 10:30；「10点」→ 10:00（精确时分，非字面「10点」）
-      const tail = t.slice((arabic.index ?? 0) + arabic[0].length);
-      hm = /^\s*半/.test(tail) ? `${h}:30` : `${h}:00`;
-    }
-  } else {
-    // 中文数字时间：下午三点 / 三点半
-    const cn = t.match(/([一二两三四五六七八九十])\s*点(半)?/);
-    if (cn) {
-      const h = CN_DIGIT[cn[1]] ?? "";
-      hm = h ? (cn[2] ? `${h}点半` : `${h}点`) : "";
-    }
-  }
-  if (day && hm) return `${day} ${hm}`;
-  if (day) return day;
-  if (hm) return hm;
-  return "尽快";
+  const parsed = parseNaturalTime(t);
+  return parsed ? parsed.displayLabel : "尽快";
 }
 
 function matchBudget(t: string): number {

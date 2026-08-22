@@ -166,7 +166,7 @@ test("[环节A3] mockVoiceIntent 真实调用：品类识别 + 口语时间精�
   }
 });
 
-test("[环节A4] MockEngine 真实调用：口语诉求首轮识别家政品类并追问时间（「10点」未入词表）", async () => {
+test("[环节A4] MockEngine 真实调用：口语首轮命中品类+精确时分并回显槽位（绝不反问已知时间）", async () => {
   const engine = new MockEngine({
     getChatMessages: () => [],
     isWorkerOnline: () => true,
@@ -177,18 +177,23 @@ test("[环节A4] MockEngine 真实调用：口语诉求首轮识别家政品类�
     if (ev.type === "card") texts.push("[card]");
   }
   const first = texts.join("");
-  // 家政品类唯一专属追问：「希望什么时间上门」→ 品类已命中 housekeeping
-  assert.match(first, /希望什么时间上门/);
-  // Chat 链路（mockEngine）时间槽为词表追问式（今天/明天/周X/上午/下午/晚），
-  // 不直接抽取数字时刻 → 首问不含 10:00；意图层精确时分提取见 voiceIntent 修复
-  assert.doesNotMatch(first, /10:00/);
+  // P0 第 2 步 · 槽位回显：「10点」经 timeParser SSOT 提取 → 回显层补「今天」前缀
+  assert.match(first, /\[✓ 服务: 家政保洁\]/);
+  assert.match(first, /\[✓ 时间: 今天 10:00\]/);
+  // 已识别时间绝不重复追问（裁决改写：本断言原锁定「希望什么时间上门」缺陷行为，
+  // SSOT 收敛后该行为即回归缺陷本身）
+  assert.doesNotMatch(first, /希望什么时间上门/);
+  // 仅追问缺失项：家政下一缺失槽位为频次
+  assert.match(first, /需要单次保洁/);
 
-  // ② 按词表口径补采「明天上午」→ 时间槽识别成功 → 追问频率
+  // ② 补采「明天上午」→ 时间槽更新为粗粒度口径 → 回显同步刷新，继续追问频率
   const second: string[] = [];
   for await (const ev of engine.send("明天上午")) {
     if (ev.type === "text") second.push(ev.delta);
   }
-  assert.match(second.join(""), /需要单次保洁/);
+  const secondText = second.join("");
+  assert.match(secondText, /\[✓ 时间: 明天上午\]/);
+  assert.match(secondText, /需要单次保洁/);
 });
 
 test("[环节A5] 弹药定价与默认时长：HOURLY 60×2h → 起步价 ¥120.00 = 12000 分", () => {

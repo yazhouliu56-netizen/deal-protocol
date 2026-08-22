@@ -73,7 +73,9 @@ test("mock: 发布羽毛球 + 预算 + 时间", () => {
   if (i.kind === "publish-wave") {
     assert.equal(i.wave.category, "羽毛球");
     assert.match(i.wave.time, /明天/);
-    assert.match(i.wave.time, /3点|3:00|30/); // 匹配 3点/3:00/30 任意一种抽取
+    // SSOT 收敛（P0 第 2 步）：「下午三点」→ 规范化 24h 制 15:00（规格明确要求
+    // HH:mm 精确输出；原断言 /3点|3:00|30/ 锁定的是收敛前的字面形态）
+    assert.equal(i.wave.time, "明天 15:00");
     assert.equal(i.wave.budget, 80);
     assert.equal(i.wave.capacity, 1);
   }
@@ -115,8 +117,9 @@ test("mock: 打扫同义词词表命中 + 口语时间精确时分（阶段1 缺
   assert.equal(mockVoiceIntent("想找人做卫生，预算 100 元").kind, "publish-wave");
   assert.equal(mockVoiceIntent("找人扫地，预算 80 元").kind, "publish-wave");
   assert.equal(mockVoiceIntent("擦玻璃一次，预算 60 元").kind, "publish-wave");
-  // 「10点半」→ 10:30；「14点30分」→ 14:30
-  const half = mockVoiceIntent("下午 10点半来，预算 100 元");
+  // 「10点半」→ 10:30（SSOT 收敛后时段偏移语义见 timeParser.test：下午10点半→22:30，
+  // 此处用上午口径锁定「半点解析」回归本身）；「14点30分」→ 14:30
+  const half = mockVoiceIntent("上午 10点半来，预算 100 元");
   if (half.kind === "publish-wave") assert.equal(half.wave.time, "10:30");
   const minuted = mockVoiceIntent("14点30分到，预算 100 元");
   if (minuted.kind === "publish-wave") assert.equal(minuted.wave.time, "14:30");
