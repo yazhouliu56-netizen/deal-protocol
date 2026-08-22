@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -299,9 +301,6 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
     expect(html).toContain('class="draft-card');
     expect(html).toContain("will-change");
     // 源码动效参数校验
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = require("fs");
-    const path = require("path");
     const src = fs.readFileSync(path.join(process.cwd(), "src/components/waves/DynamicDraftCard.tsx"), "utf-8");
     expect(src).toContain('stiffness: 400');
     expect(src).toContain('damping: 30');

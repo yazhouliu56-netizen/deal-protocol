@@ -3,13 +3,15 @@
  * 用法：npm run start（3000）→ node scripts/e2e-four-ammos.mjs
  *
  * 场景：在 3 层黄金座舱逐一实体发单并验证四大官方标杆弹药的解析与流转：
- *   弹药1 日常保洁：家政保洁胶囊 → ¥60/h × 2h 起 + 🛡️ 财产险 → 发射落库 housekeeping-v1
- *   弹药2 组局社交：羽毛球约局胶囊 → ¥80/人 AA + 🔒 定金 + 📍 LBS 围栏 → 发射落库 meetup-social-v1
- *   弹药3 同城陪伴：摄影师约拍胶囊 → ¥100/h + 📞 虚拟号 + 🆘 SOS → 发射落库 companion-v1
+ *   弹药1 日常保洁：家政保洁胶囊（注册表驱动 aria-label）→ ¥60/h × 2h 起 + 🛡️ 财产险 → 发射落库 housekeeping-v1
+ *   弹药2 组局社交：组局社交胶囊 → ¥80/人 AA + 🔒 定金 + 📍 LBS 围栏 → 发射落库 meetup-social-v1
+ *   弹药3 同城陪伴：陪伴交友胶囊 → ¥100/h + 📞 虚拟号 + 🆘 SOS → 发射落库 companion-v1
  *   弹药4 家电维修：发单条输入「修空调」→ 中文别名直拨 appliance-repair-v1
  *                  → 上门检测费 ¥30.00 + ⏱️ 48h 质保验收 → 发射落库
  * 全程断言：草稿卡数据 / 徽标 / 发布面板 → 广播 → 支付 → localStorage 广播空间真实落库 ammoId。
  * 控制台 error 全程收集，零业务错误才 PASS。
+ * （2026-08-22 Lint 回锁战役断言同步：胶囊选择器对齐单一真理源战役 637b076 后的
+ *  注册表驱动 aria-label「XX · 一键弹药发单」，品类预填随胶囊中文 label 直拨。）
  */
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
@@ -138,8 +140,8 @@ try {
     await closeIfPresent();
   };
 
-  // --- 1. 弹药1 日常保洁（意图气泡）---
-  await page.getByRole("button", { name: "🧽 周末日常保洁 拟物发单" }).click();
+  // --- 1. 弹药1 日常保洁（家政保洁胶囊）---
+  await page.getByRole("button", { name: "家政保洁 · 一键弹药发单" }).click();
   await page.waitForTimeout(600);
   const hkDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -161,8 +163,8 @@ try {
     draftChecks: ["¥60/小时 × 2小时起", "🛡️已投保财产险"],
   });
 
-  // --- 2. 弹药2 组局社交（羽毛球意图气泡）---
-  await page.getByRole("button", { name: "🏸 周日羽毛球约局 拟物发单" }).click();
+  // --- 2. 弹药2 组局社交（组局社交胶囊）---
+  await page.getByRole("button", { name: "组局社交 · 一键弹药发单" }).click();
   await page.waitForTimeout(600);
   const mtDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -175,8 +177,8 @@ try {
   await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await page.waitForTimeout(500);
   await publishFlow({
-    label: "弹药2 羽毛球约局",
-    category: "羽毛球约局",
+    label: "弹药2 组局社交",
+    category: "组局社交",
     ammoId: "meetup-social-v1",
     time: "明天 09:00",
     area: "星羽羽毛球馆",
@@ -184,8 +186,8 @@ try {
     draftChecks: ["¥80/人 · 2人起（AA 均摊）", "⏳预付冻结", "📍LBS围栏"],
   });
 
-  // --- 3. 弹药3 同城陪伴（摄影师约拍意图气泡→陪伴档）---
-  await page.getByRole("button", { name: "📷 约拍日系写真 拟物发单" }).click();
+  // --- 3. 弹药3 同城陪伴（陪伴交友胶囊）---
+  await page.getByRole("button", { name: "陪伴交友 · 一键弹药发单" }).click();
   await page.waitForTimeout(600);
   const cpDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -198,8 +200,8 @@ try {
   await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
   await page.waitForTimeout(500);
   await publishFlow({
-    label: "弹药3 摄影师约拍",
-    category: "摄影师约拍",
+    label: "弹药3 陪伴交友",
+    category: "陪伴交友",
     ammoId: "companion-v1",
     time: "后天 15:00",
     area: "滨江街拍点位",
@@ -220,6 +222,11 @@ try {
   await page.waitForTimeout(500);
   await page.getByLabel("需求品类").fill("修空调");
   await page.waitForTimeout(600);
+  // P1-5 声明式必填表单（08-21 战役新增）：家电维修弹药要求 applianceType + faultDescription，
+  // 缺任一项广播被「请填写 X（必填）」拦截（脚本此前未同步该闸门，此处补齐真实用户填表动作）。
+  await page.getByLabel("applianceType").selectOption("空调");
+  await page.getByLabel("faultDescription").fill("空调不制冷，开机无冷风");
+  await page.waitForTimeout(400);
   // 品类输入后发布面板内的弹药预览卡应直拨 appliance-repair-v1 整弹
   const arDraft = await page.evaluate(() => {
     const c = document.querySelector(".draft-card");
@@ -255,8 +262,9 @@ try {
   await page.waitForTimeout(800);
   const feedEvidence = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
-    // 雷达为服务者视角（谁正在附近发需求）——发起人自己的波不回流 feed（authorId 隔离）
-    const radarIdle = text.includes("这片区域暂时没有活跃的信号波");
+    // 雷达为服务者视角（谁正在附近发需求）——发起人自己的波不回流 feed（authorId 隔离）；
+    // 空态渲染「周边在线供给雷达」光斑补给（caddf34 起替代旧「这片区域暂时没有活跃的信号波」文案）
+    const radarIdle = text.includes("周边在线供给雷达");
     return {
       radarIdle,
       hasCapsuleBar: !!document.querySelector("[data-layer='action']"),
@@ -265,7 +273,7 @@ try {
   });
   assert.ok(feedEvidence.hasCapsuleBar, "3 层座舱顶栏（data-layer=action）应存在");
   assert.ok(feedEvidence.hasFeedLayer, "雷达波浪视口（data-layer=wave-feed）应存在");
-  assert.ok(feedEvidence.radarIdle, "雷达视角应隔离发起人自己的波（4 波落库但 feed 保持空态=身份隔离生效）");
+  assert.ok(feedEvidence.radarIdle, "雷达视角应隔离发起人自己的波（4 波落库但 feed 保持供给雷达空态=身份隔离生效）");
   // 履约座舱装载链（W5 getAmmoById）：detail=Wave.ammoId 已随单固化，服务者接单后
   // 座舱按 ammoId 装载 appliance-repair-v1 → HousekeepingSlot；装载行为已由单测覆盖
   // （appliance_repair.ammo.test + DynamicDraftCard 别名直拨断言），浏览器端真实接单

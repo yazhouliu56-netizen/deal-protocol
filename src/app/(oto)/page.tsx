@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEdgeSwipeBack } from "@/base/platform/useEdgeSwipeBack";
@@ -744,8 +744,28 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
   const me = identity.id;
   const unread = unreadTotal(imThreads, me);
 
+  // SSR/首帧同构探针（RoamGuardPanel 同款 idiom）：时间采样只在客户端挂载后进行，
+  // render 期零 Date.now()（React Compiler purity），首帧两端输出一致防 Hydration Mismatch。
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (!mounted) return;
+    // 时间采样走定时器回调（外部时钟订阅形态）：effect 体零同步 setState，
+    // 首帧 now=0 与 SSR 同构；挂载后立即采样并每 30s 刷新（倒计时活文本）。
+    const tick = () => setNow(Date.now());
+    const immediate = window.setTimeout(tick, 0);
+    const interval = window.setInterval(tick, 30_000);
+    return () => {
+      window.clearTimeout(immediate);
+      window.clearInterval(interval);
+    };
+  }, [mounted]);
+
   const convos = useMemo(() => {
-    const now = Date.now();
     const groups = new Map<string, {
       session: ReturnType<typeof findSession> extends null ? never : NonNullable<ReturnType<typeof findSession>>["session"];
       live: boolean;
@@ -773,7 +793,7 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
     return [...groups.values()].sort(
       (a, b) => (b.last?.at ?? 0) - (a.last?.at ?? 0)
     );
-  }, [sessions, imThreads, imMessages, waves, me]);
+  }, [sessions, imThreads, imMessages, waves, me, now]);
 
   return (
     <div className="pointer-events-auto">
@@ -825,7 +845,7 @@ function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
                     <p className="text-xs tx-3 truncate font-mono">
                       {maskNumber(myNumber)} ·{" "}
                       {c.live
-                        ? `${minutesLeft(c.session, Date.now())} 分钟后失效`
+                        ? `${minutesLeft(c.session, now)} 分钟后失效`
                         : "会话已过期"}
                     </p>
                   </div>

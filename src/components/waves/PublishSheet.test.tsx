@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import PublishSheet from "@/components/waves/PublishSheet";
 import { describeFormSchemaFields } from "@/components/waves/DynamicDraftCard";

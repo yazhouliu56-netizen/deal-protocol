@@ -52,7 +52,6 @@ export function allocatePair(
   bId: string,
   now: number
 ): { sessions: PrivacySession[]; session: PrivacySession; fresh: boolean } {
-  const key = (x: string, y: string) => [x, y].sort().join("|");
   const existing = sessions.find(
     (s) => s.waveId === waveId && !s.revokedAt && s.expiresAt > now
   );

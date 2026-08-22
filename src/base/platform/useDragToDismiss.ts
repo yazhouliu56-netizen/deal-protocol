@@ -63,7 +63,10 @@ export function useDragToDismiss({
 }: DragToDismissOptions) {
   const dragRef = useRef<HTMLElement | null>(null);
   const optsRef = useRef({ onDismiss, thresholdRatio, enabled });
-  optsRef.current = { onDismiss, thresholdRatio, enabled };
+  // latest-ref 模式：render 期禁止写 ref，统一在提交后同步（React Compiler purity 契约）。
+  useEffect(() => {
+    optsRef.current = { onDismiss, thresholdRatio, enabled };
+  });
 
   useEffect(() => {
     if (!enabled) return;

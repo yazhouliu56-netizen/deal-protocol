@@ -68,8 +68,6 @@ const CONSUMER_PHRASE = "我需要10点来人打扫房间";
 const DIALECT_KEY = "打扫";
 /** 成功卡「服务」字段落库的中文类目（MockEngine label 语义）。 */
 const WAVE_CATEGORY = "家政保洁";
-/** MockEngine 时间槽卡选中值（既有槽卡 label「周日 10:00」）。 */
-const WAVE_TIME = "周日 10:00";
 
 /** 起步价：¥60/小时 × 2 小时起 = ¥120 = 12000 分（与 D2 地板价 12000 同口径）。 */
 const BASE_YUAN = 120;
@@ -83,9 +81,6 @@ const SPLIT_PLATFORM = 0.1;
 const SPLIT_INSURANCE = 0.05;
 
 const ORDER_ID = "hk-sim-basic-001";
-/** 供给端真实种子响应者（mockResponders.ts）——任务书预写的「陈阿姨」经
- *  真库校验实为「王姐」（id=mock-clean-wang，家政保洁，信用 5 星级）。 */
-const PROVIDER_ID = "mock-clean-wang";
 
 const round2c = (n: number): number => Math.round(n * 100) / 100;
 

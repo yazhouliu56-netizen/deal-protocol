@@ -149,6 +149,12 @@ export default function HousekeepingSlot({
     capYuan !== null && quote && !quote.confirmed && quote.amountYuan > capYuan;
   const customTags = describeSlotCustomTags(customRequirements);
   const [capturing, setCapturing] = useState<"before" | "after" | null>(null);
+  // 拍照存证单号：开启拍照的事件回调里生成（render 期禁止 Date.now，React Compiler purity）。
+  const [captureNo, setCaptureNo] = useState<string | null>(null);
+  const openCapture = (phase: "before" | "after") => {
+    setCapturing(phase);
+    setCaptureNo(orderNo ?? `hk-${phase}-${Date.now().toString(36)}`);
+  };
   const [beforeResult, setBeforeResult] = useState<IProofCaptureResult | null>(null);
   const [afterResult, setAfterResult] = useState<IProofCaptureResult | null>(null);
 
@@ -222,7 +228,7 @@ export default function HousekeepingSlot({
           ) : (
             <>
               <span>📷 Before 待拍摄</span>
-              <button type="button" className="hk-photo-btn" data-action="hk-proof-before" onClick={() => setCapturing("before")}>
+              <button type="button" className="hk-photo-btn" data-action="hk-proof-before" onClick={() => openCapture("before")}>
                 拍照打卡
               </button>
             </>
@@ -241,7 +247,7 @@ export default function HousekeepingSlot({
           ) : (
             <>
               <span>📷 After 待拍摄</span>
-              <button type="button" className="hk-photo-btn" data-action="hk-proof-after" onClick={() => setCapturing("after")}>
+              <button type="button" className="hk-photo-btn" data-action="hk-proof-after" onClick={() => openCapture("after")}>
                 拍照打卡
               </button>
             </>
@@ -280,7 +286,7 @@ export default function HousekeepingSlot({
               <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} style={{ color: "#94a3b8", background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
             </div>
             <ProofCamera
-              orderNo={orderNo ?? `hk-${capturing}-${Date.now().toString(36)}`}
+              orderNo={captureNo ?? `hk-${capturing}`}
               geo={geo}
               onCaptured={(result) => handleCaptured(capturing, result)}
             />

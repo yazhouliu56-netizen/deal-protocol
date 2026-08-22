@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getGeoSrc,
-  MockGeoSrc,
   setGeoSrc,
 } from "../geo/geoAdapter.ts";
 import { distanceKm } from "../geo/geo.ts";

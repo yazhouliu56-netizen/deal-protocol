@@ -52,7 +52,8 @@ export const EPA_BY_LEVEL: Record<CrisisLevel, string[]> = {
 
 export function notifyFor(
   record: CrisisRecord,
-  contacts: string[]
+  // 预留：用户登记的紧急联系人定向通知（当前 EPA_BY_LEVEL 为通用目标，宪法 #2 签名保守保留）
+  _contacts: string[]
 ): { record: CrisisRecord; targets: string[]; fresh: boolean } {
   const targets = (EPA_BY_LEVEL[record.level] ?? []).filter(
     (t) => !record.notified.includes(t)

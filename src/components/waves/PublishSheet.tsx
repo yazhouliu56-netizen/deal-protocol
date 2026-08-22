@@ -10,6 +10,7 @@ import PaySheet from "./PaySheet";
 import DynamicDraftCard, {
   describeFormSchemaFields,
   describePricing,
+  type DraftFormField,
 } from "./DynamicDraftCard";
 import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
 import { CATEGORY_EMOJI } from "./WaveCard";
@@ -17,7 +18,18 @@ import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import { normalizeCustomIntent } from "@/base/ai/intent-normalizer";
-import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
+import type { PricingModel } from "@/types/ammo-schema";
+
+/** P1-5：formSchema 字段 → 默认参数快照（纯函数；value 非空才入快照，零硬编码）。 */
+function defaultParamsOf(fields: DraftFormField[]): Record<string, unknown> {
+  const next: Record<string, unknown> = {};
+  for (const f of fields) {
+    if (f.value !== "" && f.value !== undefined && f.value !== null) {
+      next[f.key] = f.value;
+    }
+  }
+  return next;
+}
 
 /** P1 第 4 步：弹药起步底价投影（组件层消费 D2，零硬编码；未识别结构 → 0）。 */
 function pricingFloorYuan(model: PricingModel): number {
@@ -112,20 +124,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     return describeFormSchemaFields(ammoForForm);
   }, [ammoForForm]);
 
-  // P1-5：弹药切换时按声明式默认值重置 bizParams（SSR 逐字一致，零硬编码）
-  useEffect(() => {
-    if (formFields.length === 0) {
-      setBizParams((prev) => (Object.keys(prev).length === 0 ? prev : {}));
-      return;
-    }
-    const next: Record<string, unknown> = {};
-    for (const f of formFields) {
-      if (f.value !== "" && f.value !== undefined && f.value !== null) {
-        next[f.key] = f.value;
-      }
-    }
-    setBizParams(next);
-  }, [formFields]);
+  // P1-5：弹药切换时按声明式默认值重置 bizParams——React 官方「props 变化调状态」模式：
+  // render 期比较上一弹药标识并同步重置（替代 setState-in-effect，消除级联渲染），
+  // 同一弹药的中文别名互切不再误清已填参数；首帧 lastAmmoKey=null 强制对齐当前字段默认，
+  // 与原 effect 语义逐字一致（SSR 安全）。
+  const ammoKey = ammoForForm?.ammoId ?? "";
+  const [lastAmmoKey, setLastAmmoKey] = useState<string | null>(null);
+  if (ammoKey !== lastAmmoKey) {
+    setLastAmmoKey(ammoKey);
+    setBizParams(defaultParamsOf(formFields));
+  }
 
   // P2：顶部把手下拉 >35% 平滑关闭（enabled=open 使 open 时重绑到已挂载的把手）
   const { dragRef: sheetDragRef } = useDragToDismiss({

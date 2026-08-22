@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
 import {
@@ -117,12 +117,10 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
     return { missing, qualified: missing.length === 0 };
   };
 
-  /** 全弹药注册表（单一真理源）：工作台资质看板 + 订单门槛匹配均由此驱动。 */
-  const registeredAmmos = useMemo(() => listRegisteredAmmos(), []);
-  const ammoPills = useMemo(() => {
-    const map = new Map(listAmmoPillDescriptors().map((p) => [p.ammoId, p]));
-    return map;
-  }, []);
+  /** 全弹药注册表（单一真理源）：工作台资质看板 + 订单门槛匹配均由此驱动。
+   *  每渲染直读注册表（保留动态弹药热注入实时性，React Compiler 不保序手工 memo）。 */
+  const registeredAmmos = listRegisteredAmmos();
+  const ammoPills = new Map(listAmmoPillDescriptors().map((p) => [p.ammoId, p]));
 
   /** 订单服务文本 → 弹药准入门槛（注册表中文别名/官方映射只读匹配，零手写业务词）。 */
   const requirementFor = (order: WorkerOrder) =>

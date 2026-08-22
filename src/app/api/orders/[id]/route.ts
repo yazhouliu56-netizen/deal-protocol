@@ -19,7 +19,7 @@ import { trackWorkflowStageEvidence, type WorkflowStageInput } from "@/lib/workf
 import { maskPhone } from "@/lib/privacy-guard";
 // P0-2 隔离墙收编：资金分割一律经 base 确定性引擎（src/base/money/escrow.ts），
 // 路由不再内联任何分账比例硬编码（红线 1 精神）。
-import { calculateMultiPartySplit, generateComplianceSplitInstruction, type ComplianceChannel } from "@/base/money/escrow";
+import { calculateMultiPartySplit } from "@/base/money/escrow";
 
 async function insertNotification({
   userId, title, body, type,

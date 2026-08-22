@@ -6,11 +6,9 @@ import {
   pricingForCategory,
 } from "./pricing-formula.ts";
 import {
-  CATEGORY_DISPATCH,
   DEFAULT_DISPATCH,
   dispatchRuleFor,
 } from "./dispatch-rule.ts";
-import { isRuleEnabled, riskRulesFor } from "./risk-rule.ts";
 import { DEFAULT_SOP, sopForCategory } from "./sop.ts";
 
 test("pricingForCategory 命中已配置类目", () => {

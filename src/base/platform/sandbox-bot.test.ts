@@ -9,7 +9,6 @@ import assert from "node:assert/strict";
 import {
   BOT_RESPONSE_DELAY_MS,
   DEMO_BOT_PERSONAS,
-  dispatchBotResponse,
   personaForWave,
   personaToCapability,
   resetSandboxBotForTest,

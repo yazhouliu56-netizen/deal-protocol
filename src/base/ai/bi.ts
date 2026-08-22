@@ -194,8 +194,6 @@ export function extractBiTimeRange(query: string, ctx: BiRawDataContext): { star
   return { start: min, end: now };
 }
 
-const DAY_MS = 24 * 3600_000;
-
 /** 按天分桶（key: yyyy-mm-dd）。 */
 function bucketByDay(rows: BiContractRow[]): Map<string, BiContractRow[]> {
   const map = new Map<string, BiContractRow[]>();

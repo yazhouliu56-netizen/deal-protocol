@@ -7,25 +7,25 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      // 存量质量债治理窗口（2026-08-15 终验收口）：以下规则全仓存量违规降级为
-      // warning，不阻断 CI；治理完成后逐条恢复 error 并清零存量。
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "@typescript-eslint/no-require-imports": "warn",
-      "@typescript-eslint/no-this-alias": "warn",
-      "@typescript-eslint/no-unsafe-function-type": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", {
+      // 2026-08-22 Lint 回锁战役：融合期降级窗口关闭，13 条核心规则全部恢复
+      // error 强制门禁（存量告警已全量清零，见 docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt）。
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/ban-ts-comment": "error",
+      "@typescript-eslint/no-require-imports": "error",
+      "@typescript-eslint/no-this-alias": "error",
+      "@typescript-eslint/no-unsafe-function-type": "error",
+      "@typescript-eslint/no-unused-vars": ["error", {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_",
       }],
-      "react/no-unescaped-entities": "warn",
-      "prefer-const": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/refs": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/purity": "warn",
-      "react-hooks/preserve-manual-memoization": "warn",
+      "react/no-unescaped-entities": "error",
+      "prefer-const": "error",
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/refs": "error",
+      "react-hooks/immutability": "error",
+      "react-hooks/purity": "error",
+      "react-hooks/preserve-manual-memoization": "error",
     },
   },
   // Override default ignores of eslint-config-next.
@@ -37,8 +37,6 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     ".opencode/**",
     "mobile/**",
-    "src/base/**",
-    "src/ammo/**",
     // 构建产物：Serwist 由 src/app/sw.ts 编译生成，禁止 lint 扫描
     "public/sw.js",
     "public/sw.js.map",

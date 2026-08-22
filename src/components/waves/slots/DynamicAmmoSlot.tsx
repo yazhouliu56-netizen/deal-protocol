@@ -252,6 +252,12 @@ export default function DynamicAmmoSlot({
   const paramRows = describeBizParamRows(bizParams);
   const themeClass = resolveSlotThemeClass(ammo);
   const [capturing, setCapturing] = useState<"before" | "after" | null>(null);
+  // 拍照存证单号：开启拍照的事件回调里生成（render 期禁止 Date.now，React Compiler purity）。
+  const [captureNo, setCaptureNo] = useState<string | null>(null);
+  const openCapture = (phase: "before" | "after") => {
+    setCapturing(phase);
+    setCaptureNo(orderNo ?? `dyn-${phase}-${Date.now().toString(36)}`);
+  };
   const [beforeResult, setBeforeResult] = useState<IProofCaptureResult | null>(null);
   const [afterResult, setAfterResult] = useState<IProofCaptureResult | null>(null);
 
@@ -322,7 +328,7 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 Before 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-before" onClick={() => setCapturing("before")}>
+                <button type="button" className="dyn-photo-btn" data-action="proof-before" onClick={() => openCapture("before")}>
                   拍照打卡
                 </button>
               </>
@@ -341,7 +347,7 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 After 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-after" onClick={() => setCapturing("after")}>
+                <button type="button" className="dyn-photo-btn" data-action="proof-after" onClick={() => openCapture("after")}>
                   拍照打卡
                 </button>
               </>
@@ -399,7 +405,7 @@ export default function DynamicAmmoSlot({
               <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} style={{ color: "#94a3b8", background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
             </div>
             <ProofCamera
-              orderNo={orderNo ?? `dyn-${capturing}-${Date.now().toString(36)}`}
+              orderNo={captureNo ?? `dyn-${capturing}`}
               geo={geo}
               onCaptured={(result) => handleCaptured(capturing, result)}
             />

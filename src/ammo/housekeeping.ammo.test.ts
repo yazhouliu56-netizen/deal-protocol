@@ -14,7 +14,6 @@ import {
   HOUSEKEEPING_STAGES,
   cleaningCheckHook,
   housekeepingAmmo,
-  onsiteQuoteHook,
 } from "./housekeeping.ammo.ts";
 import { HOME_ACCESS_KEYWORDS_MAP, homeAccessKeywordsFor } from "./risk-rule.ts";
 import {

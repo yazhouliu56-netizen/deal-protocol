@@ -136,14 +136,6 @@ self.addEventListener("notificationclick", (event) => {
 // 网络状态（事件驱动）：线上/离线事件保证离线时导航**不触碰 fetch**
 // ——实测离线时 SW 导航响应上下文里的 fetch 会挂死（不 reject、超时亦难
 // 中止），导航永久无响应 → net::ERR_FAILED。在线时才走网络。
-let isOnline = true;
-self.addEventListener("online", () => {
-  isOnline = true;
-});
-self.addEventListener("offline", () => {
-  isOnline = false;
-});
-
 // fetch：
 //  - 导航：isOnline → 网络优先（fetch 失败落兜底）；离线 → 直接读
 //    /offline 兜底页（绝不在离线时发起 fetch）。

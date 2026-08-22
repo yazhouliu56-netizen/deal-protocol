@@ -17,7 +17,6 @@ import { distanceKm, type GeoPoint } from "./geo.ts";
 import {
   calculateDistanceWithFallback,
   type LbsDistanceInput,
-  type LbsDistanceOutput,
 } from "../platform/multi-channel-gateway.ts";
 
 /** 设备坐标（GPS 上报点；accuracy 缺省 = 无法获取精度信息）。 */

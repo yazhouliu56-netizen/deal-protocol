@@ -24,10 +24,13 @@ import {
   resetChannelCircuit,
   shouldSkipChannel,
   type IVendorChannel,
+  type SmsDispatchInput,
+  type SmsDispatchOutput,
+  type VendorType,
 } from "./multi-channel-gateway.ts";
 
 /** 测试用数字回显通道（可注入失败/超时行为）。 */
-function okChannel(vendor: any, priority: number, value: string, fail = false, timeoutMs = 5_000): IVendorChannel<string, string> {
+function okChannel(vendor: VendorType, priority: number, value: string, fail = false, timeoutMs = 5_000): IVendorChannel<string, string> {
   return {
     vendor,
     priority,
@@ -223,7 +226,7 @@ test("resetChannelCircuit 清除熔断状态", async () => {
 // ---------- SMS 门面 ----------
 
 test("SMS 门面：三厂商全挂 → LOCAL_MOCK 存根兜底且无异常", async () => {
-  const failing: IVendorChannel<any, any>[] = [
+  const failing: IVendorChannel<SmsDispatchInput, SmsDispatchOutput>[] = [
     buildAliyunSmsChannel(),
     buildTencentSmsChannel(),
     buildHuaweiSmsChannel(),

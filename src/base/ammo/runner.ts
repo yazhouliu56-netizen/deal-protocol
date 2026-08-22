@@ -27,7 +27,6 @@ import {
   calculateTieredRefund,
   generateComplianceSplitInstruction,
   verifyFundSafetyGuard,
-  type ComplianceChannel,
 } from "../money/escrow.ts";
 
 /* =====================================================================

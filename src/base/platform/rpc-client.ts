@@ -67,8 +67,7 @@ export async function callRpc<T>(
       return { ok: false, error: error.message, degraded: false };
     }
     return { ok: true, data: (data ?? {}) as T, degraded: false };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+  } catch {
     return { ok: true, data: mockResultFor<T>(fn, args), degraded: true };
   }
 }

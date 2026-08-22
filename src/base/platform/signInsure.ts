@@ -73,7 +73,7 @@ export function insure(
 export function claim(
   policies: InsurePolicy[],
   policyId: string,
-  now: number
+  _now: number
 ): { policies: InsurePolicy[]; payout: number } {
   const p = policies.find((x) => x.id === policyId);
   if (!p || p.claimed) return { policies, payout: 0 };

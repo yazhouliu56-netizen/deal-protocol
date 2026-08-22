@@ -155,7 +155,7 @@ test("升级状态机：触发 0s → TRIGGERED + 全量 EPA 通知", () => {
 });
 
 test("升级状态机：≤30s 确认 → ACKNOWLEDGED（窗口内正常 + 幂等）", () => {
-  let { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
+  const { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
   const ack = acknowledgeCrisisEscalation(state, 1000 + 10_000);
   assert.equal(ack.changed, true);
   assert.equal(ack.state.phase, "ACKNOWLEDGED");
@@ -167,14 +167,14 @@ test("升级状态机：≤30s 确认 → ACKNOWLEDGED（窗口内正常 + 幂�
 });
 
 test("升级状态机：30s 后确认记 breach（超窗不阻断）", () => {
-  let { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
+  const { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
   const ack = acknowledgeCrisisEscalation(state, 1000 + 45_000);
   assert.equal(ack.state.phase, "ACKNOWLEDGED");
   assert.equal(ack.notification?.reason, "USER_ACKNOWLEDGED_LATE");
 });
 
 test("升级状态机：≥60s 未确认 → POLICE_ESCALATED 强升级（60s 边界）", () => {
-  let { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
+  const { state } = triggerCrisisEscalation("crisis-1", 1000, 3);
   const t59 = advanceCrisisEscalation(state, 1000 + 59_000);
   assert.equal(t59.changed, false);
   assert.equal(t59.state.phase, "TRIGGERED");
@@ -190,7 +190,7 @@ test("升级状态机：≥60s 未确认 → POLICE_ESCALATED 强升级（60s �
 });
 
 test("升级状态机：已确认后不再强升级；处置闭环 → RESOLVED（幂等）", () => {
-  let { state } = triggerCrisisEscalation("crisis-1", 1000, 2);
+  const { state } = triggerCrisisEscalation("crisis-1", 1000, 2);
   const ack = acknowledgeCrisisEscalation(state, 1000 + 15_000);
   const later = advanceCrisisEscalation(ack.state, 1000 + 120_000);
   assert.equal(later.changed, false);

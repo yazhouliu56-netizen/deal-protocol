@@ -93,7 +93,10 @@ export function useEdgeSwipeBack(options: EdgeSwipeOptions = {}) {
 
   const edgeRef = useRef<HTMLElement | null>(null);
   const optsRef = useRef({ onSwipeBack, useHistoryBack, threshold, edgeZone, verticalRatio });
-  optsRef.current = { onSwipeBack, useHistoryBack, threshold, edgeZone, verticalRatio };
+  // latest-ref 模式：render 期禁止写 ref，统一在提交后同步（React Compiler purity 契约）。
+  useEffect(() => {
+    optsRef.current = { onSwipeBack, useHistoryBack, threshold, edgeZone, verticalRatio };
+  });
 
   useEffect(() => {
     if (!enabled) return;

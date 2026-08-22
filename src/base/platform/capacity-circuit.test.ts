@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   CAPACITY_UTIL_CONGESTED,
-  CAPACITY_UTIL_NORMAL,
   computeUtilizationRate,
   evaluateRegionalCapacityCircuit,
   capacityLeverageFor,

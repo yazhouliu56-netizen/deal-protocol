@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
-import { resolveAmmoIdForPublish, getAmmoById, getAmmoDefinition } from "@/ammo/registry";
+import { resolveAmmoIdForPublish, getAmmoById } from "@/ammo/registry";
 import { normalizeAmmoTheme } from "./slots/DynamicAmmoSlot";
 
 /**

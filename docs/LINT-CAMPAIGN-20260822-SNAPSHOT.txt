@@ -1,0 +1,46 @@
+ESLint 告警基线快照 2026-08-22（战役开工前实测，共 43 处 / 0 errors）
+可扫域来源: npx eslint . ；核心域来源: npx eslint --no-ignore src/base src/ammo
+====================================================================================================
+/ammo\ammo.test.ts | L13 | @typescript-eslint/no-unused-vars | 'isRuleEnabled' is defined but never used. Allowed unused vars must match /^_/u.
+/ammo\ammo.test.ts | L13 | @typescript-eslint/no-unused-vars | 'riskRulesFor' is defined but never used. Allowed unused vars must match /^_/u.
+/ammo\ammo.test.ts | L9 | @typescript-eslint/no-unused-vars | 'CATEGORY_DISPATCH' is defined but never used. Allowed unused vars must match /^
+/ammo\housekeeping.ammo.test.ts | L17 | @typescript-eslint/no-unused-vars | 'onsiteQuoteHook' is defined but never used. Allowed unused vars must match /^_/
+/ammo\real-user-sim-basic.test.ts | L72 | @typescript-eslint/no-unused-vars | 'WAVE_TIME' is assigned a value but never used. Allowed unused vars must match /
+/ammo\real-user-sim-basic.test.ts | L88 | @typescript-eslint/no-unused-vars | 'PROVIDER_ID' is assigned a value but never used. Allowed unused vars must match
+/app\(oto)\page.tsx | L748 | react-hooks/purity | Error: Cannot call impure function during render
+/app\(oto)\page.tsx | L828 | react-hooks/purity | Error: Cannot call impure function during render
+/app\api\orders\[id]\route.test.ts | L105 | @typescript-eslint/no-unused-vars | 'contractSelect' is assigned a value but never used. Allowed unused vars must ma
+/app\api\orders\[id]\route.test.ts | L90 | @typescript-eslint/no-unused-vars | 'disputesCall' is assigned a value but never used. Allowed unused vars must matc
+/app\api\orders\[id]\route.ts | L22 | @typescript-eslint/no-unused-vars | 'ComplianceChannel' is defined but never used. Allowed unused vars must match /^
+/app\api\orders\[id]\route.ts | L22 | @typescript-eslint/no-unused-vars | 'generateComplianceSplitInstruction' is defined but never used. Allowed unused v
+/app\sw.ts | L139 | @typescript-eslint/no-unused-vars | 'isOnline' is assigned a value but never used. Allowed unused vars must match /^
+/base\ai\bi.ts | L197 | @typescript-eslint/no-unused-vars | 'DAY_MS' is assigned a value but never used. Allowed unused vars must match /^_/
+/base\ammo\runner.ts | L30 | @typescript-eslint/no-unused-vars | 'ComplianceChannel' is defined but never used. Allowed unused vars must match /^
+/base\comm\privacyNumber.ts | L55 | @typescript-eslint/no-unused-vars | 'key' is assigned a value but never used. Allowed unused vars must match /^_/u.
+/base\form\form.test.ts | L5 | @typescript-eslint/no-unused-vars | 'MockGeoSrc' is defined but never used. Allowed unused vars must match /^_/u.
+/base\geo\geofence-watcher.ts | L20 | @typescript-eslint/no-unused-vars | 'LbsDistanceOutput' is defined but never used. Allowed unused vars must match /^
+/base\platform\capacity-circuit.test.ts | L5 | @typescript-eslint/no-unused-vars | 'CAPACITY_UTIL_NORMAL' is defined but never used. Allowed unused vars must match
+/base\platform\multi-channel-gateway.test.ts | L226 | @typescript-eslint/no-explicit-any | Unexpected any. Specify a different type.
+/base\platform\multi-channel-gateway.test.ts | L226 | @typescript-eslint/no-explicit-any | Unexpected any. Specify a different type.
+/base\platform\multi-channel-gateway.test.ts | L30 | @typescript-eslint/no-explicit-any | Unexpected any. Specify a different type.
+/base\platform\rpc-client.ts | L71 | @typescript-eslint/no-unused-vars | 'message' is assigned a value but never used. Allowed unused vars must match /^_
+/base\platform\sandbox-bot.test.ts | L12 | @typescript-eslint/no-unused-vars | 'dispatchBotResponse' is defined but never used. Allowed unused vars must match 
+/base\platform\signInsure.ts | L76 | @typescript-eslint/no-unused-vars | 'now' is defined but never used. Allowed unused args must match /^_/u.
+/base\platform\useDragToDismiss.ts | L66 | react-hooks/refs | Error: Cannot access refs during render
+/base\platform\useEdgeSwipeBack.ts | L96 | react-hooks/refs | Error: Cannot access refs during render
+/base\safe\crisis-tracker.test.ts | L158 | prefer-const | 'state' is never reassigned. Use 'const' instead.
+/base\safe\crisis-tracker.test.ts | L170 | prefer-const | 'state' is never reassigned. Use 'const' instead.
+/base\safe\crisis-tracker.test.ts | L177 | prefer-const | 'state' is never reassigned. Use 'const' instead.
+/base\safe\crisis-tracker.test.ts | L193 | prefer-const | 'state' is never reassigned. Use 'const' instead.
+/base\safe\crisis.ts | L55 | @typescript-eslint/no-unused-vars | 'contacts' is defined but never used. Allowed unused args must match /^_/u.
+/components\oto-ui\StatusCapsule.test.tsx | L5 | @typescript-eslint/no-unused-vars | 'afterEach' is defined but never used. Allowed unused vars must match /^_/u.
+/components\oto-ui\profile\WorkerWorkbench.tsx | L121 | react-hooks/preserve-manual-memoization | Compilation Skipped: Existing memoization could not be preserved
+/components\waves\DynamicDraftCard.test.tsx | L304 | @typescript-eslint/no-require-imports | A `require()` style import is forbidden.
+/components\waves\DynamicDraftCard.tsx | L9 | @typescript-eslint/no-unused-vars | 'getAmmoDefinition' is defined but never used. Allowed unused vars must match /^
+/components\waves\PublishSheet.test.tsx | L4 | @typescript-eslint/no-unused-vars | 'renderToStaticMarkup' is defined but never used. Allowed unused vars must match
+/components\waves\PublishSheet.test.tsx | L5 | @typescript-eslint/no-unused-vars | 'beforeEach' is defined but never used. Allowed unused vars must match /^_/u.
+/components\waves\PublishSheet.tsx | L118 | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading ren
+/components\waves\PublishSheet.tsx | L20 | @typescript-eslint/no-unused-vars | 'IAmmoDefinition' is defined but never used. Allowed unused vars must match /^_/
+/components\waves\slots\DynamicAmmoSlot.tsx | L402 | react-hooks/purity | Error: Cannot call impure function during render
+/components\waves\slots\HousekeepingSlot.tsx | L283 | react-hooks/purity | Error: Cannot call impure function during render
+/e2e-app.mjs | L150 | @typescript-eslint/no-unused-vars | 'bench0' is assigned a value but never used. Allowed unused vars must match /^_/

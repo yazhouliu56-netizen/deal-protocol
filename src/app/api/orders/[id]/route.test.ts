@@ -87,7 +87,6 @@ const contract = {
   created_at: new Date().toISOString(),
 }
 
-let disputesCall = 0
 let disputesUpdateBodies: Record<string, unknown>[] = []
 let contractUpdateResult: { data: { id: string } | null; error: unknown } = {
   data: { id: "c1" },
@@ -95,14 +94,9 @@ let contractUpdateResult: { data: { id: string } | null; error: unknown } = {
 }
 
 function setupMock(disputeVerdict: string | null = null) {
-  disputesCall = 0
   disputesUpdateBodies = []
 
   const insertFn = vi.fn().mockResolvedValue({ error: null })
-
-  const contractSingle = vi.fn().mockResolvedValue({ data: contract, error: null })
-  const contractEq = vi.fn().mockReturnValue({ single: contractSingle })
-  const contractSelect = vi.fn().mockReturnValue({ eq: contractEq })
 
   const updateEq2 = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
@@ -179,7 +173,6 @@ function post(body: Record<string, unknown>) {
 
 beforeEach(() => {
   mockSupabase.from.mockClear()
-  disputesCall = 0
   contractUpdateResult = { data: { id: "c1" }, error: null }
   createRefundTransactionsMock.mockClear()
 })
