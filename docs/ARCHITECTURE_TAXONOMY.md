@@ -390,6 +390,15 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | **视口层 Viewport Layer** | 弹药驱动业务渲染（IAmmoDefinition + JSON-Schema） | `PublishSheet` ✅ · `DynamicFormView` ✅ · `WaveFeed` ✅ · `MyWaves` ✅ · 弹药定制面板（增项报价 / AA 分摊 / 到场扫码，待建） |
 | **物理与感知层 Sensory Layer** | 硬件与空间感知 | `ScanMockSheet`（真相机扫码）✅ · `SpatialHeatMap`（LBS 地图）✅ · `FurnitureScene`（3D 舞台）✅ |
 
+> **Step 3-B 巨石拆解落位（2026-08-23，P1-D 闭环）**：UI 四巨石渲染段归位至所属域 `_components/`
+> 下划线私有夹（App Router 不识别为 Route Segment，路由污染防线）：`(oto)/page.tsx` →
+> `src/app/(oto)/_components/`（HomeTopBar/AmmoPillBar/InspirationChips/HomeDraftSheet/CartSheet/
+> RadarFeedSection/categoryEmoji）；`waves/PublishSheet.tsx` → `waves/_components/PublishFormSchemaBridge.tsx`；
+> `oto-ui/chat/ChatPage.tsx` → `chat/_components/`（ChatBubble+ThinkingDot/ChatInputBar/ChatMessageCards）；
+> `oto-ui/profile/ProfilePage.tsx` → `profile/_components/`（WalletStatsCard/SafetyCenterCard/
+> PrivacyCompliancePanel）。巨石本体收敛为编排层，Props 显式传递、零新状态层、E2E selector 零漂移
+> （宪法收敛：条文 #1，CONVERGENCE-LOG 已登记 c8d5138/ff2411d/32b732f/ab233e9）。
+
 #### 5.4.4 与存量缺口的承接
 
 - 承接 **D-8**（前端视界投影未隔离）与 **P2-1**（弹药主题 Token 系统）：法则一（主题 Token 隔离）与视口场景微氛围即为其哲学定义，落地以弹药主题 Token（P2-1）为第一执行点；
