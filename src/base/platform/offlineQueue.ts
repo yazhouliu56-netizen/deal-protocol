@@ -8,7 +8,10 @@ export type QueueOp =
   | { kind: "sendIm"; payload: string }
   | { kind: "publish"; payload: string }
   | { kind: "claim"; payload: string }
-  | { kind: "review"; payload: string };
+  | { kind: "review"; payload: string }
+  /** Step 2 接电：权威库 write-behind 同步（payload = JSON{path,body,idempotencyKey}）。 */
+  | { kind: "order-publish"; payload: string }
+  | { kind: "order-transition"; payload: string };
 
 export interface QueuedOp {
   id: string;

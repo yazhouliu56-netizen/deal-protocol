@@ -87,7 +87,32 @@ import {
 } from "@/base/safe/crisis";
 import { requestForget as requestForgetLogic, type ForgetKind, type ForgetRequest } from "@/base/safe/privacy";
 import { allow as breakerAllow, trip as breakerTrip } from "@/base/platform/circuit";
-import { due as queueDue, enqueue as enqueueOp, markPlayed as markQueuePlayed } from "@/base/platform/offlineQueue";
+import { due as queueDue, enqueue as enqueueOp, markPlayed as markQueuePlayed, type QueueOp } from "@/base/platform/offlineQueue";
+
+/**
+ * Step 2 接电：权威库冲刷器（fire-and-forget 单条）。
+ * 409 视为幂等语义内的成功（并发已提交 / 版本已被他人推进）。
+ */
+async function flushOrderOp(item: QueueOp): Promise<boolean> {
+  try {
+    const { path, body, idempotencyKey } = JSON.parse(item.payload) as {
+      path: string;
+      body: unknown;
+      idempotencyKey?: string;
+    };
+    const res = await fetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(idempotencyKey ? { "x-idempotency-key": idempotencyKey } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    return res.ok || res.status === 409;
+  } catch {
+    return false;
+  }
+}
 import { lakeAppend } from "@/base/platform/resilience";
 import { signDoc } from "@/base/platform/signInsure";
 import { completionRate, reviewStats } from "@/base/trust/starRank";
@@ -350,7 +375,12 @@ interface WaveStore extends WaveBundle {
   /** ADR-0011：自然语言 BI —— 本地解析中文统计查询（聊天页接线）。 */
   askBi: (text: string) => BiResult | null;
   /** ADR-0014：重放离线队列（在线恢复/手动触发）。 */
-  replayQueue: () => void;
+  replayQueue: () => Promise<void>;
+  /**
+   * Step 2 接电：权威库 write-behind 同步器 —— 本地乐观先行，异步落权威库；
+   * 失败/离线自动入 offlineQueue（幂等键防服务端重复），replayQueue 追平。
+   */
+  syncOrderOp: (op: QueueOp) => void;
 }
 
 let seq = 0;
@@ -515,6 +545,34 @@ createPendingWave: (input) => {
         }));
         // 支付到位才进广播（LLM 聚类推送，失败自动降级抽取）
         void get().clusterPushes({ ...wave, status: "active" });
+        // Step 2 接电：支付捕获成功 = PUBLISHED，write-behind 落权威库（幂等键 = waveId）
+        const paidCents = Math.round(
+          orders.reduce((sum, o) => sum + (o.amount || 0), 0) * 100,
+        );
+        get().syncOrderOp({
+          kind: "order-publish",
+          payload: JSON.stringify({
+            path: "/api/orders/publish",
+            idempotencyKey: `pub:${waveId}`,
+            body: {
+              orderNo: waveId,
+              userId: wave.authorId,
+              categoryCode: wave.basics.category,
+              ammoId: wave.ammoId ?? null,
+              kind: (wave.capacity ?? 1) > 1 ? "open" : "solo",
+              totalAmountCents: paidCents,
+              payableAmountCents: paidCents,
+              addressDetail: wave.basics.area,
+              bizParams: {
+                time: wave.basics.time,
+                customs: wave.customs,
+                negotiableNote: wave.negotiableNote ?? null,
+                capacity: wave.capacity ?? 1,
+              },
+              splitPlan: {},
+            },
+          }),
+        });
         return { ok: true };
       },
 
@@ -591,6 +649,31 @@ createPendingWave: (input) => {
         set((s) => ({ waves: [wave, ...s.waves] }));
         // LLM 聚类推送（异步，失败自动降级抽取）
         void get().clusterPushes(wave);
+        // Step 2 接电：免费直发激活 = PUBLISHED，write-behind 落权威库（幂等键 = waveId）
+        get().syncOrderOp({
+          kind: "order-publish",
+          payload: JSON.stringify({
+            path: "/api/orders/publish",
+            idempotencyKey: `pub:${wave.id}`,
+            body: {
+              orderNo: wave.id,
+              userId: input.authorId,
+              categoryCode: wave.basics.category,
+              ammoId: wave.ammoId ?? null,
+              kind: (wave.capacity ?? 1) > 1 ? "open" : "solo",
+              totalAmountCents: Math.round((input.budget || 0) * 100),
+              payableAmountCents: Math.round((input.budget || 0) * 100),
+              addressDetail: wave.basics.area,
+              bizParams: {
+                time: wave.basics.time,
+                customs: wave.customs,
+                negotiableNote: wave.negotiableNote ?? null,
+                capacity: wave.capacity ?? 1,
+              },
+              splitPlan: {},
+            },
+          }),
+        });
         return wave.id;
       },
 
@@ -1726,7 +1809,16 @@ set((st) => ({
         });
       },
 
-      replayQueue: () => {
+      syncOrderOp: (op) => {
+        // 先入队（幂等去重：同 kind+payload 未完成不重复）再立即冲刷
+        const { q, item } = enqueueOp(get().offlineQueue, op, Date.now());
+        set({ offlineQueue: q });
+        void flushOrderOp(op).then((ok) => {
+          set({ offlineQueue: markQueuePlayed(get().offlineQueue, item.id, ok, Date.now()) });
+        });
+      },
+
+      replayQueue: async () => {
         const s = get();
         const items = queueDue(s.offlineQueue, Date.now());
         if (items.length === 0) return;
@@ -1734,15 +1826,23 @@ set((st) => ({
         const stillOffline =
           typeof navigator !== "undefined" && navigator.onLine === false;
         for (const item of items) {
-          const ok = !stillOffline;
+          let ok = !stillOffline;
           if (ok) {
-            const payload = JSON.parse(item.op.payload) as {
-              fromId: string;
-              toId: string;
-              text: string;
-              waveId: string | null;
-            };
-            get().sendIm(payload.fromId, payload.toId, payload.text, payload.waveId ?? undefined);
+            if (
+              item.op.kind === "order-publish" ||
+              item.op.kind === "order-transition"
+            ) {
+              // Step 2 接电：权威库同步 op 走真实网络冲刷（幂等键防服务端重复）
+              ok = await flushOrderOp(item.op);
+            } else {
+              const payload = JSON.parse(item.op.payload) as {
+                fromId: string;
+                toId: string;
+                text: string;
+                waveId: string | null;
+              };
+              get().sendIm(payload.fromId, payload.toId, payload.text, payload.waveId ?? undefined);
+            }
           }
           queue = markQueuePlayed(queue, item.id, ok, Date.now());
         }

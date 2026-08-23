@@ -290,6 +290,21 @@ export default function FulfillmentCenter({
       fulfilmentStatus: res.state === "IN_SERVICE" ? "reported" : res.state === "INSPECTED" ? "confirmed" : undefined,
       isSettled: res.state === "SETTLED",
     });
+    // Step 2 接电：跃迁结果 write-behind 同步权威库（幂等键含 from:to:version 防重放）
+    useWaveStore.getState().syncOrderOp({
+      kind: "order-transition",
+      payload: JSON.stringify({
+        path: `/api/orders/${wave.id}/transition`,
+        idempotencyKey: `tr:${wave.id}:${state}:${res.state}`,
+        body: {
+          fromState: state,
+          toState: res.state,
+          expectedVersion: -1,
+          ammoSnapshot: ammoDef,
+        },
+        transitionReason: "FULFILMENT_COCKPIT_TRANSITION",
+      }),
+    });
     // P1 缺陷 2 修复：SETTLED 终局 → 同步归档 wave（释放 activeWave 槽位，后续 MATCHED 单可正常载入座舱）
     if (res.state === "SETTLED") {
       closeWave(wave.id);
@@ -314,6 +329,25 @@ export default function FulfillmentCenter({
     });
     if (res.ok) {
       setFulfilment(wave.id, { isSettled: true });
+      // Step 2 接电：违约调解 SETTLED 终局 write-behind 同步权威库（终止事件路径）
+      useWaveStore.getState().syncOrderOp({
+        kind: "order-transition",
+        payload: JSON.stringify({
+          path: `/api/orders/${wave.id}/transition`,
+          idempotencyKey: `tr:${wave.id}:BREACH_SETTLED`,
+          body: {
+            fromState: state,
+            toState: "SETTLED",
+            expectedVersion: -1,
+            ammoSnapshot: ammoDef,
+            termination: {
+              kind: "BREACH_SETTLED",
+              payload: { refundAmount: dProposal.refundAmount },
+            },
+          },
+          transitionReason: "TERMINATION_BREACH_SETTLED",
+        }),
+      });
       // P1 缺陷 2 修复：争议调解达成（BREACH_SETTLED）同样归档 wave，释放活动槽位
       closeWave(wave.id);
       setDisputeOpen(false);
