@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAppStore } from "@/store/useAppStore";
 import { templateForCategory } from "@/ammo/scene-template";
-import type { OTOExperience } from "@/lib/mockData";
+import type { OTOExperience } from "@/types/oto-experience";
 
 /**
  * 场景模板 — renders a procedural 3D stage per space intent so the AR

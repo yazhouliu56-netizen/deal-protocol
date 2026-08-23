@@ -26,6 +26,29 @@ const eslintConfig = defineConfig([
       "react-hooks/immutability": "error",
       "react-hooks/purity": "error",
       "react-hooks/preserve-manual-memoization": "error",
+      // 2026-08-23 Step 0 卫生战役：no-console 防回潮门禁（保留 warn/error 通道）
+      "no-console": ["error", { "allow": ["warn", "error"] }],
+    },
+  },
+  {
+    // 2026-08-23 Step 0：no-console 门禁豁免面（三类合法 console 使用域）：
+    // ① scripts/e2e —— CLI 与 E2E 工具，console 即产品输出通道；
+    // ② 测试文件 —— node:test/vitest 诊断输出；
+    // ③ src/lib、src/modules、SplitDemandView —— 旧宇宙（deal-protocol 协议系统）
+    //    临期豁免，整体判死于 Step 1 清场战役，不再投入美容工时；
+    //    Step 1 执行 git rm 时须同步删除本 override 块。
+    files: [
+      "scripts/**",
+      "e2e/**",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "src/lib/**",
+      "src/modules/**",
+      "src/components/SplitDemandView.tsx",
+    ],
+    rules: {
+      "no-console": "off",
     },
   },
   // Override default ignores of eslint-config-next.

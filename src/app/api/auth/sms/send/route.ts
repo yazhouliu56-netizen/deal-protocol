@@ -23,7 +23,6 @@ export async function POST(request: Request) {
 
   const code = "888888";
   setSmsCode(phone, code);
-  console.log(`[SMS MOCK] 手机号: ${phone} 验证码: ${code}`);
 
   return NextResponse.json({
     success: true,

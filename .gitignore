@@ -99,3 +99,4 @@ supabase/.temp/
 e2e-*.png
 test-results/
 playwright-report/
+opencode.json

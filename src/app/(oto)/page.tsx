@@ -34,7 +34,7 @@ import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationShe
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
-import { otoExperiences } from "@/lib/mockData";
+import { otoExperiences } from "@/ammo/experience-catalog";
 import ContactCard from "@/components/waves/ContactCard";
 import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";
 import {

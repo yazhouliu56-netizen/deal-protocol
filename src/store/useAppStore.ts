@@ -5,7 +5,8 @@ import { applyBooking, applyCancel } from "@/base/order/booking";
 import { CATEGORY_ICON_RULES } from "@/ammo/scene-template";
 import type { DockPage } from "@/components/oto-ui/FloatingDock";
 import type { ChatMessage, GenCard } from "@/base/ai/chat/types";
-import { otoExperiences, type OTOCategory, type OTOExperience } from "@/lib/mockData";
+import { otoExperiences } from "@/ammo/experience-catalog";
+import type { OTOCategory, OTOExperience } from "@/types/oto-experience";
 
 export const DEFAULT_SWATCH = "#7B61FF";
 
