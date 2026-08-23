@@ -344,6 +344,12 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       setError("发布被拒：账号已被平台限制（限流/封禁），请稍后或申诉");
       return;
     }
+    if (out.minorBlocked) {
+      setError(
+        "发布被拒：未成年人账号需监护人同意后才能发布（《未成年人保护法》§43/§72）"
+      );
+      return;
+    }
     if (out.blocked === "debt") {
       setError("发布被拒：你还有未结清的 no-show 违约，先到「我的」结清欠款再发");
       return;

@@ -440,3 +440,7 @@
 
 | 2026-08-23 | Step0 | 死组件出清 | $(repo)/src/components/oto-ui/destinations/DestinationHub.tsx + DestinationCard.tsx | [x] 已物理删除（零渲染入口+零外部引用+无配套测试实证） |
 | 2026-08-23 | Step0 | 残留备份出清 | src/types/ammo-schema.ts.bak-* 等 3 处本地 .bak | [x] 已清理（git 未跟踪，纯本地卫生） |
+| 2026-08-23 | Step1 | 死路由出清 | api/telecom/privacy-number(A21) + api/disputes/resolve(A15) + api/v1/agent/protocols/bid(A22) | [x] 已物理删除（重验零消费者；A19 已复活剔除，A1-A17/A20/A23 历史战役已清） |
+| 2026-08-23 | Step1 | 孤儿模块出清 | modules/mM02-mM13 + m02-auth + m04-protocol-generation + m12-push | [x] 依赖序物理删除（m03/m05/m08 为 m06/m07 血液保留） |
+| 2026-08-23 | Step1 | 级联孤儿 lib | lib/agent-gateway.ts + lib/mockData.ts | [x] 已删除（destFilter 双文件先改道 types/ammo） |
+| 2026-08-23 | Step1 | 随宿主消亡测试 | tests/{m02-auth,m04-protocol-gen,m12-concurrent-grab,m12-push,p2-integration,e2e-integration}.test.ts + p0 MemoryLockProvider 段 | [x] 已清理（基线 1623→1589 已预声明） |

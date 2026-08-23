@@ -45,8 +45,7 @@ import type { PayOrder } from "@/base/money/pay";
 import { capturePayOrder, createPayOrder } from "@/base/money/pay";
 import { fissionStamp } from "@/base/risk/fission";
 import { useRoamStore, roamParams } from "@/store/useRoamStore";
-import { riskOf } from "@/base/risk/roamGuard";
-import { recordSentinel, sentinelCheck } from "@/base/risk/sentinel";
+import { evaluatePublishAdmission } from "@/base/risk/admission";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, type MoneyAction } from "@/base/safe/ageGate";
 import { addGuest as addGuestLogic, removeGuest as removeGuestLogic, type GuestInfo } from "@/base/order/guest";
@@ -94,7 +93,6 @@ import { signDoc } from "@/base/platform/signInsure";
 import { completionRate, reviewStats } from "@/base/trust/starRank";
 import {
   applyPenalty,
-  autoFlag,
   clearBan,
   escalatePenalty,
   isBanned,
@@ -154,7 +152,14 @@ interface WaveStore extends WaveBundle {
        */
       publishFee?: number;
     }
-  ) => { id: string; amount: number; removed?: boolean; blocked?: "debt" | "roam" | "sentinel" } | null;
+  ) => {
+    id: string;
+    amount: number;
+    removed?: boolean;
+    blocked?: "debt" | "roam" | "sentinel";
+    /** 未成年分级拦截（ageGate "publish"）：blocked 联合外的独立旗标，UI 按需消费。 */
+    minorBlocked?: boolean;
+  } | null;
   /**
    * 随单支付 · 确认支付：capture 流水 → wave pending→active → 进入广播。
    * 幂等：重复支付同一单返回 ok 但不再重复生效。
@@ -388,84 +393,74 @@ export const useWaveStore = create<WaveStore>()(
       bundleVer: 0,
 
 createPendingWave: (input) => {
-    if (isBanned(get().bans, input.authorId)) return null;
-    // ADR-0009 多因子反欺诈探针：设备/信用/行为/图 四路聚合 → 统一闸门
-    // （替代原 roam 单点拦截；high 拒绝发布，watch 放行 + watchlisted 标记）
+    // 统一发布准入引擎（Step1 下沉 base/risk/admission）：封禁/甄检/欠款/未成年四闸一次判定
     const roam = useRoamStore.getState();
     const ident = useIdentityStore.getState();
-    const deviceRisk = riskOf(roam.bindings, roam.deviceId, roamParams()).risk;
-    const graphCount = riskOf(roam.bindings, roam.deviceId, roamParams()).count;
     const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
     const recentPublishes = myWaves.filter(
       (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
     ).length;
-    const check = sentinelCheck({
-      deviceRisk,
-      creditScore: (ident.creditTier ?? 3) * 200,
+    const scanText = [
+      input.basics?.category ?? "",
+      ...(input.customs ?? []).map((c) => c.text),
+      input.negotiableNote ?? "",
+    ].join(" ");
+    const admission = evaluatePublishAdmission({
+      authorId: input.authorId,
+      scanText,
       amountYuan: input.budget ?? 0,
-      publishCount: recentPublishes,
-      completionRate: undefined,
-      graphIdentityCount: graphCount,
-      graphFission:
-        myWaves.some((w) => (w.fissionCount ?? 0) > 0) || undefined,
       category: input.basics?.category,
-      // 进家词表由弹药注入（ammo/risk-rule home-access 引信参数）
+      bindings: roam.bindings,
+      deviceId: roam.deviceId,
+      roamRuleParams: roamParams(),
+      birthYear: ident.identity.birthYear,
+      guardianConsent: ident.identity.guardianConsent,
+      creditScore: (ident.creditTier ?? 3) * 200,
+      recentPublishCount: recentPublishes,
+      hasUnsettledBreachFlag: hasUnsettledBreach(get().claims, input.authorId),
       homeAccessKeywords: homeAccessKeywordsFor(input.basics?.category ?? ""),
+      bans: get().bans,
     });
-    if (check.level === "high") {
+    if (admission.auditEvents.length > 0) {
       set((s) => ({
-        sentinelEvents: recordSentinel(
-          s.sentinelEvents,
-          check,
-          input.authorId,
-          Date.now()
-        ),
-      }));
-      return { id: "", amount: 0, blocked: "sentinel" };
-    }
-    if (check.level === "watch") {
-      set((s) => ({
-        sentinelEvents: recordSentinel(
-          s.sentinelEvents,
-          check,
-          input.authorId,
-          Date.now()
-        ),
+        sentinelEvents: [...s.sentinelEvents, ...admission.auditEvents],
       }));
     }
-    // no-show 欠款锁定：违约未结不能发波
-        if (hasUnsettledBreach(get().claims, input.authorId)) {
-          return { id: "", amount: 0, blocked: "debt" };
-        }
-        // no-show buff 消费：发起人若有「成局面降标准」buff，本局所需拼位数 −N
-        const buff = Math.min(get().initiatorBuffs[input.authorId] ?? 0, Math.max(0, (input.capacity ?? 1) - 1));
-        const wave = createWave({
-          ...input,
-          id: nextId("wave"),
-          createdAt: Date.now(),
-          expiresAt: input.expiresAt,
-          pending: true,
-          buffSeats: buff,
-        });
-        set((s) => ({
-          initiatorBuffs: buff > 0
-            ? { ...s.initiatorBuffs, [input.authorId]: (s.initiatorBuffs[input.authorId] ?? 0) - buff }
-            : s.initiatorBuffs,
-        }));
-        // 治理闸门 2：敏感词先挡后审 —— pending 单同样过审，违规标记 removed
-        const scan = [
-          wave.basics.category,
-          ...wave.customs.map((c) => c.text),
-          wave.negotiableNote ?? "",
-        ].join(" ");
-        const hit = autoFlag(scan);
+    if (!admission.allowed) {
+      // 既有契约：封禁/限流 = null（PublishSheet 显示「账号已被平台限制」文案）
+      if (admission.blockedReason === "banned") return null;
+      return {
+        id: "",
+        amount: 0,
+        blocked:
+          admission.blockedReason === "minor" ? undefined : admission.blockedReason,
+        minorBlocked: admission.blockedReason === "minor",
+      };
+    }
+    // no-show buff 消费：发起人若有「成局面降标准」buff，本局所需拼位数 −N
+    const buff = Math.min(get().initiatorBuffs[input.authorId] ?? 0, Math.max(0, (input.capacity ?? 1) - 1));
+    const wave = createWave({
+      ...input,
+      id: nextId("wave"),
+      createdAt: Date.now(),
+      expiresAt: input.expiresAt,
+      pending: true,
+      buffSeats: buff,
+    });
+    set((s) => ({
+      initiatorBuffs: buff > 0
+        ? { ...s.initiatorBuffs, [input.authorId]: (s.initiatorBuffs[input.authorId] ?? 0) - buff }
+        : s.initiatorBuffs,
+    }));
+    // 治理闸门 2：敏感词先挡后审 —— pending 单同样过审，违规标记 removed
+    const hit = admission.sensitiveHit;
         if (hit) {
           const autoReport = submitReportLogic(get().reports, {
             targetId: wave.id,
             targetType: "wave",
             reporterId: "system",
             reason: "sensitive",
-            detail: `命中违禁词：${hit}（${scan.slice(0, 60)}）`,
+            detail: `命中违禁词：${hit}（${scanText.slice(0, 60)}）`,
             auto: true,
           });
           set((s) => ({
@@ -533,30 +528,55 @@ createPendingWave: (input) => {
         })),
 
       publishWave: (input) => {
-        // 治理闸门 1：被封禁/限流中不能发布
-        if (isBanned(get().bans, input.authorId)) return null;
-        // no-show 欠款锁定：违约未结不能发波
-        if (hasUnsettledBreach(get().claims, input.authorId)) return null;
+        // 统一发布准入引擎（Step1 下沉）：修复先在不一致——免费路径补齐甄检/欠款/未成年闸
+        const roam = useRoamStore.getState();
+        const ident = useIdentityStore.getState();
+        const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
+        const recentPublishes = myWaves.filter(
+          (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
+        ).length;
+        const scanText = [
+          input.basics?.category ?? "",
+          ...(input.customs ?? []).map((c) => c.text),
+          input.negotiableNote ?? "",
+        ].join(" ");
+        const admission = evaluatePublishAdmission({
+          authorId: input.authorId,
+          scanText,
+          amountYuan: input.budget ?? 0,
+          category: input.basics?.category,
+          bindings: roam.bindings,
+          deviceId: roam.deviceId,
+          roamRuleParams: roamParams(),
+          birthYear: ident.identity.birthYear,
+          guardianConsent: ident.identity.guardianConsent,
+          creditScore: (ident.creditTier ?? 3) * 200,
+          recentPublishCount: recentPublishes,
+          hasUnsettledBreachFlag: hasUnsettledBreach(get().claims, input.authorId),
+          homeAccessKeywords: homeAccessKeywordsFor(input.basics?.category ?? ""),
+          bans: get().bans,
+        });
+        if (admission.auditEvents.length > 0) {
+          set((s) => ({
+            sentinelEvents: [...s.sentinelEvents, ...admission.auditEvents],
+          }));
+        }
+        if (!admission.allowed) return null;
         const wave = createWave({
           ...input,
           id: nextId("wave"),
           createdAt: Date.now(),
           expiresAt: input.expiresAt,
         });
-        // 治理闸门 2：敏感词先挡后审 —— 违规内容下架落库 + 自动生成举报
-        const scan = [
-          wave.basics.category,
-          ...wave.customs.map((c) => c.text),
-          wave.negotiableNote ?? "",
-        ].join(" ");
-        const hit = autoFlag(scan);
+        // 治理闸门：敏感词先挡后审 —— 违规内容下架落库 + 自动生成举报
+        const hit = admission.sensitiveHit;
         if (hit) {
           const autoReport = submitReportLogic(get().reports, {
             targetId: wave.id,
             targetType: "wave",
             reporterId: "system",
             reason: "sensitive",
-            detail: `命中违禁词：${hit}（${scan.slice(0, 60)}）`,
+            detail: `命中违禁词：${hit}（${scanText.slice(0, 60)}）`,
             auto: true,
           });
           set((s) => ({

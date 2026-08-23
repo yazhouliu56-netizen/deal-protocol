@@ -428,6 +428,13 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
       toast("发布被拒：账号受限或内容命中风控，请到「安全中心」查看", "error");
       return;
     }
+    if (pending.minorBlocked) {
+      toast(
+        "发布被拒：未成年人账号需监护人同意后才能发布（未成年人保护法 §43/§72）",
+        "error"
+      );
+      return;
+    }
     if (pending.blocked) {
       const reason =
         pending.blocked === "debt"

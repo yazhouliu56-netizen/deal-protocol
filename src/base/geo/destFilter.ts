@@ -4,7 +4,7 @@
  * 无 IO 无随机，SSR/测试安全。
  */
 
-import type { OTOExperience } from "../../lib/mockData";
+import type { OTOExperience } from "@/types/oto-experience";
 
 /** 成都市中心（「离我最近」排序参照点，产品默认定位成都）。 */
 export const ORIGIN = { lat: 30.5728, lng: 104.0668 };

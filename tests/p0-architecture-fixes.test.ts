@@ -49,49 +49,6 @@ describe('RateLimiter', () => {
   })
 })
 
-// ============================================================
-// P0-2: MemoryLockProvider Tests
-// ============================================================
-describe('MemoryLockProvider', () => {
-  it('acquires and releases a lock', async () => {
-    const { MemoryLockProvider } = await import('@/modules/m12-push/push-service')
-    const lock = new MemoryLockProvider()
-    const acquired = await lock.acquire('lock:1', 5000)
-    expect(acquired).toBe(true)
-    await lock.release('lock:1')
-    const acquiredAgain = await lock.acquire('lock:1', 5000)
-    expect(acquiredAgain).toBe(true)
-  })
-
-  it('blocks concurrent acquisition within TTL', async () => {
-    const { MemoryLockProvider } = await import('@/modules/m12-push/push-service')
-    const lock = new MemoryLockProvider()
-    await lock.acquire('lock:2', 5000)
-    const secondAttempt = await lock.acquire('lock:2', 5000)
-    expect(secondAttempt).toBe(false)
-    await lock.release('lock:2')
-  })
-
-  it('allows acquisition after TTL expires', async () => {
-    const { MemoryLockProvider } = await import('@/modules/m12-push/push-service')
-    const lock = new MemoryLockProvider()
-    await lock.acquire('lock:3', 1)
-    await new Promise((r) => setTimeout(r, 10))
-    const afterExpiry = await lock.acquire('lock:3', 5000)
-    expect(afterExpiry).toBe(true)
-    await lock.release('lock:3')
-  })
-
-  it('different keys do not interfere', async () => {
-    const { MemoryLockProvider } = await import('@/modules/m12-push/push-service')
-    const lock = new MemoryLockProvider()
-    await lock.acquire('lock:a', 5000)
-    const otherKey = await lock.acquire('lock:b', 5000)
-    expect(otherKey).toBe(true)
-    await lock.release('lock:a')
-    await lock.release('lock:b')
-  })
-})
 
 // ============================================================
 // P0-3 & P0-4: Fund Status Sync Tests
