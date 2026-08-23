@@ -289,6 +289,18 @@
 | ~~C15~~ | ~~`components/MapComponent.tsx`（Leaflet）~~ | ~~履约地图~~ | ✅ **已收敛归一（2026-08-17）**：履约页迁移 MapLibre `MapView`（focus 锚定 + 单点光晕），`git rm` 物理删除，leaflet/react-leaflet/@types/leaflet 依赖出清 | 无 | 已删除 |
 | ~~C16~~ | ~~老控制台 4 件套（`ClientConsole`/`ProviderConsole`/`SwipeableCard`/`GrabConsole`）~~ | ✅ **已收敛归一（2026-08-21）**：4 组件保留于 `src/components/`（`ClientConsole.tsx:1` 调试资金托管/`ProviderConsole.tsx:1` 雷达+接单/`SwipeableCard.tsx:1` 滑动接单/`GrabConsole.tsx:1` 竞抢动效，红线 3 单向依赖）+ 4 路由平移至 `/dp` 协议专区（`src/app/dp/console/page.tsx:1`、`src/app/dp/provider/page.tsx:1`、`src/app/dp/provider/incoming/page.tsx:1`、`src/app/dp/provider/grab/[id]/page.tsx:1` 复用原组件，管理台资产 100% 保留）+ 根路由 `src/app/console/page.tsx:1` 与 `src/app/provider/*:1` 四文件重定向至 `/dp`（307 优雅过渡，命名空间清理）+ `src/components/Header.tsx:26,96` 导航更新至 `/dp/provider/incoming` | 0 | 已收编（`oto` 5 屏 `WorkerWorkbench`/`FulfillmentCockpit` 已接管前台，协议后台归位 `/dp`） |
 
+### 2.3 Step 1-D 批次 1b 页面壳物理出清记录（2026-08-23，commit `d9e64f0`）
+
+> 前置反向引用全量扫描（P0-2 硬闸：sitemap/robots/middleware/next.config/tests/scripts/e2e/全 src 命中面）裁决后执行，**API 血液零触碰**。
+
+| 处置 | 对象 | 说明 |
+|------|------|------|
+| ✅ 物理删除 | `src/app/{demands,orders,chat,dashboard,finance,evidence,payment,sos,team,user,demo,developer,client,disputes}` 共 **29 文件 / -5404 行** | 整组 Route Segment 出清（page+error+loading+opengraph+私有组件），已被 OTO 五屏取代 |
+| ⛔ 白名单豁免 | `modules/m03-category-config`、`m05-geo-index`、`m08-bandit`、`lib/semantic-matcher.ts` | 非死代码：`api/demands/route.ts`(保留血液)→`m06/matcher`→四项传递依赖 + tests 8 文件锁定；留待批次 2 随 demands 弹药化改道一并消化 |
+| ⛔ 扫描命中改判保留 | `app/console/`（C16 归编 redirect 垫片）、`app/verification/`（GrabConsole/ProviderConsole 工作流链接） | 不删 |
+| 🔧 同批改道 ×7 | `sitemap.ts`（死链×4+demands 动态块）、`robots.ts`（11 行陈旧路径）、`dp/page.tsx`（nav+CTA 5 链→`/dp/console`）、`components/Header.tsx`（桌面/移动 nav+dropdown 死项移除，发布悬赏→`/`）、`app/rights/page.tsx`（dashboard 链→`/`）、`api/auth/wechat/callback`（redirect→`/?auth=open`）、`e2e/production-smoke.spec.ts`（CI 门禁改指存活路由） | 消除指向已删页面的死链与断言 |
+| 🆕 新登记孤儿 | `components/SplitDemandView.tsx` | 宿主页面已删 → 0 消费者确认孤儿，内含死链 push("/orders")/push("/dashboard")；推荐彻底删除（随 C 组下一轮出清） |
+
 ---
 
 # 板块三：级联工具库与级联路由关联台账（7 项）
@@ -438,9 +450,9 @@
 3. **误报剔除**：短名路由（`sse`/`health`/`decompose`/`judge` 等）命中变量名/注释/类型字符串时人工复核（如 `gateway` 仅命中 `base/ai/gateway/*` 引擎文件、`negotiate` 仅命中 `dispute.ts` 纠纷类型）。
 4. **基础设施判定**：`vercel.json` crons 配置、支付服务 lib 引用、OAuth 回调语义、运维探活脚本（`restart-prod.mjs`/`verify-prod.mjs`）。
 
-| 2026-08-23 | Step0 | ��������� | $(repo)/src/components/oto-ui/destinations/DestinationHub.tsx + DestinationCard.tsx | [x] ������ɾ��������Ⱦ���+���ⲿ����+�����ײ���ʵ֤�� |
-| 2026-08-23 | Step0 | �������ݳ��� | src/types/ammo-schema.ts.bak-* �� 3 ������ .bak | [x] ��������git δ���٣������������� |
-| 2026-08-23 | Step1 | ��·�ɳ��� | api/telecom/privacy-number(A21) + api/disputes/resolve(A15) + api/v1/agent/protocols/bid(A22) | [x] ������ɾ���������������ߣ�A19 �Ѹ����޳���A1-A17/A20/A23 ��ʷս�����壩 |
-| 2026-08-23 | Step1 | �¶�ģ����� | modules/mM02-mM13 + m02-auth + m04-protocol-generation + m12-push | [x] ����������ɾ����m03/m05/m08 Ϊ m06/m07 ѪҺ������ |
-| 2026-08-23 | Step1 | �����¶� lib | lib/agent-gateway.ts + lib/mockData.ts | [x] ��ɾ����destFilter ˫�ļ��ȸĵ� types/ammo�� |
-| 2026-08-23 | Step1 | �������������� | tests/{m02-auth,m04-protocol-gen,m12-concurrent-grab,m12-push,p2-integration,e2e-integration}.test.ts + p0 MemoryLockProvider �� | [x] ������������ 1623��1589 ��Ԥ������ |
+| 2026-08-23 | Step0 | ��������� | $(repo)/src/components/oto-ui/destinations/DestinationHub.tsx + DestinationCard.tsx | [x] ������ɾ��������Ⱦ���+���ⲿ����+�����ײ���ʵ֤�� |
+| 2026-08-23 | Step0 | �������ݳ��� | src/types/ammo-schema.ts.bak-* �� 3 ������ .bak | [x] ��������git δ���٣������������� |
+| 2026-08-23 | Step1 | ��·�ɳ��� | api/telecom/privacy-number(A21) + api/disputes/resolve(A15) + api/v1/agent/protocols/bid(A22) | [x] ������ɾ���������������ߣ�A19 �Ѹ����޳���A1-A17/A20/A23 ��ʷս�����壩 |
+| 2026-08-23 | Step1 | �¶�ģ����� | modules/mM02-mM13 + m02-auth + m04-protocol-generation + m12-push | [x] ����������ɾ����m03/m05/m08 Ϊ m06/m07 ѪҺ������ |
+| 2026-08-23 | Step1 | �����¶� lib | lib/agent-gateway.ts + lib/mockData.ts | [x] ��ɾ����destFilter ˫�ļ��ȸĵ� types/ammo�� |
+| 2026-08-23 | Step1 | �������������� | tests/{m02-auth,m04-protocol-gen,m12-concurrent-grab,m12-push,p2-integration,e2e-integration}.test.ts + p0 MemoryLockProvider �� | [x] ������������ 1623��1589 ��Ԥ������ |

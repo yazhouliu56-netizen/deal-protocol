@@ -244,7 +244,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | 资产 | 现状 | 归属裁定 |
 |------|------|----------|
 | `src/lib/`（~90 文件） | 父项目业务库：协议引擎（protocol/）、matching、arbitration、contract、dispute、llm、fraud-detection 等 | ⚠️ **存量弹药候选**：`lib/protocol/protocols/housekeeping.ts`、`dating.ts` 等已是「垂直场景 SOP 协议」，本质即弹药层，待迁移至 `ammo/` 声明式结构 |
-| `src/modules/`（m02-m14，13 模块） | 父项目模块层（认证/类目/协议生成/信用/支付/SOS/证据链…） | ⚠️ 存量业务引擎，未挂入 base（`modules → lib` 依赖，不触 base） |
+| `src/modules/`（m02-m14，13 模块） | 父项目模块层（认证/类目/协议生成/信用/支付/SOS/证据链…） | ⚠️ 存量业务引擎，未挂入 base（`modules → lib` 依赖，不触 base）。**Step 1-D 扫描裁决（2026-08-23）**：m03/m05/m08 + `lib/semantic-matcher` 因 `api/demands`(血液)→m06 传递依赖列入白名单待改道；m11-evidence-log(5x)/m07-credit(3x)/m14-team-formation(3x) 为保留 API 活性消费 |
 | `src/app/api/`（99 路由） | 父项目业务 API 直连 Supabase（payment/release、orders、disputes…） | ⚠️ **隔离墙未闭合侧**：资金/状态跃迁未统一经 base 确定性引擎（历史遗留，需按宪法 §2 渐进收敛） |
 | `supabase/migrations/`（40 个） | 数据层 + RLS + RPC | 🟡 网关圈/基建圈数据底座 |
 | `src/store/`（7 文件） | UI 状态层 | 🟡 业务圈前端接线（useWaveStore 为最大消费方） |
