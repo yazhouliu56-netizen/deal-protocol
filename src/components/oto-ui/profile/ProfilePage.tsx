@@ -21,22 +21,22 @@ import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";
 import WorkerWorkbench from "./WorkerWorkbench";
-import WalletView from "@/components/waves/WalletView";
 import PushEnableBar from "@/components/oto-ui/PushEnableBar";
 import CapabilityPanel from "@/components/waves/CapabilityPanel";
 import MyClaims from "@/components/waves/MyClaims";
 import FriendList from "@/components/waves/FriendList";
-import { ageFromBirthYear, ageGate, modeOfAge } from "@/base/safe/ageGate";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { crisisSms, type CrisisLevel } from "@/base/safe/crisis";
-import { mask, type ForgetKind, type SensitiveKind } from "@/base/safe/privacy";
+import { mask, type ForgetKind } from "@/base/safe/privacy";
 import DynamicFormView, { type FormField, type FormValues } from "@/components/oto-ui/DynamicFormView";
 import SeniorModeView from "@/components/oto-ui/SeniorModeView";
 import StealthCalculator, { type SilentAlarmPayload } from "@/components/oto-ui/StealthCalculator";
 import SafetyKit from "@/components/waves/SafetyKit";
 import ProfileDrawer from "./ProfileDrawer";
-import Link from "next/link";
+import WalletStatsCard from "./_components/WalletStatsCard";
+import SafetyCenterCard from "./_components/SafetyCenterCard";
+import PrivacyCompliancePanel from "./_components/PrivacyCompliancePanel";
 import {
   readAuthAccount,
   openAuthSheet,
@@ -327,30 +327,13 @@ export default function ProfilePage({
         )}
       </motion.div>
 
-      {/* 资产与钱包卡（总订单 / 待出行 / 已评价 + 点账钱包余额 / 信用等级 / 充值提现） */}
-      <div className="glass-panel rounded-3xl p-3.5">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: "总订单", value: bookings.length },
-            { label: "待出行", value: upcoming },
-            { label: "已评价", value: reviewed },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-2xl bg-white/[0.04] border border-white/10 py-2.5 flex flex-col items-center gap-0.5"
-            >
-              <span className="text-lg font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
-                {s.value}
-              </span>
-              <span className="text-xs text-white/68">{s.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3">
-          {/* P1 第 3 步：访客态钱包显式标注沙盒模拟余额 */}
-          <WalletView sandbox={!authAccount} />
-        </div>
-      </div>
+      {/* 资产钱包卡（总订单 / 待出行 / 已评价 + 点账钱包；子组件化搬移，DOM 零漂移） */}
+      <WalletStatsCard
+        bookingsCount={bookings.length}
+        upcoming={upcoming}
+        reviewed={reviewed}
+        sandbox={!authAccount}
+      />
 
       {/* 服务者工作台入口卡（四大工种资质准入全景看板） */}
       <button
@@ -556,7 +539,7 @@ export default function ProfilePage({
         <CapabilityPanel />
       </ProfileDrawer>
 
-      {/* 🔒 隐私与数据合规抽屉 */}
+      {/* 🔒 隐私与数据合规抽屉（面板内容子组件化搬移，rights-entry 等锚点零漂移） */}
       <ProfileDrawer
         open={drawer === "privacy"}
         onClose={() => setDrawer(null)}
@@ -565,178 +548,25 @@ export default function ProfilePage({
         icon="🔒"
         testId="drawer-privacy"
       >
-        {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
-            未成年人分级
-            <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
-              合规
-            </span>
-          </h3>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={1970}
-              max={new Date().getFullYear()}
-              value={birthYearInput}
-              onChange={(e) => setBirthYearInput(e.target.value)}
-              placeholder="出生年份（如 2008）"
-              className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/88 placeholder:text-white/68 focus:outline-none focus:border-brandPurple/50"
-            />
-            <button
-              onClick={() => {
-                const by = parseInt(birthYearInput, 10);
-                if (!Number.isFinite(by) || by < 1970 || by > new Date().getFullYear()) {
-                  return;
-                }
-                setAge(by);
-              }}
-              className="px-3 py-1.5 rounded-lg btn-primary text-xs font-bold"
-            >
-              保存
-            </button>
-          </div>
-          {identity.birthYear != null && (
-            <div className="mt-2 text-xs text-white/68 leading-relaxed">
-              {(() => {
-                const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
-                const mode = modeOfAge(age);
-                const label =
-                  mode === "adult"
-                    ? "成年用户，完整功能"
-                    : mode === "teen"
-                      ? "青少年模式（14-17）：可发免费局/响应，涉资金功能受限"
-                      : "儿童模式（<14）：须监护人同意，仅浏览";
-                const moneyCheck = ageGate({ age, action: "publish-fee" });
-                return (
-                  <>
-                    <p className="font-bold text-white/88">
-                      {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
-                    </p>
-                    {age < 18 && (
-                      <p className="mt-1 text-white/68">
-                        资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
-                        —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
-                      </p>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          )}
-          {ageFromBirthYear(
-            identity.birthYear ?? new Date().getFullYear(),
-            new Date().getFullYear()
-          ) < 14 && (
-            <label className="mt-2 flex items-center gap-2 text-xs text-white/68 cursor-pointer">
-              <input
-                type="checkbox"
-                name="guardian-consent"
-                checked={identity.guardianConsent ?? false}
-                onChange={(e) => setAge(identity.birthYear, e.target.checked)}
-                className="accent-brandPurple"
-              />
-              监护人已同意我使用本平台（《未保法》§72）
-            </label>
-          )}
-        </div>
-
-        {/* 数据脱敏预览（掩码效果演示） */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
-            数据脱敏
-            <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
-              对外展示即掩码
-            </span>
-          </h3>
-          {(
-            [
-              { kind: "phone", v: "138-0000-0001" },
-              { kind: "name", v: "张三" },
-              { kind: "address", v: "幸福家园小区 3 栋" },
-              { kind: "email", v: "zhangsan@oto.app" },
-              { kind: "id", v: "110101199001011234" },
-            ] as const
-          ).map((r) => (
-            <div key={r.kind} className="flex items-center justify-between text-xs">
-              <span className="text-white/68">{r.kind}</span>
-              <span className="text-white/68 font-mono">
-                {mask(r.kind as SensitiveKind, r.v)}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* 遗忘权 */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1">
-            遗忘权（《个保法》§47：删除或匿名化）
-          </h3>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                { kind: "profile", label: "资料" },
-                { kind: "wallet", label: "钱包" },
-                { kind: "waves", label: "需求/接单" },
-                { kind: "reviews", label: "评价" },
-                { kind: "all", label: "全部" },
-              ] as const
-            ).map((o) => (
-              <button
-                key={o.kind}
-                onClick={() => {
-                  const out = requestForget(o.kind);
-                  setLastForget(out.fresh ? o.kind : null);
-                }}
-                className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-xs text-white/88 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          {lastForget && (
-            <p className="text-xs text-emerald-300/80 mt-2">
-              ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
-            </p>
-          )}
-          {forgetRequests.length > 0 && (
-            <div className="space-y-1 mt-2">
-              {forgetRequests.map((r) => (
-                <div key={r.id} className="flex items-center justify-between text-xs">
-                  <span className="text-white/68">
-                    {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
-                  </span>
-                  <span
-                    className={`px-1.5 py-px rounded-full font-bold ${
-                      r.status === "anonymized"
-                        ? "bg-emerald-400/15 text-emerald-300"
-                        : "bg-amber-400/15 text-amber-300"
-                    }`}
-                  >
-                    {r.status === "anonymized" ? "已匿名化" : "处理中"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* E2 合规公示入口：消费者权益与平台规则 */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <Link
-            href="/rights"
-            data-testid="rights-entry"
-            className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-brandPurple/40 hover:bg-white/[0.06] active:scale-[0.98] transition-all"
-          >
-            <span className="text-xs font-bold text-white/88 flex items-center gap-1.5">
-              ⚖️ 消费者权益与平台保障公示
-            </span>
-            <span className="text-white/40 text-sm">›</span>
-          </Link>
-          <p className="text-xs text-white/68 mt-1.5 leading-relaxed">
-            依据《电子商务法》《消费者权益保护法》法定公示：知情权·申诉权·建议权·信用等级·争议仲裁·隐私保护
-          </p>
-        </div>
+        <PrivacyCompliancePanel
+          identity={identity}
+          birthYearInput={birthYearInput}
+          onBirthYearInputChange={setBirthYearInput}
+          onAgeSave={() => {
+            const by = parseInt(birthYearInput, 10);
+            if (!Number.isFinite(by) || by < 1970 || by > new Date().getFullYear()) {
+              return;
+            }
+            setAge(by);
+          }}
+          onGuardianConsent={(checked) => setAge(identity.birthYear, checked)}
+          onRequestForget={(kind) => {
+            const out = requestForget(kind);
+            setLastForget(out.fresh ? kind : null);
+          }}
+          forgetRequests={forgetRequests}
+          lastForget={lastForget}
+        />
       </ProfileDrawer>
 
       {/* 🛡️ 安全中心与应急防护抽屉 */}
@@ -751,99 +581,28 @@ export default function ProfilePage({
         {/* 治理与安全四件套总入口（SafetyKit：见面兜底 · 安全面基点 · 平台治理后台） */}
         <SafetyKit />
 
-        {/* ADR-0013 安全中心：SOS 危机干预（N8/N10 接线） */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1.5">
-            紧急求助
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
-              EPA 递增通知
-            </span>
-          </h3>
-          <p className="text-xs font-bold text-white/88 flex items-center gap-1">
-            紧急求助（紧急联系人 → 平台值班 → 警方通道）
-          </p>
-          <div className="flex gap-1.5 mt-2">
-            {([
-              { lv: 1, label: "轻微不适" },
-              { lv: 2, label: "危险信号" },
-              { lv: 3, label: "极端紧急" },
-            ] as const).map((o) => (
-              <button
-                key={o.lv}
-                onClick={() => setCrisisLevel(o.lv)}
-                className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                  crisisLevel === o.lv
-                    ? o.lv === 3
-                      ? "bg-red-400/25 border-red-400/60 text-red-300"
-                      : o.lv === 2
-                        ? "bg-amber-400/20 border-amber-400/50 text-amber-300"
-                        : "bg-white/[0.1] border-white/25 text-white/95"
-                    : "bg-white/[0.04] border-white/10 text-white/68"
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          <input
-            value={crisisNote}
-            onChange={(e) => setCrisisNote(e.target.value)}
-            placeholder="备注（如：山野迷路，沿步道 2 号点等待）"
-            className="mt-2 w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/88 placeholder:text-white/68 focus:outline-none focus:border-red-400/50"
-          />
-          <div className="flex items-center gap-2 mt-2">
-            <button
-              onClick={() => {
-                const out = raiseCrisis({
-                  level: crisisLevel,
-                  note: crisisNote.trim() || "求助（无备注）",
-                  contacts: contacts.map((c) => c.name),
-                });
-                setCrisisTargets(out.targets);
-                if (out.record) {
-                  setCrisisSmsText(crisisSms(out.record, contacts[0]?.name ?? "联系人"));
-                }
-              }}
-              className="flex-1 px-3 py-2 rounded-lg bg-red-400/20 border border-red-400/50 text-red-300 text-xs font-extrabold hover:bg-red-400/30 active:scale-95 transition-all"
-            >
-              发起求助
-            </button>
-            {myCrisis.length > 0 && (
-              <button
-                onClick={() => resolveCrisis(myCrisis[0].id)}
-                className="px-3 py-2 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-bold hover:bg-emerald-400/25 active:scale-95 transition-all"
-              >
-                已平安，结束
-              </button>
-            )}
-          </div>
-          {crisisTargets.length > 0 && (
-            <div className="space-y-1 mt-2">
-              <div className="flex flex-wrap gap-1">
-                {crisisTargets.map((t) => (
-                  <span
-                    key={t}
-                    className="px-2 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-xs font-bold text-red-300"
-                  >
-                    📢 已通知 {t}
-                  </span>
-                ))}
-              </div>
-              {crisisSmsText && (
-                <p className="text-xs text-white/68 bg-white/[0.03] rounded-lg px-2 py-1.5 leading-relaxed">
-                  {crisisSmsText}
-                </p>
-              )}
-            </div>
-          )}
-          {myCrisis.length > 0 && (
-            <p className="text-xs text-red-300/80 mt-2">
-              处置中：{myCrisis[0].note}（登记于{" "}
-              {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
-              ）
-            </p>
-          )}
-        </div>
+        {/* ADR-0013 安全中心：SOS 危机干预（N8/N10 接线；子组件化搬移，DOM 零漂移） */}
+        <SafetyCenterCard
+          crisisLevel={crisisLevel}
+          crisisNote={crisisNote}
+          myCrisis={myCrisis}
+          crisisTargets={crisisTargets}
+          crisisSmsText={crisisSmsText}
+          onSelectLevel={setCrisisLevel}
+          onNoteChange={setCrisisNote}
+          onRaise={() => {
+            const out = raiseCrisis({
+              level: crisisLevel,
+              note: crisisNote.trim() || "求助（无备注）",
+              contacts: contacts.map((c) => c.name),
+            });
+            setCrisisTargets(out.targets);
+            if (out.record) {
+              setCrisisSmsText(crisisSms(out.record, contacts[0]?.name ?? "联系人"));
+            }
+          }}
+          onResolve={() => resolveCrisis(myCrisis[0].id)}
+        />
 
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
         <div className="glass-panel rounded-2xl p-3.5">
