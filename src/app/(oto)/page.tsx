@@ -12,9 +12,7 @@ import GlassCard from "@/components/oto-ui/GlassCard";
 import GlassIconButton from "@/components/oto-ui/GlassIconButton";
 import AuthSheet, { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
 import ProofCamera from "@/components/oto-ui/controls/ProofCamera";
-import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import EnvBadge from "@/components/oto-ui/EnvBadge";
-import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { toast } from "@/base/platform/toast";
 import type { ResponderCapability } from "@/base/dispatch/broadcast";
@@ -24,17 +22,13 @@ import {
 } from "@/base/platform/sandbox-bot";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import WaveFeed from "@/components/waves/WaveFeed";
 import MyWaves from "@/components/waves/MyWaves";
-import NotificationCenter from "@/components/waves/NotificationCenter";
 import FulfillmentCenter from "@/components/waves/FulfillmentCenter";
-import DynamicDraftCard from "@/components/waves/DynamicDraftCard";
 import PublishSheet from "@/components/waves/PublishSheet";
 import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 import { useAppStore } from "@/store/useAppStore";
 import { initLowPower } from "@/base/platform/performance";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
-import { otoExperiences } from "@/ammo/experience-catalog";
 import ContactCard from "@/components/waves/ContactCard";
 import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";
 import {
@@ -46,22 +40,20 @@ import {
 import {
   Camera,
   Check,
-  ChevronRight,
   Info,
   MessageCircle,
   Navigation,
   Rotate3d,
-  ShoppingBag,
   Sparkles,
   Star,
-  Trash2,
 } from "lucide-react";
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  羽毛球约局: "🏸",
-  摄影师约拍: "📷",
-  家政保洁: "🧹",
-};
+import HomeTopBar from "./_components/HomeTopBar";
+import AmmoPillBar from "./_components/AmmoPillBar";
+import InspirationChips from "./_components/InspirationChips";
+import HomeDraftSheet from "./_components/HomeDraftSheet";
+import CartSheet from "./_components/CartSheet";
+import RadarFeedSection from "./_components/RadarFeedSection";
+import { CATEGORY_EMOJI } from "./_components/categoryEmoji";
 
 const SWATCHES = [
   { color: "#7B61FF", label: "紫罗兰" },
@@ -329,51 +321,13 @@ function HomePage() {
 
   return (
     <div className="pointer-events-auto">
-      {/* W2 总装：顶栏五态灵动胶囊（当前进行中订单实时投影：🟡广播 ➔ 🔵就位 ➔ 🟣履约 ➔ 🟠待验收 ➔ 🟢已结算） */}
-      {activeWave && activeFiveState && (
-        <div className="flex justify-center mb-2" data-testid="top-status-capsule">
-          <StatusCapsule
-            status={activeFiveState}
-            options={{
-              isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
-              // P0 接电：SOS 一键报警 → 危机应急预案（级别 3 极端紧急，EPA 三通道通知）
-              onSosClick: () => {
-                useWaveStore
-                  .getState()
-                  .raiseCrisis({
-                    level: 3,
-                    note: "首页顶栏 SOS 一键报警（紧急求助）",
-                    waveId: activeWave.id,
-                    contacts: [],
-                  });
-                toast("🚨 SOS 已上报 · 已通知紧急联系人/平台值班/警方通道", "success");
-              },
-            }}
-          />
-        </div>
-      )}
-      {/* 问候语 + 标题 */}
-      <div className="flex items-center gap-2.5 mb-1">
-        <IdentityAvatar />
-        <p className="text-[13px] text-white/75 font-medium flex-1">
-          Hello, Alex! 👋
-        </p>
-        <div className="flex items-center gap-2 shrink-0">
-          <NotificationCenter />
-          <button
-            onClick={() => setShowCart(true)}
-            aria-label={`心愿单，共 ${cart.length} 项`}
-            className="relative w-11 h-11 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
-          >
-            <ShoppingBag size={15} className="text-white/80" />
-            {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center">
-                {cart.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
+      {/* W2 总装：头部状态区（顶栏五态灵动胶囊 + 问候/通知/心愿单行）——子组件化搬移 */}
+      <HomeTopBar
+        activeWave={activeWave}
+        activeFiveState={activeFiveState}
+        cartCount={cart.length}
+        onOpenCart={() => setShowCart(true)}
+      />
 
       {/* ═══ 第二层：AI 对话发单区 + 返回中部拟物卡流动态区 ═══ */}
       <div className="mt-3" data-layer="action">
@@ -402,39 +356,8 @@ function HomePage() {
           </span>
         </motion.button>
 
-        {/* 弹药胶囊栏：注册表动态驱动（官方四枚 + 动态池热注；每枚挂 data-ammo / data-theme
-            主题色作用域 —— 点击精准唤起对应弹药拟物草稿卡） */}
-        <div
-          className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-0.5"
-          data-layer="ammo-pills"
-          data-testid="ammo-pill-bar"
-        >
-          {ammoPills.map((pill) => (
-            <motion.button
-              key={pill.ammoId}
-              whileTap={{ scale: 0.95 }}
-              onClick={() =>
-                setDraft({ key: pill.label, label: pill.label })
-              }
-              data-ammo={pill.ammoId}
-              data-category={pill.category}
-              data-theme={pill.theme}
-              aria-label={`${pill.label} · 一键弹药发单`}
-              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full glass-panel-interactive transition-[border,transform]"
-              style={{
-                borderColor: "var(--theme-border)",
-                boxShadow: `0 2px 12px -3px var(--theme-glow), inset 0 1px 0 rgba(255,255,255,0.35)`,
-                background:
-                  "linear-gradient(135deg, var(--theme-surface-tint), rgba(255,255,255,0.05))",
-              }}
-            >
-              <span className="text-sm leading-none">{pill.icon}</span>
-              <span className="text-xs font-extrabold text-white/90 whitespace-nowrap">
-                {pill.label}
-              </span>
-            </motion.button>
-          ))}
-        </div>
+        {/* 品类胶囊栏：注册表动态驱动（子组件化搬移，selector 零漂移） */}
+        <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} />
 
         {/* AI 发单中枢（slim 灭双头怪）：常驻发单对话框（文本输入 + 按住说话 + 发射按钮）+ 限高消息流
             重复的 AI 撮合标题 / 四大意图气泡 / 初始重播问候卡在 slim 模式下收敛隐藏；
@@ -447,190 +370,41 @@ function HomePage() {
           />
         </div>
 
-        {/* 战场3 · 冷启动商业活化：时段化灵感轮播 —— 输入框下方按当前时间自动切换场景灵感，
-            点击 1 秒原地出弹药草稿卡（本时段场景即点即发）。 */}
-        {(() => {
-          const insp = inspirationSetFor(new Date().getHours());
-          return (
-            <div className="mt-2.5" data-layer="inspiration-chips">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-xs font-bold tx-3 tracking-wide">
-                  {insp.emoji} {insp.period}灵感
-                </span>
-                <span className="h-px flex-1 bg-white/10" />
-                <span className="text-xs tx-5" aria-hidden="true">
-                  {insp.caption}
-                </span>
-              </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
-                {insp.chips.map((c) => (
-                  <motion.button
-                    key={c.label}
-                    whileTap={{ scale: 0.94 }}
-                    onClick={() => setDraft({ key: c.ammo, label: c.ammo })}
-                    aria-label={`灵感：${c.label}`}
-                    className="shrink-0 px-3 py-2 rounded-full glass-panel-interactive text-xs font-bold text-white/85 active:scale-95 transition-transform"
-                  >
-                    <span className="font-tabular">{c.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
+        {/* 战场3 · 冷启动商业活化：时段化灵感轮播（子组件化搬移，selector 零漂移） */}
+        <InspirationChips onSelectDraft={setDraft} />
       </div>
 
-      {/* ═══ 中部拟物卡流动态区：输入/说话/意图气泡 → 原地展开弹药草稿卡 ═══ */}
-      <AnimatePresence>
-        {draft && (
-          <motion.div
-            initial={{ opacity: 0, y: 14, scale: 0.985, height: 0 }}
-            animate={{ opacity: 1, y: 0, scale: 1, height: "auto" }}
-            exit={{ opacity: 0, y: -8, scale: 0.98, height: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="mt-3 overflow-hidden"
-            data-testid="draft-sheet"
-          >
-            <div className="relative rounded-3xl glass-panel p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-brandCyan" /> 拟物草稿 ·{" "}
-                  {draft.label}
-                </h3>
-                <button
-                  onClick={() => setDraft(null)}
-                  aria-label="关闭拟物草稿"
-                  className="text-white/40 hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
-              <DynamicDraftCard
-                category={draft.key}
-                onPublish={() => {
-                  const label = draft.label;
-                  setPublishCategory(label === "全类目需求" ? "" : label);
-                  setDraft(null);
-                  setPublishOpen(true);
-                }}
-              />
-              <p className="text-xs text-white/40 mt-3 text-center">
-                扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ═══ 中部拟物卡流动态区：输入/说话/意图气泡 → 原地展开弹药草稿卡（子组件化搬移） ═══ */}
+      <HomeDraftSheet
+        draft={draft}
+        onClose={() => setDraft(null)}
+        onPublish={(label) => {
+          setPublishCategory(label === "全类目需求" ? "" : label);
+          setDraft(null);
+          setPublishOpen(true);
+        }}
+      />
 
-      {/* ═══ 第三层：雷达波浪视口 —— 直达 WaveFeed 实时需求波卡流 ═══ */}
-      <div className="mt-4" data-layer="wave-feed">
-        <WaveFeed />
-      </div>
+      {/* ═══ 第三层：雷达波浪视口 —— 直达 WaveFeed 实时需求波卡流（子组件化搬移） ═══ */}
+      <RadarFeedSection />
 
-      {/* 心愿单面板 */}
-      <AnimatePresence>
-        {showCart && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowCart(false)}
-            />
-            <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                  <ShoppingBag size={13} className="text-brandCyan" /> 我的心愿单
-                </h3>
-                <button
-                  onClick={() => setShowCart(false)}
-                  aria-label="关闭心愿单"
-                  className="text-white/40 hover:text-white"
-                >
-                  <ChevronRight size={16} className="rotate-180" />
-                </button>
-              </div>
-              {cart.length === 0 ? (
-                <p className="text-xs text-white/40 text-center py-6">
-                  还没有收藏——打开任意目的地卡片收藏起来吧 ♥
-                </p>
-              ) : (
-                <>
-                  <div className="flex flex-col gap-2 max-h-64 overflow-y-auto no-scrollbar">
-                    {cart.map((id) => {
-                      const exp = otoExperiences.find((x) => x.id === id);
-                      if (!exp) return null;
-                      return (
-                        <div
-                          key={id}
-                          className="flex items-center gap-2.5 rounded-2xl bg-white/[0.05] border border-white/10 p-2"
-                        >
-                          <button
-                            onClick={() => {
-                              openExperience(exp);
-                              setShowCart(false);
-                            }}
-                            aria-label={`在 AR 预览 ${exp.title}`}
-                            className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                          >
-                            <div className="w-8 h-8 rounded-xl bg-brandPurple/20 flex items-center justify-center text-sm shrink-0">
-                              {CATEGORY_EMOJI[exp.category] ?? "📍"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-xs font-bold text-white/90 block truncate">
-                                {exp.title}
-                              </span>
-                              <span className="text-xs text-white/45 block truncate">
-                                {exp.location} · {exp.rating} 分
-                              </span>
-                            </div>
-                          </button>
-                          <button
-                            onClick={() => toggleCart(id)}
-                            aria-label={`移除 ${exp.title}`}
-                            className="text-white/35 hover:text-red-400 transition-colors shrink-0"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={clearCart}
-                      className="flex-1 py-2 rounded-xl glass-panel text-xs font-bold text-white/50 hover:text-white transition-colors"
-                    >
-                      清空
-                    </button>
-                    <button
-                      onClick={() => {
-                        const titles = cart
-                          .map((id) => otoExperiences.find((x) => x.id === id)?.title)
-                          .filter(Boolean)
-                          .join("、");
-                        setAiDraft(`${titles} 帮我撮合`);
-                        setShowCart(false);
-                        setScreen("home");
-                      }}
-                      className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong"
-                    >
-                      ✨ 全部让 AI 撮合
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* 心愿单面板（子组件化搬移，selector 零漂移） */}
+      <CartSheet
+        open={showCart}
+        cart={cart}
+        onClose={() => setShowCart(false)}
+        onToggleCartItem={toggleCart}
+        onClearCart={clearCart}
+        onPreviewExperience={(exp) => {
+          openExperience(exp);
+          setShowCart(false);
+        }}
+        onAiMatchAll={(titles) => {
+          setAiDraft(`${titles} 帮我撮合`);
+          setShowCart(false);
+          setScreen("home");
+        }}
+      />
 
       {/* 完整发布面板：草稿卡「扣动扳机」→ 品类/时间/地点/预算 → 广播（全链路 0 丢失） */}
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
@@ -653,86 +427,6 @@ function HomePage() {
 }
 
 /* ============================ MESSAGE / IM ============================ */
-
-/** 时段化灵感场景集（战场3：冷启动商业活化 · 输入框下方按当前时间自动切换）。 */
-export interface InspirationChip {
-  label: string;
-  ammo: string;
-}
-export interface InspirationSet {
-  range: [number, number];
-  period: string;
-  emoji: string;
-  caption: string;
-  chips: InspirationChip[];
-}
-
-const INSPIRATION_SETS: InspirationSet[] = [
-  {
-    range: [5, 11],
-    period: "清晨",
-    emoji: "☀️",
-    caption: "零押金启动 · 满意后分账",
-    chips: [
-      { label: "🧘 晨间拉伸陪练", ammo: "陪伴交友" },
-      { label: "☕ 咖啡馆拼桌学习", ammo: "组局社交" },
-      { label: "🧹 上午深度保洁", ammo: "家政保洁" },
-    ],
-  },
-  {
-    range: [11, 14],
-    period: "午间",
-    emoji: "🍱",
-    caption: "急速撮合 · 30 分钟送达",
-    chips: [
-      { label: "🍱 午餐饭搭子", ammo: "组局社交" },
-      { label: "🧹 午间保洁上门", ammo: "家政保洁" },
-      { label: "📷 光影人像外拍", ammo: "摄影师约拍" },
-    ],
-  },
-  {
-    range: [14, 18],
-    period: "午后",
-    emoji: "🏸",
-    caption: "周边服务者在线待命",
-    chips: [
-      { label: "🏸 午后羽毛球局", ammo: "组局社交" },
-      { label: "👥 电影搭子", ammo: "陪伴交友" },
-      { label: "🧽 下午家庭保洁", ammo: "家政保洁" },
-    ],
-  },
-  {
-    range: [18, 23],
-    period: "晚间",
-    emoji: "🌆",
-    caption: "夜间服务 · 平台意外险全包",
-    chips: [
-      { label: "🍲 晚餐搭子", ammo: "组局社交" },
-      { label: "📷 夜景街拍点位", ammo: "摄影师约拍" },
-      { label: "🧘 夜间拉伸放松", ammo: "陪伴交友" },
-    ],
-  },
-  {
-    range: [23, 5],
-    period: "深夜",
-    emoji: "🌙",
-    caption: "深夜不打烊 · 全时在线",
-    chips: [
-      { label: "🛏 深夜倾诉陪聊", ammo: "陪伴交友" },
-      { label: "🧹 明早保洁预约", ammo: "家政保洁" },
-      { label: "🏸 夜场羽毛球局", ammo: "组局社交" },
-    ],
-  },
-];
-
-/** 纯函数：当前小时 → 对应时段灵感组（支持跨零点区间，测试可注入 hour）。 */
-export function inspirationSetFor(hour: number): InspirationSet {
-  const hit = INSPIRATION_SETS.find((s) => {
-    const [a, b] = s.range;
-    return a <= b ? hour >= a && hour < b : hour >= a || hour < b;
-  });
-  return hit ?? INSPIRATION_SETS[0];
-}
 
 /** 消息屏：即时通讯与 48h 隐私会话中枢（ADR-0010 会话实时投影 · 号码不落地）。 */
 function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
