@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.redirect(new URL("/dashboard?auth=wechat_success", request.url));
+    return NextResponse.redirect(new URL("/?auth=open", request.url));
   } catch (err) {
     console.error("WeChat OAuth callback error:", err);
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent((err instanceof Error ? err.message : String(err)))}`, request.url));

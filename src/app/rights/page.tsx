@@ -199,7 +199,7 @@ export default function RightsPage() {
           <Link href="/">
             <Button variant="outline">返回首页</Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href="/">
             <Button>进入控制面板</Button>
           </Link>
         </div>

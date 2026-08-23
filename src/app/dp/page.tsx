@@ -61,9 +61,9 @@ export default function HomePage() {
         <div className="flex items-center gap-4 sm:gap-6">
           <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-slate-300">
             <Link href="/dp" style={{ color: 'var(--accent-color)' }} className="transition">首页</Link>
-            <Link href="/demands" className="hover:text-cyan-300 transition">悬赏大厅</Link>
-            <Link href="/orders" className="hover:text-cyan-300 transition">我的契约</Link>
-            <Link href="/profile" className="hover:text-cyan-300 transition">玩家中心</Link>
+            <Link href="/dp/console" className="hover:text-cyan-300 transition">需求大厅</Link>
+            <Link href="/dp/console" className="hover:text-cyan-300 transition">我的协议</Link>
+            <Link href="/profile" className="hover:text-cyan-300 transition">个人中心</Link>
           </nav>
           <ThemeSwitcher />
         </div>
@@ -108,7 +108,7 @@ export default function HomePage() {
             transition={{ delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
           >
-            <Link href="/demands/create" className="w-full sm:w-auto">
+            <Link href="/dp/console" className="w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
@@ -118,7 +118,7 @@ export default function HomePage() {
               </motion.button>
             </Link>
 
-            <Link href="/demands" className="w-full sm:w-auto">
+            <Link href="/dp/console" className="w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}

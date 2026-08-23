@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X, User, ChevronDown, LayoutDashboard, FileText, ShieldCheck, LogOut, Scroll } from "lucide-react"
+import { Menu, X, User, ChevronDown, FileText, ShieldCheck, LogOut, Scroll } from "lucide-react"
 import NotificationBell from "@/components/NotificationBell"
 import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
@@ -24,8 +24,6 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname?.startsWith("/dp/console") || pathname?.startsWith("/dp/provider") || pathname === "/") return null
-
-  const isLoggedIn = !!session
 
   const parseRoles = (roles: unknown): string[] => {
     if (Array.isArray(roles)) return roles
@@ -63,9 +61,6 @@ export default function Header() {
         <nav className="hidden items-center gap-1 md:flex">
           <Link href="/" className={linkClass("/")}>OTO空间</Link>
           <Link href="/dp" className={linkClass("/dp")}>协议后台</Link>
-          <Link href="/demands" className={linkClass("/demands")}>悬赏大厅</Link>
-          <Link href="/orders" className={linkClass("/orders")}>我的契约</Link>
-          {isLoggedIn && <Link href="/dashboard" className={linkClass("/dashboard")}>控制面板</Link>}
           {isAdmin && <Link href="/admin" className="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors bg-amber-950/40 text-amber-400 border border-amber-500/30">管理后台</Link>}
         </nav>
 
@@ -86,10 +81,7 @@ export default function Header() {
                   <div className="px-2.5 py-2 text-xs text-slate-400 border-b border-slate-800 mb-1">
                     {session.email}
                   </div>
-                  <DropdownMenuItem onClick={() => router.push("/dashboard")} className="hover:bg-slate-800 focus:bg-slate-800">
-                    <LayoutDashboard className="mr-2 size-4" /> 控制面板
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/demands/create")} className="hover:bg-slate-800 focus:bg-slate-800">
+                  <DropdownMenuItem onClick={() => router.push("/")} className="hover:bg-slate-800 focus:bg-slate-800">
                     <FileText className="mr-2 size-4" /> 发布悬赏
                   </DropdownMenuItem>
                   {isProvider && (
@@ -130,9 +122,6 @@ export default function Header() {
           <nav className="flex flex-col gap-px px-6 py-3">
             <Link href="/" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm font-medium text-slate-100 hover:bg-slate-800 active:bg-slate-700">OTO空间</Link>
             <Link href="/dp" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">协议后台</Link>
-            <Link href="/demands" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">悬赏大厅</Link>
-            <Link href="/orders" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">我的契约</Link>
-            {isLoggedIn && <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">控制面板</Link>}
             {isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-amber-400 hover:bg-amber-950/30 active:bg-amber-950/50">管理后台</Link>}
             <hr className="my-2 border-slate-800/60" />
             <div className="px-3 py-1">

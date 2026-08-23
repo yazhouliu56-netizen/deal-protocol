@@ -8,30 +8,20 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
+        // Step 1-D 出清批次：allow/disallow 中已删除的旧宇宙页面路径同步移除
         allow: [
           "/",
-          "/demands",
-          "/demands/*",
           "/landing",
           "/rights",
-          "/orders",
-          "/disputes",
-          "/finance",
         ],
         disallow: [
           "/api/",
-          "/dashboard/",
           "/admin/",
-          "/chat/",
           "/register",
           "/login",
           "/profile",
           "/verification",
-          "/payment/",
           "/console",
-          "/sos",
-          "/developer/",
-          "/evidence/",
           "/_next/",
           "/offline",
         ],
