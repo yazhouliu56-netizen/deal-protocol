@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Timer, ShieldCheck } from "lucide-react";
-import { makeDialCode, dialExpiresAt, isDialLive } from "@/lib/dial";
+import { makeDialCode, dialExpiresAt, isDialLive } from "@/base/comm/dialer";
 
 /**
  * 拨号卡片 — after a deal locks, both sides get the SAME one-time virtual

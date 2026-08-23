@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseWaveUrl } from "./scan.ts";
+import { parseWaveUrl } from "./qr-scanner.ts";
 
 test("parseWaveUrl: 完整分享 URL（ShareKit 形态）", () => {
   assert.equal(

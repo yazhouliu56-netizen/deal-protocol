@@ -6,7 +6,7 @@ import {
   fnv1a,
   isDialLive,
   makeDialCode,
-} from "./dial.ts";
+} from "./dialer.ts";
 
 test("makeDialCode is deterministic and shared between both sides", () => {
   const seed = "wave-1:r-1:d-9";

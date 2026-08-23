@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { QrCode, ScanLine, CheckCircle2 } from "lucide-react";
 import jsQR from "jsqr";
 import { useWaveStore } from "@/store/useWaveStore";
-import { parseWaveUrl } from "@/lib/scan";
+import { parseWaveUrl } from "@/base/platform/qr-scanner";
 
 type Phase = "requesting" | "scanning" | "mock" | "result";
 

@@ -36,7 +36,7 @@ const WAVE_TIME = "周日 10:00";
 const BASE_YUAN = 120;
 const SURCHARGE_YUAN = 50;
 const TOTAL_YUAN = BASE_YUAN + SURCHARGE_YUAN;
-/** 供给端真实种子响应者（mockResponders.ts 家政保洁 5 星「王姐」）。 */
+/** 供给端真实种子响应者（responders-catalog.ts 家政保洁 5 星「王姐」）。 */
 const PROVIDER_ID = "mock-clean-wang";
 const round2c = (n: number): number => Math.round(n * 100) / 100;
 
