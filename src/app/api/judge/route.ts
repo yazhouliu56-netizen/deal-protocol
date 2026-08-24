@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { completeText } from "@/base/ai/gateway/engine";
+import { guardArbitrationSettlement } from "@/base/order/dispute";
 import {
   normalizeLlmSuggestion,
   ruleJudge,
@@ -64,13 +65,34 @@ export async function POST(req: Request) {
     timeoutMs: 10_000,
   });
 
+  // 方向 1 接线 B（红线 1 物理闭合）：LLM/规则建议的 refundPct 在出 API 前
+  // 必须过 base 确定性护栏——整数分守恒切分，杜绝幻觉超额赔付/负数账单。
+  const withSettlement = (verdict: VerdictSuggestion, source: string) => {
+    try {
+      const totalCents = Math.round(input.amountYuan * 100);
+      const settlement = guardArbitrationSettlement(totalCents, verdict.refundPct);
+      return NextResponse.json({ verdict: { ...verdict, settlement }, source });
+    } catch {
+      // 比例越界等护栏拒绝 → 回落规则引擎（宪法 #10：永不裸奔）
+      const fallback = ruleJudge(input);
+      const settlement = guardArbitrationSettlement(
+        Math.round(input.amountYuan * 100),
+        fallback.refundPct,
+      );
+      return NextResponse.json({
+        verdict: { ...fallback, settlement },
+        source: "mock",
+        guardedFrom: source,
+      });
+    }
+  };
+
   if (outcome.ok) {
     const suggestion = normalizeLlmSuggestion(outcome.content, input);
     if (suggestion) {
-      return NextResponse.json({ verdict: suggestion, source: outcome.provider });
+      return withSettlement(suggestion, outcome.provider ?? "mock");
     }
   }
 
-  const fallback: VerdictSuggestion = ruleJudge(input);
-  return NextResponse.json({ verdict: fallback, source: "mock" });
+  return withSettlement(ruleJudge(input), "mock");
 }

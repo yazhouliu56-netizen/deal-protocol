@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   autoVerdict,
   creditDeltaFor,
+  guardArbitrationSettlement,
   negotiate,
   openDispute,
   resolveAuto,
@@ -109,4 +110,33 @@ test("极端边界：0/100 与 100/0 双向均守恒", () => {
 test("总额非法拦截：非整数分（小数 / 负数 / NaN）拒绝", () => {
   assert.throws(() => splitArbitrationAmountsCents(100.5, 50, 50), /INVALID_TOTAL_AMOUNT/);
   assert.throws(() => splitArbitrationAmountsCents(-1, 50, 50), /INVALID_TOTAL_AMOUNT/);
+});
+
+/* =====================================================================
+ * 方向 1 接线 B · guardArbitrationSettlement 考卷
+ * ===================================================================== */
+
+test("结算护栏：refundPct=40 → refund 恰为总额 40%（语义换位正确性）", () => {
+  assert.deepEqual(guardArbitrationSettlement(100000, 40), { refundCents: 40000, payoutCents: 60000 });
+});
+
+test("结算护栏：与 splitArbitrationAmountsCents 反向映射互证（40/60 vs 60/40 镜像）", () => {
+  const viaGuard = guardArbitrationSettlement(99999, 40);
+  const viaSplit = splitArbitrationAmountsCents(99999, 60, 40);
+  assert.deepEqual(viaGuard, viaSplit);
+});
+
+test("结算护栏：越界/NaN 的 refundPct 拒绝（AI 幻觉防御）", () => {
+  assert.throws(() => guardArbitrationSettlement(10000, 150), /out-of-range/);
+  assert.throws(() => guardArbitrationSettlement(10000, -5), /out-of-range/);
+  assert.throws(() => guardArbitrationSettlement(10000, Number.NaN), /out-of-range/);
+});
+
+test("结算护栏：0/100 极端 + 余数分落高小数环（total=999, pct=33 → 330/669 守恒）", () => {
+  assert.deepEqual(guardArbitrationSettlement(10000, 0), { refundCents: 0, payoutCents: 10000 });
+  assert.deepEqual(guardArbitrationSettlement(10000, 100), { refundCents: 10000, payoutCents: 0 });
+  const { refundCents, payoutCents } = guardArbitrationSettlement(999, 33);
+  assert.equal(refundCents, 330);
+  assert.equal(payoutCents, 669);
+  assert.equal(refundCents + payoutCents, 999);
 });

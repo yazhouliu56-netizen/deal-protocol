@@ -163,6 +163,15 @@ export function buildJudicialPackage(input: IJudicialPackageInput): Record<strin
       : null,
     hashChain: {
       chainValid: verification.valid,
+      // 方向 1 接线 A：断点明细（下标 + 三断因），供调解抽屉红色警示定位展示
+      verification: {
+        brokenAtIndex: verification.brokenAtIndex,
+        reason: verification.reason ?? null,
+        brokenId:
+          verification.valid || verification.brokenAtIndex < 0
+            ? null
+            : (input.evidenceLogs[verification.brokenAtIndex]?.id ?? null),
+      },
       entries: input.evidenceLogs.map((ev) => ({
         id: ev.id,
         eventType: ev.event_type,

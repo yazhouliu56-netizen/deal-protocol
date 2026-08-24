@@ -14,17 +14,38 @@ export const GET = withAuth(async (request: Request, _user) => {
 
     const supabase = getSupabase();
 
-    const { data: dispute } = await supabase
-      .from("order_disputes")
+    // 方向 1 接线 A②（数据面断裂修复）：真实争议行由 orders/[id] PATCH 写入
+    // `disputes` 表（contract_id 关联）；013 的 order_disputes 是 admin 仲裁表
+    // （键 order_id、无 channel/llm_verdict 列）——故先按 contract_id 取最新争议，
+    // 未命中再回落 order_disputes.id 直查（兼容 admin 侧建单）。
+    let dispute: Record<string, unknown> | null = null;
+    const runtimeRes = await supabase
+      .from("disputes")
       .select("*")
-      .eq("id", disputeId)
-      .single();
+      .eq("contract_id", disputeId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (runtimeRes.data && runtimeRes.data.length > 0) {
+      dispute = runtimeRes.data[0] as Record<string, unknown>;
+    } else {
+      const byId = await supabase.from("disputes").select("*").eq("id", disputeId).single();
+      if (byId.data) {
+        dispute = byId.data as Record<string, unknown>;
+      } else {
+        const adminRes = await supabase
+          .from("order_disputes")
+          .select("*")
+          .eq("id", disputeId)
+          .single();
+        dispute = (adminRes.data as Record<string, unknown> | null) ?? null;
+      }
+    }
 
     if (!dispute) {
       throw new Error(`Dispute not found: ${disputeId}`);
     }
 
-    const orderId = String((dispute as Record<string, unknown>).order_id ?? disputeId);
+    const orderId = String(dispute.order_id ?? dispute.contract_id ?? disputeId);
 
     const [evidenceRes, protocolRes, contractRes] = await Promise.all([
       supabase.from("evidence_log").select("*").eq("order_id", orderId).order("created_at", { ascending: true }),
@@ -60,8 +81,8 @@ export const GET = withAuth(async (request: Request, _user) => {
     const judicialPackage = buildJudicialPackage({
       disputeId,
       orderId,
-      status: ((dispute as Record<string, unknown>).status as string | null) ?? null,
-      createdAt: ((dispute as Record<string, unknown>).created_at as string | null) ?? null,
+      status: (dispute.status as string | null) ?? null,
+      createdAt: (dispute.created_at as string | null) ?? null,
       protocol: protocol
         ? {
             id: String(protocol.id),

@@ -206,3 +206,22 @@ export function splitArbitrationAmountsCents(
   ]);
   return { refundCents, payoutCents };
 }
+
+/**
+ * 小法官结算护栏（方向 1 接线 B · 红线 1 物理闭合）：
+ * AI/LLM 建议的 refundPct 语义 =「退还需求方的百分比」，与 splitArbitrationAmountsCents
+ * 的「refund∝providerRatio（过失越大退越多）」相反——本函数显式换位权重
+ * [refundPct, 100−refundPct]，杜绝调用方踩反直觉映射坑。
+ * 返回整数分守恒切分：refund + payout ≡ totalAmountCents。
+ */
+export function guardArbitrationSettlement(
+  totalAmountCents: number,
+  refundPct: number,
+): IArbitrationSplitCents {
+  validateArbitrationRatios(refundPct, 100 - refundPct);
+  const [refundCents, payoutCents] = allocateByLargestRemainder(totalAmountCents, [
+    refundPct,
+    100 - refundPct,
+  ]);
+  return { refundCents, payoutCents };
+}

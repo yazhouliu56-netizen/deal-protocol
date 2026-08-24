@@ -125,8 +125,24 @@ export interface ArbitrationSheetProps {
 /** 司法存证包导出状态（api/evidence/export-judicial-package 审计证书）。 */
 export interface JudicialCertificate {
   caseInfo?: { disputeId: string; orderId: string };
-  hashChain?: { chainValid: boolean; entries: unknown[] };
+  hashChain?: {
+    chainValid: boolean;
+    entries: unknown[];
+    /** 方向 1 接线 A③：断点明细（base/safe/evidence-chain 三断因） */
+    verification?: {
+      brokenAtIndex: number;
+      reason: "HASH_MISMATCH" | "PREV_LINK_BREAK" | "TIMESTAMP_REGRESSION" | null;
+      brokenId: string | null;
+    };
+  };
 }
+
+/** 链断裂原因 → 人话标签（接线 A③ 红色警示定位）。 */
+export const CHAIN_BREAK_REASON_LABEL: Record<string, string> = {
+  HASH_MISMATCH: "哈希重算不符（内容疑似被篡改）",
+  PREV_LINK_BREAK: "前驱链接断裂（链条被插入/替换）",
+  TIMESTAMP_REGRESSION: "时间戳回退（时序异常）",
+};
 
 type ExportState = "idle" | "loading" | "done" | "error";
 
@@ -277,6 +293,17 @@ export default function ArbitrationSheet({
     }
   };
 
+  // 接线 A③：抽屉打开即自动锚定司法证据链（每次开合至多一次）
+  const autoAnchorRef = useRef(false);
+  useEffect(() => {
+    if (open && !autoAnchorRef.current) {
+      autoAnchorRef.current = true;
+      void handleExportJudicial();
+    }
+    if (!open) autoAnchorRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -322,6 +349,46 @@ export default function ArbitrationSheet({
           <button type="button" className="arb-close" data-action="close" onClick={onClose}>
             ✕ 关闭
           </button>
+        </div>
+
+        {/* 接线 A③：司法证据链常驻锚定徽标（打开即校验，断裂显式定位） */}
+        <div
+          data-testid="chain-anchor"
+          data-state={exportState}
+          className="arb-ai-badge"
+          style={{
+            display: "flex",
+            width: "100%",
+            justifyContent: "center",
+            marginTop: 8,
+            color:
+              exportState === "done" && !certificate?.hashChain?.chainValid
+                ? "#fca5a5"
+                : exportState === "done"
+                  ? "#4ade80"
+                  : "#94a3b8",
+            borderColor:
+              exportState === "done" && !certificate?.hashChain?.chainValid
+                ? "rgba(248,113,113,.5)"
+                : undefined,
+          }}
+        >
+          {exportState === "loading" && "🛡️ 司法证据链校验中…"}
+          {exportState === "idle" && "🛡️ 司法证据链待锚定"}
+          {exportState === "error" && "🛡️ 存证链暂不可达（可手动重试导出）"}
+          {exportState === "done" &&
+            (certificate?.hashChain?.chainValid ? (
+              <>🛡️ 司法证据链已锚定（{certificate.hashChain.entries.length} 环连续 · 校验通过）</>
+            ) : (
+              <>
+                ⚠️ 证据链断裂：
+                {CHAIN_BREAK_REASON_LABEL[certificate?.hashChain?.verification?.reason ?? ""] ??
+                  "未知原因"}
+                {certificate?.hashChain?.verification &&
+                  certificate.hashChain.verification.brokenAtIndex >= 0 &&
+                  ` · 断点 #${certificate.hashChain.verification.brokenAtIndex}`}
+              </>
+            ))}
         </div>
 
         {/* 分级仲裁头卡（漏洞五 · 确定性分流） */}

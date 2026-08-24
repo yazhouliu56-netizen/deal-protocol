@@ -10,6 +10,11 @@ import type { VerdictSuggestion } from "@/base/ai/judge";
  * 嵌入争议视图：解析「需求方凭证 vs 工作人员反驳」，LLM 语义比对，
  * 失败自动回落到确定性规则（宪法 #10）。一键发起协商采纳。
  */
+/** 方向 1 接线 B：base 护栏产出的整数分守恒切分（红线 1）。 */
+type JudgeVerdict = VerdictSuggestion & {
+  settlement?: { refundCents: number; payoutCents: number };
+};
+
 export default function JudgePanel({
   reason,
   evidence,
@@ -23,7 +28,7 @@ export default function JudgePanel({
   onSettle: (proposedPct: number, note: string) => void;
 }) {
   const [defense, setDefense] = useState("");
-  const [verdict, setVerdict] = useState<VerdictSuggestion | null>(null);
+  const [verdict, setVerdict] = useState<JudgeVerdict | null>(null);
   const [loading, setLoading] = useState(false);
 
   const runJudge = async () => {
@@ -40,7 +45,7 @@ export default function JudgePanel({
         }),
       });
       const data = (await res.json()) as {
-        verdict?: VerdictSuggestion;
+        verdict?: JudgeVerdict;
         source?: string;
         error?: string;
       };
@@ -97,7 +102,12 @@ export default function JudgePanel({
           <div className="rounded-xl bg-white/[0.05] border border-white/10 p-2.5 space-y-1.5">
             <p className="text-xs font-bold text-sky-200">
               {stanceLabel[verdict.stance] ?? verdict.stance} · 建议赔付 ¥
-              {verdict.amountYuan}（{verdict.refundPct}%）
+              {verdict.settlement
+                ? (verdict.settlement.refundCents / 100).toFixed(
+                    verdict.settlement.refundCents % 100 ? 2 : 0,
+                  )
+                : verdict.amountYuan}
+              （{verdict.refundPct}%）
             </p>
             <p className="text-xs text-white/50">{verdict.rationale}</p>
             <p className="text-xs text-white/60 border-t border-white/10 pt-1.5">
@@ -106,6 +116,7 @@ export default function JudgePanel({
             <p className="text-xs text-white/30">
               置信 {Math.round(verdict.confidence * 100)}% ·{" "}
               {verdict.source === "llm" ? "LLM 语义比对" : "规则引擎（LLM 不可用回落）"}
+              {verdict.settlement ? ` · 分币守恒 ✓（结清服务方 ¥${(verdict.settlement.payoutCents / 100).toFixed(verdict.settlement.payoutCents % 100 ? 2 : 0)}）` : ""}
             </p>
           </div>
           <div className="flex gap-2">

@@ -11,6 +11,7 @@ import DynamicAmmoSlot, {
   type DynamicAmmoSlotProps,
 } from "./slots/DynamicAmmoSlot";
 import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
+import MilestoneLadder, { type MilestoneLadderInput } from "./MilestoneLadder";
 
 /**
  * 通用五态履约主屏（Universal Fulfillment Cockpit · 白皮书 §五 5.6.2）。
@@ -82,6 +83,16 @@ export interface FulfillmentCockpitProps {
   forceArmed?: boolean;
   /** 强化安全守护徽标文案（运行时多因子评分 ≥ 阈值时由上层注入，缺省走常量）。 */
   safetyBadge?: string;
+  /**
+   * 方向 1 接线 C：分期托管里程碑声明（协议 funding.mode=milestone_staged 时由
+   * 上层从弹药/协议配置投影传入；缺省不渲染阶梯）。状态与金额由
+   * base/money/milestone-escrow 纯函数驱动（红线 1）。
+   */
+  milestones?: {
+    totalAmountYuan: number;
+    items: MilestoneLadderInput[];
+    defaultTimeoutHours?: number;
+  };
 }
 
 /** 场景 → 主题微色元数据（5.7 维度 1 的 Token 投影）。 */
@@ -240,6 +251,7 @@ export default function FulfillmentCockpit({
   customRequirements,
   forceArmed,
   safetyBadge,
+  milestones,
 }: FulfillmentCockpitProps) {
   const theme = SCENARIO_THEME_META[scenario];
   const cockpitTheme = resolveCockpitTheme(scenario, ammo);
@@ -363,6 +375,15 @@ export default function FulfillmentCockpit({
       )}
       {scenario === "dynamic" && dynamic && (
         <DynamicAmmoSlot {...dynamic} customRequirements={customRequirements} />
+      )}
+
+      {/* 方向 1 接线 C：分期托管里程碑阶梯（milestone_staged 协议时渲染） */}
+      {milestones && milestones.items.length > 0 && (
+        <MilestoneLadder
+          totalAmountYuan={milestones.totalAmountYuan}
+          milestones={milestones.items}
+          defaultTimeoutHours={milestones.defaultTimeoutHours}
+        />
       )}
 
       <button
