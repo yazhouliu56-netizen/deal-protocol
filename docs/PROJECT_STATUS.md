@@ -163,7 +163,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-24 ｜ HEAD：`7f42bf0`（方向 1 底座接线深化 ✅：分期托管阶梯/证据链锚定/仲裁护栏全屏贯通）｜ 摘要：接线 B——judge 出口强制过 guardArbitrationSettlement 语义换位护栏（LLM 仅 Advisory，护栏拒绝回落规则引擎），面板分币守恒展示；接线 A——司法导出数据面三重断裂修复（disputes-by-contract→by-id→order_disputes 兼容链）+ hashChain.verification 断点明细 + 抽屉顶部自动锚定徽标（三断因人话警示）；接线 C——MilestoneLadder 纯函数驱动挂载座舱（持久化钩子预留，如实标注）；幽灵表 `disputes` 缺迁移登记为方向 2 DDL 输入；基线 **1624/1624**（635+989，N=15）+ verify-prod **12/12** + four-ammos 全 PASS + 收敛 exit 0
+> 日期：2026-08-24 ｜ HEAD：`f953e7d`（方向 2 阶段一：disputes 幽灵表权威迁移固化 ✅）｜ 摘要：新建 `20260824_disputes_ghost_table.sql`（18 列实证全集 + status→dispute_status 单向镜像触发器 + 五索引 + RLS 零公开策略，全语句幂等零数据破坏）；**裁决修正**：resolver.ts:85 写的是 contracts 表合法列，归一项经证据否决未执行；指挥官废弃手打 SQL 包、锁定权威 4 文件迁移链；本地门禁全绿 tsc 0 + lint 0/0 + **1624/1624** + 收敛 exit 0；云端物理应用待 Dry-Run 探活报告+二次确认
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
