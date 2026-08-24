@@ -18,6 +18,10 @@ export async function POST(request: Request) {
 
   const tradeStatus = params.trade_status;
   if (tradeStatus !== 'TRADE_SUCCESS' && tradeStatus !== 'TRADE_FINISHED') {
+    try {
+      const failSvc = getServiceClient();
+      await failSvc.from("split_records").update({ status: "FAILED", channel_response: params, error_code: tradeStatus }).eq("out_order_no", params.out_trade_no ?? "");
+    } catch {}
     return NextResponse.json({ error: "invalid trade status" }, { status: 400 });
   }
 
@@ -55,6 +59,12 @@ export async function POST(request: Request) {
     channel: "alipay",
     amount: totalAmount,
   });
+
+  // 方向3：回调落盘 split_records 台账（幂等更新）
+  try {
+    await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("out_order_no", tradeNo);
+    await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("order_no", outTradeNo).eq("status", "PENDING");
+  } catch {}
 
   const { data: contract } = await svc
     .from("contracts")

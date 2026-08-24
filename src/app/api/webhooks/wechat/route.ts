@@ -28,6 +28,11 @@ export async function POST(request: Request) {
   }
 
   if (params.result_code !== "SUCCESS") {
+    // 方向3：失败回调同步台账（幂等，不阻断主流程）
+    try {
+      const failSvc = getServiceClient();
+      await failSvc.from("split_records").update({ status: "FAILED", channel_response: params, error_code: params.err_code, error_msg: params.err_code_des }).eq("out_order_no", params.out_trade_no ?? "");
+    } catch {}
     return new NextResponse(
       `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[ok]]></return_msg></xml>`,
       { status: 200, headers: { "Content-Type": "application/xml" } },
@@ -84,6 +89,12 @@ export async function POST(request: Request) {
     provider_payment_id: transactionId,
     amount: Number(params.total_fee ?? 0) / 100,
   });
+
+  // 方向3：回调落盘 split_records 台账（幂等更新，兼容 order_no/out_order_no 双键）
+  try {
+    await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("out_order_no", transactionId);
+    await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("order_no", contractId).eq("status", "PENDING");
+  } catch {}
 
   await svc.from("notifications").insert([
     {

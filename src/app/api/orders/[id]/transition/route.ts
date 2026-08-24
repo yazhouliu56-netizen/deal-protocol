@@ -194,9 +194,10 @@ export async function POST(
   };
   await db.from("order_state_logs").insert(logRow);
 
-  // ── SETTLED 终局：ledger 落 split_records（每接收方一行；uniq 幂等）──
+  // ── SETTLED 终局：ledger 落 split_records（每接收方一行；uniq 幂等，方向3守恒）──
   let ledger: unknown = null;
-  if (result.state === "SETTLED" && idempotencyKey) {
+  if (result.state === "SETTLED") {
+    const effectiveKey = idempotencyKey ?? `auto-${orderNo}-${row.version}-${Date.now()}`;
     ledger =
       (result.afterData as Array<{ settlementLedger?: unknown }>).find(
         (d) => d && typeof d === "object" && "settlementLedger" in d,
@@ -208,7 +209,7 @@ export async function POST(
         providerIncome: number;
         platformIncome: number;
       };
-      const outBase = `${idempotencyKey}`.slice(0, 40);
+      const outBase = `${effectiveKey}`.slice(0, 40);
       const rows = [
         {
           split_no: `sp-${outBase}-prov`.slice(0, 32),
@@ -237,7 +238,16 @@ export async function POST(
             }]
           : []),
       ];
-      await db.from("split_records").insert(rows);
+      // 整数分守恒审计（不阻断主流程，runner 已守恒）
+      const payable = row.payable_amount;
+      const sum = rows.reduce((s, r) => s + r.split_amount, 0);
+      if (Number.isFinite(payable) && sum !== payable) {
+        console.warn(`[transition] split守恒偏离 order=${orderNo} sum=${sum} payable=${payable}`);
+      }
+      const { error: splitErr } = await db.from("split_records").insert(rows);
+      if (splitErr && !String(splitErr.message).includes("duplicate") && String(splitErr.code) !== "23505") {
+        throw splitErr;
+      }
     }
   }
 

@@ -12,7 +12,8 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
  */
 export async function POST(req: NextRequest) {
   if (!supabaseUrl || !serviceKey) {
-    return NextResponse.json({ ok: false, error: "supabase-not-configured" }, { status: 500 });
+    // 红线 5：无 Key 时沙盒模拟永不中断（方向 3）
+    return NextResponse.json({ ok: true, mocked: true, reason: "supabase-not-configured" });
   }
   let body: { endpoint?: string; p256dh?: string; auth?: string; userId?: string } = {};
   try {

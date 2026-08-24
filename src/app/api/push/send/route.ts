@@ -18,10 +18,12 @@ const vapidSubject = process.env.VAPID_SUBJECT ?? "mailto:admin@oto.app";
  */
 export async function POST(req: NextRequest) {
   if (!supabaseUrl || !serviceKey) {
-    return NextResponse.json({ ok: false, error: "supabase-not-configured" }, { status: 500 });
+    // 红线 5：无 Supabase 时沙盒模拟（方向 3）
+    return NextResponse.json({ ok: true, mocked: true, reason: "supabase-not-configured", sent: 0, failed: 0, cleaned: 0, results: [] });
   }
   if (!vapidPub || !vapidPriv) {
-    return NextResponse.json({ ok: false, error: "vapid-not-configured" }, { status: 500 });
+    // 红线 5：无 VAPID 时沙盒模拟永不中断
+    return NextResponse.json({ ok: true, mocked: true, reason: "vapid-not-configured", sent: 0, failed: 0, cleaned: 0, results: [] });
   }
   let body: {
     title?: string;
@@ -83,7 +85,13 @@ export async function POST(req: NextRequest) {
     }
   }
   if (dead.length > 0) {
-    await supabase.from("push_subscriptions").delete().in("endpoint", dead);
+    // 方向 3：优先经 SECURITY DEFINER RPC 清理（对齐 RLS 设计），失败回落直删
+    for (const ep of dead) {
+      const { error: rpcErr } = await supabase.rpc("delete_my_push_subscription", { p_endpoint: ep } as never);
+      if (rpcErr) {
+        await supabase.from("push_subscriptions").delete().eq("endpoint", ep);
+      }
+    }
   }
   return NextResponse.json({
     ok: true,
