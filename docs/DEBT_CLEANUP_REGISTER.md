@@ -101,7 +101,7 @@
 | A10 | `/api/demands/[id]/match` | [🟡 待出清/待裁决] | 正则通配段 `/api/demands/{段}/match` 0 命中；前端撮合走 `/api/ai/match` | 功能重复（可删） |
 | A11 | `/api/demands/[id]/tip` | [🟡 待出清/待裁决] | 0 命中 | 未接线功能（可删） |
 | A12 | `/api/developer/preference` | [🟡 待出清/待裁决] | 0 命中（1536 维向量偏好，无消费方） | 未接线功能（可删） |
-| A13 | `/api/disputes/[id]/arbitrate-ai` | [🟡 待出清/待裁决] | `arbitrate-ai` 0 命中；`lib/ai-arbitrator` 仍被 `ai/ai-arbitration-card.tsx`（活跃）消费，route 层可安全删 | 历史调试垃圾（可删） |
+| A13 | `/api/disputes/[id]/arbitrate-ai` | [✅ 已核销·批次 3b] | `arbitrate-ai` 0 命中；`lib/ai-arbitrator` 已于批次 3b 物理出清（`6b71efc`，审计证实 ai-arbitration-card.tsx 零 import 该 lib，登记册原记载过时） | 历史调试垃圾（可删） |
 | A14 | `/api/disputes/[id]`（主路由） | [🟡 待出清/待裁决] | 页面走 `/api/disputes/detail?id=`；`[id]` 主路由 0 命中 | 功能重复（可删） |
 | A15 | `/api/disputes/resolve` | [🟡 待出清/待裁决] | 0 命中；裁决能力由 `lib/arbitration` + `admin/arbitrate` 承担 | 功能重复（可删/可并入 admin/arbitrate） |
 | A16 | `/api/orders/accept-delivery` | [🟡 待出清/待裁决] | 0 命中；验收走 `orders/[id]` 链 | 历史重复（可删） |
@@ -317,7 +317,9 @@
 | L6 | `api/reviews/submit` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/ReviewModal.tsx`（C5，0 引用组件） | 与 C5 同批删除 |
 | L7 | `api/llm-classify` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/SmartRequest.tsx`（C6，0 引用组件） | 与 C6 同批删除 |
 
-> 补充保留件（不列入删除批次）：`lib/privacy-guard.ts`（A21 依赖但另有 3 处活跃 route 消费）、`lib/wechat-pay-service.ts`（活跃 5 处）、`lib/ai-arbitrator.ts`（活跃：`ai/ai-arbitration-card.tsx`）、`lib/peer-jury.ts`、`lib/webrtc-call.ts`、`lib/alipay-service.ts` —— 均不可随孤儿路由误删。
+> 补充保留件（不列入删除批次）：`lib/privacy-guard.ts`（A21 依赖但另有 3 处活跃 route 消费）、`lib/wechat-pay-service.ts`（活跃 5 处）、`lib/webrtc-call.ts`、`lib/alipay-service.ts` —— 均不可随孤儿路由误删。
+>
+> **批次 3b 出清核销（2026-08-24，commit `6b71efc`）**：原列于本行的 `lib/ai-arbitrator.ts` 与 `lib/peer-jury.ts` 经全仓引用审计后物理出清——前者唯一生产消费方仅剩 export-judicial-package 路由（已改道 Base 司法包装配器），后者为运行时孤儿；「ai-arbitration-card.tsx 活跃消费」记载经实读证伪。
 
 ---
 
