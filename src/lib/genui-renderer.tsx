@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import SmartProtocolCard from '@/components/SmartProtocolCard'
 import { cn } from '@/lib/utils'
+
+/** Stub re-export removed: SmartProtocolCard deleted as secondary orphan (2026-08-24). */
 
 interface SchemaField {
   type: string
@@ -335,4 +336,4 @@ export function GenUIRenderer({ schema, value, onChange, riskTier }: GenUIRender
   )
 }
 
-export { SmartProtocolCard }
+// SmartProtocolCard re-export removed (secondary orphan deleted 2026-08-24)
