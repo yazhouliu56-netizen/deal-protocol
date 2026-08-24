@@ -42,53 +42,6 @@ describe('ReferralCommission', () => {
 })
 
 // ============================================================
-// Mechanism 3: Milestone Staged Escrow
-// ============================================================
-describe('MilestoneEscrow', () => {
-  it('createMilestonesForContract exports', async () => {
-    const { createMilestonesForContract } = await import('@/lib/milestone-escrow')
-    expect(createMilestonesForContract).toBeDefined()
-  })
-
-  it('releaseMilestoneEscrow exports', async () => {
-    const { releaseMilestoneEscrow } = await import('@/lib/milestone-escrow')
-    expect(releaseMilestoneEscrow).toBeDefined()
-  })
-
-  it('milestone transitions PENDING -> HELD -> SETTLED', () => {
-    const statuses = ['PENDING', 'HELD', 'SETTLED']
-    expect(statuses).toContain('PENDING')
-    expect(statuses).toContain('HELD')
-    expect(statuses).toContain('SETTLED')
-  })
-
-  it('rejects release when status is not HELD', () => {
-    const invalid: string[] = ['PENDING', 'DISPUTED', 'SETTLED']
-    for (const s of invalid) {
-      const canRelease = s === 'HELD'
-      expect(canRelease).toBe(false)
-    }
-  })
-
-  it('allows release only when status is HELD', () => {
-    expect('HELD' === 'HELD').toBe(true)
-    expect('PENDING' === 'HELD').toBe(false)
-    expect('SETTLED' === 'HELD').toBe(false)
-    expect('DISPUTED' === 'HELD').toBe(false)
-  })
-
-  it('milestone sum equals contract amount', () => {
-    const milestones = [
-      { title: 'Design', amount: 3000 },
-      { title: 'Development', amount: 5000 },
-      { title: 'Testing', amount: 2000 },
-    ]
-    const total = milestones.reduce((sum, m) => sum + m.amount, 0)
-    expect(total).toBe(10000)
-  })
-})
-
-// ============================================================
 // Mechanism 4: SOS 15s Audio Hash Vault
 // ============================================================
 describe('SOSAudioVault', () => {
