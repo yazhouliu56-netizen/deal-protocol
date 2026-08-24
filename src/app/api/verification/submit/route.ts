@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
-import { encryptPII } from "@/lib/pii-encrypt"
+import { encryptPII } from "@/base/safe/pii-crypto"
 
 export const POST = withAuth(async (req, user) => {
   const { realName, idNumber, certificates } = await req.json()

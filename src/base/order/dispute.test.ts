@@ -6,6 +6,8 @@ import {
   negotiate,
   openDispute,
   resolveAuto,
+  splitArbitrationAmountsCents,
+  validateArbitrationRatios,
 } from "./dispute.ts";
 
 test("autoVerdict: no-show → 全责全退", () => {
@@ -59,4 +61,52 @@ test("creditDeltaFor: 全责 −2 / 部分责任按占比−1..−3 / 需求方 
 
   const demander = openDispute({ claimId: "c3", reason: "demander-change", evidence: "不做了" }, 0);
   assert.equal(creditDeltaFor(demander), 0);
+});
+
+/* =====================================================================
+ * 批次 3b · AI 仲裁确定性护栏考卷
+ * ===================================================================== */
+
+test("护栏：比例之和 ≠100 拒绝（sum-must-be-100）", () => {
+  assert.throws(() => validateArbitrationRatios(50, 40), /sum-must-be-100/);
+});
+
+test("护栏：浮点和在 1e-9 容差内视为 100（33.333 + 66.667 合法通过）", () => {
+  assert.doesNotThrow(() => validateArbitrationRatios(33.333, 66.667));
+});
+
+test("护栏：越界（负值 / >100 / NaN / Infinity）一律 out-of-range 拒绝", () => {
+  assert.throws(() => validateArbitrationRatios(-10, 110), /out-of-range/);
+  assert.throws(() => validateArbitrationRatios(101, -1), /out-of-range/);
+  assert.throws(() => validateArbitrationRatios(Number.NaN, 100), /out-of-range/);
+  assert.throws(() => validateArbitrationRatios(0, Number.POSITIVE_INFINITY), /out-of-range/);
+});
+
+test("护栏：合法比例通过且整数分守恒——refund+payout ≡ total", () => {
+  const { refundCents, payoutCents } = splitArbitrationAmountsCents(100000, 20, 80);
+  assert.equal(refundCents, 80000);
+  assert.equal(payoutCents, 20000);
+  assert.equal(refundCents + payoutCents, 100000);
+});
+
+test("分配映射语义：refund 随 providerRatio 缩放（服务方过失越大退得越多）", () => {
+  const { refundCents, payoutCents } = splitArbitrationAmountsCents(1000, 30, 70);
+  assert.equal(refundCents, 700);
+  assert.equal(payoutCents, 300);
+});
+
+test("最大余数法无损：total=999 按 66.5/33.5 → 余数分落高小数环（refund 335/payout 664）且守恒", () => {
+  const { refundCents, payoutCents } = splitArbitrationAmountsCents(999, 66.5, 33.5);
+  assert.deepEqual({ refundCents, payoutCents }, { refundCents: 335, payoutCents: 664 });
+  assert.equal(refundCents + payoutCents, 999);
+});
+
+test("极端边界：0/100 与 100/0 双向均守恒", () => {
+  assert.deepEqual(splitArbitrationAmountsCents(50000, 100, 0), { refundCents: 0, payoutCents: 50000 });
+  assert.deepEqual(splitArbitrationAmountsCents(50000, 0, 100), { refundCents: 50000, payoutCents: 0 });
+});
+
+test("总额非法拦截：非整数分（小数 / 负数 / NaN）拒绝", () => {
+  assert.throws(() => splitArbitrationAmountsCents(100.5, 50, 50), /INVALID_TOTAL_AMOUNT/);
+  assert.throws(() => splitArbitrationAmountsCents(-1, 50, 50), /INVALID_TOTAL_AMOUNT/);
 });

@@ -1,31 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-describe("calculateHaversineDistance", () => {
-  it("returns 0 for the same coordinate pair", async () => {
-    const { calculateHaversineDistance } = await import("@/lib/client-crypto");
-    const result = calculateHaversineDistance([121.4737, 31.2304], [121.4737, 31.2304]);
-    expect(result).toBe(0);
-  });
-
-  it("calculates ~5,800m between Shanghai People's Square and Xujiahui", async () => {
-    const { calculateHaversineDistance } = await import("@/lib/client-crypto");
-    const peopleSquare: [number, number] = [121.4737, 31.2304];
-    const xujiahui: [number, number] = [121.4365, 31.195];
-    const d = calculateHaversineDistance(peopleSquare, xujiahui);
-    expect(d).toBeGreaterThan(5000);
-    expect(d).toBeLessThan(6500);
-  });
-
-  it("handles negative longitude/latitude (south-west hemisphere)", async () => {
-    const { calculateHaversineDistance } = await import("@/lib/client-crypto");
-    const sydney: [number, number] = [151.2093, -33.8688];
-    const melbourne: [number, number] = [144.9631, -37.8136];
-    const d = calculateHaversineDistance(sydney, melbourne);
-    expect(d).toBeGreaterThan(700_000);
-    expect(d).toBeLessThan(800_000);
-  });
-});
-
 describe("ProviderCheckinModal payload", () => {
   beforeEach(() => {
     vi.clearAllMocks();

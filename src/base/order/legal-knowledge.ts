@@ -1,3 +1,9 @@
+/**
+ * 法律知识库（批次 3b 自 src/lib/legal-knowledge-base.ts 平移，纯数据资产零依赖）：
+ * 《民法典》服务/承揽合同域条文 + 平台托管预付款相关判例结构化数据。
+ * 归位 base/order 域（客观合同履约规则，裁决固化）。
+ */
+
 export interface CivilCodeArticle {
   articleNo: string;
   title: string;

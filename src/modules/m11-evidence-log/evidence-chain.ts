@@ -1,9 +1,5 @@
 import { getSupabase } from '@/lib/supabase-client'
-
-async function sha256Hex(data: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data))
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('')
-}
+import { computeEvidenceHash, verifyEvidenceChain, type IEvidenceRow } from '@/base/safe/evidence-chain'
 
 interface EvidenceInput {
   protocolId?: string
@@ -46,14 +42,8 @@ export async function appendEvidence(input: EvidenceInput): Promise<EvidenceReco
     : input.payload
 
   const timestamp = new Date().toISOString()
-  const content = JSON.stringify({
-    orderId,
-    eventType: input.eventType,
-    payload: enrichedPayload,
-    prevHash,
-    timestamp,
-  })
-  const currHash = await sha256Hex(content)
+  // 哈希计算委托 Base 权威 SSOT（批次 3b：字节兼容历史公式，A 写 B 验）。
+  const currHash = computeEvidenceHash(orderId, input.eventType, enrichedPayload, prevHash, timestamp)
 
   const { data, error } = await getSupabase()
     .from('evidence_log')
@@ -66,6 +56,8 @@ export async function appendEvidence(input: EvidenceInput): Promise<EvidenceReco
       captured_by: input.capturedBy ?? null,
       hash: currHash,
       prev_hash: prevHash,
+      // 显式落盘哈希所用同一时间戳：修复 DB 默认值与 JS 时钟毫秒漂移导致的自校验假断裂。
+      created_at: timestamp,
     })
     .select()
     .single()
@@ -113,27 +105,11 @@ export async function verifyChain(orderId: string): Promise<{ valid: boolean; br
   const records = await getEvidenceByProtocol(orderId)
   if (records.length === 0) return { valid: true }
 
-  for (let i = 0; i < records.length; i++) {
-    const record = records[i]
-    const prevHash = i === 0 ? 'GENESIS' : records[i - 1]!.hash
-
-    const content = JSON.stringify({
-      orderId,
-      eventType: record.event_type,
-      payload: record.payload,
-      prevHash,
-      timestamp: record.created_at,
-    })
-    const expectedHash = await sha256Hex(content)
-
-    if (record.hash !== expectedHash) {
-      return { valid: false, brokenAt: record.id }
-    }
-
-    if (record.prev_hash !== prevHash) {
-      return { valid: false, brokenAt: record.id }
-    }
+  // 链校验委托 Base 权威 SSOT（哈希重算 + prev_hash 链接 + 时间戳非严格单调）。
+  const result = verifyEvidenceChain(orderId, records as readonly IEvidenceRow[])
+  if (!result.valid) {
+    const broken = records[result.brokenAtIndex]
+    return { valid: false, brokenAt: broken?.id }
   }
-
   return { valid: true }
 }

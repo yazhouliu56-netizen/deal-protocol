@@ -10,8 +10,10 @@
  *   Credit linkage (v4): the WRONG side loses credit — full responsibility =
  *   breach-level −1, partial responsibility = proportional credit cut.
  *
- * Pure + unit-testable; no runtime imports.
+ * Pure + unit-testable; single intra-base pure import（资金分配复用 money 域最大余数法）.
  */
+
+import { allocateByLargestRemainder } from "../money/milestone-escrow.ts";
 
 /** Official dispute reasons (demander picks exactly one). */
 export type DisputeReason =
@@ -154,4 +156,53 @@ export function creditDeltaFor(record: DisputeRecord): number {
     return -Math.max(1, Math.round(pct / 20)); // pct%(0-60) → −1..−3 gradient
   }
   return 0; // demander / shared: no responder credit cut here
+}
+
+/* =====================================================================
+ * AI 仲裁确定性护栏（批次 3b · 条文 #1）：LLM 产出的责任比例在进入任何
+ * 资金计算前，必须经此纯函数校验并按整数分最大余数法守恒分配。
+ * LLM 编排本身禁止入底座（红线 1），本护栏是其唯一合法落地通道。
+ * ===================================================================== */
+
+export interface IArbitrationSplitCents {
+  /** 退还需求方金额（分）——随服务方责任比例缩放 */
+  refundCents: number;
+  /** 结清服务方金额（分）——随需求方责任比例缩放 */
+  payoutCents: number;
+}
+
+/** 校验比例 ∈ [0,100] 且和为 100（浮点容差 1e-9）；违规抛点码错误。 */
+export function validateArbitrationRatios(
+  demanderRatio: number,
+  providerRatio: number,
+): void {
+  for (const [label, r] of [
+    ["demanderRatio", demanderRatio],
+    ["providerRatio", providerRatio],
+  ] as const) {
+    if (typeof r !== "number" || !Number.isFinite(r) || r < 0 || r > 100) {
+      throw new Error(`arbitration.ratio.out-of-range: ${label}=${r}`);
+    }
+  }
+  if (Math.abs(demanderRatio + providerRatio - 100) > 1e-9) {
+    throw new Error("arbitration.ratio.sum-must-be-100");
+  }
+}
+
+/**
+ * 比例 → 整数分守恒分配：先过比例护栏，再按最大余数法无损切分总额。
+ * refund 随 providerRatio（服务方过失越大退得越多）、payout 随 demanderRatio，
+ * 与历史仲裁语义一致；refund + payout ≡ totalAmountCents 由分配器断言保证。
+ */
+export function splitArbitrationAmountsCents(
+  totalAmountCents: number,
+  demanderRatio: number,
+  providerRatio: number,
+): IArbitrationSplitCents {
+  validateArbitrationRatios(demanderRatio, providerRatio);
+  const [refundCents, payoutCents] = allocateByLargestRemainder(totalAmountCents, [
+    providerRatio,
+    demanderRatio,
+  ]);
+  return { refundCents, payoutCents };
 }

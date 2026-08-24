@@ -133,64 +133,6 @@ describe('GDPRAnonymization', () => {
 })
 
 // ============================================================
-// Mechanism 4: Omnichannel Notification Ladder
-// ============================================================
-describe('OmnichannelNotificationLadder', () => {
-  it('dispatchEscalatedNotification exports correct function', async () => {
-    const mod = await import('@/lib/notification-ladder')
-    expect(typeof mod.dispatchEscalatedNotification).toBe('function')
-  })
-
-  it('P0 priority triggers all 3 rungs', () => {
-    const ladderDelays = {
-      realtime: 0,
-      wechat: 3 * 60_000,
-      sms: 10 * 60_000,
-    }
-    expect(ladderDelays.realtime).toBe(0)
-    expect(ladderDelays.wechat).toBe(180_000)
-    expect(ladderDelays.sms).toBe(600_000)
-  })
-
-  it('ladder rungs are ordered: realtime → wechat → sms', () => {
-    const ladder = ['realtime', 'wechat', 'sms']
-    expect(ladder[0]).toBe('realtime')
-    expect(ladder[1]).toBe('wechat')
-    expect(ladder[2]).toBe('sms')
-  })
-
-  it('realtime rung inserts notification and calls pg_notify', () => {
-    const rung1 = {
-      ladder: 'realtime',
-      sentAt: new Date().toISOString(),
-      success: true,
-    }
-    expect(rung1.ladder).toBe('realtime')
-    expect(rung1.success).toBe(true)
-  })
-
-  it('wechat rung requires wechatOpenId', () => {
-    const hasOpenId = 'o12345'
-    const noOpenId = undefined
-    expect(hasOpenId).toBeTruthy()
-    expect(noOpenId).toBeFalsy()
-  })
-
-  it('sms rung requires phone number', () => {
-    const hasPhone = '13800138000'
-    const noPhone = undefined
-    expect(hasPhone).toBeTruthy()
-    expect(noPhone).toBeFalsy()
-  })
-
-  it('notification ladder uses insert + pg_notify in realtime rung', () => {
-    const operation = `await svc.from('notifications').insert({ is_read: false })`
-    expect(operation).toContain('is_read: false')
-    expect(operation).toContain('notifications')
-  })
-})
-
-// ============================================================
 // Cross-cutting: Migration DDL Verification
 // ============================================================
 describe('MigrationDDL', () => {

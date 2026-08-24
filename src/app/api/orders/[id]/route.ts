@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase-client";
@@ -15,7 +16,6 @@ import {
 import { getEngine } from "@/lib/protocol/engine";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
-import { trackWorkflowStageEvidence, type WorkflowStageInput } from "@/lib/workflow-evidence-tracker";
 import { maskPhone } from "@/lib/privacy-guard";
 // P0-2 隔离墙收编：资金分割一律经 base 确定性引擎（src/base/money/escrow.ts），
 // 路由不再内联任何分账比例硬编码（红线 1 精神）。
@@ -528,15 +528,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (nextStage !== null && nextStage !== contract.service_stage) {
     const stageName = STAGE_NAMES[nextStage];
     if (stageName) {
-      trackWorkflowStageEvidence({
-        contractId: id,
-        userId: session.user.id,
-        userIp: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || undefined,
-        stage: stageName as WorkflowStageInput["stage"],
-        latitude,
-        longitude,
-        photoUrl,
-        photoHash,
+      // 批次 3b 改道：阶段存证统一走 m11 appendEvidence（哈希委托 Base 权威 SSOT），
+      // payload 以结构化对象入库（修复旧 tracker 字符串 payload 的 schema 破坏）。
+      appendEvidence({
+        orderId: id,
+        eventType: `STAGE_${stageName}`,
+        payload: {
+          stage: stageName,
+          userId: session.user.id,
+          userIp:
+            request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+            request.headers.get('x-real-ip') ||
+            null,
+          coords: latitude && longitude ? [longitude, latitude] : null,
+          photoHash: photoHash ?? (photoUrl ? createHash('sha256').update(photoUrl).digest('hex') : null),
+        },
+        capturedBy: session.user.id,
       }).catch((e) => console.warn('Stage evidence tracking failed:', e));
     }
   }

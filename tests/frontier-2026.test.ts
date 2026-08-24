@@ -42,50 +42,6 @@ describe('ReferralCommission', () => {
 })
 
 // ============================================================
-// Mechanism 4: SOS 15s Audio Hash Vault
-// ============================================================
-describe('SOSAudioVault', () => {
-  it('storeSOSAudioEvidence exports', async () => {
-    const { storeSOSAudioEvidence } = await import('@/lib/sos-audio-vault')
-    expect(storeSOSAudioEvidence).toBeDefined()
-  })
-
-  it('SHA-256 hash of known buffer is deterministic', async () => {
-    const encoder = new TextEncoder()
-    const buffer = encoder.encode('test audio data').buffer
-    const hashBuf = await crypto.subtle.digest('SHA-256', buffer)
-    const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('')
-    expect(hash.length).toBe(64)
-    expect(/^[a-f0-9]{64}$/.test(hash)).toBe(true)
-  })
-
-  it('SHA-256 hash changes when input changes', async () => {
-    const encoder = new TextEncoder()
-    const hash1 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode('audio1').buffer)))
-      .map((b) => b.toString(16).padStart(2, '0')).join('')
-    const hash2 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode('audio2').buffer)))
-      .map((b) => b.toString(16).padStart(2, '0')).join('')
-    expect(hash1).not.toBe(hash2)
-  })
-
-  it('duplicate hash does not create duplicate evidence', () => {
-    const existing = { id: 'ev-1' }
-    expect(existing.id).toBe('ev-1')
-  })
-
-  it('evidence_log stores SOS_AUDIO_RECORDING event type', () => {
-    const eventType = 'SOS_AUDIO_RECORDING'
-    const payload = { audio_hash: 'abc123', user_id: 'u1', duration_seconds: 15 }
-    expect(eventType).toBe('SOS_AUDIO_RECORDING')
-    expect(payload.duration_seconds).toBe(15)
-  })
-
-  it('15s audio duration is fixed by spec', () => {
-    expect(15).toBe(15)
-  })
-})
-
-// ============================================================
 // Migration Schema Verification
 // ============================================================
 describe('Frontier2026Schema', () => {

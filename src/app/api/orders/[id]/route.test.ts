@@ -62,10 +62,6 @@ vi.mock("@/modules/m11-evidence-log/evidence-chain", () => ({
   appendEvidence: vi.fn(),
 }))
 
-vi.mock("@/lib/workflow-evidence-tracker", () => ({
-  trackWorkflowStageEvidence: vi.fn(),
-}))
-
 vi.mock("@/lib/privacy-guard", () => ({
   maskPhone: (p: string) => p,
 }))
