@@ -11,7 +11,9 @@ export type QueueOp =
   | { kind: "review"; payload: string }
   /** Step 2 接电：权威库 write-behind 同步（payload = JSON{path,body,idempotencyKey}）。 */
   | { kind: "order-publish"; payload: string }
-  | { kind: "order-transition"; payload: string };
+  | { kind: "order-transition"; payload: string }
+  /** P1-3 一键 SOS：报警上报离线缓冲（payload = JSON{path,body,idempotencyKey}）。 */
+  | { kind: "sos-report"; payload: string };
 
 export interface QueuedOp {
   id: string;

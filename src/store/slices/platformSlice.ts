@@ -99,7 +99,9 @@ export const createPlatformSlice: StateCreator<
       if (ok) {
         if (
           item.op.kind === "order-publish" ||
-          item.op.kind === "order-transition"
+          item.op.kind === "order-transition" ||
+          // P1-3：SOS 报警离线缓冲恢复在线后补报（生命线最高重放优先级语义同批）
+          item.op.kind === "sos-report"
         ) {
           // Step 2 接电：权威库同步 op 走真实网络冲刷（幂等键防服务端重复）
           ok = await flushOrderOp(item.op);

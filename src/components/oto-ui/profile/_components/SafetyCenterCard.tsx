@@ -110,6 +110,15 @@ export default function SafetyCenterCard({
           ）
         </p>
       )}
+      {myCrisis[0]?.forensicSnapshot && (
+        <p
+          className="text-xs text-emerald-300/85 bg-emerald-400/[0.06] border border-emerald-400/25 rounded-lg px-2 py-1.5 mt-1.5"
+          data-testid="sos-forensic-badge"
+        >
+          🛡️ 危机存证已封包（轨迹 {myCrisis[0].forensicSnapshot.trajectoryPayload.pointCount} 点 · 录音{" "}
+          {myCrisis[0].forensicSnapshot.audioEvidenceSummary.chunkCount} 块 · 🔏 存证哈希已固化）
+        </p>
+      )}
     </div>
   );
 }

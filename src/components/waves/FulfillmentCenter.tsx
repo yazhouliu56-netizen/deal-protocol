@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { advanceLifecycle } from "@/base/ammo/runner";
 import { getAmmoById } from "@/ammo/registry";
@@ -8,6 +8,11 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { evaluateRuntimeSafety } from "@/base/safe/runtime-monitor";
+import { startGeoTracker, stopGeoTracker } from "@/base/platform/geo-tracker";
+import {
+  startAudioVault,
+  stopAudioVault,
+} from "@/base/platform/audio-recorder";
 import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
 import DialCard from "./DialCard";
 import ArbitrationSheet, {
@@ -201,6 +206,24 @@ export default function FulfillmentCenter({
     () => (activeWave ? getAmmoById(activeWave.ammoId ?? activeWave.basics.category) : null),
     [activeWave],
   );
+
+  // P1-3 一键 SOS 联动武装：按弹药 fuzePolicy.sos 声明式开关启动轨迹/录音采集
+  // （条文 #5 引信跟弹药走；无权限/无硬件静默降级，卸载/换单即停采）。
+  const sosFuze = ammo?.holographic?.fuzePolicy?.sos;
+  useEffect(() => {
+    if (!sosFuze?.enabled || !activeWave?.id) return;
+    startGeoTracker(sosFuze.autoLocationReport);
+    void startAudioVault(activeWave.id, sosFuze.autoEvidenceAppend);
+    return () => {
+      stopGeoTracker();
+      stopAudioVault();
+    };
+  }, [
+    sosFuze?.enabled,
+    sosFuze?.autoLocationReport,
+    sosFuze?.autoEvidenceAppend,
+    activeWave?.id,
+  ]);
 
   // P1：争议物证链真实化 —— 从当前活动 Wave（金额/诉求/存证照片）动态装配，
   // 彻底拔除静态演示桩 DISPUTE_EVIDENCE / DISPUTE_PROPOSAL。

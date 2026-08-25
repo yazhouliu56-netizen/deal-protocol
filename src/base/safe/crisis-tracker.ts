@@ -401,3 +401,123 @@ export function resolveCrisisEscalation(
     },
   };
 }
+
+/* ═══════════════ ④ SOS 司法证据快照封装（P1-3 一键 SOS 联动链） ═══════════════ */
+
+/** 音频切片指纹清单摘要（只携带指纹与完整性结论，不携带音频本体）。 */
+export interface IAudioEvidenceSummary {
+  /** 入包切片数。 */
+  chunkCount: number;
+  /** 切片负载总字节数（encryptedBase64 长度口径，与缓冲池一致）。 */
+  totalBytes: number;
+  /** 逐片 SHA-256 指纹（小写 64 位 hex，入池时已固化）。 */
+  fingerprints: string[];
+  /** 全量指纹复核是否通过。 */
+  integrityOk: boolean;
+  /** 指纹不匹配的切片 id（篡改/损坏信号）。 */
+  failedChunkIds: string[];
+}
+
+/**
+ * SOS 司法证据快照（强类型）：轨迹警方载荷 + 音频指纹清单 + 确定性快照号。
+ * 权威存证哈希由服务端 /api/sos/trigger 以 computeEvidenceHash 重算固化
+ * （批次 3b「A 写 B 验」），本结构仅承载客户端本地预指纹。
+ */
+export interface ISosForensicSnapshot {
+  snapshotId: string;
+  crisisId?: string;
+  userId?: string;
+  orderNo?: string;
+  level: EscalationLevel;
+  /** 快照生成时间戳（ms，时钟注入）。 */
+  timestamp: number;
+  trajectoryPayload: TrajectoryPolicePayload;
+  audioEvidenceSummary: IAudioEvidenceSummary;
+}
+
+export interface ISosForensicInput {
+  level: EscalationLevel;
+  breadcrumbs: readonly BreadcrumbPoint[];
+  /** 缓冲池 drain 出的切片（缺省 = 无录音降级空描述）。 */
+  audioChunks?: readonly AudioChunkMeta[];
+  crisisId?: string;
+  userId?: string;
+  orderNo?: string;
+  speedAlertKmh?: number;
+  /** 时钟注入位（红线 1）。 */
+  now: number;
+}
+
+const NO_GPS_DATA_FLAG = "NO_GPS_DATA";
+
+function summarizeAudioEvidence(
+  chunks: readonly AudioChunkMeta[]
+): IAudioEvidenceSummary {
+  const failedChunkIds: string[] = [];
+  for (const c of chunks) {
+    if (sha256Hex(c.encryptedBase64) !== c.sha256) {
+      failedChunkIds.push(c.chunkId);
+    }
+  }
+  return {
+    chunkCount: chunks.length,
+    totalBytes: chunks.reduce((sum, c) => sum + c.encryptedBase64.length, 0),
+    fingerprints: chunks.map((c) => c.sha256),
+    integrityOk: failedChunkIds.length === 0,
+    failedChunkIds,
+  };
+}
+
+/**
+ * 一键 SOS 司法证据快照封装（纯函数）：
+ * - 轨迹：经 buildPoliceTrajectoryPayload 压缩为 110 警方载荷；
+ *   无有效定位点时生成 NO_GPS_DATA 缺省占位（降级是设计的一部分，绝不抛异常）；
+ * - 音频：逐片复核 SHA-256 完整性后仅输出指纹清单；
+ * - snapshotId：由输入确定性合成（无随机源，同输入同快照号）。
+ */
+export function packageSosForensicSnapshot(
+  input: ISosForensicInput
+): ISosForensicSnapshot {
+  const points = [...input.breadcrumbs];
+  const trajectoryPayload: TrajectoryPolicePayload =
+    points.length > 0
+      ? buildPoliceTrajectoryPayload(points, {
+          crisisId: input.crisisId,
+          userId: input.userId,
+          generatedAt: input.now,
+          speedAlertKmh: input.speedAlertKmh,
+        })
+      : {
+          ...(input.crisisId ? { crisisId: input.crisisId } : {}),
+          ...(input.userId ? { userId: input.userId } : {}),
+          generatedAt: input.now,
+          pointCount: 0,
+          lastPoint: null,
+          speedKmh: null,
+          anomalyFlags: [NO_GPS_DATA_FLAG],
+          trail: "",
+        };
+
+  const chunks = input.audioChunks ?? [];
+  const audioEvidenceSummary = summarizeAudioEvidence(chunks);
+
+  const digestSeed = JSON.stringify({
+    level: input.level,
+    orderNo: input.orderNo ?? null,
+    trail: trajectoryPayload.trail,
+    flags: trajectoryPayload.anomalyFlags,
+    fingerprints: audioEvidenceSummary.fingerprints,
+    timestamp: input.now,
+  });
+
+  return {
+    snapshotId: `sos-${input.level.toString(36)}-${input.now.toString(36)}-${sha256Hex(digestSeed).slice(0, 8)}`,
+    ...(input.crisisId ? { crisisId: input.crisisId } : {}),
+    ...(input.userId ? { userId: input.userId } : {}),
+    ...(input.orderNo ? { orderNo: input.orderNo } : {}),
+    level: input.level,
+    timestamp: input.now,
+    trajectoryPayload,
+    audioEvidenceSummary,
+  };
+}

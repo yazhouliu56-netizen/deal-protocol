@@ -7,9 +7,11 @@ import {
   buildPoliceTrajectoryPayload,
   compressTrail,
   detectTrajectoryAnomaly,
+  packageSosForensicSnapshot,
   recordBreadcrumbPoint,
   resolveCrisisEscalation,
   triggerCrisisEscalation,
+  type AudioChunkMeta,
   type BreadcrumbPoint,
 } from "./crisis-tracker.ts";
 import { sha256Hex } from "../ai/forgery.ts";
@@ -202,4 +204,68 @@ test("升级状态机：已确认后不再强升级；处置闭环 → RESOLVED�
   assert.equal(done.notification?.reason, "CRISIS_RESOLVED");
   const again = resolveCrisisEscalation(done.state, 150_000);
   assert.equal(again.changed, false);
+});
+
+/* ═══════════════ ④ SOS 司法证据快照封装（P1-3） ═══════════════ */
+
+const chunk = (id: string, body: string): AudioChunkMeta => ({
+  chunkId: id,
+  waveId: "w1",
+  durationSec: 5,
+  sha256: sha256Hex(body),
+  encryptedBase64: body,
+  recordedAt: 1000,
+});
+
+test("SOS 快照：轨迹 + 音频全量封装（警方载荷压缩 trail + 指纹清单）", () => {
+  const pts = [p(30.0, 120.0, 1000), p(30.001, 120.001, 61_000)];
+  const chunks = [chunk("c1", "AAAA"), chunk("c2", "BBBB")];
+  const snap = packageSosForensicSnapshot({
+    level: 3,
+    breadcrumbs: pts,
+    audioChunks: chunks,
+    crisisId: "crisis-x",
+    userId: "u1",
+    orderNo: "DP20260825001",
+    now: 2000,
+  });
+  assert.match(snap.snapshotId, /^sos-3-1jk-[0-9a-f]{8}$/);
+  assert.equal(snap.timestamp, 2000);
+  assert.equal(snap.orderNo, "DP20260825001");
+  assert.equal(snap.trajectoryPayload.pointCount, 2);
+  assert.ok(snap.trajectoryPayload.trail.includes("30.000000,120.000000"));
+  assert.deepEqual(snap.audioEvidenceSummary.fingerprints, [
+    sha256Hex("AAAA"),
+    sha256Hex("BBBB"),
+  ]);
+  assert.equal(snap.audioEvidenceSummary.chunkCount, 2);
+  assert.equal(snap.audioEvidenceSummary.integrityOk, true);
+  assert.deepEqual(snap.audioEvidenceSummary.failedChunkIds, []);
+});
+
+test("SOS 快照：无 GPS 无录音 → NO_GPS_DATA 缺省占位 + 空音频描述（零抛异常）", () => {
+  const snap = packageSosForensicSnapshot({ level: 2, breadcrumbs: [], now: 5000 });
+  assert.deepEqual(snap.trajectoryPayload.anomalyFlags, ["NO_GPS_DATA"]);
+  assert.equal(snap.trajectoryPayload.pointCount, 0);
+  assert.equal(snap.trajectoryPayload.lastPoint, null);
+  assert.equal(snap.trajectoryPayload.trail, "");
+  assert.equal(snap.audioEvidenceSummary.chunkCount, 0);
+  assert.equal(snap.audioEvidenceSummary.totalBytes, 0);
+  assert.equal(snap.audioEvidenceSummary.integrityOk, true);
+});
+
+test("SOS 快照：篡改切片指纹复核失败定位 + 确定性快照号（同输入同号）", () => {
+  const tampered: AudioChunkMeta = { ...chunk("c1", "AAAA"), encryptedBase64: "MUTATED" };
+  const input = {
+    level: 3 as const,
+    breadcrumbs: [p(30.0, 120.0, 1000)],
+    audioChunks: [tampered],
+    crisisId: "cx",
+    now: 3000,
+  };
+  const s1 = packageSosForensicSnapshot(input);
+  const s2 = packageSosForensicSnapshot(input);
+  assert.equal(s1.snapshotId, s2.snapshotId);
+  assert.equal(s1.audioEvidenceSummary.integrityOk, false);
+  assert.deepEqual(s1.audioEvidenceSummary.failedChunkIds, ["c1"]);
 });

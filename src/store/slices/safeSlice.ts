@@ -19,10 +19,20 @@ import {
   type CrisisRecord,
 } from "@/base/safe/crisis";
 import {
+  packageSosForensicSnapshot,
+} from "@/base/safe/crisis-tracker";
+import {
   requestForget as requestForgetLogic,
   type ForgetKind,
   type ForgetRequest,
 } from "@/base/safe/privacy";
+import {
+  snapshotGeoTrail,
+} from "@/base/platform/geo-tracker";
+import { drainAudioVault as drainRecorderChunks } from "@/base/platform/audio-recorder";
+import {
+  enqueue as enqueueOp,
+} from "@/base/platform/offlineQueue";
 import type { WaveStore } from "../useWaveStore";
 
 export interface SafeSlice {
@@ -66,11 +76,64 @@ export const createSafeSlice: StateCreator<WaveStore, [], [], SafeSlice> = (
       Date.now(),
       waveId
     );
-    const { record: notified, targets } = notifyForLogic(record!, contacts);
+    // P1-3 一键 SOS 联动：自动封装司法证据快照（轨迹面包屑 + 录音切片指纹；
+    // 无 GPS / 无麦克风 / Headless 环境 100% 静默降级为 NO_GPS_DATA 空包，红线 5）。
+    const snapshot = packageSosForensicSnapshot({
+      level,
+      breadcrumbs: snapshotGeoTrail(),
+      audioChunks: drainRecorderChunks(),
+      crisisId: record!.id,
+      userId: record!.userId,
+      orderNo: waveId,
+      now: Date.now(),
+    });
+    const withSnapshot: CrisisRecord = { ...record!, forensicSnapshot: snapshot };
+    const { record: notified, targets } = notifyForLogic(withSnapshot, contacts);
     set((st) => ({
-      crisisRecords: [...st.crisisRecords.map((r) => (r.id === record!.id ? notified : r)), notified],
+      crisisRecords: [
+        ...st.crisisRecords.map((r) => (r.id === notified!.id ? notified! : r)),
+        notified!,
+      ],
     }));
-    return { record: notified, targets };
+    // 异步上报 /api/sos/trigger（服务端权威哈希重算固化）；离线/失败自动入 offlineQueue 补报。
+    const body = {
+      userId: notified!.userId,
+      crisisId: notified!.id,
+      level: notified!.level,
+      note: notified!.note,
+      waveId: waveId ?? null,
+      snapshot,
+    };
+    const enqueueReport = () =>
+      set((st) => {
+        const out = enqueueOp(
+          st.offlineQueue,
+          {
+            kind: "sos-report",
+            payload: JSON.stringify({
+              path: "/api/sos/trigger",
+              idempotencyKey: snapshot.snapshotId,
+              body,
+            }),
+          },
+          Date.now()
+        );
+        return { offlineQueue: out.q };
+      });
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      enqueueReport();
+    } else {
+      void fetch("/api/sos/trigger", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then((res) => {
+          if (!res.ok) enqueueReport();
+        })
+        .catch(enqueueReport);
+    }
+    return { record: notified!, targets };
   },
 
   resolveCrisis: (id) =>

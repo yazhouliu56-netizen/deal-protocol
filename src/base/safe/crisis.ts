@@ -4,6 +4,8 @@
  * 纯函数：状态机 + 通知事件，SSR/测试安全。
  */
 
+import type { ISosForensicSnapshot } from "./crisis-tracker.ts";
+
 export type CrisisLevel = 0 | 1 | 2 | 3;
 // 0 无 / 1 轻微不适 / 2 明显危险信号 / 3 极端紧急
 
@@ -19,6 +21,8 @@ export interface CrisisRecord {
   /** 位置留档（爬坡点位，UTC 字符串）。 */
   location?: string;
   resolved: boolean;
+  /** P1-3 一键 SOS 司法证据快照（触发时自动封装；宪法 #2 只增补可选字段）。 */
+  forensicSnapshot?: ISosForensicSnapshot;
 }
 
 export function raiseCrisis(
