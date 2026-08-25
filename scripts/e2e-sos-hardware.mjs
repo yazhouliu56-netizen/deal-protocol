@@ -49,7 +49,7 @@ const browser = await chromium.launch(
       }
 );
 
-isolateBrowserChannels(browser, "sos-hardware");
+isolateBrowserChannels(browser, "sos-hardware", { forceLocal: true });
 let failures = 0;
 const verdictLog = [];
 const step = (ok, label, detail = "") => {

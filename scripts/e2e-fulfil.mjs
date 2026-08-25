@@ -30,7 +30,7 @@ const browser = await chromium.launch(
 );
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
-isolateBrowserChannels(browser, "fulfil");
+isolateBrowserChannels(browser, "fulfil", { forceLocal: true });
 
 let failures = 0;
 

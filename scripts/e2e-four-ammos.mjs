@@ -36,7 +36,7 @@ const browser = await chromium.launch(
 );
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
-isolateBrowserChannels(browser, "four-ammos");
+isolateBrowserChannels(browser, "four-ammos", { forceLocal: true });
 
 /** 记录每枚弹药实测明细，供最终 PASS/FAIL 汇总打印。 */
 const verdicts = [];

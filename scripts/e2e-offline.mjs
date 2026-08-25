@@ -26,7 +26,7 @@ const browser = await chromium.launch(
 );
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
-isolateBrowserChannels(browser, "offline");
+isolateBrowserChannels(browser, "offline", { forceLocal: true });
 
 try {
   // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）

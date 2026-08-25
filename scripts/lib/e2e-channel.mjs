@@ -67,7 +67,10 @@ export function isolateBrowserChannels(browser, scriptName, opts = {}) {
     // forceLocal 惰性求值（2026-08-25 顺序陷阱根治）：必须在 newContext
     // 调用时刻读取 cloudChannelUsable——若在 isolate 调用时提前固化，
     // 「先 isolate 后 reset」的合法顺序会把已就绪的云端通道错标为降级。
-    const forceLocal = !cloudChannelUsable;
+    // opts.forceLocal 显式钉死本地沙盒：p2p_broadcast 表就位后，未注入
+    // 云端 ns 的单机考卷会自动切上 supabase 通道（共享行 oto 串台 +
+    // rehydrate 提前引发 #418 全线回归）——设计假设纯本地的考卷必须显式钉死。
+    const forceLocal = opts.forceLocal === true || !cloudChannelUsable;
     const ctx = await origNewContext(...args);
     await ctx.addInitScript(
       ({ value, forceLocal }) => {

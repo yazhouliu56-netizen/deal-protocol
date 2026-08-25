@@ -155,52 +155,19 @@ export function mergeByIdLevel(
   next: WaveBundle,
   stale = false
 ): WaveBundle {
-  // 生命周期进度定序（2026-08-25 双端 E2E 战役实证缺陷）：多端并发回写下，
-  // 同 id 实体的陈旧快照会把已推进的状态打回旧值（B 的 claimed 被 A 的
-  // active/pending 回写覆盖，履约座舱随之消失）。撮合状态单调前进，
-  // 冲突时取秩更大者；秩相等维持 next-wins。终局态秩最高——取消/过期
-  // 等主动终局不被中间态快照回退。
-  const WAVE_RANK: Record<string, number> = {
-    pending: 0,
-    active: 1,
-    claimed: 2,
-    locked: 3,
-    assembled: 4,
-    closed: 5,
-    expired: 5,
-  };
-  const CLAIM_RANK: Record<string, number> = {
-    offered: 0,
-    negotiating: 1,
-    joined: 2,
-    accepted: 3,
-    withdrawn: 4,
-    breached: 4,
-  };
-  const rankOf = (
-    ranks: Record<string, number>,
-    item: { status?: string }
-  ): number => (item.status ? (ranks[item.status] ?? -1) : -1);
-  const byId = <T extends { id: string; status?: string }>(a: T[], b: T[]): T[] => {
+  // 多端竞态仲裁已下沉至 Postgres p2p_merge_write RPC（行锁内状态进度定序，
+  // 2026-08-25 双端 E2E 战役根治）；本地通道维持 next-wins 基线语义——
+  // 客户端秩合并会改变多 page 协同考卷赖以生存的 storage 事件时序（实证回归），
+  // 两端各归其位：云端原子合并、本地保持简单确定性。
+  const byId = <T extends { id: string }>(a: T[], b: T[]): T[] => {
     const map = new Map<string, T>();
-    const put = (item: T) => {
-      const prev = map.get(item.id);
-      if (!prev) {
-        map.set(item.id, item);
-        return;
-      }
-      const ra = rankOf(WAVE_RANK, prev) >= 0 ? WAVE_RANK : CLAIM_RANK;
-      const rb = rankOf(ra, item);
-      const pr = rankOf(ra, prev);
-      if (pr === -1 && rb === -1) {
-        map.set(item.id, item); // 非状态实体：next-wins
-      } else if (rb > pr || pr === -1) {
-        map.set(item.id, item); // 进度更高者胜
-      }
-      // rb <= pr 且 prev 有秩 → 保留进度更高的既有实体
-    };
-    for (const item of a) put(item);
-    for (const item of b) put(item);
+    if (stale) {
+      for (const item of b) map.set(item.id, item);
+      for (const item of a) map.set(item.id, item); // base 优先，防回退
+    } else {
+      for (const item of a) map.set(item.id, item);
+      for (const item of b) map.set(item.id, item); // next 优先
+    }
     return [...map.values()];
   };
   const baseOver = stale ? { ...next, ...base } : { ...base, ...next };
