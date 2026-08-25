@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
 import { Wallet, ShieldCheck, Star, Zap } from "lucide-react";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -21,7 +22,8 @@ export default function WalletView({ sandbox = false }: { sandbox?: boolean } = 
   const deposits = useIdentityStore((s) => s.deposits);
   const reviews = useWaveStore((s) => s.reviews);
   const recalcCredit = useIdentityStore((s) => s.recalcCredit);
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
+  const now = useMountedNow();
   const halved = quotaHalved(account, now);
   const frozen = deposits
     .filter((d) => d.phase === "held")

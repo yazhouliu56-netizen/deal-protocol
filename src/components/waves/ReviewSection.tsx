@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
 import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -35,7 +36,8 @@ export default function ReviewSection({
   const [score, setScore] = useState(5);
   const [comment, setComment] = useState("");
   const [explainError, setExplainError] = useState(false);
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
+  const now = useMountedNow();
   const [dims, setDims] = useState<ReviewDimensions>({
     punctual: 5,
     attitude: 5,

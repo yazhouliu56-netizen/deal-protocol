@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { AlertTriangle } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/base/order/dispute";
@@ -235,9 +236,8 @@ function DisputeVerdictView({
   const settleDispute = useWaveStore((s) => s.settleDispute);
   const signedDocs = useWaveStore((s) => s.signedDocs);
   const [proposed, setProposed] = useState("30");
-  // Capture now once per mount (steady-clock friendly); avoids impure Date.now()
-  // calls in the render body.
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch
+  const now = useMountedNow();
   const outcome = dispute.outcome;
   // ADR-0012 签章（N7 接线）：验收后生成的签章存根 → 验签展示
   const signed = signedDocs[signedDocs.length - 1];

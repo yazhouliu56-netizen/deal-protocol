@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { Heart, Users } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -18,12 +19,8 @@ export default function FriendList() {
   const acceptFriendRequest = useWaveStore((s) => s.acceptFriendRequest);
   const ignoreFriendRequest = useWaveStore((s) => s.ignoreFriendRequest);
   const sweepFriendRequests = useWaveStore((s) => s.sweepFriendRequests);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(t);
-  }, []);
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
+  const now = useMountedNow(60_000);
 
   // 72h 到期静默撤回
   useEffect(() => {

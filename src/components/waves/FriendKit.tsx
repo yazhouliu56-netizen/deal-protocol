@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
 import { Heart, ShieldCheck, UserPlus } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -29,15 +30,11 @@ export default function FriendKit({
   const sendFriendRequest = useWaveStore((s) => s.sendFriendRequest);
   const acceptFriendRequest = useWaveStore((s) => s.acceptFriendRequest);
   const ignoreFriendRequest = useWaveStore((s) => s.ignoreFriendRequest);
-  const [now, setNow] = useState(() => Date.now());
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-
-  // 72h 倒计时 tick（每 60s），驱动"待确认/待对方确认"文案
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(t);
-  }, []);
+  // use-mounted-now 共享范式（详见 src/lib/use-mounted-now.ts）：首帧 now=0 防
+  // Hydration Mismatch，挂载后立即采样并 60s 周期刷新（render 期零时钟采样，红线 1）。
+  const now = useMountedNow(60_000);
 
   const friends = areFriends(friendships, myId, peerId);
 

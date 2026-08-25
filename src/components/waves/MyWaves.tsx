@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -36,7 +36,19 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const initiatorBuffs = useWaveStore((s) => s.initiatorBuffs);
   const identity = useIdentityStore((s) => s.identity);
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
+  // 挂载后立即采样真实时钟（render 期零时钟采样，红线 1）。
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (!mounted) return;
+    const immediate = window.setTimeout(() => setNow(Date.now()), 0);
+    return () => window.clearTimeout(immediate);
+  }, [mounted]);
 
   const myBuffs = initiatorBuffs[identity.id] ?? 0;
 
@@ -409,7 +421,18 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const [breachOpen, setBreachOpen] = useState(false);
   const [verdictMsg, setVerdictMsg] = useState("");
   const [acceptNote, setAcceptNote] = useState("");
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（同上 idiom）：首帧 now=0 防 Hydration Mismatch，挂载后立即采样。
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (!mounted) return;
+    const immediate = window.setTimeout(() => setNow(Date.now()), 0);
+    return () => window.clearTimeout(immediate);
+  }, [mounted]);
 
   return (
     <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-3 space-y-2.5">

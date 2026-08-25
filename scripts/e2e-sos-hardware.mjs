@@ -65,18 +65,21 @@ try {
   const pageB = await ctx.newPage(); // B = 服务者（接单推进五态）
 
   const errors = [];
-  // 沙盒噪音白名单（console/pageerror 同口径）
+  // 沙盒噪音白名单（console/pageerror 同口径）。零豁免原则：不保留任何
+  // Hydration/#418 容忍项——水合缺陷已治愈，此处出现即真实回归。
+  // THREE.* 两类为第三方边界（登记于 PROJECT_STATUS）：
+  //   - THREE.Clock 弃用告警来自 three.js 库内部 rAF（仓内零处直接调用）；
+  //   - WebGLProgram X4122 为 Windows D3D/ANGLE 着色器编译日志（驱动层）。
+  //   根治需升级 three 大版本/切换渲染后端，属范围外结构性改动待裁定。
   const isNoise = (t) =>
     /429|Failed to load resource|LLM upstream failed|openfreemap/i.test(t) ||
-    // 既有缺陷登记（范围外）：React #418 = SSR hydration 时间类文本 mismatch
-    // （如「240 分钟内有效」倒计时），SOS 点击前即在 A/B 双页出现，与本链路无关。
-    /Minified React error #418/.test(t);
+    /^THREE\.(Clock|WebGLProgram)/.test(t);
   for (const [tag, page] of [["A", pageA], ["B", pageB]]) {
     page.on("console", (m) => {
-      if (m.type() !== "error") return;
+      if (m.type() !== "error" && m.type() !== "warning") return;
       const t = m.text();
       if (isNoise(t)) return;
-      errors.push(`[${tag}] ${t}`);
+      errors.push(`[${tag}] ${m.type()}: ${t}`);
     });
     page.on("pageerror", (e) => {
       if (isNoise(String(e))) return;

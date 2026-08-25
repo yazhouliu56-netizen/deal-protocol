@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { MessageSquare, Phone, PhoneCall } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -49,12 +50,9 @@ export default function ContactCard({
   }, []);
   const pendingIm = offlineQueue.filter((q) => !q.done && q.op.kind === "sendIm").length;
 
-  // 会话倒计时/过期判定实时刷新（30s 周期，避免挂载后冻结）
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
+  // 会话倒计时/过期判定实时刷新（30s 周期，避免挂载后冻结）。
+  // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
+  const now = useMountedNow(30_000);
   const found = findSession(sessions, waveId, me, now);
   const session = found?.session;
   const live = found?.live ?? false;

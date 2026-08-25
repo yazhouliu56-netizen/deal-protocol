@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { Clock, Clock3, MapPin, Zap, Users, Flag, UserPlus, Heart } from "lucide-react";
 import type { Wave } from "@/base/order/wave";
 import { neededJoiners, perSeatPrice } from "@/base/order/wave";
@@ -62,7 +63,9 @@ export default function WaveCard({
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   const [note, setNote] = useState("");
   const [committed, setCommitted] = useState(false);
-  const [now] = useState(() => Date.now());
+  // SSR/首帧同构探针（use-mounted-now 共享范式）：首帧 now=0 两端一致防 Hydration
+  // Mismatch，挂载后立即采样真实时钟（render 期零时钟采样，红线 1）。
+  const now = useMountedNow();
 
   const isFav = favorites.includes(wave.id);
 
