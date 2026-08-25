@@ -48,10 +48,17 @@ function exists(p) { return fs.existsSync(path.join(ROOT, p)); }
 {
   const checks = [
     {
-      file: "src/app/(oto)/page.tsx",
+      // Step 3-B（c8d5138）巨石拆解后 otoExperiences 渲染消费迁入 _components/CartSheet.tsx，
+      // page.tsx 本体保留纯负向 mockData 禁令断言（锚点随迁修正）。
+      file: "src/app/(oto)/_components/CartSheet.tsx",
       expect: /from\s+["']@\/ammo\/experience-catalog["']/,
       forbid: /from\s+["']@\/lib\/mockData["'].*otoExperiences/,
-      label: "(oto)/page.tsx → @/ammo/experience-catalog",
+      label: "(oto)/_components/CartSheet.tsx → @/ammo/experience-catalog",
+    },
+    {
+      file: "src/app/(oto)/page.tsx",
+      forbid: /from\s+["']@\/lib\/mockData["'].*otoExperiences/,
+      label: "(oto)/page.tsx 禁旧 mockData（正向 import 已迁 _components）",
     },
     {
       file: "src/components/oto-ui/3d/SceneTemplate.tsx",
@@ -138,10 +145,10 @@ function exists(p) { return fs.existsSync(path.join(ROOT, p)); }
       ok('eslint.config.mjs 已启用 "no-console": ["error", { allow: ["warn","error"] }]');
     } else fail('eslint.config.mjs 未正确配置 no-console 规则');
 
-    // 豁免面校验：scripts/**、e2e/**、**/*.test.*、**/*.spec.*、src/lib/**、src/modules/**、SplitDemandView
-    const expectedIgnores = ["scripts/**", "e2e/**", "*.test.", "*.spec.", "src/lib/**", "src/modules/**", "SplitDemandView"];
+    // 豁免面校验：scripts/**、e2e/**、**/*.test.*、**/*.spec.*、src/lib/**、src/modules/**（SplitDemandView 已于 8a7839a 出清，同步移除断言）
+    const expectedIgnores = ["scripts/**", "e2e/**", "*.test.", "*.spec.", "src/lib/**", "src/modules/**"];
     const missing = expectedIgnores.filter((k) => !c.includes(k));
-    if (missing.length === 0) ok("no-console 豁免面完整（scripts/e2e/test/spec/lib/modules/SplitDemandView）");
+    if (missing.length === 0) ok("no-console 豁免面完整（scripts/e2e/test/spec/lib/modules）");
     else fail(`no-console 豁免面缺失: ${missing.join(", ")}`);
   }
 
@@ -165,8 +172,7 @@ function exists(p) { return fs.existsSync(path.join(ROOT, p)); }
       relPath.includes(".test.") ||
       relPath.includes(".spec.") ||
       relPath.startsWith("src/lib/") ||
-      relPath.startsWith("src/modules/") ||
-      relPath.includes("SplitDemandView.tsx")
+      relPath.startsWith("src/modules/")
     );
   }
   const srcFiles = walk(path.join(ROOT, "src"));

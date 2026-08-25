@@ -19,7 +19,7 @@
 
 | # | 路由路径 | 状态 | 调用方证据（页面/组件/SDK/服务） |
 |---|---------|------|-------------------------------|
-| 1 | `/api/chat` | [🟢 生产活跃在用] | `base/ai/chat/llmEngine.ts`、`llmGuard.ts`、`base/ai/voice/voiceIntent.ts`、`components/SplitDemandView.tsx` |
+| 1 | `/api/chat` | [🟢 生产活跃在用] | `base/ai/chat/llmEngine.ts`、`llmGuard.ts`、`base/ai/voice/voiceIntent.ts` |
 | 2 | `/api/waves/chat` | [🟢 生产活跃在用] | `base/ai/chat/llmEngine.ts`（waves 场景链） |
 | 3 | `/api/voice-intent` | [🟢 生产活跃在用] | `base/ai/voice/voiceIntent.ts`、`oto-ui/chat/ChatPage.tsx` |
 | 4 | `/api/cluster` | [🟢 生产活跃在用] | `base/ai/cluster.ts`、`store/useWaveStore.ts` |
@@ -30,7 +30,7 @@
 | 9 | `/api/tts` | [🟢 生产活跃在用] | `base/ai/voice/ttsClient.ts` |
 | 10 | `/api/ai/match` | [🟢 生产活跃在用] | `app/developer/radar/page.tsx` |
 | 11 | `/api/sse` | [🟢 生产活跃在用] | `lib/use-sse.ts` |
-| 12 | `/api/demands` | [🟢 生产活跃在用] | `demands/page.tsx`、`demands/create/page.tsx`、`landing/page.tsx`、`SplitDemandView.tsx`、`demands/[id]/page.tsx` |
+| 12 | `/api/demands` | [🟢 生产活跃在用] | `landing/page.tsx`、`demands/[id]/page.tsx`（⚠️ demands 页面群与 SplitDemandView 已于 d9e64f0/8a7839a 出清，本行消费方证据待下轮台账重验刷新） |
 | 13 | `/api/demands/[id]` | [🟢 生产活跃在用] | `demands/[id]/page.tsx` |
 | 14 | `/api/demands/[id]/assign` | [🟢 生产活跃在用] | `GrabConsole.tsx`、`ProviderConsole.tsx`、`SwipeableCard.tsx` |
 | 15 | `/api/demands/[id]/status` | [🟢 生产活跃在用] | `provider/orders/[id]/OrderFulfillmentClient.tsx` |
@@ -249,13 +249,13 @@
 | `ProviderConsole.tsx` | [🟢 正常在用] | `provider/page.tsx`（消费 `/api/provider/*`、`/api/demands/[id]/assign` 等 7 个 API） |
 | `GrabConsole.tsx` | [🟢 正常在用] | `provider/grab/[id]/GrabConsoleClientWrapper.tsx` |
 | `SwipeableCard.tsx` | [🟢 正常在用] | `provider/incoming/IncomingListClient.tsx` |
-| `SplitDemandView.tsx` | [🟢 正常在用] | `demands/new/page.tsx`（动态 import；消费 `/api/demands`、`/api/chat`、VoiceMicButton） |
-| `SmartProtocolCard.tsx` | [🟢 正常在用] | `chat/[id]/page.tsx`、`lib/chat-component-registry.tsx`、`lib/genui-renderer.tsx` |
-| `CreditDashboard.tsx` | [🟢 正常在用] | `chat/[id]/page.tsx` |
-| `MediaPicker.tsx` | [🟢 正常在用] | `demo/page.tsx`、`SmartProtocolCard.tsx` |
-| `PriceSlider.tsx` | [🟢 正常在用] | `demo/page.tsx`、`SmartProtocolCard.tsx` |
+| `SplitDemandView.tsx` | [🗑 已出清] | ~~demands/new/page.tsx 动态 import~~ → 宿主页面群已删成孤儿，次生出清（2026-08-24 `8a7839a` git rm，-665 行） |
+| `SmartProtocolCard.tsx` | [🗑 已出清] | ~~chat/[id]/page.tsx、lib/chat-component-registry.tsx、genui-renderer~~ → 消费方全部随旧宇宙消亡，次生出清（2026-08-24 `8a7839a` git rm，-515 行） |
+| `CreditDashboard.tsx` | [🗑 已出清] | ~~chat/[id]/page.tsx~~ → 宿主页面已删，次生出清（2026-08-24 `8a7839a` git rm，-123 行） |
+| `MediaPicker.tsx` | [🗑 已出清] | ~~demo/page.tsx、SmartProtocolCard~~ → 次生出清（2026-08-24 `8a7839a` git rm，-93 行） |
+| `PriceSlider.tsx` | [🗑 已出清] | ~~demo/page.tsx、SmartProtocolCard~~ → 次生出清（2026-08-24 `8a7839a` git rm，-107 行） |
 | `WithdrawModal.tsx` | [🟢 正常在用] | `finance/page.tsx`（消费 `/api/finance/withdraw`） |
-| `VoiceMicButton.tsx` | [🟢 正常在用] | `SplitDemandView.tsx` |
+| `VoiceMicButton.tsx` | [🗑 已出清] | ~~SplitDemandView~~ → 唯一消费者已删，级联次生出清（2026-08-24 `8a7839a` git rm，-162 行） |
 | `MapComponent.tsx` | [🗑 已出清] | ~~Leaflet 双轨~~ → 履约页已迁移 MapLibre `MapView`（Batch 4 C15 收敛，`git rm` 删除 + leaflet 依赖出清） |
 | `providers/UXProvider.tsx` | [🟢 正常在用] | `app/layout.tsx` |
 | `providers/NotificationProvider.tsx` | [🟢 正常在用] | `components/NotificationCenter.tsx`（旧版 C2）+ 跨帧通知 |
@@ -299,7 +299,7 @@
 | ⛔ 白名单豁免 | `modules/m03-category-config`、`m05-geo-index`、`m08-bandit`、`lib/semantic-matcher.ts` | 非死代码：`api/demands/route.ts`(保留血液)→`m06/matcher`→四项传递依赖 + tests 8 文件锁定；留待批次 2 随 demands 弹药化改道一并消化 |
 | ⛔ 扫描命中改判保留 | `app/console/`（C16 归编 redirect 垫片）、`app/verification/`（GrabConsole/ProviderConsole 工作流链接） | 不删 |
 | 🔧 同批改道 ×7 | `sitemap.ts`（死链×4+demands 动态块）、`robots.ts`（11 行陈旧路径）、`dp/page.tsx`（nav+CTA 5 链→`/dp/console`）、`components/Header.tsx`（桌面/移动 nav+dropdown 死项移除，发布悬赏→`/`）、`app/rights/page.tsx`（dashboard 链→`/`）、`api/auth/wechat/callback`（redirect→`/?auth=open`）、`e2e/production-smoke.spec.ts`（CI 门禁改指存活路由） | 消除指向已删页面的死链与断言 |
-| 🆕 新登记孤儿 | `components/SplitDemandView.tsx` | 宿主页面已删 → 0 消费者确认孤儿，内含死链 push("/orders")/push("/dashboard")；推荐彻底删除（随 C 组下一轮出清） |
+| ✅ 已出清（2026-08-24 `8a7839a`） | ~~`components/SplitDemandView.tsx`~~ + 级联次生孤儿共 7 组件 | SplitDemandView/SmartProtocolCard/CreditDashboard/MediaPicker/PriceSlider/VoiceMicButton/chat-component-registry 全部 `git rm`（合计 -2077 行），src+scripts 全仓 grep 零 import 残留（仅 genui-renderer deprecation 注释存档） |
 
 ---
 
