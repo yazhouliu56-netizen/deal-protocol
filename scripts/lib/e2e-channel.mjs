@@ -62,9 +62,12 @@ let cloudChannelUsable = false;
  */
 export function isolateBrowserChannels(browser, scriptName, opts = {}) {
   const ns = e2eChannelNs(scriptName);
-  const forceLocal = !cloudChannelUsable;
   const origNewContext = browser.newContext.bind(browser);
   browser.newContext = async (...args) => {
+    // forceLocal 惰性求值（2026-08-25 顺序陷阱根治）：必须在 newContext
+    // 调用时刻读取 cloudChannelUsable——若在 isolate 调用时提前固化，
+    // 「先 isolate 后 reset」的合法顺序会把已就绪的云端通道错标为降级。
+    const forceLocal = !cloudChannelUsable;
     const ctx = await origNewContext(...args);
     await ctx.addInitScript(
       ({ value, forceLocal }) => {

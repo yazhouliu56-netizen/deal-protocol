@@ -10,6 +10,7 @@
  */
 
 import type { WaveBundle } from "@/types/wave-bundle";
+import { createSupabaseTransport } from "@/base/platform/p2p/supabase";
 
 export interface P2pTransport {
   kind: "local" | "supabase";
@@ -84,13 +85,16 @@ function createTransport(): P2pTransport {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && key) {
-    // dynamic require keeps the bundle free of supabase on the local path
+    // 静态 import（2026-08-25 缺陷修复）：原 CommonJS require 在 turbopack
+    // 生产构建下产生不存在的 chunk 引用（r(93756)），运行时抛错被 catch 吞掉，
+    // 导致跨设备同步永久静默降级本地。函数级 ESM 循环引用（supabase.ts ←→
+    // transport.ts 双方顶层均无互调执行）运行时安全，正确性优先于 bundle 体积。
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mod = require("@/base/platform/p2p/supabase");
-      return mod.createSupabaseTransport(url, key, ns);
-    } catch {
-      // supabase dependency not installed → local fallback
+      return createSupabaseTransport(url, key, ns);
+    } catch (err) {
+      // 降级必须留痕：静默吞掉会让「跨设备同步失效」成为不可诊断的暗故障
+      console.warn("[p2p] supabase transport init failed → local fallback:", err);
+      // supabase client 构造异常（无效 URL 等）→ local fallback（宪法 #10）
     }
   }
   return createLocalTransport(ns);
@@ -151,15 +155,52 @@ export function mergeByIdLevel(
   next: WaveBundle,
   stale = false
 ): WaveBundle {
-  const byId = <T extends { id: string }>(a: T[], b: T[]): T[] => {
+  // 生命周期进度定序（2026-08-25 双端 E2E 战役实证缺陷）：多端并发回写下，
+  // 同 id 实体的陈旧快照会把已推进的状态打回旧值（B 的 claimed 被 A 的
+  // active/pending 回写覆盖，履约座舱随之消失）。撮合状态单调前进，
+  // 冲突时取秩更大者；秩相等维持 next-wins。终局态秩最高——取消/过期
+  // 等主动终局不被中间态快照回退。
+  const WAVE_RANK: Record<string, number> = {
+    pending: 0,
+    active: 1,
+    claimed: 2,
+    locked: 3,
+    assembled: 4,
+    closed: 5,
+    expired: 5,
+  };
+  const CLAIM_RANK: Record<string, number> = {
+    offered: 0,
+    negotiating: 1,
+    joined: 2,
+    accepted: 3,
+    withdrawn: 4,
+    breached: 4,
+  };
+  const rankOf = (
+    ranks: Record<string, number>,
+    item: { status?: string }
+  ): number => (item.status ? (ranks[item.status] ?? -1) : -1);
+  const byId = <T extends { id: string; status?: string }>(a: T[], b: T[]): T[] => {
     const map = new Map<string, T>();
-    if (stale) {
-      for (const item of b) map.set(item.id, item);
-      for (const item of a) map.set(item.id, item); // base 优先，防回退
-    } else {
-      for (const item of a) map.set(item.id, item);
-      for (const item of b) map.set(item.id, item); // next 优先
-    }
+    const put = (item: T) => {
+      const prev = map.get(item.id);
+      if (!prev) {
+        map.set(item.id, item);
+        return;
+      }
+      const ra = rankOf(WAVE_RANK, prev) >= 0 ? WAVE_RANK : CLAIM_RANK;
+      const rb = rankOf(ra, item);
+      const pr = rankOf(ra, prev);
+      if (pr === -1 && rb === -1) {
+        map.set(item.id, item); // 非状态实体：next-wins
+      } else if (rb > pr || pr === -1) {
+        map.set(item.id, item); // 进度更高者胜
+      }
+      // rb <= pr 且 prev 有秩 → 保留进度更高的既有实体
+    };
+    for (const item of a) put(item);
+    for (const item of b) put(item);
     return [...map.values()];
   };
   const baseOver = stale ? { ...next, ...base } : { ...base, ...next };

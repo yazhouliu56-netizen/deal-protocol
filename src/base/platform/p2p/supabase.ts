@@ -109,8 +109,13 @@ export function createSupabaseTransport(
         .eq("id", ROW_ID)
         .maybeSingle();
       if (error) {
-        // 表缺失 → 确定性降级本地；其它错误（RLS/网络）静默保缓存
-        if (isMissingTable(error)) degrade();
+        // 表缺失 → 确定性降级本地（留痕）；其它错误（RLS/网络）保缓存并留痕
+        if (isMissingTable(error)) {
+          console.warn("[p2p] boot-pull hit missing-table → degrade to local:", error.message ?? error);
+          degrade();
+        } else {
+          console.warn("[p2p] boot-pull failed (cache kept):", error.message ?? error);
+        }
         return;
       }
       if (!data) return;
@@ -140,12 +145,22 @@ export function createSupabaseTransport(
       () => void pull()
     )
     .subscribe((status, err) => {
-      // Realtime 订阅失败（如表未开 Realtime / 表不存在）→ 静默降级本地，
-      // 不向控制台抛错；其余通道错误继续保留 supabase 通道（自动重试）。
-      if (status === "CHANNEL_ERROR" && err && isMissingTable(err)) {
-        degrade();
+      // Realtime 订阅失败（如表未开 Realtime / 表不存在）→ 表缺失确定性降级本地；
+      // 其它通道错误保留 supabase 通道（自动重试）。降级/异常必须留痕——
+      // 静默吞错会让「跨端同步失效」成为不可诊断的暗故障（2026-08-25 教训）。
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.warn(
+          `[p2p] realtime channel ${status}:`,
+          err ? JSON.stringify(err).slice(0, 200) : "(no err detail)"
+        );
+        if (err && isMissingTable(err)) degrade();
       }
     });
+
+  // 写串行队列（2026-08-25 statement_timeout 实证）：store 一次交互触发多次
+  // set → 多个 write RPC 并发打同行锁 → 锁等待撞服务端 statement_timeout。
+  // 端内串行化消除自竞争；跨端仍由行锁仲裁。失败单次重试后留痕降级。
+  let writeQueue: Promise<void> = Promise.resolve();
 
   return {
     kind: "supabase",
@@ -163,19 +178,34 @@ export function createSupabaseTransport(
         localFallback.write(state);
         return;
       }
-      void client
-        .from(TABLE)
-        .upsert({ id: ROW_ID, state, updated_at: new Date().toISOString() })
-        .then(({ error }) => {
-          if (!error) return;
+      const run = async (): Promise<void> => {
+        const attempt = async (): Promise<boolean> => {
+          const { error } = await client.rpc("p2p_merge_write", {
+            p_id: ROW_ID,
+            p_next: state,
+          });
+          if (!error) {
+            return true;
+          }
           if (isMissingTable(error)) {
-            // 云端表缺失：落本地并完成降级（幂等），此后再无云端写请求
+            // 云端函数/表缺失：落本地并完成降级（幂等），此后再无云端写请求
             degrade();
             localFallback.write(state);
-            return;
+            return true;
           }
-          // 其它写入错误（RLS 拒绝 / 网络抖动）：静默保缓存（红线 5 确定性降级）
-        });
+          throw error;
+        };
+        try {
+          await attempt().catch(() => attempt()); // 单次重试（statement timeout 场景）
+        } catch (err) {
+          // 写入错误（RLS 拒绝 / 网络抖动 / 超时重试仍败）：留痕后保缓存（红线 5）。
+          console.warn(
+            "[p2p] cloud merge_write failed (state kept in cache):",
+            err instanceof Error ? err.message : err
+          );
+        }
+      };
+      writeQueue = writeQueue.then(run, run);
     },
     subscribe: (cb) => {
       listeners.add(cb);

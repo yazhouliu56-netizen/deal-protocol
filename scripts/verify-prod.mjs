@@ -24,6 +24,8 @@ const suite = [
   "e2e-fulfil.mjs",
   "e2e-governance.mjs",
   "e2e-offline.mjs",
+  // 真实双端真人接单履约（云端 p2p_broadcast 通道 + 原子合并写，2026-08-25 战役收口）
+  "e2e-dual-role-human.mjs",
 ];
 
 const run = (cmd, label) => {
