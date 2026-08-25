@@ -46,8 +46,8 @@
 | P0 工程化（Zustand/Framer） | ✅ | 08-03 |
 | P1 3D 栈（R3F 组件化） | ✅ | |
 | P2 UI 设计系统 | ✅ | |
-| P3 真实地图 | ⏳ 待办（先数据化 lat/lng → Leaflet+OSM 免费接入，见「六」） | |
-| P4 Supabase 化 | ⚠️ 仅 `p2p_broadcast` 单表实时广播；**本地无 ANON key 时 transport 自动降级为 local**（同设备多 tab 仍可用，见 `base/platform/p2p/transport.ts`） | |
+| P3 真实地图 | ✅ ADR-0004 MapLibre GL JS + OpenFreeMap 3D 矢量瓦片（pitch 建筑立体 extrusion + FlyTo 光点定位 + S1 CSS 热力图降级兜底 + Leaflet 依赖物理清退） | |
+| P4 Supabase 化 | ✅ 云端落盘扩容：src 运行时消费 40 张 Supabase 表（orders 五态机 / order_state_logs / split_records / order_seats / disputes 18 列 / push_subscriptions 等）+ Write-Behind 离线容灾（orderSlice/paySlice/offlineQueue 等六处接线）+ p2p_broadcast 实时探针降级（本地无 ANON key 自动降级 local） | |
 | P5 PWA 深化 | ✅ 已实测验证：`deviceMemory=2` 降级生效（DPR 锁 1/粒子减半）+ 离线全流程 5 屏可浏览 + lounge.glb 预缓存命中 |
 | P1-P7 waves 撮合闭环 | ✅ `11f703e`（P2P 广播/磋商/鸽子险/评价/治理/信任，6 E2E 进 CI） | |
 | 开放局/拼位 Open Match | ✅ `44aabe2`（拼位/满员成局/人均价，3 tab E2E） | |
@@ -157,6 +157,8 @@
 - [x] **ADR-0006 O2O 万能底座蓝图定稿** ✅（本批完成文档层：RPG 设计哲学 → 六层防御圈 22 模块 + 本地现状映射（🟢8 / 🟡11 / 🔴7）+ 融合顺序定策 = 先蓝图定稿 → 再融合 web/mobile 按圈切分底座 → 再功能层迭代；后续融合期任务按圈/模块粒度排布）
 - [x] **ADR-0007 底座融合执行（第一批）** ✅（本批完成：嫁接映射表定稿（web 83 lib 文件切割归属 + C1-C5 接口契约）→ **`src/base/` 共享层落地**：money 11（ledger/pay/deposit/bidding/customPricing/organizerSubscription）× trust 12（reputation/trust/starRank/review/violation/friends）× order 10（wave/booking/fulfilment/moduleFulfilment/dispute）× dispatch 4 × risk 6 × geo 8 × notify 4 × platform 22（含 p2p）× ai 23（含 gateway/voice 目录）→ 全量 git mv 保历史 + 调用方 import 全改；**`src/ammo/` 弹药属性表落地**（scene-template/prefs 迁入 + pricing-formula/dispatch-rule/risk-rule 新建，C3/C4/C5 契约兑现，新增类目只填表）→ 单测 303 全绿（+5 ammo）、tsc/lint 0 错、build 通过（8 API 路由正常）
 
+
+| **文档债清零：P3/P4 过时行纠偏 + 白皮书 L1-M1 口径对齐** | ✅ 纯文档批次（核仓闸门先行）：① P3 行 ⏳→✅ ADR-0004 MapLibre GL JS + OpenFreeMap 3D 矢量瓦片（pitch 建筑立体 extrusion + FlyTo + S1 CSS 降级兜底 + Leaflet 物理清退）；② P4 行 ⚠️单表→✅ src 运行时消费 40 张 Supabase 表（.from() 实测）+ Write-Behind 六处接线 + disputes 18 列实证；③ 白皮书 §4.3 L1-M1 🟡→🟢（PublishFormSchemaBridge AST 分支 enum/number/boolean 实测，消除「四形态」虚概括与「🟡需补齐」残留）；参谋部初版文案中「9/9 物理表」经核仓证伪为 40 张后修订执行 | 2026-08-25 |
 ## 七、支付模型定稿（2026-08-05，已落地，历史参考）
 
 - 三总纲：不设余额门槛，但**必须付单上金额才能上线**；钱包=留存工具（退款/补偿原路或入钱包）；**钱不到位动作不生效**（拼位即付才算占位）
@@ -168,7 +170,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-25 ｜ HEAD：`f38184a`（React #418 水合清零 + 终态完全体封板 ✅）｜ 摘要：use-mounted-now 共享挂载探针治愈 8 渲染点（render 期零时钟采样）；e2e-sos-hardware 物理摘除 #418 过滤器+warn 同口径采集，未过滤零告警 PASS；THREE.* 三方边界白名单登记；门禁 tsc 0 + lint 0/0 + **1646/1646 (650+996)** + build 0 + verify-prod 12/12 + four-ammos PASS + e2e-sos-hardware PASS + 收敛 exit 0
+> 日期：2026-08-25 ｜ HEAD：`1613c09`（Verification Gate 物理实证锚定版 + 文档债清零 ✅）｜ 摘要：use-mounted-now 共享挂载探针治愈 8 渲染点（render 期零时钟采样）；e2e-sos-hardware 物理摘除 #418 过滤器+warn 同口径采集，未过滤零告警 PASS；THREE.* 三方边界白名单登记；门禁 tsc 0 + lint 0/0 + **1646/1646 (650+996)** + build 0 + verify-prod 12/12 + four-ammos PASS + e2e-sos-hardware PASS + 收敛 exit 0
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|

@@ -297,7 +297,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
   - **L3 AI 神经**：LLM 意图解析转单（L3-M1，已 🟢）+ 智能仲裁小法官（L3-M3，已 🟢）+ 向量撮合推荐（L3-M2，Embedding 可选链接通）+ AIGC 图像鉴真（L3-M4，已 🟢 五信号融合闭环）。
   - **标杆弹药**：`meetup.ammo.ts`（⏳ **延期引信** `DELAY_FUZE_TEMPLATE`：预付定金冻结 + LBS 电子围栏解锁 + 反赌反诈过滤）+ `companion.ammo.ts`（📡 **近炸引信** `PROXIMITY_FUZE_TEMPLATE`：虚拟号 + 模糊定位 + AI 敏感词干预 + 一键 SOS）。
 - **阶段验收**：同底座换弹药（meetup ↔ companion）零 base 修改；引信随弹药切换（DELAY ↔ PROXIMITY）勾选即生效；跨场景钱包通兑（L2-M4）+ 信用飞轮（L2-M6，宪法 #6）。
-- **现状标注**：L3-M1 / M2 / M3 / M4 已 🟢（确定性版 + 五信号鉴真闭环）；**L2-M2 已 🟢（2026-08-17 第三波终局攻坚：潮汐动态溢价 + D2 护栏钳制闭环）**；L1-M1 为 🟡 需补齐；跨场景钱包通兑 ⚪️。
+- **现状标注**：L3-M1 / M2 / M3 / M4 已 🟢（确定性版 + 五信号鉴真闭环）；**L2-M2 已 🟢（2026-08-17 第三波终局攻坚：潮汐动态溢价 + D2 护栏钳制闭环）**；**L1-M1 已 🟢（P1-5 战役闭环：PublishFormSchemaBridge 声明式驱动 PublishSheet，schema 字段 enum/number/boolean 分支渲染）**；跨场景钱包通兑 ⚪️。
 
 ### 4.4 Phase 3：规模壁垒期（10 ➔ 100）
 
