@@ -15,7 +15,7 @@
  *     60 分钟基准）；地板 30 元 / 天花板 3000 元（3000/300000 分）；增项加价
  *     熔断 ≤50%；技能分（SKILL_LEVEL）定向折抵 ≤30%（引擎保守位：评估器
  *     evaluateDepositWaiver 对 SKILL_LEVEL 维度零折抵，声明保留语义）。
- *   - D3 风控引信：💥 IMPACT_FUZE_TEMPLATE（碰炸引信：入户高财产 + 双拍存证）。
+ *   - D3 风控引信：💥 IMPACT_INHOME_FUZE_TEMPLATE（碰炸·入户武装版：高财产双拍存证 + SOS 四开关全开）。
  *   - D4 传感降级：GPS 围栏 + 水印相机；失效逐级回退基站粗定位/人工照片
  *     审核/原生摄像头。
  *   - D5 正向钩子：ArrivalCheckHook（到点履约）+ OnsiteQuoteHook（现场增项
@@ -34,7 +34,7 @@ import type {
   IAmmoDefinition,
   IHolographicAmmoConfig,
 } from "../types/ammo-schema.ts";
-import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
+import { IMPACT_INHOME_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
 
 /* =====================================================================
@@ -81,8 +81,8 @@ export const APPLIANCE_REPAIR_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
     maxWaiverPercentage: 0.3,
   },
 
-  /* D3 风控引信（💥 碰炸：入户高财产 + 双拍存证 + 强实名） */
-  fuzePolicy: IMPACT_FUZE_TEMPLATE,
+  /* D3 风控引信（💥 碰炸·入户武装版：高财产双拍存证 + 强实名 + SOS 四开关全开） */
+  fuzePolicy: IMPACT_INHOME_FUZE_TEMPLATE,
 
   /* D4 传感降级（零信任物理感知 · 宪法 #10） */
   requiredSensors: ["GPS_GEOFENCE", "WATERMARK_CAMERA"],

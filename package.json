@@ -38,7 +38,8 @@
     "test:smoke": "playwright test e2e/production-smoke.spec.ts",
     "db:migrate": "supabase db push",
     "db:types": "supabase gen types typescript --local > src/types/database.types.ts",
-    "db:seed": "tsx scripts/seed-local.ts"
+    "db:seed": "tsx scripts/seed-local.ts",
+    "test:e2e:sos-hardware": "node scripts/e2e-sos-hardware.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.9",

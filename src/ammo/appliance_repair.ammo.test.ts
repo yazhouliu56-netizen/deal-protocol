@@ -18,7 +18,7 @@ import {
   evaluateAmmoFuze,
 } from "../base/ammo/runner.ts";
 import { evaluateTriCreditAdmission } from "../base/trust/tri-credit.ts";
-import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
+import { IMPACT_INHOME_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import type { ITriDimensionalCredit } from "../types/ammo-schema.ts";
 import {
   DEFAULT_AMMO,
@@ -78,9 +78,14 @@ test("弹药装备完整性：appliance-repair-v1 声明式装填无误", () => 
     formulaId: "appliance-repair-formula",
     params: { baseRate: 30, baseDurationMin: 60 },
   });
-  assert.deepEqual(applianceRepairAmmo.fuzePolicy, IMPACT_FUZE_TEMPLATE);
+  assert.deepEqual(applianceRepairAmmo.fuzePolicy, IMPACT_INHOME_FUZE_TEMPLATE);
   assert.equal(applianceRepairAmmo.fuzePolicy.fuzeTypes.length, 1);
   assert.deepEqual(applianceRepairAmmo.fuzePolicy.fuzeTypes, ["IMPACT"]);
+  /* P1-3 加固：入户武装版 SOS 四开关全开（指挥官裁决 2026-08-25，宪法 #5） */
+  assert.equal(applianceRepairAmmo.fuzePolicy.sos.enabled, true);
+  assert.equal(applianceRepairAmmo.fuzePolicy.sos.autoLocationReport, true);
+  assert.equal(applianceRepairAmmo.fuzePolicy.sos.autoEvidenceAppend, true);
+  assert.equal(applianceRepairAmmo.fuzePolicy.sos.notifyEmergencyContacts, true);
   assert.equal(applianceRepairAmmo.fiveStateHooks.length, 3);
   assert.ok(
     applianceRepairAmmo.fiveStateHooks.some((h) => h.hookId === "operator.arrival-check")

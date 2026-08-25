@@ -155,3 +155,20 @@ export const PROXIMITY_FUZE_TEMPLATE: IFuzePolicy = {
     notifyEmergencyContacts: true,
   },
 };
+
+/**
+ * 预置模板：💥碰炸·入户武装版（入户重背调类目专用，宪法 #2 只增补派生）。
+ * IMPACT 全量身份不变（背调 HARD + 押金 20% + 双拍存证 + 财产险），
+ * 增配一键 SOS 四开关全开——进家入户品类默认武装轨迹上报与录音存证
+ * （宪法 #5 引信跟弹药走；2026-08-25 指挥官裁决正式启用）。
+ */
+export const IMPACT_INHOME_FUZE_TEMPLATE: IFuzePolicy = Object.freeze({
+  ...IMPACT_FUZE_TEMPLATE,
+  fuzeId: "fuze-impact-inhome",
+  sos: {
+    enabled: true,
+    autoLocationReport: true,
+    autoEvidenceAppend: true,
+    notifyEmergencyContacts: true,
+  },
+});

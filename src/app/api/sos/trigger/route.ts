@@ -8,7 +8,7 @@ import {
 } from "@/base/safe/crisis-tracker";
 // P1-3：权威存证哈希 SSOT（批次 3b「A 写 B 验」——客户端预指纹不可信，服务端重算固化）。
 import { computeEvidenceHash } from "@/base/safe/evidence-chain";
-import { getSupabase } from "@/lib/supabase-client";
+import { getServiceClient } from "@/lib/supabase-client";
 
 const VALID_LEVELS = [0, 1, 2, 3];
 
@@ -65,11 +65,12 @@ export async function POST(request: Request) {
     );
 
     // 有单场景 best-effort 锚点落盘 order_state_logs（hook_payload JSONB 承载快照与权威哈希；
-    // 本地沙盒无 orders 行 / 表缺失时静默降级，绝不阻断报警——宪法 #10）。
+    // 服务端 service client 权威写绕过 anon RLS——审计链由服务端固化；本地沙盒无 orders 行 /
+    // 表缺失时静默降级，绝不阻断报警——宪法 #10）。
     let persisted = false;
     if (waveId) {
       try {
-        const { error } = await getSupabase()
+        const { error } = await getServiceClient()
           .from("order_state_logs")
           .insert({
             order_no: waveId,
