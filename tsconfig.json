@@ -31,12 +31,6 @@
       ],
       "@/*": [
         "./src/*"
-      ],
-      "@deal-protocol/credit-formula": [
-        "./packages/credit-formula/index.ts"
-      ],
-      "@daviekong/payment-core": [
-        "./packages/payment-core/index.ts"
       ]
     },
     "plugins": [
