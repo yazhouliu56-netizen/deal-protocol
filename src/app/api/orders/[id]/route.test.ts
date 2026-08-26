@@ -58,8 +58,8 @@ vi.mock("@/base/order/protocol-definitions", () => ({
   }),
 }))
 
-vi.mock("@/lib/payment", () => ({
-  createPayment: vi.fn(),
+vi.mock("@/adapters/payment/registry", () => ({
+  createPaymentVia: vi.fn(async () => ({ success: true, providerPaymentId: "pi_test" })),
   getAvailablePaymentChannels: () => [],
 }))
 

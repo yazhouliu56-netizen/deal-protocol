@@ -2,8 +2,9 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
-import { alipayService } from "@/lib/alipay-service";
-import { wechatPayService } from "@/lib/wechat-pay-service";
+import {
+  getPaymentRegistry,
+} from "@/adapters/payment/registry";
 import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit";
 import Stripe from "stripe";
 
@@ -96,23 +97,31 @@ export const POST = withAuth(async (req, user) => {
   }
 
   if (channel === "alipay") {
-    const payUrl = alipayService.generatePaymentUrl({
-      outTradeNo: contract.id,
+    // P1-5 改道：沙盒演示链路经 PaymentRegistry 沙盒变体通道（无签名 URL +
+    // Mock 降级语义逐字守恒）。
+    const result = await getPaymentRegistry().get("alipay", "sandbox").createPayment({
+      orderId: contract.id,
       amount: contract.amount,
-      subject: `订单支付: ${contract.id.slice(0, 8)}...`,
+      description: `订单支付: ${contract.id.slice(0, 8)}...`,
     });
 
     return NextResponse.json({
       success: true,
       channel: "alipay",
-      payUrl,
+      payUrl: result.payUrl,
       contractId: contract.id,
     });
   }
 
   if (channel === "wechat") {
     const prepayId = `mock_${crypto.randomUUID()}`;
-    const jsapiParams = wechatPayService.generateJsapiPayParams(prepayId);
+    const created = await getPaymentRegistry().get("wechat", "sandbox").createPayment({
+      orderId: contract.id,
+      amount: contract.amount,
+      description: `订单支付: ${contract.id.slice(0, 8)}...`,
+      metadata: { prepayId },
+    });
+    const jsapiParams = created.extra?.jsapiParams;
 
     await supabase
       .from("contracts")

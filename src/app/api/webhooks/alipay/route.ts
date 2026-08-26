@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { alipayService } from "@/lib/alipay-service";
+import {
+  getPaymentRegistry,
+} from "@/adapters/payment/registry";
 import { getServiceClient } from "@/lib/supabase-client";
 import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus";
@@ -12,7 +14,9 @@ export async function POST(request: Request) {
     params[decodeURIComponent(k)] = decodeURIComponent(v || '');
   }
 
-  if (!alipayService.verifySignature(params)) {
+  // P1-5 改道：验签经 PaymentRegistry 沙盒变体通道（宽松验签 + 占位放行守恒）
+  const verified = await getPaymentRegistry().get("alipay", "sandbox").verifyWebhook({ params });
+  if (!verified.success) {
     return NextResponse.json({ error: "signature verification failed" }, { status: 400 });
   }
 

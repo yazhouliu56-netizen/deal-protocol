@@ -36,9 +36,26 @@ vi.mock("@/lib/api-auth", () => ({
 const alipayService = {
   generatePaymentUrl: vi.fn(),
   verifySignature: vi.fn(),
+  // 兼容新注册表路径：PaymentRegistry 底层复用同一单例，mock 需同时劫持新路径
+  verifyWebhook: vi.fn(async (req: { params?: Record<string, string> }) => {
+    const ok = alipayService.verifySignature(req.params ?? {});
+    return ok
+      ? { success: true, orderId: req.params?.out_trade_no ?? "", tradeNo: req.params?.trade_no ?? "" }
+      : { success: false, error: "Alipay sandbox signature verification failed" };
+  }),
+  createPayment: vi.fn(async (req: { orderId: string; amount: number; description: string }) => ({
+    success: true,
+    payUrl: alipayService.generatePaymentUrl({ outTradeNo: req.orderId, amount: req.amount, subject: req.description }),
+  })),
+  isConfigured: vi.fn(() => true),
+  channel: "alipay",
 };
 
-vi.mock("@/lib/alipay-service", () => ({ alipayService }));
+vi.mock("@/lib/alipay-service", () => ({ alipayService, AlipayService: vi.fn(() => alipayService) }));
+vi.mock("@/adapters/payment/alipay-sandbox-channel", () => ({
+  alipayService,
+  AlipayService: vi.fn(() => alipayService),
+}));
 
 let existingPayment: { provider_payment_id: string } | null = null;
 

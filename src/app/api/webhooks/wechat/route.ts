@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
-import { wechatPayService } from "@/lib/wechat-pay-service";
+import {
+  getPaymentRegistry,
+} from "@/adapters/payment/registry";
 import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus";
 
@@ -20,7 +22,9 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
   const params = parseWechatXml(rawBody);
 
-  if (!wechatPayService.verifySignature(params)) {
+  // P1-5 改道：验签经 PaymentRegistry 沙盒变体通道（MD5 + 占位放行守恒）
+  const verified = await getPaymentRegistry().get("wechat", "sandbox").verifyWebhook({ params });
+  if (!verified.success) {
     return new NextResponse(
       `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[signature verification failed]]></return_msg></xml>`,
       { status: 200, headers: { "Content-Type": "application/xml" } },

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { wechatPayService } from "@/lib/wechat-pay-service";
+import { wechatPayService } from "@/adapters/payment/wechat-pay-service";
 
 export async function GET(request: Request) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";

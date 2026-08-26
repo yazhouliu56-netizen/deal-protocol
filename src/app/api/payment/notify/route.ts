@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
-import { getPaymentManager } from "@/lib/payment";
+import { getPaymentRegistry } from "@/adapters/payment/registry";
 import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus";
 
@@ -10,9 +10,11 @@ export async function POST(request: Request) {
 
   const svc = getServiceClient();
 
-  const manager = getPaymentManager();
+  // P1-5 改道：生产双通道经 PaymentRegistry（handleNotify→verifyWebhook 一对一
+  // 等价映射，验签算法本体 payment-core 零触碰）。
+  const provider = getPaymentRegistry().get(channel);
 
-  if (!manager.isConfigured(channel as "alipay" | "wechat")) {
+  if (!provider.isConfigured()) {
     return NextResponse.json({ error: "Payment channel not configured" }, { status: 400 });
   }
 
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
       headers[key.toLowerCase()] = value;
     });
 
-    result = await manager.handleNotify(channel, rawBody, headers);
+    result = await provider.verifyWebhook({ payload: rawBody, headers });
   } catch (e) {
     console.warn("Payment notify handling failed:", e);
     return NextResponse.json({ error: "Notify processing failed" }, { status: 400 });
@@ -33,10 +35,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payment verification failed" }, { status: 400 });
   }
 
+  // WebhookVerifyResult 可选字段 → NotifyResult 必填语义的守恒投影
+  // （生产通道 handleNotify 恒返回两字段，空串兜底仅为类型收窄）。
+  const notifyOrderId = result.orderId ?? "";
+  const notifyTradeNo = result.tradeNo ?? "";
+
   const { data: contract, error: contractError } = await svc
     .from("contracts")
     .select("id, fund_status")
-    .eq("id", result.orderId)
+    .eq("id", notifyOrderId)
     .single();
 
   if (contractError || !contract) {
@@ -51,7 +58,7 @@ export async function POST(request: Request) {
   const { error: updateError } = await svc
     .from("contracts")
     .update({ fund_status: "HELD" })
-    .eq("id", result.orderId);
+    .eq("id", notifyOrderId);
 
   if (updateError) {
     console.warn("Failed to update contract fund_status:", updateError);
@@ -61,12 +68,12 @@ export async function POST(request: Request) {
   const { data: contractData } = await svc
     .from("contracts")
     .select("customer_id, provider_id")
-    .eq("id", result.orderId)
+    .eq("id", notifyOrderId)
     .single();
 
   if (contractData) {
     await addContractEvent({
-      contractId: result.orderId,
+      contractId: notifyOrderId,
       actorId: contractData.customer_id,
       fromStatus: contract.fund_status,
       toStatus: "HELD",
@@ -74,7 +81,7 @@ export async function POST(request: Request) {
       reason: `Payment completed via ${channel}, trade no: ${result.tradeNo}`,
       metadata: JSON.stringify({
         paymentChannel: channel,
-        tradeNo: result.tradeNo,
+        tradeNo: notifyTradeNo,
       }),
     });
 
@@ -82,19 +89,19 @@ export async function POST(request: Request) {
       {
         user_id: contractData.customer_id,
         title: "支付成功",
-        body: `订单 ${result.orderId.slice(0, 8)}... 支付已完成，资金已托管`,
+        body: `订单 ${notifyOrderId.slice(0, 8)}... 支付已完成，资金已托管`,
         type: "pay",
       },
       {
         user_id: contractData.provider_id,
         title: "支付成功",
-        body: `订单 ${result.orderId.slice(0, 8)}... 客户已付款，请开始服务`,
+        body: `订单 ${notifyOrderId.slice(0, 8)}... 客户已付款，请开始服务`,
         type: "pay",
       },
     ]);
   }
 
-  await emitEvent({ type: 'order', id: result.orderId, action: 'pay', userId: 'system', metadata: { fundStatus: 'HELD', paymentChannel: channel, tradeNo: result.tradeNo } });
+  await emitEvent({ type: 'order', id: notifyOrderId, action: 'pay', userId: 'system', metadata: { fundStatus: 'HELD', paymentChannel: channel, tradeNo: notifyTradeNo } });
 
   if (channel === "alipay") {
     return new NextResponse("success", { status: 200 });
