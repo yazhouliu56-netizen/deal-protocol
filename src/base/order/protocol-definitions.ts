@@ -1,4 +1,4 @@
-import type { ProtocolDef, ProtocolEntry, TransitionCtx } from "./types"
+import type { ProtocolDef, ProtocolEntry, TransitionCtx } from "./protocol-types"
 import { OFFICIAL_AMMO } from "@/ammo/registry"
 import type { IAmmoDefinition } from "@/types/ammo-schema"
 import {
@@ -8,7 +8,7 @@ import {
 import { MEETUP_REFUND_RULES, MEETUP_EVIDENCE } from "@/ammo/meetup.ammo"
 
 /* ══════════════════════════════════════════════════════════════════════
- * 协议注册表 · P1 步骤二（旧垂直协议旧轨完全收敛）
+ * 协议注册表 · P1 步骤二（旧垂直协议旧轨完全收敛）→ D-5 Phase E 资产归位 Base
  *
  * 事实源收敛：本文件不再引用 `./protocols/*` 三个旧文件（base/housekeeping/
  * dating，合计 535 行历史重复代码已物理删除）。旧垂直协议仅为 ammo 弹药的
@@ -16,19 +16,16 @@ import { MEETUP_REFUND_RULES, MEETUP_EVIDENCE } from "@/ammo/meetup.ammo"
  * companion-v1，出处注释见各 ammo 文件头部「存量资产升级仪式」）经
  * OFFICIAL_AMMO 直挂读取，由投影适配器投影为标准 `ProtocolDef`。
  *
+ * D-5 Phase E（参谋部裁决 1）：协议定义资产化常驻 Base——纯数据+纯函数，
+ * 零 DB 热配（bootstrap/syncBuiltinsToDb 已退役）；@/ammo 为纯数据资产层
+ * （红线 3 仅禁 DB/UI/Store），base→ammo-data 单向依赖经收敛登记背书。
+ *
  * 投影分层：
  *   ① 动态数值 —— 全部取自 ammo 八维配置（D6 违约阶梯 → refundRules、
  *      D7 分账 → funding.fees、超时代验收 → completion.autoTimeoutSeconds、
  *      D4 传感 → evidence、派单硬门槛 → classificationKeywords、SOP → stages）；
  *   ② 静态行业语义 —— 角色 / 资金状态机 / 评价维度 / 争议通道（ammo 参数
  *      无此维度的领域骨架），由适配器合表声明，与 ammo 单向投影、不双轨。
- *
- * 兼容性保证：
- *   - `protocolRegistry`（engine.ts / bootstrap.ts / admin API 既有消费）不变；
- *   - `PROTOCOLS` 字典与 `getProtocol(id)` 保持与旧签名一致（旧 id
- *     protocol_housekeeping / protocol_dating 语义等价保留，新增
- *     protocol_meetup 对齐 meetup-social-v1 弹药）；
- *   - `protocol_base` 仅作继承父级（与旧 registerBase 行为一致，不对外注册）。
  * ══════════════════════════════════════════════════════════════════════ */
 
 /** guard：角色白名单（ammo 无禁令语义，用于资金状态机动作的角色校验）。 */

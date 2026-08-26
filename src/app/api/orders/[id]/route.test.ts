@@ -42,21 +42,19 @@ vi.mock("@/lib/contract/refund", () => ({
 
 const createRefundTransactionsMock = vi.fn()
 
-vi.mock("@/lib/protocol/engine", () => ({
-  getEngine: () => ({
-    getDefinition: () => ({
-      transitions: [
-        { action: "resolve_dispute", from: "HELD", to: "HELD", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
-        { action: "settle_after_dispute", from: "HELD", to: "SETTLED", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
-        { action: "confirm_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["CUSTOMER", "PROVIDER"] },
-        { action: "auto_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["SYSTEM"] },
-      ],
-      funding: { autoReleaseTimeout: 72 * 3600 },
-      dispute: { channels: { green: { maxAmount: 100 }, yellow: { maxAmount: 500 } } },
-    }),
-    getServiceStages: () => [],
-    validateTransition: () => null,
-    deriveNextActions: () => [],
+// D-5 Phase E：协议资产已归位 Base——考卷 mock 重定向至新资产路径，
+// 提供确定性跃迁定义（真实 Base 校验逻辑不 mock，照常全量执行）。
+vi.mock("@/base/order/protocol-definitions", () => ({
+  getProtocol: () => ({
+    transitions: [
+      { action: "resolve_dispute", from: "HELD", to: "HELD", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
+      { action: "settle_after_dispute", from: "HELD", to: "SETTLED", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
+      { action: "confirm_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["CUSTOMER", "PROVIDER"] },
+      { action: "auto_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["SYSTEM"] },
+    ],
+    funding: { autoReleaseTimeout: 72 * 3600 },
+    dispute: { channels: { green: { maxAmount: 100 }, yellow: { maxAmount: 500 } } },
+    serviceStages: [],
   }),
 }))
 

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
 import { callLLM } from "@/lib/llm";
-import { getEngine } from "@/lib/protocol/engine";
+// D-5 Phase E：协议定义资产归位 Base
+import { getProtocol } from "@/base/order/protocol-definitions";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
 import { updateCredit } from "@/modules/m07-credit/credit-engine";
 
@@ -36,8 +37,7 @@ export const POST = withAuth(async (req, user) => {
     return NextResponse.json({ error: "查询订单失败" }, { status: 500 });
   }
 
-  const engine = getEngine(contract.protocol_id);
-  const reviewDef = engine?.getDefinition().review;
+  const reviewDef = getProtocol(contract.protocol_id)?.review;
 
   let existing = null;
   try {

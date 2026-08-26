@@ -1,8 +1,8 @@
 import { getServiceClient } from "@/lib/supabase-client";
-// D-5 Phase C：事件流水直连真身模块，状态推导收编 Base 纯函数核（门面已退役）
+// D-5 Phase C/E：事件流水直连真身模块，状态推导与协议资产均归 Base（门面已退役）
 import { addContractEvent } from "@/lib/contract/events";
 import { getNextFundStatus } from "@/base/order/contract-engine";
-import { getEngine } from "@/lib/protocol/engine";
+import { getProtocol } from "@/base/order/protocol-definitions";
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
 
@@ -116,7 +116,7 @@ async function enforceSLABreach(
   const slaAction = "sla_breach"
 
   const protocolId = contract.demand_id ?? order.protocol_id
-  const protocolDef = protocolId ? getEngine(protocolId)?.getDefinition() : undefined
+  const protocolDef = protocolId ? getProtocol(protocolId) : undefined
   const nextFundStatus = protocolDef
     ? getNextFundStatus(protocolDef, slaAction)
     : null
@@ -227,27 +227,9 @@ async function enforceSLABreach(
   )
 }
 
-let slaStarted = false
-
-export function startSLAEnforcer(): void {
-  if (slaStarted) return
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")
-  )
-    return
-  slaStarted = true
-  runSLA()
-  setInterval(runSLA, 60_000)
-}
-
-async function runSLA(): Promise<void> {
-  try {
-    const enforced = await checkAndEnforceSLA()
-    if (enforced.length > 0) {
-      console.log(`[SLA] Enforced ${enforced.length} breaches:`, enforced.join("; "))
-    }
-  } catch (e: unknown) {
-    console.error("[SLA] check error:", e)
-  }
-}
+// ══════════════════════════════════════════════════════════════════════
+// D-5 Phase D（裁决 1）：进程内 setInterval 轮询壳（startSLAEnforcer/runSLA）
+// 已物理退役——SLA 违约扫描统一由 api/cron/check-timeouts 以 CRON_SECRET
+// Bearer 鉴权的 Vercel Cron 权威节拍触发，业务逻辑（checkAndEnforceSLA）
+// 原样保留为该路由的唯一事实源。
+// ══════════════════════════════════════════════════════════════════════

@@ -1,10 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getSupabase } from "@/lib/supabase-client";
-import { getEngine } from "@/lib/protocol/engine";
 import { addContractEvent } from "@/lib/contract/events";
 import { handleSatisfactionBatch } from "@/lib/contract/satisfaction";
-// D-5 Phase C：超时放款校验收编 Base 纯函数核
+// D-5 Phase E：协议定义资产归位 Base + 超时放款校验收编 Base 纯函数核
 import { validateContractAction } from "@/base/order/contract-engine";
+import { getProtocol } from "@/base/order/protocol-definitions";
+// D-5 Phase D：SLA 违约扫描自进程内轮询迁入 cron 权威触发（业务不丢）
+import { checkAndEnforceSLA } from "@/lib/sla-enforcer";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -30,14 +32,14 @@ export async function GET(request: NextRequest) {
     } else {
       for (const contract of (autoCompletable ?? [])) {
         try {
-          const engine = getEngine(contract.protocol_id);
-          if (!engine) {
+          const protocolDef = getProtocol(contract.protocol_id);
+          if (!protocolDef) {
             results.push(`auto_complete SKIP ${contract.id}: unknown protocol ${contract.protocol_id}`);
             continue;
           }
 
           const guard = validateContractAction(
-            engine.getDefinition(),
+            protocolDef,
             "auto_complete",
             {
               fundStatus: contract.fund_status ?? "",
@@ -160,6 +162,16 @@ export async function GET(request: NextRequest) {
           results.push(`batch_release FAILED ${batch.id}: ${msg}`);
         }
       }
+    }
+
+    // 3. SLA 违约扫描（D-5 Phase D：自 sla-enforcer 进程内 setInterval 轮询迁入，60s→cron 权威节拍）
+    try {
+      const enforced = await checkAndEnforceSLA();
+      results.push(`sla_enforced: ${enforced.length} 条`);
+      for (const line of enforced) results.push(`  ${line}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push(`sla_enforce FAILED: ${msg}`);
     }
 
     return NextResponse.json({ checked: now.toISOString(), results });

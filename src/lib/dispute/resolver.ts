@@ -1,6 +1,7 @@
 import { getServiceClient } from "@/lib/supabase-client"
 import { arbitrate, determineTier, canAutoExecute } from "@/lib/arbitration"
-import { getEngine } from "@/lib/protocol/engine"
+// D-5 Phase E：协议定义资产归位 Base
+import { getProtocol } from "@/base/order/protocol-definitions"
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 
@@ -145,8 +146,7 @@ export async function processPendingDisputes(): Promise<string[]> {
     const contract = contractById.get(dispute.contract_id)
     if (!contract) continue
 
-    const engine = getEngine(contract.protocol_id)
-    const channels = engine?.getDefinition().dispute.channels
+    const channels = getProtocol(contract.protocol_id)?.dispute.channels
     if (!channels) continue
 
     const amount = contract.amount

@@ -2,7 +2,8 @@ import { getServiceClient } from "@/lib/supabase-client"
 import { addContractEvent } from "./events"
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
-import { getEngine } from "@/lib/protocol/engine"
+// D-5 Phase E：协议定义资产归位 Base
+import { getProtocol } from "@/base/order/protocol-definitions"
 
 export async function handleSatisfactionBatch(contractId: string) {
   const supabase = getServiceClient()
@@ -15,8 +16,7 @@ export async function handleSatisfactionBatch(contractId: string) {
 
   if (!contract) return
 
-  const engine = getEngine(contract.protocol_id)
-  const satisfactionHold = engine?.getDefinition().funding.fees.satisfaction_hold ?? 0
+  const satisfactionHold = getProtocol(contract.protocol_id)?.funding.fees.satisfaction_hold ?? 0
   if (satisfactionHold <= 0) return
 
   const depositAmount = Math.round(contract.amount * satisfactionHold * 100) / 100

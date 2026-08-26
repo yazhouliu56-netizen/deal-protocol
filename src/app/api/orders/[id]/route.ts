@@ -10,11 +10,13 @@ import { createRefundTransactions } from "@/lib/contract/refund";
 // D-5 Phase C：状态机校验权威收编 Base 纯函数核（门面 contract-machine 已退役）。
 import {
   calcContractRefund,
+  deriveNextActions,
   getNextFundStatus,
   getNextServiceStage,
   validateContractAction,
 } from "@/base/order/contract-engine";
-import { getEngine } from "@/lib/protocol/engine";
+// D-5 Phase E：协议定义资产归位 Base（静态数据，DB 热配已退役）
+import { getProtocol } from "@/base/order/protocol-definitions";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
 import { maskPhone } from "@/lib/privacy-guard";
@@ -107,10 +109,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     new Date() >= new Date(contract.auto_complete_at) &&
     (!contract.dispute_status || contract.dispute_status === "RESOLVED")
   ) {
-    const engine = getEngine(contract.protocol_id);
-    if (engine) {
+    const protocolDef = getProtocol(contract.protocol_id);
+    if (protocolDef) {
       const guard = validateContractAction(
-        engine.getDefinition(),
+        protocolDef,
         "auto_complete",
         { fundStatus: contract.fund_status, serviceStage: contract.service_stage, role: "SYSTEM" },
         {
@@ -177,11 +179,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const activeDispute = disputesRes.data && disputesRes.data.length > 0 ? disputesRes.data[0] : null;
 
-  const engine = getEngine(contract.protocol_id);
-  const availableActions = engine
-    ? engine.deriveNextActions(
+  const protocolDef = getProtocol(contract.protocol_id);
+  const availableActions = protocolDef
+    ? deriveNextActions(
+        protocolDef,
         contract.fund_status,
-        contract.dispute_status,
         contract.service_stage,
         actorRole,
       )
@@ -268,7 +270,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // D-5 Phase C：引擎解析前置（校验/推导/退款统一经 Base 纯函数核求值）
-  const engine = getEngine(contract.protocol_id);
+  const protocolDef = getProtocol(contract.protocol_id);
 
   const transitionCtx = {
     contract: {
@@ -285,9 +287,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     actor: { id: user.id, role: actorRole },
     payload: body,
   };
-  const guardError = engine
+  const guardError = protocolDef
     ? validateContractAction(
-        engine.getDefinition(),
+        protocolDef,
         action,
         {
           fundStatus: transitionCtx.contract.fundStatus,
@@ -302,11 +304,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: guardError }, { status: 400 });
   }
 
-  const nextFundStatus = engine
-    ? getNextFundStatus(engine.getDefinition(), action)
+  const nextFundStatus = protocolDef
+    ? getNextFundStatus(protocolDef, action)
     : null;
-  const nextStage = engine
-    ? getNextServiceStage(engine.getDefinition(), action)
+  const nextStage = protocolDef
+    ? getNextServiceStage(protocolDef, action)
     : null;
 
   const updates: Record<string, unknown> = {};
@@ -319,9 +321,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // Payment: any action that transitions to HELD
-  const payActions = engine
-    ?.getDefinition()
-    .transitions.filter((t) => t.from !== t.to && t.to === "HELD")
+  const payActions = protocolDef
+    ?.transitions.filter((t) => t.from !== t.to && t.to === "HELD")
     .map((t) => t.action) ?? [];
   if (payActions.includes(action)) {
     const paymentProvider = (body.paymentProvider as string) ?? "stripe";
@@ -359,9 +360,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // Auto-complete timer: transitioning to final service stage
-  const stageNames = engine?.getServiceStages();
+  const stageNames = protocolDef?.serviceStages ?? null;
   if (stageNames && nextStage !== null && nextStage >= stageNames.length - 1) {
-    const timeoutSeconds = engine?.getDefinition().funding.autoReleaseTimeout ?? (72 * 3600);
+    const timeoutSeconds = protocolDef?.funding.autoReleaseTimeout ?? (72 * 3600);
     updates.auto_complete_at = new Date(Date.now() + (timeoutSeconds * 1000)).toISOString();
   }
 
@@ -374,8 +375,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   let refundSettled = false;
   if (action === "cancel_before_pay" || action === "cancel_during_service") {
     // 引擎缺席时与旧门面语义一致：无规则默认全退
-    const refund = engine
-      ? calcContractRefund(engine.getDefinition(), contract.service_stage, contract.amount)
+    const refund = protocolDef
+      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount)
       : { provider: 0, customer: contract.amount };
     updates.fund_status = "CANCELLED";
     if (action === "cancel_during_service") {
@@ -393,8 +394,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   // Dual state machine: disputeStatus independent from fundStatus
   const DISPUTE_OPS = ["open_dispute", "open_dispute_after_complete", "report_no_show"]
   if (DISPUTE_OPS.includes(action)) {
-    const disputeEngine = getEngine(contract.protocol_id);
-    const channels = disputeEngine?.getDefinition().dispute.channels;
+    const channels = protocolDef?.dispute.channels;
     let channel = "red";
     if (channels) {
       if (contract.amount <= channels.green.maxAmount) {
@@ -586,8 +586,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (metadata) {
     eventMetadata = JSON.stringify(metadata)
   } else if (action === "cancel_before_pay" || action === "cancel_during_service") {
-    const refund = engine
-      ? calcContractRefund(engine.getDefinition(), contract.service_stage, contract.amount)
+    const refund = protocolDef
+      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount)
       : { provider: 0, customer: contract.amount };
     eventMetadata = JSON.stringify({ refund });
   }
