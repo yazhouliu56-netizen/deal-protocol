@@ -340,6 +340,27 @@ export interface IHolographicAmmoConfig {
    * resolveAmmoIdForPublish 按别名遍历仅只读匹配，全图冻结后不可变。
    */
   aliases?: string[];
+
+  /**
+   * D5.5 进家词表（Microkernel 2.0 战役 3 · 弹药自包含）：
+   * 命中即整表生效（homeAccessKeywordsFor 弹药优先段）；缺省回落存量
+   * HOME_ACCESS_KEYWORDS_MAP / 全局引信参数链，零回归。
+   */
+  homeAccessKeywords?: string[];
+  /**
+   * D5.6 风控引信声明清单（战役 3 · 弹药自包含）：RiskRuleName 子集，
+   * riskRulesFor 将其并入该类目 enabled 集；缺省不改变任何现状。
+   */
+  declaredRiskRules?: string[];
+
+  /**
+   * D4.5 派单规则自包含（战役 3 · 填一张 8D 声明即全自动量产）：
+   * 显式声明则出厂直通 ammo.dispatchRule（四表引擎弹药优先段消费）；
+   * 缺省由四表聚合/默认兜底，零回归。
+   */
+  dispatchRule?: IDispatchRule;
+  /** D6.7 SOP 覆盖自包含（战役 3）：语义同 IAmmoSopOverrides，缺省回落表行。 */
+  sop?: IAmmoSopOverrides;
 }
 
 /**

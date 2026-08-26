@@ -1,7 +1,9 @@
 /**
  * 弹药属性表 · 分发权重（C4）— 每类目可配的派单/抢单打分规则。
- * 底座 broadcast/matches 按此表驱动，新增类目只填配置。
+ * 底座 broadcast/matches 按此表驱动，新增类目填配置或热注弹药（战役 3）。
  */
+
+import { DYNAMIC_AMMO_POOL } from "./factory.ts";
 
 export interface DispatchRule {
   /** 打分权重（距离/信用/定制覆盖/验证加分）。 */
@@ -54,10 +56,25 @@ export const CATEGORY_DISPATCH: Record<string, Partial<DispatchRule>> = {
 
 export function dispatchRuleFor(category: string): DispatchRule {
   const over = CATEGORY_DISPATCH[category];
-  if (!over) return DEFAULT_DISPATCH;
+  // 战役 3 · 弹药优先（三层合并）：默认 ⊕ 弹药自带块 ⊕ 表行覆盖。
+  // 存量有表行者输出逐字节不变（表行压轴）；registerDynamicAmmo 新弹
+  // 无表行时弹药块直接生效，零外部开户。
+  const ammoRule = DYNAMIC_AMMO_POOL.get(category)?.dispatchRule;
+  if (!over && !ammoRule) return DEFAULT_DISPATCH;
   return {
-    weights: { ...DEFAULT_DISPATCH.weights, ...over.weights },
-    hardGates: { ...DEFAULT_DISPATCH.hardGates, ...over.hardGates },
-    starBonus: over.starBonus ?? DEFAULT_DISPATCH.starBonus,
+    weights: {
+      ...DEFAULT_DISPATCH.weights,
+      ...(ammoRule?.weights ?? {}),
+      ...(over?.weights ?? {}),
+    },
+    hardGates: {
+      ...DEFAULT_DISPATCH.hardGates,
+      ...(ammoRule?.hardGates ?? {}),
+      ...(over?.hardGates ?? {}),
+    },
+    starBonus:
+      over?.starBonus ??
+      ammoRule?.starBonus ??
+      DEFAULT_DISPATCH.starBonus,
   };
 }

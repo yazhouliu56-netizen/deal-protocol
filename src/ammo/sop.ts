@@ -1,7 +1,9 @@
 /**
  * 弹药属性表 · SOP 参数（ADR-0007 §一：爽约保障险/有效期/容量默认值）。
- * 每类目一行：新弹药只需在此填 SOP 默认值，底座按表消费。
+ * 每类目一行：新弹药填此表或直接热注弹药（战役 3：无表行回落弹自带 SOP）。
  */
+
+import { DYNAMIC_AMMO_POOL } from "./factory.ts";
 
 export interface SopParams {
   /** 爽约保障险（押金）默认开启。 */
@@ -79,6 +81,13 @@ export const CATEGORY_SOP: Record<string, Partial<SopParams>> = {
 
 export function sopForCategory(category: string): SopParams {
   const over = CATEGORY_SOP[category];
-  if (!over) return DEFAULT_SOP;
-  return { ...DEFAULT_SOP, ...over };
+  // 战役 3 · 弹药优先（三层合并）：默认 ⊕ 弹药自带 SOP ⊕ 表行覆盖。
+  // 存量有表行者逐字节不变；动态新弹零表编辑自动生效。
+  const ammoSop = DYNAMIC_AMMO_POOL.get(category)?.sop;
+  if (!over && !ammoSop) return DEFAULT_SOP;
+  return {
+    ...DEFAULT_SOP,
+    ...(ammoSop ?? {}),
+    ...(over ?? {}),
+  };
 }

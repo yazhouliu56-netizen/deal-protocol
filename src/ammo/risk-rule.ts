@@ -1,7 +1,10 @@
 /**
  * 弹药属性表 · 风控引信（C5）— 勾选即生效的规则开关。
- * 底座 risk 模块按此表决定启用哪些探针；新增风控规则先在此注册。
+ * 底座 risk 模块按此表决定启用哪些探针；新增风控规则先在此注册或由弹
+ * 药 holographic.declaredRiskRules / homeAccessKeywords 自包含声明（战役 3）。
  */
+
+import { DYNAMIC_AMMO_POOL } from "./factory.ts";
 
 export type RiskRuleName =
   | "anti-self-boost" // 防自刷（分享/回应计数按人去重）
@@ -45,7 +48,10 @@ export const CATEGORY_RISK: Record<string, RiskRuleName[]> = {
 
 export function riskRulesFor(category: string): RiskRule[] {
   const extra = CATEGORY_RISK[category] ?? [];
-  const names = new Set<RiskRuleName>([...extra]);
+  // 战役 3 · 弹药自包含引信：弹药 holographic.declaredRiskRules 并入 enabled
+  // 集（registerDynamicAmmo 新弹零表编辑开启风控探针；存量行为不变）。
+  const declared = DYNAMIC_AMMO_POOL.get(category)?.holographic?.declaredRiskRules ?? [];
+  const names = new Set<RiskRuleName>([...extra, ...(declared as RiskRuleName[])]);
   return GLOBAL_RISK_RULES.map((r) =>
     names.has(r.rule) ? { ...r, enabled: true } : r
   );
@@ -75,6 +81,9 @@ export const HOME_ACCESS_KEYWORDS_MAP: Record<string, string[]> = {
 };
 
 export function homeAccessKeywordsFor(category: string): string[] {
+  // 战役 3 · 弹药优先：自带词表整表生效（缺省回落存量链，零回归）。
+  const ammoKeywords = DYNAMIC_AMMO_POOL.get(category)?.holographic?.homeAccessKeywords;
+  if (Array.isArray(ammoKeywords) && ammoKeywords.length > 0) return ammoKeywords;
   const mapped = HOME_ACCESS_KEYWORDS_MAP[category];
   if (Array.isArray(mapped) && mapped.length > 0) return mapped;
   const rules = riskRulesFor(category);

@@ -372,6 +372,10 @@ export function assembleAmmo(config: IHolographicAmmoConfig): AssembledAmmoResul
     autoAcceptanceTimeoutHours: config.autoAcceptanceTimeoutHours,
     supplyCluster: config.supplyCluster,
     holographic: config,
+    // 战役 3 · 8D 自包含透传：派单规则与 SOP 随弹出厂（缺省不注入，
+    // 由四表聚合/默认兜底——存量弹与既有考卷零回归）。
+    ...(config.dispatchRule ? { dispatchRule: config.dispatchRule } : {}),
+    ...(config.sop ? { sop: config.sop } : {}),
   };
 
   return { ok: true, ammo: deepFreeze(ammo) };

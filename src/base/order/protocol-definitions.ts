@@ -1,5 +1,5 @@
 import type { ProtocolDef, ProtocolEntry, TransitionCtx } from "./protocol-types"
-import { OFFICIAL_AMMO } from "@/ammo/registry"
+import { DYNAMIC_AMMO_POOL, OFFICIAL_AMMO } from "@/ammo/registry"
 import type { IAmmoDefinition } from "@/types/ammo-schema"
 import {
   HOUSEKEEPING_REFUND_RULES,
@@ -277,12 +277,8 @@ function projectAmmoToProtocol(
  * 三枚官方弹药投影（静态行业语义合表）
  * ══════════════════════════════════════════════════════════════════════ */
 
-/** 家政 · housekeeping-v1 → protocol_housekeeping（老 protocol_housekeeping 语义等价）。 */
-const projectHousekeeping = (): ProtocolDef => {
-  const ammo = OFFICIAL_AMMO.housekeeping
-  return projectAmmoToProtocol(
-    ammo,
-    {
+/** 家政行业语义合表（Microkernel 2.0 战役 3：专线退役为数据字典条目）。 */
+const HOUSEKEEPING_PROTO_META: Parameters<typeof projectAmmoToProtocol>[1] = {
       id: "protocol_housekeeping",
       name: "家政",
       description: "家庭维修/保洁/安装等上门服务",
@@ -506,16 +502,10 @@ const projectHousekeeping = (): ProtocolDef => {
       // D6 违约阶梯已含 0/2/3/4 档；1/5 档由 engine.calcRefund「最接近较低档」兜底
       refundRules: HOUSEKEEPING_REFUND_RULES.map((r) => ({ ...r })),
       autoReleaseTimeout: 7 * 86400,
-    },
-  )
-}
+};
 
-/** 组局 · meetup-social-v1 → protocol_meetup（出处 dating.ts 双押金 AA 保障金资产投影）。 */
-const projectMeetup = (): ProtocolDef => {
-  const ammo = OFFICIAL_AMMO.meetup
-  return projectAmmoToProtocol(
-    ammo,
-    {
+/** 组局行业语义合表（战役 3 数据字典条目；出处 dating.ts 双押金 AA 保障金资产投影）。 */
+const MEETUP_PROTO_META: Parameters<typeof projectAmmoToProtocol>[1] = {
       id: "protocol_meetup",
       name: "组局",
       description: "同城组局 AA 保障金锁定，按时到场自动释放",
@@ -694,16 +684,10 @@ const projectMeetup = (): ProtocolDef => {
         return { stage: r.stage, providerRatio: 0.5, customerGets: "rest" as const }
       }),
       autoReleaseTimeout: 6 * 3600,
-    },
-  )
-}
+};
 
-/** 陪玩/约会 · companion-v1 → protocol_dating（老 protocol_dating 语义等价保留）。 */
-const projectDating = (): ProtocolDef => {
-  const ammo = OFFICIAL_AMMO.dating
-  return projectAmmoToProtocol(
-    ammo,
-    {
+/** 陪玩/约会行业语义合表（战役 3 数据字典条目；老 protocol_dating 语义等价保留）。 */
+const DATING_PROTO_META: Parameters<typeof projectAmmoToProtocol>[1] = {
       id: "protocol_dating",
       name: "陪玩/约会",
       description: "同城陪玩/约会防鸽子，各自押金锁定，按时到场自动释放",
@@ -846,7 +830,7 @@ const projectDating = (): ProtocolDef => {
       },
 
       evidence: [
-        ...projectSensorsToEvidence(ammo),
+        ...projectSensorsToEvidence(OFFICIAL_AMMO.dating),
         { type: "chat_log", label: "聊天记录", required: false },
         { type: "photo", label: "现场照片", required: false, maxCount: 3 },
       ],
@@ -870,9 +854,7 @@ const projectDating = (): ProtocolDef => {
         },
         autoTimeoutDays: 7,
       },
-    },
-  )
-}
+};
 
 /* ══════════════════════════════════════════════════════════════════════
  * 注册表（对外 API 与旧签名完全一致）
@@ -972,10 +954,26 @@ export const protocolRegistry = new ProtocolRegistry()
  * ══════════════════════════════════════════════════════════════════════ */
 
 function initBuiltinProtocols(): void {
-  protocolRegistry.register(projectHousekeeping())
-  protocolRegistry.register(projectMeetup())
-  protocolRegistry.register(projectDating())
+  // 战役 3 · 通用投影器归一：官方行业语义合表数据字典逐条过唯一投影器，
+  // 三条手写专线函数退役（meta 数据原地平移，输出字节级等价）。
+  for (const entry of CATEGORY_PROTOCOL_META) {
+    protocolRegistry.register(projectAmmoToProtocol(entry.ammo, entry.meta))
+  }
 }
+
+/**
+ * 行业语义合表注册表（战役 3 · 填表即新行业）：
+ * 新增官方行业 = 在此追加一条 { ammo, meta } 数据声明，零新增投影函数；
+ * 动态长尾弹药走 projectDynamicAmmo BASE 骨架兜底，无需本表。
+ */
+const CATEGORY_PROTOCOL_META: Array<{
+  ammo: IAmmoDefinition
+  meta: Parameters<typeof projectAmmoToProtocol>[1]
+}> = [
+  { ammo: OFFICIAL_AMMO.housekeeping, meta: HOUSEKEEPING_PROTO_META },
+  { ammo: OFFICIAL_AMMO.meetup, meta: MEETUP_PROTO_META },
+  { ammo: OFFICIAL_AMMO.dating, meta: DATING_PROTO_META },
+]
 
 initBuiltinProtocols()
 
@@ -984,7 +982,44 @@ export const PROTOCOLS: Record<string, ProtocolDef> = Object.fromEntries(
   protocolRegistry.getAll().map((d) => [d.id, d]),
 )
 
-/** 按协议 id 取解析后的协议定义（旧签名：未命中返回 undefined）。 */
+/** 按协议 id 取解析后的协议定义（旧签名：未命中回落动态池兜底解析）。 */
 export function getProtocol(id: string): ProtocolDef | undefined {
-  return protocolRegistry.get(id)
+  const builtin = protocolRegistry.get(id)
+  if (builtin) return builtin
+  // 战役 3 · 动态弹药全真解析：未命中内置表时查动态热注册池，命中即
+  // BASE 骨架兜底投影并缓存注册——registerDynamicAmmo 新弹零协议代码自动可用。
+  const dynamic = DYNAMIC_AMMO_POOL.get(id) ?? [...DYNAMIC_AMMO_POOL.values()].find((a) => a.ammoId === id || a.category === id)
+  if (!dynamic) return undefined
+  const def = projectDynamicAmmo(dynamic)
+  protocolRegistry.register(def)
+  return def
+}
+
+/**
+ * 动态长尾弹药 → ProtocolDef 兜底投影（战役 3 · 真·全自动闭环）：
+ * 以 BASE 骨架为行业无关底座，动态数值（佣金/违约阶梯/超时/证据/关键词/
+ * SLA 阶段）由 projectAmmoToProtocol 自动投影，零手写专线。
+ */
+export function projectDynamicAmmo(ammo: IAmmoDefinition): ProtocolDef {
+  return projectAmmoToProtocol(ammo, {
+    id: `protocol_${ammo.ammoId}`,
+    name: ammo.holographic?.aliases?.[0] ?? ammo.category,
+    description: `动态弹药 ${ammo.ammoId} 的通用履约协议（BASE 骨架兜底投影）`,
+    category: ammo.category,
+    classificationKeywords: [],
+    roles: BASE_PROTOCOL_DEF.roles,
+    funding: {
+      mode: (ammo.holographic?.fundingMode ?? "full_prepay") as ProtocolDef["funding"]["mode"],
+      hold: "platform_escrow",
+      release: ["on_confirm", "auto_timeout"],
+      fees: { platform_commission: 0.15, satisfaction_hold: 0 },
+    },
+    states: BASE_PROTOCOL_DEF.states,
+    transitions: BASE_PROTOCOL_DEF.transitions,
+    completion: { trigger: "on_confirm", requiredEvidence: [] },
+    default: { types: ["default"], requiredEvidence: [] },
+    evidence: projectSensorsToEvidence(ammo),
+    review: { type: "objective", dimensions: [], labelExtraction: false },
+    dispute: BASE_PROTOCOL_DEF.dispute,
+  })
 }

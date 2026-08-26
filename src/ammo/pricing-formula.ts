@@ -1,7 +1,10 @@
 /**
  * 弹药属性表 · 计价公式（C3）— 每类目一行可配公式，底座 customPricing 按 schema 驱动。
- * 新增业务只填表，前端/底座一行不改。
+ * 新增业务只填表，前端/底座一行不改；或 registerDynamicAmmo 热注弹药
+ * （战役 3：无表行类目自动回落弹药自带计价模型，零外部开户）。
  */
+
+import { DYNAMIC_AMMO_POOL } from "./factory.ts";
 
 export interface PricingFormula {
   /** 起步价（元）。 */
@@ -92,5 +95,27 @@ export const CATEGORY_PRICING: Record<string, PricingFormula> = {
 export const DEFAULT_PRICING: PricingFormula = CATEGORY_PRICING["厨师 · 上门做饭"];
 
 export function pricingForCategory(category: string): PricingFormula {
-  return CATEGORY_PRICING[category] ?? DEFAULT_PRICING;
+  const over = CATEGORY_PRICING[category];
+  if (over) return over;
+  // 战役 3 · 弹药优先（无表行类目）：由动态弹自带计价模型合成最小公式，
+  // registerDynamicAmmo 新弹零表编辑自动生效；存量四表行逐字节不变。
+  const ammo = DYNAMIC_AMMO_POOL.get(category);
+  if (ammo) {
+    const m = ammo.pricingModel;
+    const floor = ammo.holographic?.minFloorPrice;
+    if (m.kind === "HOURLY") {
+      return {
+        baseRateYuan: m.rateYuan,
+        hourlyRates: { 1: m.rateYuan },
+        minPriceYuan: typeof floor === "number" ? floor / 100 : undefined,
+      };
+    }
+    if (m.kind === "FIXED") {
+      return {
+        baseRateYuan: m.amountYuan,
+        minPriceYuan: typeof floor === "number" ? floor / 100 : m.amountYuan,
+      };
+    }
+  }
+  return DEFAULT_PRICING;
 }
