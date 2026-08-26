@@ -102,6 +102,12 @@ export const APPLIANCE_REPAIR_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
     { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
   ],
 
+  /* D6.5 SLA 阶段时间纪律（Microkernel 2.0 战役 1 · 维修备件场景：接单60min/出发120min） */
+  slaPhases: {
+    ACCEPTED: 3600,
+    DEPARTED: 7200,
+  },
+  fundingMode: "full_prepay",
   /* D7 清算与仲裁（48h 质保验收期 + 分账资金守恒 0.82+0.13+0.05=1.0） */
   autoAcceptanceTimeoutHours: 48,
   splitRules: { providerRatio: 0.82, platformRatio: 0.13, insuranceRatio: 0.05 },

@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { protocolRegistry, getProtocol, PROTOCOLS } from "./protocol-definitions.ts";
+import { protocolRegistry, getProtocol, PROTOCOLS, resolveSlaPhases } from "./protocol-definitions.ts";
 import { calcContractRefund } from "./contract-engine.ts";
 
 test("三协议注册 + base 不对外注册 + PROTOCOLS/getProtocol 契约", () => {
@@ -52,4 +52,20 @@ test("meetup 投影：6h 超时 + 分账 0.88 → 佣金 0.12", () => {
   assert.equal(d.completion.autoTimeoutSeconds, 6 * 3600);
   assert.ok(Math.abs(d.funding.fees.platform_commission - 0.12) < 1e-5);
   assert.equal(d.refundRules?.length, 6);
+});
+
+test("SLA 弹药化投影：家政等值迁移 + 组局缺键回落默认底表（Microkernel 2.0 战役 1）", () => {
+  // 家政显式声明 30min/60min（与退役前的全局硬编码等值）
+  const hk = protocolRegistry.get("protocol_housekeeping")!;
+  assert.deepEqual(resolveSlaPhases(hk), { ACCEPTED: 1800, DEPARTED: 3600 });
+  // 组局只声明 ACCEPTED:900，DEPARTED 缺键逐键回落默认 3600
+  const mu = protocolRegistry.get("protocol_meetup")!;
+  const merged = resolveSlaPhases(mu);
+  assert.equal(merged.ACCEPTED, 900);
+  assert.equal(merged.DEPARTED, 3600);
+});
+
+test("resolveSlaPhases：未投影协议整体回落默认底表（纯函数）", () => {
+  assert.deepEqual(resolveSlaPhases(undefined), { ACCEPTED: 1800, DEPARTED: 3600 });
+  assert.deepEqual(resolveSlaPhases(getProtocol("protocol_base")), { ACCEPTED: 1800, DEPARTED: 3600 });
 });

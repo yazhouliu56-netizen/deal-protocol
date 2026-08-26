@@ -219,6 +219,12 @@ export const COMPANION_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
     { stage: "AFTER_MATCH_EN_ROUTE", demanderRefundRatio: 0.85, providerCompensationYuan: 0, deductDepositRatio: 0.15 },
   ],
 
+  /* D6.5 SLA 阶段时间纪律（Microkernel 2.0 战役 1 · 陪玩轻履约：接单20min/出发40min） */
+  slaPhases: {
+    ACCEPTED: 1200,
+    DEPARTED: 2400,
+  },
+  fundingMode: "commitment",
   /* D7 清算与仲裁（2h 超时自动代结 + 分账 0.85+0.12+0.03=1.0） */
   autoAcceptanceTimeoutHours: 2,
   splitRules: { providerRatio: 0.85, platformRatio: 0.12, insuranceRatio: 0.03 },

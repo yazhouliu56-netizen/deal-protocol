@@ -217,6 +217,12 @@ export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
     { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
   ],
 
+  /* D6.5 SLA 阶段时间纪律（Microkernel 2.0 战役 1 · 接单30min/出发60min（等值迁移原全局纪律）） */
+  slaPhases: {
+    ACCEPTED: 1800,
+    DEPARTED: 3600,
+  },
+  fundingMode: "full_prepay",
   /* D7 清算与仲裁（24h 超时代验收 + 分账资金守恒 0.85+0.10+0.05=1.0） */
   autoAcceptanceTimeoutHours: 24,
   splitRules: { providerRatio: 0.85, platformRatio: 0.1, insuranceRatio: 0.05 },

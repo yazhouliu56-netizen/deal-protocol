@@ -303,6 +303,22 @@ export interface IHolographicAmmoConfig {
   /* ===== D6 逆向违约阶梯（分阶段取消/违约赔付契约） ===== */
   /** 违约阶段阶梯（按阶段声明退款比例/车马费补偿/保证金扣划）。 */
   cancellationTiers?: ICancellationTier[];
+  /**
+   * D6 · SLA 阶段时间纪律（服务阶段 → 超时秒数）。
+   * 键对齐 SERVICE_STAGES 阶段名（如 ACCEPTED / DEPARTED）；合并语义 =
+   * 以 base/order/protocol-definitions 的 DEFAULT_SLA_PHASES 为底、弹药声明
+   * 逐键覆盖（可只声明部分键）。Microkernel 2.0 战役 1（P1-4）：终结
+   * sla-enforcer 全局 30/60 分钟硬编码。
+   */
+  slaPhases?: Record<string, number>;
+  /**
+   * 资金模式声明（Microkernel 2.0 战役 1 · P0-1 能力白名单）。
+   * 工厂质检期强校验：仅接受 base/money/funding-dispatcher 的
+   * SUPPORTED_FUNDING_MODES（full_prepay | commitment | milestone_staged），
+   * 未支持模式一票否决拒出厂（UNSUPPORTED_FUNDING_MODE），严禁静默降级。
+   * 缺省视为 full_prepay。
+   */
+  fundingMode?: string;
 
   /* ===== D7 清算与仲裁（终局分账 + 超时代验收） ===== */
   /** 超时自动代验收时长（小时；缺省 24）。 */

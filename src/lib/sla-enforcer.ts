@@ -2,7 +2,7 @@ import { getServiceClient } from "@/lib/supabase-client";
 // D-5 Phase C/E：事件流水直连真身模块，状态推导与协议资产均归 Base（门面已退役）
 import { addContractEvent } from "@/lib/contract/events";
 import { getNextFundStatus } from "@/base/order/contract-engine";
-import { getProtocol } from "@/base/order/protocol-definitions";
+import { getProtocol, resolveSlaPhases } from "@/base/order/protocol-definitions";
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
 
@@ -34,9 +34,14 @@ interface SLAEntry {
   label: string
 }
 
-const SLA_MAP: Record<string, SLAEntry> = {
-  ACCEPTED: { maxMinutes: 30, label: "接单到出发" },
-  DEPARTED: { maxMinutes: 60, label: "出发到到达" },
+/**
+ * 阶段显示名（展示语义与类目无关，故留全局；时长纪律已弹药化）。
+ * Microkernel 2.0 战役 1（P1-4）：超时秒数改由协议投影 slaPhases 提供
+ * （resolveSlaPhases 合并 DEFAULT_SLA_PHASES），本表仅存文案。
+ */
+const SLA_LABELS: Record<string, string> = {
+  ACCEPTED: "接单到出发",
+  DEPARTED: "出发到到达",
 }
 
 interface ContractQueryRow {
@@ -88,8 +93,14 @@ export async function checkAndEnforceSLA(): Promise<string[]> {
       continue
     }
 
-    const sla = SLA_MAP[order.service_phase]
-    if (!sla) continue
+    const slaLabel = SLA_LABELS[order.service_phase]
+    if (!slaLabel) continue
+
+    // P1-4：时长纪律优先取协议投影（弹药声明 → 默认底表合并），秒转分
+    const phases = resolveSlaPhases(getProtocol(order.protocol_id))
+    const phaseSeconds = phases[order.service_phase]
+    if (!phaseSeconds) continue
+    const sla: SLAEntry = { maxMinutes: phaseSeconds / 60, label: slaLabel }
 
     const stageStart = parseOrderDate(order as unknown as Record<string, unknown>)
     const elapsedMs = now.getTime() - stageStart.getTime()

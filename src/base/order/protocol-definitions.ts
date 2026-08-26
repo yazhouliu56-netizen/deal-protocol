@@ -49,6 +49,21 @@ const contractPartyGuard = (message: string) => (ctx: TransitionCtx) => {
 /** 服务阶段六态（存量 STAGE 0-5 枚举 · 索引即序号）。 */
 const SERVICE_STAGES = ["NOT_ACCEPTED", "ACCEPTED", "DEPARTED", "ARRIVED", "IN_PROGRESS", "DONE"]
 
+/**
+ * SLA 全局默认阶段纪律（秒）——Microkernel 2.0 战役 1（P1-4）。
+ * 弹药未声明 slaPhases 或部分缺键时逐键回落至此；数值与退役前的
+ * sla-enforcer 全局硬编码等值迁移（ACCEPTED 30min / DEPARTED 60min）。
+ */
+export const DEFAULT_SLA_PHASES: Record<string, number> = {
+  ACCEPTED: 1800,
+  DEPARTED: 3600,
+}
+
+/** 解析协议生效 SLA 阶段表：默认底表 + 弹药声明覆盖合并（纯函数）。 */
+export function resolveSlaPhases(def?: { slaPhases?: Record<string, number> }): Record<string, number> {
+  return { ...DEFAULT_SLA_PHASES, ...(def?.slaPhases ?? {}) }
+}
+
 /* ══════════════════════════════════════════════════════════════════════
  * 基准协议骨架（旧 protocols/base.ts 收敛内联）
  * ══════════════════════════════════════════════════════════════════════ */
@@ -244,6 +259,8 @@ function projectAmmoToProtocol(
     states: meta.states,
     transitions: meta.transitions,
     serviceStages: SERVICE_STAGES,
+    // Microkernel 2.0 战役 1（P1-4）：SLA 阶段时间纪律随弹药全息镜像投影
+    slaPhases: ammo.holographic?.slaPhases,
     refundRules: meta.refundRules ?? projectRefundRules(ammo),
     completion: {
       ...meta.completion,

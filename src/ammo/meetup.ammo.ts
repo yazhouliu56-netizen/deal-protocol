@@ -245,6 +245,11 @@ export const MEETUP_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
     { stage: "IN_SERVICE", demanderRefundRatio: 0.7, providerCompensationYuan: 0, deductDepositRatio: 0.3 },
   ],
 
+  /* D6.5 SLA 阶段时间纪律（Microkernel 2.0 战役 1 · 组局无出行段：仅接单15min，DEPARTED 缺键回落默认） */
+  slaPhases: {
+    ACCEPTED: 900,
+  },
+  fundingMode: "full_prepay",
   /* D7 清算与仲裁（6h 超时自动成局/关闭 + 分账 0.88+0.10+0.02=1.0） */
   autoAcceptanceTimeoutHours: 6,
   splitRules: { providerRatio: 0.88, platformRatio: 0.1, insuranceRatio: 0.02 },

@@ -24,6 +24,8 @@ import type {
   ISubEventHook,
   ISubEventResult,
 } from "../types/ammo-schema.ts";
+// Microkernel 2.0 战役 1（P0-1）：资金模式能力白名单（base 单向依赖，宪法 #3）
+import { validateFundingModeSupport } from "../base/money/funding-dispatcher.ts";
 
 /* =====================================================================
  * 运行时动态弹药池（人类创始人裁决 2026-08-16 · 循环依赖治理）：
@@ -214,6 +216,15 @@ export function validateAmmoConfig(
   }
   if (!config.fuzePolicy) {
     errors.push("MISSING_FUZE_POLICY: D3 fuzePolicy must be explicitly loaded");
+  }
+
+  // 1.5 资金模式能力白名单（Microkernel 2.0 战役 1 · P0-1 裁决 a Fail-Fast）
+  // 未实现模式一票否决拒出厂，严禁静默降级为全款预付。
+  if (config.fundingMode !== undefined) {
+    const fundingError = validateFundingModeSupport(config.fundingMode);
+    if (fundingError) {
+      errors.push(fundingError);
+    }
   }
 
   // 2. 资金守恒硬性审查（仅显式声明 splitRules 时校验）

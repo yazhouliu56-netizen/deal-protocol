@@ -349,6 +349,13 @@ export interface ProtocolDef {
   // 如: ["NOT_ACCEPTED", "ACCEPTED", "DEPARTED", "ARRIVED", "IN_PROGRESS", "DONE"]
   serviceStages?: string[]
 
+  /**
+   * SLA 阶段时间纪律（服务阶段 → 超时秒数；Microkernel 2.0 战役 1 P1-4）。
+   * 由弹药 holographic.slaPhases 投影而来， sla-enforcer 经 getProtocol 消费；
+   * 缺省键回落 DEFAULT_SLA_PHASES（见 protocol-definitions）。
+   */
+  slaPhases?: Record<string, number>
+
   // 退款规则（按服务阶段分段）
   refundRules?: Array<{
     stage: number                     // 服务阶段
