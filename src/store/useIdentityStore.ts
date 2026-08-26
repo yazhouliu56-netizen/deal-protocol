@@ -307,6 +307,10 @@ export const useIdentityStore = create<IdentityState>()(
     {
       name: `oto-identity-${tabKey()}`,
       storage: createJSONStorage(() => localStorage),
+      // D-20260825-01 根治：禁用模块加载期同步回灌。localStorage 同步存储会在
+      // 客户端首帧渲染前合并持久化身份 → SSR 默认态与 CSR 首帧文本不一致 → React #418。
+      // 重水合改由 <IdentityRehydrator>（(oto)/layout 挂载）在水合提交后显式触发。
+      skipHydration: true,
       partialize: (s) => ({
         identity: s.identity,
         account: s.account,
@@ -323,14 +327,18 @@ export const useIdentityStore = create<IdentityState>()(
   )
 );
 
-// 把首次生成的身份落盘：hydrate 完成后空 set 一次触发 persist 写入，
-// 保证刷新后仍是同一个 P2P 身份（wave 的 author 过滤才不会误伤）。
-// 注意不能在 onRehydrateStorage 里引用本模块（create 前 TDZ）。
+// 首访同步落盘（只写不读态）：persist 键不存在（首次访问）时以空 set 触发初始
+// 身份落盘——保证 persist 键在首帧前即存在（刷新同身份 / 跨模块依赖前提），
+// 且因键本为空不存在覆盖风险、更无「预置值提前生效」的水合不一致。
+// 已有持久化态时绝不盲写（防覆盖数据丢失），其「值回灌」由 <IdentityRehydrator>
+// 在水合提交后的 effect 中显式触发。模块加载期严禁同步 rehydrate——那正是
+// 回访用户首帧 mismatch（React #418）的根因（D-20260825-01）。
 if (typeof window !== "undefined") {
-  const pending = useIdentityStore.persist.rehydrate();
-  const done = pending && typeof pending.then === "function" ? pending : null;
-  const commit = () =>
-    useIdentityStore.setState((s) => ({ claimQuota: s.claimQuota }));
-  if (done) done.then(commit);
-  else commit();
+  try {
+    if (localStorage.getItem(`oto-identity-${tabKey()}`) === null) {
+      useIdentityStore.setState((s) => ({ claimQuota: s.claimQuota }));
+    }
+  } catch {
+    /* localStorage 不可用（隐私模式等）：静默降级 */
+  }
 }

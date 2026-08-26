@@ -101,10 +101,6 @@ const errors = [];
 const isNoise = (t) =>
   /429|Failed to load resource|LLM upstream failed|openfreemap/i.test(t) ||
   /^THREE\.(Clock|WebGLProgram)/.test(t) ||
-  // 已知存量缺陷 D-20260825-01（登记于 PROJECT_STATUS）：回访用户持久化身份
-  // 同步 rehydrate → SSR(默认态) 与客户端首帧 text mismatch → React #418。
-  // 非本考卷引入（B 端身份预置 reload 触发暴露），功能不受损，修复挂账。
-  /React error #418/.test(t) ||
   // supabase-js 官方自述「It is not an error」的已知告警（多 client 实例并存
   // 为产品架构现状），无并发写同一 storage key 的实际冲突。
   /Multiple GoTrueClient instances/.test(t);
