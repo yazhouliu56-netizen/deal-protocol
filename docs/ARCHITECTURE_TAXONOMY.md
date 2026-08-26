@@ -250,6 +250,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `src/store/`（7 文件） | UI 状态层 | 🟡 业务圈前端接线（useWaveStore 为最大消费方） |
 | `mobile/`（RN 子项目） | 移动端 10 屏 | 🟡 已登记归属（location→base/geo RN 候选、DynamicForm→弹药表单 N2），未融合 |
 | ~~`packages/`~~（已出清 2026-08-26 `9bee42d`） | credit-formula→base/trust、payment-core→base/platform | 🟢 单包微内核达成（根目录无孤立子包） |
+| **Microkernel 2.0 工业化战役**（2026-08-26 立项，五战序列） | 战役 1 ✅ `e695e83`：SLA 弹药化（slaPhases 入 8D 契约，sla-enforcer 全局常量退役）+ 资金模式能力白名单（funding-dispatcher 三膛线 + factory Fail-Fast 拦截，裁决 a 拒绝静默降级）；待战：② 底座纯度大分流→src/adapters/ 六边形架构 ③ 四表内聚+通用投影器统一 ④ 履约座舱 Schema 化 ⑤ 支付归一+跑道合并 | 🟡→🟢 推进中 |
 | `tests/`、`e2e/`、`scripts/` | 验证体系 | 🟢 基建圈 |
 
 ### 3.6 验证资产归属（856 基线）
