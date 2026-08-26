@@ -1,6 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import type { MapOverride } from "./mapConfig";
+import type { MapOverride } from "@/base/geo/mapConfig";
 
 /**
  * Client-persisted map-tier preference ("auto" | "css" | "3d").

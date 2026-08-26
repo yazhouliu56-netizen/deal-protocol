@@ -1,5 +1,5 @@
 import Stripe from "stripe"
-import { PaymentManager as PaymentCoreManager, type CreatePaymentParams } from "@/base/platform/payment-core"
+import { PaymentManager as PaymentCoreManager, type CreatePaymentParams } from "@/adapters/payment/payment-core"
 
 export type PaymentProvider = "stripe" | "alipay" | "wechat"
 

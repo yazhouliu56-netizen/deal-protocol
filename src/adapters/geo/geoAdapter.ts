@@ -5,7 +5,7 @@
  * 纯接口 + 无副作用工厂，SSR 安全。
  */
 
-import type { GeoPoint } from "./geo.ts";
+import type { GeoPoint } from "@/base/geo/geo.ts";
 
 /** RN 端位置源实现。web 端默认 MockGeoSrc（演示坐标）。 */
 export interface GeoSrc {
@@ -34,7 +34,7 @@ export class MockGeoSrc implements GeoSrc {
     return this.granted ? "granted" : "undetermined";
   }
   async geocode(name: string): Promise<GeoPoint | null> {
-    const { geoFromName } = await import("./geo.ts");
+    const { geoFromName } = await import("@/base/geo/geo.ts");
     return name ? geoFromName(name, this.origin) : null;
   }
 }
@@ -83,7 +83,7 @@ export class WebGeoSrc implements GeoSrc {
   }
 
   async geocode(name: string): Promise<GeoPoint | null> {
-    const { geoFromName } = await import("./geo.ts");
+    const { geoFromName } = await import("@/base/geo/geo.ts");
     const origin = (await this.current()) ?? { lat: 30.57, lng: 104.06 };
     return name ? geoFromName(name, origin) : null;
   }

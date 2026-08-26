@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { MockEngine } from "@/base/ai/chat/mockEngine";
-import { LlmEngine } from "@/base/ai/chat/llmEngine";
+import { LlmEngine } from "@/adapters/ai/chat/llmEngine";
 import type { ChatMessage, ChatEvent, GenCard, ChatEngineContext } from "@/base/ai/chat/types";
-import { speak } from "@/base/ai/voice/ttsClient";
+import { speak } from "@/adapters/ai/voice/ttsClient";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { resolveAmmoIdForPublish, resolveAmmoByFreeText } from "@/ammo/registry";
@@ -18,7 +18,7 @@ import {
 } from "@/base/ai/voice/voiceIntent";
 import type { VoiceIntent } from "@/base/ai/voice/types";
 import type { INormalizedCustomIntent } from "@/types/ammo-schema";
-import { voiceHint } from "@/base/platform/clientFlags";
+import { voiceHint } from "@/adapters/ui/clientFlags";
 import { ChatBubble, ThinkingDot } from "./_components/ChatBubble";
 import ChatInputBar from "./_components/ChatInputBar";
 

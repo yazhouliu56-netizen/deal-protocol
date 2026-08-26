@@ -10,7 +10,7 @@
  */
 
 import type { WaveBundle } from "@/types/wave-bundle";
-import { createSupabaseTransport } from "@/base/platform/p2p/supabase";
+import { createSupabaseTransport } from "@/adapters/p2p/supabase";
 
 export interface P2pTransport {
   kind: "local" | "supabase";

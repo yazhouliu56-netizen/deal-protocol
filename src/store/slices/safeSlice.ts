@@ -28,8 +28,8 @@ import {
 } from "@/base/safe/privacy";
 import {
   snapshotGeoTrail,
-} from "@/base/platform/geo-tracker";
-import { drainAudioVault as drainRecorderChunks } from "@/base/platform/audio-recorder";
+} from "@/adapters/device/geo-tracker";
+import { drainAudioVault as drainRecorderChunks } from "@/adapters/device/audio-recorder";
 import {
   enqueue as enqueueOp,
 } from "@/base/platform/offlineQueue";

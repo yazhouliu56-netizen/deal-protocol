@@ -21,7 +21,7 @@ import FurnitureScene from "./FurnitureScene";
 import TemplateStage from "./SceneTemplate";
 import { templateForCategory } from "@/ammo/scene-template";
 import { useAppStore } from "@/store/useAppStore";
-import { isLowPower, webglSupported } from "@/base/platform/performance";
+import { isLowPower, webglSupported } from "@/adapters/ui/performance";
 
 /** Low-poly deep-space planet with additive halo rings — background tech vibe (non-AR screens). */
 function LowPolyEarth() {

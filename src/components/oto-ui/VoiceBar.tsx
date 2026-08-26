@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Square } from "lucide-react";
-import { recognizeSpeech } from "@/base/ai/voice/asrClient";
+import { recognizeSpeech } from "@/adapters/ai/voice/asrClient";
 import { clipMeta, saveClip } from "@/base/ai/voice/audioStore";
 import type { VoiceBarEvent, VoicePhase } from "@/base/ai/voice/types";
 

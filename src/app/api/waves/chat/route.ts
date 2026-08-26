@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { streamChat } from "@/base/ai/gateway/engine";
+import { streamChat, completeText } from "@/adapters/ai/gateway/engine";
+import { configureLlmCompleteText } from "@/base/ai/llm-port";
+
+configureLlmCompleteText(completeText);
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

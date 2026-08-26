@@ -10,9 +10,12 @@ import {
   GEOFENCE_DEFAULT_METERS,
   checkGeofenceArrival,
   checkGeofenceArrivalViaHotSwap,
+  configureLbsDistance,
   evaluateProximityDeparture,
   validateStayDuration,
 } from "./geofence-watcher.ts";
+
+import { haversineMeters } from "./lbs-port.ts";
 
 // 基准点（北京天安门）：39.9087, 116.3975
 const TARGET = { lat: 39.9087, lng: 116.3975 };
@@ -127,8 +130,27 @@ test("非法坐标防御：越界纬度/NaN → 不触发不抛异常", () => {
   assert.equal(evaluateProximityDeparture({ lat: NaN, lng: 116.4 }, TARGET, 300), false);
 });
 
-test("热备入口：外部 LBS 全挂 → 本地 Haversine 兜底判定口径一致（红线 1）", async () => {
-  // 25m 内：外部通道全失败，回落 LOCAL_MOCK 后仍精确触发到达
+test("热备入口：注入实现经端口生效（六边形接缝），距离口径与同步入口一致", async () => {
+  configureLbsDistance(null);
+  configureLbsDistance(async (input) => ({
+    result: { distanceMeters: haversineMeters(input.a, input.b) },
+    usedVendor: "STUB_LBS",
+    fallbackHops: 1,
+  }));
+  const r = await checkGeofenceArrivalViaHotSwap(
+    { lat: TARGET.lat + 25 * DEG_PER_METER, lng: TARGET.lng },
+    TARGET,
+    GEOFENCE_DEFAULT_METERS,
+    "geofence-hotswap-test",
+  );
+  assert.equal(r.isArrived, true);
+  assert.ok(Math.abs(r.distanceMeters - 25) < 0.5);
+  assert.equal(r.usedVendor, "STUB_LBS");
+  assert.equal(r.fallbackHops, 1);
+});
+
+test("热备入口：未装配实现 → 纯本地 Haversine 兜底（LOCAL_MOCK，零下跳）", async () => {
+  configureLbsDistance(null);
   const r = await checkGeofenceArrivalViaHotSwap(
     { lat: TARGET.lat + 25 * DEG_PER_METER, lng: TARGET.lng },
     TARGET,
@@ -138,7 +160,7 @@ test("热备入口：外部 LBS 全挂 → 本地 Haversine 兜底判定口径�
   assert.equal(r.isArrived, true);
   assert.ok(Math.abs(r.distanceMeters - 25) < 0.5);
   assert.equal(r.usedVendor, "LOCAL_MOCK");
-  assert.equal(r.fallbackHops, 3);
+  assert.equal(r.fallbackHops, 0);
 });
 
 test("热备入口：外部 LBS 全挂 + 精度漂移 → 判未到达且给出 accuracyWarning", async () => {

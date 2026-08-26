@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 import { create } from "zustand";
 import { persist, type StorageValue } from "zustand/middleware";
 import type { WaveBundle } from "@/types/wave-bundle";
-import { getP2pTransport } from "@/base/platform/p2p/transport";
+import { getP2pTransport } from "@/adapters/p2p/transport";
 import { MOCK_RESPONDERS } from "@/ammo/responders-catalog";
 import type { Claim, Wave } from "@/base/order/wave";
 import { createOrderSlice, type OrderSlice } from "./slices/orderSlice";

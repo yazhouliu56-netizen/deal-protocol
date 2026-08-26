@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
-import { encryptPII } from "@/base/safe/pii-crypto"
+import { configurePiiEncryptionKey, encryptPII } from "@/base/safe/pii-crypto"
+
+// Microkernel 2.0 战役 2：密钥组合根注入（底座零 env）
+if (process.env.PII_ENCRYPTION_KEY) {
+  configurePiiEncryptionKey(process.env.PII_ENCRYPTION_KEY);
+}
 
 export const POST = withAuth(async (req, user) => {
   const { realName, idNumber, certificates } = await req.json()

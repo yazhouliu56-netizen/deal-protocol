@@ -15,9 +15,16 @@
 
 import { distanceKm, type GeoPoint } from "./geo.ts";
 import {
-  calculateDistanceWithFallback,
+  type LbsDistanceFn,
   type LbsDistanceInput,
-} from "../platform/multi-channel-gateway.ts";
+  localHaversineDispatch,
+} from "./lbs-port.ts";
+
+/** 可注入 LBS 热备实现（组合根装配；缺省 = 纯本地 Haversine 兜底，语义等价 LOCAL_MOCK）。 */
+let lbsImpl: LbsDistanceFn | null = null;
+export function configureLbsDistance(fn: LbsDistanceFn | null): void {
+  lbsImpl = fn;
+}
 
 /** 设备坐标（GPS 上报点；accuracy 缺省 = 无法获取精度信息）。 */
 export interface Coordinates {
@@ -133,7 +140,7 @@ export async function checkGeofenceArrivalViaHotSwap(
     a: { lat: currentCoords.lat, lng: currentCoords.lng },
     b: { lat: targetCoords.lat, lng: targetCoords.lng },
   };
-  const dispatch = await calculateDistanceWithFallback(input, channelKey);
+  const dispatch = lbsImpl ? await lbsImpl(input, channelKey) : localHaversineDispatch(input);
   const distanceMeters = Math.round(dispatch.result.distanceMeters * 100) / 100;
 
   const hasAccuracy = Number.isFinite(currentCoords.accuracy);

@@ -14,7 +14,7 @@ import WaveCard from "./WaveCard";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import SpatialHeatMap from "./SpatialHeatMap";
-import { setGeoSrc, WebGeoSrc, type GeoSrc } from "@/base/geo/geoAdapter";
+import { setGeoSrc, WebGeoSrc, type GeoSrc } from "@/adapters/geo/geoAdapter";
 
 /** ADR-0015 N16 消费方：Web 真实定位开关（按需授权，降级演示坐标）。 */
 function GeoSourceBadge() {

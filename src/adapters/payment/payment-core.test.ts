@@ -135,7 +135,7 @@ test("WeChat 报文守卫：缺 resource / 缺密文字段抛错", async () => {
 });
 
 test("通道分发：未知 channel 的支付请求确定性失败、未知回调通道抛错", async () => {
-  const r = await mgr.createPayment({ orderId: "o", amount: 1, description: "", channel: "paypal" as never });
+  const r = await mgr.createPayment({ orderId: "o", amount: 1, description: "", notifyUrl: "https://e2e.local/notify", channel: "paypal" as never });
   assert.equal(r.success, false);
   assert.match(r.error ?? "", /Unsupported channel/);
   await assert.rejects(() => mgr.handleNotify("stripe", "{}", {}), /Unsupported notify channel/);

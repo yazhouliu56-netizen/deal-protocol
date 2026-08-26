@@ -7,7 +7,7 @@ import {
   buildOrderHash,
   type WatermarkOptions,
   type WatermarkResult,
-} from "@/base/platform/watermark-canvas";
+} from "@/adapters/device/watermark-canvas";
 import { detectImageForgery, type IImageForgeryReport } from "@/base/ai/forgery";
 
 /**

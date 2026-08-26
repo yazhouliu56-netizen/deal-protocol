@@ -1,7 +1,7 @@
 /**
  * 共享广播空间契约（P2P transport blob）。
  *
- * 上收自 `store/useWaveStore` —— 底座 transport（base/platform/p2p）只认此
+ * 上收自 `store/useWaveStore` —— 底座 transport（adapters/p2p）只认此
  * 契约，不依赖 UI 状态层。所有字段类型均来自 base 域，本文件仅做聚合声明。
  * 宪法收敛：条文 #3（单向依赖：UI / Ammo → base → types）。
  */
@@ -13,7 +13,7 @@ import type { PayOrder } from "@/base/money/pay";
 import type { SentinelEvent } from "@/base/risk/sentinel";
 import type { PrivacySession } from "@/base/comm/privacyNumber";
 import type { ImMsg, ImThread } from "@/base/comm/im";
-import type { FriendRequest, Friendship } from "@/base/trust/friends";
+import type { FriendRequest, Friendship } from "@/adapters/social/friends";
 import type { PushItem } from "@/base/ai/cluster";
 import type { CrisisRecord } from "@/base/safe/crisis";
 import type { ForgetRequest } from "@/base/safe/privacy";

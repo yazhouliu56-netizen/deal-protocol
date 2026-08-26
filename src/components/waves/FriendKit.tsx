@@ -8,7 +8,7 @@ import {
   areFriends,
   requestTtlLeft,
   FRIEND_REQUEST_TTL_MS,
-} from "@/base/trust/friends";
+} from "@/adapters/social/friends";
 import type { Claim } from "@/base/order/wave";
 
 /**

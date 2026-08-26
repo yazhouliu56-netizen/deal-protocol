@@ -198,7 +198,7 @@ function makeFakeCanvas2d(fakeDataUrl: string, fakeBlobBytes: Uint8Array) {
       return fakeDataUrl;
     },
     toBlob: (cb: (b: Blob | null) => void) => {
-      cb(new Blob([fakeBlobBytes], { type: "image/jpeg" }));
+      cb(new Blob([fakeBlobBytes as BlobPart], { type: "image/jpeg" }));
     },
   };
   return { canvas, styleCalls, drawCalls, dataUrlCalls: () => toDataUrlCalls };

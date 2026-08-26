@@ -158,13 +158,13 @@ function detectMockProvider(samples: GpsSample[]): boolean {
 /* ═══════════════ ② 终端模拟器与环境风险探针 ═══════════════ */
 
 export interface ITerminalContext {
-  /** navigator.userAgent。 */
+  /** 浏览器 UA 字符串（由采集方注入）。 */
   userAgent: string;
-  /** navigator.webdriver（自动化/Headless 标志）。 */
+  /** webdriver 自动化/Headless 标志（由采集方注入）。 */
   webdriver: boolean;
-  /** 触控支持（'ontouchstart' in window）。 */
+  /** 触控支持探针结果（由采集方注入）。 */
   touchSupport: boolean;
-  /** navigator.platform。 */
+  /** 平台标识（由采集方注入）。 */
   platform: string;
 }
 

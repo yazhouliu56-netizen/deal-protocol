@@ -3,7 +3,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MapPin, RotateCw, Clock, Users, Map as MapIcon, Heart, Share2 } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/base/geo/geo";
-import { isLowPower, webglSupported } from "@/base/platform/performance";
+import { isLowPower, webglSupported } from "@/adapters/ui/performance";
 import { useWaveStore } from "@/store/useWaveStore";
 import { perSeatPrice, type Wave } from "@/base/order/wave";
 import {
@@ -15,7 +15,7 @@ import {
   type MapOverride,
   type MapTier,
 } from "@/base/geo/mapConfig";
-import { cycleMapPref, useMapPref } from "@/base/geo/mapPref";
+import { cycleMapPref, useMapPref } from "@/adapters/geo/mapPref";
 import MapView from "./MapView";
 
 /**

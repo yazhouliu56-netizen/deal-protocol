@@ -1,6 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { loadReadSet, persistReadSet } from "@/base/notify/notify";
+import { loadReadSet, persistReadSet } from "@/adapters/notify/notify";
 
 /**
  * 通知已读集合（kind:key）— localStorage 持久化，跨会话。

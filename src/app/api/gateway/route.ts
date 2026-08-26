@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { intentPrompt } from "@/base/ai/voice/voiceIntent";
-import { jsonChat, streamChat } from "@/base/ai/gateway/engine";
-import type { GatewayTask } from "@/base/ai/gateway/providers";
+import { jsonChat, streamChat, completeText } from "@/adapters/ai/gateway/engine";
+import { configureLlmCompleteText } from "@/base/ai/llm-port";
+
+configureLlmCompleteText(completeText);
+import type { GatewayTask } from "@/adapters/ai/gateway/providers";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;

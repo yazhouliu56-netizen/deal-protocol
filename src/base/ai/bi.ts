@@ -400,12 +400,14 @@ function aggregateOverview(rows: BiContractRow[]): AggregateResult {
 /** 归因诊断 LLM 增强：成功返回诊断文本；任何失败返回 null（走规则摘要）。
  *  动态 import Gateway（node:test 离线环境无 @/ 别名解析 → 抛错被吞 → 规则兜底；
  *  生产环境正常加载 5-provider 链）。 */
+import { getLlmCompleteText } from "./llm-port.ts";
+
 async function tryLlmDiagnosis(
   query: string,
   payload: IBiReportPayload
 ): Promise<string | null> {
   try {
-    const { completeText } = await import("./gateway/engine.ts");
+    const completeText = getLlmCompleteText();
     const outcome = await completeText({
       task: "diagnose",
       timeoutMs: 6000,
@@ -426,7 +428,7 @@ async function tryLlmDiagnosis(
           }),
         },
       ],
-    });
+    }) as { ok: boolean; content?: string };
     if (!outcome.ok || !outcome.content) return null;
     const cleaned = outcome.content.replace(/```(?:json)?/g, "").trim();
     const parsed = JSON.parse(cleaned) as { summary?: unknown };

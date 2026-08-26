@@ -133,14 +133,14 @@ test("连续失败 3 次触发熔断：UNHEALTHY 状态", async () => {
     { vendor: "LOCAL_MOCK", priority: 99, timeoutMs: 1_000, execute: async () => "mock" },
   ];
   for (let i = 0; i < 3; i++) {
-    const r = await executeWithFallback(channels, "x", "breaker");
+    const r = await executeWithFallback(channels as never, "x", "breaker");
     assert.equal(r.usedVendor, "TENCENT");
   }
   const c = getChannelCircuit("breaker", "ALIYUN");
   assert.equal(c.status, "UNHEALTHY");
   assert.equal(c.failures, 3);
   // 熔断后 4 次调用：一级被跳过（fallbackHops 从 0 变 1），二级直接兜上
-  const r4 = await executeWithFallback(channels, "x", "breaker");
+  const r4 = await executeWithFallback(channels as never, "x", "breaker");
   assert.equal(r4.usedVendor, "TENCENT");
   assert.equal(r4.fallbackHops, 1);
 });

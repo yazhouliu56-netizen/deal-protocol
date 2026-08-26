@@ -4,8 +4,8 @@
  * speak() 支持中断（新一轮播报打断旧一轮），并回报实际是否出声。
  */
 
-import { saveClip, loadClipBlob } from "./audioStore";
-import type { VoiceClip } from "./types";
+import { saveClip, loadClipBlob } from "@/base/ai/voice/audioStore";
+import type { VoiceClip } from "@/base/ai/voice/types";
 
 const CACHE_PREFIX = "tts:";
 

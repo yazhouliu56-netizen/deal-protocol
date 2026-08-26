@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toast } from "@/base/platform/toast";
 
@@ -15,7 +15,7 @@ import { toast } from "@/base/platform/toast";
  * ## 六圈定位声明
  * - 所属圈：第 1 圈（触达 L1-M1 用户体验与触达）
  * - 所属模块：L1-M1 身份与登录触达
- * - 复用底座：base/platform/useDragToDismiss（下拉手势判定，零业务依赖红线 3）
+ * - 复用底座：adapters/ui/useDragToDismiss（下拉手势判定，零业务依赖红线 3）
  * - 弹药表：无（演示沙盒身份，不承载业务字段）
  *
  * ## 宪法条文对照

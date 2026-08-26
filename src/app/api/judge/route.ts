@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { completeText } from "@/base/ai/gateway/engine";
+import { completeText } from "@/adapters/ai/gateway/engine";
+import { configureLlmCompleteText } from "@/base/ai/llm-port";
+
+configureLlmCompleteText(completeText);
 import { guardArbitrationSettlement } from "@/base/order/dispute";
 import {
   normalizeLlmSuggestion,

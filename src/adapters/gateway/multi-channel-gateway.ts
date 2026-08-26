@@ -365,29 +365,16 @@ export async function dispatchSmsWithFallback(
 
 // ---------- LBS 距离 / 逆地理多通道热备门面 ----------
 
-export interface LbsDistanceInput {
-  a: { lat: number; lng: number };
-  b: { lat: number; lng: number };
-}
+import type {
+  LbsDistanceInput,
+  LbsDistanceOutput,
+} from "@/base/geo/lbs-port.ts";
+import { haversineMeters } from "@/base/geo/lbs-port.ts";
 
-export interface LbsDistanceOutput {
-  /** 米（两位小数）。 */
-  distanceMeters: number;
-}
+export type { LbsDistanceInput, LbsDistanceOutput };
 
 /** 本地 Haversine 纯数学兜底（与 base/geo/geo.ts 同一地球模型，本地零依赖）。 */
-function haversineMeters(a: LbsDistanceInput["a"], b: LbsDistanceInput["b"]): number {
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const EARTH_KM = 6371;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return Math.round(2 * EARTH_KM * Math.asin(Math.sqrt(h)) * 1000 * 100) / 100;
-}
+// haversineMeters 纯数学已收敛至 base/geo/lbs-port（六边形端口）。
 
 /** 本地确定性距离通道（永不失败）。 */
 export function buildLocalHaversineChannel(): IVendorChannel<LbsDistanceInput, LbsDistanceOutput> {

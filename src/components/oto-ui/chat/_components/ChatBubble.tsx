@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { Bot, Volume2 } from "lucide-react";
 import type { ChatMessage } from "@/base/ai/chat/types";
-import { speak } from "@/base/ai/voice/ttsClient";
+import { speak } from "@/adapters/ai/voice/ttsClient";
 import { GenCardView } from "./ChatMessageCards";
 
 /**

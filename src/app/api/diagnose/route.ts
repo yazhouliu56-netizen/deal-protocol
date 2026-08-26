@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { mockDiagnose, type DiagnosisAdvice } from "@/base/ai/diagnostic";
-import { completeText } from "@/base/ai/gateway/engine";
+import { completeText } from "@/adapters/ai/gateway/engine";
+import { configureLlmCompleteText } from "@/base/ai/llm-port";
+
+configureLlmCompleteText(completeText);
 
 /**
  * S2 AI 主动诊断 — POST { id, budget, basics, customs, negotiable, createdAt }

@@ -9,15 +9,15 @@ import {
   buildNotifyItems,
   type NotifyItem,
   type NotifyKind,
-} from "@/base/notify/notify";
-import { markAllRead, useReadKeys } from "@/base/platform/readKeys";
+} from "@/adapters/notify/notify";
+import { markAllRead, useReadKeys } from "@/adapters/ui/readKeys";
 import {
   diffNotifEvents,
   notify,
   requestNotifyPermission,
   type NotifyPermission,
   type NotifDiffInput,
-} from "@/base/notify/systemNotify";
+} from "@/adapters/notify/systemNotify";
 import { shouldNotify, minuteOfWeek } from "@/base/platform/quietHours";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 

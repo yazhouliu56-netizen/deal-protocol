@@ -16,14 +16,14 @@ export const COMPOSITE_WEIGHTS: Record<keyof CreditDimensions, number> = {
   contribution: 0.05,
 }
 
-export function ageFactor(createdAt: Date): number {
-  const daysSinceFirst = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+export function ageFactor(createdAt: Date, now: number = Date.now()): number {
+  const daysSinceFirst = (now - createdAt.getTime()) / (1000 * 60 * 60 * 24)
   return Math.min(1, daysSinceFirst / 30)
 }
 
-export function decayFactor(lastActiveAt: Date | null): number {
+export function decayFactor(lastActiveAt: Date | null, now: number = Date.now()): number {
   if (!lastActiveAt) return 1
-  const idleDays = (Date.now() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24)
+  const idleDays = (now - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24)
   return Math.max(0, 1 - 0.01 * idleDays)
 }
 

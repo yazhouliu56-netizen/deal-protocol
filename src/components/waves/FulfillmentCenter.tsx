@@ -8,11 +8,11 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { evaluateRuntimeSafety } from "@/base/safe/runtime-monitor";
-import { startGeoTracker, stopGeoTracker } from "@/base/platform/geo-tracker";
+import { startGeoTracker, stopGeoTracker } from "@/adapters/device/geo-tracker";
 import {
   startAudioVault,
   stopAudioVault,
-} from "@/base/platform/audio-recorder";
+} from "@/adapters/device/audio-recorder";
 import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
 import DialCard from "./DialCard";
 import ArbitrationSheet, {

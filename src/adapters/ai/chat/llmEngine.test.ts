@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseDirective } from "./llmDirective.ts";
+import { parseDirective } from "@/base/ai/chat/llmDirective.ts";
 import { SYSTEM_PROMPT } from "./llmEngine.ts";
 
 test("parseDirective: clean json", () => {

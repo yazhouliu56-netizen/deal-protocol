@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEdgeSwipeBack } from "@/base/platform/useEdgeSwipeBack";
+import { useEdgeSwipeBack } from "@/adapters/ui/useEdgeSwipeBack";
 import { lockEdgeGesture, useEdgeGestureLock } from "@/components/oto-ui/edgeGestureLock";
 import Stage from "@/components/oto-ui/3d/Stage";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
@@ -27,7 +27,7 @@ import FulfillmentCenter from "@/components/waves/FulfillmentCenter";
 import PublishSheet from "@/components/waves/PublishSheet";
 import { type ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 import { useAppStore } from "@/store/useAppStore";
-import { initLowPower } from "@/base/platform/performance";
+import { initLowPower } from "@/adapters/ui/performance";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
 import ContactCard from "@/components/waves/ContactCard";
 import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";

@@ -7,8 +7,8 @@
  * 条文 #10：无麦克风 / 权限拒绝 / Headless 环境 100% 静默降级，绝不抛异常。
  */
 
-import { sha256Hex } from "../ai/forgery";
-import { AudioChunkBuffer, type AudioChunkMeta } from "../safe/crisis-tracker";
+import { sha256Hex } from "@/base/ai/forgery";
+import { AudioChunkBuffer, type AudioChunkMeta } from "@/base/safe/crisis-tracker";
 
 const SLICE_MS = 5000;
 

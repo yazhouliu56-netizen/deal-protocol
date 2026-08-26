@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
-import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import type { ForgeryRiskLevel } from "@/base/ai/forgery";
 
 /**

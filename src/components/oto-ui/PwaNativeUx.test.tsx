@@ -24,8 +24,8 @@ import ProofCamera, {
 import {
   EDGE_SWIPE_THRESHOLD_PX,
   useEdgeSwipeBack,
-} from "@/base/platform/useEdgeSwipeBack";
-import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+} from "@/adapters/ui/useEdgeSwipeBack";
+import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
 import {
   lockEdgeGesture,

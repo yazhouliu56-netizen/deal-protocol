@@ -64,6 +64,30 @@ const eslintConfig = defineConfig([
     "public/sw.js.map",
     "public/workbox-*.js",
   ]),
+
+  {
+    // Microkernel 2.0 战役 2 · 底座纯度物理门禁（红线 3 机器可验化）：
+    // src/base/** 绝对纯核——禁 Supabase / 禁 adapters 反向 / 禁浏览器与
+    // 设备全局。IO 一律经 src/adapters/ 组合根注入。
+    files: ["src/base/**/*.ts", "src/base/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        "patterns": [
+          { "group": ["@supabase/*", "**/@supabase/*"], "message": "底座零 Supabase：DB/Realtime 访问请走 src/adapters/ 注入。" },
+          { "group": ["@/adapters/*", "**/adapters/*"], "message": "红线 3 反向依赖：base 严禁 import adapters，改经端口注入。" }
+        ]
+      }],
+      "no-restricted-globals": ["error",
+        { "name": "window", "message": "底座纯度：浏览器全局禁止直用，信号经参数注入。" },
+        { "name": "document", "message": "底座纯度：DOM 禁止直用，经 src/adapters/。" },
+        { "name": "navigator", "message": "底座纯度：设备 API 禁止直用，经 src/adapters/。" },
+        { "name": "localStorage", "message": "底座纯度：存储禁止直用，经端口注入。" },
+        { "name": "sessionStorage", "message": "底座纯度：存储禁止直用，经端口注入。" },
+        { "name": "MediaRecorder", "message": "底座纯度：硬件 API 禁止直用，经 src/adapters/device/。" },
+        { "name": "fetch", "message": "底座纯度：网络 I/O 禁止直用，经 src/adapters/ 注入。" }
+      ]
+    }
+  },
 ]);
 
 export default eslintConfig;

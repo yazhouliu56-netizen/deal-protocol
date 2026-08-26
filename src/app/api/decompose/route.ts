@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { mockDecompose } from "@/base/ai/decompose";
-import { completeText } from "@/base/ai/gateway/engine";
+import { completeText } from "@/adapters/ai/gateway/engine";
+import { configureLlmCompleteText } from "@/base/ai/llm-port";
+
+configureLlmCompleteText(completeText);
 
 /**
  * LLM 任务拆解 — POST { category, time, note, budget } →

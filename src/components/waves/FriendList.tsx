@@ -4,7 +4,7 @@ import { useMountedNow } from "@/lib/use-mounted-now";
 import { Heart, Users } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
-import { requestTtlLeft } from "@/base/trust/friends";
+import { requestTtlLeft } from "@/adapters/social/friends";
 
 /**
  * S3 关系沉淀 · 好友列表 — 已互认的好友 + 待我确认的转友请求。

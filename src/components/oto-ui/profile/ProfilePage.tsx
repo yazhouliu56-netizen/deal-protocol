@@ -12,7 +12,7 @@ import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { usePrefStore } from "@/store/usePrefStore";
 import { PREF_KEYS } from "@/ammo/prefs";
-import { fileToAvatarDataUrl } from "@/base/platform/avatar";
+import { fileToAvatarDataUrl } from "@/adapters/ui/avatar";
 import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import DataPortCard from "./DataPortCard";
 import CockpitDemoCard from "./CockpitDemoCard";

@@ -11,12 +11,25 @@ import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
 const ALGORITHM = "aes-256-gcm";
 const ENCODING = "base64";
 
+/**
+ * Microkernel 2.0 战役 2：底座零 env——密钥改由组合根显式注入
+ * （configurePiiEncryptionKey），API 装配层负责从环境变量读取并传入。
+ */
+let configuredPiiKey: Buffer | null = null;
+
+export function configurePiiEncryptionKey(hexKey: string): void {
+  const buf = Buffer.from(hexKey, "hex");
+  // 仅接受合法 32 字节密钥；空串/非法长度视为"未配置"（交由 getKey 显式抛错）
+  configuredPiiKey = buf.length === 32 ? buf : null;
+}
+
 function getKey(): Buffer {
-  const key = process.env.PII_ENCRYPTION_KEY;
-  if (!key) {
-    throw new Error("PII_ENCRYPTION_KEY environment variable is not set");
+  if (!configuredPiiKey) {
+    throw new Error(
+      "PII encryption key not configured: call configurePiiEncryptionKey() at composition root",
+    );
   }
-  return Buffer.from(key, "hex");
+  return configuredPiiKey;
 }
 
 export function encryptPII(plaintext: string): string {

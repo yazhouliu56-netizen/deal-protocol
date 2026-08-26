@@ -6,16 +6,16 @@ import type {
   GenCard,
   ProviderItem,
   TimeslotSlot,
-} from "./types";
+} from "@/base/ai/chat/types";
 import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
-import { decorateWeekendLabels } from "./slots";
+import { decorateWeekendLabels } from "@/base/ai/chat/slots";
 import {
   CATEGORY_LABEL,
   MOCK_PROVIDERS,
   MOCK_SLOTS,
   type DemandCategory,
-} from "./mockEngine";
-import { NEED_KEYS, parseDirective, type LlmDirective } from "./llmDirective";
+} from "@/base/ai/chat/mockEngine";
+import { NEED_KEYS, parseDirective, type LlmDirective } from "@/base/ai/chat/llmDirective";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

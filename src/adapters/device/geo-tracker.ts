@@ -9,7 +9,7 @@
 import {
   recordBreadcrumbPoint,
   type BreadcrumbPoint,
-} from "../safe/crisis-tracker";
+} from "@/base/safe/crisis-tracker";
 
 const MAX_TRAIL_POINTS = 64;
 

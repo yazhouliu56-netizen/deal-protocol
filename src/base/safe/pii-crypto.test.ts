@@ -4,18 +4,14 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { decryptPII, encryptPII, maskPII } from "./pii-crypto.ts";
+import { configurePiiEncryptionKey, decryptPII, encryptPII, maskPII } from "./pii-crypto.ts";
+
+const TEST_KEY_HEX = "a".repeat(64);
+configurePiiEncryptionKey(TEST_KEY_HEX);
 
 test("加解密往返：任意 UTF-8 明文经 encrypt→decrypt 恢复原值", () => {
-  const key = process.env.PII_ENCRYPTION_KEY;
-  process.env.PII_ENCRYPTION_KEY = "a".repeat(64);
-  try {
-    for (const plain of ["110101199001011234", "中文身份证号测试", ""]) {
-      assert.equal(decryptPII(encryptPII(plain)), plain);
-    }
-  } finally {
-    if (key === undefined) delete process.env.PII_ENCRYPTION_KEY;
-    else process.env.PII_ENCRYPTION_KEY = key;
+  for (const plain of ["110101199001011234", "中文身份证号测试", ""]) {
+    assert.equal(decryptPII(encryptPII(plain)), plain);
   }
 });
 
@@ -45,11 +41,15 @@ test("畸形信封拒绝：缺少 IV/authTag 段的密文抛错而非静默返�
   }
 });
 
-test("环境密钥缺失防御：未配置 PII_ENCRYPTION_KEY 时加密显式抛错", () => {
+test("密钥缺失防御：组合根未注入时加密显式抛错", () => {
   const saved = process.env.PII_ENCRYPTION_KEY;
   delete process.env.PII_ENCRYPTION_KEY;
   try {
-    assert.throws(() => encryptPII("x"), /PII_ENCRYPTION_KEY environment variable is not set/);
+    assert.throws(() => {
+  configurePiiEncryptionKey("");
+  encryptPII("x");
+}, /not configured: call configurePiiEncryptionKey/);
+configurePiiEncryptionKey(TEST_KEY_HEX);
   } finally {
     if (saved === undefined) delete process.env.PII_ENCRYPTION_KEY;
     else process.env.PII_ENCRYPTION_KEY = saved;

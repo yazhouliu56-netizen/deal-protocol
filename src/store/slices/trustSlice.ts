@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TrustSlice（Step 3 切片拆域）：评价沉淀、治理举报与裁定、
  * 好友请求闭环（S3 发起转友）。
  */
@@ -18,7 +18,7 @@ import {
   acceptFriendRequest as acceptFriendRequestLogic,
   expireFriendRequests as expireFriendRequestsLogic,
   sendFriendRequest as sendFriendRequestLogic,
-} from "@/base/trust/friends";
+} from "@/adapters/social/friends";
 import type { WaveStore } from "../useWaveStore";
 
 export interface TrustSlice {

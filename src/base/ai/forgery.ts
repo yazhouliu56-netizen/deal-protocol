@@ -376,10 +376,12 @@ export function evaluateElaSignal(input: ImageForgeryInput): IImageForgerySignal
  * 5-provider Gateway 视觉判定（动态 import，失败静默回退规则摘要）。
  * 返回 0..1 置信（1 = 真实相机照片）或 null（无增强可用）。
  */
+import { getLlmCompleteText } from "./llm-port.ts";
+
 async function tryAiVisualAssessment(input: ImageForgeryInput): Promise<number | null> {
   if (input.skipAi) return null;
   try {
-    const { completeText } = await import("./gateway/engine.ts");
+    const completeText = getLlmCompleteText();
     const outcome = await completeText({
       task: "diagnose",
       timeoutMs: 5000,
@@ -402,7 +404,7 @@ async function tryAiVisualAssessment(input: ImageForgeryInput): Promise<number |
           }),
         },
       ],
-    });
+    }) as { ok: boolean; content?: string };
     if (!outcome.ok || !outcome.content) return null;
     const cleaned = outcome.content.replace(/```(?:json)?/g, "").trim();
     const parsed = JSON.parse(cleaned) as { confidence?: unknown };

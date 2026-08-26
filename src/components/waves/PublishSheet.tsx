@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
-import { useDragToDismiss } from "@/base/platform/useDragToDismiss";
+import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";

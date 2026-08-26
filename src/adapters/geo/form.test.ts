@@ -3,14 +3,14 @@ import assert from "node:assert/strict";
 import {
   getGeoSrc,
   setGeoSrc,
-} from "../geo/geoAdapter.ts";
-import { distanceKm } from "../geo/geo.ts";
+} from "@/adapters/geo/geoAdapter";
+import { distanceKm } from "@/base/geo/geo";
 import {
   isSubmittable,
   toRenderNodes,
   validateForm,
   type FormField,
-} from "../form/dynamicForm.ts";
+} from "@/base/form/dynamicForm";
 
 test("RN 适配：web 默认 mock 可注入替换，geo 计算共享", () => {
   assert.equal(getGeoSrc().platform, "web");

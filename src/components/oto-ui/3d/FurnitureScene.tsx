@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useAppStore } from "@/store/useAppStore";
-import { isLowPower } from "@/base/platform/performance";
+import { isLowPower } from "@/adapters/ui/performance";
 
 /** Distance beyond which we swap to the low-detail material (LOD); 3.5 on low power. */
 const MAX_TILT = 0.6;
