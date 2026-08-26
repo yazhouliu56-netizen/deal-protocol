@@ -125,6 +125,8 @@
 
 | **D-5 状态机双轨收敛 · 第一阶段（死轨出清修正版 + Base 合同引擎下沉）** | ✅ `ac6e529`：① **Phase A（物理门禁修正后终态）**——仅 `status-map.ts` 出清（-15 行，零引用实证）；**前置审计误判三处由 tsc/全量套件物理拦截并如实复原**：`contracts.ts`（4 模块单引号 type-only 活体枢纽）/ `auto-transitions.ts`（instrumentation 动态引导）/ `contract-builder.ts`（考卷宿主），根因=grep 双引号别名形态盲区；② **Phase B**：新建 `base/order/contract-engine.ts` 纯函数核（目标态谓词+action 双入口校验 / 状态推导四原语 / calcContractRefund 阶梯退款 / 双映射桥：7 态→五态投影 + 7 态→托管五态〔裁决 #2 SATISFACTION_HELD→SUBMITTED〕）；新考卷 ×19 入白名单；③ **SLA 考卷改道**（裁决 #3）：Mechanism-1 ×2 重写为 milestone-escrow 底座护栏 100% 存活，死 mock 出清；④ 门禁：tsc 0 + lint 0/0 + 单测 **1668/1668 全绿**（vitest 653 + node:test 1015，净增 +19）+ build exit 0 + restart-prod READY(pid 7452) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0（无 rename）；⑤ Phase C/D 承接面就位：contract-machine 门面退役、7 路由改道、instrumentation 引导解绑待后续阶段 | 2026-08-26 |
 
+| **D-5 状态机双轨收敛 · 第二阶段（门面退役与全路由改道）** | ✅ `3ca1ae0`：① `contract-machine.ts` 门面物理出清（76 行），全仓引用归零实证；② DB 操作直连真身模块（events/satisfaction/refund，按宪法分层持久化留 API 层）；③ 校验权威收编 Base 纯函数核——orders/[id] 心脏路由引擎前置化+五处调用点改道（engine-null 语义字节级等价）+ cron 超时 guard + sla-enforcer + resolver + auto-transitions 四外围全部改道；④ 考卷 mock 重定向 ×4，orders/[id] route.test 升级为**真实 Base 校验**（零损耗 1668/1668）；⑤ 工具教训：PS `-Path` 对 `[id]` 方括号通配符静默跳过 → 全扫描改 `-LiteralPath`；⑥ 门禁：tsc 0 + lint 0/0 + **1668/1668** + build 0 + restart-prod READY(pid 13796) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0；Phase D（instrumentation 三栓解绑）待令 | 2026-08-26 |
+
 ## 四、验证基线
 
 | 项 | 当前值 |
@@ -135,7 +137,7 @@
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音；TTS 生产 unhandledRejection 已根治并实测清零） |
 | 语音链路实测 | ✅ 录音→ASR 真链留待真机验证（本机无麦克风）；**TTS 链路全绿 2026-08-18：修复 bufferutil 空桩崩溃后实测 POST /api/tts → 200 audio/mpeg 14544B 1.64s（edge-tts 合成），错误日志 0 unhandledRejection，8s 看门狗兜底 504（客户端 speechSynthesis 终极降级）**；GLM 429（余额不足）→ edge-tts 兜底实测合成 mp3，双链全灭才落 speechSynthesis |
-| 生产服务器 | ✅ 运行中（pid 7452，端口 3000，HTTP 200；2026-08-26 D-5 一阶段 `node scripts/restart-prod.mjs` 重启） |
+| 生产服务器 | ✅ 运行中（pid 13796，端口 3000，HTTP 200；2026-08-26 D-5 二阶段 `node scripts/restart-prod.mjs` 重启） |
 
 ## 五、遗留缺口
 
@@ -174,10 +176,11 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：`ac6e529`（D-5 一阶段 ✅）｜ 摘要：Phase A 死轨出清经物理门禁修正后仅 status-map.ts 落删（contracts/auto-transitions/contract-builder 三处审计误判如实复原）；Phase B 新建 base/order/contract-engine.ts 纯函数核 + 双映射桥（裁决 #2 SATISFACTION_HELD→SUBMITTED 钉死），考卷 ×19 入白名单，SLA ×2 改道 milestone-escrow 底座护栏零折损（裁决 #3）；门禁 tsc 0 + lint 0/0 + **1668/1668 (653+1015)** + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0
+> 日期：2026-08-26 ｜ HEAD：`3ca1ae0`（D-5 二阶段 ✅）｜ 摘要：contract-machine 门面物理退役（全仓归零），DB 操作直连真身模块、状态机校验 100% 收编 base/order/contract-engine（orders/[id] 心脏+cron+sla-enforcer+resolver+auto-transitions 全改道，engine-null 语义字节级等价）；考卷 mock 重定向 ×4 零损耗；工具教训：PS -Path 对 [id] 通配符静默跳过改用 -LiteralPath；门禁 tsc 0 + lint 0/0 + **1668/1668 (653+1015)** + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
+| 2026-08-26 | `3ca1ae0` | **D-5 第二阶段：门面退役与 API 路由全面改道**。① git rm contract-machine.ts（76 行，引用归零）；② events/satisfaction/refund 直连真身；③ 校验收编 Base 纯函数核（心脏路由五调用点 + cron guard + sla-enforcer/resolver/auto-transitions 外围），engine-null 兜底一一对应字节等价；④ mock 重定向 ×4、orders/[id] 考卷升级真实 Base 校验；⑤ -LiteralPath 工具教训入账；⑥ 门禁 tsc 0 + lint 0/0 + **1668/1668** + build 0 + restart-prod(pid 13796) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0 |
 | 2026-08-26 | `ac6e529` | **D-5 状态机双轨收敛第一阶段**。① Phase A：status-map.ts 出清（-15 行）；三处前置审计误判由 tsc/全量套件拦截复原（contracts 单引号 type 枢纽 / auto-transitions instrumentation 动态引导 / contract-builder 考卷宿主），根因=grep 双引号别名盲区；② Phase B：base/order/contract-engine.ts 纯函数核（谓词+action 双入口 / 推导四原语 / calcContractRefund / 双映射桥含裁决 #2 SATISFACTION_HELD→SUBMITTED+INSPECTED）+ 考卷 ×19；③ SLA 考卷改道（裁决 #3）：Mechanism-1 → milestone-escrow 原语护栏 2/2 存活；④ 门禁 tsc 0 + lint 0/0 + **1668/1668**（653+1015，净增 +19）+ build 0 + restart-prod(pid 7452) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0；⑤ Phase C/D 承接面就位 |
 | 2026-08-26 | `bc49da2` | **P0 质量与治理双清零突击战**。① D-20260825-01 根治：useIdentityStore skipHydration:true 移除模块加载期同步回灌（#418 根因），首访落盘前置（键存在性守卫）/ 值回灌后置（IdentityRehydrator effect，(oto)/layout 挂载）；② e2e-dual-role-human #418 容忍正则物理摘除 → 裸跑实证（首轮全量实跑抓出 persist 键晚于断言真回归 → 两关注点分离治本复绿）；③ 缺陷→考卷复利 IdentityRehydrator.test ×3；④ probe-sos-cleanup.mjs 探针生命周期闭环（三表前缀审计 0 残留）；⑤ ci.yml「13 条」+ DEBT_REGISTER §1.2 重验刷新（24 出清/A19 复活/A13 已核销/待办 0）；⑥ 门禁 tsc 0 + lint 0/0 + **1649/1649**（653+996，+3）+ build 0 + restart-prod(pid 10320) + verify-prod **13/13**（dual-role 裸跑零水合警告）+ four-ammos PASS + 收敛 exit 0（零 rename） |
 | 2026-08-25 | `f5fa87b`(链至`b8b3112`) | **真实双端真人接单履约 E2E 战役收官（e2e-dual-role-human 全链 PASS）**。① 云端通道物理打通——`p2p_broadcast` 表 + Realtime publication + RLS 就位，双 Browser Context 经 Supabase REST/Realtime 物理互通（boot-pull + 推送双路径实证）；② **多端覆盖竞态根治（架构级）**：诊断脚本时序采样实证「B 写入 claimed+claims → A 端迟到回写整包覆盖打回 active/pending、履约座舱消失」——单行 JSONB 无 CAS 固有缺陷，客户端 read-merge-write 仅能压缩窗口无法根除；合并下沉为 **Postgres 原子函数 `public.p2p_merge_write`**（行锁 `for update` 内集合级 id-union + CASE 硬编码状态进度定序，终局态秩最高防回退），`supabaseTransport.write` 切换为单条 RPC 调用（四步探针全绿：正向推进/回退拒绝/claim 并入/多元素追加）；③ **写串行队列 + 单次重试**：store 单交互多次 set 并发打同行锁撞 statement_timeout 的自竞争消除（supabase.ts writeQueue），失败留痕降级；④ transport.ts `mergeByIdLevel` 升级状态机感知合并（同 id 实体按进度秩取大）作为本地通道纵深防御；⑤ 可观测性三处补齐（transport init/pull/channel/upsert 降级全留痕——静默吞错是本次战役最大教训）；⑥ **考卷收口**：`scripts/e2e-dual-role-human.mjs` 十三步全链 PASS×2（发单→跨端波卡→真人接单 accepted→隐私号→page 级双拍水印鉴真存证→NFC 三击 MATCHED→IN_SERVICE→INSPECTED→SETTLED→云端 closed 终局凭据），挂载 verify-prod 第 13 演练项；⑦ **已知存量缺陷 D-20260825-01 登记**：回访用户持久化身份同步 rehydrate → SSR 首帧 text mismatch（React #418 回归，非本战役引入，功能不受损，修复挂账）；门禁：tsc 0 错 + lint 0/0 + test:units **650/650** + build exit 0 + restart-prod READY + e2e-dual-role-human PASS ×2 连续复跑 |
