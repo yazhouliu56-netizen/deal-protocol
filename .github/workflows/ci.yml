@@ -54,7 +54,7 @@ jobs:
       - run: npm ci
       - name: 安装 Playwright Chromium
         run: npx playwright-core install --with-deps chromium
-      - name: 全链 E2E 回归（build → start :3000 → 12 条 e2e-*.mjs）
+      - name: 全链 E2E 回归（build → start :3000 → 13 条 e2e-*.mjs）
         run: npm run test:verify
 
   vercel-smoke-test:

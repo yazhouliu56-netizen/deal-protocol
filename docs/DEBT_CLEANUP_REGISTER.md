@@ -85,36 +85,40 @@
 | 64 | `/api/admin/withdraw/list` | [🟢 生产活跃在用] | `admin/withdrawals/page.tsx` |
 | 65 | `/api/admin/withdraw/review` | [🟢 生产活跃在用] | `admin/withdrawals/page.tsx` |
 
-## 1.2 孤儿路由（26 条，`[🟡 待出清/待裁决]`）——Grep 0 生产引用
+## 1.2 孤儿路由（原 26 条 → 2026-08-26 复验收官：已出清 24 · 复活活跃 1 · 已核销 1 · 待办 0）
+
+> **复验口径（2026-08-26，P0 双清零战役）**：以 `Get-ChildItem src/app/api -Recurse -Filter route.ts`
+> 全量枚举对表，75 条存活路由与 §1.1/§1.3 实况一致；A 组除 A19 外磁盘全部 0 命中。
+> 出清动作分布于历史战役（Step 1 `d9e64f0`/`2abc70a` 批次及其前序清理），不逐行虚构 commit 号。
 
 | # | 路由路径 | 状态 | 调用方证据（Grep 0 命中） | 性质判定 |
 |---|---------|------|--------------------------|---------|
-| A1 | `/api/llm-test` | [🟡 待出清/待裁决] | `llm-test` 全仓 0 命中；文件头注释自述 "Debug endpoint — can be removed in production" | 历史调试垃圾（可删） |
-| A2 | `/api/ai/inspect-quality` | [🟡 待出清/待裁决] | 0 命中；依赖 `lib/vision-inspector`（唯一 route 消费方，级联） | 历史调试垃圾（可删） |
-| A3 | `/api/ai/negotiate` | [🟡 待出清/待裁决] | `/api/ai/negotiate` 0 命中；仅 `base/order/dispute.ts` 命中 `"negotiate"` 为纠纷类型字符串（非 API 调用）；依赖 `lib/ai-negotiator`（级联） | 历史调试垃圾（可删） |
-| A4 | `/api/ai/push-recommendations` | [🟡 待出清/待裁决] | 0 命中 | 历史调试垃圾（可删） |
-| A5 | `/api/category-configs` | [🟡 待出清/待裁决] | 0 命中；功能被 `modules/m03-category-config` 取代 | 历史重复（可删） |
-| A6 | `/api/demands/create` | [🟡 待出清/待裁决] | 0 命中；前端全部走 `/api/demands` 根路由（`demands/create/page.tsx`） | 历史重复路由（可删） |
-| A7 | `/api/demands/list` | [🟡 待出清/待裁决] | `/api/demands/list` 0 命中；根路由已覆盖列表功能 | 历史重复路由（可删） |
-| A8 | `/api/demands/nearby` | [🟡 待出清/待裁决] | 0 命中；`modules/m05-geo-index` 已提供 geo-service | 功能已被模块取代（可删） |
-| A9 | `/api/demands/predict-intent` | [🟡 待出清/待裁决] | 0 命中；依赖 `lib/intent-radar`（唯一调用方，级联） | 历史调试垃圾（可删） |
-| A10 | `/api/demands/[id]/match` | [🟡 待出清/待裁决] | 正则通配段 `/api/demands/{段}/match` 0 命中；前端撮合走 `/api/ai/match` | 功能重复（可删） |
-| A11 | `/api/demands/[id]/tip` | [🟡 待出清/待裁决] | 0 命中 | 未接线功能（可删） |
-| A12 | `/api/developer/preference` | [🟡 待出清/待裁决] | 0 命中（1536 维向量偏好，无消费方） | 未接线功能（可删） |
+| A1 | `/api/llm-test` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史调试垃圾 |
+| A2 | `/api/ai/inspect-quality` | [🗑 已出清] | 磁盘复验 route.ts 0 命中（级联 lib/vision-inspector 一并消失） | 历史调试垃圾 |
+| A3 | `/api/ai/negotiate` | [🗑 已出清] | 磁盘复验 route.ts 0 命中（级联 lib/ai-negotiator 一并消失） | 历史调试垃圾 |
+| A4 | `/api/ai/push-recommendations` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史调试垃圾 |
+| A5 | `/api/category-configs` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史重复 |
+| A6 | `/api/demands/create` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史重复路由 |
+| A7 | `/api/demands/list` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史重复路由 |
+| A8 | `/api/demands/nearby` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 功能已被模块取代 |
+| A9 | `/api/demands/predict-intent` | [🗑 已出清] | 磁盘复验 route.ts 0 命中（级联 lib/intent-radar 一并消失） | 历史调试垃圾 |
+| A10 | `/api/demands/[id]/match` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 功能重复 |
+| A11 | `/api/demands/[id]/tip` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 未接线功能 |
+| A12 | `/api/developer/preference` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 未接线功能 |
 | A13 | `/api/disputes/[id]/arbitrate-ai` | [✅ 已核销·批次 3b] | `arbitrate-ai` 0 命中；`lib/ai-arbitrator` 已于批次 3b 物理出清（`6b71efc`，审计证实 ai-arbitration-card.tsx 零 import 该 lib，登记册原记载过时） | 历史调试垃圾（可删） |
-| A14 | `/api/disputes/[id]`（主路由） | [🟡 待出清/待裁决] | 页面走 `/api/disputes/detail?id=`；`[id]` 主路由 0 命中 | 功能重复（可删） |
-| A15 | `/api/disputes/resolve` | [🟡 待出清/待裁决] | 0 命中；裁决能力由 `lib/arbitration` + `admin/arbitrate` 承担 | 功能重复（可删/可并入 admin/arbitrate） |
-| A16 | `/api/orders/accept-delivery` | [🟡 待出清/待裁决] | 0 命中；验收走 `orders/[id]` 链 | 历史重复（可删） |
-| A17 | `/api/orders/submit-delivery` | [🟡 待出清/待裁决] | 0 命中；交付走 `orders/[id]` 链 | 历史重复（可删） |
-| A18 | `/api/pricing/estimate` | [🟡 待出清/待裁决] | 0 命中；`m03-category-config/pricing-engine` 已内联 | 功能被模块取代（可删） |
-| A19 | `/api/profile/delete` | [🟡 待出清/待裁决] | `/api/profile` 11 处引用均为根路由，`/delete` 0 命中 | 未接线功能（可删） |
-| A20 | `/api/provider/withdraw` | [🟡 待出清/待裁决] | 0 命中；提现走 `/api/finance/withdraw`（WithdrawModal） | 功能重复（可删） |
-| A21 | `/api/telecom/privacy-number` | [🟡 待出清/待裁决] | 0 命中；`lib/privacy-guard` 仍被 4 处活跃 route 消费（admin/review、orders/[id]、profile），lib 保留 | 未接线功能（可删） |
-| A22 | `/api/v1/agent/protocols/bid` | [🟡 待出清/待裁决] | 0 命中；依赖 `lib/agent-gateway`（唯一调用方，级联） | 对外契约候选（建议保留待裁决） |
-| A23 | `/api/verify/identity` | [🟡 待出清/待裁决] | 0 命中；实名核验已由 `modules/m02-auth` 承担 | 功能重复（可删） |
-| A24 | `/api/protocols`（根） | [🟡 待出清/待裁决] | 精确串 `/api/protocols` 0 命中（页面走 `admin/protocols`） | 历史重复（可删） |
-| A25 | `/api/protocols/[id]` | [🟡 待出清/待裁决] | 0 命中（`landing` 仅调 `generate`）；管理走 `admin/protocols/[id]` | 历史重复（可删） |
-| A26 | `/api/admin/disputes`（无 `/list` 版） | [🟡 待出清/待裁决] | 精确串 `/api/admin/disputes` 0 命中（页面用 `/list`）；正则有引用系 `/list` 前缀吸收，人工复核确认 0 | 历史重复（可删） |
+| A14 | `/api/disputes/[id]`（主路由） | [🗑 已出清] | 磁盘复验 route.ts 0 命中（仅存 detail/list 两活体变体） | 功能重复 |
+| A15 | `/api/disputes/resolve` | [🗑 已出清] | Step 1 战役 git rm ×3 之一；磁盘 0 命中 | 功能重复 |
+| A16 | `/api/orders/accept-delivery` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史重复 |
+| A17 | `/api/orders/submit-delivery` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 历史重复 |
+| A18 | `/api/pricing/estimate` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 功能被模块取代 |
+| A19 | `/api/profile/delete` | [🟢 复活活跃] | P2 隐私战役复活为《个保法》§47 注销闭环真链路（withAuth + 密态销毁 executeCryptoShredding + 匿名写回 + 销毁证书返回）；非孤儿 | 未接线→已接线（历史判定失效） |
+| A20 | `/api/provider/withdraw` | [🗑 已出清] | 磁盘复验 route.ts 0 命中 | 功能重复 |
+| A21 | `/api/telecom/privacy-number` | [🗑 已出清] | Step 1 战役 git rm ×3 之一；磁盘 0 命中（lib/privacy-guard 另行处置） | 未接线功能 |
+| A22 | `/api/v1/agent/protocols/bid` | [🗑 已出清] | Step 1 战役 git rm ×3 之一（级联僵尸 agent-gateway.ts 一并出清）；磁盘 0 命中 | 对外契约候选（裁决：出清） |
+| A23 | `/api/verify/identity` | [🗑 已出清] | 磁盘复验 route.ts 0 命中（verification/submit 为另一路由，勿混淆） | 功能重复 |
+| A24 | `/api/protocols`（根） | [🗑 已出清] | 磁盘复验 route.ts 0 命中（仅存 protocols/generate） | 历史重复 |
+| A25 | `/api/protocols/[id]` | [🗑 已出清] | 磁盘复验 route.ts 0 命中（admin/protocols/[id] 为另一路由） | 历史重复 |
+| A26 | `/api/admin/disputes`（无 `/list` 版） | [🗑 已出清] | 磁盘复验 route.ts 0 命中（仅存 admin/disputes/list） | 历史重复 |
 
 ## 1.3 外部/云端基础设施路由（9 条，`[🔴 严禁删除]`）
 
