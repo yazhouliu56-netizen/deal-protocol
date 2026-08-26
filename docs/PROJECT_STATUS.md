@@ -184,7 +184,11 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：\6765775\（Microkernel 2.0 战役 2 ✅ 六边形架构落地）｜ 摘要：~40 文件分流 src/adapters/ 九子域，base 恢复零 IO 纯核；六边形端口 ×2（lbs-port/llm-port）+ 七路由组合根装配；注入手术 ×3（pii 密钥/credit 时钟/anti-fraud 实证合规）；ESLint 八项物理门禁上线（当场抓获 2 处漏网）；vitest 排除 adapters/**；终态 grep 八词字面归零；考卷台账磁盘对账零差集；**1697 全绿** (652+1045) + verify-prod 13/13 + 收敛 exit 0（43 rename 登记）；下一役=战役 3 工厂全自动
+> 日期：2026-08-26 ｜ HEAD：`dc76cdd`（Microkernel 2.0 战役 3 ✅ 工厂真·全自动）｜ 摘要：四表引擎（计价/派单/风控/SOP）增加动态池精确键优先段——registerDynamicAmmo 新弹零静态表编辑即全自动消费，存量表行压轴字节级不变；IHolographicAmmoConfig 自包含扩展四位（homeAccessKeywords/declaredRiskRules/dispatchRule?/sop?）装配期透传；三条手写协议投影专线退役为 CATEGORY_PROTOCOL_META 数据字典统一走 projectAmmoToProtocol（输出逐键等价）；projectDynamicAmmo BASE 兜底投影 + getProtocol 惰性注册补全动态池协议盲区；考卷 +7 达 **1704 全绿** (652+1052)；技术修正：ammo-core 下沉因 transform-types 并发 TDZ 回退为池驻 factory 保守拓扑；门禁 tsc 0 + lint 0 + build 0 + verify-prod PASS + four-ammos PASS + 收敛 exit 0
+
+## 历史同步账（Microkernel 2.0 战役 1/2）
+
+> 日期：2026-08-26 ｜ HEAD：`6765775`（战役 2 ✅ 六边形架构落地）｜ 摘要：~40 文件分流 src/adapters/ 九子域，base 恢复零 IO 纯核；六边形端口 ×2（lbs-port/llm-port）+ 七路由组合根装配；注入手术 ×3（pii 密钥/credit 时钟/anti-fraud 实证合规）；ESLint 八项物理门禁上线（当场抓获 2 处漏网）；vitest 排除 adapters/**；终态 grep 八词字面归零；考卷台账磁盘对账零差集；**1697 全绿** (652+1045) + verify-prod 13/13 + 收敛 exit 0（43 rename 登记）；下一役=战役 3 工厂全自动
 ## 历史同步账（Microkernel 2.0 战役 1）
 
 > 日期：2026-08-26 ｜ HEAD：`e695e83`（战役 1 ✅）｜ 摘要：SLA 阶段纪律入 8D 弹药契约（slaPhases 投影贯通+四弹装填+sla-enforcer 全局常量退役）；资金模式能力白名单 Fail-Fast 落地（funding-dispatcher 真实枚举三膛线 + factory UNSUPPORTED_FUNDING_MODE 出厂拦截，裁决 a「拒绝静默降级」执行）；考卷净增 +11；门禁 tsc 0 + lint 0/0 + **1696/1696** (652+1044) + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0；下一役 = 战役 2 底座纯度大分流与六边形架构
