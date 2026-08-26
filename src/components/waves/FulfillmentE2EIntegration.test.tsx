@@ -15,10 +15,10 @@ import ArbitrationSheet, {
 import FulfillmentCenter, {
   needsCockpit,
   nextCockpitState,
-  resolveCockpitScenario,
   buildDisputeEvidence,
   buildDisputeProposal,
 } from "./FulfillmentCenter";
+import { resolveCockpitScenario } from "./slots/cockpit-scenario";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 
 /* ================= 测试工厂 ================= */

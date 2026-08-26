@@ -256,6 +256,11 @@ export const MEETUP_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
 
   /* D8 视界与表单（meetup 主题 + MeetupSlot 座舱插槽） */
   theme: "meetup",
+  /* D9 履约行动契约（战役 4）：围栏签到验真 + AA 对账 · mt 预置模板皮肤 */
+  actionSchema: {
+    variant: "mt",
+    modules: [{ module: "GEOFENCE_ARRIVAL" }, { module: "AA_SPLIT" }],
+  },
   cockpitSlot: "MeetupSlot",
 };
 

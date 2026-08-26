@@ -12,13 +12,19 @@ import FulfillmentCockpit, {
   ENHANCED_SAFETY_BADGE_DEFAULT,
   type FulfillmentCockpitProps,
 } from "@/components/waves/FulfillmentCockpit";
+import { getAmmoById } from "@/ammo/registry";
 import { registerDynamicAmmo } from "@/ammo/factory";
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
-import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
+import type { IHolographicAmmoConfig, IAmmoDefinition } from "@/types/ammo-schema";
+
+/* 战役 4 · 弹药驱动座舱：ammo 为唯一数据源（官方三弹自 registry 取整弹） */
+const HK_AMMO: IAmmoDefinition = getAmmoById("housekeeping-v1");
+const MEETUP_AMMO: IAmmoDefinition = getAmmoById("meetup-social-v1");
+const COMPANION_AMMO: IAmmoDefinition = getAmmoById("companion-v1");
 
 const BASE_PROPS: FulfillmentCockpitProps = {
   status: "IN_SERVICE",
-  scenario: "housekeeping",
+  ammo: HK_AMMO,
   provider: { avatar: "🧹", name: "王姐", verified: true, trustScore: 86 },
 };
 
@@ -50,7 +56,7 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
   it("家政场景：清洁蓝主题 + 增项改价卡 + Before/After 双拍池 + NFC 核销 CTA", () => {
     const html = renderStatic({
       ...BASE_PROPS,
-      housekeeping: {
+      actions: {
         quote: { item: "深度除螨", amountYuan: 80, confirmed: false },
         photos: { before: "/p1.jpg", after: "/p2.jpg" },
         onClaimDamage: () => {},
@@ -73,8 +79,8 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
   it("组局场景：活力橙主题 + 座次表 + 500m 围栏 + AA 分摊 + 组织者解冻 CTA", () => {
     const html = renderStatic({
       ...BASE_PROPS,
-      scenario: "meetup",
-      meetup: {
+      ammo: MEETUP_AMMO,
+      actions: {
         seats: [
           { id: "a", name: "小美", arrived: true },
           { id: "b", name: "阿凯", arrived: false },
@@ -108,11 +114,11 @@ describe("FulfillmentCockpit 通用五态履约主屏", () => {
   it("陪玩场景：夜幕紫主题 + 隐私盾 + 伪装假电话 + 300m 距离 + 脱离自动完成 CTA", () => {
     const html = renderStatic({
       ...BASE_PROPS,
-      scenario: "companion",
-      onTriggerFakeCall: () => {},
-      companion: {
+      ammo: COMPANION_AMMO,
+      actions: {
         isPrivacyShieldArmed: true,
         departureDistanceMeters: 300,
+        onTriggerFakeCall: () => {},
         onBlockUser: () => {},
       },
     });
@@ -228,9 +234,8 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
     if (!reg.ok) throw new Error(reg.errors.join(";"));
     const html = renderStatic({
       ...BASE_PROPS,
-      scenario: "dynamic",
-      dynamic: {
-        ammo: reg.ammo,
+      ammo: reg.ammo,
+      actions: {
         bizParams: { fieldAreaMu: 50, pesticideType: "除草剂" },
         evidencePhotos: { before: "/b.jpg", after: null },
         onUploadProof: () => {},
@@ -264,9 +269,29 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
     expect(html).toContain(describeCompletionCta("dynamic"));
   });
 
-  it("dynamic 无插槽透传：优雅降级不渲染插槽、不白屏", () => {
-    const html = renderStatic({ ...BASE_PROPS, scenario: "dynamic" });
-    expect(html).not.toContain('data-slot="dynamic-ammo"');
+  it("dynamic 空载荷：宿主仍装配通用插槽（零白屏）+ 核销 CTA", () => {
+    const bareAmmo: IAmmoDefinition = {
+      ammoId: "bare-longtail-v1",
+      category: "BARE_LONGTAIL",
+      version: "1.0.0",
+      fiveStateHooks: [],
+      pricingModel: { kind: "FIXED", amountYuan: 100 },
+      fuzePolicy: DEFAULT_FUZE_POLICY,
+      dispatchRule: undefined as never,
+      sop: {},
+      holographic: {
+        ammoId: "bare-longtail-v1",
+        category: "BARE_LONGTAIL",
+        version: "1.0.0",
+        supplyCluster: "C1_MOBILITY",
+        pricingModel: { kind: "FIXED", amountYuan: 100 },
+        fuzePolicy: DEFAULT_FUZE_POLICY,
+        forwardHooks: [],
+        theme: "default",
+      },
+    };
+    const html = renderStatic({ ...BASE_PROPS, ammo: bareAmmo });
+    expect(html).toContain('data-slot="dynamic-ammo"');
     expect(html).toContain('data-theme="default"');
     expect(html).toContain("场景主题");
     expect(html).toContain('data-action="complete"');
@@ -279,8 +304,8 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
     await clickAction(
       {
         ...BASE_PROPS,
-        scenario: "dynamic",
-        dynamic: { ammo: reg.ammo, onActionClick: action },
+        ammo: reg.ammo,
+        actions: { onActionClick: action },
       },
       "dispute",
     );
@@ -299,8 +324,8 @@ describe("FulfillmentCockpit D8 动态弹药插槽", () => {
       root.render(
         <FulfillmentCockpit
           {...BASE_PROPS}
-          scenario="dynamic"
-          dynamic={{ ammo: reg.ammo, onUploadProof: proof }}
+          ammo={reg.ammo}
+          actions={{ onUploadProof: proof }}
         />,
       );
     });
@@ -324,9 +349,8 @@ describe("FulfillmentCockpit 事件回调", () => {
     await clickAction(
       {
         ...BASE_PROPS,
-        scenario: "companion",
-        onTriggerFakeCall: fakeCall,
-        companion: { isPrivacyShieldArmed: true },
+        ammo: COMPANION_AMMO,
+        actions: { isPrivacyShieldArmed: true, onTriggerFakeCall: fakeCall },
       },
       "fake-call",
     );
@@ -342,8 +366,10 @@ describe("FulfillmentCockpit 事件回调", () => {
       root.render(
         <FulfillmentCockpit
           {...BASE_PROPS}
-          housekeeping={{ quote: { item: "深度除螨", amountYuan: 80, confirmed: false } }}
-          onAcceptQuote={acceptQuote}
+          actions={{
+            quote: { item: "深度除螨", amountYuan: 80, confirmed: false },
+            onAcceptQuote: acceptQuote,
+          }}
         />,
       );
     });
@@ -367,12 +393,12 @@ describe("FulfillmentCockpit 事件回调", () => {
       root.render(
         <FulfillmentCockpit
           {...BASE_PROPS}
-          scenario="meetup"
-          meetup={{
+          ammo={MEETUP_AMMO}
+          actions={{
             seats: [{ id: "a", name: "小美", arrived: true }],
             split: { totalYuan: 100, entries: [{ party: "小美", deltaYuan: -10 }] },
+            onConfirmSplit: confirmSplit,
           }}
-          onConfirmSplit={confirmSplit}
         />,
       );
     });
@@ -479,7 +505,7 @@ describe("FulfillmentCockpit 阶段4 定制需求参数可视化", () => {
     const html = renderStatic({
       ...BASE_PROPS,
       customRequirements: CUSTOM_MAID_2025,
-      housekeeping: { photos: { before: null, after: null } },
+      actions: { photos: { before: null, after: null } },
     });
     expect(html).toContain('data-testid="hk-custom-requirements"');
     expect(html).toContain("[期望年龄: 20-25岁]");
@@ -490,8 +516,7 @@ describe("FulfillmentCockpit 阶段4 定制需求参数可视化", () => {
     if (!reg.ok) throw new Error(reg.errors.join(";"));
     const html = renderStatic({
       ...BASE_PROPS,
-      scenario: "dynamic",
-      dynamic: { ammo: reg.ammo },
+      ammo: reg.ammo,
       customRequirements: CUSTOM_MAID_2025,
     });
     expect(html).toContain('data-testid="dyn-custom-requirements"');

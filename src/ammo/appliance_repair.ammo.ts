@@ -114,6 +114,11 @@ export const APPLIANCE_REPAIR_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
 
   /* D8 视界与表单（default 主题 + HousekeepingSlot 座舱插槽 + 家电表单） */
   theme: "default",
+  /* D9 履约行动契约（战役 4）：维修双拍验收 · 复用 hk 预置模板皮肤 */
+  actionSchema: {
+    variant: "hk",
+    modules: [{ module: "PROOF_PHOTO" }, { module: "ONSITE_QUOTE" }],
+  },
   cockpitSlot: "HousekeepingSlot",
   formSchema: {
     applianceType: {

@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import type { IAmmoDefinition, INormalizedCustomIntent } from "@/types/ammo-schema";
+import type {
+  IAmmoDefinition,
+  ICockpitActionSchema,
+  INormalizedCustomIntent,
+} from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/controls/ProofCamera";
@@ -413,5 +417,168 @@ export default function DynamicAmmoSlot({
         </div>
       )}
     </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+ * 战役 4 · 履约座舱插槽宿主层（DynamicAmmoSlot 唯一正轨化）
+ *
+ * CockpitAmmoSlot 是座舱插槽区的唯一装配入口：
+ * - variant="dyn"（长尾动态弹）→ 本体 DynamicAmmoSlot 全功能渲染，六原子
+ *   行动模块按 D9 actionSchema / 传感·引信·计价声明自动推导装配；
+ * - variant="hk"|"mt"|"cp"（官方标杆弹）→ 预置模板皮肤注册表分派，DOM
+ *   锚点层级与交互文案与历史视口逐字守恒（零漂移铁律）。
+ * 座舱（FulfillmentCockpit）仅消费本调度器，零品类分支。
+ * ═══════════════════════════════════════════════════════════════════ */
+
+import HousekeepingSlot from "./HousekeepingSlot";
+import MeetupSlot from "./MeetupSlot";
+import CompanionSlot from "./CompanionSlot";
+
+/** 座舱插槽统一行动载荷（六模块数据与回调的全集，按 variant 取用）。 */
+export interface CockpitSlotActions {
+  /* ONSITE_QUOTE（hk） */
+  quote?: { item: string; amountYuan: number; confirmed: boolean };
+  baseAmountYuan?: number;
+  maxSurchargeRatio?: number;
+  onAcceptQuote?: () => void;
+  onRejectQuote?: () => void;
+  onClaimDamage?: () => void;
+  /* PROOF_PHOTO（通用） */
+  photos?: { before: string | null; after: string | null };
+  evidencePhotos?: { before?: string | null; after?: string | null };
+  onUploadProof?: (phaseKey: string, result?: IProofCaptureResult) => void;
+  onProofCaptured?: (phaseKey: "before" | "after", result: IProofCaptureResult) => void;
+  orderNo?: string;
+  geo?: { lat: number; lng: number; accuracyMeters?: number };
+  /* GEOFENCE_ARRIVAL + AA_SPLIT（mt） */
+  seats?: Array<{ id: string; name: string; arrived: boolean }>;
+  fenceMeters?: number;
+  onScanArrival?: () => void;
+  split?: { entries: Array<{ party: string; deltaYuan: number }>; totalYuan: number };
+  onConfirmSplit?: () => void;
+  onDisputeNoShow?: () => void;
+  /* PRIVACY_SHIELD + DEPARTURE_STOP（cp） */
+  isPrivacyShieldArmed?: boolean;
+  departureDistanceMeters?: number;
+  onTriggerFakeCall?: () => void;
+  onBlockUser?: () => void;
+  /* 通用 */
+  bizParams?: Record<string, unknown>;
+  customRequirements?: INormalizedCustomIntent;
+  onActionClick?: (actionKey: string) => void;
+}
+
+/**
+ * D9 行动 Schema 自动推导（弹药未显式声明 actionSchema 时的缺省装配）：
+ * 传感/钩子/计价/引信声明 → 原子行动模块。存量弹零回归。
+ */
+export function deriveActionSchema(ammo: IAmmoDefinition): ICockpitActionSchema {
+  const holo = ammo.holographic;
+  const sensors = holo?.requiredSensors ?? [];
+  const hooks = holo?.forwardHooks ?? [];
+  const modules: ICockpitActionSchema["modules"] = [];
+  if (hooks.includes("OnsiteQuoteHook")) modules.push({ module: "ONSITE_QUOTE" });
+  if (sensors.includes("WATERMARK_CAMERA") || hooks.includes("CleaningCheckHook")) {
+    modules.push({ module: "PROOF_PHOTO" });
+  }
+  if (sensors.includes("GPS_GEOFENCE") && hooks.includes("ArrivalCheckHook")) {
+    modules.push({ module: "GEOFENCE_ARRIVAL" });
+  }
+  if (hooks.includes("AASplitSettleHook") || ammo.pricingModel.kind === "PER_SEAT") {
+    modules.push({ module: "AA_SPLIT" });
+  }
+  // 隐私盾：钩子声明直驱（近炸引信类目由弹药装填 PrivacyShieldHook 表达）
+  if (hooks.includes("PrivacyShieldHook")) {
+    modules.push({ module: "PRIVACY_SHIELD" });
+    modules.push({ module: "DEPARTURE_STOP" });
+  }
+  return {
+    variant: resolveCockpitVariant(ammo),
+    modules,
+  };
+}
+
+/** 视口模板皮肤解析：D9 显式声明优先，theme 白名单派生兜底。 */
+export function resolveCockpitVariant(ammo: IAmmoDefinition): ICockpitActionSchema["variant"] {
+  const declared = ammo.holographic?.actionSchema?.variant;
+  if (declared) return declared;
+  const theme = ammo.holographic?.theme;
+  if (theme === "housekeeping") return "hk";
+  if (theme === "meetup") return "mt";
+  if (theme === "companion") return "cp";
+  return "dyn";
+}
+
+/** 预置模板皮肤注册表（官方标杆弹的历史视口锚点 · 零漂移铁律）。 */
+const COCKPIT_TEMPLATE_REGISTRY: Record<
+  Exclude<ICockpitActionSchema["variant"], "dyn">,
+  (props: CockpitSlotActions & { ammo: IAmmoDefinition }) => React.ReactNode
+> = {
+  hk: ({ customRequirements, ...a }) => (
+    <HousekeepingSlot
+      quote={a.quote}
+      photos={a.photos}
+      onAcceptQuote={a.onAcceptQuote}
+      onRejectQuote={a.onRejectQuote}
+      onClaimDamage={a.onClaimDamage}
+      baseAmountYuan={a.baseAmountYuan ?? 0}
+      maxSurchargeRatio={a.maxSurchargeRatio}
+      customRequirements={customRequirements}
+      orderNo={a.orderNo}
+      geo={a.geo}
+      onProofCaptured={a.onProofCaptured}
+    />
+  ),
+  mt: ({ seats, fenceMeters, onScanArrival, split, onConfirmSplit, onDisputeNoShow }) => (
+    <MeetupSlot
+      seats={seats ?? []}
+      fenceMeters={fenceMeters}
+      onScanArrival={onScanArrival}
+      split={split}
+      onConfirmSplit={onConfirmSplit}
+      onDisputeNoShow={onDisputeNoShow}
+    />
+  ),
+  cp: ({ isPrivacyShieldArmed, departureDistanceMeters, onTriggerFakeCall, onBlockUser }) => (
+    <CompanionSlot
+      isPrivacyShieldArmed={isPrivacyShieldArmed ?? true}
+      departureDistanceMeters={departureDistanceMeters}
+      onTriggerFakeCall={onTriggerFakeCall}
+      onBlockUser={onBlockUser}
+    />
+  ),
+};
+
+/**
+ * 座舱插槽区唯一装配入口：D9 行动 Schema 驱动的动态视口归一。
+ * 用法：<CockpitAmmoSlot ammo={ammo} actions={{ quote, seats, ... }} />
+ */
+export function CockpitAmmoSlot({
+  ammo,
+  actions,
+}: {
+  ammo: IAmmoDefinition;
+  actions?: CockpitSlotActions;
+}) {
+  const a: CockpitSlotActions = actions ?? {};
+  const schema = ammo.holographic?.actionSchema ?? deriveActionSchema(ammo);
+  if (schema.variant !== "dyn") {
+    const template = COCKPIT_TEMPLATE_REGISTRY[schema.variant];
+    if (template) return <>{template({ ammo, ...a })}</>;
+  }
+  return (
+    <DynamicAmmoSlot
+      ammo={ammo}
+      bizParams={a.bizParams}
+      evidencePhotos={a.evidencePhotos}
+      onUploadProof={a.onUploadProof}
+      onProofCaptured={a.onProofCaptured}
+      onActionClick={a.onActionClick}
+      customRequirements={a.customRequirements}
+      orderNo={a.orderNo}
+      geo={a.geo}
+    />
   );
 }

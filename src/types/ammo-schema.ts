@@ -361,6 +361,60 @@ export interface IHolographicAmmoConfig {
   dispatchRule?: IDispatchRule;
   /** D6.7 SOP 覆盖自包含（战役 3）：语义同 IAmmoSopOverrides，缺省回落表行。 */
   sop?: IAmmoSopOverrides;
+
+  /**
+   * D9 履约行动契约（Microkernel 2.0 战役 4 · 座舱 Schema 化）：
+   * 声明本弹药在履约座舱（C/D 视口）内的原子行动模块装配清单与视口
+   * 模板皮肤——座舱据此动态装配交互视口，零品类硬编码分支。
+   * 缺省 = 宿主按传感/引信/计价声明自动推导（PROOF_PHOTO ← WATERMARK_CAMERA 等），
+   * 存量弹零回归。
+   */
+  actionSchema?: ICockpitActionSchema;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+ * D9 履约行动契约（战役 4 · 履约座舱 Schema 化与动态视口归一）
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/**
+ * 座舱原子行动模块枚举（六模块 · 与五态钩子/传感声明一一对应）：
+ * - ONSITE_QUOTE：现场增项改价确认单（OnsiteQuoteHook 的 UI 形态）；
+ * - PROOF_PHOTO：Before/After 双拍存证打卡（WATERMARK_CAMERA / CleaningCheckHook）；
+ * - GEOFENCE_ARRIVAL：围栏签到 + 扫码到场验真（GPS_GEOFENCE / ArrivalCheckHook）;
+ * - AA_SPLIT：AA 多退少补对账（AASplitSettleHook / PER_SEAT 计价）；
+ * - PRIVACY_SHIELD：隐私盾 + 伪装假电话 + 一键拉黑（PrivacyShieldHook / 近炸引信）；
+ * - DEPARTURE_STOP：安全距离脱离自动停表指示（高人身风险类目）。
+ */
+export type CockpitActionModule =
+  | "ONSITE_QUOTE"
+  | "PROOF_PHOTO"
+  | "GEOFENCE_ARRIVAL"
+  | "AA_SPLIT"
+  | "PRIVACY_SHIELD"
+  | "DEPARTURE_STOP";
+
+/**
+ * 视口模板皮肤键（锚点前缀）：决定插槽 DOM 锚点层级（data-slot /
+ * data-testid / data-action 前缀）。四大标杆弹各自锁定其历史视口模板
+ * → E2E 锚点零漂移；长尾动态弹缺省 "dyn"（通用自适应视口）。
+ */
+export type CockpitSlotVariant = "hk" | "mt" | "cp" | "dyn";
+
+/** 单个原子行动模块声明（文案覆盖等扩展位预留）。 */
+export interface ICockpitModuleDecl {
+  module: CockpitActionModule;
+}
+
+/**
+ * D9 行动 Schema：弹药 → 履约座舱视口的唯一装配说明书。
+ * DynamicAmmoSlot 宿主按 modules 顺序动态装配原子行动模块；
+ * variant 选择预置模板皮肤（官方四弹）或通用 dyn 视口。
+ */
+export interface ICockpitActionSchema {
+  /** 视口模板皮肤（锚点前缀）；缺省按 theme 派生，长尾弹为 "dyn"。 */
+  variant: CockpitSlotVariant;
+  /** 原子行动模块装配清单（顺序即渲染顺序）。 */
+  modules: ICockpitModuleDecl[];
 }
 
 /**

@@ -231,6 +231,11 @@ export const COMPANION_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
 
   /* D8 视界与表单（companion 主题 + CompanionSlot 座舱插槽） */
   theme: "companion",
+  /* D9 履约行动契约（战役 4）：隐私盾 + 脱离停表 · cp 预置模板皮肤 */
+  actionSchema: {
+    variant: "cp",
+    modules: [{ module: "PRIVACY_SHIELD" }, { module: "DEPARTURE_STOP" }],
+  },
   cockpitSlot: "CompanionSlot",
 };
 

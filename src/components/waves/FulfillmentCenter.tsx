@@ -13,7 +13,12 @@ import {
   startAudioVault,
   stopAudioVault,
 } from "@/adapters/device/audio-recorder";
-import FulfillmentCockpit, { type CockpitScenario } from "./FulfillmentCockpit";
+import FulfillmentCockpit from "./FulfillmentCockpit";
+import {
+  hasCockpitModule,
+  resolveCockpitScenario,
+  type CockpitScenario,
+} from "./slots/cockpit-scenario";
 import DialCard from "./DialCard";
 import ArbitrationSheet, {
   type ArbitrationEvidence,
@@ -22,8 +27,7 @@ import ArbitrationSheet, {
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
 import { personaAvatarForBot } from "@/base/platform/sandbox-bot";
-import type { HousekeepingQuote } from "./slots/HousekeepingSlot";
-import type { MeetupSeat } from "./slots/MeetupSlot";
+import type { CockpitSlotActions } from "./slots/DynamicAmmoSlot";
 
 /**
  * W3~W5 总装：Trip 屏通用履约座舱装配中心。
@@ -31,44 +35,15 @@ import type { MeetupSeat } from "./slots/MeetupSlot";
  * 职责：
  * 1. 从 useWaveStore 选取当前用户进行中的 Wave（claimed/locked/assembled + accepted/joined 单），
  *    toAtomicFiveState 投影 → 仅 MATCHED / IN_SERVICE / INSPECTED 三态挂载 Cockpit（W3）；
- * 2. 按 ammoId（housekeeping-v1 / meetup-social-v1 / companion-v1）毫秒自适应装载场景插槽（W3）；
- * 3. 插槽事件接线（W4）：保洁增项确认 → 订单总额动态更新；组局 500m 围栏扫码到场 → 解锁定金；
- *    陪玩伪装假电话 → 全屏模拟来电遮罩（接听/挂断脱身）；
+ * 2. 按 ammoId 毫秒自适应装载弹药行动 Schema 声明的插槽视口（W3 · 战役 4 归一）；
+ * 3. 插槽事件接线（W4）：增项确认 → 订单总额动态更新；围栏扫码到场 → 解锁定金；
+ *    伪装假电话 → 全屏模拟来电遮罩（接听/挂断脱身）；
  * 4. 核销 CTA 真实调用 AmmoRunner.advanceLifecycle（W5 · 生产首次调用引擎），流转结果
  *    setFulfilment 同步回 store → toAtomicFiveState 投影 → 顶栏 StatusCapsule 实时流转 🟢；
  * 5. 争议入口（⚖️ 有争议 + 插槽内申诉）→ ArbitrationSheet（W7 联动）。
  */
 
-/** 特化插槽键 → 制式场景映射（弹药 cockpitSlot 声明优先，宪法 #4 弹药可插拔）。 */
-export const COCKPIT_SLOT_SCENARIO: Record<string, CockpitScenario> = {
-  HousekeepingSlot: "housekeeping",
-  MeetupSlot: "meetup",
-  CompanionSlot: "companion",
-};
-
-/**
- * 纯函数：wave → 场景插槽键（D8 弹药声明 cockpitSlot 优先，ammoId 次之，
- * 中文类目兜底；未命中制式 → dynamic 通用插槽，零白屏）。
- */
-export function resolveCockpitScenario(wave: {
-  ammoId?: string;
-  basics: { category: string };
-}): CockpitScenario {
-  const ammoId = wave.ammoId ?? "";
-  // ① 动态弹药声明的特化插槽键优先（如 DRONE_CROP_SPRAY cockpitSlot=HousekeepingSlot → 家政）
-  if (ammoId) {
-    const slot = getAmmoById(ammoId).holographic?.cockpitSlot;
-    if (slot && COCKPIT_SLOT_SCENARIO[slot]) return COCKPIT_SLOT_SCENARIO[slot];
-  }
-  if (ammoId === "housekeeping-v1") return "housekeeping";
-  if (ammoId === "meetup-social-v1") return "meetup";
-  if (ammoId === "companion-v1") return "companion";
-  const cat = wave.basics.category;
-  if (/家政|保洁|打扫|水电|维修|搬家/.test(cat)) return "housekeeping";
-  if (/陪玩|交友|dating|social/.test(cat)) return "companion";
-  if (/羽毛球|约局|组局|桌游|拼桌/.test(cat)) return "meetup";
-  return "dynamic";
-}
+/** 特化插槽键映射 / 场景解析纯函数已收容 slots/cockpit-scenario（战役 4 词表清零）。 */
 
 /** 纯函数：五态是否需要挂载履约座舱（MATCHED / IN_SERVICE / INSPECTED）。 */
 export function needsCockpit(state: AtomicFiveState | null): boolean {
@@ -103,8 +78,8 @@ export function describeCtaForState(state: AtomicFiveState): string {
   }
 }
 
-/** 演示座次表（组局 4 席，500m 围栏签到）。 */
-const DEMO_SEATS: MeetupSeat[] = [
+/** 演示座次表（4 席，500m 围栏签到 · D9 GEOFENCE_ARRIVAL 模块载荷）。 */
+const DEMO_SEATS: NonNullable<CockpitSlotActions["seats"]> = [
   { id: "s1", name: "发起人", arrived: true },
   { id: "s2", name: "队友 A", arrived: false },
   { id: "s3", name: "队友 B", arrived: false },
@@ -189,8 +164,8 @@ export default function FulfillmentCenter({
   }, [activeWave, activeClaim, fulfilment]);
 
   // 插槽本地状态（W4）
-  const [hkQuote, setHkQuote] = useState<HousekeepingQuote | null>(null);
-  const [seats, setSeats] = useState<MeetupSeat[]>(DEMO_SEATS);
+  const [hkQuote, setHkQuote] = useState<NonNullable<CockpitSlotActions["quote"]> | null>(null);
+  const [seats, setSeats] = useState<NonNullable<CockpitSlotActions["seats"]>>(DEMO_SEATS);
   const [depositUnfrozen, setDepositUnfrozen] = useState(false);
   const [fakeCallOpen, setFakeCallOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
@@ -247,17 +222,17 @@ export default function FulfillmentCenter({
   }, [activeWave]);
 
   // 阶段4：运行时多因子安全评估（敏感定制/夜间/基础风险 → 引信自适应升级）。
-  // hourOfDay 取真实本地时刻（夜间 22:00-05:59 +20）；家政入户基础风险 20。
+  // hourOfDay 取真实本地时刻（夜间 22:00-05:59 +20）；入户聚类基础风险 20。
   const safety = useMemo(() => {
     if (!activeWave || !scenario) return null;
     return evaluateRuntimeSafety({
       ammoId: activeWave.ammoId ?? "",
       orderId: activeWave.id,
-      baseRiskScore: scenario === "housekeeping" ? 20 : 0,
+      baseRiskScore: ammo?.supplyCluster === "C2_IN_HOME" ? 20 : 0,
       customRequirements: activeWave.customRequirements,
       hourOfDay: new Date().getHours(),
     });
-  }, [activeWave, scenario]);
+  }, [activeWave, ammo, scenario]);
 
   if (!activeWave || !currentState || !needsCockpit(currentState) || !scenario || !ammo) {
     return null;
@@ -272,7 +247,7 @@ export default function FulfillmentCenter({
   const dEvidence = disputeEvidence!;
   const dProposal = disputeProposal!;
 
-  // P1 缺陷 1 修复：双拍门禁 —— WATERMARK_CAMERA 弹药（家政入户）完工验收前必须
+  // P1 缺陷 1 修复：双拍门禁 —— WATERMARK_CAMERA 弹药（入户类）完工验收前必须
   // 完成 Before/After 双拍存证（红线 4 零信任物理感知）。照片相位沿用动态插槽
   // 既有约定：evidencePhotos[0]=Before、evidencePhotos[1]=After（ProofCamera 存证序列）。
   const needsPhotoProof =
@@ -420,11 +395,14 @@ export default function FulfillmentCenter({
 
       <FulfillmentCockpit
         status={state}
-        scenario={sc}
         ammo={ammoDef}
         capsule={{
           isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
-          distanceMeters: scenario === "meetup" ? 500 : scenario === "companion" ? 300 : undefined,
+          distanceMeters: hasCockpitModule(ammoDef, "GEOFENCE_ARRIVAL")
+            ? 500
+            : hasCockpitModule(ammoDef, "PRIVACY_SHIELD")
+              ? 300
+              : undefined,
           // P0 接电：SOS 一键报警 → 危机应急预案（级别 3 极端紧急，EPA 三通道通知）
           onSosClick: () => {
             raiseCrisis({ level: 3, note: "履约座舱 SOS 一键报警（紧急求助）", waveId: wave.id, contacts: [] });
@@ -432,14 +410,13 @@ export default function FulfillmentCenter({
           },
         }}
         provider={provider}
-        housekeeping={{
+        actions={{
+          /* ONSITE_QUOTE（增项改价确认单 · OnsiteQuoteHook） */
           quote: hkQuote ?? undefined,
-          photos: { before: null, after: null },
           onAcceptQuote: () => setHkQuote((q) => (q ? { ...q, confirmed: true } : q)),
           onRejectQuote: () => setHkQuote(null),
           onClaimDamage: () => setDisputeOpen(true),
-        }}
-        meetup={{
+          /* GEOFENCE_ARRIVAL + AA_SPLIT（围栏签到 / AA 对账） */
           seats,
           fenceMeters: 500,
           onScanArrival: () => {
@@ -459,15 +436,11 @@ export default function FulfillmentCenter({
             totalYuan: wave.budget,
           },
           onDisputeNoShow: () => setDisputeOpen(true),
-        }}
-        companion={{
+          /* PRIVACY_SHIELD + DEPARTURE_STOP（隐私盾 / 脱离停表） */
           isPrivacyShieldArmed: true,
           onTriggerFakeCall: () => setFakeCallOpen(true),
           onBlockUser: () => setDisputeOpen(true),
-        }}
-        dynamic={{
-          ammo: ammoDef,
-          bizParams,
+          /* PROOF_PHOTO + 通用（双拍存证 / 参数快照 / 申诉入口） */
           evidencePhotos: {
             before: evidencePhotos[0]?.photo ?? null,
             after: evidencePhotos[1]?.photo ?? null,
@@ -481,6 +454,7 @@ export default function FulfillmentCenter({
           onActionClick: (actionKey) => {
             if (actionKey === "dispute") setDisputeOpen(true);
           },
+          bizParams,
         }}
         onDial={() => setDialOpen(true)}
         onChat={() => {
@@ -492,8 +466,8 @@ export default function FulfillmentCenter({
         safetyBadge={safety?.safetyBadge}
       />
 
-      {/* W4：保洁增项 → 订单总额动态更新 */}
-      {sc === "housekeeping" && !hkQuote && (
+      {/* W4：保洁增项 → 订单总额动态更新（D9 ONSITE_QUOTE 模块声明驱动显隐） */}
+      {hasCockpitModule(ammoDef, "ONSITE_QUOTE") && !hkQuote && (
         <button
           type="button"
           className="fc-dispute"
@@ -509,8 +483,8 @@ export default function FulfillmentCenter({
         <strong>¥{orderTotal}</strong>
       </div>
 
-      {/* W4：组局围栏扫码 → 定金解冻提示 */}
-      {sc === "meetup" && depositUnfrozen && (
+      {/* W4：围栏扫码 → 定金解冻提示（D9 GEOFENCE_ARRIVAL 模块声明驱动显隐） */}
+      {hasCockpitModule(ammoDef, "GEOFENCE_ARRIVAL") && depositUnfrozen && (
         <div className="fc-frozen" data-testid="deposit-unfrozen">
           🔓 500m 围栏到场验真通过 · 定金已解冻（DELAY 引信放行）
         </div>
@@ -536,7 +510,7 @@ export default function FulfillmentCenter({
         {nextCockpitState(currentState)}
       </div>
 
-      {/* W4：陪玩伪装假电话 · 全屏模拟来电遮罩（接听/挂断脱身） */}
+      {/* W4：伪装假电话 · 全屏模拟来电遮罩（接听/挂断脱身） */}
       {fakeCallOpen && (
         <div className="fc-call-mask" data-testid="fake-call-overlay">
           <div className="fc-call-avatar">🎭</div>

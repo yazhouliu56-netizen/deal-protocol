@@ -13,12 +13,12 @@ import FulfillmentCockpit, {
 } from "@/components/waves/FulfillmentCockpit";
 import DynamicAmmoSlot, {
   normalizeAmmoTheme,
-  type DynamicAmmoSlotProps,
 } from "@/components/waves/slots/DynamicAmmoSlot";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import FloatingDock from "@/components/oto-ui/FloatingDock";
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
 import type { IAmmoDefinition } from "@/types/ammo-schema";
+import { getAmmoById } from "@/ammo/registry";
 
 /**
  * D-8 战役 · 弹药主题 Token 与视界投影隔离单测（红线 6 前端视界隔离）。
@@ -66,7 +66,7 @@ function buildProbeAmmo(theme?: unknown): IAmmoDefinition {
 
 const COCKPIT_BASE: FulfillmentCockpitProps = {
   status: "IN_SERVICE",
-  scenario: "housekeeping",
+  ammo: getAmmoById("housekeeping-v1"),
   provider: { avatar: "🧹", name: "王姐", verified: true, trustScore: 86 },
 };
 
@@ -139,15 +139,15 @@ describe("DynamicDraftCard 草稿卡 · data-theme 精准注入", () => {
 });
 
 describe("FulfillmentCockpit 座舱 · 视口 data-theme 注入", () => {
-  it("制式三场景直映主题键", () => {
+  it("制式三场景直映主题键（由各官方弹 theme 派生）", () => {
     const hk = renderToStaticMarkup(<FulfillmentCockpit {...COCKPIT_BASE} />);
     expect(hk).toContain('data-theme="housekeeping"');
     const mu = renderToStaticMarkup(
-      <FulfillmentCockpit {...COCKPIT_BASE} scenario="meetup" />,
+      <FulfillmentCockpit {...COCKPIT_BASE} ammo={getAmmoById("meetup-social-v1")} />,
     );
     expect(mu).toContain('data-theme="meetup"');
     const cp = renderToStaticMarkup(
-      <FulfillmentCockpit {...COCKPIT_BASE} scenario="companion" />,
+      <FulfillmentCockpit {...COCKPIT_BASE} ammo={getAmmoById("companion-v1")} />,
     );
     expect(cp).toContain('data-theme="companion"');
   });
@@ -155,41 +155,25 @@ describe("FulfillmentCockpit 座舱 · 视口 data-theme 注入", () => {
   it("dynamic 场景：随弹药 theme 精准挂载（tech 弹药 → data-theme=\"tech\"）", () => {
     const tech = buildProbeAmmo("tech");
     const html = renderToStaticMarkup(
-      <FulfillmentCockpit
-        {...COCKPIT_BASE}
-        scenario="dynamic"
-        ammo={tech}
-        dynamic={{ ammo: tech } satisfies Partial<DynamicAmmoSlotProps> as DynamicAmmoSlotProps}
-      />,
+      <FulfillmentCockpit {...COCKPIT_BASE} ammo={tech} />,
     );
-    expect(html).toContain('data-theme="tech"');
     expect(html).toContain('data-theme="tech"');
   });
 
-  it("dynamic 场景：未传弹药 / 未声明主题 → data-theme=\"default\"", () => {
+  it("dynamic 场景：未声明主题 → data-theme=\"default\"", () => {
     const naked = renderToStaticMarkup(
-      <FulfillmentCockpit {...COCKPIT_BASE} scenario="dynamic" />,
-    );
-    expect(naked).toContain('data-theme="default"');
-    const ammolessTheme = renderToStaticMarkup(
       <FulfillmentCockpit
         {...COCKPIT_BASE}
-        scenario="dynamic"
         ammo={buildProbeAmmo()}
       />,
     );
-    expect(ammolessTheme).toContain('data-theme="default"');
+    expect(naked).toContain('data-theme="default"');
   });
 
   it("dynamic 场景：非法主题声明 → default 兜底，插槽 data-theme 同步归一", () => {
     const broken = buildProbeAmmo("cyber-pop");
     const html = renderToStaticMarkup(
-      <FulfillmentCockpit
-        {...COCKPIT_BASE}
-        scenario="dynamic"
-        ammo={broken}
-        dynamic={{ ammo: broken } satisfies Partial<DynamicAmmoSlotProps> as DynamicAmmoSlotProps}
-      />,
+      <FulfillmentCockpit {...COCKPIT_BASE} ammo={broken} />,
     );
     expect(html).toContain('data-theme="default"');
     expect(html).not.toContain('data-theme="theme-default"');

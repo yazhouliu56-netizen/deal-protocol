@@ -1,15 +1,19 @@
 "use client";
 
-import type { AtomicFiveState, INormalizedCustomIntent, IDressCodeType, IAmmoDefinition } from "@/types/ammo-schema";
-import type { ScenarioTheme } from "@/types/ui-viewport";
+import type {
+  AtomicFiveState,
+  INormalizedCustomIntent,
+  IDressCodeType,
+  IAmmoDefinition,
+} from "@/types/ammo-schema";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
-import HousekeepingSlot, { type HousekeepingSlotProps } from "./slots/HousekeepingSlot";
-import MeetupSlot, { type MeetupSlotProps } from "./slots/MeetupSlot";
-import CompanionSlot, { type CompanionSlotProps } from "./slots/CompanionSlot";
-import DynamicAmmoSlot, {
-  normalizeAmmoTheme,
-  type DynamicAmmoSlotProps,
-} from "./slots/DynamicAmmoSlot";
+import { CockpitAmmoSlot, type CockpitSlotActions } from "./slots/DynamicAmmoSlot";
+import {
+  SCENARIO_THEME_META,
+  describeCompletionCta,
+  resolveCockpitTheme,
+  scenarioFromAmmo,
+} from "./slots/cockpit-scenario";
 import type { IRuntimeSafetyReport } from "@/base/safe/runtime-monitor";
 import MilestoneLadder, { type MilestoneLadderInput } from "./MilestoneLadder";
 
@@ -19,14 +23,20 @@ import MilestoneLadder, { type MilestoneLadderInput } from "./MilestoneLadder";
  * 三区组装：
  * 1. 外骨骼顶栏 —— StatusCapsule（五态进度 + LBS 距离 + 离线徽标 + SOS 按钮）；
  * 2. 服务者通用卡片 —— 头像 / 实名 / 六维信用分（trustScore）/ 一键虚拟通话与隐私聊天；
- * 3. 动态视口插槽区 —— 按 scenario 毫秒级切换 Housekeeping / Meetup / Companion 插槽
- *    （外骨骼零改动，差异全收敛插槽区，红线 2 + 5.4.4 验收标准）；
- * 4. 底部物理核销 CTA —— 家政 NFC 碰碰 / 组局组织者解冻 / 陪玩 300m 脱离自动完成。
+ * 3. 动态视口插槽区 —— CockpitAmmoSlot 唯一装配入口：按弹药 D9 行动 Schema
+ *    动态装配预置模板皮肤（官方标杆弹）或通用六模块宿主（长尾动态弹），
+ *    零品类硬编码分支（战役 4 · 场景联合类型与分叉 Props 已物理消灭）；
+ * 4. 底部物理核销 CTA —— 文案由场景派生纯函数给出。
  *
- * 主题微色（白皮书 5.7 维度 1）：housekeeping 清洁蓝 / meetup 活力橙 / companion 夜幕紫。
+ * 主题微色（白皮书 5.7 维度 1）：由弹药 holographic.theme 经场景元数据投影。
  */
 
-export type CockpitScenario = "housekeeping" | "meetup" | "companion" | "dynamic";
+export type { CockpitScenario } from "./slots/cockpit-scenario";
+export {
+  SCENARIO_THEME_META,
+  describeCompletionCta,
+  resolveCockpitTheme,
+} from "./slots/cockpit-scenario";
 
 export interface CockpitProvider {
   /** 头像（emoji 兜底或 URL）。 */
@@ -42,35 +52,24 @@ export interface CockpitProvider {
 export interface FulfillmentCockpitProps {
   /** 当前五态（由 toAtomicFiveState 投影）。 */
   status: AtomicFiveState;
-  /** 场景键（决定插槽与主题微色；弹药表配置后可由 ammoId 解析）。 */
-  scenario: CockpitScenario;
+  /**
+   * 当前弹药整弹（座舱唯一数据源）：主题微色、场景派生、插槽装配全部
+   * 由其 D9 行动 Schema 与全息声明驱动（战役 4 · 零品类硬编码）。
+   */
+  ammo: IAmmoDefinition;
   /** 外骨骼顶栏选项（透传 StatusCapsule）。 */
   capsule?: { isOffline?: boolean; distanceMeters?: number; onSosClick?: () => void };
   /** 服务者通用卡片数据。 */
   provider: CockpitProvider;
-  /** 家政插槽透传。 */
-  housekeeping?: Omit<HousekeepingSlotProps, "onClaimDamage"> & { onClaimDamage?: () => void };
-  /** 组局插槽透传。 */
-  meetup?: MeetupSlotProps;
-  /** 陪玩插槽透传（onTriggerFakeCall 兜底走 Cockpit 级回调）。 */
-  companion?: CompanionSlotProps;
-  /** 长尾动态弹药插槽透传（非三大制式的动态/长尾弹药通用履约视口）。 */
-  dynamic?: DynamicAmmoSlotProps;
-  /** 当前弹药整弹（D-8 主题注入：dynamic 场景按弹药 `holographic.theme` 精准挂载 data-theme）。 */
-  ammo?: IAmmoDefinition;
-  /** Cockpit 级事件（测试/接入点）。 */
-  onTriggerFakeCall?: () => void;
-  onAcceptQuote?: () => void;
-  onConfirmSplit?: () => void;
+  /** 插槽行动载荷全集（六原子模块数据与回调，由装配中心按弹药声明供给）。 */
+  actions?: CockpitSlotActions;
   /** P0 接电：服务者卡通讯按钮真实回调（一键虚拟通话 / 隐私聊天）。 */
   onDial?: () => void;
   onChat?: () => void;
-  /** 底部物理核销 CTA（三场景特化）。 */
+  /** 底部物理核销 CTA。 */
   onComplete?: () => void;
   /** S3 SAFE_MONITOR 实时安全报告（缺省 = 不渲染安全守护徽标）。 */
   safetyReport?: IRuntimeSafetyReport;
-  /** 家政插槽防坐地起价展示（基础金额 + 上限比例）。 */
-  housekeepingCap?: { baseAmountYuan: number; maxSurchargeRatio?: number };
   /**
    * 需求方非标定制要求（阶段3 语义驯化产物 · 阶段4 座舱可视化）：
    * 存在且含 cleanText 时渲染中性化定制需求标签（如 [工作着装: 女仆主题]）。
@@ -93,39 +92,6 @@ export interface FulfillmentCockpitProps {
     items: MilestoneLadderInput[];
     defaultTimeoutHours?: number;
   };
-}
-
-/** 场景 → 主题微色元数据（5.7 维度 1 的 Token 投影）。 */
-export const SCENARIO_THEME_META: Record<
-  CockpitScenario,
-  { themeClass: string; accent: string; label: string }
-> = {
-  housekeeping: { themeClass: "theme-housekeeping", accent: "#3884ff", label: "清洁蓝 · 重入户" },
-  meetup: { themeClass: "theme-meetup", accent: "#f97316", label: "活力橙 · 轻履约" },
-  companion: { themeClass: "theme-companion", accent: "#a78bfa", label: "夜幕紫 · 高人身风险" },
-  dynamic: { themeClass: "theme-dynamic", accent: "#00f0ff", label: "自适应 · 长尾动态弹药" },
-};
-
-/**
- * D-8 视口主题作用域键解析：`data-theme` 只携带弹药主题令牌键
- * （housekeeping/meetup/companion/tech/default——对应 globals.css 5 大主题作用域）。
- * 制式场景直映主题键；dynamic 场景按弹药 `holographic.theme` 精准挂载，
- * 未传弹药 / 未声明 / 未知主题 → 安全回落 default（红线 6 + 兜底不白屏）。
- */
-export function resolveCockpitTheme(
-  scenario: CockpitScenario,
-  ammo?: IAmmoDefinition,
-): ScenarioTheme {
-  switch (scenario) {
-    case "housekeeping":
-      return "housekeeping";
-    case "meetup":
-      return "meetup";
-    case "companion":
-      return "companion";
-    case "dynamic":
-      return normalizeAmmoTheme(ammo?.holographic?.theme);
-  }
 }
 
 const COCKPIT_CSS = `
@@ -169,20 +135,6 @@ export function sixDimensionScores(trustScore: number): { label: string; value: 
     const value = Math.max(0, Math.min(100, trustScore + jitter));
     return { label, value };
   });
-}
-
-/** 底部核销 CTA 文案（5.7 维度 5：场景特化完工动作）。 */
-export function describeCompletionCta(scenario: CockpitScenario): string {
-  switch (scenario) {
-    case "housekeeping":
-      return "🤝 双方碰一碰 NFC · 验收清单打钩";
-    case "meetup":
-      return "🛡️ 组织者点选到场成员 · 解冻定金";
-    case "companion":
-      return "📡 300m 脱离自动完成 · 或手动确认";
-    case "dynamic":
-      return "✳️ 按弹药契约核销 · 或手动确认";
-  }
 }
 
 /** S3 SAFE_MONITOR 安全徽标元数据（安全守护状态 → 文案/类名/图标）。 */
@@ -229,30 +181,23 @@ export function describeSafetyPill(
   return { ...meta, status: report.securityPillStatus };
 }
 
-/** 通用五态履约主屏：外骨骼顶栏 + 服务者卡 + 场景插槽 + 核销 CTA。 */
+/** 通用五态履约主屏：外骨骼顶栏 + 服务者卡 + 弹药驱动插槽 + 核销 CTA。 */
 export default function FulfillmentCockpit({
   status,
-  scenario,
+  ammo,
   capsule,
   provider,
-  housekeeping,
-  meetup,
-  companion,
-  dynamic,
-  ammo,
-  onTriggerFakeCall,
-  onAcceptQuote,
-  onConfirmSplit,
+  actions,
   onDial,
   onChat,
   onComplete,
   safetyReport,
-  housekeepingCap,
   customRequirements,
   forceArmed,
   safetyBadge,
   milestones,
 }: FulfillmentCockpitProps) {
+  const scenario = scenarioFromAmmo(ammo);
   const theme = SCENARIO_THEME_META[scenario];
   const cockpitTheme = resolveCockpitTheme(scenario, ammo);
   const cta = describeCompletionCta(scenario);
@@ -343,39 +288,11 @@ export default function FulfillmentCockpit({
         </div>
       </section>
 
-      {scenario === "housekeeping" && (
-        <HousekeepingSlot
-          quote={housekeeping?.quote}
-          photos={housekeeping?.photos}
-          onAcceptQuote={onAcceptQuote ?? housekeeping?.onAcceptQuote}
-          onRejectQuote={housekeeping?.onRejectQuote}
-          onClaimDamage={housekeeping?.onClaimDamage}
-          baseAmountYuan={housekeepingCap?.baseAmountYuan ?? 0}
-          maxSurchargeRatio={housekeepingCap?.maxSurchargeRatio ?? 0.5}
-          customRequirements={customRequirements}
-        />
-      )}
-      {scenario === "meetup" && (
-        <MeetupSlot
-          seats={meetup?.seats ?? []}
-          fenceMeters={meetup?.fenceMeters}
-          onScanArrival={meetup?.onScanArrival}
-          split={meetup?.split}
-          onConfirmSplit={onConfirmSplit ?? meetup?.onConfirmSplit}
-          onDisputeNoShow={meetup?.onDisputeNoShow}
-        />
-      )}
-      {scenario === "companion" && (
-        <CompanionSlot
-          isPrivacyShieldArmed={companion?.isPrivacyShieldArmed ?? true}
-          departureDistanceMeters={companion?.departureDistanceMeters}
-          onTriggerFakeCall={companion?.onTriggerFakeCall ?? onTriggerFakeCall}
-          onBlockUser={companion?.onBlockUser}
-        />
-      )}
-      {scenario === "dynamic" && dynamic && (
-        <DynamicAmmoSlot {...dynamic} customRequirements={customRequirements} />
-      )}
+      {/* 战役 4 · 弹药驱动插槽区：D9 行动 Schema 唯一装配入口（零品类分支） */}
+      <CockpitAmmoSlot
+        ammo={ammo}
+        actions={{ ...actions, customRequirements }}
+      />
 
       {/* 方向 1 接线 C：分期托管里程碑阶梯（milestone_staged 协议时渲染） */}
       {milestones && milestones.items.length > 0 && (

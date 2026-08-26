@@ -229,6 +229,11 @@ export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
 
   /* D8 视界与表单（housekeeping 主题 + HousekeepingSlot 座舱插槽） */
   theme: "housekeeping",
+  /* D9 履约行动契约（战役 4）：增项改价 + 双拍存证 · hk 预置模板皮肤 */
+  actionSchema: {
+    variant: "hk",
+    modules: [{ module: "ONSITE_QUOTE" }, { module: "PROOF_PHOTO" }],
+  },
   cockpitSlot: "HousekeepingSlot",
 };
 
