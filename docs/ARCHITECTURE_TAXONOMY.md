@@ -250,7 +250,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `src/store/`（7 文件） | UI 状态层 | 🟡 业务圈前端接线（useWaveStore 为最大消费方） |
 | `mobile/`（RN 子项目） | 移动端 10 屏 | 🟡 已登记归属（location→base/geo RN 候选、DynamicForm→弹药表单 N2），未融合 |
 | ~~`packages/`~~（已出清 2026-08-26 `9bee42d`） | credit-formula→base/trust、payment-core→base/platform | 🟢 单包微内核达成（根目录无孤立子包） |
-| **Microkernel 2.0 工业化战役**（2026-08-26 立项，五战序列） | 战役 1 ✅ `e695e83`：SLA 弹药化（slaPhases 入 8D 契约，sla-enforcer 全局常量退役）+ 资金模式能力白名单（funding-dispatcher 三膛线 + factory Fail-Fast 拦截，裁决 a 拒绝静默降级）；战役 2 ✅ 6765775：底座纯度大分流——~40 文件出清至 src/adapters/ 九子域，lbs-port/llm-port 双端口+组合根装配，pii/credit 注入 ×2，ESLint 八项物理门禁（base 八词字面归零）；战役 3 ✅ \dc76cdd\：四表反转（动态池优先+存量压轴字节等价）+ 三专线退役为数据字典 + projectDynamicAmmo 兜底闭环；待战：④ 履约座舱 Schema 化 ⑤ 支付归一+跑道合并（8D 守卫 DSL 为方案 A 储备） | 🟡→🟢 推进中 |
+| **Microkernel 2.0 工业化战役**（2026-08-26 立项，五战序列） | 战役 1 ✅ `e695e83`：SLA 弹药化（slaPhases 入 8D 契约，sla-enforcer 全局常量退役）+ 资金模式能力白名单（funding-dispatcher 三膛线 + factory Fail-Fast 拦截，裁决 a 拒绝静默降级）；战役 2 ✅ 6765775：底座纯度大分流——~40 文件出清至 src/adapters/ 九子域，lbs-port/llm-port 双端口+组合根装配，pii/credit 注入 ×2，ESLint 八项物理门禁（base 八词字面归零）；战役 3 ✅ \dc76cdd\：四表反转+协议投影数据字典；战役 4 ✅ \d2f06c4\：履约座舱 Schema 化（D9 行动契约六模块 + CockpitAmmoSlot 唯一宿主 + CockpitScenario 分叉消灭 + 12 词 Grep 双文件归零）；待战：⑤ 支付归一+跑道合并（8D 守卫 DSL 为方案 A 储备） | 🟡→🟢 推进中 |
 | `tests/`、`e2e/`、`scripts/` | 验证体系 | 🟢 基建圈 |
 
 ### 3.6 验证资产归属（856 基线）

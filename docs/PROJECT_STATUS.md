@@ -184,9 +184,9 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：`dc76cdd`（Microkernel 2.0 战役 3 ✅ 工厂真·全自动）｜ 摘要：四表引擎（计价/派单/风控/SOP）增加动态池精确键优先段——registerDynamicAmmo 新弹零静态表编辑即全自动消费，存量表行压轴字节级不变；IHolographicAmmoConfig 自包含扩展四位（homeAccessKeywords/declaredRiskRules/dispatchRule?/sop?）装配期透传；三条手写协议投影专线退役为 CATEGORY_PROTOCOL_META 数据字典统一走 projectAmmoToProtocol（输出逐键等价）；projectDynamicAmmo BASE 兜底投影 + getProtocol 惰性注册补全动态池协议盲区；考卷 +7 达 **1704 全绿** (652+1052)；技术修正：ammo-core 下沉因 transform-types 并发 TDZ 回退为池驻 factory 保守拓扑；门禁 tsc 0 + lint 0 + build 0 + verify-prod PASS + four-ammos PASS + 收敛 exit 0
+> 日期：2026-08-26 ｜ HEAD：`d2f06c4`（Microkernel 2.0 战役 4 ✅ 履约座舱 Schema 化与动态视口归一）｜ 摘要：D9 履约行动契约落地（ICockpitActionSchema 六原子行动模块 + variant 模板皮肤键，四大标杆弹显式装填、缺省 deriveActionSchema 自动推导零回归）；DynamicAmmoSlot 升级唯一正轨宿主（CockpitAmmoSlot 调度器 + COCKPIT_TEMPLATE_REGISTRY 预置模板注册表，官方 DOM 锚点逐字守恒）；CockpitScenario 联合类型与四分叉 Props 物理消灭（座舱入参统一 ammo+actions）；场景派生/主题元数据/中文正则词表收容 slots/cockpit-scenario.ts 单点；Center 显隐改 hasCockpitModule() D9 声明驱动；**12 词 Grep 双文件 59+36 处 → 0**；Step0 TDD 锁相先行：cockpit-battle4.test.tsx 18 例指纹重构前后逐字通过=零漂移实证；考卷 +18 达 **1722 全绿** (670+1052)；门禁 tsc 0 + lint 0 + build 0 + verify-prod PASS + four-ammos PASS + 收敛 exit 0
 
-## 历史同步账（Microkernel 2.0 战役 1/2）
+## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
 > 日期：2026-08-26 ｜ HEAD：`6765775`（战役 2 ✅ 六边形架构落地）｜ 摘要：~40 文件分流 src/adapters/ 九子域，base 恢复零 IO 纯核；六边形端口 ×2（lbs-port/llm-port）+ 七路由组合根装配；注入手术 ×3（pii 密钥/credit 时钟/anti-fraud 实证合规）；ESLint 八项物理门禁上线（当场抓获 2 处漏网）；vitest 排除 adapters/**；终态 grep 八词字面归零；考卷台账磁盘对账零差集；**1697 全绿** (652+1045) + verify-prod 13/13 + 收敛 exit 0（43 rename 登记）；下一役=战役 3 工厂全自动
 ## 历史同步账（Microkernel 2.0 战役 1）
