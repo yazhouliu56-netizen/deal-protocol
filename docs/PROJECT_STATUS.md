@@ -134,12 +134,13 @@
 | **Microkernel 2.0 战役 1 · SLA 弹药化（P1-4）+ 资金模式能力白名单（P0-1）** | ✅ `e695e83`：① schema 双扩展（`slaPhases?` 合并语义 / `fundingMode?` 声明）+ 四弹装填（家政 30/60min 等值迁移、维修 60/120、陪玩 20/40、组局仅接单 15min 缺键回落演练）；② 投影单点贯通（projectAmmoToProtocol 读 holographic 镜像，三专线委托零重复）；③ sla-enforcer 全局 SLA_MAP 退役 → `resolveSlaPhases(getProtocol(...))`；④ **裁决 a 落地**：funding-dispatcher 能力白名单=真实枚举三模式〔修正案否决 Spec 的 FULL_ESCROW/DIRECT_PAY 发明词汇〕、factory 质检 1.5 区 `UNSUPPORTED_FUNDING_MODE` 一票否决、milestone_staged 标注原语级；⑤ 考卷净增 +11；⑥ 现行教训复演：白名单漏注册被基线数学当场抓获（战 5 待消灭的地雷）；门禁 tsc 0 + lint 0/0 + **1696/1696** (652+1044) + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0 | 2026-08-26 |
 
 | **Microkernel 2.0 战役 2 · 底座纯度物理大分流与六边形架构落地** | ✅ `6765775`：① ~40 文件 R92-R100 平移 src/adapters/ 九子域（p2p/gateway/payment/device/geo/notify/ui/social/ai 全外联面出清底座）；② 六边形端口 ×2（lbs-port 纯兜底+注入 / llm-port 端口+七路由组合根装配，bi/forgery 接缝改造）；③ 注入手术 ×3（pii-crypto 密钥显式注入 / credit-formula now 参 / anti-fraud 实证零代码违规仅注释中性化）；④ **ESLint 物理门禁八项全禁**上线即抓获 2 处漏网反向边；⑤ vitest 排除 adapters/**；⑥ 终态 grep 八词字面归零；⑦ 考卷台账磁盘对账零差集；门禁 tsc 0 + lint 0 + **1697 全绿** (652+1045) + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0（43 rename 登记） | 2026-08-26 |
+| **Microkernel 2.0 战役 5 · 支付 Provider 统一与测试跑道合并治理（终局收官）** | ✅ `32888ef`：① P1-5 支付通道归一（Registry + IPaymentProvider 三法归一 + queryStatus可选；Stripe 逐字平移 + Alipay/WeChat 薄壳委托 PaymentManager；沙盒通道平移至 adapters/payment/alipay-sandbox-channel.ts + wechat-pay-service.ts 并注册 sandbox 变体；彻底出清 lib/payment.ts + 5 处调用方改道；存量 refund 死路→确定性失败守恒）；② P2-7 巨石瘦身（route.ts 645→18 行委托壳 + _handlers 三文件分治，HTTP 契约守恒）；③ P2-7 白名单地雷终结（run-oto-units.mjs Glob 扫描 base/adapters/ammo 三域 103 文件 + wiring.test.ts 孤儿复活修正 dating→companion +7；package.json 白名单 102→1 行）；门禁 tsc 0 + lint 0 + **1729 全绿** (670+1059) + build 0 + verify-prod 13/13 + four-ammos 5/5 + 收敛 exit 0（0 rename 因 shim 垫片兼容，纯新增文件无登记需求） | 2026-08-26 |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1697/1697 全绿 · 0 skipped**（`npm test` = vitest 652 + node:test 1045；2026-08-26 Microkernel 2.0 战役 2 净增 +1 并完成考卷台账磁盘对账零差集） |
+| 单测 | **1729/1729 全绿 · 0 skipped**（`npm test` = vitest 670 + node:test 1059；2026-08-26 战役 5 Glob 自动发现出清 102 白名单地雷并复活 wiring.test.ts 双轨孤儿 +7，基线 1697→1729） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -184,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：`d2f06c4`（Microkernel 2.0 战役 4 ✅ 履约座舱 Schema 化与动态视口归一）｜ 摘要：D9 履约行动契约落地（ICockpitActionSchema 六原子行动模块 + variant 模板皮肤键，四大标杆弹显式装填、缺省 deriveActionSchema 自动推导零回归）；DynamicAmmoSlot 升级唯一正轨宿主（CockpitAmmoSlot 调度器 + COCKPIT_TEMPLATE_REGISTRY 预置模板注册表，官方 DOM 锚点逐字守恒）；CockpitScenario 联合类型与四分叉 Props 物理消灭（座舱入参统一 ammo+actions）；场景派生/主题元数据/中文正则词表收容 slots/cockpit-scenario.ts 单点；Center 显隐改 hasCockpitModule() D9 声明驱动；**12 词 Grep 双文件 59+36 处 → 0**；Step0 TDD 锁相先行：cockpit-battle4.test.tsx 18 例指纹重构前后逐字通过=零漂移实证；考卷 +18 达 **1722 全绿** (670+1052)；门禁 tsc 0 + lint 0 + build 0 + verify-prod PASS + four-ammos PASS + 收敛 exit 0
+> 日期：2026-08-26 ｜ HEAD：`32888ef`（Microkernel 2.0 战役 5 ✅ 支付 Provider 统一与测试跑道合并治理·终局收官）｜ 摘要：P1-5 支付通道归一（Registry + IPaymentProvider 统一三法 + 可选 queryStatus；Stripe 逐字平移 + Alipay/WeChat 薄壳委托 PaymentManager；沙盒演示通道平移至 adapters/payment 并注册 sandbox 变体；彻底出清 lib/payment.ts，5 处调用方改道 Registry；存量 refund 死路→确定性失败）；P2-7 巨石控制器瘦身（route.ts 645→18 行委托壳，三 handler 分治，HTTP 契约守恒）；P2-7 白名单地雷终结（run-oto-units.mjs Glob 自动发现 103→102 白名单出清，与 vitest.exclude 镜像互补；wiring.test.ts 双轨死区孤儿复活并修正 dating→companion 权威映射）；基线 **1729 全绿** (670+1059，+7 孤儿复活)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 5/5 + 收敛 exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
