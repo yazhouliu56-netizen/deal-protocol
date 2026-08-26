@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
 import { getPaymentManager } from "@/lib/payment";
-import { addContractEvent } from "@/lib/contract-machine";
+import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus";
 
 export async function POST(request: Request) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { getServiceClient } from "@/lib/supabase-client"
-import { addContractEvent } from "@/lib/contract-machine"
+import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus"
 
 function getStripe(): Stripe {

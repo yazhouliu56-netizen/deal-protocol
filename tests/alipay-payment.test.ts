@@ -21,7 +21,7 @@ vi.mock("@/lib/supabase-route-client", () => ({
   getRouteClient: () => mockSupabase,
 }));
 
-vi.mock("@/lib/contract-machine", () => ({
+vi.mock("@/lib/contract/events", () => ({
   addContractEvent: vi.fn(),
 }));
 

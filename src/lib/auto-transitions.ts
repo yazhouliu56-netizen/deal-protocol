@@ -55,7 +55,11 @@ async function autoComplete() {
       .eq('id', c.id)
     if (updateError) continue
 
-    const { addContractEvent, handleSatisfactionBatch } = await import("./contract-machine")
+    // D-5 Phase C 改道：直连真身模块（门面 contract-machine 已退役）
+    const [{ addContractEvent }, { handleSatisfactionBatch }] = await Promise.all([
+      import("./contract/events"),
+      import("./contract/satisfaction"),
+    ])
     await addContractEvent({
       contractId: c.id, actorId: "system",
       fromStatus: "HELD", toStatus: "COMPLETED",

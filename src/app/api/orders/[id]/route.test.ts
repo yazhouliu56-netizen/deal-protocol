@@ -24,13 +24,19 @@ vi.mock("@/lib/supabase-client", () => ({
   getServiceClient: () => mockSupabase,
 }))
 
-vi.mock("@/lib/contract-machine", () => ({
-  validateTransition: () => null,
-  getNextFundStatus: () => undefined,
-  getNextServiceStage: () => null,
-  calcRefund: () => ({ refundAmount: 0, providerRetain: 0, platformFee: 0 }),
+// D-5 Phase C：门面退役后 mock 重定向——事件/满意度/退款直连真身模块；
+// 状态机校验走真实 Base 纯函数（不 mock），由下方 engine stub 的 getDefinition
+// 提供协议定义数据。
+vi.mock("@/lib/contract/events", () => ({
   addContractEvent: vi.fn(),
+}))
+
+vi.mock("@/lib/contract/satisfaction", () => ({
   handleSatisfactionBatch: vi.fn(),
+  releaseSatisfactionBatch: vi.fn(),
+}))
+
+vi.mock("@/lib/contract/refund", () => ({
   createRefundTransactions: createRefundTransactionsMock,
 }))
 
@@ -39,7 +45,12 @@ const createRefundTransactionsMock = vi.fn()
 vi.mock("@/lib/protocol/engine", () => ({
   getEngine: () => ({
     getDefinition: () => ({
-      transitions: [],
+      transitions: [
+        { action: "resolve_dispute", from: "HELD", to: "HELD", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
+        { action: "settle_after_dispute", from: "HELD", to: "SETTLED", allowedRoles: ["CUSTOMER", "PROVIDER", "ADMIN"] },
+        { action: "confirm_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["CUSTOMER", "PROVIDER"] },
+        { action: "auto_complete", from: "HELD", to: "COMPLETED", allowedRoles: ["SYSTEM"] },
+      ],
       funding: { autoReleaseTimeout: 72 * 3600 },
       dispute: { channels: { green: { maxAmount: 100 }, yellow: { maxAmount: 500 } } },
     }),

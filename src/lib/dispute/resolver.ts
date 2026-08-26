@@ -167,7 +167,8 @@ export async function processPendingDisputes(): Promise<string[]> {
     try {
       const decision = await resolveDispute(dispute.id, channel)
 
-      const { createRefundTransactions } = await import("@/lib/contract-machine")
+      // D-5 Phase C 改道：退款事务直连真身模块（门面 contract-machine 已退役）
+      const { createRefundTransactions } = await import("@/lib/contract/refund")
       await createRefundTransactions(
         dispute.contract_id,
         contract.customer_id,

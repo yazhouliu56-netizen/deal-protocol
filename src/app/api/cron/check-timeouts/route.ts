@@ -1,7 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getSupabase } from "@/lib/supabase-client";
 import { getEngine } from "@/lib/protocol/engine";
-import { addContractEvent, handleSatisfactionBatch } from "@/lib/contract-machine";
+import { addContractEvent } from "@/lib/contract/events";
+import { handleSatisfactionBatch } from "@/lib/contract/satisfaction";
+// D-5 Phase C：超时放款校验收编 Base 纯函数核
+import { validateContractAction } from "@/base/order/contract-engine";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -33,20 +36,29 @@ export async function GET(request: NextRequest) {
             continue;
           }
 
-          const guard = engine.validateTransition("auto_complete", {
-            contract: {
-              id: contract.id,
+          const guard = validateContractAction(
+            engine.getDefinition(),
+            "auto_complete",
+            {
               fundStatus: contract.fund_status ?? "",
-              disputeStatus: contract.dispute_status,
               serviceStage: contract.service_stage ?? 0,
-              providerId: contract.provider_id,
-              customerId: contract.customer_id,
-              amount: contract.amount,
-              completedAt: contract.completed_at,
-              autoCompleteAt: contract.auto_complete_at,
+              role: "SYSTEM",
             },
-            actor: { id: "system", role: "SYSTEM" },
-          });
+            {
+              contract: {
+                id: contract.id,
+                fundStatus: contract.fund_status ?? "",
+                disputeStatus: contract.dispute_status,
+                serviceStage: contract.service_stage ?? 0,
+                providerId: contract.provider_id,
+                customerId: contract.customer_id,
+                amount: contract.amount,
+                completedAt: contract.completed_at,
+                autoCompleteAt: contract.auto_complete_at,
+              },
+              actor: { id: "system", role: "SYSTEM" },
+            },
+          );
 
           if (guard) {
             results.push(`auto_complete BLOCKED ${contract.id}: ${guard}`);

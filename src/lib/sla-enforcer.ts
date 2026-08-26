@@ -1,5 +1,8 @@
-import { getServiceClient } from "@/lib/supabase-client"
-import { addContractEvent, getNextFundStatus } from "@/lib/contract-machine"
+import { getServiceClient } from "@/lib/supabase-client";
+// D-5 Phase C：事件流水直连真身模块，状态推导收编 Base 纯函数核（门面已退役）
+import { addContractEvent } from "@/lib/contract/events";
+import { getNextFundStatus } from "@/base/order/contract-engine";
+import { getEngine } from "@/lib/protocol/engine";
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain"
 
@@ -113,7 +116,10 @@ async function enforceSLABreach(
   const slaAction = "sla_breach"
 
   const protocolId = contract.demand_id ?? order.protocol_id
-  const nextFundStatus = protocolId ? getNextFundStatus(protocolId, slaAction) : null
+  const protocolDef = protocolId ? getEngine(protocolId)?.getDefinition() : undefined
+  const nextFundStatus = protocolDef
+    ? getNextFundStatus(protocolDef, slaAction)
+    : null
   const targetFundStatus = nextFundStatus ?? "CANCELLED"
 
   const { data: recheckOrder } = await supabase

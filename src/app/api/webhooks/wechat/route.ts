@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
 import { wechatPayService } from "@/lib/wechat-pay-service";
-import { addContractEvent } from "@/lib/contract-machine";
+import { addContractEvent } from "@/lib/contract/events";
 import { emitEvent } from "@/lib/event-bus";
 
 function parseWechatXml(xml: string): Record<string, string> {

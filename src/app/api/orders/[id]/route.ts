@@ -4,15 +4,16 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase-client";
 import { createPayment, getAvailablePaymentChannels, type PaymentProvider } from "@/lib/payment";
+import { addContractEvent } from "@/lib/contract/events";
+import { handleSatisfactionBatch } from "@/lib/contract/satisfaction";
+import { createRefundTransactions } from "@/lib/contract/refund";
+// D-5 Phase C：状态机校验权威收编 Base 纯函数核（门面 contract-machine 已退役）。
 import {
-  validateTransition,
+  calcContractRefund,
   getNextFundStatus,
   getNextServiceStage,
-  calcRefund,
-  addContractEvent,
-  handleSatisfactionBatch,
-  createRefundTransactions,
-} from "@/lib/contract-machine";
+  validateContractAction,
+} from "@/base/order/contract-engine";
 import { getEngine } from "@/lib/protocol/engine";
 import { emitEvent } from "@/lib/event-bus";
 import { appendEvidence } from "@/modules/m11-evidence-log/evidence-chain";
@@ -108,20 +109,25 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   ) {
     const engine = getEngine(contract.protocol_id);
     if (engine) {
-      const guard = engine.validateTransition("auto_complete", {
-        contract: {
-          id: contract.id,
-          fundStatus: contract.fund_status,
-          disputeStatus: contract.dispute_status,
-          serviceStage: contract.service_stage,
-          providerId: contract.provider_id,
-          customerId: contract.customer_id,
-          amount: contract.amount,
-          completedAt: contract.completed_at,
-          autoCompleteAt: contract.auto_complete_at,
+      const guard = validateContractAction(
+        engine.getDefinition(),
+        "auto_complete",
+        { fundStatus: contract.fund_status, serviceStage: contract.service_stage, role: "SYSTEM" },
+        {
+          contract: {
+            id: contract.id,
+            fundStatus: contract.fund_status,
+            disputeStatus: contract.dispute_status,
+            serviceStage: contract.service_stage,
+            providerId: contract.provider_id,
+            customerId: contract.customer_id,
+            amount: contract.amount,
+            completedAt: contract.completed_at,
+            autoCompleteAt: contract.auto_complete_at,
+          },
+          actor: { id: "system", role: "SYSTEM" },
         },
-        actor: { id: "system", role: "SYSTEM" },
-      });
+      );
       if (!guard) {
         const { error: updateError } = await supabase
           .from('contracts')
@@ -261,7 +267,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           : user.role;
   }
 
-  const guardError = validateTransition(contract.protocol_id, action, {
+  // D-5 Phase C：引擎解析前置（校验/推导/退款统一经 Base 纯函数核求值）
+  const engine = getEngine(contract.protocol_id);
+
+  const transitionCtx = {
     contract: {
       id: contract.id,
       fundStatus: contract.fund_status ?? "",
@@ -275,14 +284,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
     actor: { id: user.id, role: actorRole },
     payload: body,
-  });
+  };
+  const guardError = engine
+    ? validateContractAction(
+        engine.getDefinition(),
+        action,
+        {
+          fundStatus: transitionCtx.contract.fundStatus,
+          serviceStage: transitionCtx.contract.serviceStage,
+          role: actorRole,
+        },
+        transitionCtx,
+      )
+    : `未知协议: ${contract.protocol_id}`;
 
   if (guardError) {
     return NextResponse.json({ error: guardError }, { status: 400 });
   }
 
-  const nextFundStatus = getNextFundStatus(contract.protocol_id, action);
-  const nextStage = getNextServiceStage(contract.protocol_id, action);
+  const nextFundStatus = engine
+    ? getNextFundStatus(engine.getDefinition(), action)
+    : null;
+  const nextStage = engine
+    ? getNextServiceStage(engine.getDefinition(), action)
+    : null;
 
   const updates: Record<string, unknown> = {};
 
@@ -294,7 +319,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   // Payment: any action that transitions to HELD
-  const engine = getEngine(contract.protocol_id);
   const payActions = engine
     ?.getDefinition()
     .transitions.filter((t) => t.from !== t.to && t.to === "HELD")
@@ -349,7 +373,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   let refundSettled = false;
   if (action === "cancel_before_pay" || action === "cancel_during_service") {
-    const refund = calcRefund(contract.protocol_id, contract.service_stage, contract.amount);
+    // 引擎缺席时与旧门面语义一致：无规则默认全退
+    const refund = engine
+      ? calcContractRefund(engine.getDefinition(), contract.service_stage, contract.amount)
+      : { provider: 0, customer: contract.amount };
     updates.fund_status = "CANCELLED";
     if (action === "cancel_during_service") {
       try {
@@ -559,7 +586,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (metadata) {
     eventMetadata = JSON.stringify(metadata)
   } else if (action === "cancel_before_pay" || action === "cancel_during_service") {
-    const refund = calcRefund(contract.protocol_id, contract.service_stage, contract.amount);
+    const refund = engine
+      ? calcContractRefund(engine.getDefinition(), contract.service_stage, contract.amount)
+      : { provider: 0, customer: contract.amount };
     eventMetadata = JSON.stringify({ refund });
   }
 
