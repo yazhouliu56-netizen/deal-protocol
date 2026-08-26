@@ -78,7 +78,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 ### 2.3 数字人格与通用信用飞轮
 
 - **资产通兑**：履约沉淀（守时 / 专业 / 礼貌 + 完成率）形成跨场景可复用的
-  数字人格信用资产（`base/trust/*` + `packages/credit-formula`）；
+  数字人格信用资产（`base/trust/*` 含 credit-formula，2026-08-26 `9bee42d` 上收）；
 - **信用飞轮**：低风险场景履约累积信用分 ➔ 降低高风险场景（进家 / 大额 / 新号）
   准入门槛与押金倍率 —— **弹药可换，信用资产跨弹药累积**（宪法 #6 信任数据是瞄准镜）。
 
@@ -221,7 +221,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `L2-M3` | 双模分发路由 | `base/dispatch/match`（派单）+ `broadcast`（抢单广播）+ `ammo/dispatch-rule` | match/broadcast 测试 | 🟢（双模 + ammo 权重硬门槛闭环） |
 | `L2-M4` | 账户清结算 | `base/money/escrow.ts`（**统一托管与清结算引擎：六模式托管/三阶段阶梯退款/AA 多方分账/资金安全底线**）+ `base/money/*`（ledger/pay/deposit/bidding）+ `base/ammo/runner.ts`（AmmoRunner 五态资金挂接：MATCHED 托管校验 / SETTLED 清结算对账清单）+ `app/api/payment/*`（release 收敛调统一引擎） | escrow/pay/ledger/deposit 测试 | 🟢（确定性引擎闭环 + AmmoRunner 五态挂接 + api/payment 收敛；统一钱包跨场景通兑、提现 ⚪️） |
 | `L2-M5` | IM 与隐私通信 | `base/comm/privacyNumber`（48h 双向热绑定）+ `base/comm/im` | privacyNumber 测试 | 🟢（隐私号/IM 闭环；音视频端到端加密 ⚪️） |
-| `L2-M6` | 信用成长体系 | `base/trust/*`（reputation/starRank/review）+ `packages/credit-formula` | trust/评分测试 | 🟢（跨场景通兑按宪法 #6 飞轮滚动） |
+| `L2-M6` | 信用成长体系 | `base/trust/*`（reputation/starRank/review + credit-formula） | trust/评分测试 | 🟢（跨场景通兑按宪法 #6 飞轮滚动） |
 | `L3-M1` | 意图识别转单 | `base/ai/chat/llmEngine` + `decompose.ts` + `voice/voiceIntent.ts` | 拆解/意图测试 | 🟢（NL→结构化草稿闭环，围栏容错） |
 | `L3-M2` | 向量匹配推荐 | `base/ai/embed.ts`（bigram TF 余弦，零依赖） | embed 语义测试 | 🟢（确定性版活产；LLM Embedding 可选链 P1-4 留口） |
 | `L3-M3` | 智能争议仲裁 | `base/ai/judge.ts` + `forgery.ts`（物证）+ 时间轨迹分析 + `app/api/judge` | judge/定责测试 | 🟢（规则引擎兜底，仅出建议赔付——红线 1 隔离墙） |
@@ -249,7 +249,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `supabase/migrations/`（40 个） | 数据层 + RLS + RPC | 🟡 网关圈/基建圈数据底座 |
 | `src/store/`（7 文件） | UI 状态层 | 🟡 业务圈前端接线（useWaveStore 为最大消费方） |
 | `mobile/`（RN 子项目） | 移动端 10 屏 | 🟡 已登记归属（location→base/geo RN 候选、DynamicForm→弹药表单 N2），未融合 |
-| `packages/`（credit-formula / payment-core） | 信用公式与支付内核 | 🟡 底座候选（核心契约应上收 base 或经 base 引用） |
+| ~~`packages/`~~（已出清 2026-08-26 `9bee42d`） | credit-formula→base/trust、payment-core→base/platform | 🟢 单包微内核达成（根目录无孤立子包） |
 | `tests/`、`e2e/`、`scripts/` | 验证体系 | 🟢 基建圈 |
 
 ### 3.6 验证资产归属（856 基线）

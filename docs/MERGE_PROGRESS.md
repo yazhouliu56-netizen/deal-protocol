@@ -62,9 +62,7 @@ deal-protocol/
 │       ├── 001_schema.sql ... 018_enable_realtime.sql   # 根旧序号
 │       ├── 20260718_*.sql ... 20260814_*.sql            # 根新序号
 │       └── 2026xxxx_p2p_broadcast.sql                   # 子表迁入（新序号）
-├── packages/
-│   ├── credit-formula/           # 根既有本地包
-│   └── payment-core/             # 根既有本地包
+├── packages/                     # （已出清 2026-08-26 9bee42d：credit-formula→base/trust、payment-core→base/platform）
 ├── mobile/                       # RN 子应用（本次融合不并入，D-14 裁定）
 ├── e2e/                          # Playwright（根）— 子 12 个 mjs 脚本并入 → D-05
 └── tests/                        # 根 vitest 体系 — 子 57 个 node:test 并入 → D-05
