@@ -127,17 +127,19 @@
 
 | **D-5 状态机双轨收敛 · 第二阶段（门面退役与全路由改道）** | ✅ `3ca1ae0`：① `contract-machine.ts` 门面物理出清（76 行），全仓引用归零实证；② DB 操作直连真身模块（events/satisfaction/refund，按宪法分层持久化留 API 层）；③ 校验权威收编 Base 纯函数核——orders/[id] 心脏路由引擎前置化+五处调用点改道（engine-null 语义字节级等价）+ cron 超时 guard + sla-enforcer + resolver + auto-transitions 四外围全部改道；④ 考卷 mock 重定向 ×4，orders/[id] route.test 升级为**真实 Base 校验**（零损耗 1668/1668）；⑤ 工具教训：PS `-Path` 对 `[id]` 方括号通配符静默跳过 → 全扫描改 `-LiteralPath`；⑥ 门禁：tsc 0 + lint 0/0 + **1668/1668** + build 0 + restart-prod READY(pid 13796) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0；Phase D（instrumentation 三栓解绑）待令 | 2026-08-26 |
 
+| **D-5 状态机双轨收敛 · 终局（Phase D 引导解绑 + Phase E 协议资产归位 + 白皮书打绿 🟢）** | ✅ `daba879`：① **Phase D**——`instrumentation.ts` 整文件退役（三栓全拔，启动引导零未受控外部写）；`auto-transitions.ts` 出清（功能由 cron 全量承接）；SLA 扫描迁入 `api/cron/check-timeouts` cron 权威节拍（checkAndEnforceSLA 逻辑原样保留，轮询壳摘除）；② **Phase E**——R92% 平移 ×2（types.ts→protocol-types.ts 376L / registry.ts→protocol-definitions.ts 976L ammo 投影资产），engine/index/bootstrap/config-serde/registry.test 五文件出清，getEngine 消费方 ×6 全改道 getProtocol，考卷转制 node:test 白名单断言保真，admin/protocols 双路由收敛 Base 静态只读（裁决 1 CRUD 热配退役）；③ **白皮书 §5.2 D-5 🟡→🟢 封账**；④ 门禁：tsc 0 + lint 0/0 + 单测 **1668/1668 守恒**（vitest 649 + node:test 1019）+ build 0 + restart-prod READY(pid 6072) + verify-prod **13/13** + four-ammos PASS + 收敛门禁 exit 0（rename ×2 已登记）| 2026-08-26 |
+
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1668/1668 全绿 · 0 skipped**（`npm test` = vitest 653 + node:test 1015；2026-08-26 D-5 一阶段 +19：contract-engine 考卷 ×19，SLA 改道零折损） |
+| 单测 | **1668/1668 全绿 · 0 skipped**（`npm test` = vitest 649 + node:test 1019；2026-08-26 D-5 终局守恒：registry 考卷 ×4 vitest→node:test 平移转制，零折损） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
 | 运行时错误 | 0（仅 THREE.Clock deprecation 噪音；TTS 生产 unhandledRejection 已根治并实测清零） |
 | 语音链路实测 | ✅ 录音→ASR 真链留待真机验证（本机无麦克风）；**TTS 链路全绿 2026-08-18：修复 bufferutil 空桩崩溃后实测 POST /api/tts → 200 audio/mpeg 14544B 1.64s（edge-tts 合成），错误日志 0 unhandledRejection，8s 看门狗兜底 504（客户端 speechSynthesis 终极降级）**；GLM 429（余额不足）→ edge-tts 兜底实测合成 mp3，双链全灭才落 speechSynthesis |
-| 生产服务器 | ✅ 运行中（pid 13796，端口 3000，HTTP 200；2026-08-26 D-5 二阶段 `node scripts/restart-prod.mjs` 重启） |
+| 生产服务器 | ✅ 运行中（pid 6072，端口 3000，HTTP 200；2026-08-26 D-5 终局 `node scripts/restart-prod.mjs` 重启；instrumentation 启动注入已解绑） |
 
 ## 五、遗留缺口
 
@@ -176,10 +178,11 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：`3ca1ae0`（D-5 二阶段 ✅）｜ 摘要：contract-machine 门面物理退役（全仓归零），DB 操作直连真身模块、状态机校验 100% 收编 base/order/contract-engine（orders/[id] 心脏+cron+sla-enforcer+resolver+auto-transitions 全改道，engine-null 语义字节级等价）；考卷 mock 重定向 ×4 零损耗；工具教训：PS -Path 对 [id] 通配符静默跳过改用 -LiteralPath；门禁 tsc 0 + lint 0/0 + **1668/1668 (653+1015)** + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0
+> 日期：2026-08-26 ｜ HEAD：`daba879`（D-5 终局 ✅ 白皮书 D-5 🟢）｜ 摘要：Phase D instrumentation 三栓解绑+auto-transitions 出清+SLA 迁 cron 权威节拍；Phase E 协议资产 R92% 归位 base/order（protocol-types 376L + protocol-definitions 976L），engine/bootstrap/config-serde/index 五文件出清，getEngine ×6 改道 getProtocol，admin 台账静态只读化；白皮书 §5.2 D-5 🟡→🟢 封账；门禁 tsc 0 + lint 0/0 + **1668/1668 守恒** (649+1019) + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0
 
 | 日期 | HEAD | 摘要 |
 |------|------|------|
+| 2026-08-26 | `daba879` | **D-5 终局战役（Phase D & E）：引导解绑、协议资产归位与白皮书打绿**。① Phase D：instrumentation.ts 整文件退役（syncBuiltinsToDb/startAutoTransitions/startSLAEnforcer 三栓全拔）、auto-transitions.ts 出清（cron 全量承接）、SLA 扫描迁入 check-timeouts cron 节拍（业务逻辑原样保留）；② Phase E：R92% 平移 ×2（protocol-types 376L / protocol-definitions 976L ammo 投影，base→ammo-data 纯数据单向依赖登记背书）、五文件出清、getEngine ×6 → getProtocol、考卷转制 node:test、admin 双路由静态只读化（裁决 1）；③ 白皮书 §5.2 D-5 🟢 封账；④ 门禁 tsc 0 + lint 0/0 + **1668/1668**（649+1019 守恒）+ build 0 + restart-prod(pid 6072) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0（rename ×2 登记） |
 | 2026-08-26 | `3ca1ae0` | **D-5 第二阶段：门面退役与 API 路由全面改道**。① git rm contract-machine.ts（76 行，引用归零）；② events/satisfaction/refund 直连真身；③ 校验收编 Base 纯函数核（心脏路由五调用点 + cron guard + sla-enforcer/resolver/auto-transitions 外围），engine-null 兜底一一对应字节等价；④ mock 重定向 ×4、orders/[id] 考卷升级真实 Base 校验；⑤ -LiteralPath 工具教训入账；⑥ 门禁 tsc 0 + lint 0/0 + **1668/1668** + build 0 + restart-prod(pid 13796) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0 |
 | 2026-08-26 | `ac6e529` | **D-5 状态机双轨收敛第一阶段**。① Phase A：status-map.ts 出清（-15 行）；三处前置审计误判由 tsc/全量套件拦截复原（contracts 单引号 type 枢纽 / auto-transitions instrumentation 动态引导 / contract-builder 考卷宿主），根因=grep 双引号别名盲区；② Phase B：base/order/contract-engine.ts 纯函数核（谓词+action 双入口 / 推导四原语 / calcContractRefund / 双映射桥含裁决 #2 SATISFACTION_HELD→SUBMITTED+INSPECTED）+ 考卷 ×19；③ SLA 考卷改道（裁决 #3）：Mechanism-1 → milestone-escrow 原语护栏 2/2 存活；④ 门禁 tsc 0 + lint 0/0 + **1668/1668**（653+1015，净增 +19）+ build 0 + restart-prod(pid 7452) + verify-prod **13/13** + four-ammos PASS + 收敛 exit 0；⑤ Phase C/D 承接面就位 |
 | 2026-08-26 | `bc49da2` | **P0 质量与治理双清零突击战**。① D-20260825-01 根治：useIdentityStore skipHydration:true 移除模块加载期同步回灌（#418 根因），首访落盘前置（键存在性守卫）/ 值回灌后置（IdentityRehydrator effect，(oto)/layout 挂载）；② e2e-dual-role-human #418 容忍正则物理摘除 → 裸跑实证（首轮全量实跑抓出 persist 键晚于断言真回归 → 两关注点分离治本复绿）；③ 缺陷→考卷复利 IdentityRehydrator.test ×3；④ probe-sos-cleanup.mjs 探针生命周期闭环（三表前缀审计 0 残留）；⑤ ci.yml「13 条」+ DEBT_REGISTER §1.2 重验刷新（24 出清/A19 复活/A13 已核销/待办 0）；⑥ 门禁 tsc 0 + lint 0/0 + **1649/1649**（653+996，+3）+ build 0 + restart-prod(pid 10320) + verify-prod **13/13**（dual-role 裸跑零水合警告）+ four-ammos PASS + 收敛 exit 0（零 rename） |
