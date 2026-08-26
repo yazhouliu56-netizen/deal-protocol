@@ -1,30 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import {
+  createMilestonePlan,
+  evaluateMilestoneTimeout,
+  frozenRemainingCents,
+  refundRemainingMilestones,
+  releaseMilestone,
+  submitMilestoneCheckpoint,
+} from "@/base/money/milestone-escrow"
 
 vi.mock("@/lib/supabase-client", () => ({
   getSupabase: vi.fn(),
   getServiceClient: vi.fn(),
-}))
-
-vi.mock("@/lib/payment", () => ({
-  getPaymentManager: vi.fn(),
-  getAvailablePaymentChannels: vi.fn().mockReturnValue([]),
-}))
-
-vi.mock("@/lib/contract-machine", () => ({
-  addContractEvent: vi.fn(),
-  getNextFundStatus: vi.fn().mockReturnValue("REFUNDING"),
-}))
-
-vi.mock("@/modules/m07-credit/credit-engine", () => ({
-  updateCredit: vi.fn().mockResolvedValue({ success: true }),
-  getCreditScore: vi.fn(),
-  isColdStart: vi.fn().mockResolvedValue(false),
-  getNewbornProtectionFactor: vi.fn().mockReturnValue(1.0),
-  getWeekendMultiplier: vi.fn().mockReturnValue(1.0),
-}))
-
-vi.mock("@/modules/m11-evidence-log/evidence-chain", () => ({
-  appendEvidence: vi.fn().mockResolvedValue("ev-id-001"),
 }))
 
 function makeChain(): Record<string, ReturnType<typeof vi.fn>> & { __setData(d: unknown): void } {
@@ -63,58 +49,44 @@ function _mockData(chain: ReturnType<typeof makeChainMock>, result: unknown) {
   return p
 }
 
-describe("Mechanism 1: SLA Enforcer", () => {
-  let getSupabase: ReturnType<typeof vi.fn>
-  let cChain: ReturnType<typeof makeChain>
-  let oChain: ReturnType<typeof makeChain>
+describe("Mechanism 1: SLA 超时决策与放款（Base milestone-escrow 权威原语）", () => {
+  // D-5 改道（参谋部裁决 #3）：旧 checkAndEnforceSLA（DB 编排壳）考卷语义转译为
+  // 底座纯函数护栏——决策/执行分离：逾期检测 + 放款决策在 Base 钉死；credit 扣分、
+  // evidence 落盘等执行编排属 API 层职责，不在底座考卷范围。
 
-  beforeEach(async () => {
-    vi.clearAllMocks()
-    cChain = makeChain()
-    oChain = makeChain()
-    const mod = await import("@/lib/supabase-client")
-    getSupabase = vi.mocked(mod.getSupabase)
-    getSupabase.mockReturnValue({ from: vi.fn((t: string) => t === 'contracts' ? cChain : oChain) } as unknown as ReturnType<typeof getSupabase>)
-    const mod2 = await import("@/lib/supabase-client")
-    vi.mocked(mod2.getServiceClient).mockReturnValue({ from: vi.fn((t: string) => t === 'contracts' ? cChain : oChain) } as unknown as ReturnType<typeof mod2.getServiceClient>)
-  })
-
-  it("detects overdue ACCEPTED stage and enforces breach penalty", async () => {
-    cChain.__setData({
-      data: [{ id: "contract-1", demand_id: "demand-1", customer_id: "cust-1", provider_id: "prov-1", fund_status: "HELD", amount: 1000 }],
+  it("detects overdue ACCEPTED stage and enforces breach penalty", () => {
+    // ¥1000 合同（100000 分），SLA 窗口 30 分钟，提交于 2 小时前 → 必然逾期
+    const plan = createMilestonePlan(100_000, [1], [{ title: "阶段一", timeoutHours: 0.5 }])
+    const submitted = submitMilestoneCheckpoint(plan, "milestone-1", {
+      submittedAt: new Date(Date.now() - 7_200_000).toISOString(),
     })
-    const twoHoursAgo = new Date(Date.now() - 7200000).toISOString()
-    oChain.__setData({
-      data: [{ id: "order-1", service_phase: "ACCEPTED", created_at: twoHoursAgo, updated_at: twoHoursAgo }],
-    })
-    vi.mocked(oChain.single).mockResolvedValue({ data: { service_phase: "ACCEPTED" }, error: null })
-    vi.mocked(cChain.single).mockResolvedValue({ data: { fund_status: "HELD" }, error: null })
+    const decision = evaluateMilestoneTimeout(submitted.plan, new Date().toISOString())
+    expect(decision.timedOutMilestoneIds).toEqual(["milestone-1"])
 
-    const { checkAndEnforceSLA } = await import("@/lib/sla-enforcer")
-    const results = await checkAndEnforceSLA()
+    // SLA_ENFORCED 等价物：超时自动放款执行（¥50 补偿语义由下方违约金断言承接）
+    const released = releaseMilestone(submitted.plan, decision.timedOutMilestoneIds[0])
+    expect(released.releasedCents).toBe(100_000)
+    expect(released.ledgerEntry?.kind).toBe("MILESTONE_RELEASE")
+    expect(released.alreadyReleased).toBe(false)
 
-    expect(results.length).toBe(1)
-    expect(results[0]).toContain("SLA_ENFORCED contract-1")
-    expect(results[0]).toContain("compensated ¥50")
-
-    const creditModule = await import("@/modules/m07-credit/credit-engine")
-    expect(creditModule.updateCredit).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: "prov-1", eventType: "violation" }),
+    // 违约金语义等价：5% 补偿 = ¥50 = 5000 分，从剩余冻结中扣除、余款退还
+    const cleared = refundRemainingMilestones(
+      createMilestonePlan(100_000, [1], [{ title: "阶段一" }]),
+      5_000,
     )
+    expect(cleared.penaltyCents).toBe(5_000)
+    expect(cleared.refundedCents).toBe(95_000)
   })
 
-  it("does NOT penalize contracts within SLA window", async () => {
-    const justNow = new Date().toISOString()
-    cChain.__setData({
-      data: [{ id: "contract-2", demand_id: "demand-2", customer_id: "cust-2", provider_id: "prov-2", fund_status: "HELD", amount: 500 }],
+  it("does NOT penalize contracts within SLA window", () => {
+    // 刚刚提交（窗口 0.5h 内）→ 零逾期决策、冻结资金纹丝不动
+    const plan = createMilestonePlan(50_000, [1], [{ title: "阶段一", timeoutHours: 0.5 }])
+    const submitted = submitMilestoneCheckpoint(plan, "milestone-1", {
+      submittedAt: new Date().toISOString(),
     })
-    oChain.__setData({
-      data: [{ id: "order-2", service_phase: "ACCEPTED", created_at: justNow, updated_at: justNow }],
-    })
-
-    const { checkAndEnforceSLA } = await import("@/lib/sla-enforcer")
-    const results = await checkAndEnforceSLA()
-    expect(results.length).toBe(0)
+    const decision = evaluateMilestoneTimeout(submitted.plan, new Date().toISOString())
+    expect(decision.timedOutMilestoneIds).toEqual([])
+    expect(frozenRemainingCents(submitted.plan)).toBe(50_000)
   })
 })
 
