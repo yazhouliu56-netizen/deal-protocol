@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1786/1786 全绿 · 0 skipped**（`npm test` = vitest 679 + node:test 1107；2026-08-27 统一通信总线（createSyncBus 工厂 + 串行防重入 + 2000ms 冷却 + 防抖 + roam-sync 监听收敛），基线 1776→1786） |
+| 单测 | **1791/1791 全绿 · 0 skipped**（`npm test` = vitest 679 + node:test 1112；2026-08-27 roamGuard Map 索引（buildDeviceBindingIndex + riskOf 可选 index O(1)），基线 1786→1791） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`3e273ed`（统一通信总线 · P1-2 + 1786 基线封盘）｜ 摘要：adapters/platform/sync-bus.ts 统一在线/同步总线（createSyncBus 工厂 DI 注入 win/doc + getOnlineStatus/subscribeOnlineStatus/registerSyncTrigger/dispose + SSR 双守卫 + 100ms 防抖 + 串行 Promise 链防重入 + 2000ms 唤醒冷却）；roam-sync.ts 原生 window 监听收敛为 registerSyncTrigger(replayRoamQueue)；基线 **1786 全绿** (679+1107，+10)；门禁 tsc 0 + lint 0 + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Zero Base 0（src/base 零行）
+> 日期：2026-08-27 ｜ HEAD：`58aeb9e`（roamGuard Map 索引 · P1-3 + 1791 基线封盘）｜ 摘要：base/risk/roamGuard.ts Map 索引（buildDeviceBindingIndex O(N)→O(1) + riskOf 可选 index 向后兼容）+ C1 审计闭环（tri-credit 已 100% 弹药驱动）；基线 **1791 全绿** (679+1112，+5)；门禁 tsc 0 + lint 0 + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Zero Base 0（src/base 零行）
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
