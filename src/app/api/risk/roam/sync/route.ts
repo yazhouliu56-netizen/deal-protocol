@@ -8,6 +8,32 @@ function hashIp(ip: string | undefined): string | null {
   return createHash("sha256").update(ip).digest("hex").slice(0, 16);
 }
 
+// 轻量级频控：单实例内存 LRU 60s 滑动窗，10 次/分钟（多实例不共享，单节点 prod 足够）
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10;
+const rateLimitMap = new Map<string, number[]>();
+function isE2EBypass(req: Request): boolean {
+  if (process.env.E2E_BYPASS_RATELIMIT === "1") return true;
+  try {
+    return req.headers.get("x-e2e-bypass") === "1";
+  } catch {
+    return false;
+  }
+}
+function isRateLimited(userId: string, req: Request): boolean {
+  if (isE2EBypass(req)) return false;
+  const now = Date.now();
+  const arr = rateLimitMap.get(userId) ?? [];
+  const recent = arr.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT_MAX) {
+    rateLimitMap.set(userId, recent);
+    return true;
+  }
+  recent.push(now);
+  rateLimitMap.set(userId, recent);
+  return false;
+}
+
 export const GET = withAuth(async (_req, user) => {
   const supabase = getServiceClient();
   const { data, error } = await supabase
@@ -38,6 +64,27 @@ export const POST = withAuth(async (req, user) => {
   const user_agent = typeof body.user_agent === "string" ? body.user_agent.slice(0, 500) : null;
   const ipHashRaw = typeof body.ip_hash === "string" ? body.ip_hash : body.ip ? hashIp(body.ip) : null;
   const ip_hash = ipHashRaw ? String(ipHashRaw).slice(0, 64) : null;
+
+  // 限流防刷：10 次/分钟，E2E 白名单直通（红线 5：429 亦返回已知设备与等级，不抛）
+  if (isRateLimited(user.id, req)) {
+    const { data: curDevices } = await supabase
+      .from("roam_devices")
+      .select("device_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true);
+    const cnt = (curDevices ?? []).length;
+    const lvl = cnt >= 3 ? "high" : cnt === 2 ? "watch" : "safe";
+    const { data: all } = await supabase
+      .from("roam_devices")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("last_seen_at", { ascending: false });
+    return NextResponse.json(
+      { ok: false, error: "Too Many Requests", risk: lvl, count: cnt, devices: all ?? [] },
+      { status: 429 }
+    );
+  }
 
   // ON CONFLICT (user_id, device_id) 幂等 upsert
   const { error: upsertError } = await supabase.from("roam_devices").upsert(
@@ -74,12 +121,24 @@ export const POST = withAuth(async (req, user) => {
   const risk = count >= 3 ? "high" : count === 2 ? "watch" : "safe";
 
   if (risk === "high") {
-    await supabase.from("roam_risk_events").insert({
-      user_id: user.id,
-      device_id,
-      event_type: "MULTI_DEVICE_LOGIN",
-      payload: { count, fingerprint, user_agent },
-    });
+    // 60s 审计去重：同 user+device 60s 内已记则跳过（SELECT 先查，竞态接受 1 条冗余）
+    const since = new Date(Date.now() - 60_000).toISOString();
+    const { data: recent } = await supabase
+      .from("roam_risk_events")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("device_id", device_id)
+      .eq("event_type", "MULTI_DEVICE_LOGIN")
+      .gt("created_at", since)
+      .limit(1);
+    if (!recent || recent.length === 0) {
+      await supabase.from("roam_risk_events").insert({
+        user_id: user.id,
+        device_id,
+        event_type: "MULTI_DEVICE_LOGIN",
+        payload: { count, fingerprint, user_agent },
+      });
+    }
   }
 
   const { data: allDevices } = await supabase

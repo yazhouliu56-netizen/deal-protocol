@@ -129,8 +129,8 @@ try {
   });
   await b.page.reload({ waitUntil: "domcontentloaded" });
   await sleep(600);
-  const panelB = await b.page.evaluate(() => document.body.textContent ?? "");
   // 通过本地内联 riskOf 二次校验（2 身份 → watch）
+  await b.page.evaluate(() => document.body.textContent ?? "");
   const riskB = await b.page.evaluate(() => {
     const raw = localStorage.getItem("oto-roam-v1");
     const j = raw ? JSON.parse(raw) : { state: { bindings: [], deviceId: "dev-b" } };
@@ -159,8 +159,7 @@ try {
   });
   await c.page.reload({ waitUntil: "domcontentloaded" });
   await sleep(700);
-  // 直接校验本地 high（面板文案可能未挂载，以本地 risk 为准；若面板存在则额外校验高危文案）
-  const panelC = await c.page.evaluate(() => document.body.textContent ?? "");
+  // 直接校验本地 high（面板文案可能未挂载，以本地 risk 为准）
   const riskC = await c.page.evaluate(() => {
     const raw = localStorage.getItem("oto-roam-v1");
     const j = raw ? JSON.parse(raw) : { state: { bindings: [], deviceId: "dev-c" } };

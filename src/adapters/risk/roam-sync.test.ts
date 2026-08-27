@@ -14,7 +14,6 @@ function setNavigator(value: unknown) {
 function restoreNavigator(orig: unknown) {
   try {
     if (orig === undefined) {
-      // @ts-ignore
       delete (globalThis as unknown as { navigator?: unknown }).navigator;
     } else {
       Object.defineProperty(globalThis, "navigator", {
@@ -40,7 +39,6 @@ test("roam-sync: 离线 0ms 回落（navigator.onLine===false）", async () => {
 test("roam-sync: fetch 异常回落不抛", async () => {
   const origFetch = globalThis.fetch;
   const origNav = (globalThis as unknown as { navigator?: unknown }).navigator;
-  // @ts-ignore
   globalThis.fetch = async () => {
     throw new Error("network down");
   };
@@ -48,7 +46,6 @@ test("roam-sync: fetch 异常回落不抛", async () => {
   const r = await syncDevice({ deviceId: "dev-x" });
   assert.equal(r.ok, false);
   assert.equal(r.fallback, true);
-  // @ts-ignore
   globalThis.fetch = origFetch;
   restoreNavigator(origNav);
 });
@@ -57,7 +54,6 @@ test("roam-sync: postHeartbeat 复用 syncDevice", async () => {
   const origFetch = globalThis.fetch;
   const origNav = (globalThis as unknown as { navigator?: unknown }).navigator;
   let called = false;
-  // @ts-ignore
   globalThis.fetch = async () => {
     called = true;
     return { ok: true, json: async () => ({ devices: [] }) } as unknown as Response;
@@ -66,7 +62,6 @@ test("roam-sync: postHeartbeat 复用 syncDevice", async () => {
   const r = await postHeartbeat("dev-hb");
   assert.equal(called, true);
   assert.equal(r.ok, true);
-  // @ts-ignore
   globalThis.fetch = origFetch;
   restoreNavigator(origNav);
 });
@@ -74,14 +69,12 @@ test("roam-sync: postHeartbeat 复用 syncDevice", async () => {
 test("roam-sync: listDevices 成功解析 devices", async () => {
   const origFetch = globalThis.fetch;
   const origNav = (globalThis as unknown as { navigator?: unknown }).navigator;
-  // @ts-ignore
   globalThis.fetch = async () =>
     ({ ok: true, json: async () => ({ devices: [{ device_id: "d1" }] }) } as unknown as Response);
   setNavigator({ onLine: true });
   const r = await listDevices();
   assert.equal(r.ok, true);
   if (r.ok) assert.equal(r.devices.length, 1);
-  // @ts-ignore
   globalThis.fetch = origFetch;
   restoreNavigator(origNav);
 });
