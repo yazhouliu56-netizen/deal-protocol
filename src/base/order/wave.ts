@@ -54,6 +54,29 @@ export type WaveStatus =
   | "closed"
   | "expired";
 
+/** 公开竞价结算记录（P8 商业化，真实富对象契约 · P1-1 固化）。 */
+export interface BiddingSettledRecord {
+  winnerId: string;
+  winnerName: string;
+  price: number;
+  feeYuan: number;
+  netYuan: number;
+  at: number;
+}
+
+/**
+ * 运营/非状态机字段收纳袋（P1-1 脱水 · 宪法 #1 状态机宿主纯粹化）。
+ * 五态状态机跃迁严格对 metadata 零依赖；本袋为权威收纳位，
+ * 根字段为 @deprecated 兼容镜像（createWave 双向回填）。
+ */
+export interface WaveMetadata {
+  hotness?: number;
+  fissionCount?: number;
+  fissionBy?: string[];
+  fissionUpdatedAt?: number;
+  biddingSettled?: BiddingSettledRecord;
+}
+
 export interface Wave {
   id: string;
   authorId: string;
@@ -82,7 +105,9 @@ export interface Wave {
   claimedById?: string;
   /** 复杂任务：LLM 拆分 + 发起人确认的模块定义（接单后锁定不可增删）。 */
   modules?: import("../ai/decompose").TaskModule[];
-  /** 虚拟兴趣计数（热度来源；物理机制保持分离）。 */
+  /** 运营/非状态机字段收纳袋（P1-1 脱水 · 权威位；状态机零依赖）。 */
+  metadata?: WaveMetadata;
+  /** @deprecated 兼容镜像：读取请用 metadata.hotness（createWave 双向回填）。 */
   hotness?: number;
   /**
    * 弹药标识（W1 总装）：发布时经 getAmmoDefinition(category) 反查写入，
@@ -92,6 +117,8 @@ export interface Wave {
   /**
    * 需求方非标定制要求（阶段3 语义驯化产物 · 宪法条文 #2 增补不改义）：
    * 发单端注入的中性化定制契约，履约座舱 / 供给端准入 / 运行时风控消费。
+   * P1-1 单袋化：权威位为 bizParams.customRequirements，本字段为 @deprecated
+   * 兼容镜像（createWave 自动回填；读取请用 getCustomRequirements(wave)）。
    * 可选字段，缺省 undefined（既有 Wave 构建零破坏）。
    */
   customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
@@ -100,14 +127,15 @@ export interface Wave {
    * PublishSheet 按 ammo.holographic.formSchema 声明式驱动收集的
    * 结构化业务参数（如 { applianceType: "空调", faultDescription: "不制冷" }），
    * 随单落库供履约插槽回显（DynamicAmmoSlot / HousekeepingSlot 参数胶囊）。
-   * 可选字段，缺省 undefined 向后兼容（既有 Wave 零破坏）。
+   * P1-1 单袋化：customRequirements 作为 bizParams.customRequirements 标准内嵌，
+   * 本袋为唯一权威参数袋。可选字段，缺省 undefined 向后兼容（既有 Wave 零破坏）。
    */
   bizParams?: Record<string, unknown>;
-  /** 拼位裂变：真实拉新次数（有回应/成局才 +1，纯分享不计 → 防自刷）。 */
+  /** @deprecated 兼容镜像：读取请用 metadata.fissionCount（createWave 双向回填）。 */
   fissionCount?: number;
-  /** 分享方（发起人）匿名 id 列表，同一分享者只计一次。 */
+  /** @deprecated 兼容镜像：读取请用 metadata.fissionBy（createWave 双向回填）。 */
   fissionBy?: string[];
-  /** 裂变最后一次真实增量时间（系统通知 diff 用；无增量时 undefined）。 */
+  /** @deprecated 兼容镜像：读取请用 metadata.fissionUpdatedAt（createWave 双向回填）。 */
   fissionUpdatedAt?: number;
   /** 组织者把关层（Request to spot，对标 Meetup 成员审批）：true 时拼位须先申请、发起人审批后才占座。 */
   needApproval?: boolean;
@@ -115,15 +143,8 @@ export interface Wave {
   joinRequests?: Array<{ responderId: string; at: number }>;
   /** 候补队列（多人拼单局满员后加入；有人退出/撤单时按序自动补位转正）。 */
   waitlist?: Array<{ responderId: string; at: number }>;
-  /** 公开竞价结算（P8 商业化）：组局主开标后写回真实局，持久可见。 */
-  biddingSettled?: {
-    winnerId: string;
-    winnerName: string;
-    price: number;
-    feeYuan: number;
-    netYuan: number;
-    at: number;
-  };
+  /** @deprecated 兼容镜像：读取请用 metadata.biddingSettled（createWave 双向回填）。 */
+  biddingSettled?: BiddingSettledRecord;
 }
 
 export type ClaimStatus =
@@ -196,6 +217,9 @@ export interface CreateWaveInput {
   /** 复杂任务：发起人确认的模块定义（接单后锁定）。 */
   modules?: import("../ai/decompose").TaskModule[];
   createdAt: number;
+  /** 运营/非状态机字段收纳袋（P1-1 权威位；createWave 自动回填根兼容镜像）。 */
+  metadata?: WaveMetadata;
+  /** @deprecated 兼容镜像入参：请用 metadata.hotness（createWave 收归 metadata）。 */
   hotness?: number;
   /** 弹药标识（可选；发布时按品类反查写入，见 getAmmoDefinition）。 */
   ammoId?: string;
@@ -203,6 +227,8 @@ export interface CreateWaveInput {
    * 需求方非标定制要求（阶段3 语义驯化产物 · 宪法条文 #2 增补不改义）：
    * 发单端（ChatPage/PublishSheet）将 intent-normalizer 清洗后的中性契约
    * 随单固化，履约座舱与插槽按此渲染定制标签与运行时风控升级。
+   * P1-1 单袋化：权威落点为 bizParams.customRequirements，本入参为兼容位
+   * （createWave 自动收归单袋并回填根镜像）。
    * 可选字段，缺省 undefined（既有调用零破坏）。
    */
   customRequirements?: import("../../types/ammo-schema.ts").INormalizedCustomIntent;
@@ -210,6 +236,7 @@ export interface CreateWaveInput {
    * 动态表单参数快照（P1-5 声明式表单闭环 · 宪法 #2 只增补）：
    * PublishSheet 按 ammo.holographic.formSchema 声明式驱动收集，
    * 结构化写入 wave.bizParams 供履约插槽回显。
+   * P1-1 单袋化：唯一权威参数袋（customRequirements 标准内嵌）。
    */
   bizParams?: Record<string, unknown>;
 }
@@ -223,6 +250,28 @@ export function createWave(input: CreateWaveInput): Wave {
   if (!Number.isFinite(input.budget) || input.budget <= 0) {
     throw new Error("wave.budget.invalid");
   }
+  // P1-1 单袋化：customRequirements 权威落点为 bizParams.customRequirements，
+  // 兼容入参（input.customRequirements / input.bizParams?.customRequirements）归并进单袋。
+  const customRequirements: import("../../types/ammo-schema.ts").INormalizedCustomIntent | undefined =
+    input.customRequirements ??
+    (input.bizParams?.customRequirements as
+      | import("../../types/ammo-schema.ts").INormalizedCustomIntent
+      | undefined);
+  const bizParams: Record<string, unknown> | undefined =
+    customRequirements !== undefined || input.bizParams !== undefined
+      ? { ...input.bizParams, customRequirements }
+      : undefined;
+  // P1-1 脱水：运营字段权威收纳进 metadata（兼容入参 hotness 收归），并回填根兼容镜像。
+  const meta: WaveMetadata = {};
+  if (input.metadata) {
+    if (input.metadata.hotness !== undefined) meta.hotness = input.metadata.hotness;
+    if (input.metadata.fissionCount !== undefined) meta.fissionCount = input.metadata.fissionCount;
+    if (input.metadata.fissionBy !== undefined) meta.fissionBy = input.metadata.fissionBy;
+    if (input.metadata.fissionUpdatedAt !== undefined) meta.fissionUpdatedAt = input.metadata.fissionUpdatedAt;
+    if (input.metadata.biddingSettled !== undefined) meta.biddingSettled = input.metadata.biddingSettled;
+  }
+  if (meta.hotness === undefined && input.hotness !== undefined) meta.hotness = input.hotness;
+  const metadata: WaveMetadata | undefined = Object.keys(meta).length > 0 ? meta : undefined;
   return {
     id: input.id,
     authorId: input.authorId,
@@ -241,11 +290,28 @@ export function createWave(input: CreateWaveInput): Wave {
     startsAt: input.startsAt,
     createdAt: input.createdAt,
     status: input.pending ? "pending" : "active",
-    hotness: input.hotness ?? 0,
+    metadata,
+    hotness: metadata?.hotness,
     ammoId: input.ammoId,
-    customRequirements: input.customRequirements,
-    bizParams: input.bizParams,
+    customRequirements,
+    bizParams,
+    fissionCount: metadata?.fissionCount,
+    fissionBy: metadata?.fissionBy,
+    fissionUpdatedAt: metadata?.fissionUpdatedAt,
+    biddingSettled: metadata?.biddingSettled,
   };
+}
+
+/**
+ * P1-1 单袋化读取助手：权威取 bizParams.customRequirements，
+ * 兼容回落根镜像 customRequirements（旧数据/直构 Wave）。
+ */
+export function getCustomRequirements(
+  wave: Pick<Wave, "bizParams" | "customRequirements">
+): import("../../types/ammo-schema.ts").INormalizedCustomIntent | undefined {
+  const bag = wave.bizParams?.customRequirements;
+  return (bag as import("../../types/ammo-schema.ts").INormalizedCustomIntent | undefined) ??
+    wave.customRequirements;
 }
 
 /**

@@ -8,6 +8,7 @@ import {
   closeWave,
   counterOffer,
   createWave,
+  getCustomRequirements,
   isOpenMatch,
   isWaveExpired,
   joinSeat,
@@ -26,6 +27,8 @@ import {
   promoteFromWaitlist,
   MAX_ROUNDS,
   type Wave,
+  type BiddingSettledRecord,
+  type WaveMetadata,
 } from "./wave.ts";
 
 const now = 1_700_000_000_000;
@@ -437,4 +440,104 @@ test("lockNegotiation CAS: 缺省 expectedVersion → 兼容放行并自增", ()
   const out2 = lockNegotiation(v1, claim, true, 0);
   assert.equal(out2.wave?.version, 1);
 });
+
+test("P1-1 单袋化：customRequirements 并入 bizParams 单袋 + 根兼容镜像回填", () => {
+  const cr = { cleanText: "女仆主题", isSensitiveCustomization: true };
+  const wave = createWave({
+    id: "w-bag-1",
+    authorId: "me",
+    basics: { category: "家政保洁", time: "明天 11:00", area: "幸福家园", radiusKm: 5 },
+    budget: 100,
+    expiresAt: now + 3600_000,
+    createdAt: now,
+    customRequirements: cr as never,
+    bizParams: { applianceType: "空调" },
+  });
+  // 单袋权威位：bizParams.customRequirements
+  assert.deepEqual(wave.bizParams?.customRequirements, cr);
+  // 单袋保留既有业务参数
+  assert.equal(wave.bizParams?.applianceType, "空调");
+  // 根兼容镜像同步
+  assert.deepEqual(wave.customRequirements, cr);
+  // getCustomRequirements 权威取单袋
+  assert.deepEqual(getCustomRequirements(wave), cr);
+});
+
+test("P1-1 单袋化：bizParams.customRequirements 优先 + getCustomRequirements 兼容回落根镜像", () => {
+  const bagCr = { cleanText: "单袋权威", isSensitiveCustomization: false };
+  const rootCr = { cleanText: "根镜像旧值", isSensitiveCustomization: false };
+  const w1 = { ...baseWave(), bizParams: { customRequirements: bagCr }, customRequirements: rootCr };
+  // 权威 = 单袋
+  assert.deepEqual(getCustomRequirements(w1), bagCr);
+  // 无单袋 → 回落根镜像（直构/旧数据）
+  const w2 = { ...baseWave(), customRequirements: rootCr };
+  assert.deepEqual(getCustomRequirements(w2), rootCr);
+  // 双缺省 → undefined
+  const w3 = baseWave();
+  assert.equal(getCustomRequirements(w3), undefined);
+});
+
+test("P1-1 脱水：metadata 收纳袋权威 + 根字段 @deprecated 镜像双向回填", () => {
+  const bidding: BiddingSettledRecord = {
+    winnerId: "w-1",
+    winnerName: "王姐",
+    price: 80,
+    feeYuan: 4,
+    netYuan: 76,
+    at: now,
+  };
+  const meta: WaveMetadata = {
+    hotness: 5,
+    fissionCount: 2,
+    fissionBy: ["u-a"],
+    fissionUpdatedAt: now,
+    biddingSettled: bidding,
+  };
+  const wave = createWave({
+    id: "w-meta-1",
+    authorId: "me",
+    basics: { category: "羽毛球", time: "明天 11:00", area: "幸福家园", radiusKm: 5 },
+    budget: 100,
+    expiresAt: now + 3600_000,
+    createdAt: now,
+    metadata: meta,
+  });
+  // metadata 权威袋完整
+  assert.deepEqual(wave.metadata, meta);
+  assert.deepEqual(wave.metadata?.biddingSettled, bidding);
+  // 根兼容镜像同步
+  assert.equal(wave.hotness, 5);
+  assert.equal(wave.fissionCount, 2);
+  assert.deepEqual(wave.fissionBy, ["u-a"]);
+  assert.equal(wave.fissionUpdatedAt, now);
+  assert.deepEqual(wave.biddingSettled, bidding);
+});
+
+test("P1-1 脱水：兼容入参 hotness 收归 metadata + 状态机跃迁对 metadata 零依赖", () => {
+  // 旧式根入参 hotness → 收归 metadata 并回填镜像
+  const wave = createWave({
+    id: "w-meta-2",
+    authorId: "me",
+    basics: { category: "羽毛球", time: "明天 11:00", area: "幸福家园", radiusKm: 5 },
+    budget: 100,
+    expiresAt: now + 3600_000,
+    createdAt: now,
+    hotness: 7,
+  });
+  assert.equal(wave.metadata?.hotness, 7);
+  assert.equal(wave.hotness, 7);
+  // 状态机跃迁（activate/close/lock）不透写也不依赖 metadata
+  const active = activateWave({ ...wave, status: "pending" });
+  assert.equal(active.status, "active");
+  assert.deepEqual(active.metadata, { hotness: 7 });
+  assert.equal(active.hotness, 7);
+  const closed = closeWave(active);
+  assert.equal(closed.status, "closed");
+  assert.deepEqual(closed.metadata, { hotness: 7 });
+  // 无运营字段 → metadata 与镜像均缺省（零膨胀）
+  const plain = baseWave();
+  assert.equal(plain.metadata, undefined);
+  assert.equal(plain.hotness, undefined);
+});
+
 
