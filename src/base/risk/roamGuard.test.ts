@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   bind,
+  buildDeviceBindingIndex,
   extraLogin,
   makeDeviceId,
   riskOf,
@@ -111,4 +112,68 @@ test("ammo 引信参数：放松 warnThreshold=4 → 4 身份仍 watch", () => {
 test("DEFAULT_ROAM_PARAMS 与 ROAM_RULES 常量等价（历史行为不变）", () => {
   assert.equal(DEFAULT_ROAM_PARAMS.warnThreshold, ROAM_RULES.maxPerDeviceForFamily);
   assert.equal(DEFAULT_ROAM_PARAMS.freezeThreshold, ROAM_RULES.freezeAt);
+});
+
+test("buildDeviceBindingIndex: 空集合 => 空 Map", () => {
+  const idx = buildDeviceBindingIndex([]);
+  assert.equal(idx.size, 0);
+  assert.equal(riskOf([], "dev-a", DEFAULT_ROAM_PARAMS, idx).count, 0);
+  assert.equal(riskOf([], "dev-a", DEFAULT_ROAM_PARAMS, idx).risk, "safe");
+});
+
+test("buildDeviceBindingIndex: 多设备聚合正确", () => {
+  const many: DeviceBinding[] = [
+    { deviceId: "dev-a", identityId: "u1", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "u2", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-b", identityId: "u3", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "u4", firstSeen: T0, lastSeen: T0 },
+  ];
+  const idx = buildDeviceBindingIndex(many);
+  assert.equal(idx.get("dev-a"), 3);
+  assert.equal(idx.get("dev-b"), 1);
+  assert.equal(idx.get("dev-c"), undefined);
+});
+
+test("riskOf 索引与遍历字节级等价（同参同结果）", () => {
+  const many: DeviceBinding[] = [
+    { deviceId: "dev-a", identityId: "u1", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "u2", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-b", identityId: "u3", firstSeen: T0, lastSeen: T0 },
+    { deviceId: "dev-a", identityId: "u4", firstSeen: T0, lastSeen: T0 },
+  ];
+  const idx = buildDeviceBindingIndex(many);
+  for (const did of ["dev-a", "dev-b", "dev-x"]) {
+    const viaIndex = riskOf(many, did, DEFAULT_ROAM_PARAMS, idx);
+    const viaScan = riskOf(many, did);
+    assert.deepEqual(viaIndex, viaScan, `device ${did} 等价`);
+  }
+  const tight: RoamRuleParams = { warnThreshold: 1, freezeThreshold: 2 };
+  const idx2 = buildDeviceBindingIndex(many);
+  assert.deepEqual(
+    riskOf(many, "dev-a", tight, idx2),
+    riskOf(many, "dev-a", tight),
+    "引信参数下亦等价"
+  );
+});
+
+test("riskOf 可选 index 向后兼容：缺省与显式均一致", () => {
+  const both: DeviceBinding[] = [
+    ...bindings,
+    { deviceId: "dev-a", identityId: "me-2", firstSeen: T0, lastSeen: T0 },
+  ];
+  const idx = buildDeviceBindingIndex(both);
+  assert.equal(riskOf(both, "dev-a").risk, "watch");
+  assert.equal(riskOf(both, "dev-a", DEFAULT_ROAM_PARAMS, idx).risk, "watch");
+  assert.equal(riskOf(both, "dev-a", DEFAULT_ROAM_PARAMS, idx).count, 2);
+});
+
+test("buildDeviceBindingIndex 纯函数确定性（同入同出，无突变）", () => {
+  const src: DeviceBinding[] = [
+    { deviceId: "dev-a", identityId: "u1", firstSeen: T0, lastSeen: T0 },
+  ];
+  const a = buildDeviceBindingIndex(src);
+  const b = buildDeviceBindingIndex(src);
+  assert.notEqual(a, b, "每次返回新 Map 实例");
+  assert.deepEqual([...a.entries()], [...b.entries()]);
+  assert.equal(src.length, 1, "入参零突变");
 });

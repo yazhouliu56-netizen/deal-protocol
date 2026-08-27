@@ -48,14 +48,27 @@ export function makeDeviceId(ua: string, seed: string): string {
   return `dev-${h.toString(16).slice(0, 8)}`;
 }
 
+/** 设备绑定数聚合索引（O(N) 建表，O(1) 查 count）。纯函数确定性，零副作用。 */
+export function buildDeviceBindingIndex(
+  bindings: DeviceBinding[]
+): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const b of bindings) m.set(b.deviceId, (m.get(b.deviceId) ?? 0) + 1);
+  return m;
+}
+
 /** 同设备身份数 → 风险分级（count=0 视为未登记，safe）。
- * params 缺省 = 现状阈值；由 ammo/risk-rule 的 roam-guard 引信参数驱动（宪法 #5）。 */
+ * params 缺省 = 现状阈值；由 ammo/risk-rule 的 roam-guard 引信参数驱动（宪法 #5）。
+ * index 可选：传入预建 Map 则 O(1) 直读，缺省内部一次性建索引（字节级等价）。 */
 export function riskOf(
   bindings: DeviceBinding[],
   deviceId: string,
-  params: RoamRuleParams = DEFAULT_ROAM_PARAMS
+  params: RoamRuleParams = DEFAULT_ROAM_PARAMS,
+  index?: Map<string, number>
 ): { risk: RiskLevel; count: number; reason: string } {
-  const count = bindings.filter((b) => b.deviceId === deviceId).length;
+  const count = index
+    ? (index.get(deviceId) ?? 0)
+    : (buildDeviceBindingIndex(bindings).get(deviceId) ?? 0);
   if (count === 0 || count === 1) {
     return { risk: "safe", count, reason: count === 0 ? "未在设备登记" : "单身份使用" };
   }
