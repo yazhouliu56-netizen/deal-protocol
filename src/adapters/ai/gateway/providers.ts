@@ -104,6 +104,27 @@ export function allProviders(): ProviderEntry[] {
       minGapMs: 450,
       cooldownMs: 15_000,
     },
+    // ── 主模型扩展（任务隔离：仅 chat，避免污染 voice-intent 等小模型链路） ──
+    {
+      name: "deepseek",
+      endpoint: `${(env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com/v1").replace(/\/+$/, "")}/chat/completions`,
+      apiKey: env.DEEPSEEK_API_KEY ?? "",
+      model: env.DEEPSEEK_MODEL ?? env.DEEPSEEK_CHAT_MODEL ?? "deepseek-chat",
+      tasks: ["chat"],
+      ordering: { chat: 4 },
+      minGapMs: 900,
+      cooldownMs: 15_000,
+    },
+    {
+      name: "kimi",
+      endpoint: `${(env.KIMI_BASE_URL ?? env.MOONSHOT_BASE_URL ?? "https://api.moonshot.cn/v1").replace(/\/+$/, "")}/chat/completions`,
+      apiKey: env.KIMI_API_KEY ?? env.MOONSHOT_API_KEY ?? "",
+      model: env.KIMI_MODEL ?? env.MOONSHOT_MODEL ?? "moonshot-v1-32k",
+      tasks: ["chat"],
+      ordering: { chat: 5 },
+      minGapMs: 900,
+      cooldownMs: 15_000,
+    },
     {
       name: "openrouter",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
@@ -124,11 +145,16 @@ export function allProviders(): ProviderEntry[] {
   ];
 }
 
-/** 某任务激活的 provider 链（有 key + 支持该任务，按排序号升序）。 */
+/** 判定 key 为有效（非空、非 placeholder/示例占位、非纯空白）。 */
+export function isValidKey(v?: string): boolean {
+  return !!v && !v.includes("placeholder") && !v.includes("your_") && v.trim() !== ""
+}
+
+/** 某任务激活的 provider 链（有有效 key + 支持该任务，按排序号升序）。 */
 export function activeProviders(task: GatewayTask): ProviderEntry[] {
   return allProviders()
     .filter(
-      (p) => p.apiKey && p.tasks.includes(task) && p.ordering[task] !== undefined
+      (p) => isValidKey(p.apiKey) && p.tasks.includes(task) && p.ordering[task] !== undefined
     )
     .sort((a, b) => (a.ordering[task] ?? 99) - (b.ordering[task] ?? 99));
 }

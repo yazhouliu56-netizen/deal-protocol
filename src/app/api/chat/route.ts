@@ -1,5 +1,7 @@
 import { streamText } from "ai"
 import { getAIModel } from "@/lib/ai-provider"
+// Gateway 单一来源（ADR-0005）：主对话 provider 选择已收敛至 Gateway 表，/api/chat 经 getAIModel 间接走 Gateway 分发
+import { activeProviders } from "@/adapters/ai/gateway/providers"
 import { auth } from "@/lib/auth"
 import { interceptChatRisk } from "@/lib/risk-interceptor"
 import { buildConciergeContext } from "@/lib/concierge-agent"
@@ -85,6 +87,12 @@ ${riskWarning}
 
   const conciergeMessages = userId ? await buildConciergeContext(userId, lastUserMsg?.content ?? '') : []
 const finalMessages = [...conciergeMessages, ...modelMessages]
+
+// 调度可观测：Gateway 活跃链（chat）供日志与排障，模型选择由 getAIModel 统一按 Gateway 表分发
+const _gatewayChain = activeProviders("chat").map((p) => p.name)
+if (_gatewayChain.length === 0) {
+  console.warn("[api/chat] no gateway provider active, falling back to mock")
+}
 
 const result = streamText({
     model: getAIModel(),

@@ -116,10 +116,10 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
   const [llmFallback, setLlmFallback] = useState(false);
   const [llmFailures, setLlmFailures] = useState(0);
   const [pendingRetry, setPendingRetry] = useState<string | null>(null);
+  // NEXT_PUBLIC_ 内联期：改 .env.local 后需 restart dev/build 才能生效（非热重载）
+  const providerVal = (process.env.NEXT_PUBLIC_LLM_PROVIDER ?? "").trim();
   const useLlm =
-    (process.env.NEXT_PUBLIC_LLM_PROVIDER === "gemini" ||
-      process.env.NEXT_PUBLIC_LLM_PROVIDER === "zhipu") &&
-    !llmFallback;
+    Boolean(providerVal && providerVal !== "mock") && !llmFallback;
   const engine = useMemo(() => {
     void session; // 重建触发器：新对话/降级时强制新建引擎实例
     // 宪法收敛：条文 #3 —— 底座引擎零 Store 依赖，状态由 UI 层显式注入

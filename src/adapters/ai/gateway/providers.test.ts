@@ -8,9 +8,13 @@ const ALL: Array<[string, string | undefined]> = [
   ["DASHSCOPE_API_KEY", undefined],
   ["GROQ_API_KEY", undefined],
   ["OPENROUTER_API_KEY", undefined],
+  ["DEEPSEEK_API_KEY", undefined],
+  ["KIMI_API_KEY", undefined],
+  ["MOONSHOT_API_KEY", undefined],
+  ["DEEPSEEK_BASE_URL", undefined],
 ];
 
-/** 全量声明 5 个 env 变量，隔离真实进程环境。 */
+/** 全量声明 env 变量，隔离真实进程环境。 */
 function withEnv(env: Array<[string, string | undefined]>, fn: () => void) {
   const wanted = new Map(env);
   const saved = new Map<string, string | undefined>();
@@ -30,19 +34,19 @@ function withEnv(env: Array<[string, string | undefined]>, fn: () => void) {
   }
 }
 
-test("allProviders declares the five ADR-0005 candidates", () => {
+test("allProviders declares the seven ADR-0005 candidates (+deepseek/kimi)", () => {
   assert.deepEqual(
     allProviders().map((p) => p.name).sort(),
-    ["gemini", "groq", "openrouter", "qwen", "zhipu"]
+    ["deepseek", "gemini", "groq", "kimi", "openrouter", "qwen", "zhipu"]
   );
 });
 
-test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < groq 3 < openrouter 99", () => {
+test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < groq 3 < deepseek 4 < kimi 5 < openrouter 99", () => {
   const names = allProviders()
     .filter((p) => p.tasks.includes("chat"))
     .sort((a, b) => (a.ordering.chat ?? 99) - (b.ordering.chat ?? 99))
     .map((p) => p.name);
-  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "groq", "openrouter"]);
+  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "groq", "deepseek", "kimi", "openrouter"]);
 });
 
 test("voice-intent ordering: zhipu first, openrouter last", () => {
@@ -74,6 +78,8 @@ test("activeProviders order follows per-task ordering", () => {
       ["ZHIPU_API_KEY", "demo-key-zhipu"],
       ["DASHSCOPE_API_KEY", "demo-key-qwen"],
       ["GROQ_API_KEY", "demo-key-groq"],
+      ["DEEPSEEK_API_KEY", "demo-key-ds"],
+      ["KIMI_API_KEY", "demo-key-kimi"],
       ["OPENROUTER_API_KEY", "demo-key-or"],
     ],
     () => {
@@ -82,6 +88,8 @@ test("activeProviders order follows per-task ordering", () => {
         "zhipu",
         "qwen",
         "groq",
+        "deepseek",
+        "kimi",
         "openrouter",
       ]);
       assert.deepEqual(activeProviders("voice-intent").map((p) => p.name), [
@@ -132,5 +140,22 @@ test("extraBodyFor returns zhipu thinking-disable, nothing for others", () => {
   assert.deepEqual(extraBodyFor("zhipu"), { thinking: { type: "disabled" } });
   assert.deepEqual(extraBodyFor("gemini"), {});
   assert.deepEqual(extraBodyFor("nope"), {});
+});
+
+test("deepseek/kimi are chat-only (task isolation, not in small-model tasks)", () => {
+  withEnv(
+    [
+      ["DEEPSEEK_API_KEY", "demo-key-ds"],
+      ["KIMI_API_KEY", "demo-key-kimi"],
+    ],
+    () => {
+      assert.deepEqual(activeProviders("chat").map((p) => p.name).sort(), ["deepseek", "kimi"]);
+      assert.equal(activeProviders("voice-intent").length, 0);
+      assert.equal(activeProviders("cluster").length, 0);
+      assert.equal(activeProviders("decompose").length, 0);
+      assert.equal(activeProviders("diagnose").length, 0);
+      assert.equal(activeProviders("judge").length, 0);
+    },
+  );
 });
 
