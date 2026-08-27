@@ -15,7 +15,7 @@
 | 栈 | Next.js 16.2.12 (App Router) · React 19.2.4 · TS strict · Tailwind v4 · Three 0.185 · R3F/drei · Zustand 5 · Framer Motion · Supabase |
 | 活跃周期 | 2026-08-03 初始化（独立于父项目历史） |
 | 主 LLM | Zhipu GLM-4.7-Flash（zhipu→gemini→mock 三层降级链） |
-| LLM Gateway | ✅ ADR-0005：provider 表单一来源（gemini/zhipu/qwen/groq/openrouter 五行，补 key 即扩容）+ per-provider 配额（独立串行/间隔/429 冷却/健康分沉底）+ 按任务路由（chat→Gemini 首选；voice-intent/cluster/decompose/diagnose→智谱 JSON 稳定首选）+ /api/gateway 统一入口 + 五路由全部薄层化（含 cluster/decompose/diagnose 手写链收敛） |
+| LLM Gateway | ✅ ADR-0005：provider 表单一来源（gemini/zhipu/qwen/groq/openrouter/deepseek/kimi 七行，补 key 即扩容）+ per-provider 配额（独立串行/间隔/429 冷却/健康分沉底）+ 按任务路由（chat 7 步 gemini:0→zhipu:1→qwen:2→groq:3→deepseek:4→kimi:5→openrouter:99；voice-intent/cluster/decompose/diagnose 4 步智谱 JSON 稳定首选）+ isValidKey 占位符防御 + /api/gateway 统一入口 + 五路由全部薄层化（含 cluster/decompose/diagnose 手写链收敛） |
 | 架构 | 5 屏(home/ai/ar/trip/profile) · 11 API(chat/cluster/decompose/diagnose/gateway/judge/asr/tts/voice-intent/push×2) · 核心状态机 `useWaveStore.ts`(36KB) · waves 组件 29 个 |
 
 ## 二、阶段定义
@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1729/1729 全绿 · 0 skipped**（`npm test` = vitest 670 + node:test 1059；2026-08-26 战役 5 Glob 自动发现出清 102 白名单地雷并复活 wiring.test.ts 双轨孤儿 +7，基线 1697→1729） |
+| 单测 | **1730/1730 全绿 · 0 skipped**（`npm test` = vitest 670 + node:test 1060；2026-08-27 LLM Gateway 7-Provider 扩展（deepseek/kimi 任务隔离 + isValidKey 防御 + 考卷 +7），基线 1729→1730） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-26 ｜ HEAD：`32888ef`（Microkernel 2.0 战役 5 ✅ 支付 Provider 统一与测试跑道合并治理·终局收官）｜ 摘要：P1-5 支付通道归一（Registry + IPaymentProvider 统一三法 + 可选 queryStatus；Stripe 逐字平移 + Alipay/WeChat 薄壳委托 PaymentManager；沙盒演示通道平移至 adapters/payment 并注册 sandbox 变体；彻底出清 lib/payment.ts，5 处调用方改道 Registry；存量 refund 死路→确定性失败）；P2-7 巨石控制器瘦身（route.ts 645→18 行委托壳，三 handler 分治，HTTP 契约守恒）；P2-7 白名单地雷终结（run-oto-units.mjs Glob 自动发现 103→102 白名单出清，与 vitest.exclude 镜像互补；wiring.test.ts 双轨死区孤儿复活并修正 dating→companion 权威映射）；基线 **1729 全绿** (670+1059，+7 孤儿复活)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 5/5 + 收敛 exit 0
+> 日期：2026-08-27 ｜ HEAD：`81f6c0a`（LLM Gateway 7-Provider 扩展闭环 + 1730 基线封盘）｜ 摘要：Gateway provider 表 5→7（deepseek/kimi tasks: ["chat"] 任务隔离 + isValidKey placeholder/your_/空白三重过滤 + DEEPSEEK/KIMI_BASE_URL 尾斜杠防御）；getAIModel 单一来源收敛（NEXT_PUBLIC_LLM_PROVIDER 精确命中 → activeProviders("chat") 链首可用 → legacy mock 兜底，红线 5 离线不抛）；chat 7 步 gemini:0→zhipu:1→qwen:2→groq:3→deepseek:4→kimi:5→openrouter:99、voice-intent 4 步隔离；基线 **1730 全绿** (670+1060，+1 deepseek/kimi 任务隔离考卷 +7)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 5/5 + check:convergence exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 

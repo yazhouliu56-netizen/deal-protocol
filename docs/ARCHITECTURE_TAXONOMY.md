@@ -126,7 +126,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 
 | 能力 | 载体 | 隔离墙状态 |
 |------|------|-----------|
-| LLM 网关（provider 单一来源 + 配额 + 降级链） | `src/base/ai/gateway/`、`src/base/ai/chat/` | 🟢 三级降级（zhipu→gemini→mock） |
+| LLM 网关（7-provider 单一来源 + 配额 + 降级链 + isValidKey 占位符防御） | `src/adapters/ai/gateway/`（gateway 表单一来源）、`src/lib/ai-provider.ts`（getAIModel 单一收敛） | 🟢 七级降级（chat 7 步 gemini:0→zhipu:1→qwen:2→groq:3→deepseek:4→kimi:5→openrouter:99；voice-intent/cluster/decompose/diagnose 4 步 zhipu→gemini→groq→openrouter，deepseek/kimi/qwen 严格 chat-only 隔离） |
 | 自然语言解析与结构化拆解 | `base/ai/cluster.ts`、`decompose.ts`、`voice/voiceIntent.ts` | 🟢 围栏容错 |
 | 语义撮合（bigram TF 余弦，零依赖） | `base/ai/embed.ts` | 🟢 确定性算法（LLM 可选链未接，宪法 #7 已记录） |
 | 智能仲裁定责（建议权） | `base/ai/judge.ts` + `app/api/judge` | 🟢 规则引擎兜底，仅出建议赔付 |
@@ -250,17 +250,17 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 | `src/store/`（7 文件） | UI 状态层 | 🟡 业务圈前端接线（useWaveStore 为最大消费方） |
 | `mobile/`（RN 子项目） | 移动端 10 屏 | 🟡 已登记归属（location→base/geo RN 候选、DynamicForm→弹药表单 N2），未融合 |
 | ~~`packages/`~~（已出清 2026-08-26 `9bee42d`） | credit-formula→base/trust、payment-core→base/platform | 🟢 单包微内核达成（根目录无孤立子包） |
-| **Microkernel 2.0 工业化战役**（2026-08-26 立项，五战序列） | 战役 1 ✅ `e695e83`：SLA 弹药化（slaPhases 入 8D 契约，sla-enforcer 全局常量退役）+ 资金模式能力白名单（funding-dispatcher 三膛线 + factory Fail-Fast 拦截，裁决 a 拒绝静默降级）；战役 2 ✅ 6765775：底座纯度大分流——~40 文件出清至 src/adapters/ 九子域，lbs-port/llm-port 双端口+组合根装配，pii/credit 注入 ×2，ESLint 八项物理门禁（base 八词字面归零）；战役 3 ✅ \dc76cdd\：四表反转+协议投影数据字典；战役 4 ✅ \d2f06c4\：履约座舱 Schema 化（D9 行动契约六模块 + CockpitAmmoSlot 唯一宿主 + CockpitScenario 分叉消灭 + 12 词 Grep 双文件归零）；待战：⑤ 支付归一+跑道合并（8D 守卫 DSL 为方案 A 储备） | 🟡→🟢 推进中 |
+| **Microkernel 2.0 工业化战役**（2026-08-26 立项，五战序列） | 战役 1 ✅ `e695e83`：SLA 弹药化（slaPhases 入 8D 契约，sla-enforcer 全局常量退役）+ 资金模式能力白名单（funding-dispatcher 三膛线 + factory Fail-Fast 拦截，裁决 a 拒绝静默降级）；战役 2 ✅ 6765775：底座纯度大分流——~40 文件出清至 src/adapters/ 九子域，lbs-port/llm-port 双端口+组合根装配，pii/credit 注入 ×2，ESLint 八项物理门禁（base 八词字面归零）；战役 3 ✅ `dc76cdd`：四表反转+协议投影数据字典；战役 4 ✅ `d2f06c4`：履约座舱 Schema 化（D9 行动契约六模块 + CockpitAmmoSlot 唯一宿主 + CockpitScenario 分叉消灭 + 12 词 Grep 双文件归零）；战役 5 ✅ `32888ef`：支付 Provider 统一（Registry 三法 + 沙盒变体 + lib/payment.ts 出清 + 巨石 645→18 委托壳 + Glob 跑道 102 白名单出清 / wiring 孤儿复活）；扩展 ✅ `81f6c0a`：LLM Gateway 7-Provider（deepseek/kimi tasks: ["chat"] 隔离 + isValidKey 三重过滤 + getAIModel 单一收敛，chat 7 步 / voice 4 步） | 🟢 全部收官 |
 | `tests/`、`e2e/`、`scripts/` | 验证体系 | 🟢 基建圈 |
 
-### 3.6 验证资产归属（856 基线）
+### 3.6 验证资产归属（1730 基线）
 
 | 资产 | 数量 | 归属 |
 |------|------|------|
-| vitest（根，`test:units`） | 426 | 融合侧 + 父项目遗留测试 |
-| node:test（`test:oto:units`，57 文件清单） | 430 | **base/ammo 域为主**（dispatch/order/money/trust/risk/ai/geo/notify/platform/safe/comm/form + ammo 全表 + lib 扫描/二维码） |
+| vitest（根，`test:units`） | 670 | 根侧全域（oto-ui/waves/api + base/ammo 核心域全覆盖） |
+| node:test（`test:oto:units`，103 文件 Glob 自动发现） | 1060 | **base/ammo/adapters 全域**（dispatch/order/money/trust/risk/ai/geo/notify/platform/safe/comm/form + ammo 全表 + gateway 7-provider + lib 扫描/二维码） |
 | e2e（playwright `e2e/`） | 4 spec | 基建圈冒烟 |
-| e2e-*.mjs 脚本 | 12 | 基建圈回归（CI push 全链） |
+| e2e-*.mjs 脚本 | 13 | 基建圈回归（verify-prod 13 项 + four-ammos 5 项） |
 
 ---
 
@@ -268,7 +268,7 @@ PUBLISHED（已发布）➔ MATCHED（已匹配）➔ IN_SERVICE（服务中）
 
 > 人类创始人注入（2026-08-15）：平台演进按「0➔1 ➔ 1➔10 ➔ 10➔100」三阶段推进，
 > 每阶段绑定核心模块编号（§三 3.4 职责矩阵）与标杆弹药（IAmmoDefinition，§二 2.4），
-> 阶段验收以「底座确定性 + 弹药可插拔 + 856 测试基线 + 收敛门禁」为硬门槛。
+> 阶段验收以「底座确定性 + 弹药可插拔 + 1730 测试基线 + 收敛门禁」为硬门槛。
 
 ### 4.1 三阶段总览
 
