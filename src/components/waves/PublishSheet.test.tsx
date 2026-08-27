@@ -193,4 +193,19 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
       unmount();
     });
   });
+
+  describe("P8 roam 风控 Toast 去噪", () => {
+    it("high sentinel/roam 拦截单次 Toast，watch 不弹（去噪 Ref）", async () => {
+      const fs = await import("fs");
+      const path = await import("path");
+      const txt = fs.readFileSync(path.join(process.cwd(), "src/components/waves/PublishSheet.tsx"), "utf-8");
+      expect(txt).toContain("sentinelToastFiredRef");
+      expect(txt).toContain("账号多设备登录异常");
+      expect(txt).toContain('toast(msg, "error")');
+      expect(txt).toContain('blocked === "sentinel"');
+      expect(txt).toContain('blocked === "roam"');
+      // 去噪：仅 high 单次，watch 不进该分支
+      expect(txt).not.toMatch(/watch.*toast/);
+    });
+  });
 });

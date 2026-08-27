@@ -77,6 +77,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   /** P2：拖拽收起过渡态（下拉 >35% → 平滑下滑离场 → 关闭） */
   const [dismissing, setDismissing] = useState(false);
   const dismissTimerRef = useRef<number | null>(null);
+  const sentinelToastFiredRef = useRef(false);
   /** P1-5 声明式表单：动态参数快照（按 ammo.holographic.formSchema 驱动，零硬编码分支） */
   const [bizParams, setBizParams] = useState<Record<string, unknown>>({});
 
@@ -129,6 +130,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   // 重开抽屉时清除残留过渡态与定时器
   useEffect(() => {
     if (open) {
+      sentinelToastFiredRef.current = false;
       const resetAnim = async () => {
         await Promise.resolve()
         setDismissing(false)
@@ -332,11 +334,21 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       return;
     }
     if (out.blocked === "roam") {
+      const msg = "⚠️ 账号多设备登录异常，发单已暂停，请在安全中心核对设备";
       setError("发布被拒：本设备检测到高危多开（≥3 个身份共用），请到「安全中心」重置漫游风控");
+      if (!sentinelToastFiredRef.current) {
+        sentinelToastFiredRef.current = true;
+        try { toast(msg, "error"); } catch {}
+      }
       return;
     }
     if (out.blocked === "sentinel") {
+      const msg = "⚠️ 账号多设备登录异常，发单已暂停，请在安全中心核对设备";
       setError("发布被拒：反欺诈探针甄检到高危信号（多开/新号大额/高频低完成），请到「安全中心」查看详情");
+      if (!sentinelToastFiredRef.current) {
+        sentinelToastFiredRef.current = true;
+        try { toast(msg, "error"); } catch {}
+      }
       return;
     }
     if (out.removed) {
