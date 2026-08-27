@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1757/1757 全绿 · 0 skipped**（`npm test` = vitest 675 + node:test 1082；2026-08-27 前端风控 Toast 去噪与 v3.9.0 终态封盘（sentinel 单次去噪 + high1/watch0 断言 + 1757 基线），基线 1756→1757） |
+| 单测 | **1761/1761 全绿 · 0 skipped**（`npm test` = vitest 679 + node:test 1082；2026-08-27 动态弹药生成端点（/api/ammo/generate 5/min 限流 + Prompt Schema 6 钩子 + validate/assemble 热注入 + 4 分支考卷），基线 1757→1761） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`2799f67`（前端风控 Toast 去噪与 v3.9.0 终态封盘 · v3.9 批次 3 + 1757 基线封盘）｜ 摘要：UI PublishSheet.tsx 去噪 Toast（sentinel/roam high 单次 useRef + useEffect 重置 + toast error）；配套 PublishSheet.test +1 例（high1/watch0 去噪）；基线 **1757 全绿** (675+1082，+1)；门禁 tsc 0 + lint 0 + build 0（96 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
+> 日期：2026-08-27 ｜ HEAD：`9e66469`（动态弹药生成端点 · P0-1a + 1761 基线封盘）｜ 摘要：API /api/ammo/generate（withAuth 5/min LRU + SYSTEM_PROMPT 6 钩子 + Markdown 清洗 + validateAmmoConfig/assembleAmmo 热注入 DYNAMIC_AMMO_POOL + 模板降级）；配套 route.test 4 例（限流/白名单/降级/POST）；基线 **1761 全绿** (679+1082，+4)；门禁 tsc 0 + lint 0 + build 0（97 页含 ammo/generate）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Base 纯度 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
