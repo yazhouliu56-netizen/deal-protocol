@@ -112,6 +112,13 @@ export const useRoamStore = create<RoamState>()(
         const other = makeDeviceId("simulated-device", String(now()));
         const out = roam(s.bindings, s.deviceId, other, identityId, now());
         set({ bindings: out.bindings, events: [out.event, ...s.events] });
+        try {
+          void syncDevice({
+            deviceId: other,
+            fingerprint: { identityId, roam: true },
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined,
+          }).catch(() => {});
+        } catch {}
       },
       simulateMultiOpen: (identityId) => {
         const s = get();
@@ -123,6 +130,13 @@ export const useRoamStore = create<RoamState>()(
           bindings: out.bindings,
           events: [out.event, ...s.events],
         });
+        try {
+          void syncDevice({
+            deviceId: s.deviceId,
+            fingerprint: { identityId: altId, multiOpen: true },
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined,
+          }).catch(() => {});
+        } catch {}
       },
       resetDemo: (identityId) => {
         const s = get();
