@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as toastModule from "@/base/platform/toast";
+import { useToastStore } from "@/base/platform/toast";
+import { useWaveStore } from "@/store/useWaveStore";
 
 import PublishSheet from "@/components/waves/PublishSheet";
 import { describeFormSchemaFields } from "@/components/waves/DynamicDraftCard";
@@ -194,18 +197,71 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     });
   });
 
-  describe("P8 roam 风控 Toast 去噪", () => {
-    it("high sentinel/roam 拦截单次 Toast，watch 不弹（去噪 Ref）", async () => {
-      const fs = await import("fs");
-      const path = await import("path");
-      const txt = fs.readFileSync(path.join(process.cwd(), "src/components/waves/PublishSheet.tsx"), "utf-8");
-      expect(txt).toContain("sentinelToastFiredRef");
-      expect(txt).toContain("账号多设备登录异常");
-      expect(txt).toContain('toast(msg, "error")');
-      expect(txt).toContain('blocked === "sentinel"');
-      expect(txt).toContain('blocked === "roam"');
-      // 去噪：仅 high 单次，watch 不进该分支
-      expect(txt).not.toMatch(/watch.*toast/);
+  describe("P8 roam/sentinel Toast 真实触发与去噪 (jsdom spy)", () => {
+    beforeEach(() => {
+      useToastStore.setState({ items: [] });
+      vi.restoreAllMocks();
+    });
+    afterEach(() => {
+      useToastStore.setState({ items: [] });
+      vi.restoreAllMocks();
+    });
+
+    async function fillAndPublish(container: HTMLElement) {
+      const timeInput = container.querySelector('input[aria-label="需求时间"]') as HTMLInputElement | null;
+      if (timeInput) {
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+        await act(async () => {
+          setter?.call(timeInput, "明天 10:00");
+          timeInput.dispatchEvent(new Event("change", { bubbles: true }));
+          timeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        // React controlled: also fire via input event covers state, fallback direct state setter via DOM? Ensure time state synced by simulating user input
+        // PublishSheet reads `time` state, which updates via onChange; above triggers it.
+      }
+      const btn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("广播出去")) as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      await act(async () => {
+        btn.click();
+      });
+    }
+
+    it("high sentinel 拦截触发 toast.error 单次，去噪 Ref 阻二次", async () => {
+      const spy = vi.spyOn(toastModule, "toast");
+      const mock = vi.spyOn(useWaveStore.getState(), "createPendingWave").mockReturnValue({ id: "", amount: 0, blocked: "sentinel" } as never);
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      await fillAndPublish(container);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining("账号多设备"), "error");
+      expect(container.textContent).toContain("反欺诈探针甄检到高危信号");
+      // 二次点击去噪不二次 toast
+      await fillAndPublish(container);
+      expect(spy).toHaveBeenCalledTimes(1);
+      mock.mockRestore();
+      unmount();
+    });
+
+    it("high roam 拦截触发 toast.error", async () => {
+      const spy = vi.spyOn(toastModule, "toast");
+      const mock = vi.spyOn(useWaveStore.getState(), "createPendingWave").mockReturnValue({ id: "", amount: 0, blocked: "roam" } as never);
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      await fillAndPublish(container);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining("账号多设备"), "error");
+      expect(container.textContent).toContain("高危多开");
+      mock.mockRestore();
+      unmount();
+    });
+
+    it("watch 态发单不触发 toast（非 high 允许路径）", async () => {
+      const spy = vi.spyOn(toastModule, "toast");
+      // watch 为允许态：createPendingWave 返回正常单（非 blocked），publish 进入 PaySheet 无 toast
+      const mock = vi.spyOn(useWaveStore.getState(), "createPendingWave").mockReturnValue({ id: "w-watch-1", amount: 100 } as never);
+      const { container, unmount } = mountPublishSheet("家政保洁");
+      await fillAndPublish(container);
+      expect(spy).not.toHaveBeenCalled();
+      mock.mockRestore();
+      unmount();
     });
   });
 });

@@ -8,10 +8,10 @@
  *   B 协商（上限内比例）→ A 接受协商 → 结算 + 信用联动落库。
  */
 import { chromium } from "playwright-core";
-import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
-const BASE = "http://localhost:3000";
+const BASE = getE2eBaseUrl();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(page, fn, timeout = 15000, label = "条件", arg) {
@@ -28,11 +28,7 @@ const state = (p) =>
     JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::acceptance") || "{}").state
   );
 
-const browser = await chromium.launch(
-  process.env.PLAYWRIGHT_CHANNEL === "chromium"
-    ? { headless: true }
-    : { channel: "chrome", headless: true }
-);
+const browser = await chromium.launch(getDefaultLaunchOptions());
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
 isolateBrowserChannels(browser, "acceptance", { forceLocal: true });

@@ -4,10 +4,10 @@
  * 覆盖：需求采集 → 时段卡密度徽章 → slot 选择 → 撮合排序 → 预订 → 订单持久化。
  */
 import { chromium } from "playwright-core";
-import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
-const BASE = "http://localhost:3000";
+const BASE = getE2eBaseUrl();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(page, fn, timeout = 15000, label = "条件") {
@@ -29,11 +29,7 @@ async function grabRows(page) {
   );
 }
 
-const browser = await chromium.launch(
-  process.env.PLAYWRIGHT_CHANNEL === "chromium"
-    ? { headless: true }
-    : { channel: "chrome", headless: true }
-);
+const browser = await chromium.launch(getDefaultLaunchOptions());
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
 isolateBrowserChannels(browser, "match", { forceLocal: true });

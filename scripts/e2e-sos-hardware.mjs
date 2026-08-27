@@ -11,10 +11,10 @@
  *   → 断言 /api/sos/trigger 响应携带服务端权威存证哈希（64-hex）。
  */
 import { chromium } from "playwright-core";
-import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
-const BASE = "http://localhost:3000";
+const BASE = getE2eBaseUrl();
 const GEO = { latitude: 30.6581, longitude: 104.0654, accuracy: 12 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -28,26 +28,7 @@ async function waitUntil(page, fn, timeout = 20000, label = "等待", arg) {
 }
 
 // 硬件流考卷：与 four-ammos 同款内核选择（系统 chrome 优先，chromium 内置可切换）
-const browser = await chromium.launch(
-  process.env.PLAYWRIGHT_CHANNEL === "chromium"
-    ? {
-        headless: true,
-        args: [
-          "--use-fake-device-for-media-stream",
-          "--use-fake-ui-for-media-stream",
-          "--autoplay-policy=no-user-gesture-required",
-        ],
-      }
-    : {
-        channel: "chrome",
-        headless: true,
-        args: [
-          "--use-fake-device-for-media-stream",
-          "--use-fake-ui-for-media-stream",
-          "--autoplay-policy=no-user-gesture-required",
-        ],
-      }
-);
+const browser = await chromium.launch(getDefaultLaunchOptions({ args: ["--autoplay-policy=no-user-gesture-required"] }));
 
 isolateBrowserChannels(browser, "sos-hardware", { forceLocal: true });
 let failures = 0;

@@ -13,6 +13,26 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 
+export function getE2eBaseUrl() {
+  return process.env.BASE_URL || "http://localhost:3000";
+}
+
+export function getDefaultLaunchOptions(overrides = {}) {
+  const defaultArgs = ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"];
+  const base = { headless: true, args: [...defaultArgs] };
+  if (process.env.PLAYWRIGHT_CHANNEL !== "chromium") base.channel = "chrome";
+  const merged = { ...base, ...overrides };
+  if (overrides.args) {
+    const seen = new Set();
+    merged.args = [...base.args, ...overrides.args].filter((a) => {
+      if (seen.has(a)) return false;
+      seen.add(a);
+      return true;
+    });
+  }
+  return merged;
+}
+
 /** WaveBundle 规范空态（对齐 src/types/wave-bundle.ts 全字段）。 */
 export const EMPTY_BUNDLE = {
   waves: [],

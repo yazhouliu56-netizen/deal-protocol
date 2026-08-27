@@ -8,10 +8,10 @@
  *   → 反推：改造"验收凭证"为必填，空凭证按钮禁用
  */
 import { chromium } from "playwright-core";
-import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import assert from "node:assert/strict";
 
-const BASE = "http://localhost:3000";
+const BASE = getE2eBaseUrl();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function waitUntil(page, fn, timeout = 15000, label = "条件") {
@@ -23,11 +23,7 @@ async function waitUntil(page, fn, timeout = 15000, label = "条件") {
   throw new Error(`等待超时: ${label}`);
 }
 
-const browser = await chromium.launch(
-  process.env.PLAYWRIGHT_CHANNEL === "chromium"
-    ? { headless: true }
-    : { channel: "chrome", headless: true }
-);
+const browser = await chromium.launch(getDefaultLaunchOptions());
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
 isolateBrowserChannels(browser, "fulfil", { forceLocal: true });

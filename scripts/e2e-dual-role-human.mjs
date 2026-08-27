@@ -18,12 +18,12 @@
  *   → 「📱 双方碰一碰 / 扫码确认完工」(INSPECTED) → 「✅ 确认收款 · 完成结算」(SETTLED)
  */
 import { chromium } from "playwright-core";
-import { isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync, mkdirSync } from "node:fs";
 import assert from "node:assert/strict";
 
-const BASE = "http://localhost:3000";
+const BASE = getE2eBaseUrl();
 const NS = "oto::e2e::dual-role-human";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -69,15 +69,7 @@ async function waitUntil(page, fn, label, arg, timeout = 15000) {
   throw new Error(`等待超时: ${label}`);
 }
 
-const browser = await chromium.launch({
-  ...(process.env.PLAYWRIGHT_CHANNEL === "chromium"
-    ? {}
-    : {
-        channel: "chrome",
-        args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
-      }),
-  headless: true,
-});
+const browser = await chromium.launch(getDefaultLaunchOptions());
 
 isolateBrowserChannels(browser, "dual-role-human", { sandboxBotOff: true });
 const cloudOk = await resetE2eChannelRow("dual-role-human");
