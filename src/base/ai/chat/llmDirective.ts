@@ -1,13 +1,11 @@
-import type { DemandCategory } from "./mockEngine";
-
 /** LLM→engine 指令：LLM 只做意图抽取/追问/文案，卡片与撮合走本地确定性代码。 */
 export interface LlmDirective {
   /** 显示给用户的文案。 */
   text: string;
   /** ask=追问字段 / slots=展示时段卡 / done=收尾。 */
   action: "ask" | "slots" | "done";
-  /** 识别到的服务分类。 */
-  category: DemandCategory;
+  /** 识别到的服务分类（动态泛化，任意已注册弹药 category）。 */
+  category: string | null;
   /** 本轮消息里能确认的需求字段（与已收集状态合并）。 */
   need?: Partial<Record<"level" | "partySize" | "area" | "budget" | "style", string | number>>;
 }
@@ -20,8 +18,11 @@ export const NEED_KEYS: Array<"level" | "partySize" | "area" | "budget" | "style
   "style",
 ];
 
-/** Extract the first strict JSON object from the model reply (strip fences). */
-export function parseDirective(raw: string): LlmDirective | null {
+/** Extract the first strict JSON object from the model reply (strip fences). DI 注入可用品类表，红线 3 不反向 import ammo。 */
+export function parseDirective(
+  raw: string,
+  opts?: { availableCategories?: string[] }
+): LlmDirective | null {
   const cleaned = raw.replace(/```(?:json)?/gi, "").trim();
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
@@ -36,12 +37,10 @@ export function parseDirective(raw: string): LlmDirective | null {
     ) {
       return null;
     }
-    const category: DemandCategory =
-      obj.category === "badminton" ||
-      obj.category === "photography" ||
-      obj.category === "housekeeping"
-        ? obj.category
-        : null;
+    let category: string | null = typeof obj.category === "string" ? obj.category : null;
+    if (category && opts?.availableCategories && opts.availableCategories.length > 0) {
+      if (!opts.availableCategories.includes(category)) category = null;
+    }
     const need: LlmDirective["need"] = {};
     for (const key of NEED_KEYS) {
       const v = obj.need?.[key];

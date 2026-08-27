@@ -9,13 +9,52 @@ import type {
 } from "@/base/ai/chat/types";
 import { matchProviders, type MatchedProvider } from "@/base/dispatch/match";
 import { decorateWeekendLabels } from "@/base/ai/chat/slots";
-import {
-  CATEGORY_LABEL,
-  MOCK_PROVIDERS,
-  MOCK_SLOTS,
-  type DemandCategory,
-} from "@/base/ai/chat/mockEngine";
 import { NEED_KEYS, parseDirective, type LlmDirective } from "@/base/ai/chat/llmDirective";
+
+type DemandCategory = string | null;
+const CATEGORY_LABEL: Record<string, string> = {
+  badminton: "羽毛球约局",
+  photography: "摄影师约拍",
+  housekeeping: "家政保洁",
+};
+const MOCK_SLOTS: Record<string, import("@/base/ai/chat/types").TimeslotSlot[]> = {
+  badminton: [
+    { id: "t1", label: "周六 14:00", sub: "2 小时 · 余位 3", density: 45 },
+    { id: "t2", label: "周六 19:00", sub: "2 小时 · 余位 1", density: 85 },
+    { id: "t3", label: "周日 10:00", sub: "2 小时 · 余位 4", density: 25 },
+    { id: "t4", label: "周日 16:00", sub: "2 小时 · 余位 2", density: 70 },
+  ],
+  photography: [
+    { id: "t1", label: "周六 09:30", sub: "约 2h · 晨光", density: 60 },
+    { id: "t2", label: "周六 16:30", sub: "约 2h · 日落侧光", density: 90 },
+    { id: "t3", label: "周日 10:00", sub: "约 2h · 柔光", density: 40 },
+    { id: "t4", label: "周日 17:00", sub: "约 2h · 日落侧光", density: 75 },
+  ],
+  housekeeping: [
+    { id: "t1", label: "周六 09:00", sub: "3 小时 · 深度保洁", density: 80 },
+    { id: "t2", label: "周六 14:00", sub: "3 小时 · 深度保洁", density: 50 },
+    { id: "t3", label: "周日 09:00", sub: "3 小时 · 深度保洁", density: 30 },
+    { id: "t4", label: "周日 14:00", sub: "3 小时 · 深度保洁", density: 65 },
+  ],
+};
+const MOCK_PROVIDERS: Record<string, import("@/base/ai/chat/types").ProviderItem[]> = {
+  badminton: [
+    { id: "p1", name: "星羽羽毛球馆", emoji: "🏸", meta: "2 片场地 · 空调 · 近地铁", rating: 4.8, price: "场地 ¥80/小时", basePrice: 80, kind: "venue", distanceKm: 1.2, tag: "推荐" },
+    { id: "p2", name: "阿凯", emoji: "😎", meta: "业余进阶 · 每周 3 打", rating: 4.9, price: "¥25/局", basePrice: 25, level: "advanced", distanceKm: 2.4, freeSlots: ["t2", "t4"], tag: "球友" },
+    { id: "p3", name: "小鹿", emoji: "🦌", meta: "业余 · 主打混双", rating: 4.6, price: "¥20/局", basePrice: 20, level: "amateur", distanceKm: 3.1, freeSlots: ["t1", "t3", "t4"], tag: "球友" },
+    { id: "p4", name: "大熊", emoji: "🐻", meta: "新手友好 · 有耐心", rating: 4.7, price: "¥15/局", basePrice: 15, level: "newbie", distanceKm: 4.0, freeSlots: ["t3"], tag: "球友" },
+  ],
+  photography: [
+    { id: "p1", name: "阿茶", emoji: "📷", meta: "日系风 · 5 年 · 客片 600+", rating: 4.9, price: "¥499/套", basePrice: 499, styleTag: "日系", distanceKm: 2.6, tag: "日系" },
+    { id: "p2", name: "老周", emoji: "🎞️", meta: "复古胶片 · 胶卷机 · 城市漫游", rating: 4.8, price: "¥599/套", basePrice: 599, styleTag: "复古胶片", distanceKm: 5.2, freeSlots: ["t1", "t3"], tag: "复古" },
+    { id: "p3", name: "Momo", emoji: "✨", meta: "街头纪实 · 快速出片 · 当天返图", rating: 4.7, price: "¥399/套", basePrice: 399, styleTag: "街头", distanceKm: 1.8, freeSlots: ["t2", "t4"], tag: "街头" },
+  ],
+  housekeeping: [
+    { id: "p1", name: "王姐", emoji: "🧹", meta: "10 年经验 · 深度清洁 · 自备工具", rating: 5.0, price: "¥180/次", basePrice: 180, distanceKm: 3.4, tag: "好评王" },
+    { id: "p2", name: "陈阿姨", emoji: "💧", meta: "家电清洗 · 收纳整理", rating: 4.8, price: "¥150/次", basePrice: 150, distanceKm: 5.6, freeSlots: ["t1", "t4"] },
+    { id: "p3", name: "小张", emoji: "🪣", meta: "精致保洁 · 猫狗家庭友好", rating: 4.6, price: "¥120/次", basePrice: 120, distanceKm: 2.2, freeSlots: ["t2", "t3"] },
+  ],
+};
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -124,7 +163,7 @@ export class LlmEngine implements ChatEngine {
     }
 
     if (directive.action === "slots" && this.category) {
-      this.slotOptions = decorateWeekendLabels(MOCK_SLOTS[this.category]);
+      this.slotOptions = decorateWeekendLabels(MOCK_SLOTS[this.category] ?? []);
       this.chosenSlot = null;
       yield* this.streamText(directive.text);
       yield { type: "card", card: this.timeslotCard() };
@@ -149,7 +188,7 @@ export class LlmEngine implements ChatEngine {
     if (slot) {
       this.chosenSlot = slot;
       this.providerOptions = matchProviders(
-        MOCK_PROVIDERS[category],
+        MOCK_PROVIDERS[category] ?? [],
         this.needFor(slot.id)
       );
       yield* this.streamText(
@@ -189,7 +228,7 @@ export class LlmEngine implements ChatEngine {
     return { type: "timeslot", id: "timeslot", title: "可选时段", slots: this.slotOptions };
   }
 
-  private providerCard(category: Exclude<DemandCategory, null>): GenCard {
+  private providerCard(category: string): GenCard {
     const note =
       category === "badminton"
         ? this.need.partySize && this.need.partySize > 2
@@ -207,12 +246,9 @@ export class LlmEngine implements ChatEngine {
     };
   }
 
-  private confirmCard(
-    category: Exclude<DemandCategory, null>,
-    provider: ProviderItem
-  ): GenCard {
+  private confirmCard(category: string, provider: ProviderItem): GenCard {
     const lines: { k: string; v: string }[] = [
-      { k: "服务", v: CATEGORY_LABEL[category] },
+      { k: "服务", v: CATEGORY_LABEL[category] ?? category },
       { k: "对象", v: provider.emoji + " " + provider.name },
     ];
     if (this.chosenSlot) lines.push({ k: "时段", v: this.chosenSlot.label });
@@ -299,7 +335,7 @@ export class LlmEngine implements ChatEngine {
     if (this.need.area) parts.push(`${this.need.area}`);
     if (this.need.budget) parts.push(`预算${this.need.budget}`);
     if (parts.length === 0 || !this.category) return "";
-    return `${CATEGORY_LABEL[this.category]} · ${parts.join(" · ")}`;
+    return `${CATEGORY_LABEL[this.category] ?? this.category} · ${parts.join(" · ")}`;
   }
 
   private async *streamText(text: string): AsyncIterable<ChatEvent> {
