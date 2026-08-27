@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1751/1751 全绿 · 0 skipped**（`npm test` = vitest 672 + node:test 1079；2026-08-27 漫游设备表持久化与多端风控总线（roam_devices 2 表 + roam-sync 3 函数 + 800ms 0ms 回落 + 3-Context E2E），基线 1745→1751） |
+| 单测 | **1753/1753 全绿 · 0 skipped**（`npm test` = vitest 674 + node:test 1079；2026-08-27 漫游设备表加固与 API 防刷去重（复合索引 + 90d 清理 + 10/min 限流 + 60s 去重 + 3-Context E2E），基线 1751→1753） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`f4c44ec`（漫游设备表持久化与多端风控总线 · P8 商业化 + 1751 基线封盘）｜ 摘要：DDL 2 表 roam_devices(PK user_id,device_id UUID FK + ip_hash 脱敏 + 双保险 RLS) + roam_risk_events；适配器 roam-sync.ts 3 函数（syncDevice/postHeartbeat/listDevices 800ms 超时 0ms 回落）；API /api/risk/roam/sync（auth.uid 强制 + ON CONFLICT 幂等 + high 自动审计）；Store useRoamStore 云端同步（ensureBinding 后台 sync）；3-Context E2E safe→watch→high 逐级拦截实证；基线 **1751 全绿** (672+1079，+6)；门禁 tsc 0 + lint 0 + build 0（96 页含 roam/sync）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
+> 日期：2026-08-27 ｜ HEAD：`91ed330`（漫游设备表加固与 API 防刷去重 · v3.9 批次 1 + 1753 基线封盘）｜ 摘要：DDL 复合索引 idx_roam_devices_user_last_seen + 清理函数 cleanup_stale_roam_devices() SECURITY DEFINER 90d 硬删；API /api/risk/roam/sync LRU 10/min 滑动窗 + E2E_BYPASS 白名单 + 60s SELECT 去重（high 审计防灌）；配套 route.test 2 例（复合索引/清理 + 限流去重）；基线 **1753 全绿** (674+1079，+2)；门禁 tsc 0 + lint 0 + build 0（96 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
