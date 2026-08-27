@@ -76,6 +76,8 @@ export interface Wave {
   startsAt?: number;
   createdAt: number;
   status: WaveStatus;
+  /** 乐观锁版本（CAS 并发防线，首锁 0→1 缺省自增）。 */
+  version?: number;
   /** 1:1 claim owner (solo waves only). Open-match waves track seats, not one owner. */
   claimedById?: string;
   /** 复杂任务：LLM 拆分 + 发起人确认的模块定义（接单后锁定不可增删）。 */
@@ -371,18 +373,28 @@ export function counterOffer(
  * Lock a negotiation — called for a claim that exhausted its rounds, or when
  * the demander explicitly locks; from here the responder can only accept
  * (claim becomes accepted → wave claimed) or withdraw.
+ * P0-2 CAS 乐观锁：expectedVersion 存在且与当前 version 不等时拒锁并自增版本。
  */
 export function lockNegotiation(
   wave: Wave,
   claim: Claim,
-  demanderAccepted: boolean
+  demanderAccepted: boolean,
+  expectedVersion?: number
 ): { wave?: Wave; error?: string } {
+  if (
+    expectedVersion !== undefined &&
+    wave.version !== undefined &&
+    wave.version !== expectedVersion
+  ) {
+    return { error: "OPTIMISTIC_LOCK_CONFLICT" };
+  }
+  const nextVersion = (wave.version ?? 0) + 1;
   if (claim.status === "accepted") {
-    return { wave: { ...wave, status: "claimed", claimedById: claim.responderId } };
+    return { wave: { ...wave, status: "claimed", claimedById: claim.responderId, version: nextVersion } };
   }
   if (demanderAccepted) {
     return {
-      wave: { ...wave, status: "claimed", claimedById: claim.responderId },
+      wave: { ...wave, status: "claimed", claimedById: claim.responderId, version: nextVersion },
     };
   }
   return { error: "demander-declined" };

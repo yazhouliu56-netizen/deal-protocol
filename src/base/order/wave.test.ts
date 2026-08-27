@@ -409,3 +409,32 @@ test("候补闭环：满员 → 入队 → 退出释放 → 首位补位 → 队
   assert.equal(empty.claim, undefined);
 });
 
+test("lockNegotiation CAS: 版本匹配 → 锁定成功且 version 自增", () => {
+  const wave = { ...baseWave({ negotiable: true }), version: 2 };
+  const claim = openNegotiation(wave, "r1", "c1", 100, now);
+  const out = lockNegotiation(wave, claim, true, 2);
+  assert.equal(out.wave?.status, "claimed");
+  assert.equal(out.wave?.version, 3);
+  assert.equal(out.error, undefined);
+});
+
+test("lockNegotiation CAS: 版本陈旧 → 拒锁 OPTIMISTIC_LOCK_CONFLICT", () => {
+  const wave = { ...baseWave({ negotiable: true }), version: 5 };
+  const claim = openNegotiation(wave, "r1", "c1", 100, now);
+  const out = lockNegotiation(wave, claim, true, 4);
+  assert.equal(out.error, "OPTIMISTIC_LOCK_CONFLICT");
+  assert.equal(out.wave, undefined);
+});
+
+test("lockNegotiation CAS: 缺省 expectedVersion → 兼容放行并自增", () => {
+  const wave = baseWave({ negotiable: true });
+  const claim = openNegotiation(wave, "r1", "c1", 100, now);
+  const out = lockNegotiation(wave, claim, true);
+  assert.equal(out.wave?.status, "claimed");
+  assert.equal(out.wave?.version, 1);
+  // 首锁 undefined→0→1 兼容
+  const v1 = { ...baseWave({ negotiable: true }), version: 0 };
+  const out2 = lockNegotiation(v1, claim, true, 0);
+  assert.equal(out2.wave?.version, 1);
+});
+
