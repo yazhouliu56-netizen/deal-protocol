@@ -31,6 +31,7 @@ import { housekeepingAmmo } from "./housekeeping.ammo.ts";
 import { meetupAmmo } from "./meetup.ammo.ts";
 import { companionAmmo } from "./companion.ammo.ts";
 import { applianceRepairAmmo } from "./appliance_repair.ammo.ts";
+import { petBoardingAmmo } from "./pet_boarding.ammo.ts";
 
 const hasKey = (table: Record<string, unknown>, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(table, key);
@@ -115,6 +116,11 @@ export const OFFICIAL_AMMO: Record<string, IAmmoDefinition> = {
   // 两键同一出厂产物引用（deepFreeze 后只读）。
   appliance_repair: applianceRepairAmmo,
   APPLIANCE_REPAIR: applianceRepairAmmo,
+  // 第 5 枚标杆弹药双键挂载（方向 B · pet-boarding-v1）：`pet_boarding` / `PET_BOARDING`
+  // + kebab `pet-boarding` 兼容直拨，中文别名经 CATEGORY_TO_OFFICIAL 映射。
+  pet_boarding: petBoardingAmmo,
+  PET_BOARDING: petBoardingAmmo,
+  "pet-boarding": petBoardingAmmo,
 };
 
 /**
@@ -150,6 +156,12 @@ export const CATEGORY_TO_OFFICIAL: Record<string, string> = {
   修冰箱: "appliance_repair",
   修油烟机: "appliance_repair",
   "水电维修": "appliance_repair",
+  "宠物寄养": "pet_boarding",
+  寄养: "pet_boarding",
+  "猫咪寄养": "pet_boarding",
+  "狗狗寄养": "pet_boarding",
+  "家庭寄养": "pet_boarding",
+  "宠物托养": "pet_boarding",
 };
 
 /** 四表任一命中即视为已配置类目（如「羽毛球」仅 SOP 表登记也算）。 */
@@ -269,6 +281,7 @@ const PILL_META: Record<string, { label: string; icon: string }> = {
   "meetup-social-v1": { label: "组局社交", icon: "🏸" },
   "companion-v1": { label: "陪伴交友", icon: "📷" },
   "appliance-repair-v1": { label: "家电维修", icon: "🔧" },
+  "pet-boarding-v1": { label: "宠物寄养", icon: "🐾" },
 };
 
 /**

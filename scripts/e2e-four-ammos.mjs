@@ -1,13 +1,15 @@
 /**
- * E2E: 四大官方标杆弹药全链路真机拟人实测（真实 Chrome 浏览器，需要生产服务 localhost:3000）。
+ * E2E: 五大官方标杆弹药全链路真机拟人实测（真实 Chrome 浏览器，需要生产服务 localhost:3000）。
  * 用法：npm run start（3000）→ node scripts/e2e-four-ammos.mjs
  *
- * 场景：在 3 层黄金座舱逐一实体发单并验证四大官方标杆弹药的解析与流转：
+ * 场景：在 3 层黄金座舱逐一实体发单并验证五大官方标杆弹药的解析与流转：
  *   弹药1 日常保洁：家政保洁胶囊（注册表驱动 aria-label）→ ¥60/h × 2h 起 + 🛡️ 财产险 → 发射落库 housekeeping-v1
  *   弹药2 组局社交：组局社交胶囊 → ¥80/人 AA + 🔒 定金 + 📍 LBS 围栏 → 发射落库 meetup-social-v1
  *   弹药3 同城陪伴：陪伴交友胶囊 → ¥100/h + 📞 虚拟号 + 🆘 SOS → 发射落库 companion-v1
  *   弹药4 家电维修：发单条输入「修空调」→ 中文别名直拨 appliance-repair-v1
  *                  → 上门检测费 ¥30.00 + ⏱️ 48h 质保验收 → 发射落库
+ *   弹药5 宠物寄养：发单条输入「宠物寄养」→ 中文别名直拨 pet-boarding-v1
+ *                  → ¥80/天定额 + ⏱️ 24h 质保验收 → 发射落库
  * 全程断言：草稿卡数据 / 徽标 / 发布面板 → 广播 → 支付 → localStorage 广播空间真实落库 ammoId。
  * 控制台 error 全程收集，零业务错误才 PASS。
  * （2026-08-22 Lint 回锁战役断言同步：胶囊选择器对齐单一真理源战役 637b076 后的
@@ -263,7 +265,52 @@ try {
   summary("弹药4 家电维修", true, `落库 ammoId=${arWave.ammoId} budget=${arWave.budget} category=${arWave.basics.category}`);
   await closeIfPresent();
 
-  // --- 5. 雷达视角校验：自己发布的波被正确隔离（authorId 视角隔离），顶栏胶囊联动存在 ---
+  // --- 5. 弹药5 宠物寄养：发单条输入「宠物寄养」→ 别名直拨 pet-boarding-v1 ---
+  await page.getByRole("button", { name: /想找什么/ }).click();
+  await page.waitForTimeout(600);
+  const dfltPet = await page.evaluate(() => {
+    const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
+    return { ammo: d?.getAttribute("data-ammo") ?? "", text: d?.textContent ?? "" };
+  });
+  assert.equal(dfltPet.ammo, "default-ammo", "宠物寄养前置：发单条默认应为 default-ammo");
+  await page.getByRole("button", { name: /扣动扳机·一键发布/ }).click();
+  await page.waitForTimeout(500);
+  await page.getByLabel("需求品类").fill("宠物寄养");
+  await page.waitForTimeout(600);
+  await page.getByLabel("petType").selectOption("dog");
+  await page.getByLabel("petAgeWeight").fill("3岁 15kg");
+  await page.getByLabel("specialNotes").fill("每日喂食两次 需遛弯");
+  await page.waitForTimeout(400);
+  const petDraft = await page.evaluate(() => {
+    const c = document.querySelector(".draft-card");
+    return { ammo: c?.getAttribute("data-ammo") ?? "", text: c?.textContent ?? "" };
+  });
+  assert.equal(petDraft.ammo, "pet-boarding-v1", `宠物寄养预览卡应为 pet-boarding-v1，实际 ${petDraft.ammo}`);
+  for (const token of ["¥80", "⏱️ 24h"]) {
+    assert.ok(petDraft.text.includes(token), `宠物寄养预览卡缺「${token}」: ${petDraft.text}`);
+  }
+  await page.getByLabel("需求时间").fill("后天 10:00");
+  await page.getByLabel("需求地点").fill("幸福家园小区");
+  await page.getByLabel("基础预算").fill("160");
+  const petBefore = await wavesLen();
+  await page.getByRole("button", { name: /广播出去/ }).click();
+  await page.getByRole("button", { name: /立即支付/ }).click();
+  await waitUntil(
+    page,
+    (before) =>
+      (JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::four-ammos") || "{}").state?.waves ?? [])
+        .length > before,
+    15000,
+    "宠物寄养发射落库",
+    petBefore
+  );
+  const petWave = await lastWave();
+  assert.equal(petWave.ammoId, "pet-boarding-v1", `宠物寄养落库 ammoId 应为 pet-boarding-v1，实际 ${petWave.ammoId}`);
+  assert.equal(petWave.basics.category, "宠物寄养", `落库品类应为 宠物寄养，实际 ${petWave.basics.category}`);
+  summary("弹药5 宠物寄养", true, `落库 ammoId=${petWave.ammoId} budget=${petWave.budget} category=${petWave.basics.category}`);
+  await closeIfPresent();
+
+  // --- 6. 雷达视角校验：自己发布的波被正确隔离（authorId 视角隔离），顶栏胶囊联动存在 ---
   await page.getByRole("button", { name: "首页" }).click();
   await page.waitForTimeout(800);
   const feedEvidence = await page.evaluate(() => {
@@ -286,13 +333,13 @@ try {
   // 装载留待产线 E2E 脚本（e2e-fulfil 系）扩展覆盖。
   summary("弹药4 履约座舱装载链", true, "ammoId 已随单固化，座舱按 W5 反查装载（单测覆盖），雷达视角隔离验证通过，浏览器接单装载待产线 E2E 扩展");
 
-  // --- 6. 汇总 + 控制台零错误 ---
+  // --- 7. 汇总 + 控制台零错误 ---
   const waveCount = await wavesLen();
-  assert.ok(waveCount >= 4, `广播空间应具 ≥4 波，实际 ${waveCount}`);
+  assert.ok(waveCount >= 5, `广播空间应具 ≥5 波，实际 ${waveCount}`);
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);
 
   await page.screenshot({ path: "e2e-four-ammos-final.png", fullPage: true });
-  console.log("\n========== 四大官方标杆弹药全链路真机交互实测 ==========");
+  console.log("\n========== 五大官方标杆弹药全链路真机交互实测 ==========");
   for (const v of verdicts) console.log(`${v.passed ? "✅" : "❌"} ${v.label} — ${v.detail}`);
   console.log(`\n广播空间共 ${waveCount} 波，控制台 error = ${errors.length}，全部 PASS ✓`);
   await browser.close();

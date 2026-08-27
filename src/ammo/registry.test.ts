@@ -111,7 +111,7 @@ test("四表聚合互不污染：家政与遛狗计价/派单不同", () => {
   assert.notEqual(家政.dispatchRule?.weights.distance, 遛狗.dispatchRule?.weights.distance);
 });
 
-test("listRegisteredAmmos：官方四唯一弹药（别名键去重不重复计）", () => {
+test("listRegisteredAmmos：官方五唯一弹药（别名键去重不重复计）", () => {
   const ammos = listRegisteredAmmos();
   const ammoIds = ammos.map((a) => a.ammoId);
   assert.equal(ammoIds.length, new Set(ammoIds).size, "不得出现重复 ammoId");
@@ -120,14 +120,15 @@ test("listRegisteredAmmos：官方四唯一弹药（别名键去重不重复计�
     "meetup-social-v1",
     "companion-v1",
     "appliance-repair-v1",
+    "pet-boarding-v1",
   ]) {
     assert.ok(ammoIds.includes(id), `应包含 ${id}`);
   }
-  // OFFICIAL_AMMO 别名键（dating/escort/social/APPLIANCE_REPAIR）指向同一产物，不得重复计数
+  // OFFICIAL_AMMO 别名键（dating/escort/social/APPLIANCE_REPAIR/pet_boarding）指向同一产物，不得重复计数
   assert.ok(ammoIds.filter((id) => id === "companion-v1").length === 1);
 });
 
-test("listAmmoPillDescriptors：官方四枚胶囊元数据（图标/名称/主题）", () => {
+test("listAmmoPillDescriptors：官方五枚胶囊元数据（图标/名称/主题）", () => {
   const pills = listAmmoPillDescriptors();
   const byId = new Map(pills.map((p) => [p.ammoId, p]));
   assert.deepEqual(byId.get("housekeeping-v1")?.label, "家政保洁");
@@ -142,7 +143,10 @@ test("listAmmoPillDescriptors：官方四枚胶囊元数据（图标/名称/主�
   assert.deepEqual(byId.get("appliance-repair-v1")?.label, "家电维修");
   assert.deepEqual(byId.get("appliance-repair-v1")?.icon, "🔧");
   assert.deepEqual(byId.get("appliance-repair-v1")?.theme, "default", "appliance-repair 目前声明 theme=default");
-  assert.equal(pills.length, 4, "无动态池时胶囊 = 官方四枚");
+  assert.deepEqual(byId.get("pet-boarding-v1")?.label, "宠物寄养");
+  assert.deepEqual(byId.get("pet-boarding-v1")?.icon, "🐾");
+  assert.deepEqual(byId.get("pet-boarding-v1")?.theme, "default", "pet-boarding 目前声明 theme=default");
+  assert.equal(pills.length, 5, "无动态池时胶囊 = 官方五枚");
 });
 
 test("listAmmoPillDescriptors：limit 截断生效（默认仅官方四枚）", () => {
