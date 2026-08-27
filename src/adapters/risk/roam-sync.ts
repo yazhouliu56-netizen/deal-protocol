@@ -17,6 +17,33 @@ const SYNC_PATH = "/api/risk/roam/sync";
 const TIMEOUT_MS = 800;
 const QUEUE_KEY = "oto-roam-queue-v1";
 
+/** 指数退避阶梯（P0-4）：300ms ➔ 1s ➔ 3s ➔ 5s 封顶。 */
+export const BACKOFF_LADDER_MS = [300, 1000, 3000, 5000] as const;
+
+/** 解析 Retry-After 响应头（秒数字符串，1..60）；非法（NaN/≤0/>60）返回 null 回落阶梯。 */
+export function parseRetryAfterSeconds(header: string | null): number | null {
+  if (!header) return null;
+  const s = parseInt(header.trim(), 10);
+  if (Number.isNaN(s) || s <= 0 || s > 60) return null;
+  return s;
+}
+
+/** 重试时延：Retry-After 头优先（秒×1000）；无头回落指数阶梯（0→300 / 1→1000 / 2→3000 / 3+→5000 封顶）。 */
+export function resolveRetryDelayMs(
+  attempt: number,
+  retryAfterHeader: string | null = null
+): number {
+  const ra = parseRetryAfterSeconds(retryAfterHeader);
+  if (ra !== null) return ra * 1000;
+  const idx = Math.min(Math.max(attempt, 0), BACKOFF_LADDER_MS.length - 1);
+  return BACKOFF_LADDER_MS[idx];
+}
+
+/** 默认真实延时（测试注入 delayFn 以零真实休眠断言）。 */
+function defaultDelay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export interface RoamQueueTask {
   deviceId: string;
   fingerprint?: Record<string, unknown>;
@@ -133,7 +160,9 @@ export async function listDevices(): Promise<{ ok: boolean; devices: RoamDeviceD
 }
 
 let replaying = false;
-export async function replayRoamQueue(): Promise<void> {
+export async function replayRoamQueue(
+  delayFn: (ms: number) => Promise<void> = defaultDelay
+): Promise<void> {
   if (replaying) return;
   if (!isOnline()) return;
   const q = loadQueue();
@@ -142,29 +171,47 @@ export async function replayRoamQueue(): Promise<void> {
   try {
     for (let i = 0; i < q.length; i++) {
       const t = q[i];
-      if (i > 0) await new Promise((r) => setTimeout(r, 300));
-      // 直接 fetch 避免递归入队（replay 失败则保留剩余）
-      try {
-        const res = await fetchWithTimeout(SYNC_PATH, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            device_id: t.deviceId,
-            fingerprint: t.fingerprint ?? {},
-            user_agent: t.userAgent,
-            ip_hash: t.ipHash,
-          }),
-        });
-        if (!res.ok) {
-          // 429 退避：保留剩余（含当前）并中断
-          const remaining = q.slice(i);
-          saveQueue(remaining);
-          return;
+      // 节流：条目间 300ms（沿用存量语义）
+      if (i > 0) await delayFn(300);
+      let failures = 0;
+      let delivered = false;
+      // 逐条重试：失败按 300→1s→3s→5s 阶梯退避，Retry-After 头优先，封顶 4 次重试
+      while (failures <= BACKOFF_LADDER_MS.length) {
+        let ok = false;
+        try {
+          const res = await fetchWithTimeout(SYNC_PATH, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              device_id: t.deviceId,
+              fingerprint: t.fingerprint ?? {},
+              user_agent: t.userAgent,
+              ip_hash: t.ipHash,
+            }),
+          });
+          ok = res.ok;
+          if (!ok) {
+            const ra = res.headers?.get ? res.headers.get("Retry-After") : null;
+            const delayMs = resolveRetryDelayMs(failures, ra);
+            failures += 1;
+            if (failures <= BACKOFF_LADDER_MS.length) await delayFn(delayMs);
+          }
+        } catch {
+          const delayMs = resolveRetryDelayMs(failures, null);
+          failures += 1;
+          if (failures <= BACKOFF_LADDER_MS.length) await delayFn(delayMs);
         }
-        // 成功：从持久化队列移除该条
+        if (ok) {
+          delivered = true;
+          break;
+        }
+      }
+      if (delivered) {
+        // 成功：从持久化队列移除该条（200 即 attempt 重置语义天然成立——逐条独立计数）
         const cur = loadQueue();
         saveQueue(cur.filter((x) => !(x.deviceId === t.deviceId && x.ts === t.ts)));
-      } catch {
+      } else {
+        // 持续失败（429/网络）：安全保留剩余（含当前）并中断，等待下次 online 重放
         const remaining = q.slice(i);
         saveQueue(remaining);
         return;
