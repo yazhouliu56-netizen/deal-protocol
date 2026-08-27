@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1756/1756 全绿 · 0 skipped**（`npm test` = vitest 674 + node:test 1082；2026-08-27 漫游适配器离线韧性与演示状态对齐（自持离线队列 + (deviceId)去重 + 300ms 节流 + 429 退避 + Store 三入口），基线 1753→1756） |
+| 单测 | **1757/1757 全绿 · 0 skipped**（`npm test` = vitest 675 + node:test 1082；2026-08-27 前端风控 Toast 去噪与 v3.9.0 终态封盘（sentinel 单次去噪 + high1/watch0 断言 + 1757 基线），基线 1756→1757） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`61c0ce3`（漫游适配器离线韧性与演示状态对齐 · v3.9 批次 2 + 1756 基线封盘）｜ 摘要：适配器 roam-sync.ts 自持离线队列 oto-roam-queue-v1（localStorage + online 自愈 + deviceId 去重 + 300ms 节流 + 429 退避）；Store useRoamStore 三入口（ensureBinding/simulateMultiOpen/roamDemo）统一 syncDevice；配套 roam-sync.test +3 例（去重/节流/离线入队）；基线 **1756 全绿** (674+1082，+3)；门禁 tsc 0 + lint 0 + build 0（96 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
+> 日期：2026-08-27 ｜ HEAD：`2799f67`（前端风控 Toast 去噪与 v3.9.0 终态封盘 · v3.9 批次 3 + 1757 基线封盘）｜ 摘要：UI PublishSheet.tsx 去噪 Toast（sentinel/roam high 单次 useRef + useEffect 重置 + toast error）；配套 PublishSheet.test +1 例（high1/watch0 去噪）；基线 **1757 全绿** (675+1082，+1)；门禁 tsc 0 + lint 0 + build 0（96 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
