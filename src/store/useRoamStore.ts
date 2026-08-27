@@ -12,6 +12,7 @@ import {
   type RoamRuleParams,
 } from "@/base/risk/roamGuard";
 import { isRuleEnabled, riskRulesFor } from "@/ammo/risk-rule";
+import { syncDevice } from "@/adapters/risk/roam-sync";
 
 /** ammo/risk-rule 的 roam-guard 引信参数 → base 阈值（宪法 #5：引信跟弹药走）。 */
 function roamParams(): RoamRuleParams {
@@ -92,6 +93,14 @@ export const useRoamStore = create<RoamState>()(
               { at: now(), kind: "login", note: `身份 ${identityId} 登录本设备` },
             ],
           });
+          // 云端同步：800ms 超时 + 离线 0ms 回落（红线 5），失败不抛（异步后台）
+          try {
+            void syncDevice({
+              deviceId: s.deviceId,
+              fingerprint: { identityId },
+              userAgent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : undefined,
+            }).catch(() => {});
+          } catch {}
         }
         const r = riskOf(get().bindings, s.deviceId, roamParams());
         return roamEnabled()
