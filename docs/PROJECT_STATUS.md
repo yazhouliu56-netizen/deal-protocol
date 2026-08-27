@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1745/1745 全绿 · 0 skipped**（`npm test` = vitest 670 + node:test 1075；2026-08-27 宠物寄养 pet-boarding-v1 第 5 弹量产（C2 入户 8D 全息 + 6 别名直拨 + 15 例考卷），基线 1730→1745） |
+| 单测 | **1751/1751 全绿 · 0 skipped**（`npm test` = vitest 672 + node:test 1079；2026-08-27 漫游设备表持久化与多端风控总线（roam_devices 2 表 + roam-sync 3 函数 + 800ms 0ms 回落 + 3-Context E2E），基线 1745→1751） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`c7580af`（宠物寄养 pet-boarding-v1 第 5 弹量产 · Zero Base 全链实战 + 1745 基线封盘）｜ 摘要：8D 全息 pet-boarding-v1（C2_IN_HOME 双证 + FIXED 80/天 + IMPACT 碰炸引信 + WATERMARK_CAMERA/GPS_GEOFENCE + ArrivalCheckHook/CleaningCheckHook 双钩子 + 24h 验收 + 0.85/0.10/0.05 分账守恒 + default 主题 + 6 别名直拨）；registry 挂载 pet_boarding/PET_BOARDING/"pet-boarding" + CATEGORY_TO_OFFICIAL 6 别名 + PILL_META 🐾；e2e-four-ammos 扩为 5 弹 + 座舱链 6 断言全绿（pet-boarding-v1 80 元直拨）；基线 **1745 全绿** (670+1075，+15)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 6/6 + check:convergence exit 0；Zero Base：base/adapters 0 行
+> 日期：2026-08-27 ｜ HEAD：`f4c44ec`（漫游设备表持久化与多端风控总线 · P8 商业化 + 1751 基线封盘）｜ 摘要：DDL 2 表 roam_devices(PK user_id,device_id UUID FK + ip_hash 脱敏 + 双保险 RLS) + roam_risk_events；适配器 roam-sync.ts 3 函数（syncDevice/postHeartbeat/listDevices 800ms 超时 0ms 回落）；API /api/risk/roam/sync（auth.uid 强制 + ON CONFLICT 幂等 + high 自动审计）；Store useRoamStore 云端同步（ensureBinding 后台 sync）；3-Context E2E safe→watch→high 逐级拦截实证；基线 **1751 全绿** (672+1079，+6)；门禁 tsc 0 + lint 0 + build 0（96 页含 roam/sync）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
