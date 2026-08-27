@@ -56,13 +56,13 @@
 | 35 | `/api/finance/overview` | [🟢 生产活跃在用] | `finance/page.tsx` |
 | 36 | `/api/finance/transactions` | [🟢 生产活跃在用] | `finance/page.tsx` |
 | 37 | `/api/finance/withdraw` | [🟢 生产活跃在用] | `WithdrawModal.tsx` |
-| 38 | `/api/disputes/create` | [🟢 生产活跃在用] | `components/DisputeModal.tsx`（⚠️ 组件自身为待审死代码 C4，路由级联孤儿风险，见板块三） |
+| 38 | `/api/disputes/create` | [🗑 已出清] | `components/DisputeModal.tsx`（C4）随 680bce8 同批出清（`git rm DisputeModal.tsx + route.ts`） |
 | 39 | `/api/disputes/list` | [🟢 生产活跃在用] | `disputes/page.tsx` |
 | 40 | `/api/disputes/detail` | [🟢 生产活跃在用] | `disputes/[id]/page.tsx` |
 | 41 | `/api/evidence/export-judicial-package` | [🟢 生产活跃在用] | `waves/ArbitrationSheet.tsx`（司法取证包导出） |
 | 42 | `/api/reviews` | [🟢 生产活跃在用] | `orders/[id]/review/page.tsx` |
-| 43 | `/api/reviews/submit` | [🟢 生产活跃在用] | `components/ReviewModal.tsx`（⚠️ 组件为待审死代码 C5，级联孤儿风险，见板块三） |
-| 44 | `/api/llm-classify` | [🟢 生产活跃在用] | `components/SmartRequest.tsx`（⚠️ 组件为待审死代码 C6，级联孤儿风险，见板块三） |
+| 43 | `/api/reviews/submit` | [🗑 已出清] | `components/ReviewModal.tsx`（C5）随 680bce8 同批出清（`git rm ReviewModal.tsx + route.ts`） |
+| 44 | `/api/llm-classify` | [🗑 已出清] | `components/SmartRequest.tsx`（C6）随 680bce8 同批出清（`git rm SmartRequest.tsx + route.ts`） |
 | 45 | `/api/llm/structure-team` | [🟢 生产活跃在用] | `team/create/page.tsx` |
 | 46 | `/api/protocols/generate` | [🟢 生产活跃在用] | `landing/page.tsx`（AI 协议生成） |
 | 47 | `/api/team/create` | [🟢 生产活跃在用] | `team/create/page.tsx` |
@@ -276,20 +276,20 @@
 
 | # | 组件路径 | 现有功能 | 调用方证据（Grep） | 爆炸半径与风险 | 推荐处置 |
 |---|---------|---------|-------------------|----------------|---------|
-| C1 | `components/RealtimeChat.tsx` | 旧实时聊天 | `RealtimeChat` 0 引用（被 `oto-ui/chat/ChatPage` 取代） | 零 | 彻底删除 |
-| C2 | `components/NotificationCenter.tsx`（根目录） | 旧通知中心 | 0 引用（`waves/NotificationCenter` 被 `oto/page.tsx` 引用）；⚠️ 内部 import `providers/NotificationProvider`（活跃，勿连带删） | 零 | 彻底删除 |
-| C3 | `components/AIArbitrationCard.tsx`（根目录） | 旧仲裁卡片 | 0 引用（`ai/ai-arbitration-card` 为活跃替代） | 零 | 彻底删除 |
-| C4 | `components/DisputeModal.tsx` | 争议弹窗 | 0 引用；**唯一依赖 `/api/disputes/create`（级联孤儿，见板块三）** | 零（API 同步处置） | 彻底删除（成对） |
-| C5 | `components/ReviewModal.tsx` | 评价弹窗 | 0 引用；**唯一依赖 `/api/reviews/submit`（级联孤儿）** | 零（API 同步处置） | 彻底删除（成对） |
-| C6 | `components/SmartRequest.tsx` | 智能请求 | 0 引用；**唯一依赖 `/api/llm-classify`（级联孤儿）** | 零（API 同步处置） | 彻底删除（成对） |
-| C7 | `components/OnboardingWizard.tsx` | 引导向导 | 0 引用 | 零 | 彻底删除 |
-| C8 | `components/VoiceInput.tsx` | 语音输入 | 0 引用（`VoiceMicButton` 为活跃替代） | 零 | 彻底删除 |
-| C9 | `components/DynamicPricingCard.tsx` | 动态定价卡 | 0 引用 | 零 | 彻底删除 |
-| C10 | `components/PeerJuryPanel.tsx` | 陪审团面板 | 0 引用（`lib/peer-jury.ts` 仍被 m11 链消费，不受影响） | 零 | 彻底删除 |
-| C11 | `components/WebRTCCallRoom.tsx` | 通话房间 | 0 引用（`lib/webrtc-call.ts` 证据链活跃，UI 未接线） | 零 | 彻底删除 |
-| C12 | `components/ConfirmDialog.tsx` | 确认弹窗 | 0 引用（`ui/dialog` 已覆盖） | 零 | 彻底删除 |
-| C13 | `components/escrow/encounter-contract-modal.tsx` | 会面合同弹窗 | 0 引用 | 零 | 彻底删除 |
-| C14 | `components/ProviderCheckinModal.tsx` | 服务者签到弹窗 | 0 引用 | 零 | 彻底删除 |
+| C1 | `components/RealtimeChat.tsx` | 旧实时聊天 | `RealtimeChat` 0 引用（被 `oto-ui/chat/ChatPage` 取代） | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C2 | `components/NotificationCenter.tsx`（根目录） | 旧通知中心 | 0 引用（`waves/NotificationCenter` 被 `oto/page.tsx` 引用）；⚠️ 内部 import `providers/NotificationProvider`（活跃，勿连带删） | 零 | [🗑 已出清] 680bce8 已物理删除（`waves/NotificationCenter` 与 `providers/NotificationProvider` 保留） |
+| C3 | `components/AIArbitrationCard.tsx`（根目录） | 旧仲裁卡片 | 0 引用（`ai/ai-arbitration-card` 为活跃替代） | 零 | [🗑 已出清] 680bce8 已物理删除（`ai/ai-arbitration-card.tsx` 保留） |
+| C4 | `components/DisputeModal.tsx` | 争议弹窗 | 0 引用；**唯一依赖 `/api/disputes/create`（级联孤儿，见板块三）** | 零（API 同步处置） | [🗑 已出清] 680bce8 成对删除（组件 + `api/disputes/create`） |
+| C5 | `components/ReviewModal.tsx` | 评价弹窗 | 0 引用；**唯一依赖 `/api/reviews/submit`（级联孤儿）** | 零（API 同步处置） | [🗑 已出清] 680bce8 成对删除（组件 + `api/reviews/submit`） |
+| C6 | `components/SmartRequest.tsx` | 智能请求 | 0 引用；**唯一依赖 `/api/llm-classify`（级联孤儿）** | 零（API 同步处置） | [🗑 已出清] 680bce8 成对删除（组件 + `api/llm-classify`） |
+| C7 | `components/OnboardingWizard.tsx` | 引导向导 | 0 引用 | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C8 | `components/VoiceInput.tsx` | 语音输入 | 0 引用（`VoiceMicButton` 为活跃替代） | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C9 | `components/DynamicPricingCard.tsx` | 动态定价卡 | 0 引用 | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C10 | `components/PeerJuryPanel.tsx` | 陪审团面板 | 0 引用（`lib/peer-jury.ts` 仍被 m11 链消费，不受影响） | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C11 | `components/WebRTCCallRoom.tsx` | 通话房间 | 0 引用（`lib/webrtc-call.ts` 证据链活跃，UI 未接线） | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C12 | `components/ConfirmDialog.tsx` | 确认弹窗 | 0 引用（`ui/dialog` 已覆盖） | 零 | [🗑 已出清] 680bce8 已物理删除 |
+| C13 | `components/escrow/encounter-contract-modal.tsx` | 会面合同弹窗 | 0 引用 | 零 | [🗑 已出清] 680bce8 已物理删除（`escrow/checkpoint-timer.tsx` 活跃保留，目录保留） |
+| C14 | `components/ProviderCheckinModal.tsx` | 服务者签到弹窗 | 0 引用 | 零 | [🗑 已出清] 680bce8 已物理删除 |
 | ~~C15~~ | ~~`components/MapComponent.tsx`（Leaflet）~~ | ~~履约地图~~ | ✅ **已收敛归一（2026-08-17）**：履约页迁移 MapLibre `MapView`（focus 锚定 + 单点光晕），`git rm` 物理删除，leaflet/react-leaflet/@types/leaflet 依赖出清 | 无 | 已删除 |
 | ~~C16~~ | ~~老控制台 4 件套（`ClientConsole`/`ProviderConsole`/`SwipeableCard`/`GrabConsole`）~~ | ✅ **已收敛归一（2026-08-21）**：4 组件保留于 `src/components/`（`ClientConsole.tsx:1` 调试资金托管/`ProviderConsole.tsx:1` 雷达+接单/`SwipeableCard.tsx:1` 滑动接单/`GrabConsole.tsx:1` 竞抢动效，红线 3 单向依赖）+ 4 路由平移至 `/dp` 协议专区（`src/app/dp/console/page.tsx:1`、`src/app/dp/provider/page.tsx:1`、`src/app/dp/provider/incoming/page.tsx:1`、`src/app/dp/provider/grab/[id]/page.tsx:1` 复用原组件，管理台资产 100% 保留）+ 根路由 `src/app/console/page.tsx:1` 与 `src/app/provider/*:1` 四文件重定向至 `/dp`（307 优雅过渡，命名空间清理）+ `src/components/Header.tsx:26,96` 导航更新至 `/dp/provider/incoming` | 0 | 已收编（`oto` 5 屏 `WorkerWorkbench`/`FulfillmentCockpit` 已接管前台，协议后台归位 `/dp`） |
 
@@ -317,9 +317,9 @@
 | L2 | `lib/ai-negotiator.ts` | 被孤儿 API 引用的 lib | 全仓唯一 import：`api/ai/negotiate/route.ts`（A3） | 与 A3 同批删除 |
 | L3 | `lib/intent-radar.ts` | 被孤儿 API 引用的 lib | 全仓唯一 import：`api/demands/predict-intent/route.ts`（A9） | 与 A9 同批删除 |
 | L4 | `lib/agent-gateway.ts` | 被孤儿 API 引用的 lib | 全仓唯一 import：`api/v1/agent/protocols/bid/route.ts`（A22） | A22 建议保留（对外契约候选）→ lib 随之保留；若裁决删除则成对删 |
-| L5 | `api/disputes/create` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/DisputeModal.tsx`（C4，0 引用组件） | 与 C4 同批删除 |
-| L6 | `api/reviews/submit` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/ReviewModal.tsx`（C5，0 引用组件） | 与 C5 同批删除 |
-| L7 | `api/llm-classify` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/SmartRequest.tsx`（C6，0 引用组件） | 与 C6 同批删除 |
+| L5 | `api/disputes/create` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/DisputeModal.tsx`（C4，0 引用组件） | [🗑 已出清] 680bce8 成对删除（L5+C4） |
+| L6 | `api/reviews/submit` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/ReviewModal.tsx`（C5，0 引用组件） | [🗑 已出清] 680bce8 成对删除（L6+C5） |
+| L7 | `api/llm-classify` | 被死弹窗引用的孤儿 API | 唯一调用方：`components/SmartRequest.tsx`（C6，0 引用组件） | [🗑 已出清] 680bce8 成对删除（L7+C6） |
 
 > 补充保留件（不列入删除批次）：`lib/privacy-guard.ts`（A21 依赖但另有 3 处活跃 route 消费）、`lib/wechat-pay-service.ts`（活跃 5 处）、`lib/webrtc-call.ts`、`lib/alipay-service.ts` —— 均不可随孤儿路由误删。
 >

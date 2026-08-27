@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`81f6c0a`（LLM Gateway 7-Provider 扩展闭环 + 1730 基线封盘）｜ 摘要：Gateway provider 表 5→7（deepseek/kimi tasks: ["chat"] 任务隔离 + isValidKey placeholder/your_/空白三重过滤 + DEEPSEEK/KIMI_BASE_URL 尾斜杠防御）；getAIModel 单一来源收敛（NEXT_PUBLIC_LLM_PROVIDER 精确命中 → activeProviders("chat") 链首可用 → legacy mock 兜底，红线 5 离线不抛）；chat 7 步 gemini:0→zhipu:1→qwen:2→groq:3→deepseek:4→kimi:5→openrouter:99、voice-intent 4 步隔离；基线 **1730 全绿** (670+1060，+1 deepseek/kimi 任务隔离考卷 +7)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 5/5 + check:convergence exit 0
+> 日期：2026-08-27 ｜ HEAD：`81f6c0a`（LLM Gateway 7-Provider 扩展闭环 + 台账三区终局对齐 + 1730 基线封盘）｜ 摘要：Gateway provider 表 5→7（deepseek/kimi tasks: ["chat"] 任务隔离 + isValidKey placeholder/your_/空白三重过滤 + DEEPSEEK/KIMI_BASE_URL 尾斜杠防御）；getAIModel 单一来源收敛（NEXT_PUBLIC_LLM_PROVIDER 精确命中 → activeProviders("chat") 链首可用 → legacy mock 兜底，红线 5 离线不抛）；chat 7 步 gemini:0→zhipu:1→qwen:2→groq:3→deepseek:4→kimi:5→openrouter:99、voice-intent 4 步隔离；台账三区终局对齐（§1.1 38,43,44 + §2.2 C1-C14 + §3 L5-L7 均标 [🗑 已出清] 680bce8，G2 escrow/checkpoint-timer 保留）；基线 **1730 全绿** (670+1060)；门禁 tsc 0 + lint 0 + build 0 + verify-prod 13/13 + four-ammos 5/5 + check:convergence exit 0
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
