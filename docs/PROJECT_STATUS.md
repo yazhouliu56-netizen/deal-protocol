@@ -140,7 +140,7 @@
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1772/1772 全绿 · 0 skipped**（`npm test` = vitest 679 + node:test 1093；2026-08-27 漫游重放指数退避（300→1s→3s→5s 阶梯 + Retry-After 解析 + delayFn 注入 + 429 队列保留），基线 1769→1772） |
+| 单测 | **1776/1776 全绿 · 0 skipped**（`npm test` = vitest 679 + node:test 1097；2026-08-27 Wave 实体脱水（bizParams 单袋化 + customRequirements 兼容镜像 + metadata 收纳 + getCustomRequirements），基线 1772→1776） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +185,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`0e60bbb`（漫游重放指数退避 · P0-4 + 1772 基线封盘）｜ 摘要：adapters/risk/roam-sync.ts 指数退避（[300,1000,3000,5000] 封顶 5s + Retry-After 秒数解析 1..60 优先 + delayFn 注入式时钟 + 429/网络异常队列保留零异常泄漏）+ 4 例新考卷（阶梯纯函数/Retry-After 解析/阶梯重放/精准延时）；基线 **1772 全绿** (679+1093，+3)；门禁 tsc 0 + lint 0 + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Zero Base 0（src/base 零行）
+> 日期：2026-08-27 ｜ HEAD：`aa378e8`（Wave 实体脱水 · P1-1 + 1776 基线封盘）｜ 摘要：base/order/wave.ts 参数单袋化（customRequirements 权威并入 bizParams.customRequirements + 根兼容镜像 + getCustomRequirements 纯函数）+ 运营字段脱水（BiddingSettledRecord 富对象固化 + WaveMetadata 收纳袋 + hotness/fissionCount/fissionBy/fissionUpdatedAt/biddingSettled 根字段 @deprecated 镜像双向回填 + 状态机零依赖）；基线 **1776 全绿** (679+1097，+4)；门禁 tsc 0 + lint 0 + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Zero Base 0（src/base 零行）
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
