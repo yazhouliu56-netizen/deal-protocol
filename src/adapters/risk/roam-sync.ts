@@ -4,6 +4,8 @@
  * 自持 roamOfflineQueue（oto-roam-queue-v1）+ online 自愈 + (user,device) 去重 + 300ms 节流 + 429 退避。
  */
 
+import { syncBus } from "../platform/sync-bus.ts";
+
 export interface RoamDeviceDTO {
   device_id: string;
   fingerprint: Record<string, unknown>;
@@ -224,10 +226,5 @@ export async function replayRoamQueue(
   }
 }
 
-if (typeof window !== "undefined") {
-  try {
-    window.addEventListener("online", () => {
-      void replayRoamQueue().catch(() => {});
-    });
-  } catch {}
-}
+// P1-2 收敛：原生分散 window 监听 → 统一 syncBus（SSR 安全：无 window 时 registerSyncTrigger 返回 no-op）。
+syncBus.registerSyncTrigger(() => replayRoamQueue());
