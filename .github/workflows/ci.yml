@@ -37,6 +37,8 @@ jobs:
         run: npm test
       - name: ESLint
         run: npm run lint
+      - name: 第一性原理物理门禁（硬编码提示词归零 + Base 纯核 0 Store 引用）
+        run: npm run check:first-principle
 
   e2e-verify:
     if: github.event_name == 'push'

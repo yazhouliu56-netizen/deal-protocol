@@ -15,6 +15,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:convergence": "node scripts/convergence-check.mjs",
+    "check:first-principle": "node scripts/verify-first-principle.mjs",
     "check:llm-providers": "tsx scripts/verify-chat-providers.mjs",
     "doctor:env": "tsx scripts/doctor-env.mjs",
     "test": "npm run test:units && npm run test:oto:units",
