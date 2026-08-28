@@ -71,6 +71,41 @@ function broadcastMatchesFor(category: string): MatchFn {
     broadcastMatches(responders, wave, dispatchRuleFor(category));
 }
 
+/** 准入输入单点构建：提取设备/身份/行为投影，委托 base/risk/admission 纯核 */
+function buildAdmissionInput(
+  input: {
+    authorId: string;
+    basics?: { category?: string };
+    customs?: Array<{ text: string }>;
+    negotiableNote?: string;
+    budget?: number;
+  },
+  getState: () => WaveStore,
+): Parameters<typeof evaluatePublishAdmission>[0] {
+  const roam = useRoamStore.getState();
+  const ident = useIdentityStore.getState();
+  const s = getState();
+  const myWaves = s.waves.filter((w) => w.authorId === input.authorId);
+  const recentPublishes = myWaves.filter((w) => w.createdAt > Date.now() - 7 * 24 * 3600_000).length;
+  const scanText = [input.basics?.category ?? "", ...(input.customs ?? []).map((c) => c.text), input.negotiableNote ?? ""].join(" ");
+  return {
+    authorId: input.authorId,
+    scanText,
+    amountYuan: input.budget ?? 0,
+    category: input.basics?.category,
+    bindings: roam.bindings,
+    deviceId: roam.deviceId,
+    roamRuleParams: roamParams(),
+    birthYear: ident.identity.birthYear,
+    guardianConsent: ident.identity.guardianConsent,
+    creditScore: (ident.creditTier ?? 3) * 200,
+    recentPublishCount: recentPublishes,
+    hasUnsettledBreachFlag: hasUnsettledBreach(s.claims, input.authorId),
+    homeAccessKeywords: homeAccessKeywordsFor(input.basics?.category ?? ""),
+    bans: s.bans,
+  };
+}
+
 export interface OrderSlice {
   /** W5 总装：履约/结算回写位（advanceLifecycle 流转结果落库，驱动
    * toAtomicFiveState 投影 → 顶栏胶囊实时流转）。只增不改：存量字段零触碰。
@@ -231,34 +266,9 @@ export const createOrderSlice: StateCreator<WaveStore, [], [], OrderSlice> = (
     })),
 
   publishWave: (input) => {
-    // 统一发布准入引擎（Step1 下沉）：修复先在不一致——免费路径补齐甄检/欠款/未成年闸
-    const roam = useRoamStore.getState();
-    const ident = useIdentityStore.getState();
-    const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
-    const recentPublishes = myWaves.filter(
-      (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
-    ).length;
-    const scanText = [
-      input.basics?.category ?? "",
-      ...(input.customs ?? []).map((c) => c.text),
-      input.negotiableNote ?? "",
-    ].join(" ");
-    const admission = evaluatePublishAdmission({
-      authorId: input.authorId,
-      scanText,
-      amountYuan: input.budget ?? 0,
-      category: input.basics?.category,
-      bindings: roam.bindings,
-      deviceId: roam.deviceId,
-      roamRuleParams: roamParams(),
-      birthYear: ident.identity.birthYear,
-      guardianConsent: ident.identity.guardianConsent,
-      creditScore: (ident.creditTier ?? 3) * 200,
-      recentPublishCount: recentPublishes,
-      hasUnsettledBreachFlag: hasUnsettledBreach(get().claims, input.authorId),
-      homeAccessKeywords: homeAccessKeywordsFor(input.basics?.category ?? ""),
-      bans: get().bans,
-    });
+    const admissionInput = buildAdmissionInput(input, get);
+    const admission = evaluatePublishAdmission(admissionInput);
+    const scanText = admissionInput.scanText;
     if (admission.auditEvents.length > 0) {
       set((s) => ({
         sentinelEvents: [...s.sentinelEvents, ...admission.auditEvents],
@@ -323,34 +333,9 @@ export const createOrderSlice: StateCreator<WaveStore, [], [], OrderSlice> = (
   },
 
   createPendingWave: (input) => {
-    // 统一发布准入引擎（Step1 下沉 base/risk/admission）：封禁/甄检/欠款/未成年四闸一次判定
-    const roam = useRoamStore.getState();
-    const ident = useIdentityStore.getState();
-    const myWaves = get().waves.filter((w) => w.authorId === input.authorId);
-    const recentPublishes = myWaves.filter(
-      (w) => w.createdAt > Date.now() - 7 * 24 * 3600_000
-    ).length;
-    const scanText = [
-      input.basics?.category ?? "",
-      ...(input.customs ?? []).map((c) => c.text),
-      input.negotiableNote ?? "",
-    ].join(" ");
-    const admission = evaluatePublishAdmission({
-      authorId: input.authorId,
-      scanText,
-      amountYuan: input.budget ?? 0,
-      category: input.basics?.category,
-      bindings: roam.bindings,
-      deviceId: roam.deviceId,
-      roamRuleParams: roamParams(),
-      birthYear: ident.identity.birthYear,
-      guardianConsent: ident.identity.guardianConsent,
-      creditScore: (ident.creditTier ?? 3) * 200,
-      recentPublishCount: recentPublishes,
-      hasUnsettledBreachFlag: hasUnsettledBreach(get().claims, input.authorId),
-      homeAccessKeywords: homeAccessKeywordsFor(input.basics?.category ?? ""),
-      bans: get().bans,
-    });
+    const admissionInput = buildAdmissionInput(input, get);
+    const admission = evaluatePublishAdmission(admissionInput);
+    const scanText = admissionInput.scanText;
     if (admission.auditEvents.length > 0) {
       set((s) => ({
         sentinelEvents: [...s.sentinelEvents, ...admission.auditEvents],
