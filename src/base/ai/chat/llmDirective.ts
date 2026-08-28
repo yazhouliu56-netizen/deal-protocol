@@ -10,6 +10,8 @@ export interface LlmDirective {
   need?: Partial<Record<"level" | "partySize" | "area" | "budget" | "style", string | number>>;
 }
 
+import { safeParseDirective } from "../schema/directive-schema.ts";
+
 export const NEED_KEYS: Array<"level" | "partySize" | "area" | "budget" | "style"> = [
   "level",
   "partySize",
@@ -21,33 +23,21 @@ export const NEED_KEYS: Array<"level" | "partySize" | "area" | "budget" | "style
 /** Extract the first strict JSON object from the model reply (strip fences). DI 注入可用品类表，红线 3 不反向 import ammo。 */
 export function parseDirective(
   raw: string,
-  opts?: { availableCategories?: string[] }
+  opts?: { availableCategories?: string[] },
 ): LlmDirective | null {
-  const cleaned = raw.replace(/```(?:json)?/gi, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  if (start < 0 || end <= start) return null;
-  try {
-    const obj = JSON.parse(cleaned.slice(start, end + 1));
-    if (
-      typeof obj !== "object" ||
-      obj === null ||
-      typeof obj.text !== "string" ||
-      !["ask", "slots", "done"].includes(obj.action)
-    ) {
-      return null;
-    }
-    let category: string | null = typeof obj.category === "string" ? obj.category : null;
-    if (category && opts?.availableCategories && opts.availableCategories.length > 0) {
-      if (!opts.availableCategories.includes(category)) category = null;
-    }
-    const need: LlmDirective["need"] = {};
+  const result = safeParseDirective(raw, opts);
+  if (!result.success) return null;
+  const { text, action, category, need } = result.data;
+  // 保持原契约：need 缺省时返回空对象，避免下游 for…of 空指针差异（条文 #2 兼容）
+  // 同时过滤非 NEED_KEYS 的动态槽位（零硬编码，但历史 need 白名单收敛）
+  const filteredNeed: LlmDirective["need"] = {};
+  if (need) {
     for (const key of NEED_KEYS) {
-      const v = obj.need?.[key];
-      if (v !== undefined && v !== null) need[key] = v as never;
+      const v = (need as Record<string, unknown>)[key];
+      if (v !== undefined && v !== null) (filteredNeed as Record<string, unknown>)[key] = v as never;
     }
-    return { text: obj.text, action: obj.action, category, need };
-  } catch {
-    return null;
+    // 若 need 为空对象，则保持 undefined 以兼容空输入语义（原实现返回 {} 但下游均判空）
+    if (Object.keys(filteredNeed).length === 0) return { text, action, category, need: filteredNeed };
   }
+  return { text, action, category, need: filteredNeed };
 }
