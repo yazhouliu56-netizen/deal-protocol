@@ -10,7 +10,9 @@
  */
 
 import type { WaveBundle } from "@/types/wave-bundle";
+import type { Wave } from "../../base/order/wave.ts";
 import { createSupabaseTransport } from "@/adapters/p2p/supabase";
+import { mergeWave, mergeClaimLists } from "../../base/order/state-crdt.ts";
 
 export interface P2pTransport {
   kind: "local" | "supabase";
@@ -145,6 +147,33 @@ export function createLocalTransport(ns: string = DEFAULT_P2P_NS): P2pTransport 
 }
 
 /**
+ * P2-2 CRDT 委托：waves/claims 按 base/order/state-crdt 确定性合并（终局>version>LWW>rank>id），
+ * 确保交换/幂等/结合三律。其余集合维持原 next-wins 并集语义，stale 快照防回退由 CRDT 已覆盖。
+ */
+function mergeWavesViaCrdt(a: Wave[], b: Wave[]): Wave[] {
+  const ids = new Set<string>([...a.map((w) => w.id), ...b.map((w) => w.id)]);
+  const map = new Map<string, Wave>();
+  for (const id of ids) {
+    const wa = a.find((w) => w.id === id);
+    const wb = b.find((w) => w.id === id);
+    if (wa && wb) map.set(id, mergeWave(wa, wb));
+    else map.set(id, (wa ?? wb) as Wave);
+  }
+  // 排序按 seq 确保 newest 在末尾（兼容 e2e-four-ammos at(-1) 期望），seq 相等则按 createdAt/id 确保交换律
+  const seqOf = (id: string) => {
+    const n = parseInt(id.split("-")[1] ?? "0", 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+  return [...map.values()].sort((x, y) => {
+    const sx = seqOf(x.id);
+    const sy = seqOf(y.id);
+    if (sx !== sy) return sx - sy;
+    const d = (x.createdAt ?? 0) - (y.createdAt ?? 0);
+    return d !== 0 ? d : x.id.localeCompare(y.id);
+  });
+}
+
+/**
  * id 级合并：以 `base` 为底，`next` 的同 id 覆盖 base；`next` 的新 id 追加。
  * record 字段按 key 合并（next 优先，但保留 base 中 next 未涉及的 key）。
  * `stale=true`（incoming 是早态快照）时同 id 以 base 为准（不覆盖回退），
@@ -186,8 +215,8 @@ export function mergeByIdLevel(
     ...(next.friendRequestRemovals ?? []),
   ]);
   return {
-    waves: byId(base.waves ?? [], next.waves ?? []),
-    claims: byId(base.claims ?? [], next.claims ?? []),
+    waves: mergeWavesViaCrdt(base.waves ?? [], next.waves ?? []),
+    claims: mergeClaimLists(base.claims ?? [], next.claims ?? []),
     payOrders: byId(base.payOrders ?? [], next.payOrders ?? []),
     responders: byId(base.responders ?? [], next.responders ?? []),
     reviews: byId(base.reviews ?? [], next.reviews ?? []),
