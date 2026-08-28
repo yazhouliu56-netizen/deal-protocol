@@ -3,10 +3,10 @@
  *
  * 硬化裁决固化（H1~H5 + C1-A）：
  *  - H1/H3：终局优先 > CAS version > 有效时钟 LWW > 状态秩 > ID 字典序
- *  - H2：有效时钟严禁补字段；wave: version>0?version:max(expiresAt,startsAt,createdAt)；claim: max(serviceDoneAt,fulfilledAt,createdAt)
+ *  - H2：有效时钟严禁补字段；wave: version>0?version:max(createdAt,startsAt,expiresAt)；claim: max(serviceDoneAt,fulfilledAt,createdAt)
  *  - H4：claims/waitlist/joinRequests 按 id/responderId Map 并集 + 单项 LWW
  *  - H5：bizParams 一层浅合并（冲突键以时钟大者覆盖，时钟相等则 JSON 字典序大者），metadata.biddingSettled 以 at 大者为准
- *  - 纯函数：零 fetch/localStorage/navigator/@supabase，零 Store/UI 反向依赖
+ *  - 纯函数：零 I/O 与浏览器存储，零 Store/UI 反向依赖
  */
 
 import type { Wave, WaveMetadata, Claim } from "./wave.ts";
