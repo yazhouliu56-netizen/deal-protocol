@@ -136,11 +136,13 @@
 | **Microkernel 2.0 战役 2 · 底座纯度物理大分流与六边形架构落地** | ✅ `6765775`：① ~40 文件 R92-R100 平移 src/adapters/ 九子域（p2p/gateway/payment/device/geo/notify/ui/social/ai 全外联面出清底座）；② 六边形端口 ×2（lbs-port 纯兜底+注入 / llm-port 端口+七路由组合根装配，bi/forgery 接缝改造）；③ 注入手术 ×3（pii-crypto 密钥显式注入 / credit-formula now 参 / anti-fraud 实证零代码违规仅注释中性化）；④ **ESLint 物理门禁八项全禁**上线即抓获 2 处漏网反向边；⑤ vitest 排除 adapters/**；⑥ 终态 grep 八词字面归零；⑦ 考卷台账磁盘对账零差集；门禁 tsc 0 + lint 0 + **1697 全绿** (652+1045) + build 0 + verify-prod 13/13 + four-ammos PASS + 收敛 exit 0（43 rename 登记） | 2026-08-26 |
 | **Microkernel 2.0 战役 5 · 支付 Provider 统一与测试跑道合并治理（终局收官）** | ✅ `32888ef`：① P1-5 支付通道归一（Registry + IPaymentProvider 三法归一 + queryStatus可选；Stripe 逐字平移 + Alipay/WeChat 薄壳委托 PaymentManager；沙盒通道平移至 adapters/payment/alipay-sandbox-channel.ts + wechat-pay-service.ts 并注册 sandbox 变体；彻底出清 lib/payment.ts + 5 处调用方改道；存量 refund 死路→确定性失败守恒）；② P2-7 巨石瘦身（route.ts 645→18 行委托壳 + _handlers 三文件分治，HTTP 契约守恒）；③ P2-7 白名单地雷终结（run-oto-units.mjs Glob 扫描 base/adapters/ammo 三域 103 文件 + wiring.test.ts 孤儿复活修正 dating→companion +7；package.json 白名单 102→1 行）；门禁 tsc 0 + lint 0 + **1729 全绿** (670+1059) + build 0 + verify-prod 13/13 + four-ammos 5/5 + 收敛 exit 0（0 rename 因 shim 垫片兼容，纯新增文件无登记需求） | 2026-08-26 |
 
+| **P2-1-OpenAPI · 弹药全息自描述 OpenAPI 3.0.3 动态生成引擎与路由落地** | ✅ `0d97fcd`：① 新建 `src/base/openapi/generator.ts` 纯函数引擎（normalizeFormSchema 双形态归一 `fields[]`/`{key:{type}}` + 非法 type 保底 string + 单字段异常隔离 + 字典序稳定化 + per-ammo 异常隔离）；② 新建 `src/app/api/openapi.json/route.ts` 薄层（`export const dynamic='force-dynamic'` + `revalidate=0` + `Cache-Control: public, max-age=60, stale-while-revalidate=300` + 异常兜底空骨架，路由层 `listRegisteredAmmos()` 入参注入守红线 3）；③ 单测 `src/base/openapi/generator.test.ts` 12 例（5官方全量 `housekeeping-v1`/`meetup-social-v1`/`companion-v1`/`appliance-repair-v1`/`pet-boarding-v1` + 动态热注即时反射 + 双形态 + 非法保底 + 空池兜底 + 确定性字典序）；④ 物理实证 `curl /api/openapi.json` 200 `openapi:3.0.3` + 5官方 `enum` + `Cache-Control 60/300`；⑤ Base 纯度 `git grep -E "fetch|localStorage|navigator|@supabase" -- src/base` 0 行 + `@/ammo` 0 行；门禁 tsc 0 + lint 0/0 + **1805/1805 全绿**（vitest 681 + node:test 1124，+12）+ build exit 0（`ƒ /api/openapi.json` 动态）+ verify-prod 12/13（offline 单跑 PASS）+ four-ammos 5/5(6) + roam 5/5 + check:convergence exit 0（≤4 文件：generator.ts/route.ts/generator.test.ts） | 2026-08-28 |
+
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1793/1793 全绿 · 0 skipped**（`npm test` = vitest 681 + node:test 1112；2026-08-27 E2E 启动器单源收敛 + PublishSheet 真实 Toast 去噪，基线 1791→1793） |
+| 单测 | **1805/1805 全绿 · 0 skipped**（`npm test` = vitest 681 + node:test 1124；2026-08-28 P2-1-OpenAPI 弹药自描述 OpenAPI 动态生成，基线 1793→1805，+12） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -185,7 +187,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-27 ｜ HEAD：`d0b33ba`（E2E 启动器单源收敛 · P1-4 + 1793 基线封盘）｜ 摘要：scripts/lib/e2e-channel.mjs 单源收敛（getE2eBaseUrl + getDefaultLaunchOptions args 去重合并 + PLAYWRIGHT_CHANNEL 内聚）+ 16 脚本硬编码出清 + PublishSheet 真实 Toast 去噪（high 单次/roam 单次/watch 0 次 jsdom spy）；基线 **1793 全绿** (681+1112，+2)；门禁 tsc 0 + lint 0 + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + e2e-roam 5/5 + check:convergence exit 0 + Zero Base 0（src/base 零行）
+> 日期：2026-08-28 ｜ HEAD：`0d97fcd`（P2-1-OpenAPI 弹药自描述 OpenAPI 3.0.3 动态生成）｜ 摘要：src/base/openapi/generator.ts 纯函数引擎（normalizeFormSchema 双形态 + 字典序稳定化 + per-ammo 异常隔离）+ src/app/api/openapi.json/route.ts（force-dynamic + revalidate=0 + Cache-Control 60/300 + 异常兜底空骨架）+ 12 例单测（5官方 full + 动态热注反射 + 空池兜底 + 确定性）；基线 **1805 全绿**（vitest 681 + node:test 1124，+12）；门禁 tsc 0 + lint 0/0 + build 0（ƒ /api/openapi.json 动态）+ verify-prod 12/13（offline 单跑 PASS）+ four-ammos 5/5 + roam 5/5 + curl 3.0.3 + 5官方 enum + check:convergence exit 0 + Zero Base 0（src/base 零行 + @/ammo 零行）
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
