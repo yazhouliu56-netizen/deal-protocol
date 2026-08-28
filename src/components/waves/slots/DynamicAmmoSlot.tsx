@@ -10,6 +10,7 @@ import type {
 import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/controls/ProofCamera";
+import DuoButton from "@/components/ui/DuoButton";
 
 /**
  * 长尾动态弹药通用履约插槽（Dynamic Ammo Slot · 自适应 theme-dynamic）。
@@ -332,9 +333,9 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 Before 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-before" onClick={() => openCapture("before")}>
-                  拍照打卡
-                </button>
+                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-before" data-testid="proof-camera-trigger" onClick={() => openCapture("before")} className="rounded-xl">
+                  📸 拍照打卡
+                </DuoButton>
               </>
             )}
           </div>
@@ -351,9 +352,9 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 After 待拍摄</span>
-                <button type="button" className="dyn-photo-btn" data-action="proof-after" onClick={() => openCapture("after")}>
-                  拍照打卡
-                </button>
+                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-after" data-testid="proof-camera-trigger" onClick={() => openCapture("after")} className="rounded-xl">
+                  📸 拍照打卡
+                </DuoButton>
               </>
             )}
           </div>
@@ -392,14 +393,18 @@ export default function DynamicAmmoSlot({
         </div>
       )}
 
-      <button
-        type="button"
-        className="dyn-dispute"
+      <DuoButton
+        variant="outline"
+        size="md"
+        sound="click"
+        fullWidth
         data-action="dispute"
+        data-testid="dispute-entry"
         onClick={() => onActionClick?.("dispute")}
+        className="rounded-xl"
       >
         ⚖️ 申请调解 / 申诉
-      </button>
+      </DuoButton>
 
       {capturing && (
         <div className="dyn-proof-modal" data-testid="dyn-proof-modal" onClick={() => setCapturing(null)}>

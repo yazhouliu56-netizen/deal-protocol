@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import DuoButton from "./DuoButton";
 import DuoProgress from "./DuoProgress";
+import DuoPathNode from "./DuoPathNode";
 
 describe("DuoButton 3D 触觉原子", () => {
   it("默认 primary 变体渲染（4px 底边 + 白字 + data-variant）", () => {
@@ -55,5 +56,26 @@ describe("DuoProgress 糖果条", () => {
   it("高光白条存在（糖果质感）", () => {
     const html = renderToStaticMarkup(<DuoProgress value={40} />);
     expect(html).toContain("bg-white/40");
+  });
+});
+
+describe("DuoPathNode 通关地图节点", () => {
+  it("三态渲染（completed/current/locked）与气泡", () => {
+    const done = renderToStaticMarkup(<DuoPathNode status="completed" step={1} title="已接单" />);
+    expect(done).toContain('data-status="completed"');
+    expect(done).toContain("已接单");
+
+    const cur = renderToStaticMarkup(<DuoPathNode status="current" step={2} title="履约中" />);
+    expect(cur).toContain('data-status="current"');
+    expect(cur).toContain("进行中");
+
+    const locked = renderToStaticMarkup(<DuoPathNode status="locked" step={3} title="待验收" />);
+    expect(locked).toContain('data-status="locked"');
+    expect(locked).toContain("待验收");
+  });
+
+  it("offsetX 蛇形位移透传", () => {
+    const html = renderToStaticMarkup(<DuoPathNode status="current" step={2} offsetX={-8} />);
+    expect(html).toContain("translateX(-8px)");
   });
 });

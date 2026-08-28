@@ -8,6 +8,12 @@ import type {
 } from "@/types/ammo-schema";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { CockpitAmmoSlot, type CockpitSlotActions } from "./slots/DynamicAmmoSlot";
+import DuoButton from "@/components/ui/DuoButton";
+import DuoProgress from "@/components/ui/DuoProgress";
+import DuoPathNode from "@/components/ui/DuoPathNode";
+import { playDuoSound } from "@/lib/duo-audio";
+import { fireDuoConfetti } from "@/lib/duo-confetti";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import {
   SCENARIO_THEME_META,
   describeCompletionCta,
@@ -205,6 +211,8 @@ export default function FulfillmentCockpit({
   const armed = forceArmed === true;
   const customTags = describeCustomRequirementTags(customRequirements);
   const customCleanText = customRequirements?.cleanText ?? "";
+  const mounted = useMountedNow();
+  const totalAmount = milestones?.totalAmountYuan ?? 0;
 
   return (
     <div className="cockpit" data-scenario={scenario} data-theme={cockpitTheme}>
@@ -216,6 +224,26 @@ export default function FulfillmentCockpit({
       <div className="cockpit-theme" data-theme-label>
         🎨 场景主题 · {theme.label}
       </div>
+
+      {/* Phase 1.3 Feather：天蓝资金守护盾 + 糖果进度 + 通关地图 */}
+      {totalAmount > 0 && (
+        <section
+          data-testid="cockpit-asset-shield"
+          className="rounded-2xl bg-[#ddf4ff] border border-[#1cb0f6] border-b-[4px] px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
+        >
+          💼 Deal 官方资金全额托管中 · ¥{totalAmount} (未完工不放款 🛡️)
+        </section>
+      )}
+      {mounted && milestones && milestones.items.length > 0 && (
+        <section data-testid="cockpit-sla-progress">
+          <DuoProgress value={60} max={100} />
+        </section>
+      )}
+      <section data-testid="cockpit-path" className="flex items-center justify-between gap-2">
+        <DuoPathNode status="completed" step={1} title="已接单" />
+        <DuoPathNode status="current" step={2} title="履约中" offsetX={-2} />
+        <DuoPathNode status="locked" step={3} title="待验收" offsetX={2} />
+      </section>
 
       {/* 阶段4：引信自适应升级（PROXIMITY_ENHANCED）→ 强化安全守护条 */}
       {armed && (
@@ -303,14 +331,26 @@ export default function FulfillmentCockpit({
         />
       )}
 
-      <button
-        type="button"
-        className="cockpit-cta"
+      <DuoButton
+        variant="primary"
+        size="lg"
+        sound="correct"
+        fullWidth
         data-action="complete"
-        onClick={onComplete}
+        data-testid="complete-cta"
+        onClick={() => {
+          try {
+            playDuoSound("correct");
+          } catch {}
+          try {
+            fireDuoConfetti();
+          } catch {}
+          onComplete?.();
+        }}
+        className="rounded-2xl"
       >
         {cta}
-      </button>
+      </DuoButton>
     </div>
   );
 }

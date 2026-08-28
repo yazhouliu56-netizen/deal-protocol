@@ -101,3 +101,12 @@ export function __resetDuoAudioForTest(): void {
   ctx = null;
   unlocked = false;
 }
+
+/** Spec 别名：playDuoSound(kind) 代理（Phase 1.3 契约对齐，兜底静默） */
+export function playDuoSound(kind: "click" | "correct" | "error" | "none" = "click"): void {
+  try {
+    if (kind === "correct") playCorrect();
+    else if (kind === "error") playError();
+    else if (kind === "click") playClick();
+  } catch {}
+}
