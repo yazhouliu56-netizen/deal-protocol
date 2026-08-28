@@ -12,6 +12,7 @@ import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import { visibleGuests } from "@/base/order/guest";
+import GenericOrderCard from "./GenericOrderCard";
 
 /**
  * 响应者视角：我接的单（claim story）。
@@ -154,7 +155,7 @@ export default function MyClaims() {
           ).length;
 
           return (
-            <div key={claim.id} className="glass-panel rounded-3xl p-4 space-y-2.5">
+            <GenericOrderCard key={claim.id} waveId={wave.id}>
               {/* 概要 */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -394,7 +395,7 @@ export default function MyClaims() {
                   违约记录 · 已影响信用与额度
                 </p>
               )}
-            </div>
+            </GenericOrderCard>
           );
         })}
       </div>

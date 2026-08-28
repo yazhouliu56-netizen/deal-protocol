@@ -17,6 +17,7 @@ import AcceptancePanel from "./AcceptancePanel";
 import ShareKit from "./ShareKit";
 import DiagnosisCard from "./DiagnosisCard";
 import AttendancePanel from "./AttendancePanel";
+import GenericOrderCard from "./GenericOrderCard";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
@@ -147,7 +148,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
           const lockSeats = wave.status === "assembled" ? assembledClaims : [];
 
           return (
-            <div key={wave.id} className="glass-panel rounded-3xl p-4 space-y-2.5">
+            <GenericOrderCard key={wave.id} waveId={wave.id}>
               {/* 平台下架态 */}
               {wave.removed && (
                 <p className="text-xs font-bold text-red-300/90 flex items-center gap-1.5">
@@ -368,7 +369,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 wave.createdAt < now - 2 * 60_000 && (
                   <DiagnosisCard wave={wave} />
                 )}
-            </div>
+            </GenericOrderCard>
           );
         })}
       </div>
