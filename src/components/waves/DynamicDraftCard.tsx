@@ -241,6 +241,35 @@ export function describeWarrantyBadge(ammo: IAmmoDefinition): string | null {
   return `⏱️ ${hours}h 质保验收`;
 }
 
+/**
+ * Microkernel 4.2 #2 · 成本透视（Cost Guide · 宪法 #5 引信跟弹药）：
+ * D2 pricingModel → 人话市场参考（纯函数，0 I/O）。
+ * 空值安全：未知 kind 返回 null（不渲染）。
+ */
+export function describePricingGuide(model: PricingModel): string | null {
+  switch (model.kind) {
+    case "FIXED":
+      return `💡 市场参考：¥${model.amountYuan} 一口价`;
+    case "HOURLY":
+      return `💡 市场参考：¥${model.rateYuan}/小时 × ${model.minHours}小时起`;
+    case "PER_SEAT":
+      return `💡 市场参考：¥${model.perSeatYuan}/人 · ${model.minSeats}人起 · AA均摊`;
+    case "FORMULA":
+      return `💡 市场参考：上门检测 ¥${Number(model.params?.baseRate ?? 30).toFixed(0)} 起 + 按公式计价`;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Microkernel 4.2 #2 · 保障徽章（Assurance Badge · 宪法 #5）：
+ * D3 fuzePolicy → 人话资金与风险保障（纯函数，财产险有无条件分支）。
+ */
+export function describeAssuranceBadge(fuze: IFuzePolicy): string {
+  const insurance = fuze.propertyInsurance ? "财产险先行赔付 · " : "";
+  return `🛡️ 平台全额托管 · 完工前资金不落服务者 · ${insurance}争议 100% 证据包定责`;
+}
+
 const DRAFT_CSS = `
 .draft-card{position:relative;max-width:420px;border-radius:20px;padding:18px 18px 14px;
   background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.05));
@@ -293,6 +322,8 @@ const DRAFT_CSS = `
 .draft-adj-reset{border:none;background:none;color:#cbd5e1;font-size:12px;cursor:pointer;
   padding:4px 6px;border-radius:6px;font-weight:500}
 .draft-adj-reset:hover{color:#e2e8f0;background:rgba(255,255,255,.08)}
+.draft-card-guide{margin:6px 0 4px;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600;color:#cbd5e1;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.12)}
+.draft-card-assurance{margin:4px 0 8px;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600;color:#a7f3d0;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22)}
 /* 深压 CTA 反馈：点击涟漪 + 按压内缩 */
 .draft-card-cta{position:relative;overflow:hidden}
 .draft-card-cta:active{transform:scale(.97)}
@@ -315,6 +346,8 @@ export default function DynamicDraftCard({
   // 中文别名（如「修空调」）在发布面板直拨 appliance-repair-v1 整弹而非聚合保底。
   const definition = ammo ?? getAmmoById(resolveAmmoIdForPublish(category));
   const priceText = describePricing(resolveDraftPricing(definition));
+  const pricingGuide = describePricingGuide(resolveDraftPricing(definition));
+  const assuranceBadge = describeAssuranceBadge(definition.fuzePolicy);
   const badges = describeSafetyBadges(definition.fuzePolicy);
   const warrantyBadge = describeWarrantyBadge(definition);
   if (warrantyBadge) badges.push(warrantyBadge);
@@ -530,6 +563,14 @@ export default function DynamicDraftCard({
             {liveEstimate}
           </span>
         )}
+      </div>
+      {pricingGuide && (
+        <div className="draft-card-guide" data-testid="pricing-guide">
+          {pricingGuide}
+        </div>
+      )}
+      <div className="draft-card-assurance" data-testid="assurance-badge">
+        {assuranceBadge}
       </div>
       {badges.length > 0 && (
         <div className="draft-card-badges">

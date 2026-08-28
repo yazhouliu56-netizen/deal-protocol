@@ -138,6 +138,12 @@ export interface Wave {
   fissionBy?: string[];
   /** @deprecated 兼容镜像：读取请用 metadata.fissionUpdatedAt（createWave 双向回填）。 */
   fissionUpdatedAt?: number;
+  /**
+   * 定向复雇召唤（Microkernel 4.2 #1 · 宪法 #2 只增不改）：
+   * 需求方定向召唤的历史服务者（优先推送与展示，15min 超时自动退化公海广播，宪法 #10）。
+   * 可选字段，缺省 undefined（既有 Wave 零破坏，公海单同链）。
+   */
+  preferredResponderId?: string;
   /** 组织者把关层（Request to spot，对标 Meetup 成员审批）：true 时拼位须先申请、发起人审批后才占座。 */
   needApproval?: boolean;
   /** 待审批的拼位申请（responderId → 申请时刻）。审批通过才占用座位。 */
@@ -218,6 +224,11 @@ export interface CreateWaveInput {
   /** 复杂任务：发起人确认的模块定义（接单后锁定）。 */
   modules?: import("../ai/decompose").TaskModule[];
   createdAt: number;
+  /**
+   * 定向复雇召唤（Microkernel 4.2 #1 · CreateWave 入参只增不改）：
+   * 指定优先触达的服务者 ID（公海广播保留，不锁死订单）。
+   */
+  preferredResponderId?: string;
   /** 运营/非状态机字段收纳袋（P1-1 权威位；createWave 自动回填根兼容镜像）。 */
   metadata?: WaveMetadata;
   /** @deprecated 兼容镜像入参：请用 metadata.hotness（createWave 收归 metadata）。 */
@@ -284,6 +295,7 @@ export function createWave(input: CreateWaveInput): Wave {
     deposit: input.deposit ?? false,
     capacity: input.capacity ?? 1,
     buffSeats: input.buffSeats,
+    preferredResponderId: input.preferredResponderId,
     needApproval: input.needApproval ?? false,
     joinRequests: input.needApproval ? [] : undefined,
     modules: input.modules,

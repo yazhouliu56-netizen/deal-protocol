@@ -4,13 +4,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import DynamicDraftCard, {
+  describeAssuranceBadge,
   describeFormSchemaFields,
   describeLiveEstimate,
   describePricing,
+  describePricingGuide,
   describeSafetyBadges,
   describeSopAdjusters,
   describeSopParams,
   describeWarrantyBadge,
+  resolveDraftPricing,
   resolveDraftThemeClass,
 } from "@/components/waves/DynamicDraftCard";
 import { registerDynamicAmmo } from "@/ammo/factory";
@@ -322,5 +325,46 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
       expect(html).toContain(`data-category="${pill.label}"`);
       expect(html).toContain("扣动扳机·一键发布");
     }
+  });
+});
+
+describe("DynamicDraftCard Microkernel 4.2 #2 成本透视与保障徽章（全息投影）", () => {
+  it("describePricingGuide 纯函数：四类计价模型 → 人话市场参考", () => {
+    expect(describePricingGuide({ kind: "FIXED", amountYuan: 199 })).toContain("¥199");
+    expect(describePricingGuide({ kind: "HOURLY", rateYuan: 60, minHours: 2 })).toContain("¥60/小时");
+    expect(describePricingGuide({ kind: "PER_SEAT", perSeatYuan: 80, minSeats: 2 })).toContain("¥80/人");
+    expect(describePricingGuide({ kind: "FORMULA", formulaId: "f1", params: { baseRate: 30 } })).toContain("¥30");
+    // D2 实时派生：五大标杆弹药全覆盖（非硬编码文案）
+    for (const key of ["housekeeping", "meetup", "companion", "appliance-repair", "pet-boarding"] as const) {
+      const ammo = getAmmoDefinition(key);
+      const g = describePricingGuide(resolveDraftPricing(ammo));
+      expect(g).toContain("市场参考");
+    }
+  });
+
+  it("describeAssuranceBadge 纯函数：D3 引信 → 保障徽章（含财产险分支）", () => {
+    const hk = getAmmoDefinition("housekeeping");
+    const meetup = getAmmoDefinition("meetup");
+    const hkBadge = describeAssuranceBadge(hk.fuzePolicy);
+    expect(hkBadge).toContain("平台全额托管");
+    expect(hkBadge).toContain("完工前资金不落服务者");
+    expect(hkBadge).toContain("财产险先行赔付");
+    expect(hkBadge).toContain("证据包定责");
+    expect(describeAssuranceBadge(meetup.fuzePolicy)).toContain("平台全额托管");
+    // 无财产险时不含该分句（分支覆盖）
+    expect(describeAssuranceBadge({ ...DEFAULT_FUZE_POLICY, propertyInsurance: false })).not.toContain("财产险");
+  });
+
+  it("草稿卡渲染含成本透视与保障徽章（预算行下方优雅呈现）", () => {
+    const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
+    expect(html).toContain('data-testid="pricing-guide"');
+    expect(html).toContain("市场参考");
+    expect(html).toContain('data-testid="assurance-badge"');
+    expect(html).toContain("平台全额托管");
+    expect(html).toContain("证据包定责");
+    // 未知品类回落保底弹药同样渲染（接口保守，不抛空）
+    const fallback = renderToStaticMarkup(<DynamicDraftCard category="不存在品类" />);
+    expect(fallback).toContain('data-testid="pricing-guide"');
+    expect(fallback).toContain('data-testid="assurance-badge"');
   });
 });

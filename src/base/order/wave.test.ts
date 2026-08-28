@@ -540,4 +540,21 @@ test("P1-1 脱水：兼容入参 hotness 收归 metadata + 状态机跃迁对 me
   assert.equal(plain.hotness, undefined);
 });
 
+test("Microkernel 4.2 #1：preferredResponderId 定向 summon（只增不改）", () => {
+  const wave = baseWave({ preferredResponderId: "wangjie" } as never);
+  assert.equal(wave.preferredResponderId, "wangjie");
+  assert.equal(wave.status, "active");
+  // 既有单零破坏：缺省 undefined 即公海单
+  const publicWave = baseWave();
+  assert.equal(publicWave.preferredResponderId, undefined);
+});
+
+test("Microkernel 4.2 #1：定向单天然公海化（不锁死，可被他人抢单）", () => {
+  const wave = baseWave({ preferredResponderId: "wangjie" } as never);
+  // openClaim 不校验 preferredResponderId，非王姐仍可接单（宪法 #10 降级）
+  const { claim } = claimDirect(wave, "otherRespond", "claim-x", 80);
+  assert.equal(claim.responderId, "otherRespond");
+  assert.equal(wave.preferredResponderId, "wangjie");
+});
+
 
