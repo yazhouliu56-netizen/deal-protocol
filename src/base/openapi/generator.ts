@@ -2,13 +2,13 @@
  * P2-1-OpenAPI · 纯函数 OpenAPI 3.0.3 生成器（base/openapi，红线 3 零反向依赖）。
  *
  * 职责：IAmmoDefinition[]（由路由层 listRegisteredAmmos() 注入）→ OpenAPIDocument 纯数据。
- * 严禁 import @/ammo/* 或 @/adapters/*，入参即全部真理源（宪法 #1/#4，红线 3）。
+ * 严禁 import ammo registry 或 adapters，入参即全部真理源（宪法 #1/#4，红线 3）。
  */
 
 import type { IAmmoDefinition } from "../../types/ammo-schema.ts";
 import type { IFuzePolicy } from "../../types/fuze-policy.ts";
 
-// @/ammo/* 禁止 import — 纯函数入参注入（红线 3）
+// ammo registry 禁止 import — 纯函数入参注入（红线 3）
 
 export interface OpenAPIDocument {
   openapi: string;
