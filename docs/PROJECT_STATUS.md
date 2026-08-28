@@ -143,12 +143,13 @@
 | **4.1-2 · Store 瘦身：orderSlice 4 闸委托统一准入引擎** | ✅ `27e6501`：抽取 `buildAdmissionInput(get)` 单点构建（`roam/bindings + identity/birthYear + creditScore + recentPublishes + hasUnsettledBreach + homeAccessKeywords`），`publishWave/createPendingWave` 双入口 100% 委托 `evaluatePublishAdmission`，`allowed → blockedReason` 硬阻断后 `sensitiveHit → removed + autoReport` 先挡后审；`orderSlice.ts` 1125 行（-50 行，47+ / 62-）；门禁 tsc 0 + lint 0/0 + **1854/1854 全绿** + build 0 + verify-prod 13/13 + four-ammos 6/6 + roam 5/5 + verify-first-principle ALL PASS + check:convergence 0（≤1 文件：orderSlice.ts） | 2026-08-28 |
 | **4.1-3 · 巨石解构：page.tsx 拆壳 ≤250 行 + GenericOrderCard 提炼** | ✅ `87b8e0d`：① `page.tsx` 1158→93 行（-92%，抽 `HomePage/MessagesPage/ARPage/TripPage/SandboxBotHost` + `HomeTickerMarquee/HomeModalContainer` 至 `_components/`，壳仅保留外骨骼 + Suspense）；② 新建 `GenericOrderCard.tsx` 纯展示壳（0 业务分支，`useMountedNow` 水合保护）；③ `MyWaves/MyClaims` 复用 `GenericOrderCard` 容器（`children` 注入特化按钮，出勤/拼位/争议 0 分支）；门禁 tsc 0 + lint 0/0 + **1854/1854 全绿** + build 0（97 页）+ verify-prod 13/13 + four-ammos 6/6 + roam 5/5 + verify-first-principle ALL PASS + check:convergence 0（11 文件：page + 7 _components + GenericOrderCard + MyWaves/MyClaims） | 2026-08-28 |
 | **4.1-4 · 终态封盘：第一性原理门禁固化 CI + v4.1.0-factory-pure 打标** | ✅ `0de692d`：① `package.json` 挂载 `check:first-principle`；② `ci.yml` unit-tests-and-lint job ESLint 后插入第一性原理物理门禁 step（硬编码提示词归零 + Base 0 Store 引用，机器级阻断）；③ 全量门禁复跑：tsc 0 + lint 0/0 + check:first-principle ALL PASS + **1854/1854 全绿** + build 0（97 页）+ verify-prod **13/13 PASS（600s 完整跑满不截断，dual-role-human 全链水合零告警）** + four-ammos 6/6 + roam 5/5 + convergence 0；④ 打标 `v4.1.0-factory-pure` 锚定文档 commit（Microkernel 4.1 四批次大满贯：`554cdc9` 工厂归位 → `27e6501` Store 瘦身 → `87b8e0d` 巨石解构 → `0de692d` 门禁固化） | 2026-08-28 |
+| **P3.1-1 · 通信外漏与防跳单拦截引擎（Anti-Disintermediation）** | ✅ `1cd3f67`：① 新建 `src/base/risk/contact-leak.ts` 纯函数核（`detectContactLeaks` + `maskContactLeaks`：PHONE 锚定 `1[3-9]` 前缀容错空格/短横线 → `138****5678`；WECHAT 高频前缀 vx/wx/威信/薇信/加微+号/是+ID → `[微信号已脱敏]`；QQ 强制前缀 qq/扣扣/企鹅 → `[QQ号已脱敏]`；EMAIL → `a***@domain`；URL → `[外部链接已拦截]`；防误杀白名单：日期/金额/长编号放行；畸形输入 0ms 容错）；② 双高频口接线：`platformSlice.sendIm`（IM 私信）+ `wave.counterOffer`（磋商留言）原地脱敏（遮蔽+警示，零字段扩充，状态机 0 改动）；③ 考卷 `contact-leak.test.ts` 14 例（合法放行/五类命中/变体/白名单/混合去重/空与畸形边界）；**基线 1854→1868 全绿**（vitest 681 + node:test 1187，+14）；门禁 tsc 0 + lint 0/0 + verify-first-principle ALL PASS + build 0（97 页）+ verify-prod 13/13（600s 跑满）+ four-ammos 6/6 + roam 5/5 + convergence 0 + Base 纯度 0 行（4 文件：contact-leak.ts/test + platformSlice + wave） | 2026-08-28 |
 
 ## 四、验证基线
 
 | 项 | 当前值 |
 |----|--------|
-| 单测 | **1854/1854 全绿 · 0 skipped**（`npm test` = vitest 681 + node:test 1173；2026-08-28 P2-3 Zod 意图校验核 + 27 例脏数据考卷，基线 1827→1854，+27） |
+| 单测 | **1868/1868 全绿 · 0 skipped**（`npm test` = vitest 681 + node:test 1187；2026-08-28 P3.1-1 通信外漏拦截引擎 + 14 例考卷，基线 1854→1868，+14） |
 | Lint | ✅ **exit 0 · 0 errors / 0 warnings 全清零**（2026-08-22 回锁战役：13 条降级规则全部恢复 error 强制门禁并保留 `^_` 三豁免选项；`src/base/**` 与 `src/ammo/**` 移出 globalIgnores 正式纳管 193 个微内核核心文件；历史「726 warnings / 239 处降级」系过期快照，开工前实测仅 43 处且当日全量清零，快照存档 [`docs/LINT-CAMPAIGN-20260822-SNAPSHOT.txt`](LINT-CAMPAIGN-20260822-SNAPSHOT.txt)） |
 | TypeScript | tsc 全绿（根 + 子项目） |
 | E2E 脚本 | ✅ **verify-prod 13/13 全绿（2026-08-26 双清零战役实测，含 e2e-dual-role-human 第 13 演练项裸跑 PASS——#418 容忍过滤器已物理摘除，零水合警告）**；e2e-four-ammos 为独立弹药考卷另行校验通过 |
@@ -193,7 +194,7 @@
 
 # LAST_SYNC
 
-> 日期：2026-08-28 ｜ HEAD：`0de692d`（4.1-4 终态封盘：check:first-principle 固化 package.json + CI，v4.1.0-factory-pure 打标）｜ 摘要：Microkernel 4.1 四批次大满贯封账——`554cdc9` 工厂归位（HOT_HINTS 动态化 + 预算单源）→ `27e6501` Store 瘦身（双入口委托统一准入引擎）→ `87b8e0d` 巨石解构（page.tsx 1158→93 行 + GenericOrderCard 纯展示壳）→ `0de692d` 门禁固化（CI 机器级阻断）；基线 **1854 全绿**（681+1173）；门禁 tsc 0 + lint 0/0 + check:first-principle ALL PASS + build 0（97 页）+ verify-prod 13/13（600s 完整跑满）+ four-ammos 6/6 + roam 5/5 + convergence 0 + Zero Base 0
+> 日期：2026-08-28 ｜ HEAD：`1cd3f67`（P3.1-1 通信外漏与防跳单拦截引擎）｜ 摘要：`src/base/risk/contact-leak.ts` 纯函数核（PHONE/WECHAT/QQ/EMAIL/URL 高置信正则 + 防误杀白名单 + 0ms 容错）+ 双高频口接线（`platformSlice.sendIm` IM 私信 + `wave.counterOffer` 磋商留言原地脱敏，零字段扩充不阻断）+ 14 例考卷；基线 **1868 全绿**（681+1187，+14）；门禁 tsc 0 + lint 0/0 + verify-first-principle ALL PASS + build 0（97 页）+ verify-prod 13/13（600s 跑满）+ four-ammos 6/6 + roam 5/5 + convergence 0 + Zero Base 0（4 文件，条文 #1 #8）
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
 
