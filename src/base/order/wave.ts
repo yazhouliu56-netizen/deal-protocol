@@ -23,6 +23,7 @@ import type { DepositPhase } from "../money/deposit";
 import type { Fulfilment } from "./fulfilment";
 import type { TaskModuleState } from "./moduleFulfilment";
 import type { GuestInfo } from "./guest";
+import { maskContactLeaks } from "../risk/contact-leak";
 
 export interface WaveBasics {
   /** Service category, e.g. "厨师 · 上门做饭" / "羽毛球". Hard-filter key. */
@@ -430,7 +431,8 @@ export function counterOffer(
     status: "negotiating",
     rounds: claim.rounds + 1,
     price: Math.round(price),
-    lastMessage: message,
+    // P3.1-1 防跳单：磋商留言外漏联系方式原地脱敏（遮蔽+警示，不阻断磋商）
+    lastMessage: maskContactLeaks(message),
     lastBy: actor,
   };
 }

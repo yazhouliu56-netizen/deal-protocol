@@ -6,6 +6,7 @@
 
 import type { StateCreator } from "zustand";
 import { markRead, sendMsg } from "@/base/comm/im";
+import { maskContactLeaks } from "@/base/risk/contact-leak";
 import {
   due as queueDue,
   enqueue as enqueueOp,
@@ -63,17 +64,19 @@ export const createPlatformSlice: StateCreator<
   PlatformSlice
 > = (set, get) => ({
   sendIm: (fromId, toId, text, waveId) => {
+    // P3.1-1 防跳单：IM 私信外漏联系方式原地脱敏（遮蔽+警示，不阻断发送）
+    const safeText = maskContactLeaks(text);
     // 弱网离线队列（ADR-0014 N11 接线）：离线时消息入队缓冲，恢复后重放。
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       set((s) => {
-        const payload = JSON.stringify({ fromId, toId, text, waveId: waveId ?? null });
+        const payload = JSON.stringify({ fromId, toId, text: safeText, waveId: waveId ?? null });
         const out = enqueueOp(s.offlineQueue, { kind: "sendIm", payload }, Date.now());
         return { offlineQueue: out.q };
       });
       return;
     }
     set((s) => {
-      const r = sendMsg(s.imThreads, s.imMessages, fromId, toId, text, Date.now(), waveId);
+      const r = sendMsg(s.imThreads, s.imMessages, fromId, toId, safeText, Date.now(), waveId);
       return { imThreads: r.threads, imMessages: r.messages };
     });
   },
