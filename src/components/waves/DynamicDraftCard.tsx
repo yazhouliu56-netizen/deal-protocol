@@ -8,6 +8,8 @@ import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import { resolveAmmoIdForPublish, getAmmoById } from "@/ammo/registry";
 import { normalizeAmmoTheme } from "./slots/DynamicAmmoSlot";
+import DuoButton from "@/components/ui/DuoButton";
+import { fireDuoConfetti } from "@/lib/duo-confetti";
 
 /**
  * 动态发布草稿卡（Dynamic Draft Card · A 需求发布视口首件）。
@@ -358,7 +360,6 @@ export default function DynamicDraftCard({
   // 内联微调状态：正在展开的参数行 + 用户覆盖值（初始 = 弹药出厂默认，SSR 逐字一致）
   const [editing, setEditing] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, number | string | boolean>>({});
-  const [ripple, setRipple] = useState(0);
   const adjusters = describeSopAdjusters(definition);
   const adjByKey = new Map(adjusters.map((a) => [a.key, a]));
   const liveEstimate = describeLiveEstimate(definition, overrides as Record<string, number | string>);
@@ -367,12 +368,20 @@ export default function DynamicDraftCard({
     setOverrides((prev) => ({ ...prev, [key]: clampAdj(value, adjByKey.get(key)?.min ?? 0, adjByKey.get(key)?.max ?? 9999) }));
   };
 
+  const handleLaunch = () => {
+    try {
+      fireDuoConfetti();
+    } catch {}
+    onPublish?.();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className={`draft-card ${themeClass}`}
+      className={`draft-card ${themeClass} duo-3d-card bg-white rounded-3xl border-2 border-b-[6px] border-[#e5e5e5] shadow-[0_8px_24px_rgba(0,0,0,0.06)]`}
+      data-testid="draft-card"
       data-ammo={definition.ammoId}
       data-category={category}
       data-theme={resolveAmmoTheme(definition)}
@@ -383,16 +392,16 @@ export default function DynamicDraftCard({
         <span>✦ 需求草稿</span>
         <span className="draft-card-ammo">{definition.ammoId} · v{definition.version}</span>
       </div>
-      <div className="draft-card-rows">
+      <div className="draft-card-rows flex flex-wrap gap-2">
         {params.map((row) => {
           const adj = adjByKey.get(row.key);
           if (editing === row.key && adj) {
             const current = typeof overrides[row.key] === "number" ? (overrides[row.key] as number) : adj.base;
             return (
-              <div key={row.key}>
+              <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="draft-card-row"
+                  className="w-full flex items-center justify-between rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
@@ -420,10 +429,10 @@ export default function DynamicDraftCard({
           }
           if (editing === row.key) {
             return (
-              <div key={row.key}>
+              <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="draft-card-row"
+                  className="w-full flex items-center justify-between rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
@@ -441,12 +450,12 @@ export default function DynamicDraftCard({
             <button
               key={row.key}
               type="button"
-              className="draft-card-row"
+              className="rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:brightness-[1.02] transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
               data-param={row.key}
               onClick={() => { setEditing(row.key); onTweak?.(row.key); }}
             >
               <span>{row.label}</span>
-              <span aria-hidden="true">✎</span>
+              <span aria-hidden="true" className="ml-1.5">✎</span>
             </button>
           );
         })}
@@ -469,7 +478,7 @@ export default function DynamicDraftCard({
               <div key={f.key}>
                 <button
                   type="button"
-                  className="draft-card-form-row"
+                  className="w-full flex items-center justify-between gap-2 rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-field={f.key}
                   onClick={() => { setEditing(active ? null : f.key); onTweak?.(f.key); }}
                 >
@@ -581,17 +590,19 @@ export default function DynamicDraftCard({
           ))}
         </div>
       )}
-      {/* P1 第 4 步：hideLaunchButton=true 时隐藏发射按钮（内嵌参数摘要模式，父级持有唯一 CTA） */}
+      {/* Phase 1.2 Feather：发射 CTA 换装 3D DuoButton（Duo Green 4px 底边 + Ding + 彩带） */}
       {!hideLaunchButton && (
-        <button
-          type="button"
-          className="draft-card-cta"
-          onPointerDown={() => setRipple((n) => n + 1)}
-          onClick={onPublish}
+        <DuoButton
+          variant="primary"
+          size="lg"
+          sound="correct"
+          fullWidth
+          data-testid="launch-button"
+          onClick={handleLaunch}
+          className="mt-2 rounded-2xl"
         >
-          {ripple > 0 && <span key={ripple} className="draft-card-ripple" />}
           扣动扳机·一键发布
-        </button>
+        </DuoButton>
       )}
     </motion.div>
   );

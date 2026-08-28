@@ -202,16 +202,16 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
     expect(html).toContain(">除草剂<");
     // 文本字段
     expect(html).toContain('data-field="cropKind"');
-    // 主题类：default 安全回落
-    expect(html).toContain('class="draft-card draft-default"');
+    // 主题类：default 安全回落（容 Feather 额外类）
+    expect(html).toContain("draft-card draft-default");
   });
 
   it("未声明 formSchema 的制式弹药：不渲染扩展字段区（渲染回归保护）", () => {
     const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
     expect(html).not.toContain('data-testid="draft-form-fields"');
     expect(html).toContain('data-ammo="housekeeping-v1"');
-    // 制式弹药自带主题声明（theme: housekeeping）→ 相应主题类
-    expect(html).toContain('class="draft-card draft-housekeeping"');
+    // 制式弹药自带主题声明（theme: housekeeping）→ 相应主题类（容 Feather 3D 额外类）
+    expect(html).toContain("draft-card draft-housekeeping");
   });
 
   it("弹药主题令牌 → 草稿卡主题类（D8 视觉微氛围）", () => {
@@ -225,7 +225,7 @@ describe("DynamicDraftCard D8 动态扩展字段（formSchema 声明式驱动）
     const html = renderToStaticMarkup(
       <DynamicDraftCard category="THEMED_FARM" ammo={themed.ammo} />,
     );
-    expect(html).toContain('class="draft-card draft-housekeeping"');
+    expect(html).toContain("draft-card draft-housekeeping");
     expect(resolveDraftThemeClass(themed.ammo)).toBe("draft-housekeeping");
   });
 

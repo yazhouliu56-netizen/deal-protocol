@@ -22,14 +22,26 @@ const VARIANT: Record<DuoButtonVariant, string> = {
     "bg-transparent border-transparent text-slate-600 hover:bg-slate-100",
 };
 
+export type DuoButtonSize = "sm" | "md" | "lg";
+
 export interface DuoButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: DuoButtonVariant;
   sound?: DuoSound;
+  size?: DuoButtonSize;
+  fullWidth?: boolean;
 }
+
+const SIZE: Record<DuoButtonSize, string> = {
+  sm: "px-3 py-1.5 text-[13px]",
+  md: "px-5 py-3 text-[15px]",
+  lg: "px-6 py-4 text-[16px]",
+};
 
 export function DuoButton({
   variant = "primary",
   sound = "click",
+  size = "md",
+  fullWidth = false,
   className = "",
   onClick,
   children,
@@ -56,8 +68,10 @@ export function DuoButton({
       className={[
         "duo-3d-button",
         "inline-flex items-center justify-center gap-2",
-        "rounded-2xl border-b-4 border-x border-t px-5 py-3",
-        "text-[15px] font-extrabold tracking-wide",
+        SIZE[size],
+        fullWidth ? "w-full" : "",
+        "rounded-2xl border-b-4 border-x border-t",
+        "font-extrabold tracking-wide",
         "transition-[transform,filter]",
         "active:translate-y-1 active:border-b-0",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:active:border-b-4",

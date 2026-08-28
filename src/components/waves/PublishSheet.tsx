@@ -29,6 +29,7 @@ import PublishFormSchemaBridge, {
 } from "./_components/PublishFormSchemaBridge";
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
+import DuoButton from "@/components/ui/DuoButton";
 
 function getFallbackBudget(): string {
   try {
@@ -788,12 +789,17 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
 
         {error && <p className="text-xs text-red-400 font-semibold mb-2">{error}</p>}
 
-        <button
+        <DuoButton
+          variant="primary"
+          size="lg"
+          sound="click"
+          fullWidth
+          data-testid="publish-broadcast"
           onClick={publish}
-          className="w-full py-3 rounded-2xl btn-primary font-extrabold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
+          className="rounded-2xl text-xs"
         >
           广播出去 📡
-        </button>
+        </DuoButton>
       </motion.div>
         </>
       )}

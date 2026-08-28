@@ -91,19 +91,19 @@ describe("DynamicDraftCard 草稿卡 · data-theme 精准注入", () => {
   it("保洁弹药 → data-theme=\"housekeeping\"（专业蓝）", () => {
     const html = renderToStaticMarkup(<DynamicDraftCard category="housekeeping" />);
     expect(html).toContain('data-theme="housekeeping"');
-    expect(html).toContain('class="draft-card draft-housekeeping"');
+    expect(html).toContain("draft-card draft-housekeeping");
   });
 
   it("组局弹药 → data-theme=\"meetup\"（活力橙）", () => {
     const html = renderToStaticMarkup(<DynamicDraftCard category="meetup" />);
     expect(html).toContain('data-theme="meetup"');
-    expect(html).toContain('class="draft-card draft-meetup"');
+    expect(html).toContain("draft-card draft-meetup");
   });
 
   it("陪玩弹药 → data-theme=\"companion\"（夜幕紫）", () => {
     const html = renderToStaticMarkup(<DynamicDraftCard category="companion" />);
     expect(html).toContain('data-theme="companion"');
-    expect(html).toContain('class="draft-card draft-companion"');
+    expect(html).toContain("draft-card draft-companion");
   });
 
   it("未声明主题弹药 → data-theme=\"default\" 安全兜底", () => {
@@ -111,7 +111,7 @@ describe("DynamicDraftCard 草稿卡 · data-theme 精准注入", () => {
       <DynamicDraftCard category="probe" ammo={buildProbeAmmo()} />,
     );
     expect(html).toContain('data-theme="default"');
-    expect(html).toContain('class="draft-card draft-default"');
+    expect(html).toContain("draft-card draft-default");
   });
 
   it("tech 主题弹药（工业绿）→ data-theme=\"tech\" 声明即生效", () => {
@@ -119,7 +119,7 @@ describe("DynamicDraftCard 草稿卡 · data-theme 精准注入", () => {
       <DynamicDraftCard category="probe" ammo={buildProbeAmmo("tech")} />,
     );
     expect(html).toContain('data-theme="tech"');
-    expect(html).toContain('class="draft-card draft-tech"');
+    expect(html).toContain("draft-card draft-tech");
   });
 
   it("非法主题声明 → data-theme=\"default\" 兜底（严禁样式崩溃）", () => {
