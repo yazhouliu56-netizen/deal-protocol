@@ -51,6 +51,56 @@
   --duration-base: 250ms;
 }
 
+/* ============ Phase 1.1 Feather Design Tokens (Microkernel 4.2 · 零业务侵入) ============
+   多邻国极净明亮色谱 + 3D 物理触觉体系。Token 层 0 逻辑，仅 CSS 变量与工具类；
+   暗色兼容：light → #f7f7f7 极净底，dark → #0f172a 深空安全色（prefers-color-scheme + data-theme）。 */
+:root {
+  --color-duo-green: #58cc02;
+  --color-duo-green-dark: #46a302;
+  --color-duo-green-light: #d7ffb8;
+  --color-duo-orange: #ff9600;
+  --color-duo-orange-dark: #e58700;
+  --color-duo-blue: #1cb0f6;
+  --color-duo-blue-dark: #1899d6;
+  --color-duo-red: #ff4b4b;
+  --color-duo-red-dark: #ea2b2b;
+  --color-duo-yellow: #ffc800;
+  --color-duo-yellow-dark: #e5b400;
+  --color-duo-polar: #f7f7f7;
+  --color-duo-eel: #4b4b4b;
+}
+
+/* 3D 物理触觉工具：4px 实体底边 + active 4px 下沉（Feather 核心触感） */
+.duo-3d-button {
+  position: relative;
+  border-bottom-width: 4px;
+  transition:
+    transform 80ms ease-out,
+    filter 80ms ease-out,
+    border-bottom-width 80ms ease-out;
+}
+.duo-3d-button:active {
+  transform: translateY(4px);
+  border-bottom-width: 0;
+  filter: brightness(0.96);
+}
+.duo-3d-card {
+  border-radius: 16px;
+  border-bottom-width: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* 昼夜双主题：light 默认极净，dark 深空（data-theme="dark" 或系统偏好） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-duo-polar: #0f172a;
+  }
+}
+:root[data-theme="dark"],
+.oto-app[data-theme="dark"] {
+  --color-duo-polar: #0f172a;
+}
+
 /* 原生触控反馈类：全局按钮/卡片等可点元素统一挂接（PWA Native-Like 规范 §九） */
 .interactive-tap {
   min-height: var(--touch-target-min);
