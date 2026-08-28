@@ -44,6 +44,8 @@ import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { evaluatePublishAdmission } from "@/base/risk/admission";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
+import { getAmmoById, resolveAmmoIdForPublish } from "@/ammo/registry";
+import { pricingFloorYuan } from "@/components/waves/_components/PublishFormSchemaBridge";
 import { addGuest as addGuestLogic, removeGuest as removeGuestLogic, type GuestInfo } from "@/base/order/guest";
 import {
   allocatePair,
@@ -365,10 +367,21 @@ export const createOrderSlice: StateCreator<WaveStore, [], [], OrderSlice> = (
         minorBlocked: admission.blockedReason === "minor",
       };
     }
+    // 预算单源化：硬编码 100 已废除，缺省或 0 时实时派生自弹药地板价（宪法 #3 单源）
+    let resolvedBudget = input.budget;
+    if (!resolvedBudget || resolvedBudget <= 0) {
+      try {
+        const ammoId = resolveAmmoIdForPublish(input.basics?.category?.trim() ?? "");
+        const ammo = getAmmoById(ammoId);
+        const floor = pricingFloorYuan(ammo.pricingModel);
+        if (floor > 0) resolvedBudget = floor;
+      } catch {}
+    }
     // no-show buff 消费：发起人若有「成局面降标准」buff，本局所需拼位数 −N
     const buff = Math.min(get().initiatorBuffs[input.authorId] ?? 0, Math.max(0, (input.capacity ?? 1) - 1));
     const wave = createWave({
       ...input,
+      budget: resolvedBudget,
       id: nextId("wave"),
       createdAt: Date.now(),
       expiresAt: input.expiresAt,

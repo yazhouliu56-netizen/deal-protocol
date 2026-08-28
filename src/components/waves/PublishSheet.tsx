@@ -11,7 +11,13 @@ import DynamicDraftCard, {
   describeFormSchemaFields,
   describePricing,
 } from "./DynamicDraftCard";
-import { getAmmoById, getAmmoDefinition, resolveAmmoIdForPublish } from "@/ammo/registry";
+import {
+  getAmmoById,
+  getAmmoDefinition,
+  resolveAmmoIdForPublish,
+  listAmmoPillDescriptors,
+  listRegisteredAmmos,
+} from "@/ammo/registry";
 import { CATEGORY_EMOJI } from "./WaveCard";
 import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
@@ -23,6 +29,17 @@ import PublishFormSchemaBridge, {
 } from "./_components/PublishFormSchemaBridge";
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
+
+function getFallbackBudget(): string {
+  try {
+    const ammos = listRegisteredAmmos();
+    if (ammos.length > 0) {
+      const floor = pricingFloorYuan(ammos[0].pricingModel);
+      if (floor > 0) return String(floor);
+    }
+  } catch {}
+  return "";
+}
 
 /**
  * 发布需求 = 发出一个信号波。
@@ -55,7 +72,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const [category, setCategory] = useState("");
   const [time, setTime] = useState("");
   const [area, setArea] = useState("幸福家园小区");
-  const [budget, setBudget] = useState("100");
+  const [budget, setBudget] = useState(getFallbackBudget);
   const [customText, setCustomText] = useState("");
   const [customs, setCustoms] = useState<string[]>([]);
   const [note, setNote] = useState("");
@@ -153,7 +170,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     [],
   );
 
-  const HOT_HINTS = ["厨师 · 上门做饭", "羽毛球约局", "摄影师约拍", "家政保洁", "陪诊陪护", "拼桌桌游"];
+  const pillHints = [...new Set(listAmmoPillDescriptors().map((p) => p.label))].slice(0, 6);
 
   /** 选品类 → 应用 SOP 弹药表默认（爽约保障险/有效期/容量 + 预算起步底价，宪法 #3：先配表后写码）。 */
   function applySopDefaults(cat: string) {
@@ -176,7 +193,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
     setCategory("");
     setTime("");
     setArea("幸福家园小区");
-    setBudget("100");
+    setBudget(getFallbackBudget());
     setCustomText("");
     setCustoms([]);
     setNote("");
@@ -401,7 +418,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
 
         {/* 品类快捷 */}
         <div className="flex gap-1.5 flex-wrap mb-2">
-          {HOT_HINTS.map((h) => (
+          {pillHints.map((h) => (
             <button
               key={h}
               onClick={() => applySopDefaults(h)}
