@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Wifi, WifiOff, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   broadcastMatches,
   type ResponderCapability,
@@ -13,151 +13,8 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import WaveCard from "./WaveCard";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
-import SpatialHeatMap from "./SpatialHeatMap";
-import { setGeoSrc, WebGeoSrc, type GeoSrc } from "@/adapters/geo/geoAdapter";
-
-/** ADR-0015 N16 消费方：Web 真实定位开关（按需授权，降级演示坐标）。 */
-function GeoSourceBadge() {
-  const [state, setState] = useState<"mock" | "granted" | "denied" | "asking">(
-    "mock"
-  );
-  const [src, setSrc] = useState<GeoSrc | null>(null);
-  const [tooltip, setTooltip] = useState("");
-
-  const enable = async () => {
-    setState("asking");
-    const web = new WebGeoSrc();
-    const p = await web.current();
-    if (p) {
-      setGeoSrc(web);
-      setSrc(web);
-      setState("granted");
-      setTooltip(`浏览器定位已启用 · ${p.lat.toFixed(3)}, ${p.lng.toFixed(3)}`);
-    } else {
-      setState("denied");
-      setTooltip("未授权或定位不可用，保持演示坐标");
-    }
-  };
-
-  if (src) {
-    return (
-      <span
-        data-geo-src="web"
-        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#dcfce7] border border-[#86efac] text-xs font-bold text-[#16a34a] cursor-help"
-        title={tooltip}
-      >
-        📍 真实定位
-      </span>
-    );
-  }
-  return (
-      <span
-        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf]"
-        title={
-          state === "denied"
-            ? tooltip
-            : "未启用浏览器定位时使用演示坐标（隐私优先，按需授权）"
-        }
-      >
-      {state === "asking" ? (
-        "📍 请求定位中…"
-      ) : state === "denied" ? (
-        "📍 定位未授权 · 演示坐标"
-      ) : (
-        <>
-          📍 演示坐标
-          <button
-            onClick={enable}
-            className="ml-0.5 text-brandCyan hover:text-brandCyan/80 transition-colors"
-            aria-label="启用浏览器定位"
-          >
-            启用 ›
-          </button>
-        </>
-      )}
-    </span>
-  );
-}
 import FavoritesSheet from "./FavoritesSheet";
-import IdentityAvatar from "@/components/oto-ui/IdentityAvatar";
 import { toast } from "@/base/platform/toast";
-
-/** 战场3 · 周边在线供给雷达光斑（冷启动 feed 空态补给反馈，O2O 本地生活供给可视化）。 */
-const SUPPLY_BLOBS: {
-  id: string;
-  color: string;
-  dist: string;
-  text: string;
-  count: number;
-  delayClass: string;
-}[] = [
-  {
-    id: "clean",
-    color: "bg-emerald-400",
-    dist: "1.2km",
-    text: "4 位实名保洁阿姨待命",
-    count: 4,
-    delayClass: "radar-blob-delay-1",
-  },
-  {
-    id: "sport",
-    color: "bg-brandCyan",
-    dist: "800m",
-    text: "3 个羽毛球局可加入",
-    count: 3,
-    delayClass: "",
-  },
-  {
-    id: "photo",
-    color: "bg-brandPurple",
-    dist: "1.5km",
-    text: "2 位摄影师在线接拍",
-    count: 2,
-    delayClass: "radar-blob-delay-2",
-  },
-  {
-    id: "cafe",
-    color: "bg-amber-400",
-    dist: "1.0km",
-    text: "1 间咖啡馆可拼桌",
-    count: 1,
-    delayClass: "radar-blob-delay-1",
-  },
-];
-
-/** 战场3 · 实时撮合微动效弹幕（常驻滚动条；真实接单事件优先，冷启动回落现场氛围样本）。 */
-function MatchTicker() {
-  const waves = useWaveStore((s) => s.waves);
-  const claims = useWaveStore((s) => s.claims);
-  const events = useMemo(() => {
-    const real = claims
-      .slice(-4)
-      .map((c) => {
-        const w = waves.find((x) => x.id === c.waveId);
-        return w ? `⚡ 服务者接取「${w.basics.category}」` : null;
-      })
-      .filter(Boolean) as string[];
-    if (real.length > 0) return real;
-    return [
-      "⚡ 王姐 接取「深度保洁」",
-      "⚡ 阿凯 拼位「羽毛球 4 人双打」",
-      "⚡ 小北 排期「日系写真 · 滨江」",
-    ];
-  }, [waves, claims]);
-  const line = events.join("　·　");
-  return (
-    <div className="mt-2 overflow-hidden rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] opacity-60">
-      <div className="ticker-track">
-        <span className="whitespace-nowrap px-3 py-1 text-xs text-[#afafaf] tracking-wide">
-          {line}　·　{line}　·　
-        </span>
-        <span className="whitespace-nowrap px-3 py-1 text-xs text-[#afafaf] tracking-wide">
-          {line}　·　{line}　·　
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -173,7 +30,6 @@ export default function WaveFeed() {
   const joinWaitlist = useWaveStore((s) => s.joinWaitlist);
   const identity = useIdentityStore((s) => s.identity);
   const creditTier = useIdentityStore((s) => s.creditTier);
-  const setOnline = useIdentityStore((s) => s.setOnline);
   const [favOpen, setFavOpen] = useState(false);
   const favorites = useWaveStore((s) => s.favorites);
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
@@ -264,52 +120,16 @@ export default function WaveFeed() {
 
   return (
     <div className="pointer-events-auto relative">
-      {/* LLM 聚类推送（雷达收件箱） */}
       <RadarInbox />
 
-      {/* 顶部条：身份 + 在线开关 + 发布 */}
-      <div className="flex items-center gap-2.5">
-        <GeoSourceBadge />
-        <IdentityAvatar />
-        <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-extrabold text-[#4b4b4b] truncate leading-tight">
-            雷达 · {identity.nickname}
-          </p>
-          <p className="text-xs text-[#777777] truncate mt-0.5 flex items-center gap-1">
-            <span
-              className={`inline-block w-1.5 h-1.5 rounded-full ${
-                identity.online ? "bg-[#58cc02]" : "bg-[#d4d4d4]"
-              }`}
-            />
-            {identity.online ? "正在接收信号" : "暂停接收信号"}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setOnline(!identity.online);
-            toast(identity.online ? "已切换为隐身 · 暂停接收信号" : "已切换为在线 · 正在接收信号", "success");
-          }}
-          aria-label={`在线状态：${identity.online ? "在线" : "隐身"}`}
-          className={`flex items-center gap-1 px-3 py-2 min-h-10 rounded-full border-2 border-b-4 text-xs font-bold transition-[transform] active:translate-y-1 active:border-b-2 ${
-            identity.online
-              ? "bg-white border-[#58cc02]/30 text-[#58cc02] shadow-sm"
-              : "bg-white border-[#e5e5e5] text-[#afafaf] shadow-sm"
-          }`}
-        >
-          {identity.online ? <Wifi size={11} /> : <WifiOff size={11} />}
-          {identity.online ? "在线" : "隐身"}
-        </button>
-      </div>
-
-      <h1 className="text-[18px] leading-tight font-extrabold mt-3 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
+      <h1 className="text-[18px] leading-tight font-extrabold mt-1 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
         📍 附近的需求
         <span className="text-xs font-normal text-[#afafaf]">· 谁正在附近发需求</span>
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
         <p className="text-xs text-[#777777] flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅
+          <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅 · 正在接收信号
           <span className="text-xs text-[#afafaf]">· 谁合适谁来</span>
-          <span className="ml-1 hidden sm:inline text-[#777777]">· 1.2km 内在线</span>
         </p>
         <button
           onClick={() => setFavOpen(true)}
@@ -321,60 +141,16 @@ export default function WaveFeed() {
         </button>
       </div>
 
-      {/* 战场3 · 新人信任背书胶囊（常驻：零押金启动 · 满意后分账 · 平台全保） */}
-      <div className="mt-3 flex items-center gap-2 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm px-3 py-2">
-        <span className="text-xs font-extrabold text-[#58cc02] shrink-0">
-          🛡️ 新人首单保障
-        </span>
-        <span className="h-2.5 w-px bg-[#e5e5e5] shrink-0" />
-        <p className="text-xs text-[#777777] truncate">
-          0 押金启动 · 满意后分账 · 平台财产意外险全包
-        </p>
-      </div>
-
-      {/* S1 匿名光点热力图：附近活跃信号波 */}
-      <SpatialHeatMap />
-
-      {/* 战场3 · 实时撮合微动效弹幕（常驻滚动） */}
-      <MatchTicker />
-
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">
         {feed.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4"
+            className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-6 text-center"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-extrabold text-[#4b4b4b]">
-                📡 周边在线供给雷达
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[#dcfce7] border border-[#86efac] text-[#16a34a] font-bold">
-                活跃供给在线
-              </span>
-            </div>
-            <div className="flex flex-col gap-2">
-              {SUPPLY_BLOBS.map((b) => (
-                <div
-                  key={b.id}
-                  className="flex items-center gap-2.5 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2"
-                >
-                  <span
-                    className={`relative w-2 h-2 rounded-full ${b.color} radar-blob ${b.delayClass}`}
-                  />
-                  <span className="text-xs text-[#4b4b4b]">
-                    <span className="font-tabular">{b.dist}</span> · {b.text}
-                  </span>
-                  <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-white border border-[#e5e5e5] text-[#afafaf] font-tabular shrink-0">
-                    {b.count} 人在线
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-[#afafaf] mt-2 text-center">
-              发出第一条需求，即可被附近师傅精准匹配
-            </p>
+            <p className="text-sm font-extrabold text-[#4b4b4b]">暂无附近需求</p>
+            <p className="text-xs text-[#afafaf] mt-1">去发一条试试，附近师傅马上看到</p>
           </motion.div>
         )}
         {feed.map((f) => (

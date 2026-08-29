@@ -10,11 +10,10 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import HomeTopBar, { type HomeMode } from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
-import InspirationChips from "./InspirationChips";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
-import RadarFeedSection from "./RadarFeedSection";
 import PublishSheet from "@/components/waves/PublishSheet";
+import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
 import WorkerWorkbench from "@/components/oto-ui/profile/WorkerWorkbench";
 
@@ -138,11 +137,13 @@ export default function HomePage() {
             </div>
           </div>
           <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} />
-          <div className="mt-2.5">
+          <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
+            <p className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1">🤖 AI 撮合对话 · 多轮追问</p>
             <ChatPage compact slim onAmmoDraft={(key, category) => setDraft({ key, label: category })} />
           </div>
-          <InspirationChips onSelectDraft={setDraft} />
-          <RadarFeedSection />
+          <div className="mt-4" data-layer="wave-feed">
+            <WaveFeed />
+          </div>
         </div>
       )}
       <HomeDraftSheet draft={draft} onClose={() => setDraft(null)} onPublish={(label) => { setPublishCategory(label === "全类目需求" ? "" : label); setDraft(null); setPublishOpen(true); }} />
