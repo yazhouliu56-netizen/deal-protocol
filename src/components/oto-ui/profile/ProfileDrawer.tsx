@@ -47,28 +47,28 @@ export default function ProfileDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-[70] max-h-[86dvh] rounded-t-[28px] glass-panel overflow-hidden flex flex-col"
+            className="fixed inset-x-0 bottom-0 z-[70] max-h-[86dvh] rounded-t-[28px] bg-white border-t-2 border-[#e5e5e5] shadow-2xl overflow-hidden flex flex-col"
             data-testid={testId}
             role="dialog"
             aria-label={title}
           >
             {/* 把手 */}
             <div className="flex justify-center pt-2.5 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+              <div className="w-10 h-1 rounded-full bg-[#e5e5e5]" />
             </div>
             {/* 标题行 */}
-            <div className="flex items-center gap-2.5 px-4 pt-1 pb-3 shrink-0">
-              <span className="w-9 h-9 rounded-xl glass-panel flex items-center justify-center text-base shrink-0">
+            <div className="flex items-center gap-2.5 px-4 pt-1 pb-3 shrink-0 border-b-2 border-[#f7f7f7]">
+              <span className="w-9 h-9 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center justify-center text-base shrink-0">
                 {icon}
               </span>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[13px] font-extrabold">{title}</h3>
-                <p className="text-xs text-white/45 truncate">{subtitle}</p>
+                <h3 className="text-[13px] font-extrabold text-[#4b4b4b]">{title}</h3>
+                <p className="text-xs text-[#777777] truncate">{subtitle}</p>
               </div>
               <button
                 onClick={onClose}
                 aria-label={`关闭${title}`}
-                className="w-10 h-10 min-h-10 rounded-full glass-panel-interactive flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-[color,transform] shrink-0"
+                className="w-10 h-10 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center justify-center text-[#4b4b4b] hover:border-[#58cc02]/30 active:scale-95 transition-[color,transform] shrink-0"
               >
                 ✕
               </button>

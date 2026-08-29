@@ -31,10 +31,10 @@ export default function PrivacyCompliancePanel({
   return (
     <>
       {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
           未成年人分级
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple-foreground">
+          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#58cc02]/15 border-2 border-[#58cc02]/20 text-[#58cc02] font-bold">
             合规
           </span>
         </h3>
@@ -46,17 +46,17 @@ export default function PrivacyCompliancePanel({
             value={birthYearInput}
             onChange={(e) => onBirthYearInputChange(e.target.value)}
             placeholder="出生年份（如 2008）"
-            className="w-36 rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/88 placeholder:text-white/68 focus:outline-none focus:border-brandPurple/50"
+            className="w-36 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#58cc02]/30"
           />
           <button
             onClick={onAgeSave}
-            className="px-3 py-1.5 rounded-lg btn-primary text-xs font-bold"
+            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-xs font-bold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform]"
           >
             保存
           </button>
         </div>
         {identity.birthYear != null && (
-          <div className="mt-2 text-xs text-white/68 leading-relaxed">
+          <div className="mt-2 text-xs text-[#777777] leading-relaxed">
             {(() => {
               const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
               const mode = modeOfAge(age);
@@ -101,10 +101,10 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 数据脱敏预览（掩码效果演示） */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
           数据脱敏
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
+          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
             对外展示即掩码
           </span>
         </h3>
@@ -118,8 +118,8 @@ export default function PrivacyCompliancePanel({
           ] as const
         ).map((r) => (
           <div key={r.kind} className="flex items-center justify-between text-xs">
-            <span className="text-white/68">{r.kind}</span>
-            <span className="text-white/68 font-mono">
+            <span className="text-[#777777]">{r.kind}</span>
+            <span className="text-[#4b4b4b] font-mono font-bold">
               {mask(r.kind as SensitiveKind, r.v)}
             </span>
           </div>
@@ -127,8 +127,8 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 遗忘权 */}
-      <div className="glass-panel rounded-2xl p-3.5">
-        <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1">
           遗忘权（《个保法》§47：删除或匿名化）
         </h3>
         <div className="flex flex-wrap gap-1.5">
@@ -146,14 +146,14 @@ export default function PrivacyCompliancePanel({
               onClick={() => {
                 onRequestForget(o.kind);
               }}
-              className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-xs text-white/88 hover:border-red-400/40 hover:text-red-300 active:scale-95 transition-all"
+              className="px-2.5 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs text-[#4b4b4b] font-bold hover:border-[#ff4b4b]/30 hover:text-[#ff4b4b] active:scale-95 transition-all"
             >
               {o.label}
             </button>
           ))}
         </div>
         {lastForget && (
-          <p className="text-xs text-emerald-300/80 mt-2">
+          <p className="text-xs text-[#58cc02] mt-2 font-bold">
             ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
           </p>
         )}
@@ -161,14 +161,14 @@ export default function PrivacyCompliancePanel({
           <div className="space-y-1 mt-2">
             {forgetRequests.map((r) => (
               <div key={r.id} className="flex items-center justify-between text-xs">
-                <span className="text-white/68">
+                <span className="text-[#777777]">
                   {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
                 </span>
                 <span
-                  className={`px-1.5 py-px rounded-full font-bold ${
+                  className={`px-1.5 py-px rounded-full font-bold border-2 ${
                     r.status === "anonymized"
-                      ? "bg-emerald-400/15 text-emerald-300"
-                      : "bg-amber-400/15 text-amber-300"
+                      ? "bg-[#d7ffb8] border-[#58cc02]/20 text-[#58cc02]"
+                      : "bg-[#ffebd1] border-[#ff9600]/20 text-[#ff9600]"
                   }`}
                 >
                   {r.status === "anonymized" ? "已匿名化" : "处理中"}
@@ -180,18 +180,18 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* E2 合规公示入口：消费者权益与平台规则 */}
-      <div className="glass-panel rounded-2xl p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
         <Link
           href="/rights"
           data-testid="rights-entry"
-          className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-brandPurple/40 hover:bg-white/[0.06] active:scale-[0.98] transition-all"
+          className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] hover:border-[#58cc02]/30 hover:bg-white active:translate-y-0.5 transition-all"
         >
-          <span className="text-xs font-bold text-white/88 flex items-center gap-1.5">
+          <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
             ⚖️ 消费者权益与平台保障公示
           </span>
-          <span className="text-white/40 text-sm">›</span>
+          <span className="text-[#afafaf] text-sm">›</span>
         </Link>
-        <p className="text-xs text-white/68 mt-1.5 leading-relaxed">
+        <p className="text-xs text-[#777777] mt-1.5 leading-relaxed">
           依据《电子商务法》《消费者权益保护法》法定公示：知情权·申诉权·建议权·信用等级·争议仲裁·隐私保护
         </p>
       </div>

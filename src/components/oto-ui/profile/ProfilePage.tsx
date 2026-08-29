@@ -236,9 +236,9 @@ export default function ProfilePage({
   return (
     <div className="pointer-events-auto flex flex-col gap-3">
       {/* 访客/登录行：数据来源 + 本地模式入口（G-5；登录后提示云端由数据化替换） */}
-      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25">
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-[4px] shadow-sm">
         <span className="text-xs">💠</span>
-        <p className="flex-1 min-w-0 text-xs text-white/68">
+        <p className="flex-1 min-w-0 text-xs text-[#4b4b4b] font-bold">
           {authAccount
             ? `已登录 · ${authAccount.nickname}（${authAccount.role === "employer" ? "需求方" : authAccount.role === "provider" ? "服务者" : "组局主理人"}）· 数据存本机浏览器`
             : `访客 · 本地演示身份「${identity.nickname}」 · 数据存本机浏览器`}
@@ -248,7 +248,7 @@ export default function ProfilePage({
             openAuthSheet();
           }}
           aria-label={authAccount ? "切换账号" : "登录"}
-          className="shrink-0 px-2 py-1 rounded-full btn-primary text-xs font-bold inline-flex items-center gap-1"
+          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white text-xs font-bold inline-flex items-center gap-1 shadow-sm active:translate-y-0.5 active:border-b-0 transition-[transform]"
         >
           <LogIn size={9} />
           {authAccount ? "切换账号" : "登录 · 注册"}
@@ -256,33 +256,33 @@ export default function ProfilePage({
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"
-          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
+          className="shrink-0 px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#4b4b4b] hover:border-[#58cc02]/30 transition-colors"
         >
           数据模式
         </button>
         {onGoHome && (
           <button
             onClick={onGoHome}
-            className="shrink-0 px-2 py-1 rounded-full btn-primary text-xs font-bold"
+            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white text-xs font-bold shadow-sm active:translate-y-0.5 active:border-b-0"
           >
             去雷达
           </button>
         )}
       </div>
 
-      {/* 用户主身份卡（头像 / 昵称 / 认证状态 / 会员标识） */}
+      {/* 用户主身份卡（头像 / 昵称 / 认证状态 / 天梯勋章） */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="glass-panel rounded-3xl p-4 flex items-center gap-3"
+        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 flex items-center gap-3"
       >
         <label
           className="relative cursor-pointer group"
           title="点击上传本地头像（自动压缩为 96×96）"
         >
           <IdentityAvatar size="lg" />
-          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brandPurple border border-white/30 flex items-center justify-center text-xs shadow-md group-hover:scale-110 transition-transform">
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#58cc02] border-2 border-white flex items-center justify-center text-xs shadow-sm group-hover:scale-110 transition-transform text-white">
             ✎
           </span>
           <input
@@ -297,24 +297,41 @@ export default function ProfilePage({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             {/* P1 第 3 步：名字动态化（登录态=账号昵称，访客态=本地演示身份昵称），根治 Alex 硬编码 */}
-            <span className="text-[15px] font-extrabold">
+            <span className="text-[15px] font-extrabold text-[#4b4b4b]">
               {authAccount?.nickname ?? identity.nickname}
             </span>
-            <BadgeCheck size={14} className="text-brandCyan" />
+            <BadgeCheck size={14} className="text-[#1cb0f6]" />
           </div>
-          <p className="text-xs text-white/68 mt-0.5">
+          <p className="text-xs text-[#777777] mt-0.5">
             线下体验玩家 · 已撮合 {bookings.length} 单
           </p>
+          {/* 工匠天梯段位（条文 #6 真实信用映射：tri-credit/starRank 可视化） */}
+          {(() => {
+            const tier = (useIdentityStore.getState() as unknown as { creditTier?: number }).creditTier ?? (bookings.length >= 20 ? 5 : bookings.length >= 8 ? 4 : bookings.length >= 3 ? 3 : bookings.length >= 1 ? 2 : 1);
+            const meta: Record<number, { icon: string; label: string; bg: string; border: string; color: string; desc: string }> = {
+              5: { icon: "👑", label: "王者传奇", bg: "#ffc800", border: "#e5b400", color: "#4b4b4b", desc: "1.5x 派单 · 极速提现" },
+              4: { icon: "💎", label: "钻石工匠", bg: "#1cb0f6", border: "#1899d6", color: "#ffffff", desc: "1.2x 派单 · 日抢50" },
+              3: { icon: "🥇", label: "黄金师傅", bg: "#ffc800", border: "#e5b400", color: "#4b4b4b", desc: "标准派单 · 日抢20" },
+              2: { icon: "🥈", label: "白银新手", bg: "#e5e5e5", border: "#d4d4d4", color: "#4b4b4b", desc: "0.8x 派单 · 新人保护" },
+              1: { icon: "⚠️", label: "观察期", bg: "#ff4b4b", border: "#ea2b2b", color: "#ffffff", desc: "限接1单 · 人工审核" },
+            };
+            const m = meta[tier] ?? meta[1];
+            return (
+              <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border-b-2 text-xs font-extrabold shadow-sm" style={{ backgroundColor: m.bg, borderColor: m.border, color: m.color }}>
+                <span>{m.icon}</span> {m.label} <span className="font-bold opacity-80">· {m.desc}</span>
+              </span>
+            );
+          })()}
         </div>
         {/* P1 第 3 步：会员徽标仅登录态展示，访客态换中性「演示体验」徽标（根治虚假钻石会员） */}
         {authAccount ? (
-          <span className="text-xs px-2 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple font-semibold shrink-0">
+          <span className="text-xs px-2 py-1 rounded-full bg-[#1cb0f6]/15 border-2 border-[#1cb0f6]/30 text-[#1cb0f6] font-semibold shrink-0">
             钻石会员
           </span>
         ) : (
           <span
             data-testid="guest-demo-badge"
-            className="text-xs px-2 py-1 rounded-full bg-white/[0.06] border border-white/15 text-white/60 font-semibold shrink-0"
+            className="text-xs px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-semibold shrink-0"
           >
             [ 演示体验 ]
           </span>
@@ -332,18 +349,18 @@ export default function ProfilePage({
       {/* 服务者工作台入口卡（四大工种资质准入全景看板） */}
       <button
         onClick={() => setView("workbench")}
-        className="glass-panel rounded-2xl p-3.5 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"
+        className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5 flex items-center gap-3 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
       >
-        <div className="w-10 h-10 rounded-xl btn-primary flex items-center justify-center shrink-0 glow-purple-strong">
+        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center shrink-0 shadow-sm text-white">
           <ArrowRightLeft size={16} />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-[13px] font-bold block">服务者工作台</span>
-          <span className="text-xs text-white/68 block mt-0.5 truncate">
+          <span className="text-[13px] font-bold block text-[#4b4b4b]">服务者工作台</span>
+          <span className="text-xs text-[#777777] block mt-0.5 truncate">
             切到服务者视角 · 资质准入 / 接单 / 履约 / 收益
           </span>
         </div>
-        <span className="text-white/68 text-lg shrink-0">›</span>
+        <span className="text-[#afafaf] text-lg shrink-0">›</span>
       </button>
 
       {/* 3 大抽屉式二级菜单入口（安全中心 / 隐私合规 / 系统设置） */}
@@ -359,24 +376,24 @@ export default function ProfilePage({
             key={d.key}
             onClick={() => setDrawer(d.key)}
             data-testid={`drawer-entry-${d.key}`}
-            className="min-h-16 glass-panel-interactive rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+            className="min-h-16 bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl shadow-sm p-2.5 flex flex-col items-center justify-center gap-1 hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
           >
             <span className="text-base leading-none">{d.icon}</span>
-            <span className="text-xs font-extrabold text-white/95">{d.title}</span>
-            <span className="text-xs text-white/68">{d.sub}</span>
+            <span className="text-xs font-extrabold text-[#4b4b4b]">{d.title}</span>
+            <span className="text-xs text-[#afafaf]">{d.sub}</span>
           </button>
         ))}
       </div>
 
       {/* 我的订单（P1 第 3 步：waves+bookings 双源聚合 · createdAt 倒序 · 类型徽标） */}
       <div data-testid="my-orders">
-        <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5">
-          <span className="w-1 h-3.5 rounded-full bg-linear-to-b from-brandCyan to-brandPurple" />
+        <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5 text-[#4b4b4b]">
+          <span className="w-1 h-3.5 rounded-full bg-[#58cc02]" />
           我的订单
         </h3>
         {unifiedOrders.length === 0 ? (
-          <div className="glass-panel rounded-2xl p-4 text-center">
-            <p className="text-xs text-white/68">
+          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 text-center">
+            <p className="text-xs text-[#777777]">
               还没有订单——去 AI 助手说句需求，马上撮合
             </p>
           </div>
@@ -389,18 +406,18 @@ export default function ProfilePage({
                   onClick={() => setScreen("trip")}
                   aria-label={`查看方案单 ${o.title} 履约进度`}
                   data-testid="order-item-wave"
-                  className="glass-panel rounded-2xl p-3 flex items-center gap-2.5 text-left hover:border-brandPurple/50 active:scale-[0.99] transition-[border,transform]"
+                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
                 >
                   <span className="text-base shrink-0">🧾</span>
                   <span className="flex-1 min-w-0">
-                    <span className="text-xs font-extrabold text-white/90 block truncate">
+                    <span className="text-xs font-extrabold text-[#4b4b4b] block truncate">
                       {o.title} · {o.amountDisplay}
                     </span>
-                    <span className="text-[11px] text-white/50 block mt-0.5">
+                    <span className="text-[11px] text-[#afafaf] block mt-0.5">
                       [ 方案单 ] · 点击查看履约进度
                     </span>
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/30 text-brandCyan shrink-0">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#1cb0f6]/15 border-2 border-[#1cb0f6]/30 text-[#1cb0f6] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
@@ -410,16 +427,16 @@ export default function ProfilePage({
                   onClick={() => setSelectedBooking(o.id)}
                   aria-label={`查看预订卡 ${o.title}`}
                   data-testid="order-item-booking"
-                  className="glass-panel rounded-2xl p-3 flex items-center gap-2.5 text-left hover:border-brandPurple/50 active:scale-[0.99] transition-[border,transform]"
+                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
                 >
                   <span className="text-base shrink-0">🎟️</span>
                   <span className="flex-1 min-w-0">
-                    <span className="text-xs font-extrabold text-white/90 block truncate">
+                    <span className="text-xs font-extrabold text-[#4b4b4b] block truncate">
                       {o.title} · {o.amountDisplay}
                     </span>
-                    <span className="text-[11px] text-white/50 block mt-0.5">[ 预订卡 ]</span>
+                    <span className="text-[11px] text-[#afafaf] block mt-0.5">[ 预订卡 ]</span>
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brandPurple/15 border border-brandPurple/30 text-brandPurple shrink-0">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border-2 border-[#8b5cf6]/30 text-[#8b5cf6] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
@@ -447,12 +464,12 @@ export default function ProfilePage({
         testId="drawer-system"
       >
         {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+          <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
             撮合偏好
             <button
               onClick={() => resetPrefs()}
-              className="ml-auto text-xs text-white/68 hover:text-white/88 transition-colors"
+              className="ml-auto text-xs text-[#777777] hover:text-[#4b4b4b] transition-colors"
             >
               重置
             </button>
@@ -463,13 +480,13 @@ export default function ProfilePage({
                 key={key}
                 onClick={() => cycle(key)}
                 title="点击切换"
-                className="text-xs px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-white/88 hover:border-brandPurple/50 hover:text-white/88 active:scale-95 transition-all"
+                className="text-xs px-2.5 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#4b4b4b] font-bold hover:border-[#58cc02]/30 hover:text-[#4b4b4b] active:scale-95 transition-all"
               >
                 {prefs[key]}
               </button>
             ))}
           </div>
-          <p className="text-xs text-white/68 mt-2 leading-relaxed">
+          <p className="text-xs text-[#777777] mt-2 leading-relaxed">
             点击标签切换偏好，将用于撮合匹配排序（本地保存）
           </p>
         </div>
@@ -478,21 +495,21 @@ export default function ProfilePage({
         <PushEnableBar />
 
         {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2 flex items-center gap-1.5">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+          <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
             推送免打扰
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-white/68">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
               自主设置 · 不绑付费
             </span>
           </h3>
-          <label className="flex items-center justify-between gap-2 text-xs text-white/88 cursor-pointer">
+          <label className="flex items-center justify-between gap-2 text-xs text-[#4b4b4b] font-bold cursor-pointer">
             <span>开启免打扰</span>
             <input
               type="checkbox"
               name="quiet-toggle"
               checked={quietPref.enabled}
               onChange={(e) => setQuietEnabled(e.target.checked)}
-              className="accent-brandPurple"
+              className="accent-[#58cc02]"
             />
           </label>
           {quietPref.enabled && (
@@ -506,10 +523,10 @@ export default function ProfilePage({
                   <button
                     key={w.label}
                     onClick={() => toggleQuietWindow(w.start, w.end)}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                    className={`text-xs px-2.5 py-1 rounded-full border-2 transition-all font-bold ${
                       on
-                        ? "bg-brandPurple/25 border-brandPurple/50 text-brandPurple-foreground"
-                        : "bg-white/[0.06] border-white/10 text-white/88"
+                        ? "bg-[#58cc02] border-[#46a302] text-white shadow-sm"
+                        : "bg-[#f7f7f7] border-[#e5e5e5] text-[#4b4b4b]"
                     }`}
                   >
                     {on ? "✓ " : ""}{w.label}
@@ -518,7 +535,7 @@ export default function ProfilePage({
               })}
             </div>
           )}
-          <p className="text-xs text-white/68 mt-2 leading-relaxed">
+          <p className="text-xs text-[#777777] mt-2 leading-relaxed">
             静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
           </p>
         </div>
@@ -599,34 +616,34 @@ export default function ProfilePage({
         />
 
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+          <h3 className="text-xs font-bold text-[#4b4b4b] mb-2">
             无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
           </h3>
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
-              className="flex-1 px-2 py-2 rounded-lg bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-extrabold hover:bg-amber-400/25 active:scale-95 transition-all"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#ff9600] border-b-4 border-[#e58700] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               👵 长辈模式
             </button>
             <button
               onClick={() => setStealthOpen(true)}
-              className="flex-1 px-2 py-2 rounded-lg bg-purple-400/15 border border-purple-400/40 text-purple-300 text-xs font-extrabold hover:bg-purple-400/25 active:scale-95 transition-all"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#8b5cf6] border-b-4 border-[#7c3aed] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               🛡️ 应急伪装
             </button>
           </div>
           {stealthAlarmed && (
-            <p className="text-xs text-red-300/80 mt-2">
+            <p className="text-xs text-[#ff4b4b] mt-2 font-bold">
               ⚠️ 静默报警已触发：录音就绪，红色危机流程已启动（界面无任何异常显示）
             </p>
           )}
         </div>
 
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
-        <div className="glass-panel rounded-2xl p-3.5">
-          <h3 className="text-xs font-bold text-white/88 mb-2">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+          <h3 className="text-xs font-bold text-[#4b4b4b] mb-2">
             紧急联系人（SOS 通知对象）
           </h3>
           <DynamicFormView

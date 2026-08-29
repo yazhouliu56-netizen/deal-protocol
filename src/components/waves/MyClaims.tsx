@@ -83,8 +83,8 @@ export default function MyClaims() {
 
   return (
     <div className="pointer-events-auto">
-      <h2 className="text-[18px] font-extrabold text-white/95">我的接单</h2>
-      <p className="text-xs text-white/45 mb-3">你响应过的信号波 · 抢单制：谁确认算谁的</p>
+      <h2 className="text-[18px] font-extrabold text-[#4b4b4b]">我的接单</h2>
+      <p className="text-xs text-[#777777] mb-3">你响应过的信号波 · 抢单制：谁确认算谁的</p>
 
       {/* 候补队列：满员局排队中（有人退出自动补位转正） */}
       {myWaitlist.length > 0 && (
