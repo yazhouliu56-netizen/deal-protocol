@@ -30,6 +30,7 @@ import PublishFormSchemaBridge, {
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
 import DuoButton from "@/components/ui/DuoButton";
+import PublishErrorRecoveryCard, { mapBlockedToReason } from "./_components/PublishErrorRecoveryCard";
 
 function getFallbackBudget(): string {
   try {
@@ -787,7 +788,14 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         </div>
         )}
 
-        {error && <p className="text-xs text-red-400 font-semibold mb-2">{error}</p>}
+        {error && (
+          <>
+            <p className="text-xs text-red-400 font-semibold mb-2">{error}</p>
+            <div className="mb-2">
+              <PublishErrorRecoveryCard reason={mapBlockedToReason(error)} />
+            </div>
+          </>
+        )}
 
         <DuoButton
           variant="primary"

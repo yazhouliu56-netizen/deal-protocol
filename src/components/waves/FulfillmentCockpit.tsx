@@ -8,12 +8,14 @@ import type {
 } from "@/types/ammo-schema";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { CockpitAmmoSlot, type CockpitSlotActions } from "./slots/DynamicAmmoSlot";
+import { useEffect, useState } from "react";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoProgress from "@/components/ui/DuoProgress";
 import DuoPathNode from "@/components/ui/DuoPathNode";
 import { playDuoSound } from "@/lib/duo-audio";
 import { fireDuoConfetti } from "@/lib/duo-confetti";
 import { useMountedNow } from "@/lib/use-mounted-now";
+import SettlementLootModal from "./_components/SettlementLootModal";
 import {
   SCENARIO_THEME_META,
   describeCompletionCta,
@@ -98,6 +100,8 @@ export interface FulfillmentCockpitProps {
     items: MilestoneLadderInput[];
     defaultTimeoutHours?: number;
   };
+  /** 完工礼遇：用于确定性礼遇派生的 waveId（缺省回落 ammo.ammoId）。 */
+  waveId?: string;
 }
 
 const COCKPIT_CSS = `
@@ -202,6 +206,7 @@ export default function FulfillmentCockpit({
   forceArmed,
   safetyBadge,
   milestones,
+  waveId,
 }: FulfillmentCockpitProps) {
   const scenario = scenarioFromAmmo(ammo);
   const theme = SCENARIO_THEME_META[scenario];
@@ -213,6 +218,13 @@ export default function FulfillmentCockpit({
   const customCleanText = customRequirements?.cleanText ?? "";
   const mounted = useMountedNow();
   const totalAmount = milestones?.totalAmountYuan ?? 0;
+  const [lootOpen, setLootOpen] = useState(false);
+  const lootWaveId = waveId ?? ammo.ammoId ?? "default";
+  // Microkernel 4.4：仅在 SETTLED 终态自动弹出礼遇（避免在履约中途遮挡 NFC 等关键操作）
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (status === "SETTLED") setLootOpen(true);
+  }, [status]);
 
   return (
     <div className="cockpit" data-scenario={scenario} data-theme={cockpitTheme}>
@@ -351,6 +363,8 @@ export default function FulfillmentCockpit({
       >
         {cta}
       </DuoButton>
+      {/* Microkernel 4.4：完工礼遇宝箱（仅 SETTLED 终态触发，确定性礼遇，0随机；测试态可穿透） */}
+      <SettlementLootModal waveId={lootWaveId} open={lootOpen} onClose={() => setLootOpen(false)} />
     </div>
   );
 }
