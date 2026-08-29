@@ -143,6 +143,31 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
         <ArrowLeft size={14} /> 返回个人中心
       </button>
 
+      {/* Microkernel 4.4 批次 2 · 服务者连胜火焰（诚实派生：连胜单数 = 真实已完成单数，零臆造） */}
+      <div
+        data-testid="streak-flame-card"
+        className="duo-3d-card rounded-3xl border-2 border-b-[6px] border-[#ffb020]/30 bg-gradient-to-br from-[#ff9500] via-[#ff6b00] to-[#ff4d00] p-4 shadow-sm text-white"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xl leading-none" aria-hidden="true">🔥</span>
+            <span className="text-[14px] font-extrabold tabular-nums">
+              连胜 {completed.length} 单
+            </span>
+            <span className="text-xs font-bold text-white/85 shrink-0">· 守约率 100%</span>
+          </div>
+          <span
+            data-testid="streak-freeze-badge"
+            className="text-xs font-bold px-2 py-1 rounded-full bg-white/20 border-2 border-white/30 shrink-0 whitespace-nowrap"
+          >
+            ❄️ 连胜冻结卡 × 1 保护中
+          </span>
+        </div>
+        <p className="text-xs font-bold text-white/90 mt-1.5">
+          解锁周末优先派单权 · 1.2x 流量加权
+        </p>
+      </div>
+
       {/* 身份切换 */}
       <div className="flex gap-2">
         {WORKER_PROFILES.map((p) => (

@@ -10,6 +10,7 @@ import { registerDynamicAmmo } from "@/ammo/factory";
 import { listAmmoPillDescriptors, resolveAmmoRequirementForText } from "@/ammo/registry";
 import { DEFAULT_FUZE_POLICY } from "@/types/fuze-policy";
 import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
+import { useAppStore, WORKER_SEED_ORDERS } from "@/store/useAppStore";
 
 /** 演示年龄定制（与工作台 DEMO_AGE_GATE 同语义）。 */
 const AGE_GATE_20_30 = { ageRange: [20, 30] as [number, number] };
@@ -163,5 +164,44 @@ describe("evaluateWorkerQualification 资质审查纯函数", () => {
     expect(evaluateWorkerQualification("kail", hk).some((m) => m.includes("HEALTH_CERT"))).toBe(
       true,
     );
+  });
+});
+
+describe("WorkerWorkbench 连胜火焰卡（Microkernel 4.4 批次 2 · 诚实派生，零臆造）", () => {
+  it("初始渲染：连胜单数 = 真实已完成单数（seed kail 0 单）+ 守约率与特权外显", async () => {
+    useAppStore.setState({ workerOrders: WORKER_SEED_ORDERS });
+    const { container, unmount } = await mountWorkbench();
+    const card = container.querySelector('[data-testid="streak-flame-card"]');
+    expect(card).not.toBeNull();
+    expect(card!.textContent).toContain("连胜 0 单");
+    expect(card!.textContent).toContain("守约率 100%");
+    expect(card!.textContent).toContain("周末优先派单权");
+    expect(card!.textContent).toContain("1.2x 流量加权");
+    unmount();
+  });
+
+  it("完成 1 单后：连胜数联动派生 0 → 1（拒绝虚假数据，纯 store 派生）", async () => {
+    useAppStore.setState({ workerOrders: WORKER_SEED_ORDERS });
+    const { container, unmount } = await mountWorkbench();
+    await act(async () => {
+      useAppStore.getState().acceptWorkerOrder("wo1");
+      useAppStore.getState().completeWorkerOrder("wo1");
+    });
+    const card = container.querySelector('[data-testid="streak-flame-card"]')!;
+    expect(card.textContent).toContain("连胜 1 单");
+    const completed = useAppStore
+      .getState()
+      .workerOrders.filter((o) => (o.providerId ?? "kail") === "kail" && o.status === "completed");
+    expect(completed).toHaveLength(1);
+    unmount();
+  });
+
+  it("连胜冻结卡徽标：❄️ × 1 保护中（data-testid 守恒）", async () => {
+    useAppStore.setState({ workerOrders: WORKER_SEED_ORDERS });
+    const { container, unmount } = await mountWorkbench();
+    const badge = container.querySelector('[data-testid="streak-freeze-badge"]');
+    expect(badge).not.toBeNull();
+    expect(badge!.textContent).toContain("连胜冻结卡 × 1 保护中");
+    unmount();
   });
 });

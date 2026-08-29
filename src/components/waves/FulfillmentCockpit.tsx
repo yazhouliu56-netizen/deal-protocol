@@ -221,9 +221,11 @@ export default function FulfillmentCockpit({
   const [lootOpen, setLootOpen] = useState(false);
   const lootWaveId = waveId ?? ammo.ammoId ?? "default";
   // Microkernel 4.4：仅在 SETTLED 终态自动弹出礼遇（避免在履约中途遮挡 NFC 等关键操作）
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (status === "SETTLED") setLootOpen(true);
+    if (status === "SETTLED") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- SETTLED → auto-open 单次触发，非级联渲染
+      setLootOpen(true);
+    }
   }, [status]);
 
   return (

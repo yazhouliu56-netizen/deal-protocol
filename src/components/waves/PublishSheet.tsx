@@ -478,12 +478,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           </p>
         )}
 
-        {/* P1-5 声明式表单：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支（渲染桥接子组件化搬移） */}
+        {/* P1-5 声明式表单：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支（渲染桥接子组件化搬移）
+            Microkernel 4.4 批次 2：词块回填回调直绑真实 time/budget state（杜绝假按钮） */}
         <PublishFormSchemaBridge
           fields={formFields}
           ammoId={ammoForForm?.ammoId}
           bizParams={bizParams}
           onBizParamsChange={setBizParams}
+          pricingModel={ammoForForm?.pricingModel}
+          onBackfillTime={(t) => setTime(t)}
+          onBackfillBudget={(yuan) => setBudget(String(yuan))}
         />
 
         {/* W1 总装：弹药驱动草稿预览卡（ammoId/计价模型/安全徽章自动投影），
