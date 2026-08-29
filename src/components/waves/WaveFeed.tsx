@@ -308,7 +308,7 @@ export default function WaveFeed() {
       <div className="mt-0.5 flex items-center justify-between gap-2">
         <p className="text-xs text-[#777777] flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅
-          <span className="text-xs text-[#afafaf]">· 广播式撮合 · 谁合适谁来</span>
+          <span className="text-xs text-[#afafaf]">· 谁合适谁来</span>
           <span className="ml-1 hidden sm:inline text-[#777777]">· 1.2km 内在线</span>
         </p>
         <button
@@ -373,7 +373,7 @@ export default function WaveFeed() {
               ))}
             </div>
             <p className="text-xs text-[#afafaf] mt-2 text-center">
-              在线声明能力或发出你的第一条需求，光斑即刻点亮 → 你被精准匹配
+              发出第一条需求，即可被附近师傅精准匹配
             </p>
           </motion.div>
         )}
