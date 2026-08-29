@@ -28,7 +28,7 @@ export default function GenericOrderCard({ waveId, children, testId = "generic-o
   }, [mounted]);
 
   return (
-    <div data-testid={testId} data-wave-id={waveId} data-now={now} className="glass-panel rounded-3xl p-4 space-y-2.5">
+    <div data-testid={testId} data-wave-id={waveId} data-now={now} className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 space-y-2.5">
       {children}
     </div>
   );

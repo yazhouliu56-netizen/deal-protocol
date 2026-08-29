@@ -52,7 +52,7 @@ export default function HomeTopBar({
       {/* 问候语 + 标题 */}
       <div className="flex items-center gap-2.5 mb-1">
         <IdentityAvatar />
-        <p className="text-[13px] text-white/75 font-medium flex-1">
+        <p className="text-[13px] text-[#4b4b4b] font-bold flex-1">
           Hello, Alex! 👋
         </p>
         <div className="flex items-center gap-2 shrink-0">
@@ -60,11 +60,11 @@ export default function HomeTopBar({
           <button
             onClick={onOpenCart}
             aria-label={`心愿单，共 ${cartCount} 项`}
-            className="relative w-11 h-11 rounded-full glass-panel-interactive flex items-center justify-center shrink-0 hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+            className="relative w-11 h-11 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm flex items-center justify-center shrink-0 hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border] "
           >
-            <ShoppingBag size={15} className="text-white/80" />
+            <ShoppingBag size={15} className="text-[#4b4b4b]" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] border-2 border-white text-xs font-bold text-white flex items-center justify-center shadow-sm">
                 {cartCount}
               </span>
             )}

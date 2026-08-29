@@ -63,16 +63,16 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           whileTap={{ scale: 0.98 }}
           aria-label="想找什么？一句话告诉我 · 发出你的需求"
-          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl glass-panel-interactive hover:border-brandPurple/50 transition-[border] text-left group"
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm hover:border-[#58cc02]/30 transition-[border,transform] text-left group active:translate-y-1 active:border-b-2 active:shadow-none"
         >
-          <div className="w-10 h-10 rounded-xl bg-linear-to-b from-[rgba(139,92,246,0.85)] to-[rgba(99,72,255,0.65)] border border-white/25 flex items-center justify-center shrink-0 shadow-[0_2px_14px_-2px_rgba(123,97,255,0.7),inset_0_1px_0_rgba(255,255,255,0.45)]">
+          <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles size={17} className="text-white" />
           </div>
           <span className="flex-1 min-w-0">
-            <span className="block text-sm font-extrabold text-white">你好，我是 AI 撮合助手 ✨ 一句话告诉我…</span>
-            <span className="block text-xs text-white/50 truncate">帮你秒级生成订单 · 匹配方案 / 计价 / 安全底线一键预览</span>
+            <span className="block text-sm font-extrabold text-[#4b4b4b]">你好，我是 AI 撮合助手 ✨ 一句话告诉我…</span>
+            <span className="block text-xs text-[#777777] truncate">帮你秒级生成订单 · 匹配方案 / 计价 / 安全底线一键预览</span>
           </span>
-          <span className="text-xs font-bold text-brandPurple shrink-0 px-2.5 py-1 rounded-full bg-brandPurple/15 border border-brandPurple/30 group-hover:bg-brandPurple/25 transition-colors">发出你的需求</span>
+          <span className="text-xs font-bold text-white shrink-0 px-2.5 py-1 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] shadow-sm group-hover:brightness-[1.03] transition-[filter]">发出你的需求</span>
         </motion.button>
         <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} />
         <div className="mt-2.5">
@@ -84,8 +84,8 @@ export default function HomePage() {
       <RadarFeedSection />
       <CartSheet open={showCart} cart={cart} onClose={() => setShowCart(false)} onToggleCartItem={toggleCart} onClearCart={clearCart} onPreviewExperience={(exp) => { openExperience(exp); setShowCart(false); }} onAiMatchAll={(titles) => { setAiDraft(`${titles} 帮我撮合`); setShowCart(false); setScreen("home"); }} />
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
-      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileTap={{ scale: 0.94 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full glass-panel border-brandCyan/40 text-xs font-bold text-white/90 shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:scale-95 transition-transform">
-        <Camera size={14} className="text-brandCyan" /> AR 扫描
+      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileTap={{ scale: 0.94 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#1cb0f6]/30">
+        <Camera size={14} className="text-[#1cb0f6]" /> AR 扫描
       </motion.button>
     </div>
   );

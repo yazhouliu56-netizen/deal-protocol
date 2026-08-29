@@ -92,11 +92,11 @@ export default function InspirationChips({ onSelectDraft }: InspirationChipsProp
   return (
     <div className="mt-2.5" data-layer="inspiration-chips">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <span className="text-xs font-bold tx-3 tracking-wide">
+        <span className="text-xs font-bold text-[#4b4b4b] tracking-wide">
           {insp.emoji} {insp.period}灵感
         </span>
-        <span className="h-px flex-1 bg-white/10" />
-        <span className="text-xs tx-5" aria-hidden="true">
+        <span className="h-px flex-1 bg-[#e5e5e5]" />
+        <span className="text-xs text-[#afafaf]" aria-hidden="true">
           {insp.caption}
         </span>
       </div>
@@ -107,7 +107,7 @@ export default function InspirationChips({ onSelectDraft }: InspirationChipsProp
             whileTap={{ scale: 0.94 }}
             onClick={() => onSelectDraft({ key: c.ammo, label: c.ammo })}
             aria-label={`灵感：${c.label}`}
-            className="shrink-0 px-3 py-2 rounded-full glass-panel-interactive text-xs font-bold text-white/85 active:scale-95 transition-transform"
+            className="shrink-0 px-3 py-2 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#58cc02]/30"
           >
             <span className="font-tabular">{c.label}</span>
           </motion.button>

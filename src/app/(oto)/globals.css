@@ -85,9 +85,11 @@
   filter: brightness(0.96);
 }
 .duo-3d-card {
-  border-radius: 16px;
-  border-bottom-width: 4px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border: 2px solid #e5e5e5;
+  border-bottom-width: 6px;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 /* 昼夜双主题：light 默认极净，dark 深空（data-theme="dark" 或系统偏好） */
@@ -153,9 +155,9 @@
   overflow: hidden;
   height: 100%;
 
-  /* 深色 VisionOS PWA 全局背景：深空靛蓝渐变铺满真实视口 */
-  background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
-  color: #ffffff;
+  /* Feather 亮色底座：极净 #f7f7f7 + eel #4b4b4b（多邻国 Feather 规范） */
+  background: #f7f7f7;
+  color: #4b4b4b;
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
     "Hiragino Sans GB", "Segoe UI", Roboto, "Noto Sans SC",
@@ -166,14 +168,23 @@
   text-rendering: optimizeLegibility;
   letter-spacing: 0.01em;
 
-  /* 舒适字阶与对比度变量（三级深色文字：主标题 .95 / 正文·标签 .88 / 辅助描述 .68） */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.88);
-  --text-muted: rgba(255, 255, 255, 0.68);
+  /* 明亮字阶与对比度变量（Feather：#4b4b4b 主标题 / #777777 正文 / #afafaf 辅助） */
+  --text-primary: #4b4b4b;
+  --text-secondary: #777777;
+  --text-muted: #afafaf;
   --font-size-micro: 12px;
   --font-size-caption: 13px;
   --font-size-body: 15px;
   --font-size-title: 18px;
+}
+
+/* 深色安全回退：data-theme="dark" 下恢复深空可读性（宪法 #10） */
+.oto-app[data-theme="dark"] {
+  background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
+  color: #ffffff;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --text-muted: rgba(255, 255, 255, 0.68);
 }
 
 /* ============ D-8 弹药主题 Token · 5 大主题作用域 ============
@@ -264,8 +275,11 @@
   }
 }
 
-/* 内容层自身铺满同款渐变，保证滚动容器内无死黑 */
+/* 内容层铺满同款极净底，保证滚动容器内无死黑 */
 .app-env {
+  background: #f7f7f7;
+}
+.oto-app[data-theme="dark"] .app-env {
   background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
 }
 
@@ -441,6 +455,20 @@
   to {
     opacity: 1;
   }
+}
+
+/* Feather 熄灯：亮色默认隐藏星云/极光/星粒/噪点防脏紫，仅暗色保留（参谋部第一道物理防线） */
+.nebula,
+.aurora-blob,
+.starfield,
+.noise-overlay {
+  display: none;
+}
+.oto-app[data-theme="dark"] .nebula,
+.oto-app[data-theme="dark"] .aurora-blob,
+.oto-app[data-theme="dark"] .starfield,
+.oto-app[data-theme="dark"] .noise-overlay {
+  display: block;
 }
 
 /* ============ True glass material ============ */
@@ -632,13 +660,19 @@
 .oto-app .t-caption { font-size: 13px; line-height: 1.5; }
 .oto-app .t-micro { font-size: 12px; line-height: 1.45; }
 
-/* 三级深色文字对比度：主标题 .95 / 正文·标签 .88 / 辅助描述 .68（tx-4~6 为装饰性弱化保留） */
-.oto-app .tx-1 { color: rgba(255, 255, 255, 0.95); }
-.oto-app .tx-2 { color: rgba(255, 255, 255, 0.88); }
-.oto-app .tx-3 { color: rgba(255, 255, 255, 0.68); }
-.oto-app .tx-4 { color: rgba(255, 255, 255, 0.32); }
-.oto-app .tx-5 { color: rgba(255, 255, 255, 0.22); }
-.oto-app .tx-6 { color: rgba(255, 255, 255, 0.14); }
+/* 三级明亮文字对比度（Feather）：#4b4b4b 主标题 / #777777 正文 / #afafaf 辅助 */
+.oto-app .tx-1 { color: #4b4b4b; }
+.oto-app .tx-2 { color: #777777; }
+.oto-app .tx-3 { color: #afafaf; }
+.oto-app .tx-4 { color: #d4d4d4; }
+.oto-app .tx-5 { color: #e5e5e5; }
+.oto-app .tx-6 { color: #f0f0f0; }
+.oto-app[data-theme="dark"] .tx-1 { color: rgba(255, 255, 255, 0.95); }
+.oto-app[data-theme="dark"] .tx-2 { color: rgba(255, 255, 255, 0.88); }
+.oto-app[data-theme="dark"] .tx-3 { color: rgba(255, 255, 255, 0.68); }
+.oto-app[data-theme="dark"] .tx-4 { color: rgba(255, 255, 255, 0.32); }
+.oto-app[data-theme="dark"] .tx-5 { color: rgba(255, 255, 255, 0.22); }
+.oto-app[data-theme="dark"] .tx-6 { color: rgba(255, 255, 255, 0.14); }
 
 /* 价格翻牌滚动：新值经 key 重挂载触发自下而上滚入 */
 @keyframes price-roll-in {

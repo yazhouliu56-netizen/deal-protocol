@@ -98,29 +98,29 @@ export default function WaveCard({
   );
 
   return (
-    <div className="glass-panel rounded-3xl p-4 hover:border-brandPurple/40 transition-colors">
+    <div className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 hover:border-[#58cc02]/30 transition-colors">
       {/* 头部：品类 + 热度 + 倒计时 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-9 h-9 rounded-2xl btn-primary glow-purple-strong flex items-center justify-center text-base shrink-0">
+          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center text-base shrink-0 text-white shadow-sm">
             {CATEGORY_EMOJI(wave.basics.category)}
           </span>
           <div className="min-w-0">
-            <h3 className="text-[13px] font-extrabold text-white/95 truncate">
+            <h3 className="text-[13px] font-extrabold text-[#4b4b4b] truncate">
               {wave.basics.category}
             </h3>
-            <p className="text-xs text-white/50 flex items-center gap-1 truncate">
-              <MapPin size={9} className="shrink-0 text-brandCyan" />
+            <p className="text-xs text-[#777777] flex items-center gap-1 truncate">
+              <MapPin size={9} className="shrink-0 text-[#1cb0f6]" />
               {wave.basics.area}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="flex items-center gap-1 text-xs font-bold text-white/70">
-            <Users size={10} className="text-brandPurple" /> {heat} 人感兴趣
+          <span className="flex items-center gap-1 text-xs font-bold text-[#4b4b4b]">
+            <Users size={10} className="text-[#58cc02]" /> {heat} 人感兴趣
           </span>
           <span className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-xs text-white/40">
+            <span className="flex items-center gap-1 text-xs text-[#afafaf]">
               <Clock3 size={9} /> {expireLabel}后失效
             </span>
             <button
@@ -136,10 +136,10 @@ export default function WaveCard({
       </div>
 
       {/* 时间 */}
-      <p className="text-xs text-white/70 mt-2 flex items-center gap-1">
-        <Clock3 size={10} className="text-brandCyan shrink-0" /> {wave.basics.time}
+      <p className="text-xs text-[#4b4b4b] mt-2 flex items-center gap-1">
+        <Clock3 size={10} className="text-[#1cb0f6] shrink-0" /> {wave.basics.time}
         {isOpen && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple ml-0.5">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#ff9600]/15 border border-[#ff9600]/30 text-[#ff9600] ml-0.5">
             🎯 多人拼单局 {wave.capacity} 人
           </span>
         )}
@@ -149,29 +149,29 @@ export default function WaveCard({
       {isOpen && (
         <div className="mt-2">
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-white/50">
+            <span className="text-[#777777]">
               已拼 {Math.min(joined ?? 0, needed)}/{needed} 位
               {needsApproval && (requested ?? 0) > 0 && (
-                <span className="text-amber-300/80">
+                <span className="text-[#ff9600]">
                   {" "}· 待审批 {(requested ?? 0)}
                 </span>
               )}
             </span>
-            <span className="text-brandPurple font-bold">
+            <span className="text-[#58cc02] font-bold">
               {wave.status === "assembled"
                 ? "已成局 · 候补等让位"
                 : full
                   ? "已满员"
                   : `还差 ${needed - (joined ?? 0)} 人成局`}
               {(waitlistCount ?? 0) > 0 && (
-                <span className="text-amber-300/90 font-bold"> · 候补 {(waitlistCount ?? 0)} 人</span>
+                <span className="text-[#ff9600] font-bold"> · 候补 {(waitlistCount ?? 0)} 人</span>
               )}
             </span>
           </div>
-          <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-[#e5e5e5] overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                full ? "bg-emerald-400" : "bg-linear-to-r from-brandCyan to-brandPurple"
+                full ? "bg-[#58cc02]" : "bg-[#1cb0f6]"
               }`}
               style={{ width: `${Math.min(100, ((joined ?? 0) / needed) * 100)}%` }}
             />
@@ -185,7 +185,7 @@ export default function WaveCard({
           {wave.customs.map((c, i) => (
             <span
               key={i}
-              className="px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-xs font-bold text-brandPurple"
+              className="px-2 py-0.5 rounded-full bg-[#ff9600]/15 border border-[#ff9600]/30 text-xs font-bold text-[#ff9600]"
             >
               {c.text} +{15 * (i + 1)}%
             </span>
@@ -195,7 +195,7 @@ export default function WaveCard({
 
       {/* 价格行 */}
       <div className="flex items-baseline gap-2 mt-3">
-        <span className="text-[15px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
+        <span className="text-[15px] font-extrabold text-[#58cc02]">
           {isOpen
             ? yuan(perSeatPrice(wave))
             : wave.customs.length
@@ -203,21 +203,21 @@ export default function WaveCard({
               : yuan(wave.budget)}
         </span>
         {isOpen ? (
-          <span className="text-xs text-white/40">/人</span>
+          <span className="text-xs text-[#afafaf]">/人</span>
         ) : (
           wave.customs.length > 0 && (
-            <span className="text-xs text-white/40 line-through">
+            <span className="text-xs text-[#afafaf] line-through">
               基础 {yuan(wave.budget)}
             </span>
           )
         )}
         {wave.negotiable && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-400/40 text-emerald-300">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/15 border border-[#1cb0f6]/30 text-[#1cb0f6]">
             可磋商
           </span>
         )}
         {wave.deposit && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-sky-400/15 border border-sky-400/40 text-sky-300">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/10 border border-[#1cb0f6]/20 text-[#1cb0f6]">
             🕊️ 爽约保障险 ¥5
           </span>
         )}
@@ -244,7 +244,7 @@ export default function WaveCard({
                     onRequestJoin?.();
                   }}
                   disabled={full || requestedByMe}
-                  className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {requestedByMe ? (
                     <>
@@ -268,7 +268,7 @@ export default function WaveCard({
               ) : (
                 <button
                   onClick={onJoin}
-                  className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5"
                 >
                   <>
                     <UserPlus size={12} /> 拼位加入
@@ -287,7 +287,7 @@ export default function WaveCard({
                 }}
                 disabled={!!myReport?.status}
                 aria-label="举报"
-                className="shrink-0 px-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white/45 hover:text-amber-400 hover:border-amber-400/40"
+                className="shrink-0 px-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] hover:text-[#ff9500] hover:border-[#ff9500]/40"
               >
                 <Flag size={12} />
               </button>
@@ -311,7 +311,7 @@ export default function WaveCard({
                     const out = onClaim({ price: recommend, note });
                     if (!out?.error) setCommitted(true);
                   }}
-                  className="flex-1 py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5"
                 >
                   <Zap size={12} /> {note.trim() && wave.negotiable ? "发起磋商" : "接单"}
                 </button>
@@ -327,7 +327,7 @@ export default function WaveCard({
                   }}
                   disabled={!!myReport?.status}
                   aria-label="举报"
-                  className="shrink-0 px-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-white/45 hover:text-amber-400 hover:border-amber-400/40"
+                  className="shrink-0 px-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] hover:text-[#ff9500] hover:border-[#ff9500]/40"
                 >
                   <Flag size={12} />
                 </button>
@@ -337,20 +337,20 @@ export default function WaveCard({
         </div>
       )}
       {ownSeat && (
-        <p className="mt-3 text-xs font-bold text-emerald-300 text-center py-2">
+        <p className="mt-3 text-xs font-bold text-[#58cc02] text-center py-2">
           {isOpen ? "✓ 已拼位，等待满员成局" : "✓ 已发出，等待需求方确认"}
         </p>
       )}
       {myReport?.status && (
         <p className="mt-2 text-xs text-center">
           {myReport.status === "resolved" ? (
-            <span className="text-emerald-300/90 font-bold">
+            <span className="text-[#58cc02] font-bold">
               ✓ 平台已处理：
               {ACTION_LABEL[myReport.action ?? "dismiss"]}
               {myReport.verdictNote ? `（${myReport.verdictNote}）` : ""}
             </span>
           ) : (
-            <span className="text-amber-300/90">⏳ 已举报，平台核查中</span>
+            <span className="text-[#ff9600]">⏳ 已举报，平台核查中</span>
           )}
         </p>
       )}
