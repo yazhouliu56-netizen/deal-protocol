@@ -146,12 +146,12 @@ function MatchTicker() {
   }, [waves, claims]);
   const line = events.join("　·　");
   return (
-    <div className="ticker-marquee mt-3 overflow-hidden rounded-xl bg-white border-2 border-[#e5e5e5] border-b-[4px] shadow-sm">
+    <div className="mt-2 overflow-hidden rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] opacity-60">
       <div className="ticker-track">
-        <span className="whitespace-nowrap px-3 py-1.5 text-xs text-[#4b4b4b] tracking-wide font-bold">
+        <span className="whitespace-nowrap px-3 py-1 text-xs text-[#afafaf] tracking-wide">
           {line}　·　{line}　·　
         </span>
-        <span className="whitespace-nowrap px-3 py-1.5 text-xs text-[#4b4b4b] tracking-wide font-bold">
+        <span className="whitespace-nowrap px-3 py-1 text-xs text-[#afafaf] tracking-wide">
           {line}　·　{line}　·　
         </span>
       </div>
@@ -301,12 +301,15 @@ export default function WaveFeed() {
         </button>
       </div>
 
-      <h1 className="text-[23px] leading-tight font-extrabold mt-3 text-[#4b4b4b] tracking-tight">
-        谁正在附近发需求
+      <h1 className="text-[18px] leading-tight font-extrabold mt-3 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
+        📍 附近的需求
+        <span className="text-xs font-normal text-[#afafaf]">· 谁正在附近发需求</span>
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
-        <p className="text-xs text-[#777777]">
-          广播式撮合 · 谁合适谁来 · 谁接单算谁的
+        <p className="text-xs text-[#777777] flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅
+          <span className="text-xs text-[#afafaf]">· 广播式撮合 · 谁合适谁来</span>
+          <span className="ml-1 hidden sm:inline text-[#777777]">· 1.2km 内在线</span>
         </p>
         <button
           onClick={() => setFavOpen(true)}

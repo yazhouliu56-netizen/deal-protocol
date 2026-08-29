@@ -49,15 +49,15 @@ export default function ChatInputBar({
         onCompositionStart={() => (composingRef.current = true)}
         onCompositionEnd={() => (composingRef.current = false)}
         name="ai-demand-input"
-        placeholder="描述你的需求，比如：周六下午 2 人羽毛球"
-        className="flex-1 min-w-0 px-4 py-3 rounded-2xl glass-panel outline-none text-xs placeholder:text-white/35"
+        placeholder="想找谁帮忙？一句话告诉我… 描述你的需求，比如：周六下午 2 人羽毛球"
+        className="flex-1 min-w-0 px-4 py-3 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm outline-none text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:border-[#58cc02]/30"
         enterKeyHint="send"
       />
       <button
         type="submit"
         disabled={streaming || !input.trim()}
         aria-label="发送"
-        className="w-11 h-11 shrink-0 rounded-2xl btn-primary glow-purple-strong flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:scale-95 transition-[filter,transform]"
+        className="w-11 h-11 shrink-0 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 shadow-sm transition-[transform]"
       >
         <Send size={16} />
       </button>

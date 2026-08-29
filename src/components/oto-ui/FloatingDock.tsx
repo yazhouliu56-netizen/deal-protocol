@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Home, Map, MessageCircle, User } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
@@ -17,31 +16,13 @@ const NAVS: { id: DockPage; label: string; icon: typeof Home }[] = [
   { id: "profile", label: "我的", icon: User },
 ];
 
-/** True on desktop breakpoints — drives the right-rail slide-in entrance. */
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(mq.matches);
-    const id = requestAnimationFrame(update);
-    mq.addEventListener("change", update);
-    return () => {
-      cancelAnimationFrame(id);
-      mq.removeEventListener("change", update);
-    };
-  }, []);
-  return isDesktop;
-}
-
 /**
- * Bottom floating dock (mobile) / right vertical rail (desktop).
- * Desktop entrance: slides in from the right after 0.5s — hints at the
- * side navigation for first-time PWA users.
+ * Bottom floating dock — locked centered on all breakpoints inside 430px container.
+ * Microkernel 4.3: right-rail removed (was lg:right-6 / lg:top-1/2 / lg:flex-col).
  */
 export default function FloatingDock() {
   const activeTab = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
-  const isDesktop = useIsDesktop();
   // 消息键未读角标：IM 私信中枢总未读（ADR-0010 会话未读实时投影）
   const imThreads = useWaveStore((s) => s.imThreads);
   const me = useIdentityStore((s) => s.identity.id);
@@ -49,12 +30,12 @@ export default function FloatingDock() {
 
   return (
     <motion.div
-      initial={isDesktop ? { opacity: 0, x: 80 } : false}
-      animate={isDesktop ? { opacity: 1, x: 0 } : {}}
-      transition={{ delay: 0.5, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="fixed o-safe-bottom o-safe-pb left-1/2 -translate-x-1/2 z-50 lg:left-auto lg:right-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2 lg:translate-x-0">
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl px-6 py-2.5 flex items-center justify-between gap-8 md:gap-14 shadow-sm lg:flex-col lg:px-3 lg:py-4 lg:gap-7">
+      <div className="fixed o-safe-bottom o-safe-pb bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px] px-4">
+        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl px-6 py-2.5 flex items-center justify-between gap-8 md:gap-14 shadow-sm">
           {NAVS.map((nav) => {
             const Icon = nav.icon;
             const isActive = activeTab === nav.id;

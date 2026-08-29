@@ -63,16 +63,17 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           whileTap={{ scale: 0.98 }}
           aria-label="想找什么？一句话告诉我 · 发出你的需求"
-          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm hover:border-[#58cc02]/30 transition-[border,transform] text-left group active:translate-y-1 active:border-b-2 active:shadow-none"
+          data-testid="launch-button"
+          className="w-full flex items-center gap-3 px-4 py-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm hover:border-[#58cc02]/30 transition-[border,transform] text-left group active:translate-y-1 active:border-b-2 active:shadow-none"
         >
           <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles size={17} className="text-white" />
           </div>
           <span className="flex-1 min-w-0">
-            <span className="block text-sm font-extrabold text-[#4b4b4b]">你好，我是 AI 撮合助手 ✨ 一句话告诉我…</span>
-            <span className="block text-xs text-[#777777] truncate">帮你秒级生成订单 · 匹配方案 / 计价 / 安全底线一键预览</span>
+            <span className="block text-sm font-extrabold text-[#4b4b4b]">想找谁帮忙？一句话告诉我…</span>
+            <span className="block text-xs text-[#777777] truncate">AI 撮合助手 · 语音或文字秒级生成订单 · 智能匹配最合适的人</span>
           </span>
-          <span className="text-xs font-bold text-white shrink-0 px-2.5 py-1 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] shadow-sm group-hover:brightness-[1.03] transition-[filter]">发出你的需求</span>
+          <span className="text-xs font-extrabold text-white shrink-0 px-3.5 py-2 rounded-full bg-[#58cc02] border-b-4 border-[#46a302] shadow-sm group-hover:brightness-[1.03] transition-[filter] flex items-center gap-1">🎙️ 发出你的需求</span>
         </motion.button>
         <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} />
         <div className="mt-2.5">

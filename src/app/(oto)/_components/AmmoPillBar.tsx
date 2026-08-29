@@ -16,44 +16,48 @@ interface AmmoPillBarProps {
   onSelectDraft: (draft: { key: string; label: string }) => void;
 }
 
-/** 品类胶囊栏：注册表动态驱动（官方四枚 + 动态池热注；每枚挂 data-ammo / data-theme
-    主题色作用域 —— 点击精准唤起对应弹药拟物草稿卡）。 */
-const PILL_STYLE: Record<string, { bg: string; border: string; text: string }> = {
-  housekeeping: { bg: "#1cb0f6", border: "#1899d6", text: "#ffffff" },
-  meetup: { bg: "#ffc800", border: "#e5b400", text: "#4b4b4b" },
-  companion: { bg: "#8b5cf6", border: "#7c3aed", text: "#ffffff" },
-  tech: { bg: "#ff9600", border: "#e58700", text: "#ffffff" },
-  default: { bg: "#58cc02", border: "#46a302", text: "#ffffff" },
+/** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。 */
+const TILE_STYLE: Record<string, { bg: string; border: string; text: string; price: string }> = {
+  housekeeping: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥60/h 起" },
+  meetup: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥15 AA制" },
+  companion: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥100/h 起" },
+  tech: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥30 检测" },
+  default: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥80/天" },
+};
+const TILE_ACCENT: Record<string, string> = {
+  housekeeping: "#1cb0f6",
+  meetup: "#ffc800",
+  companion: "#8b5cf6",
+  tech: "#ff9600",
+  default: "#58cc02",
 };
 
 export default function AmmoPillBar({ pills, onSelectDraft }: AmmoPillBarProps) {
   return (
     <div
-      className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-0.5"
+      className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5"
       data-layer="ammo-pills"
       data-testid="ammo-pill-bar"
     >
-      {pills.map((pill) => {
-        const s = PILL_STYLE[pill.theme] ?? PILL_STYLE.default;
+      {pills.slice(0, 5).map((pill) => {
+        const s = TILE_STYLE[pill.theme] ?? TILE_STYLE.default;
+        const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
         return (
           <motion.button
             key={pill.ammoId}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSelectDraft({ key: pill.label, label: pill.label })}
             data-ammo={pill.ammoId}
             data-category={pill.category}
             data-theme={pill.theme}
             aria-label={`${pill.label} · 一键弹药发单`}
-            className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full border-b-4 border-x border-t text-xs font-extrabold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform,filter] whitespace-nowrap"
-            style={{
-              backgroundColor: s.bg,
-              borderColor: s.border,
-              color: s.text,
-              borderBottomWidth: "4px",
-            }}
+            data-testid={`pill-${pill.ammoId}`}
+            className="flex flex-col items-center gap-1 px-2 py-3 rounded-2xl bg-white border-2 border-b-[4px] border-[#e5e5e5] shadow-sm active:translate-y-1 active:border-b-2 active:shadow-none transition-[transform,border] min-h-[88px] justify-center hover:border-[#58cc02]/20"
+            style={{ borderBottomColor: "#e5e5e5" }}
           >
-            <span className="text-sm leading-none">{pill.icon}</span>
-            <span className="whitespace-nowrap">{pill.label}</span>
+            <span className="text-2xl leading-none" style={{ filter: `drop-shadow(0 1px 0 ${accent}20)` }}>{pill.icon}</span>
+            <span className="text-xs font-extrabold text-[#4b4b4b] truncate w-full text-center leading-tight">{pill.label}</span>
+            <span className="text-xs font-bold truncate w-full text-center" style={{ color: accent }}>{s.price}</span>
           </motion.button>
         );
       })}
