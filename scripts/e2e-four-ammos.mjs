@@ -312,8 +312,8 @@ try {
   const feedEvidence = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
     // 雷达为服务者视角（谁正在附近发需求）——发起人自己的波不回流 feed（authorId 隔离）；
-    // 空态渲染「周边在线供给雷达」光斑补给（caddf34 起替代旧「这片区域暂时没有活跃的信号波」文案）
-    const radarIdle = text.includes("周边在线供给雷达");
+    // 空态渲染治愈系三行文案（设计图极简批次起替代已出清的「周边在线供给雷达」供给光斑，8eaa327 出清残留断言同步）
+    const radarIdle = text.includes("你附近的OTO社区");
     return {
       radarIdle,
       hasCapsuleBar: !!document.querySelector("[data-layer='action']"),

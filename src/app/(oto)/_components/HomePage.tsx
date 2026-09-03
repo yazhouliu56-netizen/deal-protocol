@@ -10,6 +10,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import HomeTopBar, { type HomeMode } from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
+import HeroAiDemandCabin from "./HeroAiDemandCabin";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
 import PublishSheet from "@/components/waves/PublishSheet";
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [publishCategory, setPublishCategory] = useState("");
   const [homeMode, setHomeMode] = useState<HomeMode>("buyer");
   const [aiInput, setAiInput] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   useEffect(() => {
     lockEdgeGesture(showCart || draft !== null || publishOpen);
   }, [showCart, draft, publishOpen]);
@@ -56,7 +58,7 @@ export default function HomePage() {
     });
   }, [activeWave, claims, fulfilment]);
   return (
-    <div className="pointer-events-auto">
+    <div className="pointer-events-auto overflow-x-hidden">
       <HomeTopBar
         activeWave={activeWave}
         activeFiveState={activeFiveState}
@@ -71,77 +73,50 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="mt-3" data-layer="action">
-          {/* B1 一体化 AI 需求舱（白3D消灭深紫框，双输入框合一） */}
-          <div
-            className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4"
-            data-testid="ai-demand-cabin"
-            data-layer="ai-cabin"
-          >
-            <p className="text-xs font-extrabold text-[#58cc02] flex items-center gap-1">
-              ✨ AI 撮合助手 · 秒级生成担保契约 · 0 押金 满意后分账
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                type="search"
-                role="searchbox"
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && aiInput.trim()) {
-                    setDraft({ key: "default-ammo", label: aiInput.trim() });
-                    setAiInput("");
-                  }
-                }}
-                placeholder="一句话描述需求，如：周六晚 7 点天河 2 人羽毛球 AA制..."
-                aria-label="一句话描述需求"
-                className="flex-1 min-w-0 px-3 py-3 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-sm text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#58cc02]/30"
-              />
-              <button
-                aria-label="语音输入"
-                onClick={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
-                className="w-11 h-11 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm flex items-center justify-center shrink-0 active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#58cc02]/20"
-              >
-                🎙️
-              </button>
-              <button
-                onClick={() => {
-                  if (aiInput.trim()) {
-                    setDraft({ key: "default-ammo", label: aiInput.trim() });
-                    setAiInput("");
-                  } else {
-                    setDraft({ key: "default-ammo", label: "全类目需求" });
-                  }
-                }}
-                aria-label="想找什么？一句话告诉我 · 发出你的需求"
-                data-testid="launch-button"
-                className="px-4 py-3 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-xs font-extrabold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform] shrink-0"
-              >
-                ⚡ 发出
-              </button>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {[
-                { label: "🏸 周末羽毛球", ammo: "组局社交" },
-                { label: "🧹 2小时保洁", ammo: "家政保洁" },
-                { label: "🔧 空调清洗", ammo: "家电维修" },
-                { label: "🐾 宠物寄养", ammo: "宠物寄养" },
-              ].map((c) => (
-                <button
-                  key={c.label}
-                  onClick={() => setDraft({ key: c.ammo, label: c.ammo })}
-                  className="px-3 py-2 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#58cc02]/20"
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} />
+          {/* B1 一体化 AI 需求舱（设计图极简形态：水豚问候 + 出发 + 轻标签） */}
+          <HeroAiDemandCabin
+            value={aiInput}
+            onChange={setAiInput}
+            onLaunch={(text) => {
+              setDraft({ key: "default-ammo", label: text });
+              setAiInput("");
+            }}
+            onMic={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
+          />
+          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" />
           <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
-            <p className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1">🤖 AI 撮合对话 · 多轮追问</p>
-            <ChatPage compact slim onAmmoDraft={(key, category) => setDraft({ key, label: category })} />
+            {chatOpen ? (
+              <div>
+                <div className="mb-2 flex items-center gap-1">
+                  <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
+                  <button
+                    type="button"
+                    onClick={() => setChatOpen(false)}
+                    aria-label="收起AI对话"
+                    className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
+                  >
+                    收起 ↑
+                  </button>
+                </div>
+                <ChatPage compact slim onAmmoDraft={(key, category) => setDraft({ key, label: category })} />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setChatOpen(true)}
+                aria-expanded="false"
+                aria-label="展开多轮AI沟通"
+                data-testid="ai-chat-toggle"
+                className="w-full flex items-center gap-2 min-h-12 text-left"
+              >
+                <span className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</span>
+                <span className="px-3 py-2 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] shrink-0">
+                  💬 展开 ↓
+                </span>
+              </button>
+            )}
           </div>
-          <div className="mt-4" data-layer="wave-feed">
+          <div className="mt-4" id="wave-feed" data-layer="wave-feed">
             <WaveFeed />
           </div>
         </div>

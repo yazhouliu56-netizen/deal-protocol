@@ -147,10 +147,17 @@ export default function WaveFeed() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-6 text-center"
+            className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-6 text-center"
+            data-testid="wave-empty-state"
           >
-            <p className="text-sm font-extrabold text-[#4b4b4b]">暂无附近需求</p>
-            <p className="text-xs text-[#afafaf] mt-1">去发一条试试，附近师傅马上看到</p>
+            {/* 雷达微光扩散（纯 CSS animate-pulse，零重库，防雷：禁挡触控） */}
+            <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0 flex items-center justify-center">
+              <span className="absolute h-24 w-24 rounded-full bg-[#58cc02]/10 animate-pulse" />
+              <span className="absolute h-40 w-40 rounded-full bg-[#58cc02]/5 animate-pulse" />
+            </div>
+            <p className="relative text-xs font-bold text-[#1cb0f6]">附近的雷达</p>
+            <p className="relative text-sm font-extrabold text-[#4b4b4b] mt-1">你附近的OTO社区</p>
+            <p className="relative text-xs text-[#afafaf] mt-1 leading-relaxed">这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！</p>
           </motion.div>
         )}
         {feed.map((f) => (
