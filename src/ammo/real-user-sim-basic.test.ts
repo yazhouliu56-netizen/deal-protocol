@@ -337,7 +337,7 @@ test("[环节C2] 引擎双拍验收：CleaningCheckHook 算子放行 + 证据入
   );
 });
 
-test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOTO_FORGERY_DETECTED）", () => {
+test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOTO_FORGERY_DETECTED）", async () => {
   const base = {
     ammoId: "housekeeping-v1",
     orderId: ORDER_ID,
@@ -345,7 +345,7 @@ test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOT
     to: "INSPECTED" as const,
   };
   // ① 照片齐全 + 无鉴真载荷 → 放行（证据契约透传）
-  const ok = cleaningCheckHook.run({
+  const ok = await cleaningCheckHook.run({
     ...base,
     payload: { photos: { before: ["wm-before-hk-001"], after: ["wm-after-hk-001"] } },
   });
@@ -360,7 +360,7 @@ test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOT
   assert.equal(data.contract.beforePhoto.required, true, "前后照片必填契约");
   assert.equal(data.contract.beforePhoto.maxCount, 5);
   // ② photoVerify CRITICAL → 阻断验收（鉴真红线，L3-M4 深度鉴真接入）
-  const forged = cleaningCheckHook.run({
+  const forged = await cleaningCheckHook.run({
     ...base,
     payload: {
       photos: { before: ["wm-before-hk-001"], after: ["wm-after-hk-001"] },
@@ -370,7 +370,7 @@ test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOT
   assert.equal(forged.ok, false);
   assert.match(forged.reason ?? "", /AIGC_PHOTO_FORGERY_DETECTED/);
   // ③ 低危鉴真载荷 → 放行 + forgery 附档留痕
-  const soft = cleaningCheckHook.run({
+  const soft = await cleaningCheckHook.run({
     ...base,
     payload: {
       photos: { before: ["wm-before-hk-001"], after: ["wm-after-hk-001"] },
@@ -384,12 +384,12 @@ test("[环节C3] 领域富钩子直测：AIGC 伪图 CRITICAL 阻断（AIGC_PHOT
     "风险等级作为附加数据透传（evidence.forgery 争议物证链）",
   );
   // ④ 缺照片 → 拦截验收（领域钩子为准入必填）
-  const missing = cleaningCheckHook.run({ ...base, payload: {} });
+  const missing = await cleaningCheckHook.run({ ...base, payload: {} });
   assert.equal(missing.ok, false);
   assert.match(missing.reason ?? "", /evidence-photos-required/);
 });
 
-test("[环节C4] 现场增项报价钩子：先干后说价拦截 + 确认放行", () => {
+test("[环节C4] 现场增项报价钩子：先干后说价拦截 + 确认放行", async () => {
   const base = {
     ammoId: "housekeeping-v1",
     orderId: ORDER_ID,
@@ -397,14 +397,14 @@ test("[环节C4] 现场增项报价钩子：先干后说价拦截 + 确认放行
     to: "IN_SERVICE" as const,
   };
   // ① 未确认增项 → BLOCK（禁止先干后说价）
-  const pending = onsiteQuoteHook.run({
+  const pending = await onsiteQuoteHook.run({
     ...base,
     payload: { onsiteQuote: { items: ["重污加价"], totalYuan: 50, approved: false } },
   });
   assert.equal(pending.ok, false);
   assert.match(pending.reason ?? "", /onsite-quote-pending/);
   // ② 已确认增项 → 放行 + 透传确认金额
-  const confirmed = onsiteQuoteHook.run({
+  const confirmed = await onsiteQuoteHook.run({
     ...base,
     payload: { onsiteQuote: { items: ["客厅重污深度清洁"], totalYuan: 50, approved: true } },
   });

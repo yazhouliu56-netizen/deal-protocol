@@ -131,7 +131,7 @@ test("组局满员成局：assembled 直传结果描述符", async () => {
   resetSandboxBotForTest();
   const actions = makeActions({ wave: makeWave({ capacity: 2, ammoId: "meetup-social-v1" }) });
   actions.joinSeat = () => ({
-    claim: { id: "s1", waveId: "w", responderId: "bot-akai", status: "accepted", rounds: 0 },
+    claim: { id: "s1", waveId: "w", responderId: "bot-akai", status: "accepted", rounds: 0, createdAt: Date.now() },
     assembled: true,
   });
   let result: unknown;

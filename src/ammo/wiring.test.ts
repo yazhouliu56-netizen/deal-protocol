@@ -15,7 +15,7 @@ function makeWaveInput(
   return {
     id: "w-test-ammo",
     authorId: "u-1",
-    basics: { category: "家政保洁", time: "明天 11:00", area: "幸福家园小区" },
+    basics: { category: "家政保洁", time: "明天 11:00", area: "幸福家园小区", radiusKm: 5 },
     budget: 100,
     expiresAt: Date.now() + 3_600_000,
     createdAt: Date.now(),

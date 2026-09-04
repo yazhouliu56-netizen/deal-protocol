@@ -11,7 +11,7 @@ import {
   evaluateTriCreditAdmission,
 } from "./tri-credit.ts";
 import type { IAmmoDefinition, ITriDimensionalCredit } from "../../types/ammo-schema.ts";
-import { IMPACT_FUZE_TEMPLATE, PROXIMITY_FUZE_TEMPLATE, DELAY_FUZE_TEMPLATE } from "../../types/fuze-policy.ts";
+import { IMPACT_FUZE_TEMPLATE, PROXIMITY_FUZE_TEMPLATE, DELAY_FUZE_TEMPLATE, DEFAULT_FUZE_POLICY } from "../../types/fuze-policy.ts";
 import { housekeepingAmmo } from "../../ammo/housekeeping.ammo.ts";
 import { meetupAmmo } from "../../ammo/meetup.ammo.ts";
 
@@ -29,7 +29,7 @@ const NO_FUZE_AMMO: IAmmoDefinition = {
   version: "1.0.0",
   fiveStateHooks: [],
   pricingModel: { kind: "FIXED", amountYuan: 100 },
-  fuzePolicy: { fuzeId: "fuze-none", fuzeTypes: [] },
+  fuzePolicy: { ...DEFAULT_FUZE_POLICY, fuzeId: "fuze-none", fuzeTypes: [] },
 };
 
 /* ============ 1. 强合规隔离（一票熔断） ============ */

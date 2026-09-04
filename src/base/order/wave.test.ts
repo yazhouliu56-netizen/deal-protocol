@@ -464,8 +464,8 @@ test("P1-1 单袋化：customRequirements 并入 bizParams 单袋 + 根兼容镜
 });
 
 test("P1-1 单袋化：bizParams.customRequirements 优先 + getCustomRequirements 兼容回落根镜像", () => {
-  const bagCr = { cleanText: "单袋权威", isSensitiveCustomization: false };
-  const rootCr = { cleanText: "根镜像旧值", isSensitiveCustomization: false };
+  const bagCr = { cleanText: "单袋权威", isSensitiveCustomization: false, blockedReason: null as null };
+  const rootCr = { cleanText: "根镜像旧值", isSensitiveCustomization: false, blockedReason: null as null };
   const w1 = { ...baseWave(), bizParams: { customRequirements: bagCr }, customRequirements: rootCr };
   // 权威 = 单袋
   assert.deepEqual(getCustomRequirements(w1), bagCr);

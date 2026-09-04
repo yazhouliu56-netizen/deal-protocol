@@ -178,7 +178,7 @@ test("8D 全息出厂：D1~D8 逐维契约断言 + 出厂审查通过", () => {
   /* D7 清算与仲裁：48h 质保验收期 + 82/13/5 资金守恒 */
   assert.equal(c.autoAcceptanceTimeoutHours, 48);
   assert.equal(
-    c.splitRules?.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio,
+    c.splitRules!.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio,
     1
   );
   assert.deepEqual(c.splitRules, { providerRatio: 0.82, platformRatio: 0.13, insuranceRatio: 0.05 });

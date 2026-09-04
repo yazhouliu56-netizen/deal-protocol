@@ -84,7 +84,7 @@ test("8D 全息出厂：D1 准入 / D2 计价护栏 / D4 传感降级 / D6 违�
     deductDepositRatio: 0.15,
   });
   assert.equal(c.autoAcceptanceTimeoutHours, 2);
-  assert.equal(c.splitRules?.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
+  assert.equal(c.splitRules!.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
   assert.equal(c.theme, "companion");
   assert.equal(c.cockpitSlot, "CompanionSlot");
   assert.equal(companionAmmo.holographic, COMPANION_HOLOGRAPHIC_CONFIG);
@@ -197,7 +197,6 @@ test("富钩子直测：离开停表——距离 < 300m → 记不满足（AFTER
     orderId: "cp-4",
     from: "INSPECTED",
     to: "SETTLED",
-    now: NOW,
     payload: {
       at: NOW,
       departure: { distanceMeters: 120, startedAt: NOW - 90 * 60_000 },
@@ -213,7 +212,6 @@ test("富钩子直测：离开停表——≥300m 自动结账停表（1h 内按
     orderId: "cp-5",
     from: "INSPECTED",
     to: "SETTLED",
-    now: NOW,
     payload: {
       at: NOW,
       departure: {
@@ -234,7 +232,6 @@ test("富钩子直测：离开停表——超时 2.5h → 起步 1h + 超出 1.5
     orderId: "cp-6",
     from: "INSPECTED",
     to: "SETTLED",
-    now: NOW,
     payload: {
       at: NOW,
       departure: {
@@ -254,7 +251,6 @@ test("富钩子直测：离开停表——缺载荷 → 记 reason（SKIP 降级
     orderId: "cp-7",
     from: "INSPECTED",
     to: "SETTLED",
-    now: NOW,
   }) as { ok: boolean; reason?: string };
   assert.equal(r.ok, false);
   assert.equal(r.reason, "departure-data-required");

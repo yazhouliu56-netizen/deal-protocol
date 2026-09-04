@@ -65,7 +65,7 @@ test("8D 全息出厂：D1 准入 / D2 计价护栏 / D4 传感降级 / D6 违�
     deductDepositRatio: 0.3,
   });
   assert.equal(c.autoAcceptanceTimeoutHours, 6);
-  assert.equal(c.splitRules?.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
+  assert.equal(c.splitRules!.providerRatio + c.splitRules!.platformRatio + c.splitRules!.insuranceRatio, 1);
   assert.equal(c.theme, "meetup");
   assert.equal(c.cockpitSlot, "MeetupSlot");
   assert.equal(meetupAmmo.holographic, MEETUP_HOLOGRAPHIC_CONFIG);

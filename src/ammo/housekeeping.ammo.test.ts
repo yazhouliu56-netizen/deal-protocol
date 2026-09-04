@@ -78,7 +78,7 @@ test("8D 全息出厂：D1 入户一票否决 / D2 计价护栏 / D4 传感降�
     deductDepositRatio: 0.2,
   });
   assert.equal(h.autoAcceptanceTimeoutHours, 24);
-  assert.equal(h.splitRules?.providerRatio + h.splitRules!.platformRatio + h.splitRules!.insuranceRatio, 1);
+  assert.equal(h.splitRules!.providerRatio + h.splitRules!.platformRatio + h.splitRules!.insuranceRatio, 1);
   assert.equal(h.theme, "housekeeping");
   assert.equal(h.cockpitSlot, "HousekeepingSlot");
   // 流水线出厂镜像：弹药本体直挂全息配置（视界层/座舱只读消费）
@@ -206,7 +206,7 @@ test("L3-M4 鉴真阻断：CRITICAL 伪造证据 → BLOCK + AIGC_PHOTO_FORGERY_
       },
     },
   };
-  const r = cleaningCheckHook.run(base);
+  const r = await cleaningCheckHook.run(base);
   assert.equal(r.ok, false);
   assert.equal(r.reason, AIGC_PHOTO_FORGERY_DETECTED);
   const forgery = (r.data as { forgery?: unknown })?.forgery;
@@ -228,7 +228,7 @@ test("L3-M4 鉴真放行：非 CRITICAL 风险附证据透传，验收照常达�
       },
     },
   };
-  const r = cleaningCheckHook.run(base);
+  const r = await cleaningCheckHook.run(base);
   assert.equal(r.ok, true);
   const data = r.data as { evidence?: unknown; forgery?: unknown };
   assert.ok(data.evidence);
@@ -244,7 +244,7 @@ test("L3-M4 鉴真向后兼容：无 photoVerify 载荷 → 照片齐全即放�
     to: "INSPECTED",
     payload: { photos: { before: ["before-1.jpg"], after: ["after-1.jpg"] } },
   };
-  const r = cleaningCheckHook.run(base);
+  const r = await cleaningCheckHook.run(base);
   assert.equal(r.ok, true);
 });
 

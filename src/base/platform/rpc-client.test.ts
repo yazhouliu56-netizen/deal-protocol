@@ -73,7 +73,7 @@ test("Mock 降级：submit_withdrawal_request 提现入队通道（L2-M4 统一�
 });
 
 test("mockResultFor：确定性结果（同输入同输出，无随机性）", () => {
-  const a = mockResultFor("grab_demand", { p_demand_id: "x" });
+  const a = mockResultFor<{ grabbed: boolean }>("grab_demand", { p_demand_id: "x" });
   const b = mockResultFor("grab_demand", { p_demand_id: "x" });
   assert.deepEqual(a, b);
   assert.equal(a.grabbed, true);

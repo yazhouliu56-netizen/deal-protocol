@@ -178,9 +178,8 @@ test("[环节一] 非标诉求 8 维全息参数化清单：D1-D8 逐维显式�
 
 test("[环节二] Linter 真实质检：validateAmmoConfig 资金守恒(85+10+5=1.0)与安全红线 100% 通过", () => {
   const verdict = validateAmmoConfig(buildDroneConfig());
+  if (!verdict.ok) assert.fail(`静态语义审查未通过：${verdict.errors.join("; ")}`);
   assert.equal(verdict.ok, true);
-  if (verdict.ok) return;
-  assert.fail(`静态语义审查未通过：${verdict.errors.join("; ")}`);
 });
 
 test("[环节二] Linter 拦截点实测：资金不守恒 / 未知钩子注入 / 加价熔断超限 三探针全被拒", () => {
@@ -475,7 +474,7 @@ test("[环节三] 引信核验实测：💥 碰炸引信背调/押金双闸门",
 
 test("[环节四] 纯动态零静态文件实证：系统从未加载任何静态 drone.ammo.ts", () => {
   // ① src/ammo/ 目录内不存在任何 drone 前缀静态品类文件（真实磁盘扫描）
-  const files = readdirSync(new URL(".", import.meta.url)).map((f) => f.name);
+  const files = readdirSync(new URL(".", import.meta.url));
   assert.ok(
     !files.some((f) => /^drone/i.test(f)),
     `src/ammo/ 下不得存在静态 drone 品类文件（实际：${files.join(", ")}）`,
