@@ -69,4 +69,6 @@ export function matchE2E(files) {
 /* CHANGELOG
  * 2026-09-04 v1：初版。needsProd=true 仅 e2e-offline（SW 接管硬等待，磁盘实证）。
  * e2e-push 疑似需 SW，待 Step 4 dev/prod 对照校准后再定。
+ * 2026-09-04 Step 4 校准结论：e2e-push 全文件零 SW/Notification 引用（代码实证），
+ * A/B 双跑（自有 prod PASS / next dev 复用态 17.6s PASS）行为一致 → needsProd 保持 false。
  */
