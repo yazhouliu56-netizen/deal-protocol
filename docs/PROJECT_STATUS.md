@@ -206,6 +206,8 @@
 
 # LAST_SYNC
 
+> **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
+
 > 日期：2026-09-03 ｜ HEAD：工作区未提交（设计图极简两步完工）｜ 摘要：需求舱重塑+轻标签+空态三行+Chat折叠+E2E双同步；基线 **1907/1907守恒**（718+1189）｜ 门禁 tsc 0 + lint 0/0 + first-principle ALL PASS + build 97 + verify-prod 13/13 + four-ammos PASS + roam 5/5 + convergence 0 + Base0（4源码+2脚本+1文档，条文 #1 #4 #10）
 
 ## 历史同步账（Microkernel 2.0 战役 1/2/3）
