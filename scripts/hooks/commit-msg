@@ -13,4 +13,17 @@ if printf '%s' "$SUBJECT" | grep -qiE '^docs(\([^)]*\))?:[[:space:]]*(sync|updat
   echo "Fold status updates into the feat/fix commit that caused them." >&2
   exit 1
 fi
+# 收敛表禁写（Step 3）：CONVERGENCE-LOG.md 在暂存区时，要求 --staged 定级 ≥T3。
+# docs(archive): 主题已在上游白名单放行（批量整理逃生舱）；纯 typo 修复亦请走该主题。
+if git diff --cached --name-only | grep -qx "docs/CONVERGENCE-LOG.md"; then
+  TIERLINE=$(node scripts/detect-tier.mjs --staged 2>/dev/null | head -n 1)
+  case "$TIERLINE" in
+    TIER=T3) ;;
+    *)
+      echo "[commit-msg] BLOCKED: docs/CONVERGENCE-LOG.md staged but tier is ${TIERLINE:-unknown} (< T3)." >&2
+      echo "Only T3 (rename/contract) events may touch the convergence log. Use subject 'docs(archive): ...' for bulk archival edits." >&2
+      exit 1
+      ;;
+  esac
+fi
 exit 0
