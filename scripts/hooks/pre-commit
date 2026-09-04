@@ -1,0 +1,11 @@
+#!/bin/sh
+# Type-check gate: blocks commits that break tsc --noEmit (~9s on this repo).
+# Uses node directly: bare `npx` resolves to a missing POSIX shim in this environment.
+# 来源：原 .git/hooks/pre-commit 原样迁移（core.hooksPath 接管后旧路径失效），行为零变化。
+echo "[pre-commit] running tsc --noEmit ..."
+node node_modules/typescript/bin/tsc --noEmit
+code=$?
+if [ $code -ne 0 ]; then
+  echo "[pre-commit] BLOCKED: type check failed (exit $code). Fix errors or commit with --no-verify."
+fi
+exit $code

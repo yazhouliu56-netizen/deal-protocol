@@ -1,0 +1,16 @@
+#!/bin/sh
+# commit-msg 门禁：独立 docs-sync 提交拦截（Step 1 ③b）。
+# 约束：sh + 系统命令直调（本仓 npx POSIX shim 已坏）；只读 $1 消息文件，
+# 永不 git add、不改工作区；LF 换行（.gitattributes 锁死 eol=lf）。
+MSG_FILE="$1"
+test -f "$MSG_FILE" || exit 0
+SUBJECT=$(head -n 1 "$MSG_FILE")
+case "$SUBJECT" in
+  Merge*|Revert*|docs\(release\)*|docs\(archive\)*) exit 0 ;;
+esac
+if printf '%s' "$SUBJECT" | grep -qiE '^docs(\([^)]*\))?:[[:space:]]*(sync|update[[:space:]]+(PROJECT_STATUS|CONVERGENCE-LOG)|status[[:space:]]+sync)'; then
+  echo "[commit-msg] BLOCKED: standalone docs-sync commit forbidden." >&2
+  echo "Fold status updates into the feat/fix commit that caused them." >&2
+  exit 1
+fi
+exit 0

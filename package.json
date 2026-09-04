@@ -9,6 +9,7 @@
     "mobile"
   ],
   "scripts": {
+    "prepare": "git config core.hooksPath scripts/hooks",
     "dev": "next dev",
     "dev:all": "node scripts/dev-all.mjs",
     "build": "next build --webpack",
