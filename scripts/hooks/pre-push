@@ -1,0 +1,77 @@
+#!/bin/sh
+# pre-push 范围门禁（Step 4）：stdin 四元组 <local ref> <local sha> <remote ref> <remote sha>
+# → detect-tier --range 逐行定级取 Max → T0:npm test / T1:+build / T2:+verify-scoped。
+# 与 check 解耦：check 管工作区自检，本钩子管推送区间，二者共享 detect-tier 引擎、互不调用。
+# 约束：sh + node/npm 直调；循环内子进程一律 </dev/null（防吞 stdin 剩余行）。
+ZERO=0000000000000000000000000000000000000000
+TOP_TIER="CLEAN"
+E2E_UNION=""
+NEED_SMOKE=0
+ANY_REAL=0
+
+tier_rank() {
+  case "$1" in
+    CLEAN) echo 0 ;; T-Doc) echo 1 ;; T0) echo 2 ;; T1) echo 3 ;; T2) echo 4 ;; T3) echo 5 ;; *) echo -1 ;;
+  esac
+}
+
+while read local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_ref" ] && continue
+  case "$local_ref" in
+    refs/tags/*)
+      echo "[pre-push] Tag push detected ($local_ref). Full 13-suite verification delegated to CI Release workflow."
+      continue
+      ;;
+  esac
+  if [ "$local_sha" = "$ZERO" ]; then
+    echo "[pre-push] Branch deletion ($local_ref), gate skipped."
+    continue
+  fi
+  ANY_REAL=1
+  if [ "$remote_sha" = "$ZERO" ]; then
+    base=$(git merge-base origin/master "$local_sha" 2>/dev/null || true)
+    if [ -z "$base" ]; then
+      echo "[pre-push] WARN: no merge-base for new branch $local_ref → bounded fallback T2+smoke."
+      [ "$(tier_rank T2)" -gt "$(tier_rank "$TOP_TIER")" ] && TOP_TIER="T2"
+      NEED_SMOKE=1
+      continue
+    fi
+    from="$base"
+  else
+    from="$remote_sha"
+  fi
+  out=$(node scripts/detect-tier.mjs --range="$from...$local_sha" </dev/null 2>/dev/null)
+  t=$(printf '%s' "$out" | head -n 1 | sed 's/^TIER=//')
+  [ "$(tier_rank "$t")" -gt "$(tier_rank "$TOP_TIER")" ] && TOP_TIER="$t"
+  e=$(printf '%s' "$out" | grep '^E2E:' | sed 's/^E2E://' | tr '\n' ',' )
+  E2E_UNION="$E2E_UNION,$e"
+done
+
+[ "$ANY_REAL" -eq 0 ] && exit 0
+echo "[pre-push] max tier over pushed refs: $TOP_TIER"
+case "$TOP_TIER" in
+  CLEAN|T-Doc) echo "[pre-push] nothing to gate."; exit 0 ;;
+  T3) echo "[pre-push] note: convergence enforced at commit time (pre-commit gate)." ;;
+esac
+
+command -v npm >/dev/null 2>&1 || { echo "[pre-push] BLOCKED: npm not found in hook PATH."; exit 1; }
+rank_ok() { [ "$(tier_rank "$TOP_TIER")" -ge "$(tier_rank "$1")" ]; }
+
+if rank_ok T0; then
+  echo "[pre-push] npm test ..."
+  npm test </dev/null || { echo "[pre-push] BLOCKED: npm test failed."; exit 1; }
+fi
+if rank_ok T1; then
+  echo "[pre-push] npm run build ..."
+  npm run build </dev/null || { echo "[pre-push] BLOCKED: build failed."; exit 1; }
+fi
+if rank_ok T2; then
+  E2E_UNION=$(printf '%s' "$E2E_UNION" | tr ',' '\n' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//;s/^,//')
+  if [ "$NEED_SMOKE" -eq 1 ] || [ -z "$E2E_UNION" ]; then
+    node scripts/verify-scoped.mjs --smoke || { echo "[pre-push] BLOCKED: scoped e2e failed."; exit 1; }
+  else
+    node scripts/verify-scoped.mjs --only="$E2E_UNION" || { echo "[pre-push] BLOCKED: scoped e2e failed."; exit 1; }
+  fi
+fi
+echo "[pre-push] PASS (tier $TOP_TIER)."
+exit 0

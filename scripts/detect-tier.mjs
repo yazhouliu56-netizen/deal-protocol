@@ -1,7 +1,7 @@
 /**
  * Step 2 · 变更定级器：git diff → Tier（机治替代人治）。
  * 用法：
- *   node scripts/detect-tier.mjs [--staged|--worktree|--base=<ref>]
+ *   node scripts/detect-tier.mjs [--staged|--worktree|--base=<ref>|--range=<from>...<to>]
  * 输出契约（dispatcher/hook 共用）：
  *   首行 TIER=<CLEAN|T-Doc|T0|T1|T2|T3>，随后 REASON:/E2E:/FILE: 行。
  *   永远 exit 0（定级是数据，不是门禁成败）。
@@ -16,19 +16,26 @@ function usage() {
   console.log(`usage: node scripts/detect-tier.mjs [--staged|--worktree|--base=<ref>]
   --staged    仅已暂存（hook 场景；未 add 的不审判）
   --worktree  HEAD 对工作区 + 未跟踪文件（默认，agent/本地自检）
-  --base=REF  REF...HEAD 三点式（CI 场景，防 base 超前污染）`);
+  --base=REF  REF...HEAD 三点式（CI 场景，防 base 超前污染）
+  --range=A...B
+              精确推送区间（pre-push 场景：remote...local 的 merge-base 语义）`);
 }
 
 let mode = "worktree";
 let base = null;
+let range = null;
 for (const a of process.argv.slice(2)) {
   if (a === "--staged") mode = "staged";
   else if (a === "--worktree") mode = "worktree";
   else if (a.startsWith("--base=")) { mode = "base"; base = a.slice("--base=".length); }
+  else if (a.startsWith("--range=")) { mode = "range"; range = a.slice("--range=".length); }
   else if (a === "--help" || a === "-h") { usage(); process.exit(0); }
   else { console.error(`[detect-tier] unknown arg: ${a}`); usage(); process.exit(2); }
 }
 if (mode === "base" && !base) { console.error("[detect-tier] --base requires a ref"); process.exit(2); }
+if (mode === "range") {
+  if (!range || !range.includes("...")) { console.error("[detect-tier] --range requires <from>...<to>"); process.exit(2); }
+}
 
 function git(args) {
   return execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
@@ -64,6 +71,8 @@ function collect() {
     entries = parseNameStatusZ(git(["diff", "--cached", "--name-status", "-M", "-z"]));
   } else if (mode === "base") {
     entries = parseNameStatusZ(git(["diff", "--name-status", "-M", "-z", `${base}...HEAD`]));
+  } else if (mode === "range") {
+    entries = parseNameStatusZ(git(["diff", "--name-status", "-M", "-z", range]));
   } else {
     entries = parseNameStatusZ(git(["diff", "--name-status", "-M", "-z", "HEAD"]));
     // worktree 必须并入未跟踪新文件（--exclude-standard 自动尊 .gitignore），记 A。
@@ -137,6 +146,7 @@ const T2_SCRIPTS = new Set([
   "scripts/verify-prod.mjs",
   "scripts/verify-scoped.mjs",
   "scripts/detect-tier.mjs",
+  "scripts/convergence-check.mjs",
   "scripts/e2e-map.mjs",
   "scripts/check.mjs",
 ]);

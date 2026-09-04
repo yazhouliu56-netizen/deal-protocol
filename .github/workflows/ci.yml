@@ -3,9 +3,13 @@ name: CI & Smoke Test
 on:
   push:
     branches: [ master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ master ]
   deployment_status:
+  schedule:
+    # 周检：映射表腐烂 backstop —— 无变更也跑满 13 全量，防止定级器漏检静默破坏
+    - cron: '0 3 * * 1'
 
 jobs:
   typecheck-and-build:
@@ -33,7 +37,7 @@ jobs:
           node-version: 22
           cache: 'npm'
       - run: npm ci
-      - name: 全量单元测试（856 项：vitest 426 + node:test 430）
+      - name: 全量单元测试（1907 项：vitest 718 + node:test 1189）
         run: npm test
       - name: ESLint
         run: npm run lint
@@ -41,7 +45,8 @@ jobs:
         run: npm run check:first-principle
 
   e2e-verify:
-    if: github.event_name == 'push'
+    # push 全量（含 Tag Release，本地 tag-push 已放行，此处是唯一 13 全量执行点）+ 每周定时全量
+    if: github.event_name == 'push' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     env:
       PLAYWRIGHT_CHANNEL: chromium

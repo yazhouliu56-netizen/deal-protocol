@@ -1,11 +1,22 @@
 #!/bin/sh
-# Type-check gate: blocks commits that break tsc --noEmit (~9s on this repo).
+# pre-commit 双门禁（Step 4 定稿）：tsc + convergence-check，合计 <25s。
 # Uses node directly: bare `npx` resolves to a missing POSIX shim in this environment.
-# 来源：原 .git/hooks/pre-commit 原样迁移（core.hooksPath 接管后旧路径失效），行为零变化。
+# tsc 来源：原 .git/hooks/pre-commit 原样迁移；收敛行 Step 4 新增。
 echo "[pre-commit] running tsc --noEmit ..."
 node node_modules/typescript/bin/tsc --noEmit
-code=$?
-if [ $code -ne 0 ]; then
-  echo "[pre-commit] BLOCKED: type check failed (exit $code). Fix errors or commit with --no-verify."
+tsc_code=$?
+if [ $tsc_code -ne 0 ]; then
+  echo "[pre-commit] BLOCKED: type check failed (exit $tsc_code). Fix errors or commit with --no-verify."
+  exit $tsc_code
 fi
-exit $code
+# check:convergence 只读暂存区 rename（毫秒级，push 时暂存区已空故只能放这里）：
+# 有 R 且 CONVERGENCE-LOG.md 未同台暂存即拦截，机械强制“登记与改动同 commit”。
+echo "[pre-commit] running check:convergence ..."
+node scripts/convergence-check.mjs
+conv_code=$?
+if [ $conv_code -ne 0 ]; then
+  echo "[pre-commit] BLOCKED: convergence gate failed. Add the CONVERGENCE-LOG.md row in THIS commit or use --no-verify."
+  exit $conv_code
+fi
+echo "[pre-commit] PASS (tsc + convergence)"
+exit 0
