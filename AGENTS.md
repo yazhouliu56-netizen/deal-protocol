@@ -10,7 +10,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 The single source of truth for project status is `docs/PROJECT_STATUS.md`.
 
 - Before starting work: read it first (it replaces a full re-audit).
-- After any change that affects features / test baselines / phase status: update the matching table/line in it AND bump the `LAST_SYNC` row (date + HEAD + summary) in the same change.
+- 日常 commit 零触碰本文件（独立 docs-sync 提交已被 commit-msg 门禁拦截）。仅发版 / Tag / 阶段收官时刷新 `LAST_SYNC`（date + HEAD + summary），与收官 commit 同提交。
 - Deleting it or letting it drift is a defect, not a minor issue.
 <!-- END:project-status-sync -->
 
@@ -33,7 +33,7 @@ The single source of truth is `docs/DESIGN_CONSTITUTION.md`.
 **完成定义（DoD）——业务代码改动收尾必须自证，缺一不算完成：**
 1. `npx tsc --noEmit` → 0 错误
 2. `npm run lint` → 0 errors / 0 warnings
-3. `npm test` + `npm run test:units` → 全绿，呈报通过数（node:test + vitest）
+3. `npm test` → 全绿（单入口，已含 vitest + node:test双跑道；禁止追加 `test:units` 重跑），呈报通过数
 4. 涉及构建产物/运行时的改动：`npm run build` exit 0 → `node scripts/restart-prod.mjs` READY → `node scripts/verify-prod.mjs` PASS
 5. 触及 E2E 已覆盖链路的行为改动：复跑对应 e2e 脚本 PASS；新缺陷模式必须转化为新考卷/断言登记（缺陷→考卷复利条款）
 
