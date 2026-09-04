@@ -69,8 +69,37 @@ function collect() {
     // worktree 必须并入未跟踪新文件（--exclude-standard 自动尊 .gitignore），记 A。
     const untracked = git(["ls-files", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean);
     for (const p of untracked) entries.push({ status: "A", path: p, untracked: true });
+    pairManualRenames(entries);
   }
   return entries;
+}
+
+/**
+ * 手工改名配对（S3 实测暴露）：IDE/文件系统 mv 未经 git mv/add 时，
+ * git diff 视 untracked 为不可见，D + A 永远配不成 R。 defense：
+ * D 条目的 HEAD blob 哈希 == 未跟踪文件的工作区哈希 → 视为 R100。
+ * 改名+改内容（相似度<100%）不在此列——仍显 D/A，属已知局限（Step 4 hook 用暂存态可 natural R）。
+ */
+function pairManualRenames(entries) {
+  const dels = entries.filter((e) => e.status === "D" && !e.untracked);
+  const adds = entries.filter((e) => e.untracked);
+  if (dels.length === 0 || adds.length === 0) return;
+  const workHash = new Map();
+  for (const a of adds) {
+    try { workHash.set(a.path, git(["hash-object", "--", a.path]).trim()); } catch { /* 读不到跳过 */ }
+  }
+  for (const d of dels) {
+    let headHash = null;
+    try { headHash = git(["rev-parse", `HEAD:${d.path}`]).trim(); } catch { continue; }
+    const hit = adds.find((a) => !a.paired && workHash.get(a.path) === headHash);
+    if (!hit) continue;
+    hit.paired = true;
+    d.status = "R";
+    d.from = d.path;
+    d.path = hit.path;
+    d.manual = true;
+    entries.splice(entries.indexOf(hit), 1);
+  }
 }
 
 /** T3 契约文件：改即结构变更（宪法收敛对象）。 */
@@ -127,7 +156,9 @@ function isE2EScript(p) { return p.startsWith("scripts/e2e-") && p.endsWith(".mj
 function classify(e) {
   const p = e.path;
   // R/C：任何重命名/复制 = 结构变更，直接 T3（状态机最高优先）。
-  if (e.status === "R" || e.status === "C") return ["T3", `${e.status === "R" ? "rename" : "copy"} ${e.from} -> ${p}`];
+  if (e.status === "R" || e.status === "C") {
+    return ["T3", `${e.status === "R" ? "rename" : "copy"} ${e.from} -> ${p}${e.manual ? " ~manual-pair" : ""}`];
+  }
   if (CONTRACT_FILES.has(p)) return ["T3", `contract ${p}`];
   if (p.endsWith(".md")) {
     if (GOV_DOCS.has(p)) return ["T1", `governance-doc ${p}`];
