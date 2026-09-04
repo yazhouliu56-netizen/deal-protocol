@@ -50,10 +50,6 @@
   ],
 "exclude": [
       "node_modules",
-      "src/base",
-      "src/base/**/*",
-      "src/ammo",
-      "src/ammo/**/*",
       "mobile",
       "mobile/**/*",
       "tests",
