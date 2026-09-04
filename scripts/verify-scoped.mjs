@@ -13,7 +13,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { SMOKE, NEEDS_PROD, KNOWN, matchE2E } from "./e2e-map.mjs";
+import { SMOKE, NEEDS_PROD, KNOWN, matchE2E, isGrowthZone } from "./e2e-map.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -42,7 +42,13 @@ if (opt.only) {
   }
   set = opt.only; via = "--only";
 } else if (opt.files) {
-  set = matchE2E(opt.files);
+  // §6 特区：全 growth 文件 → 直接豁免，禁止 smoke 退化（§6.4）。
+  const scopedFiles = opt.files.filter((f) => !isGrowthZone(f));
+  if (scopedFiles.length === 0) {
+    console.log(`[verify-scoped] growth-zone only (${opt.files.length} files) → e2e exempt per §6.4, SKIP ✓`);
+    process.exit(0);
+  }
+  set = matchE2E(scopedFiles);
   if (set.length === 0) {
     set = [...SMOKE];
     via = "smoke-fallback(no map hit)";

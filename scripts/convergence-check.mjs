@@ -15,6 +15,7 @@
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { isGrowthZone } from "./e2e-map.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const LOG = "docs/CONVERGENCE-LOG.md";
@@ -39,9 +40,19 @@ let issues = 0;
 const stagedRenames = staged
   .split("\n")
   .filter((l) => /^R\d+/.test(l.trim()))
-  .map((l) => l.trim().split(/\t/).slice(1).join(" -> "));
+  .map((l) => {
+    const [from, to] = l.trim().split(/\t/).slice(1);
+    return { from, to, text: `${from} -> ${to}` };
+  });
 
-if (stagedRenames.length > 0) {
+// §6 特区：两端均在增长区内部的 rename 豁免（实验换名/改路由，保持 T1 构建即可）。
+const intraGrowthStaged = stagedRenames.filter((r) => isGrowthZone(r.from) && isGrowthZone(r.to));
+const exoticStaged = stagedRenames.filter((r) => !(isGrowthZone(r.from) && isGrowthZone(r.to)));
+if (intraGrowthStaged.length > 0) {
+  console.log(`  ✓ 特区内部 rename ×${intraGrowthStaged.length}（§6.4 豁免，无需收敛登记）`);
+}
+
+if (exoticStaged.length > 0) {
   // Step 4 同 commit 豁免：rename 与登记表同台暂存 → 放行（提交说明标记由第 2 步在历史侧复核）。
   const stagedNames = sh("git diff --cached --name-only").split("\n").map((l) => l.trim());
   if (stagedNames.includes(LOG)) {
@@ -49,7 +60,7 @@ if (stagedRenames.length > 0) {
   } else {
     issues++;
     console.error(`\n✗ 检测到未提交的结构性改动（rename）：`);
-    for (const r of stagedRenames) console.error(`    ${r}`);
+    for (const r of exoticStaged) console.error(`    ${r.text}`);
     console.error(`    请在提交说明中标注「宪法收敛：条文 #n」并在 docs/CONVERGENCE-LOG.md 登记该 commit 后再提交。`);
   }
 }
@@ -68,7 +79,8 @@ for (const line of logLines) {
     cur = { hash, subject: subjectParts.join("\t"), renames: [] };
     renameByCommit.set(hash, cur);
   } else if (cur && /^\s*R\d+/.test(line)) {
-    cur.renames.push(line.replace(/^\s*R\d+\t/, "").replace(/\t/g, " -> "));
+    const [from, to] = line.replace(/^\s*R\d+\t/, "").split("\t");
+    cur.renames.push({ from, to, text: `${from} -> ${to}` });
   }
 }
 const logText = readFileSync(resolve(ROOT, LOG), "utf8");
@@ -79,17 +91,23 @@ for (const line of logText.split("\n")) {
 }
 for (const c of renameByCommit.values()) {
   if (c.renames.length === 0) continue;
+  // §6 特区：纯区内 rename 的历史提交直接放行。
+  const exotic = c.renames.filter((r) => !(isGrowthZone(r.from) && isGrowthZone(r.to)));
+  if (exotic.length === 0) {
+    console.log(`  ✓ ${c.hash} 仅含特区内部 rename ×${c.renames.length}（§6.4 豁免）`);
+    continue;
+  }
   const registered = [...listed].some((h) => c.hash.startsWith(h) || h.startsWith(c.hash));
   // Step 4 同 commit 认定：提交说明含「宪法收敛」标记即视为已登记（hash 事前不可知，
   // 登记行随改动同 commit 落表，不再强制事后 docs-sync 补 hash）。
   const marked = c.subject.includes("宪法收敛");
   if (registered || marked) {
-    console.log(`  ✓ 已登记 ${c.hash}（${c.renames.length} rename${registered ? "" : "，凭提交说明标记认定"}）`);
+    console.log(`  ✓ 已登记 ${c.hash}（${exotic.length} rename${registered ? "" : "，凭提交说明标记认定"}）`);
     continue;
   }
   issues++;
   console.error(`\n✗ 提交 ${c.hash} 「${c.subject}」含结构改动但未在 CONVERGENCE-LOG 登记：`);
-  for (const r of c.renames.slice(0, 6)) console.error(`    rename: ${r}`);
+  for (const r of exotic.slice(0, 6)) console.error(`    rename: ${r.text}`);
   console.error(`    请在提交说明标注「宪法收敛：条文 #n」并到 docs/CONVERGENCE-LOG.md 追加该 commit 行。`);
 }
 

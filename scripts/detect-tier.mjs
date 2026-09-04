@@ -9,6 +9,15 @@
  */
 import { execFileSync } from "node:child_process";
 
+/**
+ * §6 特区判定（e2e-map.mjs 为唯一事实源；缺失时本地回落，保证定级永不阻断）。
+ */
+let isGrowthZone = (p) => typeof p === "string" && p.startsWith("src/app/(growth)/");
+try {
+  const m = await import("./e2e-map.mjs");
+  if (m.isGrowthZone) isGrowthZone = m.isGrowthZone;
+} catch { /* 映射表缺失不阻断定级 */ }
+
 const ORDER = ["CLEAN", "T-Doc", "T0", "T1", "T2", "T3"];
 const rank = (t) => ORDER.indexOf(t);
 
@@ -165,6 +174,11 @@ function isE2EScript(p) { return p.startsWith("scripts/e2e-") && p.endsWith(".mj
 
 function classify(e) {
   const p = e.path;
+  // §6 特区：增长区内部 rename（实验换名/改路由）不算结构变更，封顶 T1。
+  // 跨出特区的 rename（任一端在区外）继续走 T3。
+  if ((e.status === "R" || e.status === "C") && e.from && isGrowthZone(e.from) && isGrowthZone(p)) {
+    return ["T1", `growth-zone ${e.from} -> ${p} (e2e/convergence exempt)`];
+  }
   // R/C：任何重命名/复制 = 结构变更，直接 T3（状态机最高优先）。
   if (e.status === "R" || e.status === "C") {
     return ["T3", `${e.status === "R" ? "rename" : "copy"} ${e.from} -> ${p}${e.manual ? " ~manual-pair" : ""}`];
@@ -180,6 +194,8 @@ function classify(e) {
     return ["T1", `root-config/infra ${p}`];
   }
   if (p.startsWith("scripts/")) return ["T1", `tooling ${p}`];
+  // §6 特区：增长区文件封顶 T1（tsc+lint+build 必跑；E2E/收敛豁免由下游承接）。
+  if (isGrowthZone(p)) return ["T1", `growth-zone ${p} (e2e/convergence exempt)`];
   if (p.startsWith("src/components/") || p.startsWith("src/app/") || p.startsWith("src/store/")
     || p === "src/app/sw.ts" || p.endsWith("globals.css") || p.startsWith("src/types/")
     || p.startsWith("src/lib/") || p.startsWith("src/modules/") || p.startsWith("mobile/")) {

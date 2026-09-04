@@ -15,6 +15,16 @@ export const MANUAL_ONLY = new Set([
   "e2e-roam-multidevice.mjs",
 ]);
 
+/**
+ * §6 特区：增长隔离区（宪法 DESIGN_CONSTITUTION.md §6.1）。
+ * 区内文件不参与 E2E 映射（零命中）；调用方（verify-scoped --files）在
+ * 全 growth 时必须直接豁免，禁止做 smoke 退化（§6.4）。
+ */
+export const GROWTH_ZONE = "src/app/(growth)/";
+export function isGrowthZone(p) {
+  return typeof p === "string" && p.startsWith(GROWTH_ZONE);
+}
+
 /** verify-prod suite 顺序（执行顺序即此序，保证与全量一致的可比性）。 */
 export const SUITE_ORDER = [
   "e2e-app.mjs",
@@ -58,6 +68,7 @@ export const RULES = [
 export function matchE2E(files) {
   const hit = new Set();
   for (const f of files) {
+    if (isGrowthZone(f)) continue; // §6 特区：增长区文件零命中（豁免 E2E，由上游封顶 T1）
     for (const r of RULES) {
       if (r.keys.some((k) => f.includes(k))) hit.add(r.e2e);
     }
@@ -67,6 +78,8 @@ export function matchE2E(files) {
 }
 
 /* CHANGELOG
+ * 2026-09-04 v2（§6 特区适配）：新增 GROWTH_ZONE + isGrowthZone；matchE2E 跳过
+ * 特区文件（零命中，禁 smoke 退化由 verify-scoped --files 全 growth 短路承接）。
  * 2026-09-04 v1：初版。needsProd=true 仅 e2e-offline（SW 接管硬等待，磁盘实证）。
  * e2e-push 疑似需 SW，待 Step 4 dev/prod 对照校准后再定。
  * 2026-09-04 Step 4 校准结论：e2e-push 全文件零 SW/Notification 引用（代码实证），
