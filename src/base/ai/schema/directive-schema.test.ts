@@ -247,9 +247,14 @@ describe("directive-schema — 空输入安全兜底", () => {
   });
 
   it("0ms 产出（同步纯函数，无异步 I/O）", () => {
-    const start = Date.now();
-    for (let i = 0; i < 1000; i++) safeParseDirective({ text: "hi", action: "ask", category: null, need: { area: "A" } });
-    assert.ok(Date.now() - start < 200);
+    // 确定性断言替代墙钟断言：1000 次调用全部同步返回（非 Promise）且结果正确。
+    // 旧 `Date.now() - start < 200` 在 102 文件并行负载下事件循环停顿即抖（已实证抓获）。
+    for (let i = 0; i < 1000; i++) {
+      const r = safeParseDirective({ text: "hi", action: "ask", category: null, need: { area: "A" } }) as unknown;
+      assert.ok(!(r instanceof Promise), "must complete synchronously without async I/O");
+    }
+    const ok = safeParseDirective({ text: "hi", action: "ask", category: null, need: { area: "A" } });
+    assert.equal(ok.success, true);
   });
 });
 
