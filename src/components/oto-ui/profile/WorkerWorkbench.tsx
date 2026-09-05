@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
 import { useSession } from "@/components/SessionProvider";
 import { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
+import { toast } from "@/base/platform/toast";
 import {
   useAppStore,
   WORKER_PROFILES,
@@ -94,18 +95,35 @@ export function evaluateWorkerQualification(
 /**
  * 服务者端工作台（M5+）：服务者视角管理撮合订单，多身份切换。
  * 待接单 → 进行中 → 已完成（收益入账）。在线开关控制接单。
+ * 看板公开只读；接单/履约/开关等写动作经 guardProviderAction 门禁。
+ * P2 橱窗语义保留：订单/账本为本地演示，CockpitDemoCard 侧已挂沙盒标。
  */
-/**
- * 服务者端工作台看板体（原默认导出内容；门禁见下方 WorkerWorkbench）。
- * 保持纯展示 + 本地演示账本语义，P8 服务端资质下发后替换数据源。
- */
-export function WorkerWorkbenchBoard({ onBack }: { onBack: () => void }) {
+export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
   const workerOrders = useAppStore((s) => s.workerOrders);
   const workerOnline = useAppStore((s) => s.workerOnline);
   const setWorkerOnline = useAppStore((s) => s.setWorkerOnline);
   const acceptWorkerOrder = useAppStore((s) => s.acceptWorkerOrder);
   const completeWorkerOrder = useAppStore((s) => s.completeWorkerOrder);
   const [providerId, setProviderId] = useState<string>("kail");
+  const { user } = useSession();
+
+  /**
+   * 动作级门禁（Phase 2.2-C）：看板公开可读，接单/履约/开关等写动作
+   * 仅真实 provider 会话放行；游客弹登录抽屉，需求方明示引导。
+   */
+  const guardProviderAction = (action: () => void) => () => {
+    if (!user) {
+      toast("请先登录服务者账号", "info");
+      openAuthSheet();
+      return;
+    }
+    if (user.role !== "provider") {
+      toast("当前为需求方身份，需服务者认证后接单", "info");
+      return;
+    }
+    action();
+  };
+  const guardAcceptOrder = (orderId: string) => guardProviderAction(() => acceptWorkerOrder(orderId));
   const profile =
     WORKER_PROFILES.find((p) => p.id === providerId) ?? WORKER_PROFILES[0];
 
@@ -214,7 +232,7 @@ export function WorkerWorkbenchBoard({ onBack }: { onBack: () => void }) {
             <p className="text-xs text-[#777777] mt-0.5">{profile.desc}</p>
           </div>
           <button
-            onClick={() => setWorkerOnline(!workerOnline)}
+            onClick={guardProviderAction(() => setWorkerOnline(!workerOnline))}
             aria-label="在线接单开关"
             className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 border-b-4 text-xs font-bold transition-[transform] min-h-10 active:translate-y-1 active:border-b-2 ${
               workerOnline
@@ -325,7 +343,7 @@ export function WorkerWorkbenchBoard({ onBack }: { onBack: () => void }) {
                 key={o.id}
                 order={o}
                 actionLabel="接受订单"
-                onAction={() => acceptWorkerOrder(o.id)}
+                onAction={guardAcceptOrder(o.id)}
                 dimmed={!workerOnline}
                 blocked={missingFor(o).length > 0}
                 blockedLabel={
@@ -349,13 +367,13 @@ export function WorkerWorkbenchBoard({ onBack }: { onBack: () => void }) {
                 key={o.id}
                 order={o}
                 actionLabel="完成服务"
-                onAction={() => {
+                onAction={guardProviderAction(() => {
                   completeWorkerOrder(o.id);
                   // 响应方商业化：完成后收益入钱包（虚拟结算）
                   useIdentityStore
                     .getState()
                     .book("income", priceToNumber(o.price), `服务收益 · ${o.service}（${o.client}）`);
-                }}
+                })}
               />
             ))}
           </div>
@@ -460,65 +478,6 @@ function WorkerOrderRow({
 }
 
 /**
- * 服务者工作台门禁壳（Phase 2.2 真并轨）。
- * 仅真实 role=provider 会话可见看板体；游客/需求方看合规引导。
- * 看板体自身仍为本地演示账本（Sandbox 语义，见 CockpitDemoCard 标注）。
+ * 看板体别名导出（历史测试引用；与默认导出同一实现）。
  */
-export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
-  const { user, loading } = useSession();
-
-  if (loading) {
-    return (
-      <div className="pointer-events-auto flex flex-col gap-4" data-testid="workbench-loading">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-[12px] text-[#777777] hover:text-[#4b4b4b] w-fit font-bold"
-        >
-          <ArrowLeft size={14} /> 返回个人中心
-        </button>
-        <p className="text-xs text-[#777777]">身份核验中…</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="pointer-events-auto flex flex-col gap-3" data-testid="workbench-guest">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-[12px] text-[#777777] hover:text-[#4b4b4b] w-fit font-bold"
-        >
-          <ArrowLeft size={14} /> 返回个人中心
-        </button>
-        <p className="text-sm font-bold text-[#4b4b4b]">服务者工作台需要登录</p>
-        <p className="text-xs text-[#777777]">登录后绑定服务者身份即可管理接单与履约。</p>
-        <button
-          type="button"
-          onClick={openAuthSheet}
-          className="px-4 py-2.5 rounded-xl bg-[#1cb0f6] text-white text-xs font-extrabold shadow-sm min-h-12"
-        >
-          登录 / 注册
-        </button>
-      </div>
-    );
-  }
-
-  if (user.role !== "provider") {
-    return (
-      <div className="pointer-events-auto flex flex-col gap-3" data-testid="workbench-denied">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-[12px] text-[#777777] hover:text-[#4b4b4b] w-fit font-bold"
-        >
-          <ArrowLeft size={14} /> 返回个人中心
-        </button>
-        <p className="text-sm font-bold text-[#4b4b4b]">当前为需求方身份</p>
-        <p className="text-xs text-[#777777]">
-          服务者工作台仅对已认证服务者开放。如需接单，请先完成服务者入驻认证。
-        </p>
-      </div>
-    );
-  }
-
-  return <WorkerWorkbenchBoard onBack={onBack} />;
-}
+export { WorkerWorkbench as WorkerWorkbenchBoard };

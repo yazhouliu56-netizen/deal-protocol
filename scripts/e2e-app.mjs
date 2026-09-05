@@ -5,6 +5,7 @@
  */
 import { chromium } from "playwright-core";
 import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
+import { ensureE2EProviderSession, cleanupE2EProvider } from "./lib/e2e-provider-login.mjs";
 import assert from "node:assert/strict";
 
 const BASE = getE2eBaseUrl();
@@ -29,6 +30,8 @@ try {
   await resetE2eChannelRow("app");
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
   const page = await ctx.newPage();
+  // Phase 2.2-C：工作台写动作需真实 provider 会话，先建号登录。
+  const e2eProviderId = await ensureE2EProviderSession(page, BASE);
   const errors = [];
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -193,6 +196,7 @@ assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);
   await page.screenshot({ path: "e2e-app-final.png" });
   console.log("E2E 补充分支 PASS ✓（弹药草稿卡/全局发单条/心愿单闭环/工作台接单履约/AR 锚点重置）");
+  await cleanupE2EProvider(e2eProviderId).catch(() => {});
   await browser.close();
 } catch (err) {
   console.error("E2E 补充分支 FAIL:", err instanceof Error ? err.message : err);

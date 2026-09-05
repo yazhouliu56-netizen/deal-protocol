@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import WorkerWorkbench, {
   WorkerWorkbenchBoard,
@@ -206,8 +206,8 @@ describe("WorkerWorkbench 连胜火焰卡（Microkernel 4.4 批次 2 · 诚实�
     unmount();
   });
 });
-describe("WorkerWorkbench 门禁壳（Phase 2.2 真并轨）", () => {
-  async function mountGate(sessionValue: { user: null | { id: string; role: string }; loading: boolean }) {
+describe("WorkerWorkbench 动作级门禁（Phase 2.2-C）", () => {
+  async function mountBoard(sessionValue: { user: null | { id: string; role: string }; loading: boolean }) {
     const { SessionContext } = await import("@/components/SessionProvider");
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -228,27 +228,68 @@ describe("WorkerWorkbench 门禁壳（Phase 2.2 真并轨）", () => {
     };
   }
 
-  it("游客态：合规引导 + 登录入口", async () => {
-    const { container, unmount } = await mountGate({ user: null, loading: false });
-    expect(container.querySelector('[data-testid="workbench-guest"]')).not.toBeNull();
+  function acceptButtons(container: HTMLElement): HTMLButtonElement[] {
+    return Array.from(container.querySelectorAll("button")).filter((b) =>
+      (b.textContent ?? "").includes("接受订单"),
+    );
+  }
+
+  it("看板对游客公开可读（e2e 回归：资质看板挂载）", async () => {
+    const { container, unmount } = await mountBoard({ user: null, loading: false });
+    expect(container.querySelector('[data-testid="ammo-qualification-board"]')).not.toBeNull();
     unmount();
   });
 
-  it("需求方会话：合规拒绝（非服务者）", async () => {
-    const { container, unmount } = await mountGate({
+  it("游客点接受订单：不写单、改弹登录抽屉", async () => {
+    const onOpen = vi.fn();
+    window.addEventListener("oto:auth-open", onOpen);
+    const { container, unmount } = await mountBoard({ user: null, loading: false });
+    const before = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    const btns = acceptButtons(container);
+    expect(btns.length).toBeGreaterThan(0);
+    await act(async () => {
+      btns[0].click();
+    });
+    const after = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    expect(after).toBe(before);
+    expect(onOpen).toHaveBeenCalled();
+    window.removeEventListener("oto:auth-open", onOpen);
+    unmount();
+  });
+
+  it("需求方会话点接受订单：不写单、不弹登录", async () => {
+    const onOpen = vi.fn();
+    window.addEventListener("oto:auth-open", onOpen);
+    const { container, unmount } = await mountBoard({
       user: { id: "u-dem", role: "demander" },
       loading: false,
     });
-    expect(container.querySelector('[data-testid="workbench-denied"]')).not.toBeNull();
+    const before = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    const btns = acceptButtons(container);
+    expect(btns.length).toBeGreaterThan(0);
+    await act(async () => {
+      btns[0].click();
+    });
+    const after = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    expect(after).toBe(before);
+    expect(onOpen).not.toHaveBeenCalled();
+    window.removeEventListener("oto:auth-open", onOpen);
     unmount();
   });
 
-  it("服务者会话：看板体可见", async () => {
-    const { container, unmount } = await mountGate({
+  it("服务者会话点接受订单：正常写单", async () => {
+    const { container, unmount } = await mountBoard({
       user: { id: "u-pro", role: "provider" },
       loading: false,
     });
-    expect(container.querySelector('[data-testid="streak-flame-card"]')).not.toBeNull();
+    const before = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    const btns = acceptButtons(container);
+    expect(btns.length).toBeGreaterThan(0);
+    await act(async () => {
+      btns[0].click();
+    });
+    const after = useAppStore.getState().workerOrders.filter((o) => o.status === "active").length;
+    expect(after).toBe(before + 1);
     unmount();
   });
 });
