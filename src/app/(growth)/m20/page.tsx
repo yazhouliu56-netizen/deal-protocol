@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import {
+  SmsLeadSheet,
+  useLeadDemandSubmit,
+  type LeadDraft,
+} from "@/components/growth/sms-lead-sheet";
 
 /** 男盘 · 上门电脑装机与维护（pc-assembly · C3_TECH_B2B）增长单页。 */
 export interface GrowthPreset {
@@ -29,24 +34,29 @@ export default function M20Page() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const submit = async () => {
-    const preset = M20_PRESETS.find((p) => p.id === presetId) ?? M20_PRESETS[0];
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/demands", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: buildM20DemandText(preset, tuning) }),
-      });
-      if (!res.ok) throw new Error("发单失败，请重试");
-      setDone(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "发单失败");
-    } finally {
-      setSubmitting(false);
-    }
+  const collect = (): LeadDraft => ({ presetId, tuning });
+  const applyDraft = (d: LeadDraft) => {
+    if (M20_PRESETS.some((p) => p.id === d.presetId)) setPresetId(d.presetId);
+    setTuning(d.tuning);
   };
+
+  const { submit, sheetOpen, setSheetOpen, handleVerified } = useLeadDemandSubmit({
+    pageKey: "m20",
+    collect,
+    buildPayload: (d) => {
+      const preset = M20_PRESETS.find((p) => p.id === d.presetId) ?? M20_PRESETS[0];
+      const extra = d.tuning.trim();
+      return {
+        title: buildM20DemandText(preset, ""),
+        description: extra ? `${preset.name}：${extra}` : `${preset.name}（${preset.price}）`,
+        category: "pc-assembly",
+      };
+    },
+    applyDraft,
+    setSubmitting,
+    setDone,
+    setError,
+  });
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4">
@@ -86,6 +96,7 @@ export default function M20Page() {
         {done ? "已下单 · 师傅正在赶来" : submitting ? "下单中…" : "一键极速下单"}
       </button>
       {error && <p className="text-sm text-rose-600">{error}</p>}
+      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} />
     </div>
   );
 }
