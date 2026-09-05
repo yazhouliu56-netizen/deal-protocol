@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, phone, role, roles } = await request.json();
+    const { name, email, password, phone, role } = await request.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -14,33 +14,27 @@ export async function POST(request: Request) {
 
     const supabase = getServiceClient();
 
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existingUser) {
+    // role 白名单（users 表 CHECK 合法）：CUSTOMER/user/client 一律拒绝。
+    const selectedRole = role === "provider" ? "provider" : role === "demander" ? "demander" : null;
+    if (!selectedRole) {
       return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 409 }
+        { error: "INVALID_ROLE", message: "role 仅支持 demander / provider" },
+        { status: 400 },
       );
     }
-
-    const selectedRoles = roles && Array.isArray(roles) && roles.length > 0
-      ? roles
-      : role
-        ? [role]
-        : ["CUSTOMER"];
 
     // Try standard Supabase Auth signUp first
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name, phone, role: selectedRoles[0], roles: JSON.stringify(selectedRoles) },
+        data: { name, phone, role: selectedRole },
       },
     });
+
+    if (authError && /already registered|already exists/i.test(authError.message ?? "")) {
+      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+    }
 
     let userId: string | undefined = authData?.user?.id;
 
@@ -58,17 +52,16 @@ export async function POST(request: Request) {
               apikey: serviceRoleKey,
               Authorization: `Bearer ${serviceRoleKey}`,
             },
-            body: JSON.stringify({
-              email,
-              password,
-              email_confirm: true,
-              user_metadata: {
-                name,
-                phone: phone || null,
-                role: selectedRoles[0],
-                roles: JSON.stringify(selectedRoles),
-              },
-            }),
+          body: JSON.stringify({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              name,
+              phone: phone || null,
+              role: selectedRole,
+            },
+          }),
           }
         )
 
@@ -90,8 +83,7 @@ export async function POST(request: Request) {
               id: userId,
               name,
               email,
-              role: selectedRoles[0],
-              roles: JSON.stringify(selectedRoles),
+              role: selectedRole,
               phone: phone || null,
             },
           },
@@ -119,20 +111,27 @@ export async function POST(request: Request) {
       );
     }
 
+    // profiles 线上实测列：无 email/roles，role 取白名单值。
     const { data: user, error: profileError } = await supabase
       .from('profiles')
       .insert({
         id: userId,
         name,
-        email,
         phone: phone || null,
-        role: selectedRoles[0],
-        roles: JSON.stringify(selectedRoles),
+        role: selectedRole,
       })
-      .select('id, name, email, role, roles, phone, created_at')
+      .select('id, name, phone, role, created_at')
       .single();
 
     if (profileError) throw profileError;
+
+    // users 外键底座：有手机号才补行（phone NOT NULL），无号待绑手机时由 sms 回填。
+    if (phone) {
+      const { error: userRowError } = await supabase
+        .from('users')
+        .upsert({ id: userId, phone, role: selectedRole }, { onConflict: 'id', ignoreDuplicates: true });
+      if (userRowError) throw userRowError;
+    }
 
     return NextResponse.json(
       { message: "Registration successful", user },

@@ -18,7 +18,7 @@ interface SessionContextValue {
   refresh: () => Promise<void>
 }
 
-const SessionContext = createContext<SessionContextValue>({
+export const SessionContext = createContext<SessionContextValue>({
   user: null,
   loading: true,
   refresh: async () => {},

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Clapperboard, ShieldAlert, RotateCcw, Sparkles } from "lucide-react";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useRoamStore } from "@/store/useRoamStore";
+import { SandboxBadge } from "@/components/waves/SandboxBadge";
 
 /** 演示允许的全部品类集合（与塔台作出新身份一致的默认集合）。 */
 const ALL_CATEGORIES = [
@@ -76,6 +77,7 @@ export default function CockpitDemoCard() {
       <div className="flex items-center gap-2">
         <Clapperboard size={13} className="text-brandPurple" />
         <span className="text-[12px] font-extrabold text-white/85">演示座舱</span>
+        <SandboxBadge />
       </div>
       <p className="text-xs text-white/45 mt-1 truncate">{note}</p>
 

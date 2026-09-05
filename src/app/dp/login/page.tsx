@@ -224,7 +224,7 @@ function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
       return
     }
 
-    window.location.href = "/dashboard"
+    window.location.href = "/dp/console"
   }
 
   return (
@@ -262,7 +262,8 @@ function WechatLoginForm({ onError }: { onError: (msg: string) => void }) {
       if (data.url) {
         window.location.href = data.url
       } else {
-        window.location.href = "/dashboard"
+        // 存活路由：/dashboard 不存在，回落协议控制台。
+        window.location.href = "/dp/console"
       }
     } catch {
       onError("网络错误，请重试")

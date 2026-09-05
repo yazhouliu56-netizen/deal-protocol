@@ -6,11 +6,22 @@
  */
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import ProfilePage from "./ProfilePage";
+
+const mockGetSession = vi.fn();
+
+vi.mock("@/lib/supabase-browser", () => ({
+  getBrowserSupabase: () => ({
+    auth: {
+      getSession: (...args: unknown[]) => mockGetSession(...args),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+    },
+  }),
+}));
 
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
@@ -30,7 +41,10 @@ function text() {
 
 beforeEach(() => {
   localStorage.clear();
-  // 访客态基线：清空 auth（readAuthAccount → null）+ 重置三店
+  vi.stubGlobal("fetch", vi.fn());
+  mockGetSession.mockReset();
+  mockGetSession.mockResolvedValue({ data: { session: null } });
+  // 访客态基线：无 Session + 重置三店
   act(() => {
     useWaveStore.setState({
       waves: [],
@@ -145,14 +159,25 @@ describe("我的订单双源聚合", () => {
     expect(order[2]).toContain("家政保洁");
   });
 
-  it("登录态：昵称取账号名且钻石会员徽标恢复展示", async () => {
+  it("登录态：昵称取真实会话名且钻石会员徽标恢复展示", async () => {
     seedStores();
-    localStorage.setItem(
-      "oto-auth-account",
-      JSON.stringify({ nickname: "王姐", emoji: "👩‍🌾", role: "provider", method: "demo", at: Date.now() }),
-    );
+    mockGetSession.mockResolvedValue({
+      data: {
+        session: {
+          user: {
+            id: "u-provider-1",
+            email: "pro@example.com",
+            user_metadata: { name: "王姐", phone: "13900001111", role: "provider" },
+          },
+        },
+      },
+    });
+    (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({ user: { role: "provider", phone: "139****1111", name: "王姐" } }),
+    });
     renderPage();
-    // syncAuth 为异步 effect：冲刷微任务后读取
+    // refreshAuthAccount 为异步 effect：冲刷后读取
     await act(async () => {
       await Promise.resolve();
     });

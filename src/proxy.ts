@@ -122,7 +122,8 @@ export async function proxy(request: NextRequest) {
 
       if (profile?.role !== "admin") {
         const url = request.nextUrl.clone()
-        url.pathname = "/dashboard"
+        // 存活路由：/dashboard 不存在，非管理员回首页。
+        url.pathname = "/"
         return NextResponse.redirect(url)
       }
     }

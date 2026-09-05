@@ -3,25 +3,38 @@ import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
 import { maskPhone } from "@/lib/privacy-guard";
 
+/**
+ * profiles 线上实测列白名单（2026-09 实探）。
+ * email/roles/bio/skills/service_areas/avatar_url 等列不存在，
+ * 写入即整行被拒；扩展画像字段待 P8 迁移后再放行。
+ */
+const PROFILE_LIVE_COLUMNS =
+  'id, name, phone, role, credit_score, balance, created_at, verification_status, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by';
+
 export const GET = withAuth(async (req, user) => {
   const svc = await getRouteClient()
 
   const { data: profile } = await svc
     .from('profiles')
-    .select('id, name, email, phone, role, roles, credit_score, balance, created_at, bio, skills, service_areas, avatar_url, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
+    .select(PROFILE_LIVE_COLUMNS)
     .eq('id', user.id)
     .single();
 
   if (!profile) {
+    const meta = (user as unknown as { user_metadata?: Record<string, unknown> }).user_metadata ?? {};
+    const metaRole = typeof meta.role === 'string' ? meta.role : null;
+    const safeRole = metaRole === 'provider' || metaRole === 'both' ? metaRole : 'demander';
     const newProfile = {
-      id: user.id, name: user.name, email: user.email,
-      phone: null, role: user.role, roles: user.roles,
+      id: user.id,
+      name: typeof meta.name === 'string' ? meta.name : (user.email?.split('@')[0] ?? '用户'),
+      phone: typeof meta.phone === 'string' ? meta.phone : null,
+      role: safeRole,
       verification_status: 'unverified',
     }
     const { data: newUser, error: insertError } = await svc
       .from('profiles')
       .insert(newProfile)
-      .select('id, name, email, phone, role, roles, credit_score, balance, created_at, bio, skills, service_areas, avatar_url, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
+      .select(PROFILE_LIVE_COLUMNS)
       .single()
     if (insertError || !newUser) {
       console.warn('[API Profile] Failed to auto-create profile:', insertError?.message)
@@ -40,27 +53,26 @@ export const PATCH = withAuth(async (req, user) => {
   const body = await req.json();
   const { name, phone, currentPassword, newPassword, bio, skills, service_areas } = body;
 
-  const updateData: Record<string, string | number | null | string[]> = {};
+  const updateData: Record<string, string | number | null> = {};
 
   if (name) updateData.name = name;
   if (phone !== undefined) updateData.phone = phone;
-  if (bio !== undefined) updateData.bio = bio;
-  if (skills !== undefined) updateData.skills = skills;
-  if (service_areas !== undefined) updateData.service_areas = service_areas;
+  if (bio !== undefined || skills !== undefined || service_areas !== undefined) {
+    // 扩展画像列线上不存在：明示拒绝，而非静默丢弃。
+    return NextResponse.json(
+      { error: "EXTENDED_PROFILE_UNSUPPORTED", message: "服务商简介字段待画像迁移后开放" },
+      { status: 400 },
+    );
+  }
 
   if (currentPassword && newPassword) {
-    const { data: profile } = await svc
-      .from('profiles')
-      .select('email')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.email) {
+    // profiles 无 email 列：改密凭证取 auth 用户自身邮箱。
+    if (!user.email) {
       return NextResponse.json({ error: "无法验证当前密码" }, { status: 400 });
     }
 
     const { error: signInError } = await svc.auth.signInWithPassword({
-      email: profile.email,
+      email: user.email,
       password: currentPassword,
     });
 
@@ -81,7 +93,7 @@ export const PATCH = withAuth(async (req, user) => {
     .from('profiles')
     .update(updateData)
     .eq('id', user.id)
-    .select('id, name, email, phone, role, credit_score, balance, verification_status, verification_real_name, verification_id_number, verification_certificates, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by')
+    .select(PROFILE_LIVE_COLUMNS)
     .single();
 
   if (updateError) {

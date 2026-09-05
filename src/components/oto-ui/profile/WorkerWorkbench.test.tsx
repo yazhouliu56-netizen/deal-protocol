@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 
 import WorkerWorkbench, {
+  WorkerWorkbenchBoard,
   evaluateWorkerQualification,
 } from "@/components/oto-ui/profile/WorkerWorkbench";
 import { registerDynamicAmmo } from "@/ammo/factory";
@@ -44,7 +45,7 @@ async function mountWorkbench(): Promise<{
   document.body.appendChild(container);
   const root = createRoot(container);
   await act(async () => {
-    root.render(<WorkerWorkbench onBack={() => {}} />);
+    root.render(<WorkerWorkbenchBoard onBack={() => {}} />);
   });
   return {
     container,
@@ -202,6 +203,52 @@ describe("WorkerWorkbench 连胜火焰卡（Microkernel 4.4 批次 2 · 诚实�
     const badge = container.querySelector('[data-testid="streak-freeze-badge"]');
     expect(badge).not.toBeNull();
     expect(badge!.textContent).toContain("连胜冻结卡 × 1 保护中");
+    unmount();
+  });
+});
+describe("WorkerWorkbench 门禁壳（Phase 2.2 真并轨）", () => {
+  async function mountGate(sessionValue: { user: null | { id: string; role: string }; loading: boolean }) {
+    const { SessionContext } = await import("@/components/SessionProvider");
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <SessionContext.Provider value={{ user: sessionValue.user as never, loading: sessionValue.loading, refresh: async () => {} }}>
+          <WorkerWorkbench onBack={() => {}} />
+        </SessionContext.Provider>,
+      );
+    });
+    return {
+      container,
+      unmount: () => {
+        root.unmount();
+        container.remove();
+      },
+    };
+  }
+
+  it("游客态：合规引导 + 登录入口", async () => {
+    const { container, unmount } = await mountGate({ user: null, loading: false });
+    expect(container.querySelector('[data-testid="workbench-guest"]')).not.toBeNull();
+    unmount();
+  });
+
+  it("需求方会话：合规拒绝（非服务者）", async () => {
+    const { container, unmount } = await mountGate({
+      user: { id: "u-dem", role: "demander" },
+      loading: false,
+    });
+    expect(container.querySelector('[data-testid="workbench-denied"]')).not.toBeNull();
+    unmount();
+  });
+
+  it("服务者会话：看板体可见", async () => {
+    const { container, unmount } = await mountGate({
+      user: { id: "u-pro", role: "provider" },
+      loading: false,
+    });
+    expect(container.querySelector('[data-testid="streak-flame-card"]')).not.toBeNull();
     unmount();
   });
 });

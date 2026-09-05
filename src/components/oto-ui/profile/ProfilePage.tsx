@@ -37,6 +37,7 @@ import OrderDetail from "./_components/OrderDetailModal";
 import ReviewForm from "./_components/ReviewFormModal";
 import {
   readAuthAccount,
+  refreshAuthAccount,
   openAuthSheet,
   AUTH_CHANGED_EVENT,
   type AuthAccount,
@@ -179,17 +180,21 @@ export default function ProfilePage({
   const [contactForm, setContactForm] = useState<FormValues>({ name: "妈妈", relation: "家人", phone: "138-0000-0001" });
   const [contacts, setContacts] = useState<{ name: string; phone: string }[]>([{ name: "妈妈", phone: "138-0000-0001" }]);
 
-  // 方案 A：前台内嵌登录抽屉（AuthSheet）—— 登录态即时刷新（oto:auth-changed）
+  // 真实 Session 投影：挂载即从服务端刷新，事件驱动同步。
   const [authAccount, setAuthAccount] = useState<AuthAccount | null>(null);
   useEffect(() => {
+    let cancelled = false;
     const syncAuth = async () => {
-      await Promise.resolve()
-      setAuthAccount(readAuthAccount())
-    }
-    syncAuth()
+      const fresh = await refreshAuthAccount();
+      if (!cancelled) setAuthAccount(fresh ?? readAuthAccount());
+    };
+    syncAuth();
     const onAuth = () => setAuthAccount(readAuthAccount());
     window.addEventListener(AUTH_CHANGED_EVENT, onAuth);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, onAuth);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(AUTH_CHANGED_EVENT, onAuth);
+    };
   }, []);
 
   /** 出生年本地输入状态（回填现有值）。 */

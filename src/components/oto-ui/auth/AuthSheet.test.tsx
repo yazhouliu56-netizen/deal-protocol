@@ -4,19 +4,52 @@ import type { ReactElement } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockGetSession = vi.fn();
+const mockSignOut = vi.fn();
+
+vi.mock("@/lib/supabase-browser", () => ({
+  getBrowserSupabase: () => ({
+    auth: {
+      getSession: (...args: unknown[]) => mockGetSession(...args),
+      signOut: (...args: unknown[]) => mockSignOut(...args),
+    },
+  }),
+}));
+
 import AuthSheet, {
-  AUTH_ACCOUNT_KEY,
   AUTH_CHANGED_EVENT,
   AUTH_OPEN_EVENT,
   clearAuthAccount,
-  DEMO_SMS_CODE,
+  mapOtoRoleToServer,
+  mapServerRoleToOto,
+  maskPhoneDisplay,
   openAuthSheet,
   readAuthAccount,
-  type AuthAccount,
 } from "@/components/oto-ui/auth/AuthSheet";
 
+const SESSION_DEMANDER = {
+  user: {
+    id: "u-test-demander",
+    email: "13000000002@sms.local",
+    user_metadata: { name: "用户_0002", phone: "13000000002", role: "demander" },
+  },
+};
+
+function mockFetchOnce(handler: (url: string, init?: RequestInit) => unknown) {
+  (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(
+    async (url: unknown, init?: RequestInit) => ({
+      ok: true,
+      json: async () => handler(String(url), init),
+    }),
+  );
+}
+
 beforeEach(() => {
-  window.localStorage.clear();
+  vi.stubGlobal("fetch", vi.fn());
+  mockGetSession.mockReset();
+  mockSignOut.mockReset();
+  mockGetSession.mockResolvedValue({ data: { session: null } });
+  mockSignOut.mockResolvedValue({ error: null });
 });
 
 function mount(ui: ReactElement) {
@@ -34,25 +67,12 @@ function unmount(root: ReturnType<typeof createRoot>, container: HTMLDivElement)
   container.remove();
 }
 
-function open(container: HTMLDivElement) {
-  act(() => {
+async function open(container: HTMLDivElement) {
+  await act(async () => {
     window.dispatchEvent(new Event(AUTH_OPEN_EVENT));
   });
   return container.querySelector<HTMLElement>('[data-testid="auth-sheet"]')!;
 }
-
-function fireTouch(
-  type: "touchstart" | "touchmove" | "touchend",
-  points: { clientX: number; clientY: number }[],
-  target: EventTarget,
-) {
-  const ev = new Event(type, { cancelable: true }) as unknown as TouchEvent;
-  Object.defineProperty(ev, "touches", { value: points });
-  Object.defineProperty(ev, "changedTouches", { value: points });
-  target.dispatchEvent(ev);
-}
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function setInput(el: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
@@ -65,190 +85,124 @@ function setInput(el: HTMLInputElement, value: string) {
   });
 }
 
-const innerSheet = (sheet: HTMLElement) => sheet.querySelector<HTMLElement>(".auth-sheet")!;
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe("AuthSheet 空间毛玻璃登录抽屉（方案 A）", () => {
+describe("AuthSheet 真实短信单通道（Phase 2.2）", () => {
   it("未呼出：零渲染（不给前台任何侵入）", () => {
     const { container, root } = mount(<AuthSheet />);
     expect(container.querySelector('[data-testid="auth-sheet"]')).toBeNull();
     unmount(root, container);
   });
 
-  it("oto:auth-open 呼出：抽屉 + 三通道 Tab 齐全，标题为登录态", () => {
+  it("呼出：仅手机号单通道，无 demo/钱包 Tab", async () => {
     const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
+    const sheet = await open(container);
     expect(sheet).not.toBeNull();
     expect(sheet.textContent).toContain("登录 OTO 空间");
-    expect(sheet.querySelector('[data-action="tab-phone"]')).not.toBeNull();
-    expect(sheet.querySelector('[data-action="tab-demo"]')).not.toBeNull();
-    expect(sheet.querySelector('[data-action="tab-wallet"]')).not.toBeNull();
-    expect(sheet.querySelector('[data-action="drag-grip"]')).not.toBeNull();
+    expect(sheet.querySelector('[data-testid="tab-phone"]')).not.toBeNull();
+    expect(sheet.querySelector('[data-action="tab-demo"]')).toBeNull();
+    expect(sheet.querySelector('[data-action="tab-wallet"]')).toBeNull();
     unmount(root, container);
   });
 
-  it("手机号通道：非法号码禁发验证码，合法号码发码→固定演示码 1234 登录成功并收起", async () => {
+  it("非法号码禁发；合法号 send 成功出现验证码框与倒计时", async () => {
     const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
+    const sheet = await open(container);
 
     const phoneInput = sheet.querySelector<HTMLInputElement>('[data-testid="phone-input"]')!;
     setInput(phoneInput, "123");
     expect(sheet.querySelector<HTMLButtonElement>('[data-action="send-sms"]')!.disabled).toBe(true);
 
-    setInput(phoneInput, "13800138000");
+    setInput(phoneInput, "13000000002");
     expect(sheet.querySelector<HTMLButtonElement>('[data-action="send-sms"]')!.disabled).toBe(false);
-    act(() => {
+
+    mockFetchOnce(() => ({ success: true, message: "验证码已发送" }));
+    await act(async () => {
       sheet.querySelector<HTMLButtonElement>('[data-action="send-sms"]')!.click();
     });
-    const smsInput = sheet.querySelector<HTMLInputElement>('[data-testid="sms-input"]')!;
-    expect(smsInput).not.toBeNull();
+    expect(sheet.querySelector('[data-testid="sms-input"]')).not.toBeNull();
+    expect(sheet.querySelector('[data-action="send-sms"]')!.textContent).toContain("后重发");
+    unmount(root, container);
+  });
 
-    // 错误验证码：登录禁用
-    setInput(smsInput, "0000");
-    expect(sheet.querySelector<HTMLButtonElement>('[data-action="phone-login"]')!.disabled).toBe(true);
+  it("verify 成功：Session 投影建立（demander→employer）并收起", async () => {
+    const onChanged = vi.fn();
+    window.addEventListener(AUTH_CHANGED_EVENT, onChanged);
+    const { container, root } = mount(<AuthSheet />);
+    const sheet = await open(container);
 
-    setInput(smsInput, DEMO_SMS_CODE);
-    act(() => {
+    setInput(sheet.querySelector<HTMLInputElement>('[data-testid="phone-input"]')!, "13000000002");
+    mockFetchOnce(() => ({ success: true }));
+    await act(async () => {
+      sheet.querySelector<HTMLButtonElement>('[data-action="send-sms"]')!.click();
+    });
+    setInput(sheet.querySelector<HTMLInputElement>('[data-testid="sms-input"]')!, "888888");
+
+    mockGetSession.mockResolvedValue({ data: { session: SESSION_DEMANDER } });
+    mockFetchOnce(() => ({ success: true }));
+    mockFetchOnce(() => ({ user: { role: "demander", phone: "130****0002", name: "用户_0002" } }));
+    await act(async () => {
       sheet.querySelector<HTMLButtonElement>('[data-action="phone-login"]')!.click();
     });
 
     const account = readAuthAccount();
     expect(account).not.toBeNull();
-    expect(account!.method).toBe("phone");
+    expect(account!.method).toBe("session");
     expect(account!.role).toBe("employer");
+    expect(account!.uid).toBe("u-test-demander");
+    expect(onChanged).toHaveBeenCalled();
 
     await act(async () => {
       await wait(260);
     });
     expect(container.querySelector('[data-testid="auth-sheet"]')).toBeNull();
-    unmount(root, container);
-  });
-
-  it("演示账号：一键登录三角色之一，本地持久化 + oto:auth-changed 广播", () => {
-    const onChanged = vi.fn();
-    window.addEventListener(AUTH_CHANGED_EVENT, onChanged);
-
-    const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="tab-demo"]')!.click();
-    });
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="demo-provider"]')!.click();
-    });
-
-    const account = readAuthAccount();
-    expect(account).not.toBeNull();
-    expect(account!.role).toBe("provider");
-    expect(account!.method).toBe("demo");
-    expect(window.localStorage.getItem(AUTH_ACCOUNT_KEY)).not.toBeNull();
-    expect(onChanged).toHaveBeenCalled();
-
     window.removeEventListener(AUTH_CHANGED_EVENT, onChanged);
     unmount(root, container);
   });
 
-  it("Web3 钱包：连接（模拟 700ms）→ 展示脱敏地址 → 钱包登录", async () => {
+  it("verify 失败：显错且不建投影不收起", async () => {
     const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="tab-wallet"]')!.click();
-    });
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="connect-wallet"]')!.click();
-    });
+    const sheet = await open(container);
+
+    setInput(sheet.querySelector<HTMLInputElement>('[data-testid="phone-input"]')!, "13000000002");
+    mockFetchOnce(() => ({ success: true }));
     await act(async () => {
-      await wait(760);
+      sheet.querySelector<HTMLButtonElement>('[data-action="send-sms"]')!.click();
     });
-    expect(sheet.querySelector('[data-testid="wallet-addr"]')).not.toBeNull();
+    setInput(sheet.querySelector<HTMLInputElement>('[data-testid="sms-input"]')!, "000000");
 
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="wallet-login"]')!.click();
-    });
-    const account = readAuthAccount();
-    expect(account).not.toBeNull();
-    expect(account!.method).toBe("wallet");
-    unmount(root, container);
-  });
-
-  it("下拉手势：位移 36% 触发平滑收起（220ms 后离场）", async () => {
-    const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    const grip = sheet.querySelector<HTMLElement>('[data-action="drag-grip"]')!;
-    Object.defineProperty(grip, "clientHeight", { value: 500, configurable: true });
-
-    act(() => {
-      fireTouch("touchstart", [{ clientX: 200, clientY: 100 }], grip);
-      fireTouch("touchmove", [{ clientX: 200, clientY: 260 }], grip);
-      fireTouch("touchend", [{ clientX: 200, clientY: 280 }], grip);
-    });
-    expect(innerSheet(sheet).className).toContain("auth-sheet-dismissing");
-
+    (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ success: false, error: "验证码错误" }),
+    }));
     await act(async () => {
-      await wait(260);
+      sheet.querySelector<HTMLButtonElement>('[data-action="phone-login"]')!.click();
     });
-    expect(container.querySelector('[data-testid="auth-sheet"]')).toBeNull();
+    expect(sheet.querySelector('[data-testid="auth-error"]')).not.toBeNull();
+    expect(readAuthAccount()).toBeNull();
+    expect(container.querySelector('[data-testid="auth-sheet"]')).not.toBeNull();
     unmount(root, container);
   });
 
-  it("下拉手势：位移 30% 触发复位，不收起", async () => {
-    const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    const grip = sheet.querySelector<HTMLElement>('[data-action="drag-grip"]')!;
-    Object.defineProperty(grip, "clientHeight", { value: 500, configurable: true });
-
-    fireTouch("touchstart", [{ clientX: 200, clientY: 100 }], grip);
-    fireTouch("touchend", [{ clientX: 200, clientY: 250 }], grip);
-    expect(innerSheet(sheet).className).not.toContain("auth-sheet-dismissing");
-    unmount(root, container);
-  });
-
-  it("遮罩点击：收起抽屉", async () => {
-    const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    act(() => {
-      sheet.querySelector<HTMLElement>('[data-action="mask"]')!.click();
-    });
-    expect(innerSheet(sheet).className).toContain("auth-sheet-dismissing");
-    await act(async () => {
-      await wait(260);
-    });
-    expect(container.querySelector('[data-testid="auth-sheet"]')).toBeNull();
-    unmount(root, container);
-  });
-
-  it("已登录态：呼出显示账号卡；退出登录清空并广播；再呼出回登录表单", () => {
+  it("已登录态：呼出显示账号卡；退出登录走 signOut 并广播", async () => {
     const onChanged = vi.fn();
     window.addEventListener(AUTH_CHANGED_EVENT, onChanged);
-    const seeded: AuthAccount = { nickname: "雇主 Alex", emoji: "🧑‍💼", role: "employer", method: "demo", at: 1 };
-    window.localStorage.setItem(AUTH_ACCOUNT_KEY, JSON.stringify(seeded));
+    mockGetSession.mockResolvedValue({ data: { session: SESSION_DEMANDER } });
+    mockFetchOnce(() => ({ user: { role: "demander", phone: "130****0002", name: "用户_0002" } }));
 
     const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
+    const sheet = await open(container);
     expect(sheet.querySelector('[data-testid="signed-in"]')).not.toBeNull();
-    expect(sheet.textContent).toContain("切换 / 退出账号");
+    expect(sheet.textContent).toContain("用户_0002");
 
-    act(() => {
+    await act(async () => {
       sheet.querySelector<HTMLButtonElement>('[data-action="logout"]')!.click();
     });
-    expect(window.localStorage.getItem(AUTH_ACCOUNT_KEY)).toBeNull();
-    expect(onChanged).toHaveBeenCalled();
+    expect(mockSignOut).toHaveBeenCalled();
     expect(readAuthAccount()).toBeNull();
-
-    unmount(root, container);
-  });
-
-  it("切换账号：已登录态点切换 → 回到一键演示表单（不残留已登录卡）", () => {
-    const seeded: AuthAccount = { nickname: "雇主 Alex", emoji: "🧑‍💼", role: "employer", method: "demo", at: 1 };
-    window.localStorage.setItem(AUTH_ACCOUNT_KEY, JSON.stringify(seeded));
-
-    const { container, root } = mount(<AuthSheet />);
-    const sheet = open(container);
-    expect(sheet.querySelector('[data-testid="signed-in"]')).not.toBeNull();
-    act(() => {
-      sheet.querySelector<HTMLButtonElement>('[data-action="switch-account"]')!.click();
-    });
-    expect(sheet.querySelector('[data-testid="signed-in"]')).toBeNull();
-    expect(sheet.querySelector('[data-action="demo-provider"]')).not.toBeNull();
+    expect(onChanged).toHaveBeenCalled();
+    window.removeEventListener(AUTH_CHANGED_EVENT, onChanged);
     unmount(root, container);
   });
 
@@ -260,8 +214,45 @@ describe("AuthSheet 空间毛玻璃登录抽屉（方案 A）", () => {
     window.removeEventListener(AUTH_OPEN_EVENT, onOpen);
   });
 
-  it("clearAuthAccount：幂等清空（无账号时静默）", () => {
-    clearAuthAccount();
+  it("遮罩点击：收起抽屉", async () => {
+    const { container, root } = mount(<AuthSheet />);
+    const sheet = await open(container);
+    await act(async () => {
+      sheet.querySelector<HTMLElement>('[data-action="mask"]')!.click();
+    });
+    expect(sheet.querySelector(".auth-sheet")!.className).toContain("auth-sheet-dismissing");
+    await act(async () => {
+      await wait(260);
+    });
+    expect(container.querySelector('[data-testid="auth-sheet"]')).toBeNull();
+    unmount(root, container);
+  });
+
+  it("clearAuthAccount：走 signOut 并清空投影", async () => {
+    await clearAuthAccount();
+    expect(mockSignOut).toHaveBeenCalled();
     expect(readAuthAccount()).toBeNull();
+  });
+});
+
+describe("角色映射（核准标准）", () => {
+  it("服务端→OTO：demander 归雇主，provider/both 归服务者，未知兜底雇主", () => {
+    expect(mapServerRoleToOto("demander")).toBe("employer");
+    expect(mapServerRoleToOto("provider")).toBe("provider");
+    expect(mapServerRoleToOto("both")).toBe("provider");
+    expect(mapServerRoleToOto("admin")).toBe("employer");
+    expect(mapServerRoleToOto("user")).toBe("employer");
+    expect(mapServerRoleToOto(null)).toBe("employer");
+    expect(mapServerRoleToOto("CUSTOMER")).toBe("employer");
+  });
+
+  it("OTO→服务端：仅输出 CHECK 合法值", () => {
+    expect(mapOtoRoleToServer("employer")).toBe("demander");
+    expect(mapOtoRoleToServer("provider")).toBe("provider");
+    expect(mapOtoRoleToServer("host")).toBe("provider");
+  });
+
+  it("手机号脱敏展示", () => {
+    expect(maskPhoneDisplay("13000000002")).toBe("130****0002");
   });
 });
