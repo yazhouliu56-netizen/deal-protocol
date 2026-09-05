@@ -4,8 +4,10 @@ import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import {
   calculateProviderSettlement,
+  DEFAULT_PLATFORM_RATE,
   generateComplianceSplitInstruction,
 } from "@/base/money/escrow"
+import { getCommissionRate, getConfig, type PlatformConfig } from "@/lib/platform/config"
 
 export const POST = withAuth(async (req, user) => {
   const { orderId } = await req.json()
@@ -39,7 +41,16 @@ export const POST = withAuth(async (req, user) => {
   }
 
   const amount = demand.price ?? 0
-  const { platformFee, providerNet } = calculateProviderSettlement(amount)
+  // I/O 在外：阶梯费率走 PlatformConfig（失败回退 10% 默认）；
+  // 纯核 calculateProviderSettlement 签名与零 I/O 语义保持不变。
+  let rate = DEFAULT_PLATFORM_RATE
+  try {
+    const config: PlatformConfig = await getConfig()
+    rate = getCommissionRate(amount, config)
+  } catch (err) {
+    console.warn("[payment/release] commission config fallback to default:", err instanceof Error ? err.message : err)
+  }
+  const { platformFee, providerNet } = calculateProviderSettlement(amount, rate)
 
   const { data: wallet, error: walletError } = await supabase
     .from("provider_wallets")

@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase-client"
+import { getServiceClient } from "@/lib/supabase-client"
 
 // ── Types ──
 
@@ -108,7 +108,9 @@ export function clearConfigCache(): void {
 export async function getConfig(): Promise<PlatformConfig> {
   if (cachedConfig) return cachedConfig
 
-  const supabase = getSupabase()
+  // 服务端专用（调用方：penalty lib / admin 路由，均为服务端）：
+  // service 直读，RLS 保持零策略锁死，anon 一律不可见。
+  const supabase = getServiceClient()
   const { data: row, error } = await supabase
     .from('platform_config')
     .select('*')
@@ -130,7 +132,7 @@ export async function getConfig(): Promise<PlatformConfig> {
 }
 
 export async function updateConfig(data: PlatformConfig): Promise<void> {
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
   const { error } = await supabase
     .from('platform_config')
     .upsert({ id: 'singleton', config: JSON.stringify(data) }, { onConflict: 'id' })
