@@ -10,15 +10,27 @@ export interface DemandCardProps {
   onSelect?: (id: string) => void;
 }
 
+/**
+ * demands 表状态词表（大写，后端权威：OPEN/MATCHED/ACCEPTED/ASSIGNED/
+ * DEPARTED/ARRIVED/STARTED/COMPLETED/CANCELLED）。未知态回退招募中。
+ */
 const statusMap: Record<string, { label: string; color: string }> = {
-  open: { label: '招募中', color: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/50' },
-  in_progress: { label: '履约突破中', color: 'bg-amber-950/80 text-amber-300 border-amber-500/50' },
-  completed: { label: '已提质验收', color: 'bg-purple-950/80 text-purple-300 border-purple-500/50' },
-  settled: { label: '已解冻归档', color: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50' },
+  OPEN: { label: '招募中', color: 'bg-cyan-950/80 text-cyan-300 border-cyan-500/50' },
+  MATCHED: { label: '已匹配', color: 'bg-sky-950/80 text-sky-300 border-sky-500/50' },
+  ACCEPTED: { label: '已接单', color: 'bg-blue-950/80 text-blue-300 border-blue-500/50' },
+  ASSIGNED: { label: '待出发', color: 'bg-indigo-950/80 text-indigo-300 border-indigo-500/50' },
+  DEPARTED: { label: '前往中', color: 'bg-violet-950/80 text-violet-300 border-violet-500/50' },
+  ARRIVED: { label: '已到达', color: 'bg-fuchsia-950/80 text-fuchsia-300 border-fuchsia-500/50' },
+  STARTED: { label: '服务中', color: 'bg-amber-950/80 text-amber-300 border-amber-500/50' },
+  COMPLETED: { label: '已完成', color: 'bg-purple-950/80 text-purple-300 border-purple-500/50' },
+  CANCELLED: { label: '已取消', color: 'bg-zinc-900/80 text-zinc-400 border-zinc-700/50' },
+  IN_PROGRESS: { label: '履约突破中', color: 'bg-amber-950/80 text-amber-300 border-amber-500/50' },
+  SETTLED: { label: '已解冻归档', color: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50' },
 };
 
 export const DemandCard: React.FC<DemandCardProps> = ({ demand, onSelect }) => {
-  const statusInfo = statusMap[demand.status || 'open'] || statusMap.open;
+  const normalizedStatus = (demand.status || 'OPEN').toUpperCase();
+  const statusInfo = statusMap[normalizedStatus] || statusMap.OPEN;
 
   const mockChips = ['chip-ai-radar', demand.budget != null && demand.budget > 1000 ? 'chip-rush' : null].filter(Boolean);
 

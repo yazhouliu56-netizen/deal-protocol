@@ -96,7 +96,8 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
   const [verifying, setVerifying] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const isPhoneValid = /^1\d{10}$/.test(phone)
+  // 全站统一：11 位 1[3-9] 开头（与服务端 PHONE_REGEX、留资弹窗同源）。
+  const isPhoneValid = /^1[3-9]\d{9}$/.test(phone)
 
   const sendCode = useCallback(async () => {
     if (!isPhoneValid || sending) return
@@ -120,14 +121,14 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
     }
   }, [phone, isPhoneValid, sending, onError])
 
+  // 倒计时单一定时器： effect 仅挂载一次，tick 内自停，避免 [countdown]
+  // 依赖每秒重建 interval 造成的加速泄漏。
   useEffect(() => {
-    if (countdown > 0) {
-      timerRef.current = setInterval(() => {
-        setCountdown((c) => c - 1)
-      }, 1000)
-    }
+    timerRef.current = setInterval(() => {
+      setCountdown((c) => (c > 0 ? c - 1 : 0))
+    }, 1000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [countdown])
+  }, [])
 
   const verifyCode = useCallback(async () => {
     if (code.length !== 6 || verifying) return
@@ -141,7 +142,8 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
       })
       const data = await res.json()
       if (!res.ok) { onError(data.error || "验证失败"); return }
-      window.location.href = "/dashboard"
+      // 存活路由：/dashboard 不存在，协议控制台唯一实体为 /dp/console。
+      window.location.href = "/dp/console"
     } catch {
       onError("网络错误，请重试")
     } finally {

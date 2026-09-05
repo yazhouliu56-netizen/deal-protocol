@@ -35,7 +35,8 @@ export default function GrabConsoleClientWrapper({
 
   const handleGrabSuccess = () => {
     toast.success("抢单成功！")
-    router.push(`/orders/${demandId}`)
+    // 存活路由：/orders/:id 不存在，履约唯一实体为 /provider/orders/[id]。
+    router.push(`/provider/orders/${demandId}`)
     router.refresh()
   }
 

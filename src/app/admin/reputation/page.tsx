@@ -17,37 +17,26 @@ export default function AdminReputationWorkspace() {
   const [profiles, setProfiles] = useState<AnomalyProfile[]>([])
   const [selectedProfile, setSelectedProfile] = useState<AnomalyProfile | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
   const fetchAnomalies = useCallback(async () => {
     setIsLoading(true)
+    setLoadError(null)
     try {
       const response = await fetch("/api/admin/reputation/list")
       if (response.ok) {
         const data = await response.json()
         setProfiles(data)
       } else {
-        setProfiles([
-          {
-            id: "usr-9901",
-            full_name: "赵四粗暴家政组",
-            email: "zhaosi@devplatform.com",
-            role: "provider",
-            reputation_score: 2.80,
-            compliance_status: "SUSPENDED",
-          },
-          {
-            id: "usr-9902",
-            full_name: "钱七高频爽约工作室",
-            email: "qianqi@devplatform.com",
-            role: "provider",
-            reputation_score: 3.95,
-            compliance_status: "WARNED",
-          },
-        ])
+        // 后端异常必须如实暴露：空态 + 错误重试，严禁注入假用户掩盖故障。
+        setProfiles([])
+        setLoadError(`声誉队列加载失败（${response.status}），请重试`)
       }
     } catch (e) {
       console.error(e)
+      setProfiles([])
+      setLoadError("网络错误，声誉队列加载失败，请重试")
     } finally {
       setIsLoading(false)
     }
@@ -58,7 +47,7 @@ export default function AdminReputationWorkspace() {
       await fetchAnomalies()
     }
     init()
-  }, [, fetchAnomalies])
+  }, [fetchAnomalies])
 
   const handleAmnesty = async () => {
     if (!selectedProfile) return
@@ -115,6 +104,17 @@ export default function AdminReputationWorkspace() {
             <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
               正在提取信誉链污染源档案...
+            </div>
+          ) : loadError ? (
+            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-300">{loadError}</p>
+              <button
+                type="button"
+                onClick={fetchAnomalies}
+                className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-500"
+              >
+                重新加载
+              </button>
             </div>
           ) : profiles.length === 0 ? (
             <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">

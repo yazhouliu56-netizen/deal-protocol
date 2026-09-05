@@ -43,6 +43,8 @@ function isProtectedRoute(pathname: string): boolean {
     pathname === "/m20" ||
     pathname === "/f20" ||
     pathname === "/lab" ||
+    pathname === "/dp/login" ||
+    pathname === "/offline" ||
     pathname.startsWith("/m20/") ||
     pathname.startsWith("/f20/") ||
     pathname.startsWith("/lab/") ||

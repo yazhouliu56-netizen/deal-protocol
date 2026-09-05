@@ -210,13 +210,14 @@ export default function AuthSheet() {
   }
 
   function handleSendSms() {
-    if (!/^1\d{10}$/.test(phone)) return;
+    // 全站统一：11 位 1[3-9] 开头（演示沙盒，码见 DEMO_SMS_CODE）。
+    if (!/^1[3-9]\d{9}$/.test(phone)) return;
     setSmsSent(true);
     toast(`📨 演示验证码：${DEMO_SMS_CODE}（沙盒环境，无真实短信）`, "success");
   }
 
   function handlePhoneLogin() {
-    if (!/^1\d{10}$/.test(phone) || smsCode !== DEMO_SMS_CODE) return;
+    if (!/^1[3-9]\d{9}$/.test(phone) || smsCode !== DEMO_SMS_CODE) return;
     commit({ nickname: phone.slice(0, 3) + "****" + phone.slice(-4), emoji: "📱", role: "employer", method: "phone", at: Date.now() });
   }
 
@@ -313,8 +314,8 @@ export default function AuthSheet() {
               {(
                 [
                   { id: "phone", label: "📱 手机号" },
-                  { id: "demo", label: "✨ 演示账号" },
-                  { id: "wallet", label: "🛡️ Web3 钱包" },
+                  { id: "demo", label: "✨ 演示账号 ·沙盒" },
+                  { id: "wallet", label: "🛡️ Web3 钱包 ·沙盒" },
                 ] as const
               ).map((t) => (
                 <button
@@ -350,7 +351,7 @@ export default function AuthSheet() {
                     <button
                       type="button"
                       className="auth-primary"
-                      disabled={!/^1\d{10}$/.test(phone) || smsSent}
+                      disabled={!/^1[3-9]\d{9}$/.test(phone) || smsSent}
                       data-action="send-sms"
                       onClick={handleSendSms}
                     >

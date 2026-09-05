@@ -22,41 +22,26 @@ export default function AdminWithdrawalsWorkspace() {
   const [requests, setRequests] = useState<WithdrawalItem[]>([])
   const [selectedItem, setSelectedItem] = useState<WithdrawalItem | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
   const fetchRequests = useCallback(async () => {
     setIsLoading(true)
+    setLoadError(null)
     try {
       const response = await fetch("/api/admin/withdraw/list")
       if (response.ok) {
         const data = await response.json()
         setRequests(data)
       } else {
-        setRequests([
-          {
-            id: "wit-9910",
-            provider_id: "prov-3301",
-            amount: 1250.00,
-            channel: "Alipay (支付宝)",
-            account_info: "138****9900 (张*华)",
-            status: "pending",
-            created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-            profiles: { full_name: "张华高级电工", email: "zhanghua@devplatform.com" },
-          },
-          {
-            id: "wit-9911",
-            provider_id: "prov-5529",
-            amount: 4300.00,
-            channel: "Bank Card (招商银行)",
-            account_info: "6214 8801 **** 8829 (李*明)",
-            status: "pending",
-            created_at: new Date(Date.now() - 3600000 * 7).toISOString(),
-            profiles: { full_name: "李明全栈工作室", email: "liming@devplatform.com" },
-          },
-        ])
+        // 后端异常必须如实暴露：空态 + 错误重试，严禁注入假单掩盖故障。
+        setRequests([])
+        setLoadError(`提现队列加载失败（${response.status}），请重试`)
       }
     } catch (e) {
       console.error(e)
+      setRequests([])
+      setLoadError("网络错误，提现队列加载失败，请重试")
     } finally {
       setIsLoading(false)
     }
@@ -67,7 +52,7 @@ export default function AdminWithdrawalsWorkspace() {
       await fetchRequests()
     }
     init()
-  }, [, fetchRequests])
+  }, [fetchRequests])
 
   const handleReviewAction = async (action: "approve" | "reject") => {
     if (!selectedItem) return
@@ -129,6 +114,17 @@ export default function AdminWithdrawalsWorkspace() {
             <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
               正在检索全站冻结中提现单据档案...
+            </div>
+          ) : loadError ? (
+            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-300">{loadError}</p>
+              <button
+                type="button"
+                onClick={fetchRequests}
+                className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-500"
+              >
+                重新加载
+              </button>
             </div>
           ) : requests.length === 0 ? (
             <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">

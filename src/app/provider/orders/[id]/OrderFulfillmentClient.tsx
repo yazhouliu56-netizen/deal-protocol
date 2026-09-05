@@ -3,7 +3,6 @@
 import Image from "next/image"
 import React, { useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
-import Link from "next/link"
 import toast from "react-hot-toast"
 import { Skeleton } from "@/components/ui/Skeleton"
 import { useFulfillmentMutation } from "@/hooks/useFulfillmentMutation"
@@ -207,12 +206,13 @@ export default function OrderFulfillmentClient({
             >
               🗺️ 开启导航
             </button>
-            <Link
-              href={`/chat/${demand.id}`}
-              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 active:scale-95 transition-transform"
+            <span
+              title="在线聊天即将上线，当前请电话联系"
+              aria-disabled="true"
+              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 text-zinc-400 dark:bg-zinc-950 dark:text-zinc-600 cursor-not-allowed"
             >
-              💬 发起聊天
-            </Link>
+              💬 发起聊天（即将上线）
+            </span>
           </div>
         </div>
 

@@ -20,6 +20,7 @@ export default function AdminDisputesWorkspace() {
   const [disputes, setDisputes] = useState<DisputeItem[]>([])
   const [selectedDispute, setSelectedDispute] = useState<DisputeItem | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [showModal, setShowModal] = useState<{ active: boolean; type: "refund" | "force_settle" | null }>({
     active: false,
@@ -28,39 +29,21 @@ export default function AdminDisputesWorkspace() {
 
   const fetchDisputes = useCallback(async () => {
     setIsLoading(true)
+    setLoadError(null)
     try {
       const response = await fetch("/api/admin/disputes/list")
       if (response.ok) {
         const data = await response.json()
         setDisputes(data)
       } else {
-        setDisputes([
-          {
-            id: "disp-101",
-            order_id: "ord-8839",
-            initiator_id: "usr-4412",
-            reason: "师傅在清洁工程中损坏了客厅大理石茶几，拒绝修复并执意强行点击完工按钮提交验收状态。",
-            evidence_urls: [],
-            status: "pending",
-            created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-            demand_title: "高级全屋精细保洁 + 地毯深度护理服务",
-            demand_price: 499.00,
-          },
-          {
-            id: "disp-102",
-            order_id: "ord-9904",
-            initiator_id: "usr-2281",
-            reason: "电路改装工单，师傅敷衍布线且没有进行过载安全测试，强行离场无法联系上。",
-            evidence_urls: [],
-            status: "pending",
-            created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-            demand_title: "家庭弱电箱整理与全屋智能开关改造升级",
-            demand_price: 850.00,
-          },
-        ])
+        // 后端异常必须如实暴露：空态 + 错误重试，严禁注入假案宗掩盖故障。
+        setDisputes([])
+        setLoadError(`纠纷队列加载失败（${response.status}），请重试`)
       }
     } catch (e) {
       console.error(e)
+      setDisputes([])
+      setLoadError("网络错误，纠纷队列加载失败，请重试")
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +54,7 @@ export default function AdminDisputesWorkspace() {
       await fetchDisputes()
     }
     init()
-  }, [, fetchDisputes])
+  }, [fetchDisputes])
 
   const handleArbitrateAction = async () => {
     if (!selectedDispute || !showModal.type) return
@@ -136,6 +119,17 @@ export default function AdminDisputesWorkspace() {
             <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
               正在提取云端物理纠纷链条档案...
+            </div>
+          ) : loadError ? (
+            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-300">{loadError}</p>
+              <button
+                type="button"
+                onClick={fetchDisputes}
+                className="mt-4 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-500"
+              >
+                重新加载
+              </button>
             </div>
           ) : disputes.length === 0 ? (
             <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">
