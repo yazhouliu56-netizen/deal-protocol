@@ -10,6 +10,8 @@
  * 红线 1：兜底路径纯确定性计算，严禁抛出未捕获异常。
  */
 
+import { createHmac } from "node:crypto";
+
 /** 通道健康三态。 */
 export type ChannelHealthStatus = "HEALTHY" | "DEGRADED" | "UNHEALTHY";
 
@@ -235,6 +237,11 @@ export interface SmsDispatchInput {
   /** 覆盖环境变量级签名名（默认读取 env）。 */
   signName?: string;
   templateCode?: string;
+  /**
+   * 短信验证码（P8 短信接线）。aliyun 通道优先序列化为
+   * TemplateParam {"code": code}；缺席时回退 title/content 透传。
+   */
+  code?: string;
 }
 
 export interface SmsDispatchOutput {
@@ -251,25 +258,79 @@ export function buildAliyunSmsChannel(): IVendorChannel<SmsDispatchInput, SmsDis
     timeoutMs: 5_000,
     execute: async (input) => {
       const accessKeyId = process.env.ALIYUN_SMS_ACCESS_KEY_ID ?? process.env.ALIYUN_SMS_ACCESS_KEY;
-      if (!accessKeyId) throw new Error("ALIYUN sms key missing");
-      const params = new URLSearchParams({
-        AccessKeyId: accessKeyId,
-        Action: "SendSms",
-        Format: "JSON",
-        PhoneNumbers: input.phone,
-        SignName: input.signName ?? process.env.ALIYUN_SMS_SIGN_NAME ?? "DealProtocol",
-        TemplateCode: input.templateCode ?? process.env.ALIYUN_SMS_TEMPLATE_CODE ?? "SMS_EMERGENCY",
-        TemplateParam: JSON.stringify({ title: input.title, content: input.content }),
-        Version: "2017-05-25",
-        Timestamp: new Date().toISOString(),
+      const accessKeySecret =
+        process.env.ALIYUN_SMS_ACCESS_KEY_SECRET ?? process.env.ALIYUN_SMS_SECRET;
+      if (!accessKeyId || !accessKeySecret) throw new Error("ALIYUN sms key missing");
+      const templateParam = input.code
+        ? JSON.stringify({ code: input.code })
+        : JSON.stringify({ title: input.title, content: input.content });
+      const url = signAliyunRpcRequest({
+        accessKeyId,
+        accessKeySecret,
+        actionParams: {
+          Action: "SendSms",
+          PhoneNumbers: input.phone,
+          SignName: input.signName ?? process.env.ALIYUN_SMS_SIGN_NAME ?? "DealProtocol",
+          TemplateCode: input.templateCode ?? process.env.ALIYUN_SMS_TEMPLATE_CODE ?? "SMS_EMERGENCY",
+          TemplateParam: templateParam,
+          Version: "2017-05-25",
+        },
       });
-      const res = await fetch(`https://dysmsapi.aliyuncs.com/?${params.toString()}`, { method: "GET" });
+      const res = await fetch(url, { method: "GET" });
       if (!res.ok) throw new Error(`ALIYUN sms http ${res.status}`);
-      const data = (await res.json()) as { Code?: string; RequestId?: string };
-      if (data.Code && data.Code !== "OK") throw new Error(`ALIYUN sms api ${data.Code}`);
+      const data = (await res.json()) as { Code?: string; Message?: string; RequestId?: string };
+      if (data.Code && data.Code !== "OK") {
+        throw new Error(`ALIYUN sms api ${data.Code}: ${data.Message ?? ""}`);
+      }
       return { success: true, messageId: data.RequestId };
     },
   };
+}
+
+/**
+ * 阿里云 POP RPC 标准签名（HMAC-SHA1）。
+ * StringToSign = HTTPMethod + "&" + percentEncode("/") + "&" +
+ *   percentEncode(sorted-by-key CanonicalizedQueryString)。
+ * Signature = base64(HMAC-SHA1(AccessKeySecret + "&", StringToSign))。
+ */
+export function signAliyunRpcRequest(args: {
+  accessKeyId: string;
+  accessKeySecret: string;
+  actionParams: Record<string, string>;
+  timestamp?: string;
+  nonce?: string;
+}): string {
+  const allParams: Record<string, string> = {
+    Format: "JSON",
+    AccessKeyId: args.accessKeyId,
+    SignatureMethod: "HMAC-SHA1",
+    SignatureVersion: "1.0",
+    SignatureNonce: args.nonce ?? `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+    Timestamp: args.timestamp ?? new Date().toISOString(),
+    ...args.actionParams,
+  };
+  const canonicalized = Object.keys(allParams)
+    .sort()
+    .map((k) => `${aliyunPercentEncode(k)}=${aliyunPercentEncode(allParams[k])}`)
+    .join("&");
+  const stringToSign = `GET&${aliyunPercentEncode("/")}&${aliyunPercentEncode(canonicalized)}`;
+  const signature = createAliyunHmacSha1(`${args.accessKeySecret}&`, stringToSign);
+  const query = `${canonicalized}&${aliyunPercentEncode("Signature")}=${aliyunPercentEncode(signature)}`;
+  return `https://dysmsapi.aliyuncs.com/?${query}`;
+}
+
+function aliyunPercentEncode(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/!/g, "%21")
+    .replace(/'/g, "%27")
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29")
+    .replace(/\*/g, "%2A");
+}
+
+/** HMAC-SHA1 薄封装：便于单测注入，生产走 node:crypto。 */
+export function createAliyunHmacSha1(key: string, message: string): string {
+  return createHmac("sha1", key).update(message, "utf8").digest("base64");
 }
 
 /** 腾讯云短信通道（sms.tencentcloudapi.com，无凭证快速失败）。 */

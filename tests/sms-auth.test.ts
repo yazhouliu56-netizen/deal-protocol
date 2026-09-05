@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -32,6 +32,15 @@ vi.mock("next/headers", () => ({
     getAll: () => [],
     set: vi.fn(),
   }),
+}));
+
+const { mockGatewayExec } = vi.hoisted(() => ({
+  mockGatewayExec: vi.fn(),
+}));
+
+vi.mock("@/adapters/gateway/multi-channel-gateway", async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  executeWithFallback: (...args: unknown[]) => mockGatewayExec(...args),
 }));
 
 let smsStore = new Map<string, { code: string; expiresAt: number }>();
@@ -73,7 +82,16 @@ function mockProfilesFind(existing: Record<string, unknown> | null) {
 beforeEach(() => {
   vi.clearAllMocks();
   smsStore = new Map();
+  mockGatewayExec.mockResolvedValue({
+    result: { success: true, messageId: "mock-req" },
+    usedVendor: "ALIYUN",
+    fallbackHops: 0,
+  });
   vi.stubGlobal("crypto", { randomUUID: () => "mock-uuid-000000000000" });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("POST /api/auth/sms/send", () => {
@@ -111,7 +129,10 @@ describe("POST /api/auth/sms/send", () => {
     expect(body.mockCode).toBe("888888");
   });
 
-  it("非白名单真实号在网关缺席时 fail-closed（P0 风控）", async () => {
+  it("非白名单真实号在无 Key 环境变量下：断言严格返回 503 `SMS_GATEWAY_NOT_CONFIGURED`", async () => {
+    // 与 ambient .env 解耦：显式清空双 Key 名。
+    vi.stubEnv("ALIYUN_SMS_ACCESS_KEY_ID", "");
+    vi.stubEnv("ALIYUN_SMS_ACCESS_KEY", "");
     mockProfilesFind(null);
     const { POST } = await import("@/app/api/auth/sms/send/route");
 
@@ -127,6 +148,52 @@ describe("POST /api/auth/sms/send", () => {
     expect(body.success).toBe(false);
     expect(body.error).toBe("SMS_GATEWAY_NOT_CONFIGURED");
     expect(body).not.toHaveProperty("mockCode");
+    expect(mockGatewayExec).not.toHaveBeenCalled();
+  });
+
+  it("真发成功：6 位真码入库、响应绝不回显验证码", async () => {
+    vi.stubEnv("ALIYUN_SMS_ACCESS_KEY_ID", "test-key-id");
+    mockProfilesFind(null);
+    const { POST } = await import("@/app/api/auth/sms/send/route");
+    const { getSmsCode } = await import("@/lib/sms-code-store");
+
+    const resp = await POST(
+      new Request("http://localhost/api/auth/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forwarded-for": "10.9.0.13" },
+        body: JSON.stringify({ phone: "13900001111" }),
+      }),
+    );
+    const body = await resp.json();
+    expect(resp.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body).not.toHaveProperty("mockCode");
+    expect(body).not.toHaveProperty("code");
+    expect(JSON.stringify(body)).not.toContain("888888");
+    expect(mockGatewayExec).toHaveBeenCalledOnce();
+    const stored = getSmsCode("13900001111");
+    expect(stored).toMatch(/^\d{6}$/);
+    expect(stored).not.toBe("888888");
+  });
+
+  it("网关抛错：存盘跳过并回 503 `SMS_SEND_FAILED`", async () => {
+    vi.stubEnv("ALIYUN_SMS_ACCESS_KEY_ID", "test-key-id");
+    mockGatewayExec.mockRejectedValueOnce(new Error("ALIYUN sms api test-boom"));
+    mockProfilesFind(null);
+    const { POST } = await import("@/app/api/auth/sms/send/route");
+    const { getSmsCode } = await import("@/lib/sms-code-store");
+
+    const resp = await POST(
+      new Request("http://localhost/api/auth/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forwarded-for": "10.9.0.14" },
+        body: JSON.stringify({ phone: "13900002222" }),
+      }),
+    );
+    const body = await resp.json();
+    expect(resp.status).toBe(503);
+    expect(body.error).toBe("SMS_SEND_FAILED");
+    expect(getSmsCode("13900002222")).toBeNull();
   });
 });
 
