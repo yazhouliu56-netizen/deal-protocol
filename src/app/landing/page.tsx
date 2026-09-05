@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import toast from "react-hot-toast"
 import { Loader2, Sparkles, CheckCircle2, ArrowRight, Camera, Upload } from "lucide-react"
+import {
+  SmsLeadSheet,
+  useLeadDemandSubmit,
+  type LeadDraft,
+} from "@/components/growth/sms-lead-sheet"
 
 const CATEGORIES = [
   { id: "c1", icon: "🛠", label: "管道疏通", desc: "下水道/马桶/地漏" },
@@ -76,23 +81,38 @@ export default function LandingPage() {
     }
   }
 
-  const handleSubmitDemand = async () => {
-    if (!result) return
-    setSubmitting(true)
-    try {
-      await fetch("/api/demands", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: `${result.title}：${result.description}` }),
-      })
+  const {
+    submit: handleSubmitDemand,
+    sheetOpen,
+    setSheetOpen,
+    handleVerified,
+  } = useLeadDemandSubmit({
+    pageKey: "landing",
+    collect: (): LeadDraft => ({ presetId: selectedCategory ?? "", tuning: text }),
+    buildPayload: () => ({
+      // 结构化直发：绕开 text→classifyDemand→GEMINI 链路（该 key 线上缺席）。
+      // result 在提交瞬间必存在（按钮仅在结果区渲染）；回放沿用同态快照。
+      title: result?.title ?? text.trim().slice(0, 20),
+      description: result?.description ?? text.trim(),
+      category:
+        result?.category ??
+        CATEGORIES.find((c) => c.id === selectedCategory)?.label ??
+        "general",
+    }),
+    applyDraft: (d) => {
+      if (CATEGORIES.some((c) => c.id === d.presetId)) setSelectedCategory(d.presetId)
+      if (d.tuning) setText(d.tuning)
+    },
+    setSubmitting,
+    setDone: () => {
       setResult(null)
       setText("")
-    } catch {
-      toast.error("发布需求失败，请重试")
-    } finally {
-      setSubmitting(false)
-    }
-  }
+      toast.success("发布成功，正在为你匹配服务者")
+    },
+    setError: (msg) => {
+      if (msg) toast.error(msg)
+    },
+  })
 
   const handleMediaAdd = () => {
     const id = `media_${Date.now()}`
@@ -346,6 +366,7 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} />
     </div>
   )
 }

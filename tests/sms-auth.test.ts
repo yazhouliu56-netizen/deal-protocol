@@ -93,21 +93,40 @@ describe("POST /api/auth/sms/send", () => {
     expect(body.error).toContain("手机号");
   });
 
-  it("should send code for valid phone number (Test 1)", async () => {
+  it("白名单测试号段可走 Mock 验码", async () => {
     mockProfilesFind(null);
     const { POST } = await import("@/app/api/auth/sms/send/route");
 
     const resp = await POST(
       new Request("http://localhost/api/auth/sms/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: "13800138000" }),
+        // 独立 IP 配额：避免与同文件其他 send 用例挤占 1/min 限流。
+        headers: { "Content-Type": "application/json", "x-forwarded-for": "10.9.0.11" },
+        body: JSON.stringify({ phone: "13000000003" }),
       }),
     );
     const body = await resp.json();
     expect(resp.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.mockCode).toBe("888888");
+  });
+
+  it("非白名单真实号在网关缺席时 fail-closed（P0 风控）", async () => {
+    mockProfilesFind(null);
+    const { POST } = await import("@/app/api/auth/sms/send/route");
+
+    const resp = await POST(
+      new Request("http://localhost/api/auth/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forwarded-for": "10.9.0.12" },
+        body: JSON.stringify({ phone: "13800138000" }),
+      }),
+    );
+    const body = await resp.json();
+    expect(resp.status).toBe(503);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe("SMS_GATEWAY_NOT_CONFIGURED");
+    expect(body).not.toHaveProperty("mockCode");
   });
 });
 
