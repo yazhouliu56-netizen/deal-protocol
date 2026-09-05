@@ -133,6 +133,14 @@ test("约束锁死：systemPrompt 含六算子白名单与护栏数字", () => {
   ]);
 });
 
+test("C2入户安全底线：systemPrompt与home缺省均声明isPoliceVerified", () => {
+  const r = compileAmmoPrompt("电脑点不亮了，来个人看看");
+  assert.match(r.systemPrompt, /C2_IN_HOME/);
+  assert.match(r.systemPrompt, /workerRequirement\.isPoliceVerified=true/);
+  const home = compileAmmoPrompt(FEMALE_SENTENCES[3]);
+  assert.match(home.userPrompt, /workerRequirement\.isPoliceVerified=true/);
+});
+
 test("20 句全量无异常且无 PII 明文进提示词", () => {
   const leaks = ["13800001111", "13900002222", "shouna999"];
   for (const s of [...MALE_SENTENCES, ...FEMALE_SENTENCES]) {

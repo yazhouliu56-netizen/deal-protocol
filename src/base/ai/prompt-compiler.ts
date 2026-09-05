@@ -167,7 +167,7 @@ function defaultNoteFor(category: string): string {
     return "类目缺省：FIXED 装机费 80 元（检测费 40 元），周末时段，自备工具。";
   }
   if (category === "home-organizing") {
-    return "类目缺省：HOURLY 60 元/时，起步 2 小时（120 元），周末默认时段。";
+    return "类目缺省：HOURLY 60 元/时，起步 2 小时（120 元），周末默认时段；入户安全：C2_IN_HOME 必须带 workerRequirement.isPoliceVerified=true。";
   }
   return "类目缺省：按通用兜底，须显式声明计价模型与运力池。";
 }
@@ -184,6 +184,7 @@ function buildSystemPrompt(): string {
     `pricingModel.kind 只能四选一：${kinds}。formulaId 必须已存在，严禁现编。`,
     `fuzePolicy 只能引用三模板之一：${fuzes}，允许改 fuzeId，不许改模板语义。`,
     `成交价护栏（分）：不得低于 ${COMPILER_PRICE_FLOOR_CENTS}，不得高于 ${COMPILER_PRICE_CEILING_CENTS}。缺字段宁可走缺省，不许脑补价格与门槛。`,
+    "入户安全底线：supplyCluster 为 C2_IN_HOME 时，必须同时输出 workerRequirement.isPoliceVerified=true，否则校验必败。",
     "输入已脱敏，不含真实联系方式；输出同样严禁包含手机号、微信号、门牌明文。",
     `Few-Shot 合法骨架（照此形状输出）：${JSON.stringify(FEW_SHOT_SKELETON)}`,
   ].join("\n");
