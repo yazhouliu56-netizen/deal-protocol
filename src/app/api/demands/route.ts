@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server"
 import { revalidatePath } from "next/cache"
 import { withAuth } from "@/lib/api-auth"
 import { getRouteClient } from "@/lib/supabase-route-client"
+import { getServiceClient } from "@/lib/supabase-client"
 import { checkRateLimit, rateLimitResponse, RULE_DEFAULT } from "@/lib/rate-limit"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
@@ -74,6 +75,10 @@ export const POST = withAuth(async (req, user) => {
   if (!userResult.allowed) return rateLimitResponse(userResult.resetAt)
 
   const supabase = await getRouteClient()
+  // 写操作走 service_role：protocols 表 RLS 暂无 INSERT 策略（见
+  // supabase/migrations/20260905_protocols_insert_policy.sql），用户 token
+  // 直插必 42501。withAuth 已验明正身，demander_id 强制取 user.id，防越权。
+  const svc = getServiceClient()
 
   try {
     const body = await req.json()
@@ -83,7 +88,7 @@ export const POST = withAuth(async (req, user) => {
       const info = await classifyDemand(body.text)
 
       const payload = makeProtocolPayload(user.id, body, info as unknown as Record<string, unknown>)
-      const { data: protocol, error } = await supabase.from('protocols').insert(payload).select().single()
+      const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
       if (error) throw error
 
       revalidatePath('/demands')
@@ -96,7 +101,7 @@ export const POST = withAuth(async (req, user) => {
     }
 
     const payload = makeProtocolPayload(user.id, body)
-    const { data: protocol, error } = await supabase.from('protocols').insert(payload).select().single()
+    const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
     if (error) throw new Error(`Protocol insert error: ${error.message} (${JSON.stringify(error)})`)
 
     revalidatePath('/demands')

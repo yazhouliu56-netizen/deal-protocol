@@ -58,17 +58,16 @@ function mockProfilesFind(existing: Record<string, unknown> | null) {
   const eqPhone = vi.fn().mockReturnValue({ maybeSingle });
   const selectProfiles = vi.fn().mockReturnValue({ eq: eqPhone });
   const insert = vi.fn().mockResolvedValue({ error: null });
-  
+  const upsert = vi.fn().mockResolvedValue({ error: null });
+
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === "profiles") {
-      return existing
-        ? { select: selectProfiles, insert, update: vi.fn() }
-        : { select: selectProfiles, insert: vi.fn().mockResolvedValue({ error: null }), update: vi.fn() };
+      return { select: selectProfiles, insert, upsert, update: vi.fn() };
     }
-    return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }) }), insert: vi.fn(), update: vi.fn() };
+    return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) }) }), insert: vi.fn(), upsert, update: vi.fn() };
   });
 
-  return { insert, selectProfiles };
+  return { insert, upsert, selectProfiles };
 }
 
 beforeEach(() => {
@@ -151,6 +150,49 @@ describe("POST /api/auth/sms/verify", () => {
     expect(body.success).toBe(true);
     expect(body.isNewUser).toBe(true);
     expect(body.user.phone).toBe("13800138000");
+  });
+
+  it("建号 insert 只写真实列：无 roles 键（线上表结构回归）", async () => {
+    const { insert } = mockProfilesFind(null);
+    const { setSmsCode } = await import("@/lib/sms-code-store");
+    setSmsCode("13700137000", "888888");
+
+    vi.stubGlobal("fetch", vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/auth/v1/admin/users") && url.endsWith("/auth/v1/admin/users")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: "col-user-id" }),
+          text: () => Promise.resolve(""),
+        });
+      }
+      if (url.includes("/auth/v1/admin/users/")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({}),
+          text: () => Promise.resolve(""),
+        });
+      }
+      return Promise.reject(new Error(`unhandled url: ${url}`));
+    }));
+
+    const { POST } = await import("@/app/api/auth/sms/verify/route");
+
+    const resp = await POST(
+      new Request("http://localhost/api/auth/sms/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: "13700137000", code: "888888" }),
+      }),
+    );
+    expect(resp.status).toBe(200);
+    expect(insert).toHaveBeenCalledOnce();
+    const payload = insert.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload).toMatchObject({
+      id: "col-user-id",
+      phone: "13700137000",
+      role: "demander",
+    });
+    expect(payload).not.toHaveProperty("roles");
   });
 
   it("should reject wrong verification code", async () => {

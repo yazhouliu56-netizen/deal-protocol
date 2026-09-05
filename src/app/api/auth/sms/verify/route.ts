@@ -51,6 +51,15 @@ export async function POST(request: Request) {
   if (existingProfile) {
     userId = existingProfile.id;
     profileData = existingProfile;
+    // 老号回填 users 行（短信建号早期版本未写 users 表，发单外键所需）。
+    // 缺席才插：不覆盖既有 role（provider 等身份不受影响）。
+    const { error: backfillError } = await svc.from("users").upsert(
+      { id: userId, phone, role: "demander" },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
+    if (backfillError) {
+      return NextResponse.json({ error: "补齐用户行失败" }, { status: 500 });
+    }
   } else {
     const name = `用户_${phone.slice(-4)}`;
 
@@ -66,6 +75,7 @@ export async function POST(request: Request) {
         password: crypto.randomUUID(),
         phone_confirm: true,
         email: `${phone}@sms.local`,
+        email_confirm: true,
         user_metadata: { name, phone, role: "demander" },
       }),
     });
@@ -81,16 +91,27 @@ export async function POST(request: Request) {
     const adminData = await adminRes.json();
     userId = adminData.id;
 
+    // 线上 profiles 无 roles 列（COLS 实测）：只写真实列，否则整行被拒。
     const { error: profileError } = await svc.from("profiles").insert({
       id: userId,
       name,
       phone,
       role: "demander",
-      roles: JSON.stringify(["demander"]),
     });
 
     if (profileError) {
       return NextResponse.json({ error: "创建用户资料失败" }, { status: 500 });
+    }
+
+    // protocols.demander_id → users(id) 外键底座：短信号同步补 users 行，
+    // 否则后续发单 insert 先过 RLS 再撞外键。role 取 users 表 CHECK 合法值。
+    const { error: userRowError } = await svc.from("users").upsert(
+      { id: userId, phone, role: "demander" },
+      { onConflict: "id" },
+    );
+
+    if (userRowError) {
+      return NextResponse.json({ error: "创建用户行失败" }, { status: 500 });
     }
 
     isNewUser = true;
@@ -108,7 +129,8 @@ export async function POST(request: Request) {
         apikey: serviceRoleKey,
         Authorization: `Bearer ${serviceRoleKey}`,
       },
-      body: JSON.stringify({ password: tempPassword }),
+      // 老号回填：密码轮换的同时补确认邮箱（短信建号的登录凭证）。
+      body: JSON.stringify({ password: tempPassword, email_confirm: true }),
     },
   );
 
@@ -132,8 +154,10 @@ export async function POST(request: Request) {
     },
   });
 
+  // 本实例未启用 Phone provider（Phone logins are disabled）：建号时已写入
+  // `${phone}@sms.local` 邮箱，用 email 会话代替，同用户同临时密钥。
   const { error: signInError } = await supabase.auth.signInWithPassword({
-    phone,
+    email: `${phone}@sms.local`,
     password: tempPassword,
   });
 
