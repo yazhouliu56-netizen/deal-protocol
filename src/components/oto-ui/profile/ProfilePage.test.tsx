@@ -60,12 +60,12 @@ describe("访客身份口径收敛", () => {
     expect(document.querySelector('[data-testid="guest-demo-badge"]')).not.toBeNull();
   });
 
-  it("钱包文案：P5 内部代号彻底出清，沙盒模拟余额标注可见", () => {
+  it("钱包文案：沙盒徽章显式挂载（Phase 2.1 双轨收敛）", () => {
     renderPage();
     const t = text();
     expect(t).not.toMatch(/P5/);
-    expect(t).toContain("虚拟钱包（沙盒模拟余额）");
-    expect(t).toContain("沙盒体验环境 · 生产环境将直连持牌银行账户");
+    expect(t).toContain("我的钱包");
+    expect(document.querySelector('[data-testid="sandbox-badge"]')).not.toBeNull();
   });
 });
 

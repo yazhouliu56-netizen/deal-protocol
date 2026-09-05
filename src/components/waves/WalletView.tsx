@@ -7,13 +7,14 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { quotaHalved } from "@/base/trust/violation";
 import { decayLabel, dailyQuotaForTier } from "@/base/trust/review";
+import { SandboxBadge } from "./SandboxBadge";
 
 /**
  * 钱包与信用前台 — virtual balance / credit tier / daily claim quota /
  * breach ledger / masked review list. Makes the P1 virtual-economy
  * transparent in the UI; credit tier re-derives from received reviews.
  */
-export default function WalletView({ sandbox = false }: { sandbox?: boolean } = {}) {
+export default function WalletView() {
   const identity = useIdentityStore((s) => s.identity);
   const account = useIdentityStore((s) => s.account);
   const creditTier = useIdentityStore((s) => s.creditTier);
@@ -42,7 +43,8 @@ export default function WalletView({ sandbox = false }: { sandbox?: boolean } = 
     <div className="glass-panel rounded-2xl p-3.5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-bold text-white/70 flex items-center gap-1.5">
-          <Wallet size={12} className="text-brandCyan" /> 虚拟钱包{sandbox ? "（沙盒模拟余额）" : ""}
+          <Wallet size={12} className="text-brandCyan" /> 我的钱包
+          <SandboxBadge />
         </h3>
         <span className="text-xs text-white/35">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
       </div>

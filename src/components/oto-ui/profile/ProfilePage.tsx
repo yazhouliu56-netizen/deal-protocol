@@ -343,7 +343,6 @@ export default function ProfilePage({
         bookingsCount={bookings.length}
         upcoming={upcoming}
         reviewed={reviewed}
-        sandbox={!authAccount}
       />
 
       {/* 服务者工作台入口卡（四大工种资质准入全景看板） */}

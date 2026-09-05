@@ -7,6 +7,7 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
+import { SandboxBadge } from "./SandboxBadge";
 import DynamicDraftCard, {
   describeFormSchemaFields,
   describePricing,
@@ -408,6 +409,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
             <Send size={13} className="text-brandCyan" /> 发出信号波
+            <SandboxBadge />
           </h3>
           <button
             onClick={onClose}

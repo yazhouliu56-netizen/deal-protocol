@@ -7,6 +7,7 @@ import {
   Upload, CloudLightning, Coins, ArrowLeft, Lock, IdCard,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { useClaimDemand } from "@/hooks/useClaimDemand"
 
 interface Demand {
   id: string
@@ -36,7 +37,6 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
   const [contracts, setContracts] = useState<Contract[]>([])
   const [selectedDemand, setSelectedDemand] = useState<Demand | null>(null)
   const [loading, setLoading] = useState(true)
-  const [claimingId, setClaimingId] = useState<string | null>(null)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "done">("idle")
   const [ipfsHash, setIpfsHash] = useState("")
   const [settlingId, setSettlingId] = useState<string | null>(null)
@@ -84,30 +84,23 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
     }
   }
 
-  async function handleClaim(demandId: string) {
-    if (verificationStatus && verificationStatus !== "approved") {
-      toast.error("抢单失败：请先完成实名身份验证！")
-      setClaimingId(null)
-      return
-    }
-
-    setClaimingId(demandId)
-    try {
-      const res = await fetch(`/api/demands/${demandId}/assign`, { method: "POST" })
-      if (!res.ok) {
-        const err = await res.json()
-        toast.error(err.error || "抢单失败")
-        return
-      }
+  const { claim, claimingId } = useClaimDemand({
+    verificationStatus,
+    messages: { network: "网络错误，抢单失败" },
+    onSuccess: async () => {
       toast.success("契约锁定成功！")
       await loadDemands()
       await loadContracts()
       setActiveTab("myTasks")
-    } catch {
-      toast.error("网络错误，抢单失败")
-    } finally {
-      setClaimingId(null)
-    }
+    },
+    onFailure: (message) => {
+      toast.error(message)
+    },
+  })
+
+  async function handleClaim(demandId: string) {
+    // 成功后保留原语义：刷新双列表并切 myTasks（不跳履约页，ID 映射在 assign 侧未回传）。
+    await claim(demandId)
   }
 
   async function handleUploadProof(contractId: string) {

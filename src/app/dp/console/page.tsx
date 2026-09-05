@@ -1,14 +1,10 @@
-"use client"
-
-import { useRouter } from "next/navigation"
-import ClientConsole from "@/components/ClientConsole"
+import { redirect } from "next/navigation"
 
 /**
- * 协议专区 · 契约派单控制台（/dp/console）
- * C16 收编落点：原 /console 平移归位至 /dp 协议专区，根路由 /console 保留优雅重定向。
- * 管理台资产完整性 100% 保留（ClientConsole 调试逻辑零改动，红线 3 单向依赖）。
+ * 归流（Phase 2.1）：/dp/console 307 至真实供给接单池。
+ * C16 合规：保留物理路由文件，101 路由不增不减；
+ * ClientConsole 已 @deprecated 下线，需求侧发布走 /landing。
  */
 export default function DpConsolePage() {
-  const router = useRouter()
-  return <ClientConsole onBackToHome={() => router.push("/dp")} />
+  redirect("/dp/provider/incoming")
 }

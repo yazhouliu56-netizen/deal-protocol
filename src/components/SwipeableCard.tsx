@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useClaimDemand } from "@/hooks/useClaimDemand"
 
 export interface IncomingDemand {
   id: string
@@ -60,33 +61,23 @@ export default function SwipeableCard({
     }
   }
 
+  const { claim } = useClaimDemand({
+    verificationStatus,
+    messages: { network: "网络异常，请重试", fallback: "被其他师傅捷足先登了" },
+    onSuccess: (id) => {
+      onAcceptSuccess(id)
+    },
+    onFailure: (message) => {
+      onAcceptFailure(message)
+      setCurrentX(0)
+      setIsSubmitting(false)
+    },
+  })
+
   const triggerAccept = async () => {
-    if (verificationStatus && verificationStatus !== "approved") {
-      onAcceptFailure("抢单失败：请先完成实名身份验证！")
-      setCurrentX(0)
-      setIsSubmitting(false)
-      return
-    }
-
+    // 视觉语义保持原样：成功不复位（父级移除卡片），失败回弹。
     setIsSubmitting(true)
-    try {
-      const res = await fetch(`/api/demands/${order.id}/assign`, {
-        method: "POST",
-      })
-      const data = await res.json()
-
-      if (res.ok) {
-        onAcceptSuccess(order.id)
-      } else {
-        onAcceptFailure(data.reason || "被其他师傅捷足先登了")
-        setCurrentX(0)
-        setIsSubmitting(false)
-      }
-    } catch {
-      onAcceptFailure("网络异常，请重试")
-      setCurrentX(0)
-      setIsSubmitting(false)
-    }
+    await claim(order.id)
   }
 
   const progress = Math.min(currentX / maxSwipeDistance, 1)

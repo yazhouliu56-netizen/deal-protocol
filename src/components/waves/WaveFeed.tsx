@@ -14,6 +14,7 @@ import WaveCard from "./WaveCard";
 import PaySheet from "./PaySheet";
 import RadarInbox from "./RadarInbox";
 import FavoritesSheet from "./FavoritesSheet";
+import { SandboxBadge } from "./SandboxBadge";
 import { toast } from "@/base/platform/toast";
 
 /**
@@ -125,6 +126,7 @@ export default function WaveFeed() {
       <h1 className="text-[18px] leading-tight font-extrabold mt-1 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
         📍 附近的需求
         <span className="text-xs font-normal text-[#afafaf]">· 谁正在附近发需求</span>
+        <SandboxBadge />
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
         <p className="text-xs text-[#777777] flex items-center gap-1">

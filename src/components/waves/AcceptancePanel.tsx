@@ -10,6 +10,7 @@ import type { Claim, Wave } from "@/base/order/wave";
 import { checkTextEvidence } from "@/base/ai/forgery";
 import { verifyDoc } from "@/base/platform/signInsure";
 import { toast } from "@/base/platform/toast";
+import { SandboxBadge } from "./SandboxBadge";
 
 /**
  * 验收 + 争议面板（需求方视角）：模块化验收（复杂任务）逐模块确认；
@@ -65,7 +66,7 @@ export default function AcceptancePanel({
   return (
     <div className="space-y-2.5">
       <p className="text-xs font-bold text-white/70 flex items-center justify-between">
-        <span>🔍 模块化验收（{confirmed}/{done} 已确认）</span>
+        <span>🔍 模块化验收（{confirmed}/{done} 已确认） <SandboxBadge /></span>
         <span className="text-white/35 font-normal">逐模块放款 · 全确认才放全款</span>
       </p>
       {modules.map((m, i) => {

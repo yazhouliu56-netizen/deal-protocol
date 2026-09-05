@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useClaimDemand } from "@/hooks/useClaimDemand";
 
 interface GrabConsoleProps {
   demandId: string;
@@ -31,33 +32,30 @@ export default function GrabConsole({
 
   const [showVerifyBanner, setShowVerifyBanner] = useState(false);
 
+  const { claim } = useClaimDemand({
+    verificationStatus,
+    onBlocked: () => setShowVerifyBanner(true),
+    messages: { network: "网络异常，请稍后重试", fallback: "手慢了，订单已被其他师傅接到" },
+    onSuccess: () => {
+      setStatus("success");
+      setTimeout(() => {
+        onGrabSuccess();
+      }, 1200);
+    },
+    onFailure: (message) => {
+      setStatus("failed");
+      onGrabFailure(message);
+    },
+  });
+
   const handleGrabClick = async () => {
     if (status === "grabbing" || status === "success") return;
-
-    if (verificationStatus && verificationStatus !== "approved") {
-      setShowVerifyBanner(true);
-      return;
-    }
-
+    // 失败后允许重试：归一 Hook 前先复位，视觉机与回调保持原语义。
+    if (status === "failed") setStatus("idle");
     setStatus("grabbing");
-
-    try {
-      const res = await fetch(`/api/demands/${demandId}/assign`, { method: "POST" });
-      const data = await res.json();
-
-      if (res.ok) {
-        setStatus("success");
-        setTimeout(() => {
-          onGrabSuccess();
-        }, 1200);
-      } else {
-        setStatus("failed");
-        onGrabFailure(data.reason || "手慢了，订单已被其他师傅接到");
-      }
-    } catch {
-      setStatus("failed");
-      onGrabFailure("网络异常，请稍后重试");
-    }
+    await claim(demandId);
+    // Hook 内失败已置 failed；若仍为 grabbing（极端竞态）则复位。
+    setStatus((s) => (s === "grabbing" ? "idle" : s));
   };
 
   const cardAnimationVariants: Variants = {

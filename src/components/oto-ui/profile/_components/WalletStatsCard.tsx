@@ -5,8 +5,6 @@ interface WalletStatsCardProps {
   bookingsCount: number;
   upcoming: number;
   reviewed: number;
-  /** 访客态钱包显式标注沙盒模拟余额（P1 第 3 步）。 */
-  sandbox: boolean;
 }
 
 /** 资产钱包卡：总订单 / 待出行 / 已评价 统计 + 点账钱包（子组件化搬移，DOM 零漂移）。 */
@@ -14,7 +12,6 @@ export default function WalletStatsCard({
   bookingsCount,
   upcoming,
   reviewed,
-  sandbox,
 }: WalletStatsCardProps) {
   return (
     <div className="bg-[#ddf4ff] rounded-3xl border-2 border-[#1cb0f6] border-b-[6px] shadow-sm p-3.5">
@@ -36,8 +33,8 @@ export default function WalletStatsCard({
         ))}
       </div>
       <div className="mt-3">
-        {/* P1 第 3 步：访客态钱包显式标注沙盒模拟余额 */}
-        <WalletView sandbox={sandbox} />
+        {/* P1 沙盒显式化：钱包恒为本地仿真，徽章由 WalletView 统一挂载。 */}
+        <WalletView />
       </div>
     </div>
   );
