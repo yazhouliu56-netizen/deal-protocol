@@ -40,6 +40,12 @@ function isProtectedRoute(pathname: string): boolean {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/" ||
+    pathname === "/m20" ||
+    pathname === "/f20" ||
+    pathname === "/lab" ||
+    pathname.startsWith("/m20/") ||
+    pathname.startsWith("/f20/") ||
+    pathname.startsWith("/lab/") ||
     pathname.startsWith("/api/") ||
     pathname === "/sw.js" ||
     pathname === "/manifest.webmanifest" ||
