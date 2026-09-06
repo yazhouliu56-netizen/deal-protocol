@@ -116,7 +116,7 @@ export default function VoiceBar({
           ? "bg-red-500/90"
           : phase === "transcribing"
             ? "bg-brandCyan/30"
-            : "glass-panel text-brandCyan hover:text-white"
+            : "bg-white border border-[#e5e5e5] shadow-sm text-brandCyan hover:text-[#4b4b4b]"
       }`}
     >
       {phase === "recording" ? (

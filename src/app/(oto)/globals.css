@@ -445,109 +445,9 @@
   display: block;
 }
 
-/* ============ True glass material ============ */
+/* Batch3: glass-panel* 已出清（全仓 0 引用）—— Feather 只留 Duo 白卡一套 */
 
-/* 通透毛玻璃：顶部受光高光 + 纵向渐变通透 + 霓虹光晕溢出 */
-.glass-panel {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid rgba(123, 97, 255, 0.35);
-  border-top-color: rgba(255, 255, 255, 0.42);
-  box-shadow:
-    0 0 30px -8px rgba(123, 97, 255, 0.5),
-    0 26px 60px -14px rgba(0, 0, 0, 0.6),
-    0 10px 26px -10px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-  transform: translateZ(0);
-}
-
-/* 可交互卡片：hover 渐变发光边缘 + 立体悬浮 */
-.glass-panel-interactive {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.02) 100%
-  );
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid rgba(123, 97, 255, 0.32);
-  border-top-color: rgba(255, 255, 255, 0.4);
-  box-shadow:
-    0 0 24px -10px rgba(123, 97, 255, 0.45),
-    0 20px 45px -14px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-  transition:
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-  will-change: transform;
-}
-.glass-panel-interactive:hover {
-  border-color: transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))
-      padding-box,
-    linear-gradient(
-        135deg,
-        rgba(123, 97, 255, 0.9),
-        rgba(0, 240, 255, 0.5),
-        rgba(255, 255, 255, 0.35)
-      )
-      border-box;
-  box-shadow:
-    0 0 60px -10px rgba(123, 97, 255, 0.7),
-    0 32px 70px -16px rgba(123, 97, 255, 0.45),
-    0 14px 30px -12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transform: translateY(-6px) scale(1.015);
-}
-
-/* 选中态渐变发光边缘 */
-.glass-panel-active {
-  border-color: transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))
-      padding-box,
-    linear-gradient(
-        135deg,
-        rgba(123, 97, 255, 0.9),
-        rgba(0, 240, 255, 0.5),
-        rgba(255, 255, 255, 0.35)
-      )
-      border-box;
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
-  box-shadow:
-    0 32px 70px -16px rgba(123, 97, 255, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-/* 图片卡片底部半透明玻璃内衬条 */
-.card-inlay {
-  background: linear-gradient(
-    180deg,
-    rgba(20, 22, 38, 0.35) 0%,
-    rgba(10, 12, 26, 0.72) 100%
-  );
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-/* ============ Accent buttons ============ */
-
-.btn-primary {
-  background: linear-gradient(45deg, #7b61ff, #4b9bff);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 30px -10px rgba(123, 97, 255, 0.55);
-}
+/* Batch3: .btn-primary 已出清（全仓 0 引用）—— 主操作统一 DuoButton，选中态/徽标用 Duo 绿内联 */
 
 /* ============ Volumetric float ============ */
 
@@ -699,14 +599,7 @@ html[data-low-power="1"] .shimmer {
 /* backdrop-filter is the heaviest effect on mobile — drop it for a solid tint.
    NOTE: use blur(0), not `none` — LightningCSS strips the standard `none`
    value and keeps only -webkit-, which Chrome 150+ no longer honors. */
-html[data-low-power="1"] .glass-panel,
-html[data-low-power="1"] .glass-panel-interactive,
-html[data-low-power="1"] .glass-panel-active,
-html[data-low-power="1"] .card-inlay {
-  -webkit-backdrop-filter: blur(0);
-  backdrop-filter: blur(0);
-  background: rgba(20, 22, 38, 0.82);
-}
+/* Batch3: glass 低功耗降级块随定义一并出清（0 引用） */
 
 /* 单屏 SPA 页面切换入场动画（Batch1：page-enter 已出清，全仓 0 引用） */
 

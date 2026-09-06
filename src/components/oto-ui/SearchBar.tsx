@@ -28,9 +28,9 @@ export default function SearchBar({
           if (composingRef.current) return;
           onSearch?.();
         }}
-        className="glass-panel rounded-2xl p-3 flex items-center gap-3 flex-1"
+        className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3 flex items-center gap-3 flex-1"
       >
-        <Search size={15} className="text-white/40 shrink-0" />
+        <Search size={15} className="text-[#afafaf] shrink-0" />
         <input
           type="text"
           value={value}
@@ -39,14 +39,14 @@ export default function SearchBar({
           onCompositionEnd={() => (composingRef.current = false)}
           placeholder={placeholder}
           aria-label="搜索 OTO 体验"
-          className="bg-transparent text-xs py-2.5 min-h-10 outline-none w-full placeholder:text-white/30"
+          className="bg-transparent text-xs py-2.5 min-h-10 outline-none w-full placeholder:text-[#afafaf]"
         />
         {value && (
           <button
             type="button"
             onClick={() => onChange("")}
             aria-label="清空搜索"
-            className="text-white/40 hover:text-white"
+            className="text-[#afafaf] hover:text-[#4b4b4b]"
           >
             <X size={14} />
           </button>

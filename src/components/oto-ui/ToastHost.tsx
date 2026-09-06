@@ -5,8 +5,8 @@ import { useToastStore, type ToastTone } from "@/base/platform/toast";
 
 const TONE_STYLE: Record<ToastTone, string> = {
   info: "border-brandCyan/40 text-brandCyan",
-  success: "border-emerald-400/40 text-emerald-300",
-  error: "border-red-400/40 text-red-300",
+  success: "border-[#58cc02]/50 text-[#46a302]",
+  error: "border-[#ff4b4b]/40 text-[#ff4b4b]",
 };
 
 const TONE_ICON: Record<ToastTone, typeof Info> = {
@@ -34,7 +34,7 @@ export default function ToastHost() {
               exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               onClick={() => dismiss(t.id)}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl glass-panel border text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
+              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm text-[#4b4b4b] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
             >
               <Icon size={14} className="shrink-0" />
               {t.text}

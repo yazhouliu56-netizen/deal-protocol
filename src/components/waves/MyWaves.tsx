@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
@@ -95,21 +96,21 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
       {/* G-5 访客引导：演示身份说明 + 数据模式入口（EnvBadge 由全局事件唤起） */}
       <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-brandPurple/[0.08] border border-brandPurple/25 mb-3">
         <span className="text-xs">💠</span>
-        <p className="flex-1 min-w-0 text-xs text-white/55 leading-snug">
-          访客演示模式 · 身份<span className="text-white/85 font-bold">{identity.nickname}</span>
+        <p className="flex-1 min-w-0 text-xs text-[#777777] leading-snug">
+          访客演示模式 · 身份<span className="text-[#4b4b4b] font-bold">{identity.nickname}</span>
           ，数据存本机浏览器
         </p>
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"
-          className="shrink-0 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-brandPurple-foreground hover:bg-white/10 transition-colors"
+          className="shrink-0 px-2 py-1 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-brandPurple-foreground hover:bg-[#f7f7f7] transition-colors"
         >
           数据模式
         </button>
       </div>
 
-      <h2 className="text-[18px] font-extrabold text-white/95">我的需求</h2>
-      <p className="text-xs text-white/45 mb-3">你发出的信号波 · 谁接单算谁的</p>
+      <h2 className="text-[18px] font-extrabold text-[#4b4b4b]">我的需求</h2>
+      <p className="text-xs text-[#afafaf] mb-3">你发出的信号波 · 谁接单算谁的</p>
 
       {myBuffs > 0 && (
         <p className="mb-3 px-3 py-2 rounded-2xl bg-emerald-400/10 border border-emerald-400/35 text-xs font-bold text-emerald-300 flex items-center gap-1.5">
@@ -118,9 +119,9 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
       )}
 
       {mine.length === 0 && (
-        <div className="glass-panel rounded-3xl p-6 text-center">
+        <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-6 text-center">
           <span className="text-2xl">📡</span>
-          <p className="text-xs text-white/50 mt-2">还没有发出过需求</p>
+          <p className="text-xs text-[#afafaf] mt-2">还没有发出过需求</p>
         </div>
       )}
 
@@ -179,7 +180,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       {wave.biddingSettled.netYuan}
                     </p>
                   )}
-                  <p className="text-xs text-white/50 mt-0.5">
+                  <p className="text-xs text-[#afafaf] mt-0.5">
                     {wave.basics.time} · {wave.basics.area} · {isOpen ? `人均 ${yuan(perSeatPrice(wave))}` : `预算 ${yuan(wave.budget)}`}
                   </p>
                   {wave.customs.map((c) => (
@@ -197,7 +198,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                     <button
                       onClick={() => onCancel(wave)}
                       title={cancelRefundLabel(wave)}
-                      className="text-xs text-white/40 hover:text-white"
+                      className="text-xs text-[#afafaf] hover:text-[#4b4b4b]"
                     >
                       取消发布{isOpen ? " · " + cancelRefundLabel(wave) : ""}
                     </button>
@@ -212,25 +213,25 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                     <span className="text-xs font-bold text-amber-200/80 flex items-center gap-1.5">
                       <Shield size={11} /> 待你审批的拼位申请
                     </span>
-                    <span className="text-xs text-white/40">
+                    <span className="text-xs text-[#afafaf]">
                       {(wave.joinRequests ?? []).length} 人等待
                     </span>
                   </div>
                   {(wave.joinRequests ?? []).length === 0 ? (
-                    <p className="text-xs text-white/35">
+                    <p className="text-xs text-[#afafaf]">
                       暂无申请 —— 审批制已开启，响应者申请后会在这里等你批准
                     </p>
                   ) : (
                     (wave.joinRequests ?? []).map((r) => (
                       <div
                         key={r.responderId}
-                        className="flex items-center justify-between gap-2 rounded-xl bg-white/[0.04] border border-white/10 px-2.5 py-1.5"
+                        className="flex items-center justify-between gap-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5"
                       >
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-white/80 truncate">
+                          <p className="text-xs font-bold text-[#4b4b4b] truncate">
                             用户 {r.responderId.slice(0, 4)} · 申请拼位
                           </p>
-                          <p className="text-xs text-white/35">
+                          <p className="text-xs text-[#afafaf]">
                             {new Date(r.at).toLocaleTimeString("zh-CN", {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -260,7 +261,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                                 initiatorId: identity.id,
                               })
                             }
-                            className="px-2 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-white/50 text-xs font-bold hover:text-red-300"
+                            className="px-2 py-1 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] text-[#afafaf] text-xs font-bold hover:text-[#ff4b4b]"
                           >
                             拒绝
                           </button>
@@ -273,22 +274,23 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
               {/* 多人拼单局：拼位队列 + 提前成局 */}
               {isOpen && wave.status === "active" && (
-                <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+                <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white/60 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#777777] flex items-center gap-1.5">
                       <Users size={11} className="text-brandPurple" />
                       已拼 {joinedSeats.length}/{neededJoiners(wave)} 位
                     </span>
                     <div className="flex items-center gap-1.5">
                       <ShareKit wave={wave} />
-                      <button
+                      <DuoButton
                         onClick={() => assembleWave(wave.id)}
                         disabled={joinedSeats.length === 0}
-                        className="px-2.5 py-1 rounded-xl btn-primary text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-label="提前成局"
+                        variant="primary"
+                        size="sm"
                       >
                         人够了，提前成局 ⚡
-                      </button>
+                      </DuoButton>
                     </div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
@@ -297,8 +299,8 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                         key={i}
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${
                           i < joinedSeats.length
-                            ? "btn-primary"
-                            : "bg-white/[0.06] border border-dashed border-white/20 text-white/30"
+                            ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white"
+                            : "bg-[#f7f7f7] border border-dashed border-[#e5e5e5] text-[#afafaf]"
                         }`}
                       >
                         {i < joinedSeats.length ? "🙋" : i + 1}
@@ -383,8 +385,8 @@ function StatusBadge({ status }: { status: string }) {
     claimed: { label: "已接单", cls: "bg-emerald-400/15 border-emerald-400/40 text-emerald-300" },
     locked: { label: "已锁定", cls: "bg-purple-400/15 border-purple-400/40 text-purple-200" },
     assembled: { label: "已成局", cls: "bg-emerald-400/15 border-emerald-400/40 text-emerald-300" },
-    closed: { label: "已关闭", cls: "bg-white/10 border-white/15 text-white/40" },
-    expired: { label: "已失效·已退款", cls: "bg-white/10 border-white/15 text-white/40" },
+    closed: { label: "已关闭", cls: "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]" },
+    expired: { label: "已失效·已退款", cls: "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]" },
   };
   const s = map[status] ?? map.active!;
   return (
@@ -436,7 +438,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   }, [mounted]);
 
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-3 space-y-2.5">
+    <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3 space-y-2.5">
       <DialCard
         waveId={wave.id}
         responderId={claim.responderId}
@@ -488,7 +490,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
                   reporterId: identity.id,
                 })
               }
-              className="px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-white/50 hover:text-amber-400 hover:border-amber-400/40"
+              className="px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-amber-400 hover:border-amber-400/40"
             >
               🚩 举报对方
             </button>
@@ -497,7 +499,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
       })()}
       {!claim.serviceDoneAt && (
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-[#afafaf]">
             等待服务方申报完成（请求放款）…
           </p>
           <div className="flex gap-1.5 shrink-0">
@@ -515,7 +517,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             )}
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-1.5 rounded-xl glass-panel text-xs font-bold text-amber-400/90 flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-amber-400/90 flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>
@@ -532,7 +534,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             onChange={(e) => setAcceptNote(e.target.value)}
             placeholder="验收凭证：交付了什么、完成情况（必填）"
             aria-label="验收凭证"
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-xs outline-none focus:border-emerald-400/50 mb-1.5"
+            className="w-full rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-2 text-xs outline-none focus:border-emerald-400/50 mb-1.5"
           />
           <div className="flex gap-2 items-center">
             <button
@@ -551,19 +553,19 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             </button>
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-2 rounded-xl glass-panel text-xs font-bold text-amber-400/90 flex items-center gap-1"
+              className="px-2.5 py-2 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-amber-400/90 flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>
           </div>
-          <p className="text-xs text-white/35 mt-1.5">
+          <p className="text-xs text-[#afafaf] mt-1.5">
             {Math.ceil(autoFulfilmentRemaining(claim, now) / 3600_000)}{" "}
             小时后未验收 → 自动放款（对齐默认好评 72h 闸）
           </p>
         </div>
       )}
       {claim.fulfilment && (
-        <p className="text-xs text-white/50">
+        <p className="text-xs text-[#afafaf]">
           ✓ 已验收
           {claim.fulfilment.confirmedBy === "auto" && "（自动放款）"}：
           {claim.fulfilment.note}
@@ -597,7 +599,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-3 space-y-2"
         >
-          <p className="text-xs text-white/80 font-bold flex items-center gap-1">
+          <p className="text-xs text-[#4b4b4b] font-bold flex items-center gap-1">
             <HelpCircle size={11} className="text-amber-300" />
             响应方未履约，请裁决谅解与否
             {claim.depositPhase === "held" && (
@@ -695,13 +697,13 @@ function NegotiationThread({
   }
 
   return (
-    <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+    <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-brandCyan flex items-center gap-1">
           <MessageSquareText size={11} /> 响应者磋商
           {claim.lastMessage && ` · "${claim.lastMessage.slice(0, 18)}"`}
         </span>
-        <span className="text-xs text-white/40">
+        <span className="text-xs text-[#afafaf]">
           商议价 {claim.price ? yuan(claim.price) : ""} · 第 {claim.rounds}/{MAX_ROUNDS} 轮
         </span>
       </div>
@@ -718,7 +720,7 @@ function NegotiationThread({
         ))}
         <span
           className={`text-xs font-bold ml-1 ${
-            turn === "demander" ? "text-brandPurple" : "text-white/40"
+            turn === "demander" ? "text-brandPurple" : "text-[#afafaf]"
           }`}
         >
           {exhausted
@@ -737,14 +739,14 @@ function NegotiationThread({
             onChange={(e) => setPrice(e.target.value)}
             inputMode="numeric"
             aria-label="还价金额"
-            className="w-20 shrink-0 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-1.5 text-xs text-white/90 outline-none focus:border-brandPurple/50"
+            className="w-20 shrink-0 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs text-[#4b4b4b] outline-none focus:border-brandPurple/50"
           />
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="回应一句（可空）"
             aria-label="还价留言"
-            className="flex-1 min-w-0 rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-1.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50"
+            className="flex-1 min-w-0 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50"
           />
           <button
             onClick={send}
@@ -763,15 +765,17 @@ function NegotiationThread({
       )}
 
       <div className="flex gap-2 mt-2">
-        <button
-          onClick={onAccept}
-          className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold"
-        >
-          谈成 · 锁定
-        </button>
+          <DuoButton
+            onClick={onAccept}
+            variant="primary"
+            size="sm"
+            className="flex-1"
+          >
+            谈成 · 锁定
+          </DuoButton>
         <button
           onClick={onWithdraw}
-          className="px-3 py-2 rounded-xl glass-panel text-xs text-white/60"
+          className="px-3 py-2 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs text-[#777777]"
         >
           婉拒
         </button>

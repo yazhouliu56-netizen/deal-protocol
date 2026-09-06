@@ -8,7 +8,7 @@ const SIZE_CLASS: Record<Size, string> = {
   md: "w-11 h-11 rounded-2xl",
 };
 
-/** Small circular glass icon button (search actions, AR control column). */
+/** Small circular card icon button (search actions, AR control column). */
 export default function GlassIconButton({
   children,
   className = "",
@@ -24,10 +24,10 @@ export default function GlassIconButton({
   return (
     <button
       onClick={onClick}
-      className={`glass-panel ${SIZE_CLASS[size]} flex items-center justify-center transition-colors shrink-0 ${
+      className={`bg-white border border-[#e5e5e5] shadow-sm ${SIZE_CLASS[size]} flex items-center justify-center transition-colors shrink-0 ${
         tone === "cyan"
           ? "text-brandCyan hover:border-brandCyan/50"
-          : "text-white/70 hover:border-brandPurple/50 hover:text-white"
+          : "text-[#777777] hover:border-brandPurple/50 hover:text-[#4b4b4b]"
       } ${className}`}
       {...rest}
     >

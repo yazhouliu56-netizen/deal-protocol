@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
 import { UXProvider } from "@/components/providers/UXProvider";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 const SITE_URL =
@@ -87,11 +86,9 @@ export default function RootLayout({
         style={{ WebkitTapHighlightColor: "transparent" }}
       >
         <SessionProvider>
-          <UXProvider>
-            <ThemeProvider>
+            <UXProvider>
               <main className="flex-1">{children}</main>
-            </ThemeProvider>
-          </UXProvider>
+            </UXProvider>
           <Script id="register-sw" strategy="afterInteractive">
             {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js', { scope: '/' }); }`}
           </Script>

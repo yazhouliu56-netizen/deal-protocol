@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 /**
  * 动态表单渲染端（ADR-0015，N2 接线）：消费 base/form 的描述器/校验，
  * 渲染 schema 声明的表单。弹药/业务侧填 FormField[] 即出新表单，
@@ -15,14 +16,12 @@ export default function DynamicFormView({
   onChange,
   submitLabel = "提交",
   onSubmit,
-  compact = false,
 }: {
   fields: FormField[];
   values: FormValues;
   onChange: (next: FormValues) => void;
   submitLabel?: string;
   onSubmit?: (values: FormValues) => void;
-  compact?: boolean;
 }) {
   const nodes: RenderNode[] = toRenderNodes(fields, values);
   const errors = validateForm(fields, values);
@@ -121,20 +120,16 @@ export default function DynamicFormView({
         );
       })}
       {onSubmit && (
-        <button
+        <DuoButton
           type="button"
           disabled={!ready}
           onClick={() => onSubmit(values)}
-          className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
-            compact ? "" : ""
-          } ${
-            ready
-              ? "btn-primary active:scale-95"
-              : "bg-white/[0.04] border border-white/10 text-white/30"
-          }`}
+          variant="primary"
+          size="sm"
+          fullWidth
         >
           {submitLabel}
-        </button>
+        </DuoButton>
       )}
     </div>
   );

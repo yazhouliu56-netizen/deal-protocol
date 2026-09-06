@@ -397,7 +397,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             initial={{ y: 60, opacity: 0 }}
             animate={dismissing ? { y: "110%", opacity: 0 } : { y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
+            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
           >
         {/* P2：拖拽把手（下拉 >35% 平滑收起） */}
         <div
@@ -414,7 +414,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           <button
             onClick={onClose}
             aria-label="关闭发布"
-            className="text-white/40 hover:text-white"
+            className="text-[#afafaf] hover:text-[#4b4b4b]"
           >
             ✕
           </button>
@@ -428,8 +428,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               onClick={() => applySopDefaults(h)}
               className={`px-2.5 min-h-8 rounded-full text-xs font-bold transition-colors ${
                 category === h
-                  ? "btn-primary"
-                  : "glass-panel-interactive text-white/60 hover:text-white"
+                  ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm"
+                  : "bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b]"
               }`}
             >
               {CATEGORY_EMOJI(h)} {h}
@@ -443,7 +443,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           name="wave-category"
           placeholder="品类（如：厨师 · 上门做饭）*"
           aria-label="需求品类"
-          className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-2"
+          className="w-full rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors mb-2"
         />
         <div className="flex gap-2 mb-2">
           <input
@@ -452,7 +452,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             name="wave-time"
             placeholder="时间 *（如：明天 11:00）"
             aria-label="需求时间"
-            className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
+            className="flex-1 min-w-0 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors"
           />
           <input
             value={area}
@@ -460,7 +460,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             name="wave-area"
             placeholder="地点 *"
             aria-label="需求地点"
-            className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
+            className="flex-1 min-w-0 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors"
           />
         </div>
         <input
@@ -470,7 +470,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           placeholder="基础预算 ¥（如 100）"
           aria-label="基础预算"
           inputMode="numeric"
-          className="w-full rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors mb-1"
+          className="w-full rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors mb-1"
         />
         {/* P1 第 4 步：价格权威单一源 —— 起步口径 100% 取自当前弹药 D2 计价契约，
             旧「建议起价 ¥{minPriceYuan}」scene 残留出清（底座表保留，UI 不再消费） */}
@@ -514,16 +514,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         <button
           onClick={() => setShowMore(!showMore)}
           aria-expanded={showMore}
-          className="w-full mb-3 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-xs font-bold text-white/65 hover:text-white transition-colors"
+          className="w-full mb-3 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#777777] hover:text-[#4b4b4b] transition-colors"
         >
           <span>更多选项（定制 / 磋商留言 / AI 拆解 / 多人拼单局 / 爽约保障险）</span>
-          <span className="text-xs text-white/40">{showMore ? "收起 ▴" : "展开 ▾"}</span>
+          <span className="text-xs text-[#afafaf]">{showMore ? "收起 ▴" : "展开 ▾"}</span>
         </button>
 
         {showMore && (
           <div className="space-y-2">
         {/* 定制条件：可选 + 递增加价提示 */}
-        <span className="text-xs font-semibold text-white/40 flex items-center gap-1 mb-1.5">
+        <span className="text-xs font-semibold text-[#afafaf] flex items-center gap-1 mb-1.5">
           <Sparkles size={10} className="text-brandPurple" /> 定制条件（可选，逐个 +15%）
         </span>
         {customs.map((c, i) => (
@@ -532,11 +532,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brandPurple/15 border border-brandPurple/40 mb-1.5"
           >
             <span className="text-xs text-brandPurple font-bold flex-1 truncate">{c}</span>
-            <span className="text-xs font-bold text-white/50">+{15 * (i + 1)}%</span>
+            <span className="text-xs font-bold text-[#afafaf]">+{15 * (i + 1)}%</span>
             <button
               onClick={() => setCustoms(customs.filter((_, j) => j !== i))}
               aria-label={`移除定制 ${c}`}
-              className="text-white/40 hover:text-white"
+              className="text-[#afafaf] hover:text-[#4b4b4b]"
             >
               ✕
             </button>
@@ -549,7 +549,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             name="custom-text"
             placeholder="如：30 岁左右女性厨师、穿 JK 装"
             aria-label="定制条件"
-            className="flex-1 min-w-0 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 py-2.5 text-xs placeholder:text-white/25 text-white/90 outline-none focus:border-brandPurple/50 transition-colors"
+            className="flex-1 min-w-0 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors"
           />
           <button
             onClick={() => {
@@ -557,7 +557,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               if (t && !customs.includes(t)) setCustoms([...customs, t]);
               setCustomText("");
             }}
-            className="px-3.5 rounded-2xl glass-panel-interactive text-xs font-bold text-brandPurple shrink-0"
+            className="px-3.5 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-brandPurple shrink-0"
           >
             ＋
           </button>
@@ -573,9 +573,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         />
 
         {/* AI 拆解：复杂任务 → 独立模块（接单前可增删/改价，接单后锁定） */}
-        <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+        <div className="mt-3 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-white/85 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
               🤖 AI 拆解复杂任务
             </span>
             {modules && modules.length >= 2 && (
@@ -584,7 +584,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               </span>
             )}
           </div>
-          <p className="text-xs text-white/40 mb-2">
+          <p className="text-xs text-[#afafaf] mb-2">
             一句话太笼统（如“清理整个房间”）？AI 拆成可单独验收的模块 + 建议价权重，你确认后发布；接单前可增删改，接单后锁定
           </p>
           {!modules || modules.length < 2 ? (
@@ -604,7 +604,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white/85 truncate">
+                      <span className="text-xs font-bold text-[#4b4b4b] truncate">
                         {m.name}
                       </span>
                       <input
@@ -614,16 +614,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                         }
                         aria-label={`模块 ${m.name} 权重`}
                         inputMode="numeric"
-                        className="w-12 rounded-lg bg-white/[0.06] border border-white/10 px-1.5 py-0.5 text-xs text-brandPurple font-bold text-center outline-none"
+                        className="w-12 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] px-1.5 py-0.5 text-xs text-brandPurple font-bold text-center outline-none"
                       />
-                      <span className="text-xs text-white/35">%</span>
+                      <span className="text-xs text-[#afafaf]">%</span>
                     </div>
-                    <p className="text-xs text-white/40 truncate">{m.acceptance}</p>
+                    <p className="text-xs text-[#afafaf] truncate">{m.acceptance}</p>
                   </div>
                   <button
                     onClick={() => setModules(modules.filter((_, j) => j !== i))}
                     aria-label={`删除模块 ${m.name}`}
-                    className="text-white/40 hover:text-white text-xs shrink-0"
+                    className="text-[#afafaf] hover:text-[#4b4b4b] text-xs shrink-0"
                   >
                     ✕
                   </button>
@@ -631,7 +631,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               ))}
               <button
                 onClick={() => setModules(null)}
-                className="w-full py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-white/50"
+                className="w-full py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf]"
               >
                 撤销拆解（按简单任务广播）
               </button>
@@ -640,9 +640,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         </div>
 
         {/* 多人拼单局：人数 ≥ 2 = 拼位组队（C 端互相找搭子） */}
-        <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3">
+        <div className="mt-3 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-white/85 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
               🎯 多人拼单局 · 拼位组队
             </span>
             {people >= 2 && (
@@ -651,31 +651,31 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               </span>
             )}
           </div>
-          <p className="text-xs text-white/40 mb-2">
+          <p className="text-xs text-[#afafaf] mb-2">
             1 人 = 普通服务需求；≥ 2 人 = 多人拼单局，你算第 1 位，拼满成局（如羽毛球约局、拼车、拼饭）
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPeople(Math.max(1, people - 1))}
               aria-label="减少人数"
-              className="w-8 h-8 rounded-xl glass-panel-interactive text-white/70 font-bold text-sm shrink-0"
+              className="w-8 h-8 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-[#777777] font-bold text-sm shrink-0"
             >
               −
             </button>
-            <span className="flex-1 text-center text-[13px] font-extrabold text-white/90">
+            <span className="flex-1 text-center text-[13px] font-extrabold text-[#4b4b4b]">
               {people}
-              <span className="text-xs text-white/40 ml-1 font-normal">人（含你）</span>
+              <span className="text-xs text-[#afafaf] ml-1 font-normal">人（含你）</span>
             </span>
             <button
               onClick={() => setPeople(Math.min(8, people + 1))}
               aria-label="增加人数"
-              className="w-8 h-8 rounded-xl glass-panel-interactive text-white/70 font-bold text-sm shrink-0"
+              className="w-8 h-8 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-[#777777] font-bold text-sm shrink-0"
             >
               ＋
             </button>
           </div>
           {people >= 2 && (
-            <label className="mt-2.5 flex items-center gap-2 text-xs text-white/55 cursor-pointer select-none">
+            <label className="mt-2.5 flex items-center gap-2 text-xs text-[#777777] cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={needApproval}
@@ -690,12 +690,12 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         {/* 爽约保障险：履约保证金 */}
         <button
           onClick={() => setDeposit(!deposit)}
-          className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10"
+          className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5]"
           aria-label="开启爽约保障险"
         >
           <span className="flex flex-col text-left">
-            <span className="text-xs font-bold text-white/85">🕊️ 爽约保障险（双方履约保障）</span>
-            <span className="text-xs text-white/40 mt-0.5">
+            <span className="text-xs font-bold text-[#4b4b4b]">🕊️ 爽约保障险（双方履约保障）</span>
+            <span className="text-xs text-[#afafaf] mt-0.5">
               响应者接单冻结 ¥5 押金 · 履约解冻退回 / 爽约赔付给你
             </span>
           </span>
@@ -737,8 +737,8 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                   onClick={() => setTtl(o.ms === 0 ? 0 : o.ms)}
                   className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
                     active
-                      ? "btn-primary"
-                      : "glass-panel text-white/60 hover:text-white"
+                      ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm"
+                      : "bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b]"
                   }`}
                 >
                   {o.label}
@@ -749,7 +749,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         </div>
 
         {/* 服务开始时间：驱动 24h 分级取消（≥24h 全退 / <24h 部分退） */}
-        <span className="text-xs font-semibold text-white/40 flex items-center gap-1 mb-1.5">
+        <span className="text-xs font-semibold text-[#afafaf] flex items-center gap-1 mb-1.5">
           ⏰ 服务开始时间（决定取消退款档位）
         </span>
         <div className="flex gap-1.5">
@@ -768,7 +768,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   active
                     ? "bg-brandCyan/25 border border-brandCyan/50 text-brandCyan"
-                    : "glass-panel text-white/50 hover:text-white"
+                    : "bg-white border border-[#e5e5e5] shadow-sm text-[#afafaf] hover:text-[#4b4b4b]"
                 }`}
               >
                 {o.label}
@@ -778,10 +778,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         </div>
 
         {/* 免费发布次数：每日免费 N 次，用完后每次收发布费 */}
-        <div className="mb-2 flex items-center justify-between rounded-2xl bg-white/[0.04] border border-white/10 px-3 py-2">
-          <span className="text-xs font-semibold text-white/70 flex items-center gap-1.5">
+        <div className="mb-2 flex items-center justify-between rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3 py-2">
+          <span className="text-xs font-semibold text-[#777777] flex items-center gap-1.5">
             🎫 免费发布
-            <span className="text-white/40 font-normal">
+            <span className="text-[#afafaf] font-normal">
               今日剩 {publishQuota} / {FREE_PUBLISH_PER_DAY} 次
             </span>
           </span>

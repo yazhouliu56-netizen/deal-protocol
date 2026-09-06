@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
@@ -60,7 +61,7 @@ export default function PaySheet({
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        className="fixed inset-x-3 bottom-8 z-[60] glass-panel rounded-3xl p-5"
+        className="fixed inset-x-3 bottom-8 z-[60] bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-5"
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
@@ -69,38 +70,40 @@ export default function PaySheet({
           <button
             onClick={onCancel}
             aria-label="取消支付"
-            className="text-white/40 hover:text-white"
+            className="text-[#afafaf] hover:text-[#4b4b4b]"
           >
             ✕
           </button>
         </div>
 
-        <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-4 mb-3 text-center">
-          <p className="text-xs text-white/45 mb-1">{desc ?? "应付金额"}</p>
+        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-4 mb-3 text-center">
+          <p className="text-xs text-[#afafaf] mb-1">{desc ?? "应付金额"}</p>
           <p className="text-[28px] font-extrabold text-brandCyan leading-none">
             ¥{amount}
           </p>
           {fee > 0 && (
-            <p className="text-xs text-white/50 mt-1.5">
+            <p className="text-xs text-[#afafaf] mt-1.5">
               含发布费 ¥{fee}（超出每日 {FREE_PUBLISH_PER_DAY} 次免费后的固定发布费，一经支付不退） · 单子金额 ¥{amount - fee}
             </p>
           )}
         </div>
 
-        <button
+        <DuoButton
           onClick={onPaid}
           aria-label={`立即支付 ${amount} 元`}
-          className="w-full py-3 rounded-2xl btn-primary font-extrabold text-xs hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
+          variant="primary"
+          size="md"
+          fullWidth
         >
           立即支付 ¥{amount}（模拟）
-        </button>
+        </DuoButton>
 
-        <div className="flex items-center justify-between mt-3 text-xs text-white/40">
+        <div className="flex items-center justify-between mt-3 text-xs text-[#afafaf]">
           <span className="flex items-center gap-1">
             <Lock size={9} /> 随单支付 · 未上线不展示
           </span>
           <span>
-            支付锁定剩余 {mm}:{ss} <span className="text-white/25">(模拟通道)</span>
+            支付锁定剩余 {mm}:{ss} <span className="text-[#afafaf]">(模拟通道)</span>
           </span>
         </div>
       </motion.div>

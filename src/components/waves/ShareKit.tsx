@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, Check, Users } from "lucide-react";
@@ -55,14 +56,14 @@ export default function ShareKit({ wave }: { wave: Wave }) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl glass-panel-interactive text-xs font-bold text-brandCyan hover:border-brandCyan/50 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-brandCyan hover:border-brandCyan/50 transition-colors"
         aria-label="分享拼位 · 拉新裂变"
         aria-expanded={open}
       >
         <Share2 size={10} />
         邀请拼位
         {count > 0 && (
-          <span className="flex items-center gap-0.5 text-white/60">
+          <span className="flex items-center gap-0.5 text-[#777777]">
             · <Users size={9} /> {count}
           </span>
         )}
@@ -72,12 +73,12 @@ export default function ShareKit({ wave }: { wave: Wave }) {
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl glass-panel p-3 space-y-2.5 shadow-2xl"
+          className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm p-3 space-y-2.5 shadow-2xl"
         >
-          <p className="text-xs font-bold text-white/80">
+          <p className="text-xs font-bold text-[#4b4b4b]">
             邀请拼位 · 拉新
           </p>
-          <p className="text-xs leading-relaxed text-white/45">
+          <p className="text-xs leading-relaxed text-[#afafaf]">
             别人通过你的分享加入并回应/成交，才计裂变
             <span className="text-brandCyan">（分享本身不计，防自刷）</span>。
           </p>
@@ -85,7 +86,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
           {/* 真二维码：扫码直达分享局 */}
           <div className="flex justify-center">
             {qrFailed ? (
-              <span className="w-28 h-28 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs text-white/40 px-2 text-center">
+              <span className="w-28 h-28 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] flex items-center justify-center text-xs text-[#afafaf] px-2 text-center">
                 二维码生成失败，请用「复制分享文案」
               </span>
             ) : (
@@ -98,9 +99,11 @@ export default function ShareKit({ wave }: { wave: Wave }) {
             )}
           </div>
 
-          <button
+          <DuoButton
             onClick={copy}
-            className="w-full py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1.5"
+            variant="primary"
+            size="sm"
+            fullWidth
           >
             {copied ? (
               <>
@@ -111,7 +114,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
                 <Share2 size={11} /> 复制分享文案
               </>
             )}
-          </button>
+          </DuoButton>
         </motion.div>
       )}
     </div>

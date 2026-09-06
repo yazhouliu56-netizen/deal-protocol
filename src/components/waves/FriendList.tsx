@@ -60,8 +60,8 @@ export default function FriendList() {
   if (mine.length === 0 && incoming.length === 0) return null;
 
   return (
-    <div className="glass-panel rounded-2xl p-3.5">
-      <h3 className="text-xs font-bold text-white/70 mb-2 flex items-center gap-1.5">
+    <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3.5">
+      <h3 className="text-xs font-bold text-[#777777] mb-2 flex items-center gap-1.5">
         <Heart size={11} className="text-brandPurple" /> 我的关系
       </h3>
 
@@ -75,9 +75,9 @@ export default function FriendList() {
               key={r.id}
               className="rounded-xl bg-brandPurple/10 border border-brandPurple/30 px-2.5 py-2 flex items-center justify-between gap-2"
             >
-              <p className="text-xs font-bold text-white/85 truncate">
+              <p className="text-xs font-bold text-[#4b4b4b] truncate">
                 {r.nickname}
-                <span className="text-white/40 font-normal">
+                <span className="text-[#afafaf] font-normal">
                   {" "}
                   · {r.hours}h 后撤回
                 </span>
@@ -91,7 +91,7 @@ export default function FriendList() {
                 </button>
                 <button
                   onClick={() => ignoreFriendRequest(r.id)}
-                  className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-xs font-bold text-white/50 hover:text-white"
+                  className="px-2 py-1 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b]"
                 >
                   忽略
                 </button>
@@ -111,12 +111,12 @@ export default function FriendList() {
           </span>
         ))}
         {mine.length === 0 && (
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-[#afafaf]">
             还没有好友——完成一次履约后，可自愿与对方互认
           </p>
         )}
       </div>
-      <p className="text-xs text-white/30 mt-2">
+      <p className="text-xs text-[#afafaf] mt-2">
         好友默认不可见 · 转友请求 72h 未确认自动撤回，不产生拒绝提示
       </p>
     </div>

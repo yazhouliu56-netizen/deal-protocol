@@ -26,8 +26,8 @@ const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
   accepted: ["bg-emerald-400/15 border-emerald-400/40", "text-emerald-300"],
   push: ["bg-brandPurple/15 border-brandPurple/40", "text-brandPurple-foreground"],
   friend: ["bg-amber-400/15 border-amber-400/40", "text-amber-300"],
-  report: ["bg-white/5 border-white/10", "text-white/60"],
-  wave: ["bg-white/5 border-white/10", "text-white/60"],
+  report: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
+  wave: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
   fission: ["bg-cyan-400/15 border-cyan-400/40", "text-cyan-300"],
 };
 
@@ -38,7 +38,7 @@ function NotifyRow({ item }: { item: NotifyItem }) {
       <span className="text-lg">{item.emoji}</span>
       <span className="flex-1 min-w-0">
         <span className={`block text-xs font-bold ${fg}`}>{item.title}</span>
-        <span className="block text-xs text-white/45 truncate">{item.desc}</span>
+        <span className="block text-xs text-[#afafaf] truncate">{item.desc}</span>
       </span>
     </div>
   );
@@ -139,11 +139,11 @@ export default function NotificationCenter() {
       <button
         onClick={openSheet}
         aria-label={`通知中心，${unread > 0 ? `${unread} 条未读` : "无未读"}`}
-        className="relative w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors shrink-0"
+        className="relative w-11 h-11 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] flex items-center justify-center text-[#777777] hover:text-[#4b4b4b] transition-colors shrink-0"
       >
         <Bell size={13} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-400 text-white text-xs font-extrabold flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-400 text-[#4b4b4b] text-xs font-extrabold flex items-center justify-center">
             {unread}
           </span>
         )}
@@ -164,7 +164,7 @@ export default function NotificationCenter() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
+              className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
@@ -173,13 +173,13 @@ export default function NotificationCenter() {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="关闭通知"
-                  className="text-white/40 hover:text-white"
+                  className="text-[#afafaf] hover:text-[#4b4b4b]"
                 >
                   ✕
                 </button>
               </div>
               {items.length === 0 ? (
-                <p className="text-xs text-white/40 text-center py-6">
+                <p className="text-xs text-[#afafaf] text-center py-6">
                   还没有通知 —— 雷达适配、报价应答、接单进度都会汇总到这里
                 </p>
               ) : (
@@ -189,7 +189,7 @@ export default function NotificationCenter() {
                   ))}
                   <button
                     onClick={() => setOpen(false)}
-                    className="w-full py-1.5 text-xs text-white/35 flex items-center justify-center gap-1"
+                    className="w-full py-1.5 text-xs text-[#afafaf] flex items-center justify-center gap-1"
                   >
                     <Check size={9} /> 已读，收起
                   </button>
@@ -200,7 +200,7 @@ export default function NotificationCenter() {
                   setNotifPerm(await requestNotifyPermission());
                 }}
                 disabled={notifPerm !== "default"}
-                className="w-full mt-1 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full mt-1 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {notifPerm === "granted"
                   ? "🔔 系统通知已开启"

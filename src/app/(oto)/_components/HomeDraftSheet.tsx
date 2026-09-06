@@ -28,7 +28,7 @@ export default function HomeDraftSheet({
           className="mt-3 overflow-hidden"
           data-testid="draft-sheet"
         >
-          <div className="relative rounded-3xl glass-panel p-4">
+          <div className="relative rounded-3xl bg-white border border-[#e5e5e5] shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
                 <Sparkles size={13} className="text-brandCyan" /> 拟物草稿 ·{" "}
@@ -37,7 +37,7 @@ export default function HomeDraftSheet({
               <button
                 onClick={onClose}
                 aria-label="关闭拟物草稿"
-                className="text-white/40 hover:text-white"
+                className="text-[#afafaf] hover:text-[#4b4b4b]"
               >
                 ✕
               </button>
@@ -46,7 +46,7 @@ export default function HomeDraftSheet({
               category={draft.key}
               onPublish={() => onPublish(draft.label)}
             />
-            <p className="text-xs text-white/40 mt-3 text-center">
+            <p className="text-xs text-[#afafaf] mt-3 text-center">
               扣动扳机后进入完整发布面板 · 品类 / 时间 / 地点 / 预算齐全后广播
             </p>
           </div>

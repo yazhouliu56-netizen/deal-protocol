@@ -296,45 +296,12 @@ body {
 
 /* 三级深色文字对比度与 tx-* 阶梯已出清（Batch1：全仓 0 引用） */
 
-/* ===== 4-Theme CSS Variable System ===== */
-[data-theme='cyber-pop'], html:not([data-theme]) {
-  --bg-primary: #020617;
-  --bg-card: rgba(15, 23, 42, 0.7);
-  --accent-glow: rgba(34, 211, 238, 0.25);
-  --accent-color: #22d3ee;
-  --border-theme: rgba(30, 41, 59, 0.8);
-  --text-main: #f8fafc;
-}
-
-[data-theme='soft-astral'] {
-  --bg-primary: #0f0b21;
-  --bg-card: rgba(24, 18, 51, 0.75);
-  --accent-glow: rgba(168, 85, 247, 0.35);
-  --accent-color: #c084fc;
-  --border-theme: rgba(88, 28, 135, 0.6);
-  --text-main: #faf5ff;
-}
-
-[data-theme='tactical-hud'] {
-  --bg-primary: #04120a;
-  --bg-card: rgba(6, 30, 18, 0.8);
-  --accent-glow: rgba(16, 185, 129, 0.35);
-  --accent-color: #34d399;
-  --border-theme: rgba(6, 78, 59, 0.7);
-  --text-main: #ecfdf5;
-}
-
-[data-theme='pro-minimal'] {
-  --bg-primary: #090d16;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --accent-glow: rgba(59, 130, 246, 0.2);
-  --accent-color: #60a5fa;
-  --border-theme: rgba(55, 65, 81, 0.8);
-  --text-main: #f9fafb;
-}
+/* Batch3: 4 套 legacy data-theme 预设（cyber-pop/soft-astral/tactical-hud/pro-minimal）
+   已出清（全仓 0 引用）—— 全站锁死 Feather 单一设计系统；oto 昼夜经 (oto)/globals.css
+   data-theme="dark"/light + prefers-color-scheme 承载，dp 营销页锁死浅色 Feather。 */
 
 body {
-  /* Batch1 单轨收敛：body 改走 shadcn 变量；data-theme 块保留供 dp/page，Batch2 迁移 */
+  /* Batch1 单轨收敛：body 改走 shadcn 变量；Batch3：data-theme 预设块已删除 */
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   transition: background-color 0.3s ease, color 0.3s ease;

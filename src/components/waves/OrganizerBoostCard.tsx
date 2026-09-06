@@ -38,7 +38,7 @@ export default function OrganizerBoostCard() {
           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
             active
               ? "bg-emerald-400/15 border border-emerald-400/30"
-              : "btn-primary"
+              : "bg-[#58cc02] border-b-2 border-[#46a302] text-white"
           }`}
         >
           {active ? (

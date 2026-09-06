@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Menu, X, User, ChevronDown, FileText, ShieldCheck, LogOut, Scroll } from "lucide-react"
 import NotificationBell from "@/components/NotificationBell"
-import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 
 export default function Header() {
   const { user: session, loading } = useSession()
@@ -65,7 +64,6 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <ThemeSwitcher />
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-800" />
           ) : session ? (
@@ -124,9 +122,6 @@ export default function Header() {
             <Link href="/dp" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 active:bg-slate-700">协议后台</Link>
             {isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-amber-400 hover:bg-amber-950/30 active:bg-amber-950/50">管理后台</Link>}
             <hr className="my-2 border-slate-800/60" />
-            <div className="px-3 py-1">
-              <ThemeSwitcher />
-            </div>
             {loading ? (
               <div className="h-11 animate-pulse rounded-lg bg-slate-800" />
             ) : session ? (

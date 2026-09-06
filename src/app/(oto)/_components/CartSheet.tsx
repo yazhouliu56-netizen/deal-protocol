@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, ShoppingBag, Trash2 } from "lucide-react";
 import { otoExperiences } from "@/ammo/experience-catalog";
@@ -43,7 +44,7 @@ export default function CartSheet({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4"
+            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4"
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
@@ -52,13 +53,13 @@ export default function CartSheet({
               <button
                 onClick={onClose}
                 aria-label="关闭心愿单"
-                className="text-white/40 hover:text-white"
+                className="text-[#afafaf] hover:text-[#4b4b4b]"
               >
                 <ChevronRight size={16} className="rotate-180" />
               </button>
             </div>
             {cart.length === 0 ? (
-              <p className="text-xs text-white/40 text-center py-6">
+              <p className="text-xs text-[#afafaf] text-center py-6">
                 还没有收藏——打开任意目的地卡片收藏起来吧 ♥
               </p>
             ) : (
@@ -70,7 +71,7 @@ export default function CartSheet({
                     return (
                       <div
                         key={id}
-                        className="flex items-center gap-2.5 rounded-2xl bg-white/[0.05] border border-white/10 p-2"
+                        className="flex items-center gap-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2"
                       >
                         <button
                           onClick={() => onPreviewExperience(exp)}
@@ -81,10 +82,10 @@ export default function CartSheet({
                             {CATEGORY_EMOJI[exp.category] ?? "📍"}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-xs font-bold text-white/90 block truncate">
+                            <span className="text-xs font-bold text-[#4b4b4b] block truncate">
                               {exp.title}
                             </span>
-                            <span className="text-xs text-white/45 block truncate">
+                            <span className="text-xs text-[#afafaf] block truncate">
                               {exp.location} · {exp.rating} 分
                             </span>
                           </div>
@@ -92,7 +93,7 @@ export default function CartSheet({
                         <button
                           onClick={() => onToggleCartItem(id)}
                           aria-label={`移除 ${exp.title}`}
-                          className="text-white/35 hover:text-red-400 transition-colors shrink-0"
+                          className="text-[#afafaf] hover:text-red-400 transition-colors shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -103,11 +104,11 @@ export default function CartSheet({
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={onClearCart}
-                    className="flex-1 py-2 rounded-xl glass-panel text-xs font-bold text-white/50 hover:text-white transition-colors"
+                    className="flex-1 py-2 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors"
                   >
                     清空
                   </button>
-                  <button
+                  <DuoButton
                     onClick={() => {
                       const titles = cart
                         .map((id) => otoExperiences.find((x) => x.id === id)?.title)
@@ -115,10 +116,12 @@ export default function CartSheet({
                         .join("、");
                       onAiMatchAll(titles);
                     }}
-                    className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold"
+                    variant="primary"
+                    size="sm"
+                    className="flex-1"
                   >
                     ✨ 全部让 AI 撮合
-                  </button>
+                  </DuoButton>
                 </div>
               </>
             )}

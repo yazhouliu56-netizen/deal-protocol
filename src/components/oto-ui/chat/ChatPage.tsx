@@ -472,7 +472,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
         <div className={`flex items-center mb-2 ${slim ? "justify-end gap-1.5" : "justify-between"}`}>
           {!slim && (
             <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
-              <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center">
+              <span className="w-7 h-7 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center">
                 <Bot size={13} className="text-brandPurple" />
               </span>
               AI 撮合助手
@@ -482,8 +482,8 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               onClick={() => setTtsEnabled((v) => !v)}
               aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
-              className={`text-xs px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
-                ttsEnabled ? "text-brandCyan" : "text-white/40"
+              className={`text-xs px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors flex items-center gap-1 ${
+                ttsEnabled ? "text-brandCyan" : "text-[#afafaf]"
               }`}
             >
               {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -494,7 +494,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
                 useAppStore.getState().clearChat();
                 setSession((s) => s + 1);
               }}
-              className="text-xs text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+              className="text-xs text-[#afafaf] hover:text-[#4b4b4b] px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors"
             >
               新对话
             </button>
@@ -502,22 +502,22 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
         </div>
       ) : (
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center">
+          <div className="w-9 h-9 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center">
             <Bot size={17} className="text-brandPurple" />
           </div>
           <div className="flex-1">
             <h2 className="text-[15px] font-extrabold tracking-tight">
               AI 撮合助手
             </h2>
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-[#afafaf]">
               自然语言描述需求 · 自动撮合线下服务
             </p>
           </div>
           <button
             onClick={() => setTtsEnabled((v) => !v)}
             aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
-            className={`text-xs px-2 py-1 rounded-full glass-panel transition-colors flex items-center gap-1 ${
-              ttsEnabled ? "text-brandCyan" : "text-white/40"
+            className={`text-xs px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors flex items-center gap-1 ${
+              ttsEnabled ? "text-brandCyan" : "text-[#afafaf]"
             }`}
           >
             {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -528,7 +528,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               useAppStore.getState().clearChat();
               setSession((s) => s + 1);
             }}
-            className="text-xs text-white/40 hover:text-white/80 px-2 py-1 rounded-full glass-panel transition-colors"
+            className="text-xs text-[#afafaf] hover:text-[#4b4b4b] px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors"
           >
             新对话
           </button>
@@ -549,10 +549,10 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               }}
               aria-label={`${b.emoji} ${b.label} 拟物发单`}
               data-ammo={b.ammoKey}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl glass-panel-interactive hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl bg-white border border-[#e5e5e5] shadow-sm hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
             >
               <span className="text-[15px]">{b.emoji}</span>
-              <span className="text-xs font-bold text-white/85 truncate">
+              <span className="text-xs font-bold text-[#4b4b4b] truncate">
                 {b.label}
               </span>
             </button>
@@ -585,7 +585,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={s}
               onClick={() => handleSend(s)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full glass-panel text-xs text-white/70 hover:text-white hover:border-brandPurple/50 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-[#e5e5e5] shadow-sm text-xs text-[#777777] hover:text-[#4b4b4b] hover:border-brandPurple/50 transition-colors"
             >
               <Sparkles size={11} className="text-brandPurple" />
               {s}
@@ -605,7 +605,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             >
               <Sparkles size={9} />
               {h.candidate.label} · {h.candidate.text.split(" ")[1]}
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-[#afafaf]">
                 {Math.round(h.score * 100)}%
               </span>
             </button>

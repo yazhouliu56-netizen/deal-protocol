@@ -4,12 +4,12 @@ import type { HTMLAttributes } from "react";
 type GlassVariant = "panel" | "interactive" | "active";
 
 const VARIANT_CLASS: Record<GlassVariant, string> = {
-  panel: "glass-panel",
-  interactive: "glass-panel-interactive",
-  active: "glass-panel-active",
+  panel: "bg-white border border-[#e5e5e5] shadow-sm",
+  interactive: "bg-white border border-[#e5e5e5] shadow-sm",
+  active: "bg-white border border-[#58cc02]/50 shadow-sm",
 };
 
-/** Base glass material card: panel / interactive (hover glow edge) / active. */
+/** Base card: panel / interactive / active (Feather Duo white-card dialect). */
 export default function GlassCard({
   variant = "panel",
   className = "",

@@ -31,9 +31,9 @@ export function GenCardView({
             <button
               key={slot.id}
               onClick={() => onCardSelect(slot.id)}
-              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl overline-glass-panel min-w-[92px] border border-white/15 hover:border-brandPurple/60 hover:bg-brandPurple/15 active:scale-95 transition-[border,background,transform]"
+              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border border-[#e5e5e5] hover:border-brandPurple/60 hover:bg-brandPurple/15 active:scale-95 transition-[border,background,transform]"
             >
-              <span className="text-[12px] font-bold text-white/95">
+              <span className="text-[12px] font-bold text-[#4b4b4b]">
                 {slot.label}
               </span>
               {slot.density != null && (
@@ -43,7 +43,7 @@ export function GenCardView({
                       ? "text-orange-400"
                       : slot.density <= 30
                         ? "text-emerald-400"
-                        : "text-white/55"
+                        : "text-[#777777]"
                   }`}
                 >
                   {slot.density >= 75
@@ -54,7 +54,7 @@ export function GenCardView({
                 </span>
               )}
               {slot.sub && (
-                <span className="text-xs text-white/45">{slot.sub}</span>
+                <span className="text-xs text-[#afafaf]">{slot.sub}</span>
               )}
             </button>
           ))}
@@ -84,8 +84,8 @@ export function GenCardView({
         <div className="flex flex-col gap-1 mb-2.5">
           {card.lines.map((line) => (
             <div key={line.k} className="flex items-start gap-2 text-xs">
-              <span className="text-white/45 shrink-0 w-12">{line.k}</span>
-              <span className="text-white/85">{line.v}</span>
+              <span className="text-[#afafaf] shrink-0 w-12">{line.k}</span>
+              <span className="text-[#4b4b4b]">{line.v}</span>
             </div>
           ))}
         </div>
@@ -107,7 +107,7 @@ export function GenCardView({
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
                   aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm text-xs font-bold active:scale-95"
                 >
                   📡 转为正式订单
                 </button>
@@ -116,7 +116,7 @@ export function GenCardView({
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold active:scale-95"
+              className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm text-xs font-bold active:scale-95"
             >
               确认预订
             </button>
@@ -150,17 +150,17 @@ function ProviderRow({
     { key: "availability", label: "时段", max: 10 },
   ];
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+    <div className="rounded-xl border border-[#e5e5e5] bg-[#f7f7f7] overflow-hidden">
       <button
         onClick={onSelect}
         className="w-full flex items-center gap-2.5 p-2 hover:border-brandPurple/50 hover:bg-brandPurple/10 transition-colors text-left active:scale-[0.98]"
       >
-        <div className="w-9 h-9 rounded-xl glass-panel flex items-center justify-center text-base shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-base shrink-0">
           {provider.emoji}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[12px] font-bold text-white/90 truncate">
+            <span className="text-[12px] font-bold text-[#4b4b4b] truncate">
               {provider.name}
             </span>
             {provider.tag && (
@@ -177,14 +177,14 @@ function ProviderRow({
                       ? "bg-brandCyan/10 border border-brandCyan/40 text-brandCyan"
                       : match.badge === "中等"
                         ? "bg-yellow-400/10 border border-yellow-400/40 text-yellow-400"
-                        : "bg-white/10 border border-white/20 text-white/50"
+                        : "bg-[#f7f7f7] border border-[#e5e5e5] text-[#afafaf]"
                 }`}
               >
                 {match.badge} {match.score}%
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-xs text-white/50">
+          <div className="flex items-center gap-1 text-xs text-[#afafaf]">
             <span className="flex items-center gap-0.5 text-yellow-400">
               <Star size={9} className="fill-yellow-400" />
               {provider.rating}
@@ -201,7 +201,7 @@ function ProviderRow({
             </p>
           )}
           {provider.availability === "已下线" && (
-            <p className="text-xs text-white/40 mt-0.5">
+            <p className="text-xs text-[#afafaf] mt-0.5">
               暂时未接单，换一个在线服务者更稳
             </p>
           )}
@@ -213,7 +213,7 @@ function ProviderRow({
       {provider.breakdown && (
         <button
           onClick={() => setShowDetail((v) => !v)}
-          className="w-full flex items-center justify-center gap-1 py-1 text-xs text-white/40 hover:text-white/70 transition-colors"
+          className="w-full flex items-center justify-center gap-1 py-1 text-xs text-[#afafaf] hover:text-[#777777] transition-colors"
         >
           <ChevronDown
             size={10}
@@ -229,10 +229,10 @@ function ProviderRow({
             const pct = Math.min(100, (value / row.max) * 100);
             return (
               <div key={row.key} className="flex items-center gap-2">
-                <span className="text-xs text-white/45 w-7 shrink-0">
+                <span className="text-xs text-[#afafaf] w-7 shrink-0">
                   {row.label}
                 </span>
-                <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[#f7f7f7] overflow-hidden">
                   <div
                     className={`h-full rounded-full bg-linear-to-r from-brandCyan to-brandPurple ${
                       pct === 0 ? "w-0" : ""
@@ -240,7 +240,7 @@ function ProviderRow({
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-xs text-white/60 w-9 text-right shrink-0">
+                <span className="text-xs text-[#777777] w-9 text-right shrink-0">
                   {value}/{row.max}
                 </span>
               </div>
@@ -271,15 +271,15 @@ function CardShell({
       className={`ml-9 mt-1 max-w-[88%] px-3.5 py-3 rounded-2xl border backdrop-blur-xl ${
         accent
           ? "bg-[rgba(16,220,140,0.08)] border-emerald-400/30 shadow-[0_0_24px_-8px_rgba(16,220,140,0.4)]"
-          : "glass-panel"
+          : "bg-white border border-[#e5e5e5] shadow-sm"
       }`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-extrabold text-white/90">
+        <span className="text-xs font-extrabold text-[#4b4b4b]">
           {title}
         </span>
         {subtitle && !accent && (
-          <span className="text-xs text-white/40 truncate">{subtitle}</span>
+          <span className="text-xs text-[#afafaf] truncate">{subtitle}</span>
         )}
       </div>
       {children}

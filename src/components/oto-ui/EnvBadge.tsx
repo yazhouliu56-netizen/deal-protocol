@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WifiOff, HardDrive, Download, Info } from "lucide-react";
@@ -74,7 +75,7 @@ export default function EnvBadge() {
       <button
         onClick={() => setOpen(true)}
         aria-label={`数据模式：${mode.label}`}
-        className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-white/50 hover:text-white transition-colors shrink-0"
+        className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
       >
         <ModeIcon size={9} className={iconColor} />
         {mode.label}
@@ -95,7 +96,7 @@ export default function EnvBadge() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="fixed inset-x-3 bottom-24 z-50 glass-panel rounded-3xl p-4"
+              className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4"
             >
               <div className="flex items-center gap-2 mb-3">
                 <Info size={13} className="text-brandCyan" />
@@ -103,27 +104,30 @@ export default function EnvBadge() {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="关闭数据模式说明"
-                  className="ml-auto text-white/40 hover:text-white"
+                  className="ml-auto text-[#afafaf] hover:text-[#4b4b4b]"
                 >
                   ✕
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-xs text-white/85">
+              <div className="flex items-center gap-2 text-xs text-[#4b4b4b]">
                 <ModeIcon size={14} className={iconColor} />
                 <span className="font-bold">{mode.label}</span>
               </div>
-              <p className="text-xs text-white/50 mt-1.5 leading-relaxed">
+              <p className="text-xs text-[#afafaf] mt-1.5 leading-relaxed">
                 {mode.desc}。所有撮合、托管、争议都在本地模拟完成；上线后切换云端即无缝升级。
               </p>
-              <button
+              <DuoButton
                 onClick={install}
-                className="mt-3 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs flex items-center justify-center gap-1.5"
+                variant="primary"
+                size="sm"
+                fullWidth
+                className="mt-3"
               >
                 <Download size={12} />
                 {installEvt ? "安装到桌面（PWA）" : "查看安装方式"}
-              </button>
+              </DuoButton>
               {!installEvt && (
-                <p className="text-xs text-white/35 text-center mt-2">
+                <p className="text-xs text-[#afafaf] text-center mt-2">
                   Chrome 可见「安装」；iOS 用 Safari 分享 → 添加到主屏幕
                 </p>
               )}

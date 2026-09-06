@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Timer, ShieldCheck } from "lucide-react";
@@ -29,15 +30,15 @@ export default function DialCard({
 
   if (!live) {
     return (
-      <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-3 flex items-center gap-2.5">
-        <span className="w-8 h-8 rounded-xl glass-panel flex items-center justify-center shrink-0">
-          <Timer size={13} className="text-white/40" />
+      <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3 flex items-center gap-2.5">
+        <span className="w-8 h-8 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center shrink-0">
+          <Timer size={13} className="text-[#afafaf]" />
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-white/60">
+          <p className="text-xs font-bold text-[#777777]">
             虚拟线路已失效（{mins} 分钟前）
           </p>
-          <p className="text-xs text-white/35">见面通过线下完成，P5 提供真实虚拟号</p>
+          <p className="text-xs text-[#afafaf]">见面通过线下完成，P5 提供真实虚拟号</p>
         </div>
       </div>
     );
@@ -53,21 +54,23 @@ export default function DialCard({
         <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
           <Phone size={12} /> 一次性虚拟线路
         </span>
-        <span className="text-xs text-white/45 flex items-center gap-1">
+        <span className="text-xs text-[#afafaf] flex items-center gap-1">
           <Timer size={9} /> {mins} 分钟后失效
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-[15px] text-white/95 bg-black/20 border border-white/10 rounded-xl py-2 px-3 text-center">
+        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-[15px] text-[#4b4b4b] bg-[#f7f7f7] border border-[#e5e5e5] rounded-xl py-2 px-3 text-center">
           {code}
         </span>
-        <button
+        <DuoButton
           onClick={() => setDialed(true)}
-          className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold flex items-center gap-1 shrink-0"
           aria-label="拨号"
+          variant="primary"
+          size="sm"
+          className="shrink-0"
         >
           <Phone size={12} /> 拨号
-        </button>
+        </DuoButton>
       </div>
       {dialed && (
         <p className="mt-1.5 text-xs text-emerald-300/80 flex items-center gap-1">

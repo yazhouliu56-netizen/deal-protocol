@@ -25,14 +25,14 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         className="relative [transform-style:preserve-3d]"
       >
         {/* 背面（揭晓内容）—— rotateY 180 后朝前 */}
-        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] glass-panel p-4 rounded-3xl border-brandCyan/40">
+        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border border-[#e5e5e5] shadow-sm p-4 rounded-3xl border-brandCyan/40">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl btn-primary flex items-center justify-center text-lg shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-[#58cc02] border-b-2 border-[#46a302] text-white flex items-center justify-center text-lg shrink-0">
               {data.nickname.slice(0, 1)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[13px] font-extrabold text-white/95">
+                <span className="text-[13px] font-extrabold text-[#4b4b4b]">
                   {maskName(data.nickname)}
                 </span>
                 <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/25 border border-brandPurple/40 text-brandPurple">
@@ -42,7 +42,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                   <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
                 )}
               </div>
-              <span className="text-xs text-white/50 block truncate mt-0.5">
+              <span className="text-xs text-[#afafaf] block truncate mt-0.5">
                 {data.meta}
               </span>
             </div>
@@ -53,7 +53,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         </div>
 
         {/* 正面（翻转前：悬念卡） */}
-        <div className="absolute inset-0 [backface-visibility:hidden] glass-panel p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
+        <div className="absolute inset-0 [backface-visibility:hidden] bg-white border border-[#e5e5e5] shadow-sm p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
           <motion.span
             animate={{ scale: [1, 1.15, 1] }}
             transition={{ repeat: Infinity, duration: 1.4 }}
@@ -61,10 +61,10 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
           >
             🎁
           </motion.span>
-          <span className="text-xs font-bold text-white/85">
+          <span className="text-xs font-bold text-[#4b4b4b]">
             有人接单了！
           </span>
-          <span className="text-xs text-white/40">身份确认中…</span>
+          <span className="text-xs text-[#afafaf]">身份确认中…</span>
         </div>
       </motion.div>
     </div>

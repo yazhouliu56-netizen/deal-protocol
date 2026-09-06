@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
@@ -177,12 +178,14 @@ export default function ReviewSection({
               ⚠️ {REVIEW_EXPLANATION_THRESHOLD} 星及以下的低分评价必须填写理由
             </p>
           )}
-          <button
+          <DuoButton
             onClick={submit}
-            className="w-full py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1"
+            variant="primary"
+            size="sm"
+            fullWidth
           >
             <Send size={11} /> 提交评价
-          </button>
+          </DuoButton>
         </motion.div>
       )}
 

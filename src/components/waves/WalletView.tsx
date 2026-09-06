@@ -40,38 +40,38 @@ export default function WalletView() {
   }, [myReviews, recalcCredit]);
 
   return (
-    <div className="glass-panel rounded-2xl p-3.5">
+    <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3.5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-bold text-white/70 flex items-center gap-1.5">
+        <h3 className="text-xs font-bold text-[#777777] flex items-center gap-1.5">
           <Wallet size={12} className="text-brandCyan" /> 我的钱包
           <SandboxBadge />
         </h3>
-        <span className="text-xs text-white/35">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
+        <span className="text-xs text-[#afafaf]">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
         {/* 余额 */}
-        <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-2.5 flex flex-col items-center gap-0.5">
+        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
           <span className="text-[16px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
             ¥{account.balance}
           </span>
-          <span className="text-xs text-white/50">可用余额</span>
+          <span className="text-xs text-[#afafaf]">可用余额</span>
         </div>
         {/* 信用 */}
-        <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-2.5 flex flex-col items-center gap-0.5">
+        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
           <span className="text-[16px] font-extrabold text-brandPurple flex items-center gap-1">
             <ShieldCheck size={13} className="text-emerald-400" />
             Lv.{creditTier}
           </span>
-          <span className="text-xs text-white/50">信用等级</span>
+          <span className="text-xs text-[#afafaf]">信用等级</span>
         </div>
         {/* 额度 */}
-        <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-2.5 flex flex-col items-center gap-0.5">
+        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
           <span className="text-[16px] font-extrabold text-brandCyan flex items-center gap-1">
             <Zap size={13} /> {claimQuota}
             {halved && <span className="text-xs text-amber-300">(减半)</span>}
           </span>
-          <span className="text-xs text-white/50">今日接单额度</span>
+          <span className="text-xs text-[#afafaf]">今日接单额度</span>
         </div>
       </div>
       {halved && (
@@ -93,7 +93,7 @@ export default function WalletView() {
       {/* 我的评价（脱敏 + 时间衰减） */}
       {myReviews.length > 0 && (
         <div className="mt-3">
-          <span className="text-xs font-semibold text-white/50 block mb-1.5">
+          <span className="text-xs font-semibold text-[#afafaf] block mb-1.5">
             收到的评价（脱敏）
           </span>
           <div className="flex flex-col gap-1">
@@ -102,9 +102,9 @@ export default function WalletView() {
                 key={r.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/[0.03] border border-white/10"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5]"
               >
-                <span className="flex items-center gap-1.5 text-xs text-white/60 min-w-0">
+                <span className="flex items-center gap-1.5 text-xs text-[#777777] min-w-0">
                   <Star
                     size={10}
                     className="text-amber-300 fill-amber-300 shrink-0"
@@ -114,7 +114,7 @@ export default function WalletView() {
                     <span className="truncate">· {r.comment.slice(0, 16)}</span>
                   )}
                 </span>
-                <span className="text-xs text-white/30 shrink-0 ml-2">
+                <span className="text-xs text-[#afafaf] shrink-0 ml-2">
                   准时{r.dimensions.punctual} 态度{r.dimensions.attitude} 专业{r.dimensions.professional}
                 </span>
               </motion.div>
@@ -126,7 +126,7 @@ export default function WalletView() {
       {/* 流水 */}
       {ledger.length > 0 && (
         <div className="mt-3">
-          <span className="text-xs font-semibold text-white/50 block mb-1.5">
+          <span className="text-xs font-semibold text-[#afafaf] block mb-1.5">
             最近流水
           </span>
           <div className="flex flex-col gap-1">
@@ -135,9 +135,9 @@ export default function WalletView() {
                 key={e.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/[0.03] border border-white/10"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5]"
               >
-                <span className="text-xs text-white/60 truncate">{e.note}</span>
+                <span className="text-xs text-[#777777] truncate">{e.note}</span>
                 <span
                   className={`text-xs font-bold shrink-0 ml-2 ${
                     e.amount >= 0 ? "text-emerald-300" : "text-red-300"

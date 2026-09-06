@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { ThemeSwitcher } from '@/components/theme/theme-switcher';
 import { EscrowStats } from '@/components/profile/escrow-stats';
 import { InventoryGrid } from '@/components/profile/inventory-grid';
 import {
@@ -193,7 +192,6 @@ export default function ProfilePage() {
             </div>
             <h1 className="text-2xl font-black text-white mt-1">个人中心</h1>
           </div>
-          <ThemeSwitcher />
         </div>
 
         {/* Player Banner & EXP Bar */}

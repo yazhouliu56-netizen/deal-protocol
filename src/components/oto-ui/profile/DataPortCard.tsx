@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useRef, useState } from "react";
 import { Download, Upload, Database, Check } from "lucide-react";
 import {
@@ -67,12 +68,14 @@ export default function DataPortCard() {
         全量导出为 JSON 文件（本地模式数据自主权）· 导入会覆盖当前并重载
       </p>
       <div className="mt-2.5 flex gap-2">
-        <button
-          onClick={handleExport}
-          className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
-        >
-          <Download size={12} /> 导出备份
-        </button>
+          <DuoButton
+            onClick={handleExport}
+            variant="primary"
+            size="sm"
+            className="flex-1"
+          >
+            <Download size={12} /> 导出备份
+          </DuoButton>
         <button
           onClick={() => fileRef.current?.click()}
           className="flex-1 py-2 rounded-xl bg-white/5 border border-white/15 text-xs font-bold flex items-center justify-center gap-1.5 text-white/70 hover:bg-white/10 transition-colors"
