@@ -38,7 +38,9 @@ export async function POST(request: Request) {
 
     let userId: string | undefined = authData?.user?.id;
 
-    // If rate-limited, try admin API with service_role key
+    // If rate-limited, try admin API with service_role key.
+    // 注意：admin 兜底同样落到下方统一 provisioning（profiles + users 必写），
+    // 严禁提前 return 半 provisioning 账号（无 profile/users → 发单撞外键 500）。
     if ((authError && authError.message?.includes?.("rate limit")) || !userId) {
       const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
       if (serviceRoleKey) {
@@ -75,29 +77,13 @@ export async function POST(request: Request) {
 
         const adminData = await adminRes.json()
         userId = adminData.id
-
+      } else {
         return NextResponse.json(
-          {
-            message: "Registration successful",
-            user: {
-              id: userId,
-              name,
-              email,
-              role: selectedRole,
-              phone: phone || null,
-            },
-          },
-          { status: 201 }
+          { error: authError?.message || "Registration failed (rate limited)" },
+          { status: 429 }
         )
       }
-
-      return NextResponse.json(
-        { error: authError?.message || "Registration failed (rate limited)" },
-        { status: 429 }
-      )
-    }
-
-    if (authError) {
+    } else if (authError) {
       return NextResponse.json(
         { error: authError.message },
         { status: 400 }
@@ -125,11 +111,13 @@ export async function POST(request: Request) {
 
     if (profileError) throw profileError;
 
-    // users 外键底座：有手机号才补行（phone NOT NULL），无号待绑手机时由 sms 回填。
-    if (phone) {
+    // users 外键底座（protocols.demander_id → users(id)）：无条件写行，
+    // 无手机号记 NULL（users.phone 已放空，见 20260906_users_phone_nullable）。
+    // 否则邮箱号发单撞外键 500。短信号后续绑定时由 sms 回填覆盖 phone。
+    {
       const { error: userRowError } = await supabase
         .from('users')
-        .upsert({ id: userId, phone, role: selectedRole }, { onConflict: 'id', ignoreDuplicates: true });
+        .upsert({ id: userId, phone: phone || null, role: selectedRole }, { onConflict: 'id', ignoreDuplicates: true });
       if (userRowError) throw userRowError;
     }
 

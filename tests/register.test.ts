@@ -80,13 +80,15 @@ describe("POST /api/register", () => {
     expect(usersPayload).toMatchObject({ id: "u-new-1", phone: "13900003333", role: "provider" });
   });
 
-  it("无手机号：建号成功但跳过 users 回填（待绑手机补）", async () => {
+  it("无手机号：仍必写 users 行（phone 记 NULL），否则发单撞外键 500", async () => {
     const { POST } = await import("@/app/api/register/route");
     const resp = await POST(
       post({ name: "Wang", email: "w@x.com", password: UNIT_PW, role: "demander" }),
     );
     expect(resp.status).toBe(201);
-    expect(mockUsersUpsert).not.toHaveBeenCalled();
+    expect(mockUsersUpsert).toHaveBeenCalledOnce();
+    const usersPayload = mockUsersUpsert.mock.calls[0][0] as Record<string, unknown>;
+    expect(usersPayload).toMatchObject({ id: "u-new-1", phone: null, role: "demander" });
   });
 
   it("邮箱重复：409（不进 admin 兜底）", async () => {
