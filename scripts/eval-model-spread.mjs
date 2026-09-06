@@ -8,9 +8,9 @@ import { generateAmmoFromSentence } from "../src/adapters/ai/sentence-to-ammo.ts
 import { compileAmmoPrompt } from "../src/base/ai/prompt-compiler.ts";
 
 const MODELS = [
-  "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
   "gemini-3.1-flash-lite",
+  "gemini-3.5-flash-lite",
 ];
 const KEY = process.env.OPENCODE_GEMINI_KEY ?? "";
 if (!KEY) {
