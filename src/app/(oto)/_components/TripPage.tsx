@@ -38,7 +38,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
           <div className="relative w-20 h-20 flex items-center justify-center"><span className="absolute inset-0 rounded-full border border-brandCyan/30 animate-ping" /><span className="absolute inset-2.5 rounded-full border border-brandPurple/30" /><span className="text-2xl">📡</span></div>
           <p className="text-[12px] font-extrabold text-white/85 mt-3">当前暂无进行中行程</p>
           <p className="text-xs text-white/45 mt-1">去首页发单，或去雷达抢单 · 履约座舱在此实时接管</p>
-          <button onClick={() => setScreen("home")} className="mt-3 px-4 py-2 rounded-xl btn-primary glow-purple-strong text-xs font-bold active:scale-95 transition-[filter,transform]">✨ 去首页发单</button>
+          <button onClick={() => setScreen("home")} className="mt-3 px-4 py-2 rounded-xl btn-primary text-xs font-bold active:scale-95 transition-[filter,transform]">✨ 去首页发单</button>
         </div>
       )}
       <MyWaves />

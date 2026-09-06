@@ -115,7 +115,7 @@ export default function CartSheet({
                         .join("、");
                       onAiMatchAll(titles);
                     }}
-                    className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong"
+                    className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold"
                   >
                     ✨ 全部让 AI 撮合
                   </button>

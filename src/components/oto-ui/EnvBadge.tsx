@@ -117,7 +117,7 @@ export default function EnvBadge() {
               </p>
               <button
                 onClick={install}
-                className="mt-3 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong flex items-center justify-center gap-1.5"
+                className="mt-3 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Download size={12} />
                 {installEvt ? "安装到桌面（PWA）" : "查看安装方式"}

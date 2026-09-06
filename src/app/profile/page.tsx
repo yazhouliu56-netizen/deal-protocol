@@ -191,7 +191,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold tracking-widest uppercase">
               <Scroll className="w-4 h-4" /> Guild Adventurer Board
             </div>
-            <h1 className="text-2xl font-black text-white mt-1">公会个人中心</h1>
+            <h1 className="text-2xl font-black text-white mt-1">个人中心</h1>
           </div>
           <ThemeSwitcher />
         </div>
@@ -274,7 +274,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Inventory (Gacha Backpack) */}
+        {/* Inventory (权益资产) */}
         <InventoryGrid />
 
         {/* Billing History */}

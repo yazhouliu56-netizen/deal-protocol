@@ -472,7 +472,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
         <div className={`flex items-center mb-2 ${slim ? "justify-end gap-1.5" : "justify-between"}`}>
           {!slim && (
             <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
-              <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center glow-purple">
+              <span className="w-7 h-7 rounded-xl glass-panel flex items-center justify-center">
                 <Bot size={13} className="text-brandPurple" />
               </span>
               AI 撮合助手
@@ -502,7 +502,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
         </div>
       ) : (
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center glow-purple">
+          <div className="w-9 h-9 rounded-2xl glass-panel flex items-center justify-center">
             <Bot size={17} className="text-brandPurple" />
           </div>
           <div className="flex-1">

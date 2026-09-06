@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import toast from "react-hot-toast"
+import DuoButton from "@/components/ui/DuoButton"
 
 interface AcceptanceCardProps {
   orderId: string
@@ -60,25 +61,25 @@ export default function AcceptanceCard({ orderId, title, price, status, released
 
       {settled ? (
         <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 text-sm rounded-xl border border-emerald-200 dark:border-emerald-900/50">
-          ✅ 已结算{settled.payout > 0 && <>：师傅实收 ￥{settled.payout}，平台保障费 ￥{settled.fee}</>}
+                    已结算{settled.payout > 0 && <>：师傅实收 ￥{settled.payout}，平台保障费 ￥{settled.fee}</>}
         </div>
       ) : awaitable ? (
         <div className="space-y-3">
           <p className="text-sm text-zinc-500">师傅已完工，请确认验收。验收后平台将按阶梯抽成打款给师傅。</p>
           {!priceReady && (
-            <p className="text-xs text-amber-600">⚠️ 订单金额缺失，暂不可放款（ORDER_AMOUNT_INVALID）</p>
+            <p className="text-xs text-amber-600">订单金额缺失，暂不可放款（ORDER_AMOUNT_INVALID）</p>
           )}
-          <button
+          <DuoButton
+            variant="primary"
+            size="lg"
+            fullWidth
+            sound="click"
             onClick={handleAccept}
             disabled={isReleasing || !priceReady}
-            className="touch-target w-full h-14 rounded-xl font-bold text-sm bg-emerald-500 text-white shadow active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+            data-testid="accept-release-btn"
           >
-            {isReleasing ? (
-              <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin align-middle" />
-            ) : (
-              "✅ 确认验收并放款"
-            )}
-          </button>
+            {isReleasing ? "放款中…" : "确认验收并放款"}
+          </DuoButton>
         </div>
       ) : (
         <p className="text-sm text-zinc-400">当前状态：{status}（完工后可验收）</p>
@@ -86,7 +87,7 @@ export default function AcceptanceCard({ orderId, title, price, status, released
 
       {errorMsg && (
         <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-500 text-xs rounded-xl border border-red-200 dark:border-red-900/50">
-          ⚠️ {errorMsg}
+                    {errorMsg}
         </div>
       )}
     </div>

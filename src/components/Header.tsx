@@ -54,7 +54,7 @@ export default function Header() {
             <Scroll className="w-4 h-4" />
           </span>
           <span className="text-sm font-semibold text-slate-100">
-            deal-protocol <span className="text-cyan-400 text-xs">| 异世界冒险者公会</span>
+            deal-protocol <span className="text-cyan-400 text-xs">| 同城服务网络</span>
           </span>
         </Link>
 
@@ -82,16 +82,16 @@ export default function Header() {
                     {session.email}
                   </div>
                   <DropdownMenuItem onClick={() => router.push("/")} className="hover:bg-slate-800 focus:bg-slate-800">
-                    <FileText className="mr-2 size-4" /> 发布悬赏
+                    <FileText className="mr-2 size-4" /> 发布需求
                   </DropdownMenuItem>
                   {isProvider && (
                     <DropdownMenuItem onClick={() => router.push("/dp/provider/incoming")} className="hover:bg-slate-800 focus:bg-slate-800">
-                      <ShieldCheck className="mr-2 size-4" /> 待接悬赏
+                      <ShieldCheck className="mr-2 size-4" /> 待接工单
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator className="bg-slate-800" />
                   <DropdownMenuItem onClick={() => router.push("/profile")} className="hover:bg-slate-800 focus:bg-slate-800">
-                    <User className="mr-2 size-4" /> 玩家中心
+                    <User className="mr-2 size-4" /> 个人中心
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={async () => { await getBrowserSupabase().auth.signOut(); window.location.href = "/" }} className="text-red-400 hover:bg-slate-800 focus:bg-slate-800">
                     <LogOut className="mr-2 size-4" /> 退出登录

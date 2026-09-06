@@ -25,15 +25,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
+    default: "Deal Protocol — 同城服务委托与资金托管平台",
     template: "%s | Deal Protocol",
   },
   description:
-    "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。异世界智能契约与可信魔晶托管协议架构。",
+    "基于AI智能解析服务需求，一键向认证工程师网络广播发布服务委托，资金托管即时履约。同城服务委托与资金托管平台。",
   keywords: [
-    "异世界悬赏",
-    "冒险者公会",
-    "魔晶托管",
+    "服务委托",
+    "认证工程师",
+    "资金托管",
     "智能契约",
     "资金托管",
     "担保交易",
@@ -52,9 +52,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Deal Protocol",
-    title: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
+    title: "Deal Protocol — 同城服务委托与资金托管平台",
     description:
-      "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。",
+      "基于AI智能解析服务需求，一键向认证工程师网络广播发布服务委托，资金托管即时履约。",
     url: SITE_URL,
     locale: "zh_CN",
     images: [
@@ -62,15 +62,15 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
+        alt: "Deal Protocol — 同城服务委托与资金托管平台",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Deal Protocol — 异世界智能契约与可信魔晶托管平台",
+    title: "Deal Protocol — 同城服务委托与资金托管平台",
     description:
-      "基于AI魔法阵自动解析奇遇契约，一键向全网冒险者公会广播发布异世界悬赏，魔晶锁定即时履约。",
+      "基于AI智能解析服务需求，一键向认证工程师网络广播发布服务委托，资金托管即时履约。",
     images: ["/opengraph-image"],
   },
 };

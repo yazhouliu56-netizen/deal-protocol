@@ -7,11 +7,11 @@ import DuoPathNode from "./DuoPathNode";
 
 describe("DuoButton 3D 触觉原子", () => {
   it("默认 primary 变体渲染（4px 底边 + 白字 + data-variant）", () => {
-    const html = renderToStaticMarkup(<DuoButton>扣动扳机</DuoButton>);
+    const html = renderToStaticMarkup(<DuoButton>确认触发</DuoButton>);
     expect(html).toContain('data-testid="duo-button"');
     expect(html).toContain('data-variant="primary"');
     expect(html).toContain("duo-3d-button");
-    expect(html).toContain("扣动扳机");
+    expect(html).toContain("确认触发");
   });
 
   it("多变体分支覆盖（danger/secondary/warning/outline/ghost）", () => {
@@ -38,7 +38,7 @@ describe("DuoButton 3D 触觉原子", () => {
   });
 });
 
-describe("DuoProgress 糖果条", () => {
+describe("DuoProgress 进度条", () => {
   it("基础渲染与百分比映射（value/max → width%）", () => {
     const html = renderToStaticMarkup(<DuoProgress value={60} max={100} />);
     expect(html).toContain('data-testid="duo-progress"');
@@ -53,13 +53,13 @@ describe("DuoProgress 糖果条", () => {
     expect(over).toContain('aria-valuenow="100"');
   });
 
-  it("高光白条存在（糖果质感）", () => {
+    it("高光条存在", () => {
     const html = renderToStaticMarkup(<DuoProgress value={40} />);
     expect(html).toContain("bg-white/40");
   });
 });
 
-describe("DuoPathNode 通关地图节点", () => {
+describe("DuoPathNode 路线节点", () => {
   it("三态渲染（completed/current/locked）与气泡", () => {
     const done = renderToStaticMarkup(<DuoPathNode status="completed" step={1} title="已接单" />);
     expect(done).toContain('data-status="completed"');

@@ -243,6 +243,43 @@ body {
 
 /* ===== 排版系统（第六军团统一字阶与等宽数字） ===== */
 
+/* Batch2 单轨归并：Duo 色谱与 3D 触觉工具收归根入口（与 (oto) 同名定义值一致，全路由可用） */
+:root {
+  --color-duo-green: #58cc02;
+  --color-duo-green-dark: #46a302;
+  --color-duo-green-light: #d7ffb8;
+  --color-duo-orange: #ff9600;
+  --color-duo-orange-dark: #e58700;
+  --color-duo-blue: #1cb0f6;
+  --color-duo-blue-dark: #1899d6;
+  --color-duo-red: #ff4b4b;
+  --color-duo-red-dark: #ea2b2b;
+  --color-duo-yellow: #ffc800;
+  --color-duo-yellow-dark: #e5b400;
+  --color-duo-polar: #f7f7f7;
+  --color-duo-eel: #4b4b4b;
+}
+.duo-3d-button {
+  position: relative;
+  border-bottom-width: 4px;
+  transition:
+    transform 80ms ease-out,
+    filter 80ms ease-out,
+    border-bottom-width 80ms ease-out;
+}
+.duo-3d-button:active {
+  transform: translateY(4px);
+  border-bottom-width: 0;
+  filter: brightness(0.96);
+}
+.duo-3d-card {
+  background: #ffffff;
+  border: 2px solid #e5e5e5;
+  border-bottom-width: 6px;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
 /* 金额 / 时间 / 比例 / 坐标一律等宽数字：秒级对齐、防跳动 */
 .font-tabular {
   font-variant-numeric: tabular-nums lining-nums;

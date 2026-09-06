@@ -69,7 +69,7 @@ export default function FavoritesSheet({
                   key={w.id}
                   className="rounded-2xl bg-white/[0.05] border border-white/10 p-3 flex items-center gap-3"
                 >
-                  <div className="w-9 h-9 rounded-xl btn-primary glow-purple-strong flex items-center justify-center text-base shrink-0">
+                  <div className="w-9 h-9 rounded-xl btn-primary flex items-center justify-center text-base shrink-0">
                     {CATEGORY_EMOJI(w.basics.category)}
                   </div>
                   <div className="flex-1 min-w-0">

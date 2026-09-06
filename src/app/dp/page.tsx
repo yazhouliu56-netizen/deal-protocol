@@ -52,7 +52,7 @@ export default function HomePage() {
             </div>
           </div>
           <span className="font-black text-base sm:text-lg tracking-tight text-white font-mono">
-            deal-protocol <span className="text-xs font-normal ml-1" style={{ color: 'var(--accent-color)' }}>| 异世界冒险者公会</span>
+            deal-protocol <span className="text-xs font-normal ml-1" style={{ color: 'var(--accent-color)' }}>| 同城服务网络</span>
           </span>
         </div>
 
@@ -89,7 +89,7 @@ export default function HomePage() {
             transition={{ duration: 0.4 }}
             className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight leading-tight"
           >
-            发布异世界悬赏 <br className="hidden sm:inline" /> 召集顶尖冒险者
+            发布服务委托 <br className="hidden sm:inline" /> 召集认证工程师
           </motion.h1>
 
           <motion.p
@@ -98,7 +98,7 @@ export default function HomePage() {
             transition={{ delay: 0.2 }}
             className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans max-w-2xl mx-auto"
           >
-            基于 AI 魔法阵自动解析奇遇契约，一键向全网冒险者公会广播，魔晶锁定，即时履约。
+            基于 AI 智能解析服务需求，一键向认证工程师网络广播，资金托管，即时履约。
           </motion.p>
 
           {/* 核心行动按钮 */}
@@ -115,7 +115,7 @@ export default function HomePage() {
                 whileTap={{ scale: 0.96 }}
                 className="w-full px-8 py-3.5 rounded-2xl font-black text-sm bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2"
               >
-                <Sparkles className="w-4 h-4" /> ✨ 开启奇遇，发布悬赏
+                <Sparkles className="w-4 h-4" /> 发布服务委托
               </motion.button>
             </Link>
 
@@ -127,7 +127,7 @@ export default function HomePage() {
                 className="w-full px-8 py-3.5 rounded-2xl font-black text-sm border transition-all flex items-center justify-center gap-2"
                 style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-theme)', color: 'var(--text-main)' }}
               >
-                🗡️ 浏览冒险者大厅
+                浏览工程师大厅
               </motion.button>
             </Link>
           </motion.div>
@@ -139,8 +139,8 @@ export default function HomePage() {
             <Info className="w-5 h-5" />
           </div>
           <div className="text-left">
-            <p className="text-xs font-bold">Cyber-Oracle姬 · 契约助手 <span className="font-mono font-normal text-muted-foreground">置信度 99%</span></p>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">主人！异世界悬赏公会通道已全量打通！AI 魔法阵已就绪，随时为您解析契约并锁定魔晶！</p>
+            <p className="text-xs font-bold">平台助手 <span className="font-mono font-normal text-muted-foreground">在线</span></p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">服务委托通道已全量打通！AI 解析已就绪，随时为您匹配工程师并托管资金！</p>
           </div>
         </div>
 
@@ -154,9 +154,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-purple-950/80 border border-purple-500/40 flex items-center justify-center text-purple-300">
               <Cpu className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold">🔮 魔法阵契约构建</h3>
+            <h3 className="text-base font-bold">智能需求解析</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              AI 自动提取自然语言要求，生成结构化悬赏条款与阶段魔晶分配方案，无缝契合 Zod 防御网关。
+              AI 自动提取自然语言要求，生成结构化服务条款与阶段资金分配方案，无缝契合 Zod 防御网关。
             </p>
           </motion.div>
 
@@ -168,9 +168,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
               <Zap className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold">⚡ 冒险者公会即时响应</h3>
+            <h3 className="text-base font-bold">认证工程师即时响应</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              基于 pgvector 向量检索与多臂老虎机 (Bandit) 算法，毫秒级即时匹配高分认证猎人。
+              基于 pgvector 向量检索与多臂老虎机 (Bandit) 算法，毫秒级即时匹配高分认证工程师。
             </p>
           </motion.div>
 
@@ -182,9 +182,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300">
               <Lock className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold">🔒 魔晶契约托管</h3>
+            <h3 className="text-base font-bold">资金托管结算</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              资金全程存入 7 态灵魂金库，结合 24h Checkpoint 自动解冻与判例 RAG 仲裁，保障双端绝对利益。
+              资金全程平台托管，结合 24h 自动解冻与判例仲裁，保障双端利益。
             </p>
           </motion.div>
         </div>
@@ -193,7 +193,7 @@ export default function HomePage() {
       {/* Footer 底部对齐 */}
       <footer className="relative z-20 border-t py-6 px-4 text-center text-xs font-mono"
         style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-theme)', color: 'var(--text-main)' }}>
-        <p style={{ opacity: 0.6 }}>异世界智能契约与可信魔晶托管协议架构 © 2026 deal-protocol</p>
+        <p style={{ opacity: 0.6 }}>同城服务委托与资金托管平台 © 2026 deal-protocol</p>
       </footer>
     </div>
   )

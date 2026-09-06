@@ -18,7 +18,7 @@ export default function IdentityAvatar({
       : "w-9 h-9 rounded-full text-sm";
   return (
     <div
-      className={`${cls} btn-primary flex items-center justify-center overflow-hidden font-extrabold shadow-lg glow-purple-strong shrink-0`}
+      className={`${cls} btn-primary flex items-center justify-center overflow-hidden font-extrabold shadow-lg shrink-0`}
     >
       {avatar ? (
         // eslint-disable-next-line @next/next/no-img-element

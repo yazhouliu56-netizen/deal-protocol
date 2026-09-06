@@ -90,7 +90,7 @@ export default function PaySheet({
         <button
           onClick={onPaid}
           aria-label={`立即支付 ${amount} 元`}
-          className="w-full py-3 rounded-2xl btn-primary font-extrabold text-xs glow-purple-strong hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
+          className="w-full py-3 rounded-2xl btn-primary font-extrabold text-xs hover:brightness-110 active:scale-[0.98] transition-[filter,transform]"
         >
           立即支付 ¥{amount}（模拟）
         </button>

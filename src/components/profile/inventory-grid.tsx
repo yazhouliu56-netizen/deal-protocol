@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 export interface InventoryItem {
   id: string;
   name: string;
-  rarity: 'SSR' | 'SR' | 'R';
+  rarity: '金' | '银' | '铜';
   type: string;
   count: number;
   icon: LucideIcon;
@@ -17,9 +17,9 @@ export interface InventoryItem {
 }
 
 const DEFAULT_INVENTORY: InventoryItem[] = [
-  { id: 'item-1', name: '赛博裁决姬 · 优先落锤卡', rarity: 'SSR', type: '卡券', count: 2, icon: Shield, description: '发起仲裁时，优先进行判例 RAG 检索并提高置信度权重。' },
-  { id: 'item-2', name: '灵魂金库 · 算力加速券', rarity: 'SR', type: '加速', count: 5, icon: Zap, description: '缩短 Checkpoint 分段托管 24 小时超时确认倒计时。' },
-  { id: 'item-3', name: '黄金公会 · 信任徽章', rarity: 'R', type: '勋章', count: 1, icon: Award, description: '发布悬赏令时自动带有专属金边高亮特效。' },
+  { id: 'item-1', name: '平台认证徽章', rarity: '金', type: '认证', count: 2, icon: Shield, description: '完成实名与技能认证，派单优先展示，纠纷优先处理。' },
+  { id: 'item-2', name: '准时履约勋章', rarity: '银', type: '履约', count: 5, icon: Zap, description: '完工验收后自动累积守约记录，提升信用分。' },
+  { id: 'item-3', name: '资金保障卡', rarity: '铜', type: '保障', count: 1, icon: Award, description: '订单资金全程平台托管，验收后结算。' },
 ];
 
 export const InventoryGrid: React.FC = () => {
@@ -28,7 +28,7 @@ export const InventoryGrid: React.FC = () => {
   const [usedToast, setUsedToast] = useState<string | null>(null);
 
   const handleUseItem = (item: InventoryItem) => {
-    setUsedToast(`已使用【${item.name}】！已消耗 1 张`);
+    setUsedToast(`已使用${item.name}，剩余 ${item.count - 1} 次`);
     setItems((prev) =>
       prev
         .map((i) => (i.id === item.id ? { ...i, count: i.count - 1 } : i))
@@ -42,7 +42,7 @@ export const InventoryGrid: React.FC = () => {
     <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-xl space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-          <Package className="w-5 h-5 text-purple-400" /> 盲盒成就背包 (Inventory)
+                    <Package className="w-5 h-5 text-purple-400" /> 我的权益
         </h3>
         <span className="text-xs text-slate-400 font-mono">
           容量: {items.length}/16
@@ -60,21 +60,21 @@ export const InventoryGrid: React.FC = () => {
           <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground mb-3">
             <Package className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold">成就背包空荡荡 ...</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">尚未获得任何盲盒道具。参与公会悬赏、完成契约或使用秘宝抽卡获取道具吧！</p>
+          <h3 className="text-sm font-bold">暂无权益记录</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">完成首单履约后自动累积，可在个人中心查看。</p>
           <button
-            onClick={() => window.location.href = '/demands'}
+            onClick={() => window.location.href = '/'}
             className="mt-4 px-5 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground"
           >
-            前往公会大厅
+            去看看工单
           </button>
         </div>
       ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
         {items.map((item) => {
           const Icon = item.icon;
-          const isSSR = item.rarity === 'SSR';
-          const isSR = item.rarity === 'SR';
+          const isGold = item.rarity === '金';
+          const isSilver = item.rarity === '银';
 
           return (
             <motion.div
@@ -84,9 +84,9 @@ export const InventoryGrid: React.FC = () => {
               onClick={() => setSelectedItem(item)}
               className={cn(
                 'relative cursor-pointer overflow-hidden rounded-2xl border p-4 backdrop-blur-md transition-all select-none',
-                isSSR
+                isGold
                   ? 'border-amber-400/60 bg-amber-950/20 shadow-[0_0_15px_rgba(251,191,36,0.2)]'
-                  : isSR
+                  : isSilver
                   ? 'border-purple-400/50 bg-purple-950/20'
                   : 'border-slate-800 bg-slate-950/60'
               )}
@@ -99,9 +99,9 @@ export const InventoryGrid: React.FC = () => {
                 <div
                   className={cn(
                     'w-10 h-10 rounded-xl flex items-center justify-center border',
-                    isSSR
+                    isGold
                       ? 'bg-amber-400/20 text-amber-300 border-amber-400/40'
-                      : isSR
+                      : isSilver
                       ? 'bg-purple-400/20 text-purple-300 border-purple-400/40'
                       : 'bg-slate-800 text-cyan-400 border-slate-700'
                   )}

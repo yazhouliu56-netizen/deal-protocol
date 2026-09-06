@@ -113,7 +113,7 @@ export default function VoiceBar({
       onContextMenu={(e) => e.preventDefault()}
       className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-[filter,transform,background] active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${
         phase === "recording"
-          ? "bg-red-500/90 glow-cyan"
+          ? "bg-red-500/90"
           : phase === "transcribing"
             ? "bg-brandCyan/30"
             : "glass-panel text-brandCyan hover:text-white"

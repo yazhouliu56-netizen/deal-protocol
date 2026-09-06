@@ -81,7 +81,7 @@ export default function CapabilityPanel() {
         className="w-full p-3.5 flex items-center gap-3 text-left"
         aria-label="能力声明"
       >
-        <div className="w-10 h-10 rounded-xl btn-primary flex items-center justify-center shrink-0 glow-purple-strong">
+        <div className="w-10 h-10 rounded-xl btn-primary flex items-center justify-center shrink-0">
           🎯
         </div>
         <div className="flex-1 min-w-0">
@@ -159,7 +159,7 @@ export default function CapabilityPanel() {
                   onClick={() => toggleCategory(c)}
                   className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
                     on
-                      ? "btn-primary glow-purple-strong"
+                      ? "btn-primary"
                       : "glass-panel text-white/50"
                   }`}
                 >

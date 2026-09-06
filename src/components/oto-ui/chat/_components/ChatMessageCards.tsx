@@ -107,7 +107,7 @@ export function GenCardView({
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
                   aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold glow-purple-strong active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold active:scale-95"
                 >
                   📡 转为正式订单
                 </button>
@@ -116,7 +116,7 @@ export function GenCardView({
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold glow-purple-strong active:scale-95"
+              className="px-3.5 py-1.5 rounded-full btn-primary text-xs font-bold active:scale-95"
             >
               确认预订
             </button>

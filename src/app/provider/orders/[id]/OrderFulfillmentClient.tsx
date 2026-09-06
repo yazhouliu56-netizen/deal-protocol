@@ -34,10 +34,10 @@ interface OrderFulfillmentClientProps {
 }
 
 const STATUS_MAP = {
-  ASSIGNED: { label: "已接单", next: "DEPARTED", btnText: "🔥 长按 1.5 秒出发前往现场" },
-  DEPARTED: { label: "已出发", next: "ARRIVED", btnText: "📍 长按 1.5 秒确认到达现场" },
-  ARRIVED: { label: "已到现场", next: "STARTED", btnText: "🛠️ 长按 1.5 秒开始提供服务" },
-  STARTED: { label: "施工中", next: "COMPLETED", btnText: "🏁 长按 1.5 秒确认服务完工" },
+  ASSIGNED: { label: "已接单", next: "DEPARTED", btnText: "确认接单" },
+  DEPARTED: { label: "已出发", next: "ARRIVED", btnText: "我已出发" },
+  ARRIVED: { label: "已到现场", next: "STARTED", btnText: "到达现场" },
+  STARTED: { label: "施工中", next: "COMPLETED", btnText: "我干完了，提交验收" },
   COMPLETED: { label: "已完工", next: null, btnText: "服务已结束" },
   // 放款 settled 终态 + 未知态 fallback（防历史大小写漂移导致渲染崩溃）
   settled: { label: "已结算", next: null, btnText: "服务已结算" },
@@ -204,20 +204,20 @@ export default function OrderFulfillmentClient({
               href={`tel:${demand.client_phone || "13800000000"}`}
               className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 active:scale-95 transition-transform"
             >
-              📞 拨打电话
+              拨打电话
             </a>
             <button
               onClick={() => alert(`唤起导航至: [${demand.latitude}, ${demand.longitude}]`)}
               className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 active:scale-95 transition-transform"
             >
-              🗺️ 开启导航
+              开启导航
             </button>
             <span
               title="在线聊天即将上线，当前请电话联系"
               aria-disabled="true"
               className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 text-zinc-400 dark:bg-zinc-950 dark:text-zinc-600 cursor-not-allowed"
             >
-              💬 发起聊天（即将上线）
+              发起聊天（即将上线）
             </span>
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function OrderFulfillmentClient({
                     <div className="w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span className="text-xl">📸</span>
+                      <span className="text-xl font-black">+</span>
                       <span className="text-xs text-zinc-400 mt-1">现场拍照</span>
                     </>
                   )}
@@ -287,7 +287,7 @@ export default function OrderFulfillmentClient({
 
         {errorMsg && (
           <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-500 text-xs rounded-xl border border-red-200 dark:border-red-900/50">
-            ⚠️ {errorMsg}
+            {errorMsg}
           </div>
         )}
       </div>
@@ -295,7 +295,7 @@ export default function OrderFulfillmentClient({
       {currentConfig.next && (
         <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] bg-white/80 dark:bg-zinc-950/80 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex justify-center z-50">
           <div
-            className={`relative w-full max-w-md h-14 rounded-xl overflow-hidden shadow select-none transition-all touch-manipulation ${isMissingCertificates ? "bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed opacity-75" : "bg-zinc-200 dark:bg-zinc-800 cursor-pointer active:scale-[0.98]"}`}
+                        className={`duo-3d-button relative w-full max-w-md h-14 rounded-2xl overflow-hidden select-none touch-manipulation bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white transition-all ${isMissingCertificates ? "cursor-not-allowed opacity-60 saturate-50" : "cursor-pointer active:brightness-95"}`}
             onMouseDown={startPress}
             onMouseUp={endPress}
             onMouseLeave={endPress}
@@ -304,7 +304,7 @@ export default function OrderFulfillmentClient({
           >
             {!isMissingCertificates && (
               <div
-                className="absolute left-0 top-0 bottom-0 bg-emerald-500 origin-left"
+                                className="absolute left-0 top-0 bottom-0 bg-white/30 origin-left"
                 style={{
                   width: isPressing ? "100%" : "0%",
                   transition: isPressing ? "width 1500ms linear" : "width 200ms ease-out",
@@ -312,11 +312,11 @@ export default function OrderFulfillmentClient({
               />
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-zinc-900 dark:text-white pointer-events-none mix-blend-difference">
+            <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base text-white pointer-events-none">
               {loading ? (
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : isMissingCertificates ? (
-                `⚠️ 请先拍 ${2 - uploadedImages.length} 张完工照 (还差 ${2 - uploadedImages.length} 张)`
+                `请先拍 ${2 - uploadedImages.length} 张完工照 (还差 ${2 - uploadedImages.length} 张)`
               ) : (
                 currentConfig.btnText
               )}

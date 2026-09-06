@@ -239,7 +239,7 @@ export default function FulfillmentCockpit({
         🎨 场景主题 · {theme.label}
       </div>
 
-      {/* Phase 1.3 Feather：天蓝资金守护盾 + 糖果进度 + 通关地图 */}
+      {/* Phase 1.3 Feather：天蓝资金守护盾 + 进度条 + 履约路线图 */}
       {totalAmount > 0 && (
         <section
           data-testid="cockpit-asset-shield"

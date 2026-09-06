@@ -100,7 +100,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
 
           <button
             onClick={copy}
-            className="w-full py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1.5"
           >
             {copied ? (
               <>

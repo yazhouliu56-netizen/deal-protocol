@@ -26,7 +26,7 @@ export default function GlassIconButton({
       onClick={onClick}
       className={`glass-panel ${SIZE_CLASS[size]} flex items-center justify-center transition-colors shrink-0 ${
         tone === "cyan"
-          ? "text-brandCyan hover:border-brandCyan/50 glow-cyan"
+          ? "text-brandCyan hover:border-brandCyan/50"
           : "text-white/70 hover:border-brandPurple/50 hover:text-white"
       } ${className}`}
       {...rest}

@@ -83,14 +83,14 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
       <header className="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm">
         <h1 className="text-base font-bold">实时接单需求池</h1>
         <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full animate-pulse">
-          ⚡ 动态雷达定位中
+                    实时定位中 · 附近工单
         </span>
       </header>
 
       <div className="p-4 space-y-4 max-w-md mx-auto">
         {demands.length === 0 ? (
           <div className="text-center text-zinc-400 dark:text-zinc-600 py-24 text-sm">
-            暂无附近待接工单，请保持屏幕常亮...
+                        暂无附近待接工单，下拉刷新试试
           </div>
         ) : (
           demands.map((demand) => {
@@ -106,7 +106,7 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
                 verificationStatus={verificationStatus}
                 onAcceptSuccess={(id) => {
                   setDemands((prev) => prev.filter((d) => d.id !== id))
-                  toast.success("接单锁定成功！")
+                  toast.success("接单成功，已锁定")
                 }}
                 onAcceptFailure={(reason) => alert(reason)}
               />

@@ -179,7 +179,7 @@ export default function ReviewSection({
           )}
           <button
             onClick={submit}
-            className="w-full py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong flex items-center justify-center gap-1"
+            className="w-full py-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1"
           >
             <Send size={11} /> 提交评价
           </button>

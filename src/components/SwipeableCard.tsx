@@ -91,7 +91,7 @@ export default function SwipeableCard({
     >
       <div className="flex justify-between items-start mb-3">
         <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold px-2 py-1 rounded">
-          🛠️ 家庭维修
+                    家庭维修
         </span>
         <span className="text-xl font-black text-red-500">￥{order.price}</span>
       </div>
@@ -101,8 +101,8 @@ export default function SwipeableCard({
       </h3>
 
       <div className="text-xs text-gray-500 dark:text-zinc-400 space-y-1 mb-5">
-        <p>📍 距离您当前：<span className="text-blue-600 dark:text-blue-400 font-bold">{currentDistance.toFixed(2)} km</span></p>
-        <p>⏱️ 发布时间：{new Date(order.created_at).toLocaleTimeString()}</p>
+        <p>距离您当前：<span className="text-blue-600 dark:text-blue-400 font-bold">{currentDistance.toFixed(2)} km</span></p>
+        <p>发布时间：{new Date(order.created_at).toLocaleTimeString()}</p>
       </div>
 
       <div
@@ -110,7 +110,7 @@ export default function SwipeableCard({
         style={{ backgroundColor: `rgba(34, 197, 94, ${progress * 0.12})` }}
       >
         <span className="text-xs font-medium text-gray-400 dark:text-zinc-500 pointer-events-none transition-opacity" style={{ opacity: 1 - progress * 1.8 }}>
-          {isSubmitting ? "正在锁单中..." : "👉 向右滑动接此单"}
+          {isSubmitting ? "正在锁单中..." : "向右滑动接此单"}
         </span>
 
         <div

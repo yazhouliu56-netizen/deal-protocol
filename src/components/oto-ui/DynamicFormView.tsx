@@ -129,7 +129,7 @@ export default function DynamicFormView({
             compact ? "" : ""
           } ${
             ready
-              ? "btn-primary glow-purple-strong active:scale-95"
+              ? "btn-primary active:scale-95"
               : "bg-white/[0.04] border border-white/10 text-white/30"
           }`}
         >

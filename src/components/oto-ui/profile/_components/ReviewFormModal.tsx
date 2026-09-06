@@ -39,7 +39,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         </p>
         <button
           onClick={onBack}
-          className="mt-3 px-5 py-2 rounded-full btn-primary text-xs font-bold glow-purple-strong"
+          className="mt-3 px-5 py-2 rounded-full btn-primary text-xs font-bold"
         >
           完成
         </button>
@@ -93,7 +93,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         <button
           onClick={submit}
           disabled={rating === 0}
-          className="w-full mt-3 py-2.5 rounded-2xl btn-primary text-xs font-bold glow-purple-strong disabled:opacity-40 disabled:pointer-events-none active:scale-[0.99]"
+          className="w-full mt-3 py-2.5 rounded-2xl btn-primary text-xs font-bold disabled:opacity-40 disabled:pointer-events-none active:scale-[0.99]"
         >
           {rating === 0 ? "先点星星再提交" : "提交评价"}
         </button>

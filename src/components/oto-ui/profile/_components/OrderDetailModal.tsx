@@ -130,7 +130,7 @@ export default function OrderDetail({
       {booking.status === "upcoming" && (
         <button
           onClick={onReview}
-          className="w-full py-2.5 rounded-2xl btn-primary text-xs font-bold glow-purple-strong active:scale-[0.99]"
+          className="w-full py-2.5 rounded-2xl btn-primary text-xs font-bold active:scale-[0.99]"
         >
           评价这次服务
         </button>

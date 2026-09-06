@@ -21,7 +21,7 @@ import GenericOrderCard from "./GenericOrderCard";
 
 /**
  * 需求方视角：我发出的信号波 + 接单状态 + 磋商往来 + 违约裁决。
- * 待接单者队列不呈现；已接单者呈现（脱敏 + 信用 + 盲盒揭晓）。
+ * 待接单者队列不呈现；已接单者呈现（脱敏 + 信用 + 身份确认）。
  */
 export default function MyWaves() {
   const waves = useWaveStore((s) => s.waves);
@@ -284,7 +284,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       <button
                         onClick={() => assembleWave(wave.id)}
                         disabled={joinedSeats.length === 0}
-                        className="px-2.5 py-1 rounded-xl btn-primary text-xs font-bold glow-purple-strong disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-2.5 py-1 rounded-xl btn-primary text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-label="提前成局"
                       >
                         人够了，提前成局 ⚡
@@ -297,7 +297,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                         key={i}
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${
                           i < joinedSeats.length
-                            ? "btn-primary glow-purple-strong"
+                            ? "btn-primary"
                             : "bg-white/[0.06] border border-dashed border-white/20 text-white/30"
                         }`}
                       >
@@ -308,7 +308,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                 </div>
               )}
 
-              {/* 盲盒揭晓：一旦有真身接单 */}
+              {/* 身份确认：一旦有真身接单 */}
               {accepted && revealData && (
                 <BlindReveal data={revealData} />
               )}
@@ -765,7 +765,7 @@ function NegotiationThread({
       <div className="flex gap-2 mt-2">
         <button
           onClick={onAccept}
-          className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold glow-purple-strong"
+          className="flex-1 py-2 rounded-xl btn-primary text-xs font-bold"
         >
           谈成 · 锁定
         </button>

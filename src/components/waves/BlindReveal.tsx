@@ -12,9 +12,8 @@ export interface BlindRevealData {
 }
 
 /**
- * 盲盒揭晓 — the one moment of blind-box theatre: an anonymous card flips
- * to reveal the masked identity of the claimer. Visual layer only, never
- * threaded through the core logic.
+ * 接单身份确认 — an anonymous card flips to reveal the masked identity
+ * of the claimer. Visual layer only, never threaded through core logic.
  */
 export default function BlindReveal({ data }: { data: BlindRevealData }) {
   return (
@@ -26,9 +25,9 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         className="relative [transform-style:preserve-3d]"
       >
         {/* 背面（揭晓内容）—— rotateY 180 后朝前 */}
-        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] glass-panel p-4 rounded-3xl border-brandCyan/40 glow-cyan">
+        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] glass-panel p-4 rounded-3xl border-brandCyan/40">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl btn-primary glow-purple-strong flex items-center justify-center text-lg shrink-0">
+            <div className="w-11 h-11 rounded-2xl btn-primary flex items-center justify-center text-lg shrink-0">
               {data.nickname.slice(0, 1)}
             </div>
             <div className="flex-1 min-w-0">
@@ -65,7 +64,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
           <span className="text-xs font-bold text-white/85">
             有人接单了！
           </span>
-          <span className="text-xs text-white/40">盲盒揭晓中…</span>
+          <span className="text-xs text-white/40">身份确认中…</span>
         </div>
       </motion.div>
     </div>

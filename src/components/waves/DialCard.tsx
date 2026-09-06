@@ -63,7 +63,7 @@ export default function DialCard({
         </span>
         <button
           onClick={() => setDialed(true)}
-          className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold glow-cyan flex items-center gap-1 shrink-0"
+          className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold flex items-center gap-1 shrink-0"
           aria-label="拨号"
         >
           <Phone size={12} /> 拨号

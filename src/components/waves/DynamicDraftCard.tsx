@@ -590,7 +590,7 @@ export default function DynamicDraftCard({
           ))}
         </div>
       )}
-      {/* Phase 1.2 Feather：发射 CTA 换装 3D DuoButton（Duo Green 4px 底边 + Ding + 彩带） */}
+      {/* Phase 1.2 Feather：发射 CTA 换装 3D DuoButton（Duo Green 4px 底边 + 提示音 + 撒花） */}
       {!hideLaunchButton && (
         <DuoButton
           variant="primary"

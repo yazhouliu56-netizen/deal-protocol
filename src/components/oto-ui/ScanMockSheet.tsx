@@ -204,7 +204,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 </p>
                 <button
                   onClick={join}
-                  className="mt-2.5 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs glow-purple-strong"
+                  className="mt-2.5 w-full py-2.5 rounded-2xl btn-primary font-bold text-xs"
                 >
                   加入拼位
                 </button>
