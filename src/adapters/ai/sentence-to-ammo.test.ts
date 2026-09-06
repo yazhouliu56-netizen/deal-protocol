@@ -158,6 +158,29 @@ test("extractAmmoJson：围栏剥离与花括号截取", () => {
   assert.equal(extractAmmoJson('["not", "object"]').ok, false);
 });
 
+test("extractAmmoJson 容错：控制字符与尾逗号", () => {
+  assert.deepEqual(extractAmmoJson('{"a": 1,\u0000" b": 2,\n}').value, { a: 1, " b": 2 });
+  assert.deepEqual(extractAmmoJson('{"a": [1, 2,],}').value, { a: [1, 2] });
+});
+
+test("provider 透出：网关形态回包带 provider，纯字符串回包无 provider", async () => {
+  const category = track("test-prov-chain");
+  const cfg = validConfig(category);
+  const withProv = (async () => ({
+    content: JSON.stringify(cfg),
+    provider: "zhipu",
+  })) as unknown as CompleteTextFn;
+  const r1 = await generateAmmoFromSentence("自带水冷求装机", { completeFn: withProv });
+  assert.equal(r1.ok, true);
+  assert.equal(r1.provider, "zhipu");
+  const category2 = track("test-prov-str");
+  const cfg2 = validConfig(category2);
+  const strOnly = (async () => JSON.stringify(cfg2)) as unknown as CompleteTextFn;
+  const r2 = await generateAmmoFromSentence("自带水冷求装机", { completeFn: strOnly });
+  assert.equal(r2.ok, true);
+  assert.equal(r2.provider, undefined);
+});
+
 test("autoRepairAmmoConfig：白名单外字段零触碰", () => {
   const v: Record<string, unknown> = {
     pricingModel: { kind: "FIXED", amountYuan: 80 },

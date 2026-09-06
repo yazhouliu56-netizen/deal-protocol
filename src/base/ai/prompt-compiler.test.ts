@@ -133,6 +133,13 @@ test("约束锁死：systemPrompt 含六算子白名单与护栏数字", () => {
   ]);
 });
 
+test("格式铁律：systemPrompt 锁死纯 JSON 单对象输出", () => {
+  const r = compileAmmoPrompt("电脑点不亮了，来个人看看");
+  assert.match(r.systemPrompt, /以 \{ 开头、以 \} 结尾/);
+  assert.match(r.systemPrompt, /禁止 Markdown 围栏/);
+  assert.match(r.systemPrompt, /千分位逗号/);
+});
+
 test("C2入户安全底线：systemPrompt与home缺省均声明isPoliceVerified", () => {
   const r = compileAmmoPrompt("电脑点不亮了，来个人看看");
   assert.match(r.systemPrompt, /C2_IN_HOME/);

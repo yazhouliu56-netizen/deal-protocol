@@ -179,6 +179,7 @@ function buildSystemPrompt(): string {
   const fuzes = COMPILER_ALLOWED_FUZES.join("、");
   return [
     "你是 O2O 弹药配置生成器，只输出合法 IHolographicAmmoConfig JSON，不输出任何解释文字。",
+    "格式铁律：整个回复只能是一个 JSON 对象，以 { 开头、以 } 结尾；禁止 Markdown 围栏、注释、前言后记、思维链外泄；数字不得带单位与千分位逗号，字符串内不得出现未转义的换行与双引号。",
     `forwardHooks 只能从白名单六算子中选择：${hooks}。严禁虚构钩子名。`,
     `supplyCluster 只能三选一：${clusters}。`,
     `pricingModel.kind 只能四选一：${kinds}。formulaId 必须已存在，严禁现编。`,

@@ -45,6 +45,8 @@ export interface ISentenceToAmmoResult {
   tokens?: { prompt: number; completion: number };
   failureDimension?: AmmoFailureDimension;
   autoRepaired?: boolean;
+  /** 实际命中的上游 provider（网关 TextOutcome 透出；Mock/注入传输无此字段时为 undefined）。 */
+  provider?: string;
 }
 
 export interface IGenerateAmmoOpts {
@@ -77,14 +79,17 @@ function extractContent(raw: unknown): string {
   return "";
 }
 
-/** Markdown 围栏剥离 + 首尾花括号截取 → JSON.parse。 */
+/** Markdown 围栏剥离 + 控制字符/尾逗号容错 + 首尾花括号截取 → JSON.parse。 */
 export function extractAmmoJson(text: string): {
   ok: boolean;
   value?: Record<string, unknown>;
 } {
   const stripped = text
     .replace(/```(?:json)?\s*/gi, "```")
-    .replace(/```/g, "");
+    .replace(/```/g, "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/,\s*([}\]])/g, "$1");
   const start = stripped.indexOf("{");
   const end = stripped.lastIndexOf("}");
   if (start < 0 || end <= start) return { ok: false };
@@ -215,9 +220,14 @@ export async function generateAmmoFromSentence(
 ): Promise<ISentenceToAmmoResult> {
   const startedAt = Date.now();
   const timeoutMs = opts?.timeoutMs ?? SENTENCE_TO_AMMO_TIMEOUT_MS;
+  let provider: string | undefined;
   const finish = (
-    rest: Omit<ISentenceToAmmoResult, "latencyMs">,
-  ): ISentenceToAmmoResult => ({ ...rest, latencyMs: Date.now() - startedAt });
+    rest: Omit<ISentenceToAmmoResult, "latencyMs" | "provider">,
+  ): ISentenceToAmmoResult => ({
+    ...rest,
+    ...(provider ? { provider } : {}),
+    latencyMs: Date.now() - startedAt,
+  });
 
   if (typeof sentence !== "string" || sentence.trim() === "") {
     return finish({ ok: false, errors: ["EMPTY_SENTENCE"], failureDimension: "PARSE" });
@@ -252,6 +262,10 @@ export async function generateAmmoFromSentence(
       }),
       timeoutMs,
     );
+    if (raw !== null && typeof raw === "object") {
+      const p = (raw as Record<string, unknown>).provider;
+      if (typeof p === "string" && p !== "") provider = p;
+    }
   } catch {
     return finish({
       ok: false,

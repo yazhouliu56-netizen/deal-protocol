@@ -94,16 +94,17 @@ const matrix = {};
 for (let i = 0; i < SENTENCES.length; i += 1) {
   const sentence = SENTENCES[i];
   const opts = realMode
-    ? { timeoutMs: 30000 }
+    ? { timeoutMs: 8000 }
     : {
         completeFn: async () => JSON.stringify(mockConfigFor(sentence, i)),
       };
   const r = await generateAmmoFromSentence(sentence, opts);
   const dim = r.ok ? "PASS" : (r.failureDimension ?? "UNKNOWN");
+  const prov = r.provider ?? "n/a";
   matrix[dim] = (matrix[dim] ?? 0) + 1;
   if (r.ok) pass += 1;
   console.log(
-    `${r.ok ? "PASS" : "FAIL"} #${String(i + 1).padStart(2, "0")} [${dim}] ${r.latencyMs}ms ${r.autoRepaired ? "(repaired) " : ""}${sentence.slice(0, 18)}…${r.ok ? "" : ` :: ${(r.errors ?? []).join("; ")}`}`,
+    `${r.ok ? "PASS" : "FAIL"} #${String(i + 1).padStart(2, "0")} [${dim}] [${prov}] ${r.latencyMs}ms ${r.autoRepaired ? "(repaired) " : ""}${sentence.slice(0, 18)}…${r.ok ? "" : ` :: ${(r.errors ?? []).join("; ")}`}`,
   );
 }
 
