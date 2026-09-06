@@ -103,28 +103,11 @@
   --color-duo-polar: #0f172a;
 }
 
-/* 原生触控反馈类：全局按钮/卡片等可点元素统一挂接（PWA Native-Like 规范 §九） */
-.interactive-tap {
-  min-height: var(--touch-target-min);
-  min-width: var(--touch-target-min);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  touch-action: manipulation;
-  transition:
-    transform var(--duration-fast) var(--motion-ease-out),
-    opacity var(--duration-fast) var(--motion-ease-out);
-}
-.interactive-tap:active {
-  transform: scale(0.97);
-  opacity: 0.85;
-}
+/* 原生触控反馈类（Batch1：interactive-tap 已出清，全仓 0 引用；统一用 touch-target/touch-feedback） */
 
 .oto-app {
-  --oto-accent-purple: #7b61ff;
-  --oto-accent-blue: #4b9bff;
   --oto-accent-cyan: #00f0ff;
-  --oto-accent-magenta: #ff007a;
-  --oto-inlay-bg: rgba(20, 22, 38, 0.55);
+  /* Batch1：其余 --oto-accent-* 已出清（0 引用；cyan 保留供 focus-visible） */
 
   /* Design Token 字典注入容器（继承根值，容器内可覆盖） */
   --color-primary: #0f52ba;
@@ -168,23 +151,14 @@
   text-rendering: optimizeLegibility;
   letter-spacing: 0.01em;
 
-  /* 明亮字阶与对比度变量（Feather：#4b4b4b 主标题 / #777777 正文 / #afafaf 辅助） */
-  --text-primary: #4b4b4b;
-  --text-secondary: #777777;
-  --text-muted: #afafaf;
-  --font-size-micro: 12px;
-  --font-size-caption: 13px;
-  --font-size-body: 15px;
-  --font-size-title: 18px;
+  /* Batch1：Feather 明亮字阶变量已出清（全仓 0 引用，t-* 字阶类保留） */
 }
 
 /* 深色安全回退：data-theme="dark" 下恢复深空可读性（宪法 #10） */
 .oto-app[data-theme="dark"] {
   background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
   color: #ffffff;
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.88);
-  --text-muted: rgba(255, 255, 255, 0.68);
+  /* Batch1：tx-* 明暗两套已出清（全仓 0 引用） */
 }
 
 /* ============ D-8 弹药主题 Token · 5 大主题作用域 ============
@@ -195,32 +169,32 @@
    tech），未声明或未知 → 安全回落 `default`（兜底蓝紫中性玻璃）。 */
 
 .oto-app [data-theme="housekeeping"] {
-  --theme-primary: #0f52ba;
-  --theme-primary-active: #0a3c85;
-  --theme-glow: rgba(15, 82, 186, 0.35);
-  --theme-border: rgba(15, 82, 186, 0.45);
-  --theme-surface-tint: rgba(15, 82, 186, 0.14);
+  --theme-primary: #3b82f6;
+  --theme-primary-active: #1d4ed8;
+  --theme-glow: rgba(59, 130, 246, 0.28);
+  --theme-border: rgba(255, 255, 255, 0.22);
+  --theme-surface-tint: rgba(123, 97, 255, 0.1);
 }
 .oto-app [data-theme="meetup"] {
-  --theme-primary: #f97316;
-  --theme-primary-active: #c2410c;
-  --theme-glow: rgba(249, 115, 22, 0.35);
-  --theme-border: rgba(249, 115, 22, 0.45);
-  --theme-surface-tint: rgba(249, 115, 22, 0.14);
+  --theme-primary: #3b82f6;
+  --theme-primary-active: #1d4ed8;
+  --theme-glow: rgba(59, 130, 246, 0.28);
+  --theme-border: rgba(255, 255, 255, 0.22);
+  --theme-surface-tint: rgba(123, 97, 255, 0.1);
 }
 .oto-app [data-theme="companion"] {
-  --theme-primary: #8b5cf6;
-  --theme-primary-active: #6d28d9;
-  --theme-glow: rgba(139, 92, 246, 0.4);
-  --theme-border: rgba(139, 92, 246, 0.5);
-  --theme-surface-tint: rgba(139, 92, 246, 0.16);
+  --theme-primary: #3b82f6;
+  --theme-primary-active: #1d4ed8;
+  --theme-glow: rgba(59, 130, 246, 0.28);
+  --theme-border: rgba(255, 255, 255, 0.22);
+  --theme-surface-tint: rgba(123, 97, 255, 0.1);
 }
 .oto-app [data-theme="tech"] {
-  --theme-primary: #10b981;
-  --theme-primary-active: #047857;
-  --theme-glow: rgba(16, 185, 129, 0.35);
-  --theme-border: rgba(16, 185, 129, 0.45);
-  --theme-surface-tint: rgba(16, 185, 129, 0.14);
+  --theme-primary: #3b82f6;
+  --theme-primary-active: #1d4ed8;
+  --theme-glow: rgba(59, 130, 246, 0.28);
+  --theme-border: rgba(255, 255, 255, 0.22);
+  --theme-surface-tint: rgba(123, 97, 255, 0.1);
 }
 .oto-app [data-theme="default"],
 .oto-app :not([data-theme]) {
@@ -618,26 +592,7 @@
   box-shadow: 0 0 40px rgba(0, 240, 255, 0.6);
 }
 
-/* 图片加载骨架 shimmer */
-.shimmer {
-  background: linear-gradient(
-    100deg,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.04) 60%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s linear infinite;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
+/* 图片加载骨架 shimmer（Batch1：已出清，全仓 0 引用；统一用 ui/Skeleton） */
 
 /* 隐藏原生滚动条 */
 .oto-app ::-webkit-scrollbar {
@@ -660,19 +615,7 @@
 .oto-app .t-caption { font-size: 13px; line-height: 1.5; }
 .oto-app .t-micro { font-size: 12px; line-height: 1.45; }
 
-/* 三级明亮文字对比度（Feather）：#4b4b4b 主标题 / #777777 正文 / #afafaf 辅助 */
-.oto-app .tx-1 { color: #4b4b4b; }
-.oto-app .tx-2 { color: #777777; }
-.oto-app .tx-3 { color: #afafaf; }
-.oto-app .tx-4 { color: #d4d4d4; }
-.oto-app .tx-5 { color: #e5e5e5; }
-.oto-app .tx-6 { color: #f0f0f0; }
-.oto-app[data-theme="dark"] .tx-1 { color: rgba(255, 255, 255, 0.95); }
-.oto-app[data-theme="dark"] .tx-2 { color: rgba(255, 255, 255, 0.88); }
-.oto-app[data-theme="dark"] .tx-3 { color: rgba(255, 255, 255, 0.68); }
-.oto-app[data-theme="dark"] .tx-4 { color: rgba(255, 255, 255, 0.32); }
-.oto-app[data-theme="dark"] .tx-5 { color: rgba(255, 255, 255, 0.22); }
-.oto-app[data-theme="dark"] .tx-6 { color: rgba(255, 255, 255, 0.14); }
+/* 三级明亮文字对比度（Batch1：tx-* 已出清，全仓 0 引用） */
 
 /* 价格翻牌滚动：新值经 key 重挂载触发自下而上滚入 */
 @keyframes price-roll-in {
@@ -765,20 +708,7 @@ html[data-low-power="1"] .card-inlay {
   background: rgba(20, 22, 38, 0.82);
 }
 
-/* 单屏 SPA 页面切换入场动画 */
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.page-enter {
-  animation: page-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* 单屏 SPA 页面切换入场动画（Batch1：page-enter 已出清，全仓 0 引用） */
 
 /* AI 对话流式输出光标 */
 .typing-caret {

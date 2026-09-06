@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Shield, Zap, Award, X, Check, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CyberEmptyState } from '@/components/ui/cyber-empty-state';
+// Batch1：CyberEmptyState 已降解删除 → 中性虚线空态（文案原样，Batch2 收敛）
 
 export interface InventoryItem {
   id: string;
@@ -56,12 +56,19 @@ export const InventoryGrid: React.FC = () => {
       )}
 
       {items.length === 0 ? (
-        <CyberEmptyState
-          title="成就背包空荡荡 ..."
-          description="尚未获得任何盲盒道具。参与公会悬赏、完成契约或使用秘宝抽卡获取道具吧！"
-          actionText="前往公会大厅"
-          onAction={() => window.location.href = '/demands'}
-        />
+        <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed border-input bg-card text-card-foreground">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground mb-3">
+            <Package className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold">成就背包空荡荡 ...</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">尚未获得任何盲盒道具。参与公会悬赏、完成契约或使用秘宝抽卡获取道具吧！</p>
+          <button
+            onClick={() => window.location.href = '/demands'}
+            className="mt-4 px-5 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground"
+          >
+            前往公会大厅
+          </button>
+        </div>
       ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
         {items.map((item) => {

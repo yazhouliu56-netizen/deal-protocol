@@ -5,8 +5,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { ThemeSwitcher } from "@/components/theme/theme-switcher"
 import { useTheme, type ThemeMode } from "@/components/theme/theme-provider"
-import { CyberOracleDialog } from "@/components/ui/cyber-oracle-dialog"
-import { Scroll, Sparkles, Cpu, Zap, Lock } from "lucide-react"
+import { Scroll, Sparkles, Cpu, Zap, Lock, Info } from "lucide-react"
 
 const themeStyles: Record<ThemeMode, { bgGlow: string; accentBadge: string }> = {
   'cyber-pop': {
@@ -134,14 +133,16 @@ export default function HomePage() {
           </motion.div>
         </div>
 
-        {/* Galgame 赛博裁决姬 Live 引导 */}
-        <CyberOracleDialog
-          state="excited"
-          speakerName="Cyber-Oracle姬"
-          message="主人！异世界悬赏公会通道已全量打通！AI 魔法阵已就绪，随时为您解析契约并锁定魔晶！"
-          confidenceScore={0.99}
-          className="max-w-2xl mx-auto shadow-2xl"
-        />
+        {/* Batch1：CyberOracleDialog 已降解删除 → 中性公告卡（文案原样，Batch2 收敛） */}
+        <div className="max-w-2xl mx-auto rounded-xl border border-input bg-card text-card-foreground p-4 flex items-start gap-3">
+          <div className="w-9 h-9 shrink-0 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+            <Info className="w-5 h-5" />
+          </div>
+          <div className="text-left">
+            <p className="text-xs font-bold">Cyber-Oracle姬 · 契约助手 <span className="font-mono font-normal text-muted-foreground">置信度 99%</span></p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">主人！异世界悬赏公会通道已全量打通！AI 魔法阵已就绪，随时为您解析契约并锁定魔晶！</p>
+          </div>
+        </div>
 
         {/* 三大核心魔法引擎卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">

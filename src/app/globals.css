@@ -92,15 +92,6 @@ body {
   --ring: 240 5.9% 10%;
   --radius: 0.75rem;
   --chart-1: 12 76% 61%;
-
-  /* 舒适字阶与对比度变量（三级深色文字：主标题 .95 / 正文·标签 .88 / 辅助描述 .68） */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.88);
-  --text-muted: rgba(255, 255, 255, 0.68);
-  --font-size-micro: 12px;
-  --font-size-caption: 13px;
-  --font-size-body: 15px;
-  --font-size-title: 18px;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
@@ -266,13 +257,7 @@ body {
 .t-caption { font-size: 13px; line-height: 1.5; }
 .t-micro { font-size: 12px; line-height: 1.45; }
 
-/* 三级深色文字对比度：主标题 .95 / 正文·标签 .88 / 辅助描述 .68（tx-4~6 为装饰性弱化保留） */
-.tx-1 { color: rgba(255, 255, 255, 0.95); }
-.tx-2 { color: rgba(255, 255, 255, 0.88); }
-.tx-3 { color: rgba(255, 255, 255, 0.68); }
-.tx-4 { color: rgba(255, 255, 255, 0.32); }
-.tx-5 { color: rgba(255, 255, 255, 0.22); }
-.tx-6 { color: rgba(255, 255, 255, 0.14); }
+/* 三级深色文字对比度与 tx-* 阶梯已出清（Batch1：全仓 0 引用） */
 
 /* ===== 4-Theme CSS Variable System ===== */
 [data-theme='cyber-pop'], html:not([data-theme]) {
@@ -312,7 +297,8 @@ body {
 }
 
 body {
-  background-color: var(--bg-primary, #020617);
-  color: var(--text-main, #f8fafc);
+  /* Batch1 单轨收敛：body 改走 shadcn 变量；data-theme 块保留供 dp/page，Batch2 迁移 */
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   transition: background-color 0.3s ease, color 0.3s ease;
 }
