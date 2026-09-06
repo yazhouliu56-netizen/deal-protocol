@@ -2,6 +2,8 @@
  * Gateway 引擎（ADR-0005）：流式对话与非流式 JSON 两条执行链。
  *
  * - 路由：activeProviders(task) 顺序降级（2xx 赢；429/5xx 换下一家）。
+ * - 分摊：completeText 按任务轮换首选起点（round-robin），fallback 沿 ordering
+ *   环绕——火力分散到各独立配额池，避免固定排序把第一家吃空（2026-09-06 实证）。
  * - 配额：guardedFetchFor per-provider 串行 + 间隔 + 429 冷却（冷却中跳过）。
  * - 缓存：chat 流式 SSE / voice-intent JSON 均按最后一条 user 消息缓存，
  *   同文本零上游开销。
@@ -211,6 +213,16 @@ export interface TextCompletionOptions {
   timeoutMs?: number;
 }
 
+/** Round-robin 游标（按任务）：轮换每次调用的首选起点，fallback 沿 ordering 环绕。 */
+const rrCursor = new Map<GatewayTask, number>();
+
+function rotateStart(chain: ProviderEntry[], task: GatewayTask): ProviderEntry[] {
+  if (chain.length < 2) return chain;
+  const next = (rrCursor.get(task) ?? 0) % chain.length;
+  rrCursor.set(task, next + 1);
+  return [...chain.slice(next), ...chain.slice(0, next)];
+}
+
 export interface TextOutcome {
   ok: boolean;
   content: string;
@@ -228,7 +240,10 @@ export interface TextOutcome {
 export async function completeText(
   opts: TextCompletionOptions
 ): Promise<TextOutcome> {
-  const chain = activeProviders(opts.task).filter((p) => !isCooling(p.name));
+  const chain = rotateStart(
+    activeProviders(opts.task).filter((p) => !isCooling(p.name)),
+    opts.task
+  );
   let lastDetail = "no providers";
   for (const provider of chain) {
     const res = await upstream(
