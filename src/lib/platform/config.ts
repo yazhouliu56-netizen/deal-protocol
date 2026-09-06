@@ -121,13 +121,15 @@ export async function getConfig(): Promise<PlatformConfig> {
     const config = getDefaultConfig()
     const { error: insertError } = await supabase
       .from('platform_config')
-      .insert({ id: 'singleton', config: JSON.stringify(config) })
+      .insert({ id: 'singleton', config })
     if (insertError) throw insertError
     cachedConfig = config
     return config
   }
 
-  cachedConfig = JSON.parse(row.config) as PlatformConfig
+  // Seed 迁移写入的是 JSONB 对象，updateConfig 历史写入的是 JSON 字符串；
+  // 双形状兼容，否则 JSON.parse(对象) 抛错 → 全网回退默认费率。
+  cachedConfig = (typeof row.config === "string" ? JSON.parse(row.config) : row.config) as PlatformConfig
   return cachedConfig
 }
 
@@ -135,7 +137,7 @@ export async function updateConfig(data: PlatformConfig): Promise<void> {
   const supabase = getServiceClient()
   const { error } = await supabase
     .from('platform_config')
-    .upsert({ id: 'singleton', config: JSON.stringify(data) }, { onConflict: 'id' })
+    .upsert({ id: 'singleton', config: data }, { onConflict: 'id' })
   if (error) throw error
   cachedConfig = data
 }

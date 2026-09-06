@@ -185,10 +185,12 @@ describe('P0-05: llm_logs migration SQL', () => {
   })
 })
 
-// ─── P0-01: 代码路径统一 — 路由使用 protocols (§4.2) ─────────
+// ─── P0-01 → Step3b 演进：发单路由双写 protocols + demands 硬桥接 ──────
+// P0-01 的“仅写 protocols”已由 Step3b 方案A 取代：同路由原子双写，
+// demands 失败则补偿删除 protocol（零孤儿）。本断言锁定新不变量。
 
-describe('P0-01: demands route uses protocols table', () => {
-  it('demands/route.ts writes to protocols table', async () => {
+describe('Step3b: demands route dual-writes protocol+demand bridge', () => {
+  it('demands/route.ts writes protocols and bridged demands with compensation', async () => {
     const fs = await import('fs')
     const path = await import('path')
     const content = fs.readFileSync(
@@ -196,6 +198,8 @@ describe('P0-01: demands route uses protocols table', () => {
       'utf-8',
     )
     expect(content).toMatch(/\.from\(['"]protocols['"]\)/)
-    expect(content).not.toMatch(/\.from\(['"]demands['"]\)/)
+    expect(content).toMatch(/\.from\(['"]demands['"]\)/)
+    expect(content).toMatch(/protocol_id/)
+    expect(content).toMatch(/compensat/i)
   })
 })

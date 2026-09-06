@@ -19,7 +19,7 @@ export interface DemandDetail {
   id: string
   title: string
   price: number
-  status: "ASSIGNED" | "DEPARTED" | "ARRIVED" | "STARTED" | "COMPLETED"
+  status: "ASSIGNED" | "DEPARTED" | "ARRIVED" | "STARTED" | "COMPLETED" | "settled"
   latitude: number
   longitude: number
   client_name?: string
@@ -39,7 +39,12 @@ const STATUS_MAP = {
   ARRIVED: { label: "已到现场", next: "STARTED", btnText: "🛠️ 长按 1.5 秒开始提供服务" },
   STARTED: { label: "施工中", next: "COMPLETED", btnText: "🏁 长按 1.5 秒确认服务完工" },
   COMPLETED: { label: "已完工", next: null, btnText: "服务已结束" },
+  // 放款 settled 终态 + 未知态 fallback（防历史大小写漂移导致渲染崩溃）
+  settled: { label: "已结算", next: null, btnText: "服务已结算" },
 }
+
+type StatusConfig = { label: string; next: string | null; btnText: string }
+const STATUS_FALLBACK: StatusConfig = { label: "未知状态", next: null, btnText: "状态同步中，请下拉刷新" } as const
 
 export default function OrderFulfillmentClient({
   initialDemand,
@@ -74,7 +79,8 @@ export default function OrderFulfillmentClient({
     },
   )
 
-  const currentConfig = STATUS_MAP[demand.status]
+  const currentConfig: StatusConfig =
+    (STATUS_MAP as Record<string, StatusConfig>)[demand.status] ?? STATUS_FALLBACK
   const isMissingCertificates = demand.status === "STARTED" && uploadedImages.length < 2
 
   // D8 地图栈归一（Batch 4 C15）：Leaflet MapComponent 出清 → MapLibre MapView 单点锚定

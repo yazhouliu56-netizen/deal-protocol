@@ -51,6 +51,47 @@ function makeProtocolPayload(userId: string, body: Record<string, unknown>, info
   return payload
 }
 
+function resolveDemandPrice(
+  body: Record<string, unknown>,
+  info?: Record<string, unknown>,
+): number | null {
+  const cands = [body.budget, info?.budget, body.budgetMin, info?.budgetMin]
+  for (const c of cands) {
+    const n = Number(c)
+    if (Number.isFinite(n) && n > 0) return n
+  }
+  return null
+}
+
+// Step3b 方案A：发单同路由原子双写 protocols + demands（protocol_id 硬桥接）。
+// demands 写失败 → 物理删除刚建 protocol 补偿，绝对零孤儿协议。
+async function createProtocolWithDemand(
+  svc: SupabaseClient,
+  userId: string,
+  payload: Record<string, unknown>,
+  body: Record<string, unknown>,
+  info?: Record<string, unknown>,
+) {
+  const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
+  if (error || !protocol) throw error ?? new Error("Protocol insert failed")
+
+  const demandRow = {
+    protocol_id: protocol.id,
+    demander_id: userId,
+    client_id: userId,
+    customer_id: userId,
+    title: (info?.title ?? body.title ?? '未命名需求') as string,
+    price: resolveDemandPrice(body, info),
+    status: 'OPEN',
+  }
+  const { error: demandError } = await svc.from('demands').insert(demandRow)
+  if (demandError) {
+    await svc.from('protocols').delete().eq('id', protocol.id)
+    throw new Error(`Demand bridge insert failed, protocol compensated: ${demandError.message}`)
+  }
+  return protocol
+}
+
 async function autoMatchProtocol(supabase: SupabaseClient, protocolId: string, category: string): Promise<void> {
   try {
     const { routeProtocol } = await import("@/modules/m06-matching-routing/matcher")
@@ -88,8 +129,9 @@ export const POST = withAuth(async (req, user) => {
       const info = await classifyDemand(body.text)
 
       const payload = makeProtocolPayload(user.id, body, info as unknown as Record<string, unknown>)
-      const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
-      if (error) throw error
+      const protocol = await createProtocolWithDemand(
+        svc, user.id, payload, body, info as unknown as Record<string, unknown>,
+      )
 
       revalidatePath('/demands')
       after(async () => {
@@ -101,8 +143,7 @@ export const POST = withAuth(async (req, user) => {
     }
 
     const payload = makeProtocolPayload(user.id, body)
-    const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
-    if (error) throw new Error(`Protocol insert error: ${error.message} (${JSON.stringify(error)})`)
+    const protocol = await createProtocolWithDemand(svc, user.id, payload, body)
 
     revalidatePath('/demands')
     after(async () => {
