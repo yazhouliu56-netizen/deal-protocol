@@ -464,33 +464,8 @@
   animation: float-slow 6s ease-in-out infinite;
 }
 
-@keyframes float-up {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-.animate-float-up {
-  animation: float-up 3s ease-in-out infinite;
-}
 
-/* ============ Glows ============ */
-
-.glow-purple {
-  box-shadow: 0 0 35px rgba(123, 97, 255, 0.4);
-}
-.glow-cyan {
-  box-shadow: 0 0 35px rgba(0, 240, 255, 0.4);
-}
-.glow-purple-strong {
-  box-shadow: 0 0 40px rgba(123, 97, 255, 0.6);
-}
-.glow-cyan-strong {
-  box-shadow: 0 0 40px rgba(0, 240, 255, 0.6);
-}
+/* Batch4: glow-* 发光类定义出清（调用点 Batch2 已清零，此处删定义，全仓 0 引用） */
 
 /* 图片加载骨架 shimmer（Batch1：已出清，全仓 0 引用；统一用 ui/Skeleton） */
 
@@ -527,40 +502,8 @@
   animation: price-roll-in 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 主题光晕涟漪：参数改动时价格带外扩一圈辉光 */
-@keyframes glow-ripple {
-  0% { box-shadow: 0 0 0 0 var(--theme-glow); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
-.glow-ripple-keyed {
-  animation: glow-ripple 0.7s ease-out;
-}
 
-/* 实时撮合微动效弹幕：双份内容横向循环 */
-@keyframes ticker-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.ticker-track {
-  display: flex;
-  width: max-content;
-  animation: ticker-marquee 26s linear infinite;
-}
-.ticker-marquee:hover .ticker-track {
-  animation-play-state: paused;
-}
 
-/* 周边在线供给光斑呼吸 */
-@keyframes radar-blob {
-  0%, 100% { transform: scale(1); opacity: 0.55; }
-  50% { transform: scale(1.35); opacity: 1; }
-}
-.radar-blob {
-  animation: radar-blob 2.4s ease-in-out infinite;
-}
-.radar-blob-delay-1 { animation-delay: 0.8s; }
-.radar-blob-delay-2 { animation-delay: 1.6s; }
 
 /* ============ P5: Low-power degradation (html[data-low-power="1"]) ============ */
 
@@ -580,19 +523,11 @@ html[data-low-power="1"] .noise-overlay {
   display: none;
 }
 
-html[data-low-power="1"] .animate-float-slow,
-html[data-low-power="1"] .animate-float-up {
+html[data-low-power="1"] .animate-float-slow {
   animation: none;
 }
 
-html[data-low-power="1"] .ticker-track,
-html[data-low-power="1"] .radar-blob,
-html[data-low-power="1"] .price-roll,
-html[data-low-power="1"] .glow-ripple-keyed {
-  animation: none;
-}
-
-html[data-low-power="1"] .shimmer {
+html[data-low-power="1"] .price-roll {
   animation: none;
 }
 
