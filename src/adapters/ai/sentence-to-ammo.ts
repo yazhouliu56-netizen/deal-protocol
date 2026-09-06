@@ -87,7 +87,6 @@ export function extractAmmoJson(text: string): {
   const stripped = text
     .replace(/```(?:json)?\s*/gi, "```")
     .replace(/```/g, "")
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
     .replace(/,\s*([}\]])/g, "$1");
   const start = stripped.indexOf("{");
