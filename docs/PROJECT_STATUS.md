@@ -8,7 +8,7 @@
 
 Microkernel 3.1 增长特区量产闭环收官（2026-09-05：P0 真题库 → P1 编译器纯核 → P2 旁路量产链+/lab → P3 双盘单页）。
 UI 视觉单轨制收官（2026-09-06：Batch 1~3 + glow 死定义补刀，全仓 Feather/Duo 3D 单一设计系统，glass/btn-primary/4 预设/主题切换全出清）。
-下一步：真机通过率实测（REAL_LLM=1 ≥14/20）+ m20/f20 投流转化 + P8 商业化线上化。
+下一步：真机通过率已达标（2026-09-06：同 KEY 多 Gemini 模型分摊 round-robin，15/20 ≥ 14 门控通过；flash-lite 系 13/13，flash 2/7 限流）→ m20/f20 投流转化 + P8 商业化线上化。
 
 ## Test Baseline
 
