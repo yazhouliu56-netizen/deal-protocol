@@ -245,7 +245,9 @@ export async function completeText(
     opts.task
   );
   let lastDetail = "no providers";
+  let lastProvider: string | undefined;
   for (const provider of chain) {
+    lastProvider = provider.name;
     const res = await upstream(
       provider,
       opts.task,
@@ -278,5 +280,5 @@ export async function completeText(
     }
     return { ok: true, content, provider: provider.name };
   }
-  return { ok: false, content: "", detail: lastDetail };
+  return { ok: false, content: "", provider: lastProvider, detail: lastDetail };
 }
