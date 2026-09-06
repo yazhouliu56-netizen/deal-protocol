@@ -6,7 +6,6 @@ const ALL: Array<[string, string | undefined]> = [
   ["GEMINI_API_KEY", undefined],
   ["ZHIPU_API_KEY", undefined],
   ["DASHSCOPE_API_KEY", undefined],
-  ["GROQ_API_KEY", undefined],
   ["OPENROUTER_API_KEY", undefined],
   ["DEEPSEEK_API_KEY", undefined],
   ["KIMI_API_KEY", undefined],
@@ -34,19 +33,19 @@ function withEnv(env: Array<[string, string | undefined]>, fn: () => void) {
   }
 }
 
-test("allProviders declares the seven ADR-0005 candidates (+deepseek/kimi)", () => {
+test("allProviders declares the six ADR-0005 candidates (+deepseek/kimi, groq removed 2026-09-06: key 403-dead)", () => {
   assert.deepEqual(
     allProviders().map((p) => p.name).sort(),
-    ["deepseek", "gemini", "groq", "kimi", "openrouter", "qwen", "zhipu"]
+    ["deepseek", "gemini", "kimi", "openrouter", "qwen", "zhipu"]
   );
 });
 
-test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < groq 3 < deepseek 4 < kimi 5 < openrouter 99", () => {
+test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < deepseek 4 < kimi 5 < openrouter 99", () => {
   const names = allProviders()
     .filter((p) => p.tasks.includes("chat"))
     .sort((a, b) => (a.ordering.chat ?? 99) - (b.ordering.chat ?? 99))
     .map((p) => p.name);
-  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "groq", "deepseek", "kimi", "openrouter"]);
+  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "deepseek", "kimi", "openrouter"]);
 });
 
 test("voice-intent ordering: zhipu first, openrouter last", () => {
@@ -77,7 +76,6 @@ test("activeProviders order follows per-task ordering", () => {
       ["GEMINI_API_KEY", "demo-key-gemini"],
       ["ZHIPU_API_KEY", "demo-key-zhipu"],
       ["DASHSCOPE_API_KEY", "demo-key-qwen"],
-      ["GROQ_API_KEY", "demo-key-groq"],
       ["DEEPSEEK_API_KEY", "demo-key-ds"],
       ["KIMI_API_KEY", "demo-key-kimi"],
       ["OPENROUTER_API_KEY", "demo-key-or"],
@@ -87,7 +85,6 @@ test("activeProviders order follows per-task ordering", () => {
         "gemini",
         "zhipu",
         "qwen",
-        "groq",
         "deepseek",
         "kimi",
         "openrouter",
@@ -95,7 +92,6 @@ test("activeProviders order follows per-task ordering", () => {
       assert.deepEqual(activeProviders("voice-intent").map((p) => p.name), [
         "zhipu",
         "gemini",
-        "groq",
         "openrouter",
       ]);
     }
@@ -122,7 +118,6 @@ test("structured tasks (cluster/decompose/diagnose) lead with zhipu, then gemini
       ["GEMINI_API_KEY", "demo-key-gemini"],
       ["ZHIPU_API_KEY", "demo-key-zhipu"],
       ["DASHSCOPE_API_KEY", "demo-key-qwen"],
-      ["GROQ_API_KEY", "demo-key-groq"],
       ["OPENROUTER_API_KEY", "demo-key-or"],
     ],
     () => {

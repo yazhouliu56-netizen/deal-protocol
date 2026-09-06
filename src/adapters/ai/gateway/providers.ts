@@ -87,23 +87,6 @@ export function allProviders(): ProviderEntry[] {
       minGapMs: 900,
       cooldownMs: 15_000,
     },
-    {
-      name: "groq",
-      endpoint: "https://api.groq.com/openai/v1/chat/completions",
-      apiKey: env.GROQ_API_KEY ?? "",
-      model: env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
-      ordering: {
-        chat: 3,
-        "voice-intent": 2,
-        cluster: 2,
-        decompose: 2,
-        diagnose: 2,
-        judge: 2,
-      },
-      minGapMs: 450,
-      cooldownMs: 15_000,
-    },
     // ── 主模型扩展（任务隔离：仅 chat，避免污染 voice-intent 等小模型链路） ──
     {
       name: "deepseek",
@@ -129,7 +112,8 @@ export function allProviders(): ProviderEntry[] {
       name: "openrouter",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       apiKey: env.OPENROUTER_API_KEY ?? "",
-      model: env.OPENROUTER_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free",
+      // 2026-09-06 实测：llama-3.3-70b-instruct:free 已退役（404），改用 gemma-4-31b-it:free。
+      model: env.OPENROUTER_MODEL ?? "google/gemma-4-31b-it:free",
       tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 99,
