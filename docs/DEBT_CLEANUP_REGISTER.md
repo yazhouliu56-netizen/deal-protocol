@@ -265,10 +265,10 @@
 | `providers/NotificationProvider.tsx` | [🟢 正常在用] | `components/NotificationCenter.tsx`（旧版 C2）+ 跨帧通知 |
 | `theme/theme-provider.tsx` + `theme-switcher.tsx` | [🟢 正常在用] | layout / 主题切换 |
 | `profile/escrow-stats.tsx` + `inventory-grid.tsx` | [🟢 正常在用] | profile 页面 |
-| `escrow/checkpoint-timer.tsx` | [🟢 正常在用] | `demands/[id]/page.tsx`（里程碑倒计时） |
-| `onboarding/guild-registration-modal.tsx` | [🟢 正常在用] | `demands/page.tsx` |
-| `encounter/queue-adventure-modal.tsx` | [🟢 正常在用] | `demands/page.tsx` |
-| `demands/demand-card.tsx`、`ai/ai-arbitration-card.tsx`、`gacha/gacha-modal.tsx` | [🟢 正常在用] | demands 列表 / `demands/[id]/page.tsx` / 抽卡弹窗 |
+| `escrow/checkpoint-timer.tsx` | [🗑 已出清] | ~~`demands/[id]/page.tsx`（里程碑倒计时）~~ → 宿主路由全仓已不存在（glob 零命中），全仓 grep 零引用，物理删除 |
+| `onboarding/guild-registration-modal.tsx` | [🗑 已出清] | ~~`demands/page.tsx`~~ → 宿主路由全仓已不存在，全仓 grep 零引用，物理删除 |
+| `encounter/queue-adventure-modal.tsx` | [🗑 已出清] | ~~`demands/page.tsx`~~ → 宿主路由全仓已不存在，全仓 grep 零引用，物理删除 |
+| `demands/demand-card.tsx`、`ai/ai-arbitration-card.tsx`、`gacha/gacha-modal.tsx` | [🗑 已出清] | ~~demands 列表 / `demands/[id]/page.tsx` / 抽卡弹窗~~ → 宿主路由全仓已不存在，全仓 grep 零引用，物理删除 |
 
 > 注：`waves/*` 3 个测试文件（`DynamicDraftCard.test.tsx`、`FulfillmentCockpit.test.tsx`、`FulfillmentE2EIntegration.test.tsx`）与 `oto-ui/*` 3 个测试文件（`StatusCapsule.test.tsx`、`Tier4EdgeCases.test.tsx`、`OnlineStatusBridge.test.tsx`）为验证资产，**保留**。
 
