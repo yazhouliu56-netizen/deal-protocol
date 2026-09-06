@@ -45,15 +45,27 @@ export function allProviders(): ProviderEntry[] {
         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       apiKey: env.GEMINI_API_KEY ?? "",
       model: env.GEMINI_MODEL ?? "gemini-2.5-flash",
-      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
+      tasks: ["chat", "voice-intent", "cluster", "diagnose", "judge"],
       ordering: {
         chat: 0,
         "voice-intent": 1,
         cluster: 1,
-        decompose: 1,
         diagnose: 1,
         judge: 0,
       },
+      minGapMs: 900,
+      cooldownMs: 30_000,
+    },
+    {
+      // decompose 专用 lite 行（2026-09-06 实测：严格 JSON 任务 lite 系 > flash 系；
+      // flash（gemini 行）留给 judge 仲裁等低频高复杂度任务）。
+      name: "gemini-lite",
+      endpoint:
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      apiKey: env.GEMINI_API_KEY ?? "",
+      model: env.GEMINI_LITE_MODEL ?? "gemini-2.5-flash-lite",
+      tasks: ["decompose"],
+      ordering: { decompose: 1 },
       minGapMs: 900,
       cooldownMs: 30_000,
     },

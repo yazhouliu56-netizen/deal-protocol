@@ -33,10 +33,10 @@ function withEnv(env: Array<[string, string | undefined]>, fn: () => void) {
   }
 }
 
-test("allProviders declares the six ADR-0005 candidates (+deepseek/kimi, groq removed 2026-09-06: key 403-dead)", () => {
+test("allProviders declares the seven rows (groq removed; +gemini-lite decompose-only 2026-09-06)", () => {
   assert.deepEqual(
     allProviders().map((p) => p.name).sort(),
-    ["deepseek", "gemini", "kimi", "openrouter", "qwen", "zhipu"]
+    ["deepseek", "gemini", "gemini-lite", "kimi", "openrouter", "qwen", "zhipu"]
   );
 });
 
@@ -112,7 +112,7 @@ test("qwen does not join voice-intent", () => {
   );
 });
 
-test("structured tasks (cluster/decompose/diagnose) lead with zhipu, then gemini", () => {
+test("structured tasks: cluster/diagnose lead zhipu>gemini; decompose leads zhipu>gemini-lite, no gemini-flash", () => {
   withEnv(
     [
       ["GEMINI_API_KEY", "demo-key-gemini"],
@@ -121,11 +121,15 @@ test("structured tasks (cluster/decompose/diagnose) lead with zhipu, then gemini
       ["OPENROUTER_API_KEY", "demo-key-or"],
     ],
     () => {
-      for (const task of ["cluster", "decompose", "diagnose"] as const) {
+      for (const task of ["cluster", "diagnose"] as const) {
         const names = activeProviders(task).map((p) => p.name);
         assert.equal(names[0], "zhipu", `${task} leads with zhipu`);
         assert.equal(names[1], "gemini", `${task} second is gemini`);
         assert.ok(!names.includes("qwen"), `${task} excludes qwen`);
+      }
+      {
+        const names = activeProviders("decompose").map((p) => p.name);
+        assert.deepEqual(names, ["zhipu", "gemini-lite", "openrouter"]);
       }
     }
   );

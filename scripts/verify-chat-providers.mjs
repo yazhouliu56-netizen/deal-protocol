@@ -12,9 +12,9 @@ let ok = true;
 for (const [got, exp, label] of [[isValidKey("sk-real"),true,"real"],[isValidKey("your_deepseek_api_key_here"),false,"placeholder"],[isValidKey("placeholder"),false,"lit"],[isValidKey(""),false,"empty"],[isValidKey("   "),false,"blank"]]) if (got!==exp){console.error(`x isValidKey ${label}`);ok=false;}
 if(ok) console.log("isValidKey placeholder filtering - PASS");
 const all=allProviders().map(p=>p.name).sort();
-const expAll=["deepseek","gemini","kimi","openrouter","qwen","zhipu"];
+const expAll=["deepseek","gemini","gemini-lite","kimi","openrouter","qwen","zhipu"];
 if(JSON.stringify(all)!==JSON.stringify(expAll)){console.error(`x allProviders ${all}`);process.exit(1);}
-console.log(`allProviders 6 - ${all.join(",")} - PASS`);
+console.log(`allProviders 7 - ${all.join(",")} - PASS`);
 const DEMO={}; DEMO[k1]="demo-gemini"; DEMO[k2]="demo-zhipu"; DEMO[k3]="demo-qwen"; DEMO[k5]="demo-deepseek"; DEMO[k6]="demo-kimi"; DEMO[k7]="demo-or";
 const saved={}; for(const k of Object.keys(DEMO)){saved[k]=process.env[k];process.env[k]=DEMO[k];}
 try{

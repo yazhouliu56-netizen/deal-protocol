@@ -11,7 +11,6 @@ const MODELS = [
   "gemini-2.5-flash-lite",
   "gemini-3.1-flash-lite",
   "gemini-3.5-flash-lite",
-  "gemini-3.5-flash",
   "gemini-flash-lite-latest",
 ];
 const KEY = process.env.OPENCODE_GEMINI_KEY ?? "";
