@@ -15,7 +15,6 @@ import ARPage from "./_components/ARPage";
 import TripPage from "./_components/TripPage";
 import ProfilePage from "@/components/oto-ui/profile/ProfilePage";
 import SandboxBotHost from "./_components/SandboxBotHost";
-import HomeTickerMarquee from "./_components/HomeTickerMarquee";
 import HomeModalContainer from "./_components/HomeModalContainer";
 import type { ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationSheet";
 
@@ -79,7 +78,7 @@ export default function Home() {
         <AnimatePresence mode="wait">
           <motion.div key={screen} variants={screenVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0 overflow-y-auto pointer-events-none">
             <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
-              {screen === "home" && <><HomeTickerMarquee /><HomePage /></>}
+              {screen === "home" && <HomePage />}
               {screen === "im" && <MessagesPage onGoHome={() => setScreen("home")} />}
               {screen === "ar" && <ARPage proofShots={proofShots} onProofShot={(r) => setProofShots((prev) => [...prev, r])} />}
               {screen === "trip" && <TripPage proofShots={proofShots} onProofShot={(r) => setProofShots((prev) => [...prev, r])} />}

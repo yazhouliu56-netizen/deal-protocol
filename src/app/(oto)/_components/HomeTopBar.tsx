@@ -97,7 +97,7 @@ export default function HomeTopBar({
               : "text-[#afafaf] hover:text-[#4b4b4b]"
           }`}
         >
-          🔍 找帮手 / 约局
+          💡 我要找人
         </button>
         <button
           role="tab"
@@ -111,7 +111,7 @@ export default function HomeTopBar({
               : "text-[#afafaf] hover:text-[#4b4b4b]"
           }`}
         >
-          ⚡ 去接单赚钱
+          🛠️ 我来接单
         </button>
       </div>
       {/* 安全背书单行（收敛分散横幅） */}

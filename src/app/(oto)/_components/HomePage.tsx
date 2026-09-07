@@ -10,6 +10,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import HomeTopBar, { type HomeMode } from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
+import InspirationChips from "./InspirationChips";
 import HeroAiDemandCabin from "./HeroAiDemandCabin";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
@@ -83,6 +84,7 @@ export default function HomePage() {
             }}
             onMic={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
           />
+          <InspirationChips onSelectDraft={setDraft} />
           <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" />
           <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
             {chatOpen ? (

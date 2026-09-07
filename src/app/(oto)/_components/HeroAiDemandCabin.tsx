@@ -61,7 +61,7 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic }: 
           <div className="min-w-0">
             <p className="text-sm font-extrabold text-[#4b4b4b] truncate">Alex，今天想做什么有趣的事？</p>
             <p className="text-xs font-extrabold text-[#58cc02] flex items-center gap-1 mt-0.5">
-              ✨ AI 撮合助手 · 秒级生成担保契约 · 0 押金 满意后分账
+              ✨ AI 撮合助手 · 慢慢说，都有人兜底
             </p>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic }: 
             data-testid="launch-button"
             className="px-4 py-3 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-sm font-extrabold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform] shrink-0 min-h-12"
           >
-            出发！
+            帮我安排
           </button>
         </div>
 
