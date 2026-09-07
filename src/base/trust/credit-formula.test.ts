@@ -44,9 +44,9 @@ test("computeCompositeScore：age×decay 乘子链与下限钳位", () => {
 
 test("ageFactor：新户趋零、30 天封顶为 1", () => {
   const now = Date.now();
-  assert.equal(ageFactor(new Date(now)), 0);
-  assert.equal(ageFactor(new Date(now - 15 * 24 * 3600 * 1000)), 0.5);
-  assert.equal(ageFactor(new Date(now - 90 * 24 * 3600 * 1000)), 1);
+  assert.equal(ageFactor(new Date(now), now), 0);
+  assert.equal(ageFactor(new Date(now - 15 * 24 * 3600 * 1000), now), 0.5);
+  assert.equal(ageFactor(new Date(now - 90 * 24 * 3600 * 1000), now), 1);
 });
 
 test("decayFactor：null 视为满活跃，每闲置日线性衰减 1%，地板 0", () => {
