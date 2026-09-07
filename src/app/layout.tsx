@@ -10,14 +10,15 @@ const SITE_URL =
 /**
  * PWA Native-Like 严格视口（白皮书 §九 Design QA 验收项 V-1）：
  * - viewport-fit=cover：刘海屏内容铺满真实视口（配合 env(safe-area-inset-*)）；
- * - 锁定缩放（userScalable=false + maximumScale=1）：消除双击缩放（配合
- *   touch-action: manipulation 触控类）与桌面端手动缩放的布局漂移。
+ * - 缩放锁已按 §3 裁决解除（2026-09-07 用户拍板，WCAG 1.4.4 优先）：
+ *   maximumScale=5 + userScalable=true；双击缩放由 touch-action: manipulation
+ *   兜底（现代浏览器已消除点击延迟），误触成本可控。本次裁决不改变白皮书 V-1 原文。
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: "cover",
 };
 
