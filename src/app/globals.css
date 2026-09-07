@@ -306,3 +306,23 @@ body {
   color: hsl(var(--foreground));
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* 吉祥物动效三件套（Mochi 融合：bob 呼吸 + 气泡 pop 弹簧入场）。
+   transform/opacity 专有属性，零重排；降级：reduced-motion 总开关。 */
+@keyframes mascot-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(-2deg); }
+}
+.mascot-bob { animation: mascot-bob 3s ease-in-out infinite; }
+@keyframes bubble-pop {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.bubble-pop {
+  transform-origin: left center;
+  animation: bubble-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bubble-pop-right { transform-origin: right center; }
+@media (prefers-reduced-motion: reduce) {
+  .mascot-bob, .bubble-pop { animation: none !important; }
+}

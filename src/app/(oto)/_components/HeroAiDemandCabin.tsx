@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import confetti from "canvas-confetti";
 import { useIdentityStore } from "@/store/useIdentityStore";
 
 /**
@@ -16,6 +18,8 @@ interface HeroAiDemandCabinProps {
   onChange: (v: string) => void;
   onLaunch: (text: string) => void;
   onMic: () => void;
+  /** 有在途单时水豚睁眼（状态变脸，HomePage 同源投影）。 */
+  hasMission?: boolean;
 }
 
 /** AI 炫彩星芒图标（inline SVG 渐变，aria-hidden，零外部切图）。 */
@@ -43,12 +47,42 @@ function AiSparkle() {
 }
 
 /**
+ * 出发音效（零依赖 WebAudio：C5-E5-G5 上行三音“叮”，静默降级不打断发射）。
+ */
+function playLaunchChime() {
+  try {
+    const w = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
+    const Ctx = w.AudioContext ?? w.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      const t = ctx.currentTime + i * 0.09;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
+    });
+    window.setTimeout(() => void ctx.close(), 900);
+  } catch {
+    /* 无音频环境静默降级 */
+  }
+}
+
+/**
  * 卡皮巴拉徽章（圆滚滚治愈风：浅棕圆身 + 紧闭笑眼 + 上扬嘴角 +
  * 短尾巴 + 头顶小柚子，aria-hidden，无外部资源）。
+ * 状态变脸：awake=true 睁眼（听你说/有在途单），false 紧闭笑眼。
  */
-function CapybaraBadge() {
+function CapybaraBadge({ awake }: { awake: boolean }) {
   return (
-    <span aria-hidden="true" className="relative flex h-24 w-24 shrink-0 items-center justify-center select-none">
+    <span aria-hidden="true" className="mascot-bob relative flex h-24 w-24 shrink-0 items-center justify-center select-none">
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
       <svg width="88" height="88" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
@@ -66,9 +100,20 @@ function CapybaraBadge() {
         <circle cx="29" cy="8.5" r="3.6" fill="#f59e0b" />
         <ellipse cx="27.8" cy="7.4" rx="1.1" ry="1.5" fill="#fcd34d" opacity="0.9" />
         <path d="M29 5q0.4-1.6 1.8-2" stroke="#15803d" strokeWidth="1.2" strokeLinecap="round" />
-        {/* 紧闭笑眼 */}
-        <path d="M17.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
-        <path d="M34.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
+        {/* 眼睛：awake 睁眼聆听，平常紧闭笑眼 */}
+        {awake ? (
+          <>
+            <ellipse cx="20.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
+            <circle cx="21.5" cy="26.8" r="1.1" fill="#fff" />
+            <ellipse cx="37.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
+            <circle cx="38.5" cy="26.8" r="1.1" fill="#fff" />
+          </>
+        ) : (
+          <>
+            <path d="M17.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
+            <path d="M34.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
+          </>
+        )}
         {/* 浅色吻部 + 小鼻头 */}
         <ellipse cx="29" cy="36.5" rx="9" ry="7" fill="#ecd3ac" />
         <ellipse cx="29" cy="34" rx="3.2" ry="2.4" fill="#4a2d0c" />
@@ -86,10 +131,26 @@ function CapybaraBadge() {
   );
 }
 
-export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic }: HeroAiDemandCabinProps) {
+export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
+  const [focused, setFocused] = useState(false);
+  const awake = focused || hasMission;
   const submit = () => {
     const t = value.trim();
+    // 出发爽感：三音叮 + duo 配色撒花（reduced-motion 由库选项兜底），再走原发射链路
+    playLaunchChime();
+    try {
+      confetti({
+        particleCount: 45,
+        spread: 65,
+        startVelocity: 32,
+        origin: { y: 0.35 },
+        colors: ["#58cc02", "#1cb0f6", "#ffd028", "#ff7ab8"],
+        disableForReducedMotion: true,
+      });
+    } catch {
+      /* 撒花失败不打断发射 */
+    }
     onLaunch(t || "全类目需求");
   };
   return (
@@ -113,8 +174,8 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic }: 
       <div className="relative">
         {/* 问候行：水豚半身 + 气泡（话语从水豚嘴里说出：左尾气泡） */}
         <div className="flex items-center gap-2.5">
-          <CapybaraBadge />
-          <div className="relative min-w-0 flex-1 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2 ml-1">
+          <CapybaraBadge awake={awake} />
+          <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[#f7f7f7] border-l-2 border-b-2 border-[#e5e5e5]" />
             <p className="text-[15px] font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
             <p className="text-xs font-extrabold text-[#58cc02] flex items-center gap-1 mt-0.5">
@@ -134,6 +195,8 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic }: 
             onKeyDown={(e) => {
               if (e.key === "Enter" && value.trim()) submit();
             }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             placeholder="一句话描述你的需求，比如：周六晚7点天河2人羽毛球AA制…"
             aria-label="一句话描述你的需求"
             className="flex-1 min-w-0 bg-transparent py-2 text-sm text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none"

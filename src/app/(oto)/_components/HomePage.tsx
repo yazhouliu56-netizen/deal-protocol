@@ -83,13 +83,14 @@ export default function HomePage() {
           <HeroAiDemandCabin
             value={aiInput}
             onChange={setAiInput}
+            hasMission={activeWave !== null}
             onLaunch={(text) => {
               setDraft({ key: "default-ammo", label: text });
               setAiInput("");
             }}
             onMic={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
           />
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" />
+          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" hasLiveWaves={waves.some((w) => w.status !== "closed" && w.status !== "expired")} />
           <InspirationChips onSelectDraft={setDraft} />
           <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
             {chatOpen ? (

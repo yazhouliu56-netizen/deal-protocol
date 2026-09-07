@@ -19,6 +19,8 @@ interface AmmoPillBarProps {
    * featured = 1:1 图纸弹药库预览（标题 + 四展位中括号胶囊 + 平头哥）。
    */
   variant?: "tiles" | "compact" | "featured";
+  /** 附近有活水时平头哥醒来（HomePage 同源投影，默认酣睡）。 */
+  hasLiveWaves?: boolean;
 }
 
 /**
@@ -60,13 +62,14 @@ export function pillTagFor(theme: ScenarioTheme): string {
   }
 }
 
-/** 熟睡平头哥（蜜獾）：蜷睡圆球 + 白斗篷覆背 + 紧闭笑眼 + 三声 zzz，
- *  暖橙底托（inline SVG，aria-hidden，零外部切图永不 404）。 */
-function SleepyBeast() {
+/** 熟睡平头哥（蜜獾）：蜷睡圆球 + 白斗篷覆背 + 暖橙底托
+ *  （inline SVG，aria-hidden，零外部切图永不 404）。
+ *  状态变脸：awake=true（附近有活水）睁眼醒来收起 zzz，false 继续酣睡。 */
+function SleepyBeast({ awake = false }: { awake?: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
+      className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
     >
       <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true">
         {/* 暖橙底托 */}
@@ -81,14 +84,25 @@ function SleepyBeast() {
         {/* 小圆耳 */}
         <circle cx="8.6" cy="17.5" r="2.6" fill="#292524" />
         <circle cx="8.6" cy="17.5" r="1" fill="#78716c" />
-        {/* 紧闭笑眼 + 小鼻头 + 微笑 */}
-        <path d="M12.5 23.5q2 2 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
+        {/* 紧闭笑眼（醒来时睁眼） + 小鼻头 + 微笑 */}
+        {awake ? (
+          <>
+            <circle cx="14.5" cy="23" r="1.9" fill="#f5f5f4" />
+            <circle cx="14.5" cy="23" r="0.8" fill="#1c1917" />
+          </>
+        ) : (
+          <path d="M12.5 23.5q2 2 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
+        )}
         <ellipse cx="20.5" cy="26.5" rx="1.9" ry="1.4" fill="#1c1917" />
         <path d="M17.5 29.5q3 2.4 6 0" stroke="#f5f5f4" strokeWidth="1.3" strokeLinecap="round" />
-        {/* zzz */}
-        <text x="29" y="11" fontSize="7" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
-        <text x="33" y="6" fontSize="9" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
-        <text x="26" y="6" fontSize="6" fontWeight="bold" fill="#c2410c" opacity="0.45">z</text>
+        {/* zzz：有活水醒来即收起 */}
+        {!awake && (
+          <>
+            <text x="29" y="11" fontSize="7" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
+            <text x="33" y="6" fontSize="9" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
+            <text x="26" y="6" fontSize="6" fontWeight="bold" fill="#c2410c" opacity="0.45">z</text>
+          </>
+        )}
       </svg>
     </span>
   );
@@ -110,7 +124,7 @@ const TILE_ACCENT: Record<string, string> = {
   default: "#58cc02",
 };
 
-export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles" }: AmmoPillBarProps) {
+export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
   if (variant === "featured") {
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
       (p): p is AmmoPillDescriptor => !!p,
@@ -121,12 +135,12 @@ export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles" }:
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-[#afafaf]">弹药库预览</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
-            <p className="relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
+            <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
               看看大家都在忙什么？
             </p>
           </div>
-          <SleepyBeast />
+          <SleepyBeast awake={hasLiveWaves} />
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {featured.map((pill) => {
