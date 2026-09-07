@@ -176,15 +176,19 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     );
   }
   if (variant === "compact") {
+    // 折叠线案（F1）：时段副标题从 featured 搬入（灵感 chips 合并资产不回退）；
+    // 展位切 4 与图纸四展位对齐；平头哥接 hasLiveWaves 同源信号
+    //（宪法收敛：条文 #1，compact 分支此前漏接 awake 永酣睡）。
+    const insp = inspirationSetFor(new Date().getHours());
     return (
-      <div
-        className="mt-3 flex items-center gap-2 overflow-hidden"
-        data-layer="ammo-pills"
-        data-testid="ammo-pill-bar"
-        data-variant="compact"
-      >
-        <div className="flex flex-1 min-w-0 items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          {pills.slice(0, 5).map((pill) => {
+      <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="compact">
+        <p className="text-xs font-bold text-[#afafaf] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+        <div
+          className="mt-2 flex items-center gap-2 overflow-hidden"
+          data-layer="ammo-pills"
+        >
+          <div className="flex flex-1 min-w-0 items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            {pills.slice(0, 4).map((pill) => {
             const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
             return (
               <motion.button
@@ -206,8 +210,9 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             );
           })}
         </div>
-        <SleepyBeast />
+        <SleepyBeast awake={hasLiveWaves} />
       </div>
+    </div>
     );
   }
   return (

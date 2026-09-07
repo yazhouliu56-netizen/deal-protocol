@@ -18,7 +18,8 @@ import PublishSheet from "@/components/waves/PublishSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
 
-/** AI 撮合对话卡（memo 抽取：广播同步时 chatOpen 未变即跳过整卡重渲染）。 */
+/** AI 撮合对话卡（memo 抽取：广播同步时 chatOpen 未变即跳过整卡重渲染）。
+ *  折叠线案（F2）：未展开态压成单行胶囊（锚点 testid + aria-label 保真，e2e-match 零触碰）。 */
 const AiChatCard = memo(function AiChatCard({
   open,
   onOpen,
@@ -30,45 +31,44 @@ const AiChatCard = memo(function AiChatCard({
   onClose: () => void;
   onDraft: (draft: { key: string; label: string }) => void;
 }) {
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-expanded="false"
+        aria-label="展开多轮AI沟通"
+        data-testid="ai-chat-toggle"
+        className="mt-3 w-full flex items-center gap-2 min-h-10 px-3 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-left active:translate-y-px active:border-b-2 transition-[transform]"
+      >
+        <span className="text-xs font-extrabold text-[#4b4b4b] flex-1 truncate">🤖 AI 撮合对话 · 多轮追问</span>
+        <span className="text-xs font-bold text-[#afafaf] shrink-0">💬 展开 ↓</span>
+      </button>
+    );
+  }
   return (
     <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
-      {open ? (
-        <div>
-          <div className="mb-2 flex items-center gap-1">
-            <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="收起AI对话"
-              className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
-            >
-              收起 ↑
-            </button>
-          </div>
-          <ChatPage compact slim onAmmoDraft={(key, category) => onDraft({ key, label: category })} />
+      <div>
+        <div className="mb-2 flex items-center gap-1">
+          <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="收起AI对话"
+            className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
+          >
+            收起 ↑
+          </button>
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-expanded="false"
-          aria-label="展开多轮AI沟通"
-          data-testid="ai-chat-toggle"
-          className="w-full flex items-center gap-2 min-h-12 text-left"
-        >
-          <span className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</span>
-          <span className="px-3 py-2 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] shrink-0">
-            💬 展开 ↓
-          </span>
-        </button>
-      )}
+        <ChatPage compact slim onAmmoDraft={(key, category) => onDraft({ key, label: category })} />
+      </div>
     </div>
   );
 });
 
 /**
- * 首页买家视口（1:1 图纸形态）：问候顶栏 ➔ 水豚发射舱 ➔ 弹药库预览
- * ➔ 灵感 chips ➔ AI 对话 ➔ 活水 Feed ➔ 温情雷达空态。
+ * 首页买家视口（折叠线案后形态）：问候顶栏 ➔ 水豚发射舱 ➔ 弹药横滑
+ * ➔ AI 对话单行入口 ➔ 活水 Feed ➔ 温情雷达空态。
  * 卖家工作台按裁决收归 我的 → 服务者工作台（ProfilePage 内，e2e-app 锁定）。
  */
 export default function HomePage() {
@@ -138,7 +138,7 @@ export default function HomePage() {
             onLaunch={handleLaunch}
             onMic={handleMic}
           />
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" hasLiveWaves={hasLiveWaves} />
+          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
           <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
           <div className="mt-4" id="wave-feed" data-layer="wave-feed">
             <WaveFeed />
