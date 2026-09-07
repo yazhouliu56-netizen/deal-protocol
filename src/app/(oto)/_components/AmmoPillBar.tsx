@@ -126,6 +126,18 @@ const TILE_ACCENT: Record<string, string> = {
   default: "#58cc02",
 };
 
+/**
+ * 小字正文用加深色板（a11y 对比度≥4.5:1 实测：蓝 5.51/芥 4.92/紫 6.34/橙 6.11/绿 5.34；
+ * TILE_ACCENT 保留给图标投影等装饰用途，图纸色相不变只降明度）。
+ */
+const TEXT_ACCENT: Record<string, string> = {
+  housekeeping: "#0a6ea8",
+  meetup: "#8a6d00",
+  companion: "#6d3fd4",
+  tech: "#9a4d00",
+  default: "#357a00",
+};
+
 function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
   if (variant === "featured") {
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
@@ -137,7 +149,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="featured">
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-[#afafaf] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+            <p className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
             <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
@@ -157,7 +169,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 data-ammo={pill.ammoId}
                 data-category={pill.category}
                 data-theme={pill.theme}
-                aria-label={`${pill.label} · 一键弹药发单`}
+                aria-label={`[ ${pill.icon} ${pill.label} | ${pillTagFor(pill.theme)} ] · 一键弹药发单`}
                 data-testid={`pill-${pill.ammoId}`}
                 className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap min-h-11 active:scale-95 transition-transform"
                 style={{ backgroundColor: s.bg, color: s.text }}
@@ -182,14 +194,14 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     const insp = inspirationSetFor(new Date().getHours());
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="compact">
-        <p className="text-xs font-bold text-[#afafaf] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+        <p className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
         <div
           className="mt-2 flex items-center gap-2 overflow-hidden"
           data-layer="ammo-pills"
         >
           <div className="flex flex-1 min-w-0 items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
             {pills.slice(0, 4).map((pill) => {
-            const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
+            const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
             return (
               <motion.button
                 key={pill.ammoId}
@@ -198,14 +210,14 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 data-ammo={pill.ammoId}
                 data-category={pill.category}
                 data-theme={pill.theme}
-                aria-label={`${pill.label} · 一键弹药发单`}
+                aria-label={`一键弹药发单：${pill.label} ${pillTagFor(pill.theme)}`}
                 data-testid={`pill-${pill.ammoId}`}
                 className="flex shrink-0 items-center gap-1 px-3 py-2 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] hover:border-[#58cc02]/20 whitespace-nowrap min-h-10"
               >
-                <span className="text-sm leading-none">{pill.icon}</span>
+                <span className="text-sm leading-none" aria-hidden="true">{pill.icon}</span>
                 <span className="truncate">{pill.label}</span>
-                <span className="text-[#afafaf] font-normal">|</span>
-                <span className="font-extrabold" style={{ color: accent }}>{pillTagFor(pill.theme)}</span>
+                <span className="text-[#767676] font-normal" aria-hidden="true">|</span>
+                <span className="font-extrabold" style={{ color: textAccent }}>{pillTagFor(pill.theme)}</span>
               </motion.button>
             );
           })}
@@ -224,6 +236,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
       {pills.slice(0, 5).map((pill) => {
         const s = TILE_STYLE[pill.theme] ?? TILE_STYLE.default;
         const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
+        const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
         return (
           <motion.button
             key={pill.ammoId}
@@ -232,14 +245,14 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             data-ammo={pill.ammoId}
             data-category={pill.category}
             data-theme={pill.theme}
-            aria-label={`${pill.label} · 一键弹药发单`}
+            aria-label={`${pill.icon} ${pill.label} ${s.price} · 一键弹药发单`}
             data-testid={`pill-${pill.ammoId}`}
             className="flex flex-col items-center gap-1 px-2 py-3 rounded-2xl bg-white border-2 border-b-[4px] border-[#e5e5e5] shadow-sm active:translate-y-1 active:border-b-2 active:shadow-none transition-[transform,border] min-h-[88px] justify-center hover:border-[#58cc02]/20"
             style={{ borderBottomColor: "#e5e5e5" }}
           >
             <span className="text-2xl leading-none" style={{ filter: `drop-shadow(0 1px 0 ${accent}20)` }}>{pill.icon}</span>
             <span className="text-xs font-extrabold text-[#4b4b4b] truncate w-full text-center leading-tight">{pill.label}</span>
-            <span className="text-xs font-bold truncate w-full text-center" style={{ color: accent }}>{s.price}</span>
+            <span className="text-xs font-bold truncate w-full text-center" style={{ color: textAccent }}>{s.price}</span>
           </motion.button>
         );
       })}

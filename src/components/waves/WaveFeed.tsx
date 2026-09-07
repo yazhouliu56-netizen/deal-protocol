@@ -125,20 +125,20 @@ export default function WaveFeed() {
 
       <h1 className="text-[18px] leading-tight font-extrabold mt-1 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
         📍 附近的需求
-        <span className="text-xs font-normal text-[#afafaf]">· 谁正在附近发需求</span>
+        <span className="text-xs font-normal text-[#767676]">· 谁正在附近发需求</span>
         <SandboxBadge />
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
         <p className="text-xs text-[#777777] flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅 · 正在接收信号
-          <span className="text-xs text-[#afafaf]">· 谁合适谁来</span>
+          <span className="text-xs text-[#767676]">· 谁合适谁来</span>
         </p>
         <button
           onClick={() => setFavOpen(true)}
           aria-label={`查看我关注的局，共 ${favorites.length} 个`}
-          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#afafaf] hover:border-[#1cb0f6]/30 hover:text-[#4b4b4b] transition-colors shrink-0 shadow-sm active:translate-y-1 active:border-b-2"
+          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#767676] hover:border-[#1cb0f6]/30 hover:text-[#4b4b4b] transition-colors shrink-0 shadow-sm active:translate-y-1 active:border-b-2"
         >
-          <Heart size={10} className={favorites.length ? "text-[#ff4b4b] fill-[#ff4b4b]" : "text-[#afafaf]"} />
+          <Heart size={10} className={favorites.length ? "text-[#ff4b4b] fill-[#ff4b4b]" : "text-[#767676]"} />
           关注 {favorites.length > 0 ? favorites.length : ""}
         </button>
       </div>
@@ -157,9 +157,9 @@ export default function WaveFeed() {
               <span className="absolute h-24 w-24 rounded-full bg-[#58cc02]/10 animate-pulse" />
               <span className="absolute h-40 w-40 rounded-full bg-[#58cc02]/5 animate-pulse" />
             </div>
-            <p className="relative text-xs font-bold text-[#1cb0f6]">附近的雷达</p>
+            <p className="relative text-xs font-bold text-[#0a6ea8]">附近的雷达</p>
             <p className="relative text-sm font-extrabold text-[#4b4b4b] mt-1">你附近的OTO社区</p>
-            <p className="relative text-xs text-[#afafaf] mt-1 leading-relaxed">这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！</p>
+            <p className="relative text-xs text-[#767676] mt-1 leading-relaxed">这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！</p>
           </motion.div>
         )}
         {feed.map((f) => (

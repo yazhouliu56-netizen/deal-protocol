@@ -130,7 +130,7 @@ try {
   );
   step("A", "sandbox-bot=off 断言通过");
 
-  await pageA.getByRole("button", { name: "家政保洁 · 一键弹药发单" }).click();
+  await pageA.getByRole("button", { name: /一键弹药发单.*家政保洁/ }).click();
   await pageA.waitForTimeout(600);
   const draft = await pageA.evaluate(
     () => document.querySelector('[data-testid="draft-sheet"] .draft-card')?.getAttribute("data-ammo") ?? ""

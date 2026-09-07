@@ -37,12 +37,12 @@ const AiChatCard = memo(function AiChatCard({
         type="button"
         onClick={onOpen}
         aria-expanded="false"
-        aria-label="展开多轮AI沟通"
+        aria-label="展开多轮AI沟通：🤖 AI 撮合对话 · 多轮追问 💬 展开 ↓"
         data-testid="ai-chat-toggle"
         className="mt-3 w-full flex items-center gap-2 min-h-10 px-3 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-left active:translate-y-px active:border-b-2 transition-[transform]"
       >
         <span className="text-xs font-extrabold text-[#4b4b4b] flex-1 truncate">🤖 AI 撮合对话 · 多轮追问</span>
-        <span className="text-xs font-bold text-[#afafaf] shrink-0">💬 展开 ↓</span>
+        <span className="text-xs font-bold text-[#767676] shrink-0">💬 展开 ↓</span>
       </button>
     );
   }
@@ -54,7 +54,7 @@ const AiChatCard = memo(function AiChatCard({
           <button
             type="button"
             onClick={onClose}
-            aria-label="收起AI对话"
+            aria-label="收起 ↑，关闭AI对话"
             className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
           >
             收起 ↑

@@ -193,7 +193,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
           <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[#f7f7f7] border-l-2 border-b-2 border-[#e5e5e5]" />
             <p className="text-[15px] font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
-            <p className="text-xs font-extrabold text-[#58cc02] flex items-center gap-1 mt-0.5">
+            <p className="text-xs font-extrabold text-[#357a00] flex items-center gap-1 mt-0.5">
               ✨ AI 撮合助手 · 慢慢说，都有人兜底
             </p>
           </div>
@@ -218,7 +218,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
           />
           <button
             type="button"
-            aria-label="语音输入"
+            aria-label="🎙️ 语音输入"
             onClick={onMic}
             className="w-9 h-9 rounded-full bg-white border-2 border-[#e5e5e5] shadow-sm flex items-center justify-center text-sm shrink-0 active:translate-y-px hover:border-[#58cc02]/20 transition-[transform,border]"
           >
@@ -227,9 +227,9 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
           <button
             type="button"
             onClick={submit}
-            aria-label="想找什么？一句话告诉我 · 发出你的需求"
+            aria-label="[ 出发! ] 想找什么？一句话告诉我 · 发出你的需求"
             data-testid="launch-button"
-            className="px-5 py-2.5 rounded-full bg-[#58cc02] border-b-[3px] border-[#46a302] text-white text-sm font-black shadow-[0_6px_16px_rgba(88,204,2,.45)] active:scale-90 active:border-b-0 transition-transform shrink-0 min-h-11"
+            className="px-5 py-2.5 rounded-full bg-[#3a8500] border-b-[3px] border-[#2f7a00] text-white text-sm font-black shadow-[0_6px_16px_rgba(88,204,2,.45)] active:scale-90 active:border-b-0 transition-transform shrink-0 min-h-11"
           >
             [ 出发! ]
           </button>
@@ -263,7 +263,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
               className="relative rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-xl px-6 py-3 text-center"
             >
               <p className="text-lg font-black text-[#2d3748]">发射成功！🎉</p>
-              <p className="text-xs font-bold text-[#58cc02] mt-0.5">正在为你装填弹药…</p>
+              <p className="text-xs font-bold text-[#357a00] mt-0.5">正在为你装填弹药…</p>
             </motion.div>
           </motion.div>
         )}

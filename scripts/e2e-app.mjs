@@ -66,7 +66,7 @@ try {
   {
     const start = Date.now();
     const hit = async () => {
-      const btn = page.getByRole("button", { name: "家政保洁 · 一键弹药发单" });
+      const btn = page.getByRole("button", { name: /一键弹药发单.*家政保洁/ });
       if (await btn.count()) {
         try {
           await btn.click({ timeout: 400 });

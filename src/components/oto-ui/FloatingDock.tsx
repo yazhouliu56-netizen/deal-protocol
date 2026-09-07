@@ -52,8 +52,8 @@ export default function FloatingDock() {
                 data-active={isActive ? "true" : "false"}
                 className={`relative flex flex-col items-center gap-1 transition-all duration-300 ${
                   isActive
-                    ? "text-[var(--color-duo-green)] scale-110"
-                    : "text-[#afafaf] hover:text-[#4b4b4b] hover:scale-105"
+                    ? "text-[#357a00] scale-110"
+                    : "text-[#767676] hover:text-[#4b4b4b] hover:scale-105"
                 }`}
               >
                 {/* Spring Glider：半透明高光胶囊，Tab 间弹簧滑行吸附（transform/opacity 硬件加速，60fps） */}

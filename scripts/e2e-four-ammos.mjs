@@ -13,7 +13,7 @@
  * 全程断言：草稿卡数据 / 徽标 / 发布面板 → 广播 → 支付 → localStorage 广播空间真实落库 ammoId。
  * 控制台 error 全程收集，零业务错误才 PASS。
  * （2026-08-22 Lint 回锁战役断言同步：胶囊选择器对齐单一真理源战役 637b076 后的
- *  注册表驱动 aria-label「XX · 一键弹药发单」，品类预填随胶囊中文 label 直拨。）
+ *  注册表驱动 aria-label「icon label 竖线 tag · 一键弹药发单」(a11y 2.5.3 可见文本收录，e2e 用正则 label.*一键弹药发单匹配)，品类预填随胶囊中文 label 直拨。）
  */
 import { chromium } from "playwright-core";
 import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";
@@ -145,7 +145,7 @@ try {
   };
 
   // --- 1. 弹药1 日常保洁（家政保洁胶囊）---
-  await page.getByRole("button", { name: "家政保洁 · 一键弹药发单" }).click();
+  await page.getByRole("button", { name: /一键弹药发单.*家政保洁/ }).click();
   await page.waitForTimeout(600);
   const hkDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -168,7 +168,7 @@ try {
   });
 
   // --- 2. 弹药2 组局社交（组局社交胶囊）---
-  await page.getByRole("button", { name: "组局社交 · 一键弹药发单" }).click();
+  await page.getByRole("button", { name: /一键弹药发单.*组局社交/ }).click();
   await page.waitForTimeout(600);
   const mtDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
@@ -191,7 +191,7 @@ try {
   });
 
   // --- 3. 弹药3 同城陪伴（陪伴交友胶囊）---
-  await page.getByRole("button", { name: "陪伴交友 · 一键弹药发单" }).click();
+  await page.getByRole("button", { name: /一键弹药发单.*陪伴交友/ }).click();
   await page.waitForTimeout(600);
   const cpDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
