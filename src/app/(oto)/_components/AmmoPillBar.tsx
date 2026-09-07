@@ -156,7 +156,10 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="featured">
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+            {/* 整点地雷排爆（2026-09-07 实证）：时段 caption 系服务端按构建小时渲染的静态文本，
+                跨整点水合即 React #418；suppressHydrationWarning 让客户端小时为准静默对齐，
+                跨整点不断开 e2e-acceptance。 */}
+            <p suppressHydrationWarning className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
             <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
@@ -201,7 +204,8 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     const insp = inspirationSetFor(new Date().getHours());
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="compact">
-        <p className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+        {/* 整点地雷排爆：同上，客户端小时为准（见 featured 分支注释）。 */}
+        <p suppressHydrationWarning className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
         <div
           className="mt-2 flex items-center gap-2 overflow-hidden"
           data-layer="ammo-pills"

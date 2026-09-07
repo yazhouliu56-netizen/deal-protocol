@@ -224,6 +224,15 @@ assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo
 
   // --- 6. 生产 console 无 error ---
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);
+  // --- 7. 整点地雷：时钟快进 65 分钟跨整点后 reload，水合 #418 必须静默
+  // （2026-09-07 缺陷转考卷：副标题构建小时 vs 客户端小时不一致曾熔断 pre-push）
+  await page.clock.install();
+  await page.clock.fastForward(65 * 60 * 1000);
+  const hydratedBefore = errors.length;
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2500);
+  const hydrationErrors = errors.slice(hydratedBefore).filter((e) => /418|hydrat/i.test(e));
+  assert.equal(hydrationErrors.length, 0, `跨整点水合 #418 复发: ${hydrationErrors.join(" | ")}`);
   await page.screenshot({ path: "e2e-app-final.png" });
   console.log("E2E 补充分支 PASS ✓（弹药草稿卡/全局发单条/心愿单闭环/工作台接单履约/AR 锚点重置）");
   await cleanupE2EProvider(e2eProviderId).catch(() => {});
