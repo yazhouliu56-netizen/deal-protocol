@@ -120,7 +120,11 @@ export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles" }:
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-[#afafaf]">弹药库预览</p>
-            <p className="text-sm font-black text-[#2d3748] mt-0.5">看看大家都在忙什么？</p>
+            {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
+            <p className="relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
+              <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
+              看看大家都在忙什么？
+            </p>
           </div>
           <SleepyBeast />
         </div>
