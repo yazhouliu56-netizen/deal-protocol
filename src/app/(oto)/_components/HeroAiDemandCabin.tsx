@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useIdentityStore } from "@/store/useIdentityStore";
 
 /**
@@ -80,12 +81,12 @@ function playLaunchChime() {
  * 短尾巴 + 头顶小柚子，aria-hidden，无外部资源）。
  * 状态变脸：awake=true 睁眼（听你说/有在途单），false 紧闭笑眼。
  */
-function CapybaraBadge({ awake }: { awake: boolean }) {
+function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boolean }) {
   return (
-    <span aria-hidden="true" className="mascot-bob relative flex h-24 w-24 shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform">
+    <span aria-hidden="true" className={`mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`}>
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
-      <svg width="88" height="88" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
+      <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
         {/* 短粗小尾巴 */}
         <ellipse cx="48" cy="44" rx="4" ry="5" fill="#a9742c" />
         {/* 圆滚身体（浅棕） */}
@@ -134,9 +135,22 @@ function CapybaraBadge({ awake }: { awake: boolean }) {
 export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
   const [focused, setFocused] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const celebTimer = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (celebTimer.current !== null) window.clearTimeout(celebTimer.current);
+  }, []);
   const awake = focused || hasMission;
   const submit = () => {
     const t = value.trim();
+    // C 位时刻：水豚跳出来报“发射成功”（结构性偏离已特批；z-70 浮于 Sheet 之上，
+    // pointer-events-none 全程不挡点击，aria-hidden 对 e2e/读屏零感知；敏感用户跳过）
+    if (!reduceMotion) {
+      setCelebrating(true);
+      if (celebTimer.current !== null) window.clearTimeout(celebTimer.current);
+      celebTimer.current = window.setTimeout(() => setCelebrating(false), 1500);
+    }
     // 出发爽感：三音叮 + duo 配色撒花（reduced-motion 由库选项兜底），再走原发射链路
     playLaunchChime();
     try {
@@ -221,6 +235,39 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
           </button>
         </div>
       </div>
+      {/* 发射庆祝遮罩：C 位水豚弹簧入场报“发射成功”，1.5s 退场 */}
+      <AnimatePresence>
+        {celebrating && (
+          <motion.div
+            aria-hidden="true"
+            data-testid="launch-celebration"
+            className="pointer-events-none fixed inset-0 z-[70] flex flex-col items-center justify-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.25 } }}
+          >
+            <span className="absolute h-56 w-56 rounded-full bg-[#58cc02]/20 blur-2xl" />
+            <motion.div
+              initial={{ scale: 0.4, y: 60, rotate: -8 }}
+              animate={{ scale: 1, y: 0, rotate: 0 }}
+              exit={{ scale: 0.7, y: 30, transition: { duration: 0.2 } }}
+              transition={{ type: "spring", stiffness: 320, damping: 17 }}
+              className="relative"
+            >
+              <CapybaraBadge awake large />
+            </motion.div>
+            <motion.div
+              initial={{ scale: 0.7, y: 16 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 16, delay: 0.08 }}
+              className="relative rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-xl px-6 py-3 text-center"
+            >
+              <p className="text-lg font-black text-[#2d3748]">发射成功！🎉</p>
+              <p className="text-xs font-bold text-[#58cc02] mt-0.5">正在为你装填弹药…</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
