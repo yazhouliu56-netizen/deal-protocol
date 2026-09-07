@@ -71,7 +71,7 @@ function SleepyBeast({ awake = false }: { awake?: boolean }) {
       aria-hidden="true"
       className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform"
     >
-      <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="drop-shadow-[0_10px_16px_rgba(68,64,60,.35)]">
         {/* 暖橙底托 */}
         <circle cx="20" cy="20" r="17" fill="#ffedd5" />
         {/* 蜷睡身（深灰圆球） */}
@@ -86,10 +86,10 @@ function SleepyBeast({ awake = false }: { awake?: boolean }) {
         <circle cx="8.6" cy="17.5" r="1" fill="#78716c" />
         {/* 紧闭笑眼（醒来时睁眼） + 小鼻头 + 微笑 */}
         {awake ? (
-          <>
+          <g className="mascot-blink">
             <circle cx="14.5" cy="23" r="1.9" fill="#f5f5f4" />
             <circle cx="14.5" cy="23" r="0.8" fill="#1c1917" />
-          </>
+          </g>
         ) : (
           <path d="M12.5 23.5q2 2 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
         )}

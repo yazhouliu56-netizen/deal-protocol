@@ -63,7 +63,7 @@ export default function HomePage() {
     });
   }, [activeWave, claims, fulfilment]);
   return (
-    <div className="pointer-events-auto overflow-x-hidden relative -mx-4 -mt-6 px-4 pt-6 pb-4 bg-[#f7f8fa]">
+    <div className="oto-pastel-bg pointer-events-auto overflow-x-hidden relative -mx-4 -mt-6 px-4 pt-6 pb-4">
       {/* 氛围几何装饰层（图纸四角斑块：青绿/天蓝/暖橙/明黄，缓动漂浮，pointer-events-none 禁挡触控） */}
       <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0 overflow-hidden">
         <span className="drift absolute -top-6 -left-8 h-28 w-28 rounded-3xl bg-[#58cc02]/15 rotate-12 shadow-sm" />

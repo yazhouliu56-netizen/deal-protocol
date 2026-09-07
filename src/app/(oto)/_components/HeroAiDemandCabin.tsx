@@ -86,7 +86,7 @@ function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boole
     <span aria-hidden="true" className={`mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`}>
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
-      <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
+      <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative drop-shadow-[0_10px_18px_rgba(217,119,6,.35)]">
         {/* 短粗小尾巴 */}
         <ellipse cx="48" cy="44" rx="4" ry="5" fill="#a9742c" />
         {/* 圆滚身体（浅棕） */}
@@ -101,14 +101,14 @@ function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boole
         <circle cx="29" cy="8.5" r="3.6" fill="#f59e0b" />
         <ellipse cx="27.8" cy="7.4" rx="1.1" ry="1.5" fill="#fcd34d" opacity="0.9" />
         <path d="M29 5q0.4-1.6 1.8-2" stroke="#15803d" strokeWidth="1.2" strokeLinecap="round" />
-        {/* 眼睛：awake 睁眼聆听，平常紧闭笑眼 */}
+        {/* 眼睛：awake 睁眼聆听（会眨眼），平常紧闭笑眼 */}
         {awake ? (
-          <>
+          <g className="mascot-blink">
             <ellipse cx="20.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
             <circle cx="21.5" cy="26.8" r="1.1" fill="#fff" />
             <ellipse cx="37.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
             <circle cx="38.5" cy="26.8" r="1.1" fill="#fff" />
-          </>
+          </g>
         ) : (
           <>
             <path d="M17.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
@@ -156,11 +156,11 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
     try {
       // 通关级撒花：130 粒 duo 四色 + 左右礼花双 burst（reduced-motion 由库选项兜底）
       const colors = ["#58cc02", "#1cb0f6", "#ffd028", "#ff7ab8"];
-      confetti({ particleCount: 90, spread: 100, startVelocity: 38, ticks: 220, scalar: 1.1, origin: { y: 0.3 }, colors, disableForReducedMotion: true });
+      confetti({ particleCount: 150, spread: 100, startVelocity: 38, ticks: 220, scalar: 1.1, origin: { y: 0.3 }, colors, disableForReducedMotion: true });
       window.setTimeout(() => {
         try {
-          confetti({ particleCount: 30, angle: 60, spread: 60, origin: { x: 0, y: 0.5 }, colors, disableForReducedMotion: true });
-          confetti({ particleCount: 30, angle: 120, spread: 60, origin: { x: 1, y: 0.5 }, colors, disableForReducedMotion: true });
+          confetti({ particleCount: 50, angle: 60, spread: 60, origin: { x: 0, y: 0.5 }, colors, disableForReducedMotion: true });
+          confetti({ particleCount: 50, angle: 120, spread: 60, origin: { x: 1, y: 0.5 }, colors, disableForReducedMotion: true });
         } catch { /* 忽略 */ }
       }, 150);
     } catch {
