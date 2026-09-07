@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
+  collectGrowthAttribution,
   SmsLeadSheet,
   useLeadDemandSubmit,
   type LeadDraft,
 } from "@/components/growth/sms-lead-sheet";
+import { trackMetric } from "@/lib/track-metric";
 
 /** 男盘 · 上门电脑装机与维护（pc-assembly · C3_TECH_B2B）增长单页。 */
 export interface GrowthPreset {
@@ -34,13 +37,19 @@ export default function M20Page() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 投流漏斗：浏览（渠道 tag 随归因走，console 口径先行）。
+  useEffect(() => {
+    const a = collectGrowthAttribution("m20");
+    trackMetric("growth.page_view", 1, { page: "m20", channel: a.source });
+  }, []);
+
   const collect = (): LeadDraft => ({ presetId, tuning });
   const applyDraft = (d: LeadDraft) => {
     if (M20_PRESETS.some((p) => p.id === d.presetId)) setPresetId(d.presetId);
     setTuning(d.tuning);
   };
 
-  const { submit, sheetOpen, setSheetOpen, handleVerified } = useLeadDemandSubmit({
+  const { submit, sheetOpen, setSheetOpen, handleVerified, demandId } = useLeadDemandSubmit({
     pageKey: "m20",
     collect,
     buildPayload: (d) => {
@@ -50,6 +59,7 @@ export default function M20Page() {
         title: buildM20DemandText(preset, ""),
         description: extra ? `${preset.name}：${extra}` : `${preset.name}（${preset.price}）`,
         category: "pc-assembly",
+        attribution: collectGrowthAttribution("m20"),
       };
     },
     applyDraft,
@@ -66,7 +76,10 @@ export default function M20Page() {
           <button
             key={p.id}
             type="button"
-            onClick={() => setPresetId(p.id)}
+            onClick={() => {
+              setPresetId(p.id);
+              trackMetric("growth.preset_select", 1, { page: "m20", preset: p.id });
+            }}
             className={`rounded-xl border p-3 text-left text-sm ${
               p.id === presetId ? "border-indigo-600 bg-indigo-50" : "border-slate-200"
             }`}
@@ -95,8 +108,16 @@ export default function M20Page() {
       >
         {done ? "已下单 · 师傅正在赶来" : submitting ? "下单中…" : "一键极速下单"}
       </button>
+      {done && demandId && (
+        <Link
+          href={`/demands/${demandId}`}
+          className="block rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-center text-sm font-bold text-indigo-700"
+        >
+          查看我的单子 · {demandId.slice(0, 8)}
+        </Link>
+      )}
       {error && <p className="text-sm text-rose-600">{error}</p>}
-      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} />
+      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} pageKey="m20" />
     </div>
   );
 }

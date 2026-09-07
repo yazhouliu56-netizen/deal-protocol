@@ -28,6 +28,9 @@ function toProtocolCategoryFields(body: Record<string, unknown>, info?: Record<s
   if (body.budget != null) fields.budget = body.budget
   if (info?.urgency) fields.urgency = info.urgency
   if (body.urgency) fields.urgency = body.urgency
+  // 增长归因透传（m20/f20 投流：零 DDL，category_fields 扩展位直存，ROI 口径）。
+  if (body.attribution != null && typeof body.attribution === "object") fields.attribution = body.attribution
+  if (info?.attribution != null && typeof info.attribution === "object") fields.attribution = info.attribution
   return fields
 }
 

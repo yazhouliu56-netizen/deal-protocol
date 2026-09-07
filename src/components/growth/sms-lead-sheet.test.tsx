@@ -2,9 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   buildDraftKey,
+  collectGrowthAttribution,
   isValidGrowthPhone,
   LEAD_SMS_CODE_LENGTH,
   LEAD_SMS_COUNTDOWN_SECONDS,
+  parseGrowthAttribution,
   parseLeadDraft,
   serializeLeadDraft,
   SmsLeadSheet,
@@ -43,6 +45,36 @@ describe("投流留资纯函数", () => {
     expect(parseLeadDraft("{bad json")).toBeNull();
     expect(parseLeadDraft(JSON.stringify({ presetId: 1 }))).toBeNull();
     expect(parseLeadDraft(JSON.stringify({ tuning: "x" }))).toBeNull();
+  });
+});
+
+describe("投流归因纯函数", () => {
+  it("utm 三件套解析 + 页面隔离", () => {
+    expect(parseGrowthAttribution("?utm_source=douyin&utm_medium=cpc&utm_campaign=818", "m20")).toEqual({
+      page: "m20",
+      source: "douyin",
+      medium: "cpc",
+      campaign: "818",
+    });
+  });
+
+  it("无参回落 direct（自然量口径）", () => {
+    expect(parseGrowthAttribution("", "f20")).toEqual({
+      page: "f20",
+      source: "direct",
+      medium: "",
+      campaign: "",
+    });
+  });
+
+  it("超长值截断 128（防垃圾撑爆 category_fields）", () => {
+    const long = `?utm_source=${"x".repeat(300)}`;
+    const a = parseGrowthAttribution(long, "m20");
+    expect(a.source.length).toBe(128);
+  });
+
+  it("无 window 回 direct（SSR 安全不抛异常）", () => {
+    expect(collectGrowthAttribution("m20").source).toBe("direct");
   });
 });
 

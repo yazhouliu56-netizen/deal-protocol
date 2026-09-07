@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getBrowserSupabase } from "@/lib/supabase-browser";
+import { trackMetric } from "@/lib/track-metric";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +61,82 @@ export function parseLeadDraft(raw: string | null): LeadDraft | null {
   }
 }
 
+/** 投流归因（零 DDL：随发单 payload → protocols.category_fields.attribution，直供 ROI）。 */
+export interface GrowthAttribution {
+  /** 页面键（m20 / f20 / landing），与草稿 key 同隔离。 */
+  page: string;
+  /** 渠道：utm_source，缺省 direct。 */
+  source: string;
+  /** utm_medium / utm_campaign，各缺省 ""。 */
+  medium: string;
+  campaign: string;
+}
+
+const ATTRIB_KEY_PREFIX = "growth:attrib:";
+const ATTRIB_MAX_LEN = 128;
+
+function cleanAttribParam(v: string | null): string {
+  if (!v) return "";
+  return v.trim().slice(0, ATTRIB_MAX_LEN);
+}
+
+/** 纯函数：querystring → 归因（可单测；window 侧见 collectGrowthAttribution）。 */
+export function parseGrowthAttribution(search: string, pageKey: string): GrowthAttribution {
+  let source = "";
+  let medium = "";
+  let campaign = "";
+  try {
+    const q = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+    source = cleanAttribParam(q.get("utm_source"));
+    medium = cleanAttribParam(q.get("utm_medium"));
+    campaign = cleanAttribParam(q.get("utm_campaign"));
+  } catch {
+    /* 畸形 query：回落 direct */
+  }
+  return { page: pageKey, source: source || "direct", medium, campaign };
+}
+
+function readStoredAttribution(pageKey: string): GrowthAttribution | null {
+  try {
+    const raw = window.sessionStorage.getItem(`${ATTRIB_KEY_PREFIX}${pageKey}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<GrowthAttribution>;
+    if (typeof parsed.source !== "string") return null;
+    return {
+      page: pageKey,
+      source: parsed.source || "direct",
+      medium: typeof parsed.medium === "string" ? parsed.medium : "",
+      campaign: typeof parsed.campaign === "string" ? parsed.campaign : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 归因采集（客户端）：URL utm 优先并落盘（随草稿同寿 sessionStorage），
+ * 无参回读盘，无盘回 direct。SSR（window 缺席）直接回 direct。
+ */
+export function collectGrowthAttribution(pageKey: string): GrowthAttribution {
+  const direct: GrowthAttribution = { page: pageKey, source: "direct", medium: "", campaign: "" };
+  if (typeof window === "undefined") return direct;
+  try {
+    const fromUrl = parseGrowthAttribution(window.location.search, pageKey);
+    const hasUtm = fromUrl.source !== "direct" || fromUrl.medium !== "" || fromUrl.campaign !== "";
+    if (hasUtm) {
+      try {
+        window.sessionStorage.setItem(`${ATTRIB_KEY_PREFIX}${pageKey}`, JSON.stringify(fromUrl));
+      } catch {
+        /* 隐私模式：本次内存有效即可 */
+      }
+      return fromUrl;
+    }
+    return readStoredAttribution(pageKey) ?? direct;
+  } catch {
+    return direct;
+  }
+}
+
 function readLeadDraft(key: string): LeadDraft | null {
   if (typeof window === "undefined") return null;
   try {
@@ -90,7 +167,10 @@ function clearLeadDraft(key: string): void {
  * classifyDemand/GEMINI 链路，发单更快且不受模型配额影响。
  * 后端 text 分支保持不动（通用口语入口仍走 AI 分类）。
  */
-export async function postDemandPayload(payload: Record<string, unknown>): Promise<void> {
+export async function postDemandPayload(
+  payload: Record<string, unknown>,
+  tags?: Record<string, string>,
+): Promise<string | null> {
   const res = await fetch("/api/demands", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -100,6 +180,9 @@ export async function postDemandPayload(payload: Record<string, unknown>): Promi
     throw new Error("登录已失效，请重新验证手机号");
   }
   if (!res.ok) throw new Error("发单失败，请重试");
+  const data = (await res.json().catch(() => null)) as { id?: unknown } | null;
+  trackMetric("growth.demand_created", 1, tags);
+  return typeof data?.id === "string" ? data.id : null;
 }
 
 /* ================= 短信留资弹窗 ================= */
@@ -108,9 +191,12 @@ interface SmsLeadSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onVerified: () => Promise<void>;
+  /** 页面键（m20 / f20 / landing）：漏斗埋点 tag 用，缺省 unknown（向后兼容）。 */
+  pageKey?: string;
 }
 
-export function SmsLeadSheet({ open, onOpenChange, onVerified }: SmsLeadSheetProps) {
+export function SmsLeadSheet({ open, onOpenChange, onVerified, pageKey }: SmsLeadSheetProps) {
+  const pageTag = pageKey ?? "unknown";
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [smsSent, setSmsSent] = useState(false);
@@ -169,6 +255,7 @@ export function SmsLeadSheet({ open, onOpenChange, onVerified }: SmsLeadSheetPro
       }
       setSmsSent(true);
       startCountdown();
+      trackMetric("growth.sms_sent", 1, { page: pageTag });
     } catch (err) {
       setError(err instanceof Error ? err.message : "验证码发送失败");
     } finally {
@@ -193,6 +280,7 @@ export function SmsLeadSheet({ open, onOpenChange, onVerified }: SmsLeadSheetPro
       if (!res.ok || !data?.success) {
         throw new Error(data?.error ?? "验证失败，请检查验证码");
       }
+      trackMetric("growth.verified", 1, { page: pageTag });
       await onVerified();
     } catch (err) {
       setError(err instanceof Error ? err.message : "验证失败");
@@ -280,6 +368,7 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
   const { pageKey, collect, buildPayload, applyDraft, setSubmitting, setDone, setError } = opts;
   const draftKey = buildDraftKey(pageKey);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [demandId, setDemandId] = useState<string | null>(null);
   const pendingRef = useRef<LeadDraft | null>(null);
 
   const applyRef = useRef(applyDraft);
@@ -296,12 +385,18 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     const draft = collect();
     pendingRef.current = draft;
     writeLeadDraft(draftKey, draft);
+    trackMetric("growth.submit_click", 1, {
+      page: pageKey,
+      channel: collectGrowthAttribution(pageKey).source,
+    });
     setSubmitting(true);
     setError(null);
     try {
       const { data } = await getBrowserSupabase().auth.getSession();
       if (data.session) {
-        await postDemandPayload(buildPayload(draft));
+        const tags = { page: pageKey, channel: collectGrowthAttribution(pageKey).source };
+        const id = await postDemandPayload(buildPayload(draft), tags);
+        setDemandId(id);
         clearLeadDraft(draftKey);
         pendingRef.current = null;
         setDone(true);
@@ -321,7 +416,9 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     setSubmitting(true);
     setError(null);
     try {
-      await postDemandPayload(buildPayload(draft));
+      const tags = { page: pageKey, channel: collectGrowthAttribution(pageKey).source };
+      const id = await postDemandPayload(buildPayload(draft), tags);
+      setDemandId(id);
       clearLeadDraft(draftKey);
       pendingRef.current = null;
       setSheetOpen(false);
@@ -335,5 +432,5 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     }
   }, [draftKey, collect, buildPayload, setSubmitting, setDone, setError]);
 
-  return { submit, sheetOpen, setSheetOpen, handleVerified };
+  return { submit, sheetOpen, setSheetOpen, handleVerified, demandId };
 }

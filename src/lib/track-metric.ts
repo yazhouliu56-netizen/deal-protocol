@@ -11,7 +11,13 @@ type MetricName =
   | 'payment.volume'
   | 'evidence.log_count'
   | 'credit.decay_processed'
-  | 'credit.decay_applied';
+  | 'credit.decay_applied'
+  | 'growth.page_view'
+  | 'growth.preset_select'
+  | 'growth.submit_click'
+  | 'growth.sms_sent'
+  | 'growth.verified'
+  | 'growth.demand_created';
 
 interface MetricPoint {
   name: MetricName;

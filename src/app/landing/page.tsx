@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import toast from "react-hot-toast"
 import { Loader2, Sparkles, CheckCircle2, ArrowRight, Camera, Upload } from "lucide-react"
 import {
+  collectGrowthAttribution,
   SmsLeadSheet,
   useLeadDemandSubmit,
   type LeadDraft,
@@ -98,6 +99,7 @@ export default function LandingPage() {
         result?.category ??
         CATEGORIES.find((c) => c.id === selectedCategory)?.label ??
         "general",
+      attribution: collectGrowthAttribution("landing"),
     }),
     applyDraft: (d) => {
       if (CATEGORIES.some((c) => c.id === d.presetId)) setSelectedCategory(d.presetId)
@@ -366,7 +368,7 @@ export default function LandingPage() {
           </div>
         </div>
       )}
-      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} />
+      <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} pageKey="landing" />
     </div>
   )
 }
