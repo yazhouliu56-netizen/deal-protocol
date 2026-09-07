@@ -43,8 +43,8 @@ function AiSparkle() {
 }
 
 /**
- * 卡皮巴拉半身徽章（inline SVG 高精绘制：暖黄光晕 + 探出身子的水豚，
- * aria-hidden，无外部资源）。
+ * 卡皮巴拉半身徽章（inline SVG 精细绘制：桶形身 + 方吻大鼻头 +
+ * 惬意眯眯眼 + 头顶柚子，aria-hidden，无外部资源）。
  */
 function CapybaraBadge() {
   return (
@@ -52,29 +52,40 @@ function CapybaraBadge() {
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
       <svg width="60" height="60" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
-        {/* 身体 */}
-        <ellipse cx="30" cy="40" rx="20" ry="14" fill="#b45309" />
-        <ellipse cx="30" cy="37" rx="15" ry="10" fill="#d97706" />
-        {/* 前爪搭边 */}
-        <ellipse cx="16" cy="46" rx="4.5" ry="3.5" fill="#92400e" />
-        <ellipse cx="44" cy="46" rx="4.5" ry="3.5" fill="#92400e" />
-        {/* 头 */}
-        <rect x="17" y="12" width="26" height="22" rx="10" fill="#b45309" />
-        <rect x="20" y="15" width="20" height="16" rx="8" fill="#d97706" />
-        {/* 耳 */}
-        <circle cx="21" cy="12.5" r="3.4" fill="#92400e" />
-        <circle cx="39" cy="12.5" r="3.4" fill="#92400e" />
-        <circle cx="21" cy="12.5" r="1.5" fill="#78350f" />
-        <circle cx="39" cy="12.5" r="1.5" fill="#78350f" />
+        {/* 身体（桶形） */}
+        <ellipse cx="30" cy="43" rx="19" ry="12.5" fill="#8a5a1e" />
+        <ellipse cx="30" cy="46" rx="13" ry="7.5" fill="#a9742c" />
+        {/* 背毛短纹 */}
+        <path d="M22 38l-2 4M30 36.5v4.5M38 38l2 4" stroke="#6b4213" strokeWidth="1.4" strokeLinecap="round" />
+        {/* 前爪搭边 + 趾线 */}
+        <ellipse cx="14.5" cy="49" rx="4.5" ry="3.4" fill="#6b4213" />
+        <path d="M13 47.5v3M16 47.5v3" stroke="#4a2d0c" strokeWidth="1" strokeLinecap="round" />
+        <ellipse cx="45.5" cy="49" rx="4.5" ry="3.4" fill="#6b4213" />
+        <path d="M44 47.5v3M47 47.5v3" stroke="#4a2d0c" strokeWidth="1" strokeLinecap="round" />
+        {/* 头（宽方） */}
+        <rect x="13" y="10" width="34" height="26" rx="12" fill="#8a5a1e" />
+        <rect x="16.5" y="13" width="27" height="9" rx="4.5" fill="#a9742c" opacity="0.85" />
+        {/* 耳（小圆贴头顶） */}
+        <circle cx="19" cy="11" r="3.8" fill="#6b4213" />
+        <circle cx="41" cy="11" r="3.8" fill="#6b4213" />
+        <circle cx="19" cy="11" r="1.6" fill="#4a2d0c" />
+        <circle cx="41" cy="11" r="1.6" fill="#4a2d0c" />
+        {/* 头顶柚子（标志性梗） */}
+        <circle cx="30" cy="6.5" r="3.4" fill="#f59e0b" />
+        <ellipse cx="28.8" cy="5.5" rx="1" ry="1.4" fill="#fcd34d" opacity="0.9" />
+        <path d="M30 3.2q0.4-1.6 1.8-2" stroke="#15803d" strokeWidth="1.2" strokeLinecap="round" />
         {/* 眼睛（惬意眯眯眼） */}
-        <path d="M24.5 23q1.8 1.6 3.6 0" stroke="#1c1917" strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M31.9 23q1.8 1.6 3.6 0" stroke="#1c1917" strokeWidth="1.6" strokeLinecap="round" />
-        {/* 鼻吻 */}
-        <ellipse cx="30" cy="29" rx="4.6" ry="3.2" fill="#451a03" />
-        <ellipse cx="28.4" cy="28.2" rx="1.2" ry="0.9" fill="#a8a29e" opacity="0.7" />
-        {/* 腮红 */}
-        <circle cx="23" cy="27.5" r="1.6" fill="#f59e0b" opacity="0.55" />
-        <circle cx="37" cy="27.5" r="1.6" fill="#f59e0b" opacity="0.55" />
+        <path d="M21 22.5q2.2 2 4.4 0" stroke="#2d1c08" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M34.6 22.5q2.2 2 4.4 0" stroke="#2d1c08" strokeWidth="1.8" strokeLinecap="round" />
+        {/* 方吻（浅色吻部） */}
+        <rect x="21" y="26" width="18" height="11" rx="5.5" fill="#c99a54" />
+        {/* 大鼻头 + 鼻孔 */}
+        <ellipse cx="30" cy="28.8" rx="4.2" ry="2.7" fill="#2d1c08" />
+        <circle cx="28.3" cy="28.8" r="0.9" fill="#0f0a04" />
+        <circle cx="31.7" cy="28.8" r="0.9" fill="#0f0a04" />
+        <ellipse cx="28.8" cy="27.9" rx="1" ry="0.7" fill="#a8a29e" opacity="0.8" />
+        {/* 人中 + 嘴 */}
+        <path d="M30 31.5v1.6M30 33.1q-2.6 2-5.2 0.8M30 33.1q2.6 2 5.2 0.8" stroke="#2d1c08" strokeWidth="1.2" strokeLinecap="round" />
       </svg>
     </span>
   );

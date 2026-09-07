@@ -60,7 +60,8 @@ export function pillTagFor(theme: ScenarioTheme): string {
   }
 }
 
-/** 熟睡平头哥插画（inline SVG 黑白配色 + zzz，aria-hidden，零外部切图永不 404）。 */
+/** 熟睡平头哥（蜜獾）插画：白斗篷头顶 + 黑身 + 灰吻 + 小圆耳，
+ *  与熊猫彻底区分（inline SVG，aria-hidden，零外部切图永不 404）。 */
 function SleepyBeast() {
   return (
     <span
@@ -68,20 +69,31 @@ function SleepyBeast() {
       className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
     >
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        {/* 耳（深） */}
-        <circle cx="11" cy="11" r="5" fill="#4b4b4b" />
-        <circle cx="29" cy="11" r="5" fill="#4b4b4b" />
-        <circle cx="11" cy="11" r="2" fill="#d6d3d1" />
-        <circle cx="29" cy="11" r="2" fill="#d6d3d1" />
-        {/* 脸（白）+ 深色眼罩纹 */}
-        <ellipse cx="20" cy="23" rx="12" ry="10" fill="#fff" stroke="#e5e5e5" strokeWidth="2" />
-        <ellipse cx="13.5" cy="21" rx="3.4" ry="2.6" fill="#4b4b4b" opacity="0.85" transform="rotate(-18 13.5 21)" />
-        <ellipse cx="26.5" cy="21" rx="3.4" ry="2.6" fill="#4b4b4b" opacity="0.85" transform="rotate(18 26.5 21)" />
-        {/* 闭眼呼噜线 */}
-        <path d="M11.5 21.5q2 1.4 4 0" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
-        <path d="M24.5 21.5q2 1.4 4 0" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
-        {/* 鼻吻（深） */}
-        <ellipse cx="20" cy="27" rx="2.6" ry="1.9" fill="#4b4b4b" />
+        {/* 黑身肩膀 */}
+        <ellipse cx="20" cy="35" rx="13" ry="7.5" fill="#292524" />
+        {/* 前爪 + 爪趾线 */}
+        <ellipse cx="10.5" cy="36" rx="3.4" ry="2.4" fill="#292524" />
+        <path d="M9 34.5v2.6M11.5 34.5v2.6" stroke="#57534e" strokeWidth="0.9" strokeLinecap="round" />
+        <ellipse cx="29.5" cy="36" rx="3.4" ry="2.4" fill="#292524" />
+        <path d="M28 34.5v2.6M31 34.5v2.6" stroke="#57534e" strokeWidth="0.9" strokeLinecap="round" />
+        {/* 头（深） */}
+        <ellipse cx="20" cy="18.5" rx="12" ry="11" fill="#292524" />
+        {/* 白斗篷头顶（蜜獾标志：银白披风覆顶） */}
+        <ellipse cx="20" cy="11" rx="10" ry="6.5" fill="#e7e5e4" />
+        <path d="M10.5 13.5Q20 6 29.5 13.5" stroke="#f5f5f4" strokeWidth="1.6" strokeLinecap="round" />
+        {/* 耳（小圆深色，贴头两侧） */}
+        <circle cx="9.5" cy="14" r="3.1" fill="#1c1917" />
+        <circle cx="30.5" cy="14" r="3.1" fill="#1c1917" />
+        <circle cx="9.5" cy="14" r="1.2" fill="#44403c" />
+        <circle cx="30.5" cy="14" r="1.2" fill="#44403c" />
+        {/* 闭眼呼噜线（浅色，落在深底上） */}
+        <path d="M12 20.5q2 1.6 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M24 20.5q2 1.6 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
+        {/* 灰吻 + 黑鼻头 + 嘴 */}
+        <ellipse cx="20" cy="26" rx="5.5" ry="4" fill="#57534e" />
+        <ellipse cx="20" cy="24.6" rx="2.4" ry="1.8" fill="#0c0a09" />
+        <ellipse cx="19.2" cy="24" rx="0.7" ry="0.5" fill="#a8a29e" opacity="0.8" />
+        <path d="M20 26.4v1.2M20 27.6q-1.8 1.2-3.4 0.4M20 27.6q1.8 1.2 3.4 0.4" stroke="#0c0a09" strokeWidth="1" strokeLinecap="round" />
         {/* zzz（低功耗：静态字符，respect reduced-motion 由父级动画统一收敛） */}
         <text x="30" y="11" fontSize="7" fontWeight="bold" fill="#afafaf">z</text>
         <text x="34" y="6" fontSize="9" fontWeight="bold" fill="#afafaf">z</text>
