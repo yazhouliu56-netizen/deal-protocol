@@ -48,10 +48,10 @@ function AiSparkle() {
  */
 function CapybaraBadge() {
   return (
-    <span aria-hidden="true" className="relative flex h-16 w-16 shrink-0 items-center justify-center select-none">
+    <span aria-hidden="true" className="relative flex h-24 w-24 shrink-0 items-center justify-center select-none">
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
-      <svg width="60" height="60" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
+      <svg width="88" height="88" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
         {/* 短粗小尾巴 */}
         <ellipse cx="48" cy="44" rx="4" ry="5" fill="#a9742c" />
         {/* 圆滚身体（浅棕） */}

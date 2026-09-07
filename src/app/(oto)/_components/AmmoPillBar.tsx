@@ -66,9 +66,9 @@ function SleepyBeast() {
   return (
     <span
       aria-hidden="true"
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
+      className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
     >
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true">
         {/* 暖橙底托 */}
         <circle cx="20" cy="20" r="17" fill="#ffedd5" />
         {/* 蜷睡身（深灰圆球） */}
