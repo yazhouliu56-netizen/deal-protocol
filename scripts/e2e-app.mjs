@@ -94,6 +94,33 @@ try {
   await page.getByRole("button", { name: "关闭拟物草稿" }).click();
   await page.waitForTimeout(400);
 
+
+  // --- 1b. 吉祥物真按钮：水豚发射 + 平头哥滑到活水 ---
+  await page.getByTestId("mascot-launch").click();
+  await page.waitForTimeout(400);
+  const mascotDraft = await page.evaluate(() => {
+    const sheet = document.querySelector('[data-testid="draft-sheet"]');
+    return {
+      sheet: !!sheet,
+      ammo: sheet?.querySelector(".draft-card")?.getAttribute("data-ammo") ?? "",
+    };
+  });
+  assert.ok(mascotDraft.sheet, "点击水豚应呼出草稿卡（空输入兜底全类目）");
+  assert.equal(mascotDraft.ammo, "default-ammo", "水豚发射空输入应装配 default-ammo");
+  await page.getByRole("button", { name: "关闭拟物草稿" }).click();
+  await page.waitForTimeout(400);
+  await page.getByTestId("beast-feed").click();
+  let feedVisible = false;
+  for (let i = 0; i < 10 && !feedVisible; i++) {
+    await sleep(300);
+    feedVisible = await page.evaluate(() => {
+      const el = document.getElementById("wave-feed");
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      return r.top < window.innerHeight && r.bottom > 0;
+    });
+  }
+  assert.ok(feedVisible, "点击平头哥应滑到活水 Feed（#wave-feed 进视口）");
   // --- 2. 全局 AI 智能发单条 → 全类目草稿卡 → 扣动扳机 → 完整发布面板 ---
   await page.getByRole("button", { name: "想找什么" }).click();
   await page.waitForTimeout(400);

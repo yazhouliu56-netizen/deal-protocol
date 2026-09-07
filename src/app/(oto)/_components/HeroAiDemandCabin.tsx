@@ -78,12 +78,15 @@ function playLaunchChime() {
 
 /**
  * 卡皮巴拉徽章（圆滚滚治愈风：浅棕圆身 + 紧闭笑眼 + 上扬嘴角 +
- * 短尾巴 + 头顶小柚子，aria-hidden，无外部资源）。
+ * 短尾巴 + 头顶小柚子，无外部资源）。
  * 状态变脸：awake=true 睁眼（听你说/有在途单），false 紧闭笑眼。
+ * 真按钮：传 onPress 即渲染为可聚焦 <button>（问候处接 submit，同[ 出发! ]语义，
+ * 空输入走“全类目需求”兜底）；庆祝遮罩内不传，保持纯装饰。
  */
-function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boolean }) {
-  return (
-    <span aria-hidden="true" className={`mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`}>
+function CapybaraBadge({ awake, large = false, onPress }: { awake: boolean; large?: boolean; onPress?: () => void }) {
+  const cls = `mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`;
+  const body = (
+    <>
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
       <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative drop-shadow-[0_10px_18px_rgba(217,119,6,.35)]">
@@ -128,6 +131,18 @@ function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boole
         <ellipse cx="19" cy="50" rx="4" ry="2.8" fill="#a9742c" />
         <ellipse cx="39" cy="50" rx="4" ry="2.8" fill="#a9742c" />
       </svg>
+    </>
+  );
+  if (onPress) {
+    return (
+      <button type="button" onClick={onPress} aria-label="水豚出发：一键发射需求" data-testid="mascot-launch" className={cls}>
+        {body}
+      </button>
+    );
+  }
+  return (
+    <span aria-hidden="true" className={cls}>
+      {body}
     </span>
   );
 }
@@ -189,7 +204,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
       <div className="relative">
         {/* 问候行：水豚半身 + 气泡（话语从水豚嘴里说出：左尾气泡） */}
         <div className="flex items-center gap-2.5">
-          <CapybaraBadge awake={awake} />
+          <CapybaraBadge awake={awake} onPress={submit} />
           <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[#f7f7f7] border-l-2 border-b-2 border-[#e5e5e5]" />
             <p className="text-[15px] font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
