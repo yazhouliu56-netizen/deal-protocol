@@ -1,5 +1,6 @@
 "use client";
-import { motion } from "framer-motion";
+// 注：展示组件已并入弹药库（精简案），本文件仅保留时段灵感数据与纯函数
+// （inspirationSetFor，测试可注入 hour），供 AmmoPillBar 副标题时段 caption 复用。
 
 /** 时段化灵感场景集（战场3：冷启动商业活化 · 输入框下方按当前时间自动切换）。 */
 export interface InspirationChip {
@@ -79,40 +80,4 @@ export function inspirationSetFor(hour: number): InspirationSet {
     return a <= b ? hour >= a && hour < b : hour >= a || hour < b;
   });
   return hit ?? INSPIRATION_SETS[0];
-}
-
-interface InspirationChipsProps {
-  onSelectDraft: (draft: { key: string; label: string }) => void;
-}
-
-/** 战场3 · 冷启动商业活化：时段化灵感轮播 —— 输入框下方按当前时间自动切换场景灵感，
-    点击 1 秒原地出弹药草稿卡（本时段场景即点即发）。 */
-export default function InspirationChips({ onSelectDraft }: InspirationChipsProps) {
-  const insp = inspirationSetFor(new Date().getHours());
-  return (
-    <div className="mt-2.5" data-layer="inspiration-chips">
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <span className="text-xs font-bold text-[#4b4b4b] tracking-wide">
-          {insp.emoji} {insp.period}灵感
-        </span>
-        <span className="h-px flex-1 bg-[#e5e5e5]" />
-        <span className="text-xs text-[#afafaf]" aria-hidden="true">
-          {insp.caption}
-        </span>
-      </div>
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
-        {insp.chips.map((c) => (
-          <motion.button
-            key={c.label}
-            whileTap={{ scale: 0.94 }}
-            onClick={() => onSelectDraft({ key: c.ammo, label: c.ammo })}
-            aria-label={`灵感：${c.label}`}
-            className="shrink-0 px-3 py-2 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#58cc02]/30"
-          >
-            <span className="font-tabular">{c.label}</span>
-          </motion.button>
-        ))}
-      </div>
-    </div>
-  );
 }

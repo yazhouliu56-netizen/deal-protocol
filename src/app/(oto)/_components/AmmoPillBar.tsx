@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import type { ScenarioTheme } from "@/types/ui-viewport";
+import { inspirationSetFor } from "./InspirationChips";
 
 /** 弹药胶囊描述符（注册表 listAmmoPillDescriptors 单行结构，类型同源零漂移）。 */
 export interface AmmoPillDescriptor {
@@ -129,11 +130,13 @@ export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", h
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
       (p): p is AmmoPillDescriptor => !!p,
     );
+    // 精简案：灵感 chips 整块并入，时段商业信息收拢至副标题一行
+    const insp = inspirationSetFor(new Date().getHours());
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="featured">
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-[#afafaf]">弹药库预览</p>
+            <p className="text-xs font-bold text-[#afafaf] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
             <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
