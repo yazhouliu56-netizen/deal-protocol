@@ -120,12 +120,50 @@ export function allProviders(): ProviderEntry[] {
       minGapMs: 900,
       cooldownMs: 15_000,
     },
+    // ── OpenRouter 免费三行（2026-09-07 实测打榜：cohere 北极星 mini 1078ms 3/3、
+    // nemotron-nano 推理版 1639ms 3/3、lfm-2.6b 2013ms 3/3；gemma-4 系当时全 429。
+    // 三行独立 name → 独立配额 pacing/429 冷却池，round-robin 轮流首发 + fallback 环绕。
+    // 同 ordering 99：插入序即环内序（快→慢），保底 tier 不变。）
     {
-      name: "openrouter",
+      name: "openrouter-cohere",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       apiKey: env.OPENROUTER_API_KEY ?? "",
-      // 2026-09-06 实测：llama-3.3-70b-instruct:free 已退役（404），改用 gemma-4-31b-it:free。
-      model: env.OPENROUTER_MODEL ?? "google/gemma-4-31b-it:free",
+      // OPENROUTER_MODEL 显式覆盖时仍尊重（向后兼容），缺省为打榜第一。
+      model: env.OPENROUTER_MODEL ?? "cohere/north-mini-code:free",
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
+      ordering: {
+        chat: 99,
+        "voice-intent": 99,
+        cluster: 99,
+        decompose: 99,
+        diagnose: 99,
+        judge: 99,
+      },
+      minGapMs: 900,
+      cooldownMs: 30_000,
+    },
+    {
+      name: "openrouter-nemotron",
+      endpoint: "https://openrouter.ai/api/v1/chat/completions",
+      apiKey: env.OPENROUTER_API_KEY ?? "",
+      model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
+      ordering: {
+        chat: 99,
+        "voice-intent": 99,
+        cluster: 99,
+        decompose: 99,
+        diagnose: 99,
+        judge: 99,
+      },
+      minGapMs: 900,
+      cooldownMs: 30_000,
+    },
+    {
+      name: "openrouter-lfm",
+      endpoint: "https://openrouter.ai/api/v1/chat/completions",
+      apiKey: env.OPENROUTER_API_KEY ?? "",
+      model: "liquid/lfm-2.5-2.6b:free",
       tasks: ["chat", "voice-intent", "cluster", "decompose", "diagnose", "judge"],
       ordering: {
         chat: 99,

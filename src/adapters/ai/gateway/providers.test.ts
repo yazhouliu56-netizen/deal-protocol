@@ -33,19 +33,19 @@ function withEnv(env: Array<[string, string | undefined]>, fn: () => void) {
   }
 }
 
-test("allProviders declares the seven rows (groq removed; +gemini-lite decompose-only 2026-09-06)", () => {
+test("allProviders declares the nine rows (groq removed; +gemini-lite decompose-only 2026-09-06; openrouter×3 free rotation 2026-09-07)", () => {
   assert.deepEqual(
     allProviders().map((p) => p.name).sort(),
-    ["deepseek", "gemini", "gemini-lite", "kimi", "openrouter", "qwen", "zhipu"]
+    ["deepseek", "gemini", "gemini-lite", "kimi", "openrouter-cohere", "openrouter-lfm", "openrouter-nemotron", "qwen", "zhipu"]
   );
 });
 
-test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < deepseek 4 < kimi 5 < openrouter 99", () => {
+test("chat ordering: gemini 0 < zhipu 1 < qwen 2 < deepseek 4 < kimi 5 < openrouter×3 99 (rank order)", () => {
   const names = allProviders()
     .filter((p) => p.tasks.includes("chat"))
     .sort((a, b) => (a.ordering.chat ?? 99) - (b.ordering.chat ?? 99))
     .map((p) => p.name);
-  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "deepseek", "kimi", "openrouter"]);
+  assert.deepEqual(names, ["gemini", "zhipu", "qwen", "deepseek", "kimi", "openrouter-cohere", "openrouter-nemotron", "openrouter-lfm"]);
 });
 
 test("voice-intent ordering: zhipu first, openrouter last", () => {
@@ -54,7 +54,7 @@ test("voice-intent ordering: zhipu first, openrouter last", () => {
     .sort((a, b) => (a.ordering["voice-intent"] ?? 99) - (b.ordering["voice-intent"] ?? 99))
     .map((p) => p.name);
   assert.equal(names[0], "zhipu");
-  assert.equal(names[names.length - 1], "openrouter");
+  assert.equal(names[names.length - 1], "openrouter-lfm");
 });
 
 test("activeProviders skips providers without a key", () => {
@@ -65,7 +65,7 @@ test("activeProviders skips providers without a key", () => {
     ],
     () => {
       const chain = activeProviders("chat").map((p) => p.name);
-      assert.deepEqual(chain, ["zhipu", "openrouter"]);
+      assert.deepEqual(chain, ["zhipu", "openrouter-cohere", "openrouter-nemotron", "openrouter-lfm"]);
     }
   );
 });
@@ -87,12 +87,16 @@ test("activeProviders order follows per-task ordering", () => {
         "qwen",
         "deepseek",
         "kimi",
-        "openrouter",
+        "openrouter-cohere",
+        "openrouter-nemotron",
+        "openrouter-lfm",
       ]);
       assert.deepEqual(activeProviders("voice-intent").map((p) => p.name), [
         "zhipu",
         "gemini",
-        "openrouter",
+        "openrouter-cohere",
+        "openrouter-nemotron",
+        "openrouter-lfm",
       ]);
     }
   );
@@ -129,7 +133,7 @@ test("structured tasks: cluster/diagnose lead zhipu>gemini; decompose leads zhip
       }
       {
         const names = activeProviders("decompose").map((p) => p.name);
-        assert.deepEqual(names, ["zhipu", "gemini-lite", "openrouter"]);
+        assert.deepEqual(names, ["zhipu", "gemini-lite", "openrouter-cohere", "openrouter-nemotron", "openrouter-lfm"]);
       }
     }
   );

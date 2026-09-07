@@ -11,6 +11,29 @@
  */
 import { generateAmmoFromSentence } from "../src/adapters/ai/sentence-to-ammo.ts";
 import { compileAmmoPrompt } from "../src/base/ai/prompt-compiler.ts";
+import { existsSync, readFileSync } from "fs";
+import { resolve } from "path";
+
+// 落盘 key 自举：纯 node 直跑不自动加载 .env.local（Next.js 运行时自带），
+// 此处读盘注入 process.env，已有值不覆盖。零新依赖。
+for (const envFile of [resolve(process.cwd(), ".env.local"), resolve(process.cwd(), ".env")]) {
+  if (!existsSync(envFile)) continue;
+  for (const envLine of readFileSync(envFile, "utf8").split("\n")) {
+    const t = envLine.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq === -1) continue;
+    const envKey = t.slice(0, eq).trim();
+    let envVal = t.slice(eq + 1).trim();
+    if (
+      (envVal.startsWith('"') && envVal.endsWith('"')) ||
+      (envVal.startsWith("'") && envVal.endsWith("'"))
+    ) {
+      envVal = envVal.slice(1, -1);
+    }
+    if (envKey && !process.env[envKey]) process.env[envKey] = envVal;
+  }
+}
 
 const SENTENCES = [
   "周六下午2点上门装机，预算80，自带螺丝刀套装，需要开机点亮测试",
