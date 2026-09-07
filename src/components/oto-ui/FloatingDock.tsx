@@ -27,10 +27,13 @@ export default function FloatingDock() {
   const imThreads = useWaveStore((s) => s.imThreads);
   const me = useIdentityStore((s) => s.identity.id);
   const msgUnread = unreadTotal(imThreads, me);
-  // 行程键进行中订单圆点：顶栏五态胶囊收拢后的实时感知替代（有在途单即亮）
-  const waves = useWaveStore((s) => s.waves);
-  const hasActiveWave = waves.some(
-    (w) => w.authorId === me && w.status !== "closed" && w.status !== "expired",
+  // 行程键进行中订单圆点：顶栏五态胶囊收拢后的实时感知替代（有在途单即亮）。
+  // 防抖订阅：selector 返回布尔值，waves 数组高频写入时不重渲染 Dock
+  //（整数组订阅会让每次广播同步都重挂载 Dock，直接打断 e2e 点击锚点）。
+  const hasActiveWave = useWaveStore((s) =>
+    s.waves.some(
+      (w) => w.authorId === me && w.status !== "closed" && w.status !== "expired",
+    ),
   );
 
   return (
