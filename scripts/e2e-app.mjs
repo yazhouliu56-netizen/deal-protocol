@@ -29,6 +29,10 @@ try {
   // 自清零：覆盖本脚本专属云行为空 state（跨脚本/跨轮次污染根治）
   await resetE2eChannelRow("app");
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
+  // SW 确定性屏蔽：本脚本下行即注销 SW，但“注册→清理”存在竞态，
+  // 更新 toast 会随机弹出挡点击（2026-09-07 实证熔断一次）；直接断网 sw.js
+  // 让竞态永不发生。离线能力由 e2e-offline 覆盖，本脚本不断言 SW。
+  await ctx.route("**/sw.js", (r) => r.abort());
   const page = await ctx.newPage();
   // Phase 2.2-C：工作台写动作需真实 provider 会话，先建号登录。
   const e2eProviderId = await ensureE2EProviderSession(page, BASE);
@@ -40,9 +44,17 @@ try {
     // 地图瓦片（OpenFreeMap）为第三方外部资源，本机网络不可达时降级不是产品缺陷；
     // Supabase Realtime WS 断连为云端不可达环境噪音（与 e2e-match 容忍口径一致）
     if (/429|Failed to load resource|LLM upstream failed|openfreemap|WebSocket connection to/i.test(t)) return;
+    // SW 确定性屏蔽的人为代价：sw.js 被 abort 后 register() 必 reject，
+    // 系 harness 主动行为，非产品缺陷（离线由 e2e-offline 覆盖）。
+    if (/Service worker registration failed|Failed to register a ServiceWorker|fetching the script/i.test(t)) return;
     errors.push(t);
   });
-  page.on("pageerror", (e) => errors.push(String(e)));
+  page.on("pageerror", (e) => {
+    const t = String(e);
+    // 同上：layout 内联注册脚本无 catch，sw.js 被 abort 后以 unhandled rejection 上报，照单过滤。
+    if (/Failed to register a ServiceWorker|fetching the script/i.test(t)) return;
+    errors.push(t);
+  });
 
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
   await sleep(1200);

@@ -1,5 +1,5 @@
 "use client";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { motion } from "framer-motion";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import { inspirationSetFor } from "./InspirationChips";
@@ -64,14 +64,17 @@ export function pillTagFor(theme: ScenarioTheme): string {
   }
 }
 
-/** 熟睡平头哥（蜜獾）：蜷睡圆球 + 白斗篷覆背 + 暖橙底托
- *  （inline SVG，aria-hidden，零外部切图永不 404）。
- *  状态变脸：awake=true（附近有活水）睁眼醒来收起 zzz，false 继续酣睡。
+/** 熟睡平头哥（用户供图常态：public/mascots/sleepy-beast.png，直贴白瓷片；
+ *  awake/图裂时回退内联 SVG：蜷睡圆球 + 白斗篷覆背 + 暖橙底托）。
+ *  状态变脸：awake=true（附近有活水）SVG 睁眼醒来收起 zzz，false 供图酣睡。
  *  真按钮：点击平滑滑到 #wave-feed（附近的需求），键盘可达。 */
 function SleepyBeast({ awake = false }: { awake?: boolean }) {
+  const [imgOk, setImgOk] = useState(true);
   const goFeed = () => {
     document.getElementById("wave-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  // 供图本身就是酣睡态：awake 睁眼语义只能由 SVG 表达，图裂亦回退 SVG。
+  const showArt = !awake && imgOk;
   return (
     <button
       type="button"
@@ -80,6 +83,18 @@ function SleepyBeast({ awake = false }: { awake?: boolean }) {
       data-testid="beast-feed"
       className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform"
     >
+      {showArt ? (
+        <img
+          src="/mascots/sleepy-beast.png"
+          alt=""
+          aria-hidden="true"
+          width={72}
+          height={56}
+          draggable={false}
+          onError={() => setImgOk(false)}
+          className="h-[72px] w-[72px] object-contain select-none"
+        />
+      ) : (
       <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="drop-shadow-[0_10px_16px_rgba(68,64,60,.35)]">
         {/* 暖橙底托 */}
         <circle cx="20" cy="20" r="17" fill="#ffedd5" />
@@ -113,6 +128,7 @@ function SleepyBeast({ awake = false }: { awake?: boolean }) {
           </>
         )}
       </svg>
+      )}
     </button>
   );
 }

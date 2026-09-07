@@ -11,7 +11,8 @@ import { useIdentityStore } from "@/store/useIdentityStore";
  * E2E 锚点守恒：data-testid="ai-demand-cabin" / role="searchbox" /
  * placeholder*="描述你的需求" / aria-label 含"想找什么"+"发出你的需求" /
  * "AI 撮合助手" 文案缺一不可（e2e-app.mjs:59/95/115 锁定）。
- * 防雷：背景几何块 pointer-events-none + inline SVG（零外部切图，永不 404）。
+ * 防雷：背景几何块 pointer-events-none + 吉祥物用户供图（public/mascots，
+ * onError 回退内联 SVG，图裂不断腿）。
  */
 
 interface HeroAiDemandCabinProps {
@@ -77,18 +78,34 @@ function playLaunchChime() {
 }
 
 /**
- * 卡皮巴拉徽章（圆滚滚治愈风：浅棕圆身 + 紧闭笑眼 + 上扬嘴角 +
- * 短尾巴 + 头顶小柚子，无外部资源）。
- * 状态变脸：awake=true 睁眼（听你说/有在途单），false 紧闭笑眼。
+ * 卡皮巴拉徽章（用户供图常态：public/mascots/capybara.png，multiply 融入舱底；
+ * awake/图裂时回退内联 SVG：浅棕圆身 + 紧闭笑眼 + 上扬嘴角 + 短尾巴 + 头顶小柚子）。
+ * 状态变脸：awake=true 睁眼（听你说/有在途单），false 笑眼供图。
  * 真按钮：传 onPress 即渲染为可聚焦 <button>（问候处接 submit，同[ 出发! ]语义，
  * 空输入走“全类目需求”兜底）；庆祝遮罩内不传，保持纯装饰。
  */
 function CapybaraBadge({ awake, large = false, onPress }: { awake: boolean; large?: boolean; onPress?: () => void }) {
   const cls = `mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`;
+  const [imgOk, setImgOk] = useState(true);
+  // 贴图：用户供图常态展示（白底 multiply 融入舱底）；awake（聆听/在途）切回 SVG 睁眼态；
+  // 图裂 onError 回退 SVG（宪法 #10 降级）。
+  const showArt = !awake && imgOk;
   const body = (
     <>
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
+      {showArt ? (
+        <img
+          src="/mascots/capybara.png"
+          alt=""
+          aria-hidden="true"
+          width={large ? 150 : 88}
+          height={large ? 150 : 88}
+          draggable={false}
+          onError={() => setImgOk(false)}
+          className="relative h-full w-full object-contain mix-blend-multiply select-none"
+        />
+      ) : (
       <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative drop-shadow-[0_10px_18px_rgba(217,119,6,.35)]">
         {/* 短粗小尾巴 */}
         <ellipse cx="48" cy="44" rx="4" ry="5" fill="#a9742c" />
@@ -131,6 +148,7 @@ function CapybaraBadge({ awake, large = false, onPress }: { awake: boolean; larg
         <ellipse cx="19" cy="50" rx="4" ry="2.8" fill="#a9742c" />
         <ellipse cx="39" cy="50" rx="4" ry="2.8" fill="#a9742c" />
       </svg>
+      )}
     </>
   );
   if (onPress) {
