@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -132,7 +132,7 @@ function CapybaraBadge({ awake, large = false }: { awake: boolean; large?: boole
   );
 }
 
-export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false }: HeroAiDemandCabinProps) {
+function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
   const [focused, setFocused] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
@@ -271,3 +271,6 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
     </div>
   );
 }
+
+/** memo：广播同步触发 HomePage 重渲染时，输入未变即跳过（广播空转掐断）。 */
+export default memo(HeroAiDemandCabin);

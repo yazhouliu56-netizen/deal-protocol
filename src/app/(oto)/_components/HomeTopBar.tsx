@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import type { Wave } from "@/base/order/wave";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { toast } from "@/base/platform/toast";
@@ -45,7 +46,7 @@ function OtoLogoCapsule() {
  * 逻辑 100% 保留；卖家双胶囊按裁决撤出首页（我的 → 服务者工作台）。
  * E2E：data-testid="top-status-capsule" 原位保留。
  */
-export default function HomeTopBar({
+function HomeTopBar({
   activeWave,
   activeFiveState,
   cartCount,
@@ -102,3 +103,6 @@ export default function HomeTopBar({
     </>
   );
 }
+
+/** memo：父级广播重渲染时，五态/数量未变即跳过（内部通知订阅不受影响）。 */
+export default memo(HomeTopBar);

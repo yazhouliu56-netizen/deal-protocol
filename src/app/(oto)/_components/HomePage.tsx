@@ -1,13 +1,13 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Camera } from "lucide-react";
 import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
 import { useAppStore } from "@/store/useAppStore";
-import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
+import { useHasLiveWaves, useMyActiveWave } from "@/hooks/useActiveWave";
 import HomeTopBar from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
 import HeroAiDemandCabin from "./HeroAiDemandCabin";
@@ -17,6 +17,54 @@ import CartSheet from "./CartSheet";
 import PublishSheet from "@/components/waves/PublishSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
+
+/** AI 撮合对话卡（memo 抽取：广播同步时 chatOpen 未变即跳过整卡重渲染）。 */
+const AiChatCard = memo(function AiChatCard({
+  open,
+  onOpen,
+  onClose,
+  onDraft,
+}: {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onDraft: (draft: { key: string; label: string }) => void;
+}) {
+  return (
+    <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
+      {open ? (
+        <div>
+          <div className="mb-2 flex items-center gap-1">
+            <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="收起AI对话"
+              className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
+            >
+              收起 ↑
+            </button>
+          </div>
+          <ChatPage compact slim onAmmoDraft={(key, category) => onDraft({ key, label: category })} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-expanded="false"
+          aria-label="展开多轮AI沟通"
+          data-testid="ai-chat-toggle"
+          className="w-full flex items-center gap-2 min-h-12 text-left"
+        >
+          <span className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</span>
+          <span className="px-3 py-2 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] shrink-0">
+            💬 展开 ↓
+          </span>
+        </button>
+      )}
+    </div>
+  );
+});
 
 /**
  * 首页买家视口（1:1 图纸形态）：问候顶栏 ➔ 水豚发射舱 ➔ 弹药库预览
@@ -33,6 +81,15 @@ export default function HomePage() {
   const [publishCategory, setPublishCategory] = useState("");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  // 回调固化：memo 子组件 props 引用稳定，广播同步时才能跳过重渲染
+  const handleLaunch = useCallback((text: string) => {
+    setDraft({ key: "default-ammo", label: text });
+    setAiInput("");
+  }, []);
+  const handleMic = useCallback(() => setDraft({ key: "default-ammo", label: "全类目需求" }), []);
+  const handleOpenCart = useCallback(() => setShowCart(true), []);
+  const handleOpenChat = useCallback(() => setChatOpen(true), []);
+  const handleCloseChat = useCallback(() => setChatOpen(false), []);
   useEffect(() => {
     lockEdgeGesture(showCart || draft !== null || publishOpen);
   }, [showCart, draft, publishOpen]);
@@ -40,16 +97,11 @@ export default function HomePage() {
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
-  const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
   const fulfilment = useWaveStore((s) => s.fulfilment);
-  const identity = useIdentityStore((s) => s.identity);
-  const activeWave = useMemo(() => {
-    const mine = waves
-      .filter((w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired")
-      .sort((a, b) => b.createdAt - a.createdAt);
-    return mine[0] ?? null;
-  }, [waves, identity.id]);
+  // 在途同源：对象版喂五态胶囊/水豚，布尔版喂平头哥（谓词收拢至 useActiveWave）
+  const activeWave = useMyActiveWave();
+  const hasLiveWaves = useHasLiveWaves();
   const activeFiveState = useMemo(() => {
     if (!activeWave) return null;
     const acceptedClaim = claims.find((c) => c.waveId === activeWave.id && (c.status === "accepted" || c.status === "joined"));
@@ -75,7 +127,7 @@ export default function HomePage() {
           activeWave={activeWave}
           activeFiveState={activeFiveState}
           cartCount={cart.length}
-          onOpenCart={() => setShowCart(true)}
+          onOpenCart={handleOpenCart}
         />
         <div className="mt-3" data-layer="action">
           {/* B1 一体化 AI 需求舱（1:1 图纸：水豚半身 + 星芒输入胶囊 + [ 出发! ]） */}
@@ -83,45 +135,11 @@ export default function HomePage() {
             value={aiInput}
             onChange={setAiInput}
             hasMission={activeWave !== null}
-            onLaunch={(text) => {
-              setDraft({ key: "default-ammo", label: text });
-              setAiInput("");
-            }}
-            onMic={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
+            onLaunch={handleLaunch}
+            onMic={handleMic}
           />
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" hasLiveWaves={waves.some((w) => w.status !== "closed" && w.status !== "expired")} />
-          <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
-            {chatOpen ? (
-              <div>
-                <div className="mb-2 flex items-center gap-1">
-                  <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
-                  <button
-                    type="button"
-                    onClick={() => setChatOpen(false)}
-                    aria-label="收起AI对话"
-                    className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
-                  >
-                    收起 ↑
-                  </button>
-                </div>
-                <ChatPage compact slim onAmmoDraft={(key, category) => setDraft({ key, label: category })} />
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setChatOpen(true)}
-                aria-expanded="false"
-                aria-label="展开多轮AI沟通"
-                data-testid="ai-chat-toggle"
-                className="w-full flex items-center gap-2 min-h-12 text-left"
-              >
-                <span className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</span>
-                <span className="px-3 py-2 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] shrink-0">
-                  💬 展开 ↓
-                </span>
-              </button>
-            )}
-          </div>
+          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" hasLiveWaves={hasLiveWaves} />
+          <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
           <div className="mt-4" id="wave-feed" data-layer="wave-feed">
             <WaveFeed />
           </div>

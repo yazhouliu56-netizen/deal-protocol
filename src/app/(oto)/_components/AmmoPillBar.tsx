@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import { motion } from "framer-motion";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import { inspirationSetFor } from "./InspirationChips";
@@ -125,7 +126,7 @@ const TILE_ACCENT: Record<string, string> = {
   default: "#58cc02",
 };
 
-export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
+function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
   if (variant === "featured") {
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
       (p): p is AmmoPillDescriptor => !!p,
@@ -240,3 +241,6 @@ export default function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", h
     </div>
   );
 }
+
+/** memo：pills 描述符引用稳定（HomePage useMemo []），广播同步时跳过重渲染。 */
+export default memo(AmmoPillBar);

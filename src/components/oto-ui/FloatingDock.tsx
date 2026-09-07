@@ -4,6 +4,7 @@ import { Home, Map, MessageCircle, User } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { useHasMyActiveWave } from "@/hooks/useActiveWave";
 import { unreadTotal } from "@/base/comm/im";
 
 /** 4 键一体化主屏导航（AR/ProofCamera 已收纳为首页及履约座舱的上下文悬浮按钮）。 */
@@ -28,13 +29,8 @@ export default function FloatingDock() {
   const me = useIdentityStore((s) => s.identity.id);
   const msgUnread = unreadTotal(imThreads, me);
   // 行程键进行中订单圆点：顶栏五态胶囊收拢后的实时感知替代（有在途单即亮）。
-  // 防抖订阅：selector 返回布尔值，waves 数组高频写入时不重渲染 Dock
-  //（整数组订阅会让每次广播同步都重挂载 Dock，直接打断 e2e 点击锚点）。
-  const hasActiveWave = useWaveStore((s) =>
-    s.waves.some(
-      (w) => w.authorId === me && w.status !== "closed" && w.status !== "expired",
-    ),
-  );
+  // 在途谓词收拢至 useActiveWave（布尔 selector，waves 高频写入不重渲染 Dock）。
+  const hasActiveWave = useHasMyActiveWave();
 
   return (
     <motion.div
