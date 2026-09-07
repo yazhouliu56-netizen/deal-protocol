@@ -47,8 +47,19 @@ function NotifyRow({ item }: { item: NotifyItem }) {
 /**
  * 通知中心（G-3）：铃铛 + 未读角标 + 聚合动态（报价/被接单/雷达推送/
  * 好友申请/举报回执）。打开一次即全部已读（localStorage 持久）。
+ *
+ * 首页 1:1 图纸收拢：可选的心愿单 / SOS 快捷行（调用方传入才渲染，
+ * 缺省零影响）。aria-label 口径与顶栏旧按钮逐字一致（e2e-app 心愿单步）。
  */
-export default function NotificationCenter() {
+export default function NotificationCenter({
+  cartCount,
+  onOpenCart,
+  onSos,
+}: {
+  cartCount?: number;
+  onOpenCart?: () => void;
+  onSos?: () => void;
+} = {}) {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
   const pushes = useWaveStore((s) => s.pushes);
@@ -178,6 +189,55 @@ export default function NotificationCenter() {
                   ✕
                 </button>
               </div>
+              {(onOpenCart || onSos) && (
+                <div className="mb-3 flex flex-col gap-2">
+                  {onOpenCart && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenCart();
+                        setOpen(false);
+                      }}
+                      aria-label={`心愿单，共 ${cartCount ?? 0} 项`}
+                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[#e5e5e5] border-b-4 bg-white px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
+                    >
+                      <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-sm shrink-0">
+                        🧺
+                        {(cartCount ?? 0) > 0 && (
+                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] border-2 border-white text-xs font-bold text-white flex items-center justify-center">
+                            {cartCount}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-xs font-extrabold text-[#4b4b4b]">我的心愿单</span>
+                        <span className="block text-xs text-[#afafaf] truncate">收藏的局 · 一键直达 AR 预览</span>
+                      </span>
+                      <span className="text-[#afafaf] text-xs shrink-0">→</span>
+                    </button>
+                  )}
+                  {onSos && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSos();
+                        setOpen(false);
+                      }}
+                      aria-label="SOS 紧急求助"
+                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[#ff4b4b]/40 border-b-4 bg-[#fff5f5] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
+                    >
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff4b4b] text-white text-sm font-black shrink-0">
+                        SOS
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-xs font-extrabold text-[#c2410c]">SOS 紧急求助</span>
+                        <span className="block text-xs text-[#afafaf] truncate">一键上报 · 通知紧急联系人/平台/警方</span>
+                      </span>
+                      <span className="text-[#afafaf] text-xs shrink-0">→</span>
+                    </button>
+                  )}
+                </div>
+              )}
               {items.length === 0 ? (
                 <p className="text-xs text-[#afafaf] text-center py-6">
                   还没有通知 —— 雷达适配、报价应答、接单进度都会汇总到这里

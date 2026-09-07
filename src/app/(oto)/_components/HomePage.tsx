@@ -8,17 +8,22 @@ import { listAmmoPillDescriptors } from "@/ammo/registry";
 import { useAppStore } from "@/store/useAppStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { useWaveStore } from "@/store/useWaveStore";
-import HomeTopBar, { type HomeMode } from "./HomeTopBar";
+import HomeTopBar from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
 import InspirationChips from "./InspirationChips";
 import HeroAiDemandCabin from "./HeroAiDemandCabin";
+import FloatingSosButton from "./FloatingSosButton";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
 import PublishSheet from "@/components/waves/PublishSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
-import WorkerWorkbench from "@/components/oto-ui/profile/WorkerWorkbench";
 
+/**
+ * 首页买家视口（1:1 图纸形态）：问候顶栏 ➔ 水豚发射舱 ➔ 弹药库预览
+ * ➔ 灵感 chips ➔ AI 对话 ➔ 活水 Feed ➔ 温情雷达空态。
+ * 卖家工作台按裁决收归 我的 → 服务者工作台（ProfilePage 内，e2e-app 锁定）。
+ */
 export default function HomePage() {
   const setScreen = useAppStore((s) => s.setScreen);
   const openExperience = useAppStore((s) => s.openExperience);
@@ -27,7 +32,6 @@ export default function HomePage() {
   const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishCategory, setPublishCategory] = useState("");
-  const [homeMode, setHomeMode] = useState<HomeMode>("buyer");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   useEffect(() => {
@@ -59,22 +63,23 @@ export default function HomePage() {
     });
   }, [activeWave, claims, fulfilment]);
   return (
-    <div className="pointer-events-auto overflow-x-hidden">
-      <HomeTopBar
-        activeWave={activeWave}
-        activeFiveState={activeFiveState}
-        cartCount={cart.length}
-        onOpenCart={() => setShowCart(true)}
-        mode={homeMode}
-        onModeChange={setHomeMode}
-      />
-      {homeMode === "seller" ? (
-        <div className="mt-4" data-testid="home-seller-workbench" data-layer="seller-workbench">
-          <WorkerWorkbench onBack={() => setHomeMode("buyer")} />
-        </div>
-      ) : (
+    <div className="pointer-events-auto overflow-x-hidden relative -mx-4 -mt-6 px-4 pt-6 pb-4 bg-[#f7f8fa]">
+      {/* 氛围几何装饰层（图纸四角斑块：青绿/天蓝/暖橙/明黄，pointer-events-none 禁挡触控） */}
+      <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0 overflow-hidden">
+        <span className="absolute -top-6 -left-8 h-28 w-28 rounded-3xl bg-[#58cc02]/15 rotate-12 shadow-sm" />
+        <span className="absolute top-24 -right-10 h-32 w-32 rounded-full bg-[#1cb0f6]/10 -rotate-12" />
+        <span className="absolute top-[46%] -left-10 h-24 w-24 rounded-3xl bg-[#ff9600]/10 rotate-12" />
+        <span className="absolute bottom-24 right-6 h-20 w-20 rounded-2xl bg-[#ffd028]/15 -rotate-12" />
+      </div>
+      <div className="relative">
+        <HomeTopBar
+          activeWave={activeWave}
+          activeFiveState={activeFiveState}
+          cartCount={cart.length}
+          onOpenCart={() => setShowCart(true)}
+        />
         <div className="mt-3" data-layer="action">
-          {/* B1 一体化 AI 需求舱（设计图极简形态：水豚问候 + 出发 + 轻标签） */}
+          {/* B1 一体化 AI 需求舱（1:1 图纸：水豚半身 + 星芒输入胶囊 + [ 出发! ]） */}
           <HeroAiDemandCabin
             value={aiInput}
             onChange={setAiInput}
@@ -84,8 +89,8 @@ export default function HomePage() {
             }}
             onMic={() => setDraft({ key: "default-ammo", label: "全类目需求" })}
           />
+          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="featured" />
           <InspirationChips onSelectDraft={setDraft} />
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" />
           <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
             {chatOpen ? (
               <div>
@@ -122,13 +127,14 @@ export default function HomePage() {
             <WaveFeed />
           </div>
         </div>
-      )}
+      </div>
       <HomeDraftSheet draft={draft} onClose={() => setDraft(null)} onPublish={(label) => { setPublishCategory(label === "全类目需求" ? "" : label); setDraft(null); setPublishOpen(true); }} />
       <CartSheet open={showCart} cart={cart} onClose={() => setShowCart(false)} onToggleCartItem={toggleCart} onClearCart={clearCart} onPreviewExperience={(exp) => { openExperience(exp); setShowCart(false); }} onAiMatchAll={(titles) => { setAiDraft(`${titles} 帮我撮合`); setShowCart(false); setScreen("home"); }} />
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
       <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileTap={{ scale: 0.94 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#1cb0f6]/30">
         <Camera size={14} className="text-[#1cb0f6]" /> AR 扫描
       </motion.button>
+      <FloatingSosButton waveId={activeWave?.id} />
     </div>
   );
 }

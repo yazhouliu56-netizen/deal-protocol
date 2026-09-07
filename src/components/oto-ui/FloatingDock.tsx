@@ -27,6 +27,11 @@ export default function FloatingDock() {
   const imThreads = useWaveStore((s) => s.imThreads);
   const me = useIdentityStore((s) => s.identity.id);
   const msgUnread = unreadTotal(imThreads, me);
+  // 行程键进行中订单圆点：顶栏五态胶囊收拢后的实时感知替代（有在途单即亮）
+  const waves = useWaveStore((s) => s.waves);
+  const hasActiveWave = waves.some(
+    (w) => w.authorId === me && w.status !== "closed" && w.status !== "expired",
+  );
 
   return (
     <motion.div
@@ -35,7 +40,7 @@ export default function FloatingDock() {
       transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="fixed o-safe-bottom o-safe-pb bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px] px-4">
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl px-6 py-2.5 flex items-center justify-between gap-8 md:gap-14 shadow-sm">
+        <div className="bg-white/95 backdrop-blur-md border-2 border-slate-200/80 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12 shadow-xl">
           {NAVS.map((nav) => {
             const Icon = nav.icon;
             const isActive = activeTab === nav.id;
@@ -79,6 +84,12 @@ export default function FloatingDock() {
                     <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] border-2 border-white text-xs font-bold text-white flex items-center justify-center font-tabular shadow-sm">
                       {msgUnread}
                     </span>
+                  )}
+                  {nav.id === "trip" && hasActiveWave && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-[#58cc02] animate-pulse"
+                    />
                   )}
                 </div>
                 <span className="text-xs font-semibold tracking-wide relative">

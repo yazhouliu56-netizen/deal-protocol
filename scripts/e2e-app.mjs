@@ -138,6 +138,9 @@ try {
   assert.ok(await page.evaluate(() => document.body.innerText.includes("已加入")), "应显示已加入");
   await page.getByRole("button", { name: "首页" }).click();
   await page.waitForTimeout(500);
+  // 1:1 图纸收官：心愿单入口收拢至铃铛抽屉（aria 口径逐字保留），先开抽屉再进面板
+  await page.getByRole("button", { name: /通知中心/ }).click();
+  await page.waitForTimeout(500);
   await page.getByRole("button", { name: /心愿单，共 1 项/ }).click();
   await page.waitForTimeout(500);
   assert.ok(await page.evaluate(() => document.body.innerText.includes("我的心愿单")), "面板打开");
