@@ -64,3 +64,56 @@ test("completeText: stalled first provider does not eat the whole budget", async
     }
   }
 });
+
+/**
+ * 缺陷→考卷 2026-09-07（真机 15/20 #12/#14/#16）：上游 200 回空
+ * 不是失败、不污染健康分，直接下跳下一家，整句仍成功。
+ */
+test("completeText: empty content falls through to next provider", async () => {
+  const all = [...OTHERS, ORK];
+  const saved = new Map<string, string | undefined>();
+  for (const k of all) {
+    saved.set(k, process.env[k]);
+    delete process.env[k];
+  }
+  process.env[ORK] = "euclid-or-fixture-2";
+  const realFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = (() => {
+    attempts += 1;
+    if (attempts === 1) {
+      // 首家 200 但 content 为空：免费池短句偶发回空形态。
+      return Promise.resolve(
+        new Response(JSON.stringify({ choices: [{ message: { content: "" } }] }), {
+          status: 200,
+        }),
+      );
+    }
+    return Promise.resolve(
+      new Response(JSON.stringify({ choices: [{ message: { content: "fallback-wins" } }] }), {
+        status: 200,
+      }),
+    );
+  }) as typeof fetch;
+  try {
+    const r = await completeText({
+      task: "decompose",
+      messages: [{ role: "user", content: "empty-probe" }],
+      timeoutMs: 6000,
+    });
+    assert.equal(r.ok, true);
+    assert.equal(r.content, "fallback-wins");
+    assert.equal(attempts, 2);
+    assert.ok(typeof r.provider === "string" && r.provider.length > 0);
+    // 回空不计入健康分：三行均不在冷却中。
+    assert.equal(isCooling("openrouter-cohere"), false);
+    assert.equal(isCooling("openrouter-nemotron"), false);
+    assert.equal(isCooling("openrouter-lfm"), false);
+  } finally {
+    globalThis.fetch = realFetch;
+    for (const [k, v] of saved) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
+});

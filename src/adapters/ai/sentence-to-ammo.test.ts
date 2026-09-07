@@ -200,3 +200,24 @@ test("toFailureDimension：错误码确定性映射", () => {
   assert.equal(toFailureDimension(["INVALID_VERSION: v"]), "PARSE");
   assert.equal(toFailureDimension(["SOMETHING_ELSE"]), "UNKNOWN");
 });
+
+test("EMPTY_COMPLETION (upstream empty) is THROTTLED, never PARSE", async () => {
+  // 2026-09-07 real-device 15/20: #12/#14/#16 short-sentence EMPTY_COMPLETION
+  // from the free pool was misjudged as parse error. Lock: empty transport
+  // (both string and {content} shapes) marks THROTTLED.
+  const emptyStr = (async () => "") as unknown as CompleteTextFn;
+  const r1 = await generateAmmoFromSentence("test-empty-str", {
+    completeFn: emptyStr,
+  });
+  assert.equal(r1.ok, false);
+  assert.deepEqual(r1.errors, ["EMPTY_COMPLETION"]);
+  assert.equal(r1.failureDimension, "THROTTLED");
+
+  const emptyObj = (async () => ({ content: "" })) as unknown as CompleteTextFn;
+  const r2 = await generateAmmoFromSentence("test-empty-obj", {
+    completeFn: emptyObj,
+  });
+  assert.equal(r2.ok, false);
+  assert.deepEqual(r2.errors, ["EMPTY_COMPLETION"]);
+  assert.equal(r2.failureDimension, "THROTTLED");
+});

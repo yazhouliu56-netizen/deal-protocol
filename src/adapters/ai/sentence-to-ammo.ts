@@ -33,6 +33,7 @@ export type AmmoFailureDimension =
   | "HOOK"
   | "CLUSTER"
   | "TIMEOUT"
+  | "THROTTLED"
   | "PARSE"
   | "UNKNOWN";
 
@@ -276,10 +277,13 @@ export async function generateAmmoFromSentence(
   const tokens = pickTokens(raw);
   const content = extractContent(raw);
   if (!content) {
+    // 上游回空（免费池短句偶发 EMPTY_COMPLETION）是配额/限流侧症状，
+    // 不是解析错误：标 THROTTLED（网关内已对下一家 fallback），禁入 PARSE。
+    //（2026-09-07 真机 15/20 实证：#12/#14/#16，缺陷→考卷。）
     return finish({
       ok: false,
       errors: ["EMPTY_COMPLETION"],
-      failureDimension: "PARSE",
+      failureDimension: "THROTTLED",
       ...(tokens ? { tokens } : {}),
     });
   }
