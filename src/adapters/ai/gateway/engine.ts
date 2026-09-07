@@ -73,8 +73,11 @@ async function upstream(
         ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
       }
     );
-  } catch {
-    // 网络层异常（DNS / 连接超时 / TLS）：计入健康分并降级，不 500。
+  } catch (err) {
+    // 自家超时熔断（AbortError）不计入 provider 健康分：这是预算决策，
+    // 不是上游故障；计入会把慢池直接打进 30s 冷却，连锁清空整条链
+    //（2026-09-07 实证：#04 起 0ms 全灭）。真网络故障（拒绝/断连）仍计分。
+    if (err instanceof DOMException && err.name === "AbortError") return null;
     markFail(p.name, p.cooldownMs);
     return null;
   }
@@ -237,9 +240,20 @@ export interface TextOutcome {
  * 解析/兜底由调用方业务层决定。不做缓存——fire-and-forget 重复率低，
  * 避免缓存命中的 source 语义歧义。
  */
+/**
+ * 逐次超时动态扣减（2026-09-07 实证：单次尝试拿满总预算会让 stall 的
+ * 首发独吞 8s，链条一次没走就 TIMEOUT）。每家分 min(剩余, 4000)，
+ * 剩余不足 1500 直接停：8s 内保底走 2 家；4s 内合法慢响应不受影响，
+ * 更慢的合法响应让给 fallback（仍成功，只是换人）。
+ */
+const PER_ATTEMPT_MS = 4000;
+const MIN_REMAIN_MS = 1500;
+
 export async function completeText(
   opts: TextCompletionOptions
 ): Promise<TextOutcome> {
+  const budget = opts.timeoutMs ?? 8000;
+  const deadline = Date.now() + budget;
   const chain = rotateStart(
     activeProviders(opts.task).filter((p) => !isCooling(p.name)),
     opts.task
@@ -248,11 +262,16 @@ export async function completeText(
   let lastProvider: string | undefined;
   for (const provider of chain) {
     lastProvider = provider.name;
+    const remain = deadline - Date.now();
+    if (remain < MIN_REMAIN_MS) {
+      lastDetail = `${provider.name}: budget exhausted before attempt`;
+      break;
+    }
     const res = await upstream(
       provider,
       opts.task,
       opts.messages,
-      opts.timeoutMs,
+      Math.min(remain, PER_ATTEMPT_MS),
       { temperature: opts.temperature, maxTokens: opts.maxTokens }
     );
     if (!res) {
