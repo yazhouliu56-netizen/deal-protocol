@@ -69,7 +69,7 @@ function SleepyBeast({ awake = false }: { awake?: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none"
+      className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform"
     >
       <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true">
         {/* 暖橙底托 */}

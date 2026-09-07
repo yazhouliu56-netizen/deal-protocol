@@ -82,7 +82,7 @@ function playLaunchChime() {
  */
 function CapybaraBadge({ awake }: { awake: boolean }) {
   return (
-    <span aria-hidden="true" className="mascot-bob relative flex h-24 w-24 shrink-0 items-center justify-center select-none">
+    <span aria-hidden="true" className="mascot-bob relative flex h-24 w-24 shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform">
       {/* 暖黄色环境光晕 */}
       <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
       <svg width="88" height="88" viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative">
@@ -140,14 +140,15 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
     // 出发爽感：三音叮 + duo 配色撒花（reduced-motion 由库选项兜底），再走原发射链路
     playLaunchChime();
     try {
-      confetti({
-        particleCount: 45,
-        spread: 65,
-        startVelocity: 32,
-        origin: { y: 0.35 },
-        colors: ["#58cc02", "#1cb0f6", "#ffd028", "#ff7ab8"],
-        disableForReducedMotion: true,
-      });
+      // 通关级撒花：130 粒 duo 四色 + 左右礼花双 burst（reduced-motion 由库选项兜底）
+      const colors = ["#58cc02", "#1cb0f6", "#ffd028", "#ff7ab8"];
+      confetti({ particleCount: 90, spread: 100, startVelocity: 38, ticks: 220, scalar: 1.1, origin: { y: 0.3 }, colors, disableForReducedMotion: true });
+      window.setTimeout(() => {
+        try {
+          confetti({ particleCount: 30, angle: 60, spread: 60, origin: { x: 0, y: 0.5 }, colors, disableForReducedMotion: true });
+          confetti({ particleCount: 30, angle: 120, spread: 60, origin: { x: 1, y: 0.5 }, colors, disableForReducedMotion: true });
+        } catch { /* 忽略 */ }
+      }, 150);
     } catch {
       /* 撒花失败不打断发射 */
     }
@@ -155,7 +156,7 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
   };
   return (
     <div
-      className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 pt-5"
+      className="glass-cabin relative overflow-hidden rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 pt-5 transition-[transform,box-shadow] focus-within:-translate-y-0.5 focus-within:shadow-[0_20px_48px_-12px_rgba(88,204,2,.4)]"
       data-testid="ai-demand-cabin"
       data-layer="ai-cabin"
     >
@@ -214,7 +215,7 @@ export default function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, ha
             onClick={submit}
             aria-label="想找什么？一句话告诉我 · 发出你的需求"
             data-testid="launch-button"
-            className="px-5 py-2.5 rounded-full bg-[#58cc02] border-b-[3px] border-[#46a302] text-white text-sm font-black shadow-sm active:translate-y-0.5 active:border-b-0 transition-[transform] shrink-0 min-h-11"
+            className="px-5 py-2.5 rounded-full bg-[#58cc02] border-b-[3px] border-[#46a302] text-white text-sm font-black shadow-[0_6px_16px_rgba(88,204,2,.45)] active:scale-90 active:border-b-0 transition-transform shrink-0 min-h-11"
           >
             [ 出发! ]
           </button>

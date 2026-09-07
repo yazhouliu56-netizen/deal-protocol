@@ -326,3 +326,22 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .mascot-bob, .bubble-pop { animation: none !important; }
 }
+
+/* 发射舱玻璃拟态（Mochi 融合：半透明白 +  backdrop  blur + 内高光，配舱体自有边框） */
+.glass-cabin {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 12px 32px -12px rgba(76, 140, 40, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+/* 背景斑块漂浮（Mochi 融合：缓动长周期，transform 专有零重排） */
+@keyframes drift {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(12deg); }
+  50% { transform: translateY(-16px) translateX(8px) rotate(12deg); }
+}
+.drift { animation: drift 9s ease-in-out infinite; }
+.drift-d1 { animation-duration: 7s; }
+.drift-d2 { animation-duration: 11s; }
+@media (prefers-reduced-motion: reduce) {
+  .drift { animation: none !important; }
+}
