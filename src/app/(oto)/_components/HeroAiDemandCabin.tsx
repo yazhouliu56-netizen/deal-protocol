@@ -4,6 +4,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import DuoButton from "@/components/ui/DuoButton";
 
 /**
  * HeroAiDemandCabin —— 一体化 AI 需求舱（设计图极简形态）。
@@ -203,22 +204,10 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
   };
   return (
     <div
-      className="glass-cabin relative overflow-hidden rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 pt-5 transition-[transform,box-shadow] focus-within:-translate-y-0.5 focus-within:shadow-[0_20px_48px_-12px_rgba(88,204,2,.4)]"
+      className="glass-cabin relative overflow-hidden rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 pt-5"
       data-testid="ai-demand-cabin"
       data-layer="ai-cabin"
     >
-      {/* 背景漂浮柔和几何块（防雷：pointer-events-none + select-none，禁挡触控） */}
-      <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0">
-        <span className="absolute -top-8 -left-8 h-28 w-28 rounded-3xl bg-[#1cb0f6]/10 rotate-12" />
-        <span className="absolute -top-6 right-10 h-20 w-20 rounded-full bg-[#58cc02]/10" />
-        <span className="absolute top-16 -right-8 h-24 w-24 rounded-3xl bg-[#ff9600]/10 -rotate-12" />
-      </div>
-      {/* 底部彩虹微光渐变光泽带（单轨 Feather 点缀，transform/opacity 零重排） */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute inset-x-6 bottom-1 h-1 rounded-full bg-gradient-to-r from-[#1cb0f6]/40 via-[#8b5cf6]/40 to-[#ff7ab8]/40 blur-[2px]"
-      />
-
       <div className="relative">
         {/* 问候行：水豚半身 + 气泡（话语从水豚嘴里说出：左尾气泡） */}
         <div className="flex items-center gap-2.5">
@@ -232,8 +221,8 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
           </div>
         </div>
 
-        {/* 意图输入胶囊：星芒 + 输入 + 麦克风 + 出发 */}
-        <div className="mt-3 flex items-center gap-2 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] pl-3 pr-1.5 py-1.5 shadow-sm focus-within:border-[#58cc02]/40">
+        {/* 意图输入胶囊：星芒 + 输入 + 麦克风 + 出发（Duo 唯一 CTA 出口） */}
+        <div className="mt-3 flex items-center gap-2 rounded-full bg-white border-2 border-[#e5e5e5] pl-3 pr-1.5 py-1.5 focus-within:border-[#1cb0f6]">
           <AiSparkle />
           <input
             type="search"
@@ -249,23 +238,29 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             aria-label="一句话描述你的需求"
             className="flex-1 min-w-0 bg-transparent py-2 text-sm text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none"
           />
-          <button
+          <DuoButton
             type="button"
+            variant="outline"
+            size="sm"
+            sound="click"
             aria-label="🎙️ 语音输入"
             onClick={onMic}
-            className="w-9 h-9 rounded-full bg-white border-2 border-[#e5e5e5] shadow-sm flex items-center justify-center text-sm shrink-0 active:translate-y-px hover:border-[#58cc02]/20 transition-[transform,border]"
+            className="rounded-full px-3 shrink-0"
           >
             🎙️
-          </button>
-          <button
+          </DuoButton>
+          <DuoButton
             type="button"
+            variant="primary"
+            size="sm"
+            sound="correct"
             onClick={submit}
             aria-label="[ 出发! ] 想找什么？一句话告诉我 · 发出你的需求"
             data-testid="launch-button"
-            className="px-5 py-2.5 rounded-full bg-[#3a8500] border-b-[3px] border-[#2f7a00] text-white text-sm font-black shadow-[0_6px_16px_rgba(88,204,2,.45)] active:scale-90 active:border-b-0 transition-transform shrink-0 min-h-11"
+            className="rounded-full px-5 shrink-0"
           >
-            [ 出发! ]
-          </button>
+            出发!
+          </DuoButton>
         </div>
       </div>
       {/* 发射庆祝遮罩：C 位水豚弹簧入场报“发射成功”，1.5s 退场 */}
@@ -279,7 +274,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.25 } }}
           >
-            <span className="absolute h-56 w-56 rounded-full bg-[#58cc02]/20 blur-2xl" />
+            <span className="absolute h-56 w-56 rounded-full bg-[#d7ffb8]" />
             <motion.div
               initial={{ scale: 0.4, y: 60, rotate: -8 }}
               animate={{ scale: 1, y: 0, rotate: 0 }}
@@ -293,7 +288,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
               initial={{ scale: 0.7, y: 16 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 380, damping: 16, delay: 0.08 }}
-              className="relative rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-xl px-6 py-3 text-center"
+              className="relative rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] px-6 py-3 text-center"
             >
               <p className="text-lg font-black text-[#2d3748]">发射成功！🎉</p>
               <p className="text-xs font-bold text-[#357a00] mt-0.5">正在为你装填弹药…</p>

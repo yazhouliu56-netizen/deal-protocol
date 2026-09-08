@@ -8,7 +8,7 @@ const SIZE_CLASS: Record<Size, string> = {
   md: "w-11 h-11 rounded-2xl",
 };
 
-/** Small circular card icon button (search actions, AR control column). */
+/** Duo icon button（极简多邻国：白底 + 2px Swan 边框 + 底部厚唇，无 blur；触感只给可按的）。 */
 export default function GlassIconButton({
   children,
   className = "",
@@ -24,10 +24,10 @@ export default function GlassIconButton({
   return (
     <button
       onClick={onClick}
-      className={`bg-white border border-[#e5e5e5] shadow-sm ${SIZE_CLASS[size]} flex items-center justify-center transition-colors shrink-0 ${
+      className={`duo-3d-button bg-white border-2 border-[#e5e5e5] ${SIZE_CLASS[size]} flex items-center justify-center shrink-0 active:translate-y-px ${
         tone === "cyan"
-          ? "text-brandCyan hover:border-brandCyan/50"
-          : "text-[#777777] hover:border-brandPurple/50 hover:text-[#4b4b4b]"
+          ? "text-[#1cb0f6] hover:border-[#1cb0f6]"
+          : "text-[#777777] hover:border-[#afafaf] hover:text-[#4b4b4b]"
       } ${className}`}
       {...rest}
     >

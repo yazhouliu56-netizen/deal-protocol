@@ -243,13 +243,14 @@ body {
 
 /* ===== 排版系统（第六军团统一字阶与等宽数字） ===== */
 
-/* Batch2 单轨归并：Duo 色谱与 3D 触觉工具收归根入口（与 (oto) 同名定义值一致，全路由可用） */
+/* Batch2 单轨归并：Duo 色谱与 3D 触觉工具收归根入口（与 (oto) 同名定义值一致，全路由可用）
+   极简多邻国重塑（2026-09-08 §3裁决：官方 design.duolingo.com 对齐，唇色一律同色系加深纯色无模糊） */
 :root {
   --color-duo-green: #58cc02;
-  --color-duo-green-dark: #46a302;
+  --color-duo-green-dark: #58a700;
   --color-duo-green-light: #d7ffb8;
   --color-duo-orange: #ff9600;
-  --color-duo-orange-dark: #e58700;
+  --color-duo-orange-dark: #cc7a00;
   --color-duo-blue: #1cb0f6;
   --color-duo-blue-dark: #1899d6;
   --color-duo-red: #ff4b4b;
@@ -257,6 +258,9 @@ body {
   --color-duo-yellow: #ffc800;
   --color-duo-yellow-dark: #e5b400;
   --color-duo-polar: #f7f7f7;
+  --color-duo-swan: #e5e5e5;
+  --color-duo-hare: #afafaf;
+  --color-duo-wolf: #777777;
   --color-duo-eel: #4b4b4b;
 }
 .duo-3d-button {
@@ -327,12 +331,9 @@ body {
   .mascot-bob, .bubble-pop { animation: none !important; }
 }
 
-/* 发射舱玻璃拟态（Mochi 融合：半透明白 +  backdrop  blur + 内高光，配舱体自有边框） */
+/* 发射舱 Duo 白卡（极简多邻国：纯白实底 + 2px Swan 边框，无 blur 无渐变；触感只给按钮） */
 .glass-cabin {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 12px 32px -12px rgba(76, 140, 40, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: #ffffff;
 }
 /* 背景斑块漂浮（Mochi 融合：缓动长周期，transform 专有零重排） */
 @keyframes drift {
@@ -360,11 +361,7 @@ body {
   .mascot-blink { animation: none !important; }
 }
 
-/* 首页氛围底（Mochi 融合：奶油+薰衣草+薄荷径向透气，Feather 浅色系内） */
+/* 首页氛围底（极简多邻国：纯白打底，大留白，色彩只给吉祥物/标签/CTA） */
 .oto-pastel-bg {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(139, 92, 246, 0.07) 0%, transparent 42%),
-    radial-gradient(circle at 88% 12%, rgba(28, 176, 246, 0.07) 0%, transparent 40%),
-    radial-gradient(circle at 50% 100%, rgba(255, 122, 184, 0.06) 0%, transparent 48%),
-    #f7f8fa;
+  background: #ffffff;
 }

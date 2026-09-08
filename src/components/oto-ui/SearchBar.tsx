@@ -28,7 +28,7 @@ export default function SearchBar({
           if (composingRef.current) return;
           onSearch?.();
         }}
-        className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3 flex items-center gap-3 flex-1"
+        className="bg-white border-2 border-[#e5e5e5] rounded-2xl p-3 flex items-center gap-3 flex-1"
       >
         <Search size={15} className="text-[#afafaf] shrink-0" />
         <input

@@ -106,12 +106,12 @@ const CAMERA_CSS = `
 .proof-camera-btn{flex:1;display:flex;align-items:center;justify-content:center;
   border-radius:14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:transform .12s;
   -webkit-tap-highlight-color:transparent}
-.proof-camera-btn:active{transform:scale(.97)}
+.proof-camera-btn:active{transform:translateY(3px)}
 .proof-camera-btn:disabled{opacity:.45;cursor:not-allowed}
-.proof-camera-btn-primary{background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;
-  border:1px solid rgba(255,255,255,.2);box-shadow:0 4px 18px rgba(99,102,241,.35)}
-.proof-camera-btn-ghost{background:rgba(255,255,255,.07);color:#94a3b8;border:1px solid rgba(255,255,255,.1)}
-.proof-camera-btn-danger{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+.proof-camera-btn-primary{background:#58cc02;color:#fff;
+  border:2px solid #58a700;border-bottom-width:4px;box-shadow:none}
+.proof-camera-btn-ghost{background:#fff;color:#4b4b4b;border:2px solid #e5e5e5;border-bottom-width:4px}
+.proof-camera-btn-danger{background:#ff4b4b;color:#fff;border:2px solid #ea2b2b;border-bottom-width:4px}
 .proof-camera-geo{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
   color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;padding:2px 8px;margin-bottom:8px}
 `;
