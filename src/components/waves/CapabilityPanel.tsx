@@ -74,7 +74,7 @@ export default function CapabilityPanel() {
   }
 
   return (
-    <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl">
+    <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl">
       {/* 头部 */}
       <button
         onClick={() => setOpen(!open)}
@@ -91,7 +91,7 @@ export default function CapabilityPanel() {
             {identity.distanceKm} km · {identity.online ? "在线" : "隐身"}
           </span>
           <span
-            className="text-xs font-bold text-amber-300/90 block mt-0.5 truncate"
+            className="text-xs font-bold text-[#8a6d00] block mt-0.5 truncate"
             aria-label="服务商星级"
           >
             {rankLabel({ ...myStats, completion: myCompletion })}
@@ -107,12 +107,12 @@ export default function CapabilityPanel() {
           className="overflow-hidden px-3.5 pb-3.5"
         >
           {/* 状态总闸：在线 / 忙碌 / 隐身 */}
-          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] mb-3">
+          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] mb-3">
             <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
               {status === "online" ? (
-                <Wifi size={12} className="text-emerald-400" />
+                <Wifi size={12} className="text-[#58cc02]" />
               ) : status === "busy" ? (
-                <Timer size={12} className="text-amber-400" />
+                <Timer size={12} className="text-[#e5b400]" />
               ) : (
                 <WifiOff size={12} className="text-[#afafaf]" />
               )}
@@ -130,14 +130,14 @@ export default function CapabilityPanel() {
                   key={key}
                   onClick={() => setStatus(key)}
                   aria-label={`状态${label}`}
-                  className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${
+                  className={`px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     status === key
                       ? key === "online"
-                        ? "bg-emerald-400/25 text-emerald-300 border border-emerald-400/50"
+                        ? "bg-[#58cc02]/15 text-[#357a00] border-[#58cc02]/50"
                         : key === "busy"
-                          ? "bg-amber-400/25 text-amber-300 border border-amber-400/50"
-                          : "bg-white/15 text-[#777777] border border-[#e5e5e5]"
-                      : "bg-[#f7f7f7] text-[#afafaf] border border-[#e5e5e5]"
+                          ? "bg-[#ffc800]/15 text-[#8a6d00] border-[#e5b400]/60"
+                          : "bg-white text-[#777777] border-[#e5e5e5]"
+                      : "bg-[#f7f7f7] text-[#afafaf] border-[#e5e5e5]"
                   }`}
                 >
                   {label}
@@ -157,10 +157,10 @@ export default function CapabilityPanel() {
                 <button
                   key={c}
                   onClick={() => toggleCategory(c)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     on
-                      ? "bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm"
-                      : "bg-white border border-[#e5e5e5] shadow-sm text-[#afafaf]"
+                      ? "bg-[#58cc02] border-[#58a700] text-white"
+                      : "bg-white border-[#e5e5e5] text-[#afafaf]"
                   }`}
                 >
                   {on && <Check size={10} className="inline mr-0.5" />}
@@ -174,7 +174,7 @@ export default function CapabilityPanel() {
                 onChange={(e) => setCustomCat(e.target.value)}
                 placeholder="自定义品类"
                 aria-label="自定义品类"
-                className="w-24 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-brandPurple/50"
+                className="w-24 rounded-full bg-white border-2 border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-[#58cc02]"
               />
               <button
                 onClick={() => {
@@ -184,7 +184,7 @@ export default function CapabilityPanel() {
                     setCustomCat("");
                   }
                 }}
-                className="w-7 h-7 rounded-full bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-[#777777]"
+                className="w-7 h-7 rounded-full bg-white border-2 border-[#e5e5e5] flex items-center justify-center text-[#777777]"
                 aria-label="添加品类"
               >
                 <Plus size={11} />
@@ -203,7 +203,7 @@ export default function CapabilityPanel() {
                 onClick={() =>
                   commit({ tags: identity.tags.filter((x) => x !== t) })
                 }
-                className="px-2 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-xs font-bold text-brandPurple"
+                className="px-2 py-0.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-xs font-bold text-[#0a6ea8]"
               >
                 {t} ✕
               </button>
@@ -214,20 +214,20 @@ export default function CapabilityPanel() {
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="加标签"
                 aria-label="添加标签"
-                className="w-24 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-brandPurple/50"
+                className="w-24 rounded-full bg-white border-2 border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-[#1cb0f6]"
               />
               <button
                 onClick={addTag}
-                className="w-7 h-7 rounded-full bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-[#777777]"
+                className="w-7 h-7 rounded-full bg-white border-2 border-[#e5e5e5] flex items-center justify-center text-[#777777]"
                 aria-label="添加标签"
               >
                 <Plus size={11} />
               </button>
             </div>
           </div>
-          <p className="text-xs text-white/25 -mt-1 mb-2">
+          <p className="text-xs text-[#afafaf] -mt-1 mb-2">
             兴趣标签最多 3 个 · 随时可换（{3 - identity.tags.length} 空位）
-            {tagFull && <span className="text-amber-300"> 已满，先删再改</span>}
+            {tagFull && <span className="text-[#8a6d00]"> 已满，先删再改</span>}
           </p>
 
           {/* 距离 */}
@@ -244,7 +244,7 @@ export default function CapabilityPanel() {
               onChange={(e) =>
                 commit({ distanceKm: parseFloat(e.target.value) })
               }
-              className="w-full accent-brandPurple"
+              className="w-full accent-[#58cc02]"
               aria-label="服务半径"
             />
           </div>
@@ -259,10 +259,10 @@ export default function CapabilityPanel() {
               ✅ 实名认证模拟（信用加权 +5）
             </span>
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 ${
                 identity.verified
-                  ? "bg-emerald-400/20 text-emerald-300"
-                  : "bg-[#f7f7f7] text-[#afafaf]"
+                  ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+                  : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
               }`}
             >
               {identity.verified ? "已认证" : "未认证"}
@@ -272,7 +272,7 @@ export default function CapabilityPanel() {
             identity.categories.some((c) =>
               requiresVerification(c, dispatchRuleFor(c))
             ) && (
-              <p className="text-xs text-amber-300/90 mt-1.5">
+              <p className="text-xs text-[#8a6d00] mt-1.5">
                 ⚠️ 陪诊/家政/上门做饭等进家品类需先实名认证（对标 Care.com 接单门槛）
               </p>
             )}

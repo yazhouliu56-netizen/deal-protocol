@@ -1,4 +1,5 @@
 "use client";
+import DuoButton from "@/components/ui/DuoButton";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Gavel, Trophy, Layers } from "lucide-react";
@@ -190,7 +191,7 @@ const open = session.status === "open";
       {/* 真实局选择：我发出的活跃多人拼单局即拍品候选 */}
       {myActive.length > 0 && (
         <div className="mt-2.5 flex items-center gap-2">
-          <Layers size={10} className="text-brandCyan shrink-0" />
+          <Layers size={10} className="text-[#0a6ea8] shrink-0" />
           <select
             value={pickedWaveId ?? ""}
             onChange={(e) => {
@@ -199,13 +200,13 @@ const open = session.status === "open";
               else reset();
             }}
             aria-label="选择要竞价的真实需求局"
-            className="flex-1 min-w-0 min-h-10 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2 py-1.5 text-xs font-bold text-[#4b4b4b] outline-none focus:border-brandPurple/60"
+            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white border-2 border-[#e5e5e5] px-2 py-1.5 text-xs font-bold text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
           >
-            <option value="" className="bg-[#0b0e22]">
+            <option value="">
               演示局 · 小区保洁
             </option>
             {myActive.map((w) => (
-              <option key={w.id} value={w.id} className="bg-[#0b0e22]">
+              <option key={w.id} value={w.id}>
                 {w.basics.category} · ¥{w.budget}
               </option>
             ))}
@@ -221,12 +222,12 @@ const open = session.status === "open";
           return (
             <div
               key={b.bidderId}
-              className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs ${
+              className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs border-2 ${
                 leader
-                  ? "bg-emerald-400/15 border border-emerald-400/40"
+                  ? "bg-[#58cc02]/10 border-[#58cc02]/40"
                   : mine
-                    ? "bg-[#f7f7f7] border border-[#e5e5e5]"
-                    : "bg-[#f7f7f7] border border-transparent"
+                    ? "bg-white border-[#e5e5e5]"
+                    : "bg-[#f7f7f7] border-transparent"
               }`}
             >
               <span className="w-4 text-[#afafaf] font-mono shrink-0">
@@ -235,7 +236,7 @@ const open = session.status === "open";
               <span className="font-bold text-[#4b4b4b] truncate">
                 {b.bidderName}
                 {leader && (
-                  <span className="ml-1.5 text-emerald-300 font-extrabold">
+                  <span className="ml-1.5 text-[#357a00] font-extrabold">
                     中标
                   </span>
                 )}
@@ -262,22 +263,26 @@ const open = session.status === "open";
             onChange={(e) => setMyPrice(e.target.value)}
             inputMode="numeric"
             aria-label="我的报价"
-            className="w-20 min-h-10 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-2 text-xs font-mono text-[#4b4b4b] outline-none focus:border-brandPurple/60"
+            className="w-20 min-h-10 rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs font-mono text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
           />
-          <button
-            type="button"
+          <DuoButton
+            variant="secondary"
+            size="sm"
+            sound="click"
             onClick={handleBid}
-            className="flex-1 min-h-10 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-xs font-extrabold hover:bg-brandPurple/30 transition-colors"
+            className="flex-1"
           >
             {myLowest ? "保持最低价 · 稳住榜一" : "出价"}
-          </button>
-          <button
-            type="button"
+          </DuoButton>
+          <DuoButton
+            variant="primary"
+            size="sm"
+            sound="correct"
             onClick={handleAward}
-            className="shrink-0 min-h-10 px-3.5 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold hover:bg-emerald-400/25 transition-colors"
+            className="shrink-0"
           >
             立即开标
-          </button>
+          </DuoButton>
         </div>
       )}
 
@@ -288,7 +293,7 @@ const open = session.status === "open";
           animate={{ opacity: 1, height: "auto" }}
           className="mt-2.5 pt-2.5 border-t border-[#e5e5e5]"
         >
-          <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-300">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-[#357a00]">
             <Trophy size={12} />
             {session.award.winnerId === "me"
               ? "你中标了！"
@@ -302,7 +307,7 @@ const open = session.status === "open";
       )}
 
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-xl bg-red-400/10 border border-red-400/35 text-xs font-bold text-red-300">
+        <p className="mt-2 px-3 py-1.5 rounded-xl bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
           {error}
         </p>
       )}

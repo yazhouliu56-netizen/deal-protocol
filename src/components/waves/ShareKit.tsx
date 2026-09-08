@@ -56,7 +56,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-brandCyan hover:border-brandCyan/50 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs font-bold text-[#0a6ea8] hover:border-[#1cb0f6]/50 transition-colors"
         aria-label="分享拼位 · 拉新裂变"
         aria-expanded={open}
       >
@@ -73,14 +73,14 @@ export default function ShareKit({ wave }: { wave: Wave }) {
         <motion.div
           initial={{ opacity: 0, y: 6, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm p-3 space-y-2.5 shadow-2xl"
+          className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3 space-y-2.5"
         >
-          <p className="text-xs font-bold text-[#4b4b4b]">
+          <p className="text-xs font-extrabold text-[#4b4b4b]">
             邀请拼位 · 拉新
           </p>
-          <p className="text-xs leading-relaxed text-[#afafaf]">
+          <p className="text-xs leading-relaxed text-[#777777]">
             别人通过你的分享加入并回应/成交，才计裂变
-            <span className="text-brandCyan">（分享本身不计，防自刷）</span>。
+            <span className="text-[#0a6ea8]">（分享本身不计，防自刷）</span>。
           </p>
 
           {/* 真二维码：扫码直达分享局 */}

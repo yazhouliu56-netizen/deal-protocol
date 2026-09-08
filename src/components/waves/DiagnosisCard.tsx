@@ -61,26 +61,26 @@ export default function DiagnosisCard({ wave }: { wave: Wave }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-brandPurple/10 border border-brandPurple/30 p-3 space-y-2"
+      className="rounded-2xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 p-3 space-y-2"
     >
-      <p className="text-xs font-bold text-brandPurple flex items-center gap-1">
+      <p className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1">
         <Sparkles size={11} /> AI 主动诊断 · 还没人响应
       </p>
       {advice.map((a, i) => (
         <div
           key={a.id ?? `${wave.id}-${a.kind}-${i}`}
-          className="rounded-xl bg-white/[0.04] border border-white/10 px-2.5 py-2"
+          className="rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2"
         >
-          <p className="text-xs font-bold text-white/90 flex items-start gap-1.5">
-            <MessageSquareText size={11} className="mt-0.5 shrink-0 text-brandCyan" />
+          <p className="text-xs font-bold text-[#4b4b4b] flex items-start gap-1.5">
+            <MessageSquareText size={11} className="mt-0.5 shrink-0 text-[#1cb0f6]" />
             {a.title}
             {a.value && (
-              <span className="ml-auto shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandCyan/15 border border-brandCyan/40 text-brandCyan">
+              <span className="ml-auto shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-[#0a6ea8]">
                 {a.value}
               </span>
             )}
           </p>
-          <p className="text-xs text-white/60 mt-1 leading-relaxed">{a.body}</p>
+          <p className="text-xs text-[#777777] mt-1 leading-relaxed">{a.body}</p>
         </div>
       ))}
     </motion.div>

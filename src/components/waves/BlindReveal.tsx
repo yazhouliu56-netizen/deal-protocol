@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock3 } from "lucide-react";
+import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 import { maskName } from "@/base/trust/reputation";
 
 export interface BlindRevealData {
@@ -25,7 +26,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         className="relative [transform-style:preserve-3d]"
       >
         {/* 背面（揭晓内容）—— rotateY 180 后朝前 */}
-        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border border-[#e5e5e5] shadow-sm p-4 rounded-3xl border-brandCyan/40">
+        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border-2 border-[#1cb0f6]/40 border-b-4 p-4 rounded-3xl">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] text-white flex items-center justify-center text-lg shrink-0">
               {data.nickname.slice(0, 1)}
@@ -35,33 +36,27 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                 <span className="text-[13px] font-extrabold text-[#4b4b4b]">
                   {maskName(data.nickname)}
                 </span>
-                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/25 border border-brandPurple/40 text-brandPurple">
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#ffc800]/15 border-2 border-[#e5b400]/50 text-[#8a6d00]">
                   Lv.{data.creditTier}
                 </span>
                 {data.verified && (
-                  <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+                  <ShieldCheck size={13} className="text-[#58cc02] shrink-0" />
                 )}
               </div>
               <span className="text-xs text-[#afafaf] block truncate mt-0.5">
                 {data.meta}
               </span>
             </div>
-            <span className="flex items-center gap-1 text-xs text-brandCyan font-semibold shrink-0">
+            <span className="flex items-center gap-1 text-xs text-[#0a6ea8] font-semibold shrink-0">
               <Clock3 size={11} /> {data.responseTime}
             </span>
           </div>
         </div>
 
-        {/* 正面（翻转前：悬念卡） */}
-        <div className="absolute inset-0 [backface-visibility:hidden] bg-white border border-[#e5e5e5] shadow-sm p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
-          <motion.span
-            animate={{ scale: [1, 1.15, 1] }}
-            transition={{ repeat: Infinity, duration: 1.4 }}
-            className="text-2xl"
-          >
-            🎁
-          </motion.span>
-          <span className="text-xs font-bold text-[#4b4b4b]">
+        {/* 正面（翻转前：悬念卡）—— 平头哥报喜：对方接单了 */}
+        <div className="absolute inset-0 [backface-visibility:hidden] bg-white border-2 border-[#e5e5e5] border-b-4 p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
+          <SleepyBeast mood="cheering" interactive={false} />
+          <span className="text-xs font-extrabold text-[#4b4b4b]">
             有人接单了！
           </span>
           <span className="text-xs text-[#afafaf]">身份确认中…</span>

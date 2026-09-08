@@ -40,10 +40,10 @@ export default function WalletView() {
   }, [myReviews, recalcCredit]);
 
   return (
-    <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3.5">
+    <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl p-3.5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-bold text-[#777777] flex items-center gap-1.5">
-          <Wallet size={12} className="text-brandCyan" /> 我的钱包
+          <Wallet size={12} className="text-[#0a6ea8]" /> 我的钱包
           <SandboxBadge />
         </h3>
         <span className="text-xs text-[#afafaf]">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
@@ -51,41 +51,41 @@ export default function WalletView() {
 
       <div className="grid grid-cols-3 gap-2">
         {/* 余额 */}
-        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
+        <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
+          <span className="text-[16px] font-extrabold text-[#357a00] font-tabular">
             ¥{account.balance}
           </span>
           <span className="text-xs text-[#afafaf]">可用余额</span>
         </div>
         {/* 信用 */}
-        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold text-brandPurple flex items-center gap-1">
-            <ShieldCheck size={13} className="text-emerald-400" />
+        <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
+          <span className="text-[16px] font-extrabold text-[#0a6ea8] flex items-center gap-1">
+            <ShieldCheck size={13} className="text-[#58cc02]" />
             Lv.{creditTier}
           </span>
           <span className="text-xs text-[#afafaf]">信用等级</span>
         </div>
         {/* 额度 */}
-        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold text-brandCyan flex items-center gap-1">
+        <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-2.5 flex flex-col items-center gap-0.5">
+          <span className="text-[16px] font-extrabold text-[#0a6ea8] flex items-center gap-1 font-tabular">
             <Zap size={13} /> {claimQuota}
-            {halved && <span className="text-xs text-amber-300">(减半)</span>}
+            {halved && <span className="text-xs text-[#8a6d00]">(减半)</span>}
           </span>
           <span className="text-xs text-[#afafaf]">今日接单额度</span>
         </div>
       </div>
       {halved && (
-        <p className="mt-2 text-xs text-amber-300/90">
+        <p className="mt-2 text-xs text-[#8a6d00]">
           违约未谅解：3 天响应额度减半生效中
         </p>
       )}
       {frozen > 0 && (
-        <p className="mt-2 text-xs text-sky-300/90">
+        <p className="mt-2 text-xs text-[#0a6ea8]">
           🕊️ 爽约保障险冻结中：¥{frozen}（履约后自动退回）
         </p>
       )}
       {creditTier >= 4 && (
-        <p className="mt-2 text-xs text-emerald-300/90">
+        <p className="mt-2 text-xs text-[#357a00]">
           ⚡ 信用 Lv.{creditTier} 解锁响应额度扩容：今日 {dailyQuotaForTier(creditTier)} 次
         </p>
       )}
@@ -107,7 +107,7 @@ export default function WalletView() {
                 <span className="flex items-center gap-1.5 text-xs text-[#777777] min-w-0">
                   <Star
                     size={10}
-                    className="text-amber-300 fill-amber-300 shrink-0"
+                    className="text-[#ffc800] fill-[#ffc800] shrink-0"
                   />
                   {r.score} 分 · {decayLabel(r.at, now)}
                   {r.comment && (
@@ -139,8 +139,8 @@ export default function WalletView() {
               >
                 <span className="text-xs text-[#777777] truncate">{e.note}</span>
                 <span
-                  className={`text-xs font-bold shrink-0 ml-2 ${
-                    e.amount >= 0 ? "text-emerald-300" : "text-red-300"
+                  className={`text-xs font-bold shrink-0 ml-2 font-tabular ${
+                    e.amount >= 0 ? "text-[#357a00]" : "text-[#ea2b2b]"
                   }`}
                 >
                   {e.amount >= 0 ? "+" : "-"}¥{Math.abs(e.amount)}

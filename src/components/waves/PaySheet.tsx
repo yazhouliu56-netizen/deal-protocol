@@ -61,11 +61,11 @@ export default function PaySheet({
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        className="fixed inset-x-3 bottom-8 z-[60] bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-5"
+        className="fixed inset-x-3 bottom-8 z-[60] bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-5"
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-            <CreditCard size={13} className="text-brandCyan" /> {title}
+            <CreditCard size={13} className="text-[#1cb0f6]" /> {title}
           </h3>
           <button
             onClick={onCancel}
@@ -78,7 +78,7 @@ export default function PaySheet({
 
         <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-4 mb-3 text-center">
           <p className="text-xs text-[#afafaf] mb-1">{desc ?? "应付金额"}</p>
-          <p className="text-[28px] font-extrabold text-brandCyan leading-none">
+          <p className="text-[28px] font-extrabold text-[#357a00] leading-none font-tabular">
             ¥{amount}
           </p>
           {fee > 0 && (

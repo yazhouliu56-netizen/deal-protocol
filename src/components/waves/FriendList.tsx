@@ -2,6 +2,7 @@
 import { useEffect, useMemo } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { Heart, Users } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { requestTtlLeft } from "@/adapters/social/friends";
@@ -60,20 +61,20 @@ export default function FriendList() {
   if (mine.length === 0 && incoming.length === 0) return null;
 
   return (
-    <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3.5">
+    <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl p-3.5">
       <h3 className="text-xs font-bold text-[#777777] mb-2 flex items-center gap-1.5">
-        <Heart size={11} className="text-brandPurple" /> 我的关系
+        <Heart size={11} className="text-[#ff7ab8]" /> 我的关系
       </h3>
 
       {incoming.length > 0 && (
         <div className="mb-3 space-y-2">
-          <p className="text-xs font-bold text-brandPurple">
+          <p className="text-xs font-extrabold text-[#0a6ea8]">
             待确认的好友请求
           </p>
           {incoming.map((r) => (
             <div
               key={r.id}
-              className="rounded-xl bg-brandPurple/10 border border-brandPurple/30 px-2.5 py-2 flex items-center justify-between gap-2"
+              className="rounded-xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 px-2.5 py-2 flex items-center justify-between gap-2"
             >
               <p className="text-xs font-bold text-[#4b4b4b] truncate">
                 {r.nickname}
@@ -83,18 +84,12 @@ export default function FriendList() {
                 </span>
               </p>
               <div className="flex gap-1 shrink-0">
-                <button
-                  onClick={() => acceptFriendRequest(r.id)}
-                  className="px-2 py-1 rounded-lg bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300 hover:brightness-110"
-                >
+                <DuoButton variant="primary" size="sm" sound="correct" onClick={() => acceptFriendRequest(r.id)}>
                   接受
-                </button>
-                <button
-                  onClick={() => ignoreFriendRequest(r.id)}
-                  className="px-2 py-1 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b]"
-                >
+                </DuoButton>
+                <DuoButton variant="outline" size="sm" sound="click" onClick={() => ignoreFriendRequest(r.id)}>
                   忽略
-                </button>
+                </DuoButton>
               </div>
             </div>
           ))}
@@ -105,7 +100,7 @@ export default function FriendList() {
         {mine.map((f) => (
           <span
             key={f.id}
-            className="text-xs px-2.5 py-1 rounded-full bg-emerald-400/[0.07] border border-emerald-400/25 text-emerald-200/90 flex items-center gap-1"
+            className="text-xs px-2.5 py-1 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00] flex items-center gap-1"
           >
             <Users size={9} /> {f.nickname}
           </span>

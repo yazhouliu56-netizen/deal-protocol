@@ -22,13 +22,13 @@ import { shouldNotify, minuteOfWeek } from "@/base/platform/quietHours";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
-  offer: ["bg-brandCyan/15 border-brandCyan/40", "text-brandCyan"],
-  accepted: ["bg-emerald-400/15 border-emerald-400/40", "text-emerald-300"],
-  push: ["bg-brandPurple/15 border-brandPurple/40", "text-brandPurple-foreground"],
-  friend: ["bg-amber-400/15 border-amber-400/40", "text-amber-300"],
+  offer: ["bg-[#1cb0f6]/10 border-[#1cb0f6]/40", "text-[#0a6ea8]"],
+  accepted: ["bg-[#58cc02]/10 border-[#58cc02]/40", "text-[#357a00]"],
+  push: ["bg-[#ffc800]/10 border-[#e5b400]/50", "text-[#8a6d00]"],
+  friend: ["bg-[#1cb0f6]/10 border-[#1cb0f6]/40", "text-[#0a6ea8]"],
   report: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
   wave: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
-  fission: ["bg-cyan-400/15 border-cyan-400/40", "text-cyan-300"],
+  fission: ["bg-[#58cc02]/10 border-[#58cc02]/40", "text-[#357a00]"],
 };
 
 function NotifyRow({ item }: { item: NotifyItem }) {
@@ -175,11 +175,11 @@ export default function NotificationCenter({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
+              className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                  <Bell size={13} className="text-brandCyan" /> 通知{unread > 0 ? `（${unread}）` : ""}
+                  <Bell size={13} className="text-[#1cb0f6]" /> 通知{unread > 0 ? `（${unread}）` : ""}
                 </h3>
                 <button
                   onClick={() => setOpen(false)}
@@ -260,7 +260,7 @@ export default function NotificationCenter({
                   setNotifPerm(await requestNotifyPermission());
                 }}
                 disabled={notifPerm !== "default"}
-                className="w-full mt-1 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs text-brandCyan disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full mt-1 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs text-[#0a6ea8] disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {notifPerm === "granted"
                   ? "🔔 系统通知已开启"

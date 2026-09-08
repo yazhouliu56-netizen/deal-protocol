@@ -1,14 +1,15 @@
 "use client";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { Smartphone, Shuffle } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useRoamStore, roamParams } from "@/store/useRoamStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { riskOf, type RiskLevel } from "@/base/risk/roamGuard";
 
 const BADGE: Record<RiskLevel, { label: string; cls: string }> = {
-  safe: { label: "安全", cls: "bg-emerald-400/15 text-emerald-300 border-emerald-400/40" },
-  watch: { label: "关注", cls: "bg-amber-400/15 text-amber-300 border-amber-400/40" },
-  high: { label: "风险", cls: "bg-red-400/15 text-red-300 border-red-400/40" },
+  safe: { label: "安全", cls: "bg-[#58cc02]/10 text-[#357a00] border-[#58cc02]/40" },
+  watch: { label: "关注", cls: "bg-[#ffc800]/10 text-[#8a6d00] border-[#e5b400]/50" },
+  high: { label: "风险", cls: "bg-[#ff4b4b]/10 text-[#ea2b2b] border-[#ff4b4b]/40" },
 };
 
 /**
@@ -40,51 +41,38 @@ export default function RoamGuardPanel() {
   const badge = BADGE[risk.risk];
 
   return (
-    <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+    <div className="mt-3 rounded-2xl border-2 border-[#e5e5e5] bg-[#f7f7f7] p-3">
       <div className="flex items-center gap-2 mb-2">
-        <Smartphone size={12} className="text-brandCyan" />
-        <span className="text-xs font-semibold text-white/50">
+        <Smartphone size={12} className="text-[#1cb0f6]" />
+        <span className="text-xs font-semibold text-[#777777]">
           漫游 · 多开风控
         </span>
         <span
-          className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full border ${badge.cls}`}
+          className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full border-2 ${badge.cls}`}
         >
           {badge.label}
         </span>
       </div>
 
-      <p className="text-xs text-white/40 break-all mb-2">
+      <p className="text-xs text-[#777777] break-all mb-2">
         本设备 {mounted ? deviceId : "…"} · 同设备 {risk.count} 个身份 · {risk.reason}
         {risk.risk === "high" && (
-          <span className="block mt-0.5 text-red-300/90 font-bold">
+          <span className="block mt-0.5 text-[#ea2b2b] font-bold">
             高危已生效：发布需求将被拦截（到 PublishSheet 验证）
           </span>
         )}
       </p>
 
       <div className="flex gap-1.5">
-        <button
-          type="button"
-          onClick={() => roamDemo(identityId)}
-          className="flex-1 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-brandCyan text-xs font-bold hover:bg-brandCyan/25 transition-colors"
-        >
+        <DuoButton variant="secondary" size="sm" sound="click" onClick={() => roamDemo(identityId)} className="flex-1">
           模拟新设备漫游
-        </button>
-        <button
-          type="button"
-          onClick={() => simulateMultiOpen(identityId)}
-          className="flex-1 py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-bold hover:bg-amber-400/25 transition-colors"
-        >
+        </DuoButton>
+        <DuoButton variant="warning" size="sm" sound="click" onClick={() => simulateMultiOpen(identityId)} className="flex-1">
           模拟同设备多开 +1
-        </button>
-        <button
-          type="button"
-          onClick={() => resetDemo(identityId)}
-aria-label="重置多开风控演示"
-          className="px-2.5 py-2 rounded-xl bg-white/5 border border-white/15 text-white/50 hover:bg-white/10 transition-colors"
-        >
+        </DuoButton>
+        <DuoButton variant="outline" size="sm" sound="click" onClick={() => resetDemo(identityId)} aria-label="重置多开风控演示" className="shrink-0">
           <Shuffle size={13} />
-        </button>
+        </DuoButton>
       </div>
 
       {events.length > 0 && (
@@ -92,7 +80,7 @@ aria-label="重置多开风控演示"
           {events.slice(0, 3).map((e, i) => (
             <p
               key={`${e.at}-${i}`}
-              className="text-xs text-white/35 truncate"
+              className="text-xs text-[#afafaf] truncate"
             >
               {e.kind === "alert" ? "⚠ " : "· "}
               {e.note}

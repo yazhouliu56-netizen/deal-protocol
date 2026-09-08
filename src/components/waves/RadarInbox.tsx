@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radar, Zap, X } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { yuan } from "@/base/money/customPricing";
@@ -37,18 +38,18 @@ export default function RadarInbox() {
       <button
         onClick={() => setOpen(!open)}
         aria-label="雷达推送"
-        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-linear-to-r from-brandPurple/25 to-brandCyan/15 border border-brandPurple/30"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4"
       >
-        <span className="flex items-center gap-2 text-xs font-bold text-white/85">
-          <Radar size={13} className="text-brandCyan animate-pulse" />
+        <span className="flex items-center gap-2 text-xs font-extrabold text-[#4b4b4b]">
+          <Radar size={13} className="text-[#58cc02] animate-pulse" />
           雷达 · {mine.length} 条适配推送
           {unread > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-red-400/25 text-red-300 text-xs font-extrabold">
+            <span className="px-1.5 py-0.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-[#ea2b2b] text-xs font-extrabold">
               {unread} 未读
             </span>
           )}
         </span>
-        <span className="text-xs text-white/40">{open ? "收起" : "查看"}</span>
+        <span className="text-xs text-[#afafaf]">{open ? "收起" : "查看"}</span>
       </button>
 
       <AnimatePresence>
@@ -67,25 +68,29 @@ export default function RadarInbox() {
                 return (
                   <div
                     key={p.id}
-                    className={`rounded-2xl border p-3 ${
+                    className={`rounded-2xl border-2 p-3 ${
                       p.read
-                        ? "bg-white/[0.02] border-white/10"
-                        : "bg-brandPurple/10 border-brandPurple/30"
+                        ? "bg-[#f7f7f7] border-[#e5e5e5]"
+                        : "bg-[#58cc02]/[.06] border-[#58cc02]/40"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-white/85 truncate">
+                        <p className="text-xs font-bold text-[#4b4b4b] truncate">
                           {wave.basics.category} · {wave.basics.time}
                         </p>
-                        <p className="text-xs text-white/45 truncate">
+                        <p className="text-xs text-[#777777] truncate">
                           {wave.basics.area} · 预算 {yuan(wave.budget)}
                         </p>
-                        <p className="text-xs text-brandCyan/90 mt-1 flex items-center gap-1">
+                        <p className="text-xs text-[#0a6ea8] mt-1 flex items-center gap-1">
                           <Zap size={9} /> 适配 {Math.round(p.score)} 分 · {p.reason}
                         </p>
                       </div>
-                      <button
+                      <DuoButton
+                        variant="primary"
+                        size="sm"
+                        sound="correct"
+                        disabled={done}
                         onClick={() => {
                           markPushRead(p.id);
                           if (!done) {
@@ -97,22 +102,18 @@ export default function RadarInbox() {
                             });
                           }
                         }}
-                        className={`shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                          done
-                            ? "bg-white/5 text-white/40"
-                            : "bg-brandCyan/20 border border-brandCyan/50 text-brandCyan"
-                        }`}
+                        className="shrink-0"
                         aria-label={`接单 ${wave.basics.category}`}
                       >
                         {done ? "已被接" : "一键接单"}
-                      </button>
+                      </DuoButton>
                     </div>
                   </div>
                 );
               })}
               <button
                 onClick={() => setOpen(false)}
-                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-white/35"
+                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-[#afafaf]"
               >
                 <X size={9} /> 收起
               </button>

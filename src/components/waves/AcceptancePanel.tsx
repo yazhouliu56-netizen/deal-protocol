@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { AlertTriangle } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useWaveStore } from "@/store/useWaveStore";
 import { DISPUTE_REASONS, type DisputeRecord, type DisputeReason } from "@/base/order/dispute";
 import JudgePanel from "./JudgePanel";
@@ -65,9 +66,9 @@ export default function AcceptancePanel({
   // 复杂任务：逐模块验收 + 争议
   return (
     <div className="space-y-2.5">
-      <p className="text-xs font-bold text-white/70 flex items-center justify-between">
+      <p className="text-xs font-bold text-[#777777] flex items-center justify-between">
         <span>🔍 模块化验收（{confirmed}/{done} 已确认） <SandboxBadge /></span>
-        <span className="text-white/35 font-normal">逐模块放款 · 全确认才放全款</span>
+        <span className="text-[#afafaf] font-normal">逐模块放款 · 全确认才放全款</span>
       </p>
       {modules.map((m, i) => {
         const def = defs[i];
@@ -76,39 +77,43 @@ export default function AcceptancePanel({
         return (
           <div
             key={i}
-            className="rounded-xl bg-white/[0.04] border border-white/10 p-2.5"
+            className="rounded-2xl bg-white border-2 border-[#e5e5e5] p-2.5"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-white/85 flex-1 truncate">
+              <span className="text-xs font-bold text-[#4b4b4b] flex-1 truncate">
                 模块 {i + 1} · {def?.name ?? `模块${i + 1}`}
               </span>
               <span
-                className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded-full ${
+                className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded-full border-2 ${
                   m.status === "confirmed"
-                    ? "bg-emerald-400/15 text-emerald-300"
+                    ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
                     : m.status === "done"
-                    ? "bg-amber-400/15 text-amber-300"
-                    : "bg-white/10 text-white/40"
+                    ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
+                    : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
                 }`}
               >
                 {label}
               </span>
             </div>
-            <p className="text-xs text-white/40 mt-1">{def?.acceptance}</p>
+            <p className="text-xs text-[#777777] mt-1">{def?.acceptance}</p>
             {m.status === "done" && (
-              <button
+              <DuoButton
+                variant="primary"
+                size="sm"
+                sound="correct"
+                fullWidth
                 onClick={() => approveModule(claim.id, i)}
                 aria-label={`确认模块 ${def?.name ?? `模块${i + 1}`}`}
-                className="mt-1.5 w-full py-1.5 rounded-xl bg-emerald-400/12 border border-emerald-400/35 text-xs font-bold text-emerald-300"
+                className="mt-1.5"
               >
                 确认此模块 ✅
-              </button>
+              </DuoButton>
             )}
           </div>
         );
       })}
       {confirmed === done && (
-        <p className="text-xs text-emerald-300/90">
+        <p className="text-xs text-[#357a00]">
           ✓ 全部模块已确认 —— 履约完成，全款已放
         </p>
       )}
@@ -163,8 +168,8 @@ function DisputeForm({
     [evidence, pastEvidence]
   );
   return (
-    <div className="rounded-2xl bg-amber-400/[0.05] border border-amber-400/25 p-2.5 space-y-2">
-      <p className="text-xs font-bold text-amber-300/90 flex items-center gap-1">
+    <div className="rounded-2xl bg-[#ffc800]/[.06] border-2 border-[#e5b400]/50 p-2.5 space-y-2">
+      <p className="text-xs font-extrabold text-[#8a6d00] flex items-center gap-1">
         <AlertTriangle size={11} /> 发起争议（原因拆分优先 · 公平公正公开）
       </p>
       <div className="flex flex-wrap gap-1.5">
@@ -172,10 +177,10 @@ function DisputeForm({
           <button
             key={r.value}
             onClick={() => setReason(r.value)}
-            className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${
+            className={`px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
               reason === r.value
-                ? "bg-amber-400/25 border border-amber-400/60 text-amber-200"
-                : "bg-white/[0.04] border border-white/10 text-white/50"
+                ? "bg-[#ffc800]/20 border-[#e5b400]/60 text-[#8a6d00]"
+                : "bg-white border-[#e5e5e5] text-[#777777]"
             }`}
           >
             {r.label}
@@ -187,16 +192,16 @@ function DisputeForm({
         onChange={(e) => setEvidence(e.target.value)}
         placeholder="凭证：发生了什么、与你预期的偏差（必填）"
         aria-label="争议凭证"
-        className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-xs outline-none focus:border-amber-400/50"
+        className="w-full rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#e5b400]"
       />
       {forgery && (
         <p
-          className={`text-xs font-bold rounded-lg px-2 py-1 ${
+          className={`text-xs font-bold rounded-xl px-2 py-1 border-2 ${
             forgery.level === "highly-suspicious"
-              ? "bg-red-400/10 border border-red-400/40 text-red-300"
+              ? "bg-[#ff4b4b]/10 border-[#ff4b4b]/40 text-[#ea2b2b]"
               : forgery.level === "suspicious"
-                ? "bg-amber-400/10 border border-amber-400/40 text-amber-300"
-                : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-300"
+                ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
+                : "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
           }`}
         >
           {forgery.level === "clean"
@@ -204,7 +209,11 @@ function DisputeForm({
             : `⚠️ 凭证鉴真：${forgery.level === "highly-suspicious" ? "高度疑似伪造" : "疑似复用/异常"}（疑点分 ${forgery.score}）`}
         </p>
       )}
-      <button
+      <DuoButton
+        variant="primary"
+        size="sm"
+        sound="click"
+        fullWidth
         onClick={() => {
           if (!reason) {
             toast("⚠️ 请先选择争议原因（公平公正公开）", "error");
@@ -216,10 +225,9 @@ function DisputeForm({
           }
           onOpen(reason, evidence.trim());
         }}
-        className="w-full py-2 rounded-xl bg-amber-400/15 border border-amber-400/40 text-xs font-bold text-amber-300"
       >
         提交争议 · 按原因自动判责
-      </button>
+      </DuoButton>
     </div>
   );
 }
@@ -245,11 +253,11 @@ function DisputeVerdictView({
   const sealCheck = signed ? verifyDoc(signed) : null;
 
   return (
-    <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-3 space-y-2">
-      <p className="text-xs font-bold text-amber-200">
+    <div className="rounded-2xl bg-[#ffc800]/[.06] border-2 border-[#e5b400]/50 p-3 space-y-2">
+      <p className="text-xs font-extrabold text-[#8a6d00]">
         ⚖️ 争议进行中 · {dispute.verdict.label}
       </p>
-      <p className="text-xs text-white/40">
+      <p className="text-xs text-[#777777]">
         凭证：{dispute.evidence} ·{" "}
         {dispute.appealDeadline > now
           ? "响应方 48h 内可申诉"
@@ -257,10 +265,10 @@ function DisputeVerdictView({
       </p>
       {sealCheck && (
         <p
-          className={`text-xs font-bold rounded-lg px-2 py-1 border ${
+          className={`text-xs font-bold rounded-xl px-2 py-1 border-2 ${
             sealCheck.ok
-              ? "bg-emerald-400/10 border-emerald-400/30 text-emerald-300"
-              : "bg-red-400/10 border-red-400/40 text-red-300"
+              ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+              : "bg-[#ff4b4b]/10 border-[#ff4b4b]/40 text-[#ea2b2b]"
           }`}
         >
           🔏 验收签章：{sealCheck.note}
@@ -283,28 +291,31 @@ function DisputeVerdictView({
             }}
           />
           <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-xs text-white/60 flex-1">协商部分退款比例（%）：</p>
+          <p className="text-xs text-[#777777] flex-1">协商部分退款比例（%）：</p>
           <button
             onClick={() => setProposed("30")}
-            className={`px-2 py-1 rounded-full text-xs font-bold ${
+            className={`px-2 py-1 rounded-full text-xs font-bold border-2 ${
               proposed === "30"
-                ? "bg-brandPurple/30 text-brandPurple border border-brandPurple/50"
-                : "bg-white/[0.04] border border-white/10 text-white/50"
+                ? "bg-[#1cb0f6]/15 text-[#0a6ea8] border-[#1cb0f6]/50"
+                : "bg-white border-[#e5e5e5] text-[#777777]"
             }`}
           >
             30%
           </button>
           <button
             onClick={() => setProposed("60")}
-            className={`px-2 py-1 rounded-full text-xs font-bold ${
+            className={`px-2 py-1 rounded-full text-xs font-bold border-2 ${
               proposed === "60"
-                ? "bg-brandPurple/30 text-brandPurple border border-brandPurple/50"
-                : "bg-white/[0.04] border border-white/10 text-white/50"
+                ? "bg-[#1cb0f6]/15 text-[#0a6ea8] border-[#1cb0f6]/50"
+                : "bg-white border-[#e5e5e5] text-[#777777]"
             }`}
           >
             60%
           </button>
-          <button
+          <DuoButton
+            variant="primary"
+            size="sm"
+            sound="correct"
             onClick={() =>
               settleDispute({
                 claimId,
@@ -313,11 +324,13 @@ function DisputeVerdictView({
                 note: "需求方接受协商",
               })
             }
-            className="px-2.5 py-1 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
           >
             接受协商
-          </button>
-          <button
+          </DuoButton>
+          <DuoButton
+            variant="outline"
+            size="sm"
+            sound="click"
             onClick={() =>
               settleDispute({
                 claimId,
@@ -326,15 +339,14 @@ function DisputeVerdictView({
                 note: "需求方拒绝协商",
               })
             }
-            className="px-2.5 py-1 rounded-xl bg-white/[0.06] border border-white/15 text-xs font-bold text-white/60"
           >
             拒绝回自动
-          </button>
+          </DuoButton>
         </div>
         </>
       )}
       {outcome && (
-        <p className="text-xs font-bold text-emerald-300">
+        <p className="text-xs font-bold text-[#357a00]">
           ✓ 已结算：{outcome.note}
           {outcome.kind === "negotiated" && ` · 按 ${outcome.agreedAmount}% 退款`}
         </p>

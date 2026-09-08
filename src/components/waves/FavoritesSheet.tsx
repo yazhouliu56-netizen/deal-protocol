@@ -41,11 +41,11 @@ export default function FavoritesSheet({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 40, opacity: 0 }}
         transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
+        className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-            <Heart size={13} className="text-brandCyan" /> 我关注的局 {favs.length > 0 && `（${favs.length}）`}
+            <Heart size={13} className="text-[#ff7ab8]" /> 我关注的局 {favs.length > 0 && `（${favs.length}）`}
           </h3>
           <button
             onClick={onClose}
@@ -82,11 +82,11 @@ export default function FavoritesSheet({
                       )}
                     </p>
                     <p className="text-xs text-[#afafaf] flex items-center gap-1 truncate">
-                      <MapPin size={9} className="text-brandCyan shrink-0" />
+                      <MapPin size={9} className="text-[#1cb0f6] shrink-0" />
                       {w.basics.area} · {w.basics.time} · {yuan(w.budget)}
                     </p>
                     {gone && (
-                      <p className="text-xs text-emerald-300/80 flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-[#357a00] flex items-center gap-1 mt-0.5">
                         <CheckCircle2 size={9} /> 该局已被处理，保持关注可跟踪状态
                       </p>
                     )}

@@ -3,7 +3,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 /**
  * 通用订单卡片纯展示壳（0 业务分支 · 宪法 #1 前端视口解耦）。
- * 仅承载毛玻璃容器、五态徽标、useMountedNow 水合保护与折叠骨架，
+ * 仅承载 Duo 白卡容器、五态徽标、useMountedNow 水合保护与折叠骨架，
  * 特化交互 100% 由 children 注入，卡片内部 0 if(role) 分支。
  */
 export interface GenericOrderCardProps {
@@ -28,7 +28,7 @@ export default function GenericOrderCard({ waveId, children, testId = "generic-o
   }, [mounted]);
 
   return (
-    <div data-testid={testId} data-wave-id={waveId} data-now={now} className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 space-y-2.5">
+    <div data-testid={testId} data-wave-id={waveId} data-now={now} className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 space-y-2.5">
       {children}
     </div>
   );

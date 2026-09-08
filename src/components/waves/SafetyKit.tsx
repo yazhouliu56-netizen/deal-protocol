@@ -28,11 +28,11 @@ export default function SafetyKit() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm text-left hover:border-emerald-400/50 transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl bg-white border-2 border-[#e5e5e5] text-left hover:border-[#58cc02]/50 transition-colors"
         aria-label="安全中心"
       >
-        <span className="w-8 h-8 rounded-xl bg-emerald-400/15 border border-emerald-400/30 flex items-center justify-center shrink-0">
-          <ShieldCheck size={15} className="text-emerald-400" />
+        <span className="w-8 h-8 rounded-xl bg-[#58cc02]/10 border-2 border-[#58cc02]/40 flex items-center justify-center shrink-0">
+          <ShieldCheck size={15} className="text-[#58cc02]" />
         </span>
         <span className="flex-1 min-w-0">
           <span className="block text-xs font-bold text-[#4b4b4b]">
@@ -57,11 +57,11 @@ export default function SafetyKit() {
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
+            className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                <ShieldCheck size={13} className="text-emerald-400" /> 安全中心
+                <ShieldCheck size={13} className="text-[#58cc02]" /> 安全中心
               </h3>
               <button
                 onClick={() => setOpen(false)}
@@ -75,29 +75,29 @@ export default function SafetyKit() {
             {/* 1. 紧急联系人 */}
             <label className="block mb-1.5">
               <span className="text-xs font-semibold text-[#afafaf] flex items-center gap-1">
-                <Phone size={10} className="text-brandCyan" /> 紧急联系人
+                <Phone size={10} className="text-[#1cb0f6]" /> 紧急联系人
               </span>
               <input
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
                 placeholder="家人 / 好友手机号（仅见面时段可用）"
                 aria-label="紧急联系人"
-                className="mt-1 w-full rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50 transition-colors"
+                className="mt-1 w-full rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 py-2.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-[#1cb0f6] transition-colors"
               />
             </label>
 
             {/* 2. 见面信息可见性 */}
             <button
               onClick={() => setShareVisible(!shareVisible)}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] mb-1.5"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] mb-1.5"
               aria-label="见面信息对联系人可见"
             >
               <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
-                <Eye size={12} className="text-brandCyan" /> 见面信息对联系人可见
+                <Eye size={12} className="text-[#1cb0f6]" /> 见面信息对联系人可见
               </span>
               <span
                 className={`w-9 h-5 rounded-full relative transition-colors ${
-                  shareVisible ? "bg-emerald-400/70" : "bg-white/15"
+                  shareVisible ? "bg-[#58cc02]" : "bg-[#e5e5e5]"
                 }`}
               >
                 <span
@@ -114,21 +114,21 @@ export default function SafetyKit() {
             {/* 3. GPS 到达确认 */}
             <button
               onClick={() => setCheckedIn(!checkedIn)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border mb-3 transition-colors ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border-2 mb-3 transition-colors ${
                 checkedIn
-                  ? "bg-emerald-400/15 border-emerald-400/50"
+                  ? "bg-[#58cc02]/10 border-[#58cc02]/50"
                   : "bg-[#f7f7f7] border-[#e5e5e5]"
               }`}
               aria-label="到达见面点确认"
             >
               <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
-                <MapPin size={12} className="text-brandCyan" /> 到达见面点确认
+                <MapPin size={12} className="text-[#1cb0f6]" /> 到达见面点确认
               </span>
               <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 ${
                   checkedIn
-                    ? "bg-emerald-400/20 text-emerald-300"
-                    : "bg-[#f7f7f7] text-[#afafaf]"
+                    ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+                    : "bg-white border-[#e5e5e5] text-[#afafaf]"
                 }`}
               >
                 {checkedIn ? "已确认到达 ✓" : "一键确认"}
@@ -137,13 +137,13 @@ export default function SafetyKit() {
 
             {/* 4. 安全面基点推荐 */}
             <span className="text-xs font-semibold text-[#afafaf] flex items-center gap-1 mb-2">
-              <MapPin size={10} className="text-emerald-400" /> 推荐安全见面点
+              <MapPin size={10} className="text-[#58cc02]" /> 推荐安全见面点
             </span>
             <div className="flex flex-col gap-1.5">
 {SAFE_SPOTS.map((s) => (
                 <button
                   key={s.name}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-left hover:border-emerald-400/40 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-left hover:border-[#58cc02]/50 transition-colors"
                 >
                   <span className="text-sm">📍</span>
                   <span className="flex-1 min-w-0">
@@ -152,7 +152,7 @@ export default function SafetyKit() {
                     </span>
                     <span className="text-xs text-[#afafaf]">{s.type}</span>
                   </span>
-                  <span className="text-xs font-bold text-emerald-300">
+                  <span className="text-xs font-bold text-[#357a00]">
                     {s.safe} 分安全
                   </span>
                 </button>
@@ -165,7 +165,7 @@ export default function SafetyKit() {
             {/* 5. 平台治理后台（管理角色入口） */}
             <button
               onClick={() => setAdminOpen(true)}
-              className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] hover:border-emerald-400/40 transition-colors"
+              className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] hover:border-[#58cc02]/50 transition-colors"
             >
               <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
                 <Gavel size={12} className="text-emerald-400" /> 平台治理后台

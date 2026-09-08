@@ -145,7 +145,7 @@ const pref = useMapPref();
     return (
       <div className="mt-3">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <MapPin size={12} className="text-brandCyan" />
+          <MapPin size={12} className="text-[#1cb0f6]" />
           <span className="text-xs font-bold text-[#777777]">
             附近信号 · 3D 地图
           </span>
@@ -175,7 +175,7 @@ const pref = useMapPref();
   return (
     <div className="mt-3">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <MapPin size={12} className="text-brandCyan" />
+        <MapPin size={12} className="text-[#1cb0f6]" />
         <span className="text-xs font-bold text-[#777777]">
           匿名热力 · 附近活跃信号波
         </span>
@@ -305,13 +305,13 @@ function WaveMiniSheet({
           <button
             onClick={() => onToggleFavorite(wave.id)}
             aria-label={favorited ? "取消关注" : "关注该局"}
-            className={`p-1.5 rounded-full border transition-colors ${
+            className={`p-1.5 rounded-full border-2 transition-colors ${
               favorited
-                ? "border-brandCyan/50 text-brandCyan"
+                ? "border-[#ff7ab8]/60 text-[#ff7ab8]"
                 : "border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b]"
             }`}
           >
-            <Heart size={12} className={favorited ? "fill-brandCyan/40" : ""} />
+            <Heart size={12} className={favorited ? "fill-[#ff7ab8]/40" : ""} />
           </button>
           <button
             onClick={onClose}
@@ -324,13 +324,13 @@ function WaveMiniSheet({
       </div>
 
       <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-[#777777]">
-        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border border-[#e5e5e5]">
+        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5]">
           ¥{price}
         </span>
-        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] flex items-center gap-1">
-          <Users size={9} className="text-brandCyan" /> 名额 {wave.capacity ?? 1}
+        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center gap-1">
+          <Users size={9} className="text-[#1cb0f6]" /> 名额 {wave.capacity ?? 1}
         </span>
-        <span className="px-2 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/25 text-emerald-300">
+        <span className="px-2 py-1 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00]">
           活跃局
         </span>
         <span className="ml-auto">

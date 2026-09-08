@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { MessageSquare, Phone, PhoneCall } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { dialInNumber, findSession, maskNumber, minutesLeft } from "@/base/comm/privacyNumber";
@@ -80,35 +81,35 @@ export default function ContactCard({
   };
 
   return (
-    <div className="rounded-2xl bg-brandCyan/[0.05] border border-brandCyan/25 p-3 space-y-2">
+    <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3 space-y-2">
       {/* 弱网离线队列（ADR-0014 N11 接线）：离线消息已缓冲，恢复自动重放 */}
       {!online && pendingIm > 0 && (
-        <div className="flex items-center justify-between rounded-lg bg-amber-400/10 border border-amber-400/40 px-2 py-1.5">
-          <span className="text-xs font-bold text-amber-300">
-            📡 离线中 · {pendingIm} 条消息已入队，联网后自动发送
+        <div className="flex items-center justify-between rounded-xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 px-2 py-1.5">
+          <span className="text-xs font-bold text-[#8a6d00]">
+            离线中 · {pendingIm} 条消息已入队，联网后自动发送
           </span>
           <button
             onClick={() => replayQueue()}
-            className="text-xs text-white/60 hover:text-white underline underline-offset-2"
+            className="text-xs text-[#777777] hover:text-[#4b4b4b] underline underline-offset-2"
           >
             手动重发
           </button>
         </div>
       )}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-extrabold text-brandCyan flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1.5">
           <Phone size={11} /> 隐私通话（ADR-0010）
         </span>
         <span
           className={`text-xs font-bold ${
-            live ? "text-emerald-300" : "text-white/35"
+            live ? "text-[#357a00]" : "text-[#afafaf]"
           }`}
         >
           {live ? `${minutesLeft(session, now)} 分钟后失效` : "会话已过期"}
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[12px] font-extrabold text-white/85 tracking-widest">
+        <span className="font-mono text-[12px] font-extrabold text-[#4b4b4b] tracking-widest">
           {maskNumber(myNumber)}
         </span>
         <button
@@ -116,10 +117,10 @@ export default function ContactCard({
             setDialed(true);
             window.setTimeout(() => setDialed(false), 1500);
           }}
-          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-colors ${
+          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
             live
-              ? "bg-brandCyan/20 text-brandCyan border border-brandCyan/40"
-              : "bg-white/[0.04] text-white/30 border border-white/10"
+              ? "bg-[#1cb0f6]/10 text-[#0a6ea8] border-[#1cb0f6]/40"
+              : "bg-white text-[#afafaf] border-[#e5e5e5]"
           }`}
           disabled={!live}
         >
@@ -127,36 +128,36 @@ export default function ContactCard({
         </button>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-white/[0.05] text-white/70 border border-white/10 ml-auto"
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-white text-[#777777] border-2 border-[#e5e5e5] ml-auto"
         >
           <MessageSquare size={9} />
           私信对方
           {unread != null && unread > 0 && (
-            <span className="ml-0.5 px-1 rounded-full bg-brandCyan text-black text-xs font-extrabold">
+            <span className="ml-0.5 px-1 rounded-full bg-[#58cc02] text-white text-xs font-extrabold">
               {unread}
             </span>
           )}
         </button>
       </div>
-      <p className="text-xs text-white/35">
+      <p className="text-xs text-[#afafaf]">
         虚拟线路 · 双方号码均不落地真实号 · 订单终局自动回收
       </p>
 
       {open && (
-        <div className="space-y-2 pt-1 border-t border-white/10">
+        <div className="space-y-2 pt-1 border-t-2 border-[#e5e5e5]">
           <div className="max-h-28 overflow-y-auto space-y-1">
             {threadMsgs.length === 0 && (
-              <p className="text-xs text-white/35 py-1 text-center">
+              <p className="text-xs text-[#afafaf] py-1 text-center">
                 暂无消息，打个招呼吧
               </p>
             )}
             {threadMsgs.map((m) => (
               <div
                 key={m.id}
-                className={`px-2 py-1 rounded-lg text-xs max-w-[85%] ${
+                className={`px-2 py-1 rounded-xl text-xs max-w-[85%] border ${
                   m.fromId === me
-                    ? "ml-auto bg-brandCyan/20 text-white/85"
-                    : "bg-white/[0.06] text-white/70"
+                    ? "ml-auto bg-[#d7ffb8] border-[#58cc02]/40 text-[#4b4b4b]"
+                    : "bg-white border-[#e5e5e5] text-[#4b4b4b]"
                 }`}
               >
                 {m.text}
@@ -169,14 +170,11 @@ export default function ContactCard({
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               placeholder="私信对方…（IM 中枢）"
-              className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white/80 placeholder-white/25 outline-none focus:border-brandCyan/50"
+              className="flex-1 bg-white border-2 border-[#e5e5e5] rounded-xl px-2 py-1.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
             />
-            <button
-              onClick={submit}
-              className="px-2.5 py-1 rounded-lg bg-brandCyan text-black text-xs font-extrabold"
-            >
+            <DuoButton variant="primary" size="sm" sound="click" onClick={submit} className="shrink-0">
               发送
-            </button>
+            </DuoButton>
           </div>
         </div>
       )}

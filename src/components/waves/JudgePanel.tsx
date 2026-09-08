@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Scale } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import type { DisputeReason } from "@/base/order/dispute";
 import type { VerdictSuggestion } from "@/base/ai/judge";
 
@@ -69,8 +70,8 @@ export default function JudgePanel({
   };
 
   return (
-    <div className="rounded-2xl bg-sky-400/[0.06] border border-sky-400/25 p-2.5 space-y-2">
-      <p className="text-xs font-bold text-sky-300/90 flex items-center gap-1">
+    <div className="rounded-2xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 p-2.5 space-y-2">
+      <p className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1">
         <Scale size={11} /> AI 小法官 · 静态比对证据链给出赔付建议
       </p>
 
@@ -81,26 +82,25 @@ export default function JudgePanel({
             onChange={(e) => setDefense(e.target.value)}
             placeholder="你的反驳（如：已免费返工，是甲方没等晾干）"
             aria-label="小法官审查·你的反驳"
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-2.5 py-2 text-xs outline-none focus:border-sky-400/50"
+            className="w-full rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
           />
-          <button
+          <DuoButton
+            variant="secondary"
+            size="sm"
+            sound="click"
+            fullWidth
             onClick={runJudge}
             disabled={loading || !evidence.trim()}
-            className={`w-full py-2 rounded-xl text-xs font-bold transition-colors ${
-              loading
-                ? "bg-white/[0.06] text-white/40"
-                : "bg-sky-400/15 border border-sky-400/40 text-sky-300"
-            }`}
           >
             {loading ? "小法官评议中…" : "请小法官判定 ⚖️"}
-          </button>
+          </DuoButton>
         </div>
       )}
 
       {verdict && (
         <div className="space-y-2">
-          <div className="rounded-xl bg-white/[0.05] border border-white/10 p-2.5 space-y-1.5">
-            <p className="text-xs font-bold text-sky-200">
+          <div className="rounded-xl bg-white border-2 border-[#e5e5e5] p-2.5 space-y-1.5">
+            <p className="text-xs font-bold text-[#0a6ea8]">
               {stanceLabel[verdict.stance] ?? verdict.stance} · 建议赔付 ¥
               {verdict.settlement
                 ? (verdict.settlement.refundCents / 100).toFixed(
@@ -109,11 +109,11 @@ export default function JudgePanel({
                 : verdict.amountYuan}
               （{verdict.refundPct}%）
             </p>
-            <p className="text-xs text-white/50">{verdict.rationale}</p>
-            <p className="text-xs text-white/60 border-t border-white/10 pt-1.5">
+            <p className="text-xs text-[#777777]">{verdict.rationale}</p>
+            <p className="text-xs text-[#4b4b4b] border-t-2 border-[#e5e5e5] pt-1.5">
               {verdict.replyScript}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-xs text-[#afafaf]">
               置信 {Math.round(verdict.confidence * 100)}% ·{" "}
               {verdict.source === "llm" ? "LLM 语义比对" : "规则引擎（LLM 不可用回落）"}
               {verdict.settlement ? ` · 分币守恒 ✓（结清服务方 ¥${(verdict.settlement.payoutCents / 100).toFixed(verdict.settlement.payoutCents % 100 ? 2 : 0)}）` : ""}
@@ -121,29 +121,32 @@ export default function JudgePanel({
           </div>
           <div className="flex gap-2">
             {verdict.refundPct > 0 && (
-              <button
+              <DuoButton
+                variant="primary"
+                size="sm"
+                sound="correct"
+                className="flex-1"
                 onClick={() =>
                   onSettle(verdict.refundPct, `采纳小法官建议：${verdict.rationale}`)
                 }
-                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
               >
                 采纳：退 {verdict.refundPct}%
-              </button>
+              </DuoButton>
             )}
             {verdict.stance === "demander" && (
-              <button
+              <DuoButton
+                variant="primary"
+                size="sm"
+                sound="correct"
+                className="flex-1"
                 onClick={() => onSettle(0, "小法官判定需求方责任，款项归服务方")}
-                className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
               >
                 采纳：不退款
-              </button>
+              </DuoButton>
             )}
-            <button
-              onClick={() => setVerdict(null)}
-              className="px-3 py-2 rounded-xl bg-white/[0.06] border border-white/15 text-xs font-bold text-white/60"
-            >
+            <DuoButton variant="outline" size="sm" sound="click" onClick={() => setVerdict(null)}>
               重审
-            </button>
+            </DuoButton>
           </div>
         </div>
       )}

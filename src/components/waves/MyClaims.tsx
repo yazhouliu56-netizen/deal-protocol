@@ -10,6 +10,9 @@ import type { DepositPhase } from "@/base/money/deposit";
 import DialCard from "./DialCard";
 import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
+import DuoButton from "@/components/ui/DuoButton";
+import { SleepyBeast } from "@/components/oto-ui/MascotStates";
+import { useAppStore } from "@/store/useAppStore";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import { visibleGuests } from "@/base/order/guest";
 import GenericOrderCard from "./GenericOrderCard";
@@ -29,6 +32,7 @@ export default function MyClaims() {
   const submitReport = useWaveStore((s) => s.submitReport);
   const identity = useIdentityStore((s) => s.identity);
   const syncDeposit = useIdentityStore((s) => s.syncDeposit);
+  const setScreen = useAppStore((s) => s.setScreen);
   const deposits = useIdentityStore((s) => s.deposits);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
@@ -92,7 +96,7 @@ export default function MyClaims() {
           {myWaitlist.map(({ wave, pos, total }) => (
             <div
               key={wave.id}
-              className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 border-amber-400/30"
+              className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-4 border-[#e5b400]/50"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -105,12 +109,12 @@ export default function MyClaims() {
                     {wave.capacity >= 2 && "/人"}
                   </p>
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 bg-amber-400/15 border-amber-400/40 text-amber-300">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]">
                   候补中
                 </span>
               </div>
-              <div className="rounded-2xl bg-amber-400/10 border border-amber-400/25 p-3 mt-2.5 space-y-2">
-                <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <div className="rounded-2xl bg-[#ffc800]/[.06] border-2 border-[#e5b400]/50 p-3 mt-2.5 space-y-2">
+                <p className="text-xs font-bold text-[#8a6d00] flex items-center gap-1.5">
                   <Users size={11} /> 候补 · 第 {pos}/{total} 位
                 </p>
                 <p className="text-xs text-[#afafaf]">
@@ -129,11 +133,13 @@ export default function MyClaims() {
       )}
 
       {mine.length === 0 && (
-        <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-6 text-center">
-          <span className="text-2xl">🛎️</span>
-          <p className="text-xs text-[#afafaf] mt-2">
+        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-6 flex flex-col items-center text-center gap-1.5" data-testid="myclaims-empty-state">
+          {/* 平头哥待命：还没接过单时的 empty 态（卖家侧守雷达） */}
+          <SleepyBeast mood="empty" interactive={false} />
+          <p className="text-xs text-[#777777] mt-1">
             还没接过单——去雷达 Feed 找适合你的需求
           </p>
+          <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="myclaims-empty-launch">去雷达看看</DuoButton>
         </div>
       )}
 
@@ -162,7 +168,7 @@ export default function MyClaims() {
                   <h3 className="text-[13px] font-extrabold truncate">
                     {wave.basics.category}
                     {wave.capacity >= 2 && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple align-middle">
+                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#ffc800]/15 border-2 border-[#e5b400]/50 text-[#8a6d00] align-middle">
                         🎯 多人拼单局
                       </span>
                     )}
@@ -174,12 +180,12 @@ export default function MyClaims() {
                   </p>
                 </div>
                 {claim.status === "negotiating" && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 bg-brandCyan/15 border-brandCyan/40 text-brandCyan">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[#1cb0f6]/10 border-[#1cb0f6]/40 text-[#0a6ea8]">
                     第 {claim.rounds}/{MAX_ROUNDS} 轮
                   </span>
                 )}
                 {isJoined && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 bg-brandPurple/15 border-brandPurple/40 text-brandPurple">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]">
                     已拼位
                   </span>
                 )}
@@ -187,14 +193,14 @@ export default function MyClaims() {
 
               {/* 拼位等待态：等满员成局（可退出） */}
               {isJoined && (
-                <div className="rounded-2xl bg-brandPurple/10 border border-brandPurple/25 p-3 space-y-2">
-                  <p className="text-xs font-bold text-brandPurple flex items-center gap-1.5">
+                <div className="rounded-2xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 p-3 space-y-2">
+                  <p className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1.5">
                     <Users size={11} /> 已拼位 · 等待满员成局
                   </p>
                   <div className="flex items-center gap-1.5">
-                    <div className="flex-1 h-1.5 rounded-full bg-[#f7f7f7] overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-full bg-[#e5e5e5] overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-linear-to-r from-brandCyan to-brandPurple"
+                        className="h-full rounded-full bg-[#58cc02]"
                         style={{
                           width: `${Math.min(100, (joinedTotal / Math.max(1, neededJoiners(wave))) * 100)}%`,
                         }}
@@ -302,14 +308,14 @@ export default function MyClaims() {
                   );
                   if (myRep?.status === "resolved")
                     return (
-                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-emerald-300/90">
+                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[#357a00]">
                         ✓ 平台已处理：{ACTION_LABEL[myRep.action ?? "dismiss"]}
                         {myRep.verdictNote ? `（${myRep.verdictNote}）` : ""}
                       </p>
                     );
                   if (myRep)
                     return (
-                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-amber-300/90">
+                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[#8a6d00]">
                         ⏳ 已举报，平台核查中
                       </p>
                     );
@@ -324,7 +330,7 @@ export default function MyClaims() {
                           reporterId: identity.id,
                         })
                       }
-                      className="w-full py-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-amber-400 hover:border-amber-400/40"
+                      className="w-full py-2 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#8a6d00] hover:border-[#e5b400]/60"
                     >
                       🚩 举报对方
                     </button>
@@ -336,12 +342,15 @@ export default function MyClaims() {
                 claim.status === "accepted" &&
                 !claim.serviceDoneAt &&
                 !claim.modules && (
-                  <button
+                  <DuoButton
                     onClick={() => reportDone(claim.id)}                    aria-label="申报完成"
-                    className="w-full py-2.5 rounded-xl bg-emerald-400/12 border border-emerald-400/35 text-xs font-bold text-emerald-300"
+                    variant="primary"
+                    size="sm"
+                    sound="correct"
+                    fullWidth
                   >
                     🛎 服务完成 · 请求放款
-                  </button>
+                  </DuoButton>
                 )}
               {isLocked &&
                 claim.status === "accepted" &&
@@ -356,9 +365,9 @@ export default function MyClaims() {
                         onClick={() => m.status === "pending" && reportModuleDone(claim.id, i)}
                         disabled={m.status !== "pending"}
                         aria-label={`申报模块 ${wave.modules?.[i]?.name ?? `模块${i + 1}`} 完成`}
-                        className={`w-full py-1.5 rounded-xl border text-xs font-bold transition-colors ${
+                        className={`w-full py-1.5 rounded-xl border-2 text-xs font-bold transition-colors ${
                           m.status === "pending"
-                            ? "bg-emerald-400/12 border-emerald-400/35 text-emerald-300"
+                            ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
                             : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
                         }`}
                       >
@@ -372,7 +381,7 @@ export default function MyClaims() {
                   </div>
                 )}
               {claim.serviceDoneAt && !claim.fulfilment && !claim.modules && (
-                <p className="text-xs text-emerald-300/90">
+                <p className="text-xs text-[#357a00]">
                   ✓ 已申报完成 —— 等待需求方验收（72h 自动放款）
                 </p>
               )}
@@ -391,7 +400,7 @@ export default function MyClaims() {
                 <p className="text-xs text-[#afafaf]">已放弃该单</p>
               )}
               {claim.status === "breached" && (
-                <p className="text-xs font-bold text-red-300">
+                <p className="text-xs font-bold text-[#ea2b2b]">
                   违约记录 · 已影响信用与额度
                 </p>
               )}
@@ -430,9 +439,9 @@ function ResponderThread({
   }
 
   return (
-    <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-3">
+    <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-brandCyan flex items-center gap-1">
+        <span className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1">
           <MessageSquareText size={11} /> 与需求方磋商中
           {claim.lastMessage && ` · "${claim.lastMessage.slice(0, 18)}"`}
         </span>
@@ -449,7 +458,7 @@ function ResponderThread({
           <span
             key={i}
             className={`h-1 flex-1 rounded-full ${
-              i < claim.rounds ? "bg-brandPurple" : "bg-white/10"
+              i < claim.rounds ? "bg-[#58cc02]" : "bg-[#e5e5e5]"
             }`}
           />
         ))}
@@ -462,31 +471,27 @@ function ResponderThread({
             onChange={(e) => setPrice(e.target.value)}
             inputMode="numeric"
             aria-label="回应金额"
-            className="w-20 shrink-0 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs text-[#4b4b4b] outline-none focus:border-brandPurple/50"
+            className="w-20 shrink-0 rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-1.5 text-xs text-[#4b4b4b] outline-none focus:border-[#58cc02]"
           />
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="回应一句（可空）"
             aria-label="回应留言"
-            className="flex-1 min-w-0 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-brandPurple/50"
+            className="flex-1 min-w-0 rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-1.5 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-[#58cc02]"
           />
-          <button
-            onClick={send}
-            className="px-2.5 rounded-xl bg-brandPurple/20 border border-brandPurple/40 text-brandPurple text-xs font-bold shrink-0"
-            aria-label="发出回应"
-          >
+          <DuoButton variant="secondary" size="sm" sound="click" onClick={send} aria-label="发出回应" className="shrink-0">
             <Send size={11} />
-          </button>
+          </DuoButton>
         </div>
       )}
       {sent && (
-        <p className="text-xs text-emerald-300 mt-1.5">
+        <p className="text-xs text-[#357a00] mt-1.5">
           ✓ 已回应，等待需求方决策
         </p>
       )}
       {exhausted && (
-        <p className="text-xs text-amber-300/90 mt-1.5">
+        <p className="text-xs text-[#8a6d00] mt-1.5">
           3 轮已满 · 等待需求方谈成或婉拒
         </p>
       )}
@@ -517,24 +522,24 @@ function DepositBadge({
   const map: Record<DepositPhase, { text: string; cls: string }> = {
     held: {
       text: "🕊️ 押金已冻结 ¥5（履约后退回）",
-      cls: "bg-sky-400/10 border-sky-400/30 text-sky-300",
+      cls: "bg-[#1cb0f6]/10 border-[#1cb0f6]/40 text-[#0a6ea8]",
     },
     confirmed: {
       text: "✅ 押金已解冻退回（含平台服务费 ¥0.5）",
-      cls: "bg-emerald-400/10 border-emerald-400/30 text-emerald-300",
+      cls: "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]",
     },
     forfeited: {
       text: "🕊️ 押金已没收（赔付给需求方）",
-      cls: "bg-red-400/10 border-red-400/30 text-red-300",
+      cls: "bg-[#ff4b4b]/10 border-[#ff4b4b]/40 text-[#ea2b2b]",
     },
     refunded: {
       text: "✅ 押金已全额退回（需求方谅解）",
-      cls: "bg-emerald-400/10 border-emerald-400/30 text-emerald-300",
+      cls: "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]",
     },
   };
   const s = map[eff];
   return (
-    <p className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border ${s.cls}`}>
+    <p className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border-2 ${s.cls}`}>
       {s.text}
     </p>
   );
@@ -547,12 +552,16 @@ function ResponderDispute({ claim }: { claim: Claim }) {
   const d = disputes.find((x) => x.claimId === claim.id);
   if (!d || d.outcome) return null;
   return (
-    <div className="rounded-2xl bg-amber-400/[0.06] border border-amber-400/30 p-2.5 space-y-1.5">
-      <p className="text-xs font-bold text-amber-200">
+    <div className="rounded-2xl bg-[#ffc800]/[.06] border-2 border-[#e5b400]/50 p-2.5 space-y-1.5">
+      <p className="text-xs font-bold text-[#8a6d00]">
         ⚖️ 需求方发起了争议：{d.verdict.label}
       </p>
-      <p className="text-xs text-[#afafaf]">凭证：{d.evidence}</p>
-      <button
+      <p className="text-xs text-[#777777]">凭证：{d.evidence}</p>
+      <DuoButton
+        variant="secondary"
+        size="sm"
+        sound="click"
+        fullWidth
         onClick={() =>
           settleDispute({
             claimId: claim.id,
@@ -561,12 +570,11 @@ function ResponderDispute({ claim }: { claim: Claim }) {
             note: "响应者提出协商方案",
           })
         }
-        className="w-full py-1.5 rounded-xl bg-brandPurple/15 border border-brandPurple/40 text-xs font-bold text-brandPurple"
       >
         {d.verdict.money.type === "negotiate"
           ? `提出协商：退 ${d.verdict.money.maxPct}% 结案`
           : "接受判定结案"}
-      </button>
+      </DuoButton>
     </div>
   );
 }
@@ -622,12 +630,12 @@ function GuestSection({
         <span className="text-xs font-bold text-[#777777] flex items-center gap-1.5">
           👥 +1 携伴
           {guests.length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-brandPurple/20 border border-brandPurple/40 text-xs text-brandPurple">
+            <span className="px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-xs text-[#0a6ea8]">
               {guests.length} 位已登记
             </span>
           )}
         </span>
-        <span className="text-xs text-brandPurple">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
+        <span className="text-xs text-[#0a6ea8]">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
       </button>
       {guests.length > 0 && (
         <div className="px-2.5 pb-2 flex items-center justify-between gap-2">
@@ -637,12 +645,12 @@ function GuestSection({
             {guests[0].phoneMask ? ` · ${guests[0].phoneMask}` : ""}
             {guests[0].birthYear != null &&
               new Date().getFullYear() - guests[0].birthYear < 14 && (
-                <span className="text-amber-300"> · 监护人同意在册</span>
+                <span className="text-[#8a6d00]"> · 监护人同意在册</span>
               )}
           </p>
           <button
             onClick={() => onRemove(0)}
-            className="shrink-0 text-xs font-bold text-[#afafaf] hover:text-amber-400 transition-colors"
+            className="shrink-0 text-xs font-bold text-[#afafaf] hover:text-[#ff4b4b] transition-colors"
           >
             移除
           </button>
@@ -655,7 +663,7 @@ function GuestSection({
             onChange={(e) => setName(e.target.value)}
             placeholder="携伴者称呼（必填）"
             maxLength={12}
-            className="w-full px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-brandPurple/60"
+            className="w-full px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-[#1cb0f6]"
           />
           <div className="flex gap-1.5">
             <input
@@ -664,7 +672,7 @@ function GuestSection({
               placeholder="出生年（可填）"
               inputMode="numeric"
               maxLength={4}
-              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-brandPurple/60"
+              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-[#1cb0f6]"
             />
             <input
               value={phone}
@@ -672,7 +680,7 @@ function GuestSection({
               placeholder="联系方式（脱敏展示）"
               inputMode="tel"
               maxLength={11}
-              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-brandPurple/60"
+              className="w-1/2 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs placeholder:text-[#afafaf] focus:outline-none focus:border-[#1cb0f6]"
             />
           </div>
           <label className="flex items-center gap-1.5 text-xs text-[#afafaf]">
@@ -680,12 +688,12 @@ function GuestSection({
               type="checkbox"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
-              className="accent-brandPurple"
+              className="accent-[#1cb0f6]"
             />
             携伴者不满 14 周岁已获监护人同意（《未保法》§72）
           </label>
           {err && (
-            <p className="text-xs font-bold text-red-300/90">
+            <p className="text-xs font-bold text-[#ff4b4b]">
               {err.includes("age-blocked")
                 ? err.replace("guest.age-blocked:", "拦截：")
                 : err === "guest.limit-reached"
@@ -693,12 +701,9 @@ function GuestSection({
                   : "携伴登记失败，请重试"}
             </p>
           )}
-          <button
-            onClick={submit}
-            className="w-full py-1.5 rounded-xl bg-brandPurple/20 border border-brandPurple/50 text-xs font-bold text-brandPurple hover:bg-brandPurple/30 transition-colors"
-          >
+          <DuoButton variant="secondary" size="sm" sound="click" fullWidth onClick={submit}>
             登记携伴
-          </button>
+          </DuoButton>
         </div>
       )}
     </div>
@@ -722,10 +727,10 @@ function InsureBar({ claim, wave }: { claim: Claim; wave: Wave }) {
   if (pol) {
     return (
       <p
-        className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border ${
+        className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border-2 ${
           pol.claimed
-            ? "bg-cyan-400/10 border-cyan-400/40 text-cyan-300"
-            : "bg-brandPurple/10 border-brandPurple/40 text-brandPurple"
+            ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+            : "bg-[#1cb0f6]/10 border-[#1cb0f6]/40 text-[#0a6ea8]"
         }`}
       >
         🛡️ 履约保险：{pol.claimed
@@ -736,22 +741,25 @@ function InsureBar({ claim, wave }: { claim: Claim; wave: Wave }) {
   }
   const premium = Math.max(1, Math.round(seatPrice * 0.1));
   return (
-    <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5">
-      <p className="text-xs text-[#afafaf] mb-1.5">
+    <div className="rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-2.5">
+      <p className="text-xs text-[#777777] mb-1.5">
         🛡️ 履约保险：投保 ¥{premium} · 违约自动赔需求方 ¥{seatPrice}
         （护航出勤承诺，双方安心）
       </p>
-      <button
+      <DuoButton
+        variant="secondary"
+        size="sm"
+        sound="click"
+        fullWidth
         onClick={() => {
           setMsg("");
           const r = insureClaim({ claimId: claim.id, initiatorId: identity.id });
           if (!r.ok) setMsg("投保失败（可能已投保或座位未锁定）");
         }}
-        className="w-full py-1.5 rounded-xl bg-brandPurple/15 border border-brandPurple/50 text-xs font-bold text-brandPurple hover:bg-brandPurple/25 transition-colors"
       >
         投保履约保险
-      </button>
-      {msg && <p className="text-xs font-bold text-red-300/90 mt-1">{msg}</p>}
+      </DuoButton>
+      {msg && <p className="text-xs font-bold text-[#ff4b4b] mt-1">{msg}</p>}
     </div>
   );
 }

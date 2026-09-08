@@ -48,10 +48,10 @@ export default function DialCard({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-emerald-400/[0.06] border border-emerald-400/30 p-3"
+      className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3"
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-extrabold text-emerald-300 flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-[#357a00] flex items-center gap-1.5">
           <Phone size={12} /> 一次性虚拟线路
         </span>
         <span className="text-xs text-[#afafaf] flex items-center gap-1">
@@ -59,7 +59,7 @@ export default function DialCard({
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-[15px] text-[#4b4b4b] bg-[#f7f7f7] border border-[#e5e5e5] rounded-xl py-2 px-3 text-center">
+        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-[15px] text-[#4b4b4b] bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-xl py-2 px-3 text-center">
           {code}
         </span>
         <DuoButton
@@ -73,7 +73,7 @@ export default function DialCard({
         </DuoButton>
       </div>
       {dialed && (
-        <p className="mt-1.5 text-xs text-emerald-300/80 flex items-center gap-1">
+        <p className="mt-1.5 text-xs text-[#357a00] flex items-center gap-1">
           <ShieldCheck size={10} /> 已模拟拨号 · 双方各自看到的是对方脱敏后的线路
         </p>
       )}
