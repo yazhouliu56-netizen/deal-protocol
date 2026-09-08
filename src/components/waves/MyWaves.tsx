@@ -1,5 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import { CapybaraBadge } from "@/components/oto-ui/MascotStates";
+import { useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
@@ -38,6 +40,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const initiatorBuffs = useWaveStore((s) => s.initiatorBuffs);
   const identity = useIdentityStore((s) => s.identity);
+  const setScreen = useAppStore((s) => s.setScreen);
   // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
   // 挂载后立即采样真实时钟（render 期零时钟采样，红线 1）。
   const mounted = useSyncExternalStore(
@@ -119,9 +122,11 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
       )}
 
       {mine.length === 0 && (
-        <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-6 text-center">
-          <span className="text-2xl">📡</span>
-          <p className="text-xs text-[#afafaf] mt-2">还没有发出过需求</p>
+        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-6 flex flex-col items-center text-center gap-1.5" data-testid="mywaves-empty-state">
+          {/* 水豚打盹：还没发过需求时的 sleepy 态 */}
+          <CapybaraBadge mood="sleepy" />
+          <p className="text-xs text-[#767676] mt-1">还没有发出过需求——水豚也在等你的第一单</p>
+          <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="mywaves-empty-launch">去发第一单</DuoButton>
         </div>
       )}
 

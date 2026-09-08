@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import DuoButton from "@/components/ui/DuoButton";
+import { CapybaraBadge } from "@/components/oto-ui/MascotStates";
 import {
   ArrowRightLeft,
   BadgeCheck,
@@ -396,10 +398,13 @@ export default function ProfilePage({
           我的订单
         </h3>
         {unifiedOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 text-center">
-            <p className="text-xs text-[#777777]">
+          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-4 flex flex-col items-center text-center gap-1.5" data-testid="orders-empty-state">
+            {/* 水豚打盹：还没有订单时的 sleepy 态 */}
+            <CapybaraBadge mood="sleepy" />
+            <p className="text-xs text-[#767676]">
               还没有订单——去 AI 助手说句需求，马上撮合
             </p>
+            <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="orders-empty-launch">去发单</DuoButton>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

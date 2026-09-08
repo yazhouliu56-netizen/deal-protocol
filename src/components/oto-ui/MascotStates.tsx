@@ -153,7 +153,7 @@ export function CapybaraBadge({
     );
   }
   return (
-    <span aria-hidden="true" className={cls}>
+    <span aria-hidden="true" data-testid="capy-mascot" data-mood={m} className={cls}>
       {body}
     </span>
   );
