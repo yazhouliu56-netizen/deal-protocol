@@ -39,7 +39,7 @@ export default function FloatingDock() {
       transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="fixed o-safe-bottom o-safe-pb bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px] px-4">
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12 shadow-sm">
+        <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12">
           {NAVS.map((nav) => {
             const Icon = nav.icon;
             const isActive = activeTab === nav.id;

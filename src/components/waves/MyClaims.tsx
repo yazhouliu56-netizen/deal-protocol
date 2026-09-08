@@ -11,7 +11,7 @@ import DialCard from "./DialCard";
 import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import DuoButton from "@/components/ui/DuoButton";
-import { SleepyBeast } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import { useAppStore } from "@/store/useAppStore";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import { visibleGuests } from "@/base/order/guest";
@@ -133,14 +133,14 @@ export default function MyClaims() {
       )}
 
       {mine.length === 0 && (
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-6 flex flex-col items-center text-center gap-1.5" data-testid="myclaims-empty-state">
-          {/* 平头哥待命：还没接过单时的 empty 态（卖家侧守雷达） */}
-          <SleepyBeast mood="empty" interactive={false} />
-          <p className="text-xs text-[#777777] mt-1">
-            还没接过单——去雷达 Feed 找适合你的需求
-          </p>
-          <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="myclaims-empty-launch">去雷达看看</DuoButton>
-        </div>
+        <DuoEmpty
+          mascot="beast-empty"
+          desc="还没接过单——去雷达 Feed 找适合你的需求"
+          action="去雷达看看"
+          onAction={() => setScreen("home")}
+          testId="myclaims-empty-state"
+          launchTestId="myclaims-empty-launch"
+        />
       )}
 
       <div className="flex flex-col gap-3">

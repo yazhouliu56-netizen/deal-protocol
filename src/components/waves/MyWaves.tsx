@@ -1,6 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
-import { CapybaraBadge } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import { useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
@@ -122,12 +122,14 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
       )}
 
       {mine.length === 0 && (
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-6 flex flex-col items-center text-center gap-1.5" data-testid="mywaves-empty-state">
-          {/* 水豚打盹：还没发过需求时的 sleepy 态 */}
-          <CapybaraBadge mood="sleepy" />
-          <p className="text-xs text-[#767676] mt-1">还没有发出过需求——水豚也在等你的第一单</p>
-          <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="mywaves-empty-launch">去发第一单</DuoButton>
-        </div>
+        <DuoEmpty
+          mascot="capy-sleepy"
+          desc="还没有发出过需求——水豚也在等你的第一单"
+          action="去发第一单"
+          onAction={() => setScreen("home")}
+          testId="mywaves-empty-state"
+          launchTestId="mywaves-empty-launch"
+        />
       )}
 
       <div className="flex flex-col gap-3">

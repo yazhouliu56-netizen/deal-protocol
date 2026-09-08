@@ -99,11 +99,11 @@ export default function WaveCard({
   );
 
   return (
-    <div className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 hover:border-[#58cc02]/30 transition-colors">
+    <div className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 hover:border-[#58cc02]/30 transition-colors">
       {/* 头部：品类 + 热度 + 倒计时 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center text-base shrink-0 text-white shadow-sm">
+          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center text-base shrink-0 text-white">
             {CATEGORY_EMOJI(wave.basics.category)}
           </span>
           <div className="min-w-0">

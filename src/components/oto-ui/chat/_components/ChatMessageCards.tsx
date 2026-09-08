@@ -107,7 +107,7 @@ export function GenCardView({
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
                   aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm text-xs font-bold active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold active:scale-95"
                 >
                   📡 转为正式订单
                 </button>
@@ -116,7 +116,7 @@ export function GenCardView({
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm text-xs font-bold active:scale-95"
+              className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold active:scale-95"
             >
               确认预订
             </button>
@@ -155,7 +155,7 @@ function ProviderRow({
         onClick={onSelect}
         className="w-full flex items-center gap-2.5 p-2 hover:border-[#58cc02]/50 hover:bg-[#58cc02]/[.06] transition-colors text-left active:scale-[0.98]"
       >
-        <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-base shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center text-base shrink-0">
           {provider.emoji}
         </div>
         <div className="flex-1 min-w-0">

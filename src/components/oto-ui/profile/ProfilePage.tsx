@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import DuoButton from "@/components/ui/DuoButton";
-import { CapybaraBadge } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import {
   ArrowRightLeft,
   BadgeCheck,
@@ -243,7 +242,7 @@ export default function ProfilePage({
   return (
     <div className="pointer-events-auto flex flex-col gap-3">
       {/* 访客/登录行：数据来源 + 本地模式入口（G-5；登录后提示云端由数据化替换） */}
-      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-[4px] shadow-sm">
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-[4px]">
         <span className="text-xs">💠</span>
         <p className="flex-1 min-w-0 text-xs text-[#4b4b4b] font-bold">
           {authAccount
@@ -255,7 +254,7 @@ export default function ProfilePage({
             openAuthSheet();
           }}
           aria-label={authAccount ? "切换账号" : "登录"}
-          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold inline-flex items-center gap-1 shadow-sm active:translate-y-0.5 active:border-b-0 transition-[transform]"
+          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold inline-flex items-center gap-1 active:translate-y-0.5 active:border-b-0 transition-[transform]"
         >
           <LogIn size={9} />
           {authAccount ? "切换账号" : "登录 · 注册"}
@@ -270,7 +269,7 @@ export default function ProfilePage({
         {onGoHome && (
           <button
             onClick={onGoHome}
-            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold shadow-sm active:translate-y-0.5 active:border-b-0"
+            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold active:translate-y-0.5 active:border-b-0"
           >
             去雷达
           </button>
@@ -282,14 +281,14 @@ export default function ProfilePage({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4 flex items-center gap-3"
+        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 flex items-center gap-3"
       >
         <label
           className="relative cursor-pointer group"
           title="点击上传本地头像（自动压缩为 96×96）"
         >
           <IdentityAvatar size="lg" />
-          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#58cc02] border-2 border-white flex items-center justify-center text-xs shadow-sm group-hover:scale-110 transition-transform text-white">
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#58cc02] border-2 border-white flex items-center justify-center text-xs group-hover:scale-110 transition-transform text-white">
             ✎
           </span>
           <input
@@ -324,7 +323,7 @@ export default function ProfilePage({
             };
             const m = meta[tier] ?? meta[1];
             return (
-              <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border-b-2 text-xs font-extrabold shadow-sm" style={{ backgroundColor: m.bg, borderColor: m.border, color: m.color }}>
+              <span className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border-b-2 text-xs font-extrabold" style={{ backgroundColor: m.bg, borderColor: m.border, color: m.color }}>
                 <span>{m.icon}</span> {m.label} <span className="font-bold opacity-80">· {m.desc}</span>
               </span>
             );
@@ -355,9 +354,9 @@ export default function ProfilePage({
       {/* 服务者工作台入口卡（四大工种资质准入全景看板） */}
       <button
         onClick={() => setView("workbench")}
-        className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5 flex items-center gap-3 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
+        className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5 flex items-center gap-3 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
       >
-        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center shrink-0 shadow-sm text-white">
+        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center shrink-0 text-white">
           <ArrowRightLeft size={16} />
         </div>
         <div className="flex-1 min-w-0">
@@ -382,7 +381,7 @@ export default function ProfilePage({
             key={d.key}
             onClick={() => setDrawer(d.key)}
             data-testid={`drawer-entry-${d.key}`}
-            className="min-h-16 bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl shadow-sm p-2.5 flex flex-col items-center justify-center gap-1 hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
+            className="min-h-16 bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1 hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
           >
             <span className="text-base leading-none">{d.icon}</span>
             <span className="text-xs font-extrabold text-[#4b4b4b]">{d.title}</span>
@@ -398,14 +397,14 @@ export default function ProfilePage({
           我的订单
         </h3>
         {unifiedOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-4 flex flex-col items-center text-center gap-1.5" data-testid="orders-empty-state">
-            {/* 水豚打盹：还没有订单时的 sleepy 态 */}
-            <CapybaraBadge mood="sleepy" />
-            <p className="text-xs text-[#767676]">
-              还没有订单——去 AI 助手说句需求，马上撮合
-            </p>
-            <DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="orders-empty-launch">去发单</DuoButton>
-          </div>
+          <DuoEmpty
+            mascot="capy-sleepy"
+            desc="还没有订单——去 AI 助手说句需求，马上撮合"
+            action="去发单"
+            onAction={() => setScreen("home")}
+            testId="orders-empty-state"
+            launchTestId="orders-empty-launch"
+          />
         ) : (
           <div className="flex flex-col gap-2">
             {unifiedOrders.map((o) =>
@@ -415,7 +414,7 @@ export default function ProfilePage({
                   onClick={() => setScreen("trip")}
                   aria-label={`查看方案单 ${o.title} 履约进度`}
                   data-testid="order-item-wave"
-                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
+                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
                 >
                   <span className="text-base shrink-0">🧾</span>
                   <span className="flex-1 min-w-0">
@@ -436,7 +435,7 @@ export default function ProfilePage({
                   onClick={() => setSelectedBooking(o.id)}
                   aria-label={`查看预订卡 ${o.title}`}
                   data-testid="order-item-booking"
-                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
+                  className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3 flex items-center gap-2.5 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
                 >
                   <span className="text-base shrink-0">🎟️</span>
                   <span className="flex-1 min-w-0">
@@ -473,7 +472,7 @@ export default function ProfilePage({
         testId="drawer-system"
       >
         {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
-        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
           <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
             撮合偏好
             <button
@@ -504,7 +503,7 @@ export default function ProfilePage({
         <PushEnableBar />
 
         {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
-        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
           <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
             推送免打扰
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
@@ -534,7 +533,7 @@ export default function ProfilePage({
                     onClick={() => toggleQuietWindow(w.start, w.end)}
                     className={`text-xs px-2.5 py-1 rounded-full border-2 transition-all font-bold ${
                       on
-                        ? "bg-[#58cc02] border-[#58a700] text-white shadow-sm"
+                        ? "bg-[#58cc02] border-[#58a700] text-white"
                         : "bg-[#f7f7f7] border-[#e5e5e5] text-[#4b4b4b]"
                     }`}
                   >
@@ -625,20 +624,20 @@ export default function ProfilePage({
         />
 
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
-        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
           <h3 className="text-xs font-bold text-[#4b4b4b] mb-2">
             无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
           </h3>
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[#ff9600] border-b-4 border-[#cc7a00] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#ff9600] border-b-4 border-[#cc7a00] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               👵 长辈模式
             </button>
             <button
               onClick={() => setStealthOpen(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[#1cb0f6] border-b-4 border-[#1899d6] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#1cb0f6] border-b-4 border-[#1899d6] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               🛡️ 应急伪装
             </button>
@@ -651,7 +650,7 @@ export default function ProfilePage({
         </div>
 
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
-        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+        <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
           <h3 className="text-xs font-bold text-[#4b4b4b] mb-2">
             紧急联系人（SOS 通知对象）
           </h3>

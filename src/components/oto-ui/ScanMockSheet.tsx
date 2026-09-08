@@ -126,10 +126,10 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed inset-x-6 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-5"
+        className="fixed inset-x-6 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-5"
       >
         <div className="flex items-center gap-2 mb-3">
-          <QrCode size={14} className="text-brandCyan" />
+          <QrCode size={14} className="text-[#1cb0f6]" />
           <span className="text-xs font-bold text-[#4b4b4b]">扫码识别</span>
           <button
             onClick={onClose}

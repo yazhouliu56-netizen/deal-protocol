@@ -65,7 +65,7 @@ export function pillTagFor(theme: ScenarioTheme): string {
   }
 }
 
-/* 平头哥状态表收归 @/components/oto-ui/MascotStates（5 态：sleeping/awake/cheering/empty/onroute）。 */
+/* 平头哥状态表收归 @/components/oto-ui/MascotStates（4 态：sleeping/awake/cheering/empty）。 */
 
 /** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。 */
 const TILE_STYLE: Record<string, { bg: string; border: string; text: string; price: string }> = {

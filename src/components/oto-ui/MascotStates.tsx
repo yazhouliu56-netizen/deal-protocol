@@ -4,14 +4,13 @@ import { useState } from "react";
 
 /**
  * 吉祥物状态表（极简多邻国情绪闭环 · SVG 主 + PNG 彩蛋）。
- * 水豚 = 买家/发单侧，平头哥 = 卖家/履约侧；5 态与 HomePage 旅程信号同源：
- * idle（待输入）/ listening（聆听/有在途）/ searching（起草/发布中）/
- * success（撮合成功）/ empty·sleepy（雷达静悄悄）。
+ * 水豚 = 买家/发单侧 5 态（idle/listening/searching/success/sleepy，均有挂载）；
+ * 平头哥 = 卖家/履约侧 4 态（sleeping/awake/cheering/empty，均有挂载；onroute 零挂载已切除）。
  * PNG 供图仅 idle/sleeping 常态展示，awake/图裂一律回退内联 SVG（宪法 #10）。
  */
 
 export type CapybaraMood = "idle" | "listening" | "searching" | "success" | "sleepy";
-export type BeastMood = "sleeping" | "awake" | "cheering" | "empty" | "onroute";
+export type BeastMood = "sleeping" | "awake" | "cheering" | "empty";
 
 function capybaraEyes(mood: CapybaraMood) {
   if (mood === "listening" || mood === "searching") {
@@ -170,7 +169,7 @@ function BeastSvg({ mood }: { mood: BeastMood }) {
       <circle cx="32.6" cy="19.4" r="2.4" fill="#f5f5f4" />
       <circle cx="8.6" cy="17.5" r="2.6" fill="#292524" />
       <circle cx="8.6" cy="17.5" r="1" fill="#78716c" />
-      {mood === "awake" || mood === "onroute" || cheering ? (
+      {mood === "awake" || cheering ? (
         <g className="mascot-blink">
           <circle cx="14.5" cy="23" r="1.9" fill="#f5f5f4" />
           <circle cx="14.5" cy="23" r="0.8" fill="#1c1917" />
@@ -202,9 +201,6 @@ function BeastSvg({ mood }: { mood: BeastMood }) {
           <circle cx="7" cy="9" r="1.4" fill="#ff7ab8" />
           <circle cx="29" cy="4.5" r="1.2" fill="#ffd028" />
         </>
-      )}
-      {mood === "onroute" && (
-        <path d="M10 32q8 4 17 0" stroke="#58cc02" strokeWidth="2.4" strokeLinecap="round" />
       )}
       {mood === "sleeping" && (
         <>
@@ -254,7 +250,7 @@ export function SleepyBeast({
     <BeastSvg mood={m} />
   );
   const cls =
-    "mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform";
+    "mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform";
   if (!interactive && !onPress) {
     return (
       <span aria-hidden="true" data-testid="beast-mascot" data-mood={m} className={cls}>

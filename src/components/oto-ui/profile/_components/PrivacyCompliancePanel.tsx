@@ -31,7 +31,7 @@ export default function PrivacyCompliancePanel({
   return (
     <>
       {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
         <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
           未成年人分级
           <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#58cc02]/15 border-2 border-[#58cc02]/20 text-[#58cc02] font-bold">
@@ -50,7 +50,7 @@ export default function PrivacyCompliancePanel({
           />
           <button
             onClick={onAgeSave}
-            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform]"
+            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold active:translate-y-1 active:border-b-0 transition-[transform]"
           >
             保存
           </button>
@@ -101,7 +101,7 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 数据脱敏预览（掩码效果演示） */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
         <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
           数据脱敏
           <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
@@ -127,7 +127,7 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 遗忘权 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
         <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1">
           遗忘权（《个保法》§47：删除或匿名化）
         </h3>
@@ -180,7 +180,7 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* E2 合规公示入口：消费者权益与平台规则 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
         <Link
           href="/rights"
           data-testid="rights-entry"

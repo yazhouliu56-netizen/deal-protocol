@@ -29,7 +29,7 @@ export default function SafetyCenterCard({
   onResolve,
 }: SafetyCenterCardProps) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5">
+    <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
       <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
         紧急求助
         <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
@@ -48,7 +48,7 @@ export default function SafetyCenterCard({
           <button
             key={o.lv}
             onClick={() => onSelectLevel(o.lv)}
-            className={`flex-1 px-2 py-1.5 rounded-xl text-xs font-bold border-b-4 border-x border-t transition-all shadow-sm active:translate-y-1 active:border-b-0 ${
+            className={`flex-1 px-2 py-1.5 rounded-xl text-xs font-bold border-b-4 border-x border-t transition-all active:translate-y-1 active:border-b-0 ${
               crisisLevel === o.lv
                 ? o.lv === 3
                   ? "bg-[#ff4b4b] border-[#ea2b2b] text-white"
@@ -71,14 +71,14 @@ export default function SafetyCenterCard({
       <div className="flex items-center gap-2 mt-2">
         <button
           onClick={onRaise}
-          className="flex-1 px-3 py-3 rounded-xl bg-[#ff4b4b] border-b-4 border-[#ea2b2b] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+          className="flex-1 px-3 py-3 rounded-xl bg-[#ff4b4b] border-b-4 border-[#ea2b2b] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
         >
           发起求助
         </button>
         {myCrisis.length > 0 && (
           <button
             onClick={onResolve}
-            className="px-3 py-3 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+            className="px-3 py-3 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
           >
             已平安，结束
           </button>

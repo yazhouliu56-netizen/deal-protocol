@@ -16,8 +16,7 @@ import RadarInbox from "./RadarInbox";
 import FavoritesSheet from "./FavoritesSheet";
 import { SandboxBadge } from "./SandboxBadge";
 import { toast } from "@/base/platform/toast";
-import DuoButton from "@/components/ui/DuoButton";
-import { SleepyBeast } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 
 /** 空态 CTA：滑回顶部发射舱并聚焦输入（平头哥把人领回水豚身边）。 */
 function goCabin() {
@@ -156,21 +155,15 @@ export default function WaveFeed() {
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3">
         {feed.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-6 text-center flex flex-col items-center gap-2"
-            data-testid="wave-empty-state"
-          >
-            {/* 平头哥空态：耷眼守雷达（SVG 主，PNG 彩蛋仅酣睡态） */}
-            <SleepyBeast mood="empty" interactive={false} />
-            <p className="relative text-xs font-bold text-[#0a6ea8]">附近的雷达 · 平头哥守着呢</p>
-            <p className="relative text-sm font-extrabold text-[#4b4b4b] mt-1">你附近的OTO社区</p>
-            <p className="relative text-xs text-[#767676] mt-1 leading-relaxed">这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！</p>
-            <DuoButton variant="primary" size="sm" sound="click" onClick={goCabin} data-testid="empty-launch" className="mt-1">
-              去发第一单
-            </DuoButton>
-          </motion.div>
+          <DuoEmpty
+            mascot="beast-empty"
+            title="你附近的OTO社区"
+            desc="这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！"
+            action="去发第一单"
+            onAction={goCabin}
+            testId="wave-empty-state"
+            launchTestId="empty-launch"
+          />
         )}
         {feed.map((f) => (
           <motion.div

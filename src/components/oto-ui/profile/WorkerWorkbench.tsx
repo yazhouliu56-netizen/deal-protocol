@@ -201,8 +201,8 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             aria-pressed={providerId === p.id}
             className={`flex-1 flex items-center gap-1.5 px-3 py-3 rounded-2xl text-xs font-bold transition-all border-b-4 border-x border-t min-h-12 ${
               providerId === p.id
-                ? "bg-[#58cc02] border-[#58a700] text-white shadow-sm"
-                : "bg-white border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b] hover:border-[#58cc02]/30 shadow-sm"
+                ? "bg-[#58cc02] border-[#58a700] text-white"
+                : "bg-white border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b] hover:border-[#58cc02]/30"
             }`}
           >
             <span className="text-sm">{p.emoji}</span>
@@ -216,7 +216,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-4"
+        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center justify-center text-lg shrink-0">
@@ -236,8 +236,8 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             aria-label="在线接单开关"
             className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 border-b-4 text-xs font-bold transition-[transform] min-h-10 active:translate-y-1 active:border-b-2 ${
               workerOnline
-                ? "bg-[#d7ffb8] border-[#58cc02]/30 text-[#58cc02] shadow-sm"
-                : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf] shadow-sm"
+                ? "bg-[#d7ffb8] border-[#58cc02]/30 text-[#58cc02]"
+                : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
             }`}
           >
             <Power size={11} className={workerOnline ? "fill-[#58cc02] text-[#58cc02]" : ""} />
@@ -254,7 +254,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
           ].map((s) => (
             <div
               key={s.label}
-              className="rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] py-2.5 flex flex-col items-center gap-0.5 shadow-sm"
+              className="rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] py-2.5 flex flex-col items-center gap-0.5"
             >
               <span className="text-[13px] font-extrabold text-[#1cb0f6]">
                 {s.value}
@@ -280,7 +280,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 animate={{ opacity: 1, y: 0 }}
                 data-ammo={ammo.ammoId}
                 data-qualified={qualified}
-                className={`rounded-2xl border-2 p-2.5 flex flex-col gap-1.5 shadow-sm ${
+                className={`rounded-2xl border-2 p-2.5 flex flex-col gap-1.5 ${
                   qualified
                     ? "border-[#58cc02]/30 bg-[#d7ffb8]/50 border-b-4"
                     : "border-[#ff4b4b]/20 bg-[#ffdfe0]/40 border-b-4"
@@ -328,12 +328,12 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       <section>
         <SectionTitle icon={<Inbox size={12} className="text-[#1cb0f6]" />} title="新订单请求" />
         {!workerOnline && (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 shadow-sm px-4 py-3 text-xs text-[#afafaf] font-bold flex items-center gap-2">
+          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 px-4 py-3 text-xs text-[#afafaf] font-bold flex items-center gap-2">
             <Power size={12} /> 已暂停接单，AI 撮合会把你推荐给别的服务者
           </div>
         )}
         {pending.length === 0 ? (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 shadow-sm px-4 py-3 text-xs text-[#afafaf] font-bold">
+          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 px-4 py-3 text-xs text-[#afafaf] font-bold">
             {workerOnline ? "没有待接单，AI 撮合正在为你找单～" : "开启接单后会收到新请求"}
           </div>
         ) : (
@@ -431,7 +431,7 @@ function WorkerOrderRow({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3 flex items-center gap-3 ${
+      className={`bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3 flex items-center gap-3 ${
         dimmed ? "opacity-50" : ""
       }`}
     >
@@ -466,7 +466,7 @@ function WorkerOrderRow({
             <button
               onClick={onAction}
               disabled={dimmed}
-              className="px-4 py-2.5 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-extrabold shadow-sm disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="px-4 py-2.5 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-extrabold disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               {actionLabel}
             </button>

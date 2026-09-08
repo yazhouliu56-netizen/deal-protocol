@@ -14,7 +14,7 @@ export default function WalletStatsCard({
   reviewed,
 }: WalletStatsCardProps) {
   return (
-    <div className="bg-[#ddf4ff] rounded-3xl border-2 border-[#1cb0f6] border-b-[6px] shadow-sm p-3.5">
+    <div className="bg-[#ddf4ff] rounded-3xl border-2 border-[#1cb0f6] border-b-[6px] p-3.5">
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: "总订单", value: bookingsCount },
@@ -23,7 +23,7 @@ export default function WalletStatsCard({
         ].map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl bg-white border-2 border-[#e5e5e5] py-2.5 flex flex-col items-center gap-0.5 shadow-sm"
+            className="rounded-2xl bg-white border-2 border-[#e5e5e5] py-2.5 flex flex-col items-center gap-0.5"
           >
             <span className="text-lg font-extrabold text-[#1cb0f6]">
               {s.value}

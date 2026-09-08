@@ -1,6 +1,5 @@
 "use client";
-import DuoButton from "@/components/ui/DuoButton";
-import { CapybaraBadge, SleepyBeast } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Camera } from "lucide-react";
@@ -36,12 +35,16 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
       </motion.button>
       <FulfillmentCenter evidencePhotos={proofShots} />
       {!activeOrder && (
-        <div className="mt-2 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-6 flex flex-col items-center text-center" data-testid="trip-empty-state">
-          {/* 水豚打盹守行程（SVG 主，无进行中行程时的 sleepy 态） */}
-          <CapybaraBadge mood="sleepy" />
-          <p className="text-[12px] font-extrabold text-[#4b4b4b] mt-3">当前暂无进行中行程</p>
-          <p className="text-xs text-[#afafaf] mt-1">去首页发单，或去雷达抢单 · 履约座舱在此实时接管</p>
-          <DuoButton onClick={() => setScreen("home")} variant="primary" size="sm" className="mt-3">✨ 去首页发单</DuoButton>
+        <div className="mt-2" data-testid="trip-empty-state">
+          <DuoEmpty
+            mascot="capy-sleepy"
+            title="当前暂无进行中行程"
+            desc="去首页发单，或去雷达抢单 · 履约座舱在此实时接管"
+            action="✨ 去首页发单"
+            onAction={() => setScreen("home")}
+            testId="trip-empty-state"
+            launchTestId="trip-empty-launch"
+          />
         </div>
       )}
       <MyWaves />
@@ -52,7 +55,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
           <div className="flex flex-col gap-2">{upcoming.map((b) => (<button key={b.id} onClick={() => openOrder(b.id)} className="w-full bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"><div className="w-10 h-10 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-lg shrink-0">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</div><div className="flex-1 min-w-0"><span className="flex items-center gap-2"><span className="text-[12.5px] font-bold truncate">{b.title}</span><span className="text-xs px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">待出行</span></span><p className="text-xs text-[#777777] mt-0.5 truncate">{b.time} · {b.providerName}</p></div><span className="text-[12px] font-extrabold text-brandCyan shrink-0">{b.price}</span></button>))}{bookings.filter((b) => b.status !== "upcoming").map((b) => (<button key={b.id} onClick={() => openOrder(b.id)} className="w-full bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-colors active:scale-[0.99]"><div className="w-10 h-10 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-lg shrink-0">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</div><div className="flex-1 min-w-0"><span className="flex items-center gap-2"><span className="text-[12.5px] font-bold truncate">{b.title}</span><span className={`text-xs px-1.5 py-px rounded-full font-semibold shrink-0 ${b.status === "cancelled" ? "bg-[#f7f7f7] border border-[#e5e5e5] text-[#afafaf]" : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"}`}>{b.status === "cancelled" ? "已取消" : "已完成"}</span></span><p className="text-xs text-[#777777] mt-0.5 truncate">{b.time} · {b.providerName}</p></div><span className="text-[12px] font-extrabold text-brandCyan shrink-0">{b.price}</span></button>))}</div>
         </div>
       )}
-      {bookings.length === 0 && (<div className="mt-4 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-2xl p-4 flex flex-col items-center text-center gap-1.5"><SleepyBeast mood="empty" interactive={false} /><p className="text-xs text-[#767676]">还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢</p><DuoButton variant="primary" size="sm" sound="click" onClick={() => setScreen("home")} data-testid="booking-empty-launch">去首页看看</DuoButton></div>)}
+      {bookings.length === 0 && (<div className="mt-4"><DuoEmpty mascot="beast-empty" desc="还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢" action="去首页看看" onAction={() => setScreen("home")} testId="booking-empty-state" launchTestId="booking-empty-launch" /></div>)}
       {photoOpen && (<><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 bg-black/50" onClick={() => setPhotoOpen(false)} /><motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"><div className="flex items-center justify-between mb-3"><h3 className="text-[13px] font-extrabold flex items-center gap-1.5"><Camera size={13} className="text-brandCyan" /> 拍照存证 · 时间地点水印</h3><button onClick={() => setPhotoOpen(false)} aria-label="关闭相机" className="text-[#afafaf] hover:text-[#4b4b4b]">✕</button></div>{proofShots.length > 0 && <p className="text-xs text-[#58a700] mb-2">✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）</p>}<ProofCamera orderNo={cameraOrderNo} geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }} onCaptured={(result) => { onProofShot?.({ photo: result.dataUrl, aiNote: `水印存证 · 时间地点注入 · 哈希 ${result.sha256.slice(0, 8)}` }); setPhotoOpen(false); }} /></motion.div></>)}
     </div>
   );

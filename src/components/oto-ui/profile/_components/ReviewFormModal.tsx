@@ -29,7 +29,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="pointer-events-auto bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-6 text-center flex flex-col items-center gap-2"
+        className="pointer-events-auto bg-white border border-[#e5e5e5] rounded-3xl p-6 text-center flex flex-col items-center gap-2"
       >
         <div className="w-12 h-12 rounded-2xl bg-[#58cc02]/10 border-2 border-[#58cc02]/40 flex items-center justify-center">
           <Check size={22} className="text-[#58cc02]" />
@@ -40,7 +40,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         </p>
         <button
           onClick={onBack}
-          className="mt-3 px-5 py-2 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm text-xs font-bold"
+          className="mt-3 px-5 py-2 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold"
         >
           完成
         </button>
@@ -59,7 +59,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4"
+        className="bg-white border border-[#e5e5e5] rounded-3xl p-4"
       >
         <h2 className="text-[14px] font-extrabold">评价 {booking.providerName}</h2>
         <p className="text-xs text-[#777777] mt-0.5">{booking.time}</p>
@@ -76,8 +76,8 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
                 size={30}
                 className={
                   n <= rating
-                    ? "fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                    : "text-white/20"
+                    ? "fill-[#ffc800] text-[#e5b400]"
+                    : "text-[#e5e5e5]"
                 }
               />
             </button>
@@ -89,7 +89,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
           onChange={(e) => setComment(e.target.value)}
           placeholder="说两句吧，比如：场地新、球友很会带节奏……"
           rows={3}
-          className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm outline-none text-[12px] placeholder:text-[#afafaf] resize-none"
+          className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#e5e5e5] outline-none text-[12px] placeholder:text-[#afafaf] resize-none"
         />
           <DuoButton
             onClick={submit}

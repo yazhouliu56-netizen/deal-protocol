@@ -6,8 +6,7 @@ import { useWaveStore } from "@/store/useWaveStore";
 import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";
 import { dialInNumber, findSession, maskNumber, minutesLeft } from "@/base/comm/privacyNumber";
 import ContactCard from "@/components/waves/ContactCard";
-import DuoButton from "@/components/ui/DuoButton";
-import { SleepyBeast } from "@/components/oto-ui/MascotStates";
+import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import { CATEGORY_EMOJI } from "./categoryEmoji";
 
 export default function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
@@ -52,7 +51,7 @@ export default function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
         {unread > 0 && <span className="px-2 py-1 rounded-full bg-[#58cc02] border-2 border-[#58a700] text-white text-xs font-bold font-tabular shadow-sm">{unread} 条未读</span>}
       </div>
       {convos.length === 0 ? (
-        <div className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-6 flex flex-col items-center text-center gap-1.5" data-testid="messages-empty-state"><SleepyBeast mood="empty" interactive={false} /><p className="text-[12px] font-extrabold text-[#4b4b4b] mt-1">还没有私密会话</p><p className="text-xs text-[#777777] mt-1">去首页发单撮合，订单锁定后隐私号与 IM 私信自动出现在这里 · 48h 后自动回收</p><DuoButton variant="primary" size="sm" sound="click" onClick={onGoHome} data-testid="messages-empty-launch" className="mt-2">去首页发单</DuoButton></div>
+        <DuoEmpty mascot="beast-empty" title="还没有私密会话" desc="去首页发单撮合，订单锁定后隐私号与 IM 私信自动出现在这里 · 48h 后自动回收" action="去首页发单" onAction={onGoHome} testId="messages-empty-state" launchTestId="messages-empty-launch" />
       ) : (
         <div className="flex flex-col gap-3">{convos.map((c) => { const myNumber = dialInNumber(c.session, me); return (<div key={c.session.waveId} className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3"><div className="flex items-center gap-2.5 mb-2"><div className="w-9 h-9 rounded-xl bg-white border-2 border-[#e5e5e5] flex items-center justify-center text-base shrink-0 shadow-sm">{CATEGORY_EMOJI[c.wave?.basics.category ?? ""] ?? "🎟️"}</div><div className="flex-1 min-w-0"><p className="text-[12px] font-bold text-[#4b4b4b] truncate">{c.wave?.basics.category ?? "订单会话"}</p><p className="text-xs text-[#777777] truncate font-mono">{maskNumber(myNumber)} · {c.live ? `${minutesLeft(c.session, now)} 分钟后失效` : "会话已过期"}</p></div>{c.unreadForMe > 0 && <span className="px-1.5 py-0.5 rounded-full bg-[#58cc02] text-white text-xs font-extrabold font-tabular border-2 border-white shadow-sm">{c.unreadForMe}</span>}</div>{c.last && <p className="text-xs text-[#777777] truncate mb-1.5 bg-[#f7f7f7] rounded-xl px-2.5 py-2 border border-[#e5e5e5]">{c.last.fromId === me ? "我：" : "对方："}{c.last.text}</p>}<ContactCard waveId={c.session.waveId} peerId={c.peerId} /></div>); })}</div>
       )}
