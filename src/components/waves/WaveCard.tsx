@@ -9,6 +9,7 @@ import { ACTION_LABEL } from "@/base/risk/moderation";
 import { displayInterest, useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
+import DuoButton from "@/components/ui/DuoButton";
 
 /**
  * A signal-wave demand card — shown in the radar feed to responders.
@@ -102,7 +103,7 @@ export default function WaveCard({
       {/* 头部：品类 + 热度 + 倒计时 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center text-base shrink-0 text-white shadow-sm">
+          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center text-base shrink-0 text-white shadow-sm">
             {CATEGORY_EMOJI(wave.basics.category)}
           </span>
           <div className="min-w-0">
@@ -237,14 +238,17 @@ export default function WaveCard({
                   <Clock size={12} /> 候补中 · 第 {waitlistPos} 位
                 </button>
               ) : needsApproval ? (
-                <button
+                <DuoButton
+                  variant="primary"
+                  size="sm"
+                  sound="correct"
                   onClick={() => {
                     // 审批局：待审批态由 store 的 requestedByMe 驱动（被拒自动回退可重试）；
                     // 非审批局：由 PaySheet 支付弹窗接管，成功后才经 joinedByMe 反映。
                     onRequestJoin?.();
                   }}
                   disabled={full || requestedByMe}
-                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1"
                 >
                   {requestedByMe ? (
                     <>
@@ -257,7 +261,7 @@ export default function WaveCard({
                       <UserPlus size={12} /> 申请加入
                     </>
                   )}
-                </button>
+                </DuoButton>
               ) : full ? (
                 <button
                   onClick={onWaitlist}
@@ -266,14 +270,17 @@ export default function WaveCard({
                   <Clock size={12} /> 进入候补 · 有空位自动补位
                 </button>
               ) : (
-                <button
+                <DuoButton
+                  variant="primary"
+                  size="sm"
+                  sound="correct"
                   onClick={onJoin}
-                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5"
+                  className="flex-1"
                 >
                   <>
                     <UserPlus size={12} /> 拼位加入
                   </>
-                </button>
+                </DuoButton>
               )}
               <button
                 onClick={() => {
@@ -305,16 +312,19 @@ export default function WaveCard({
                 }
               />
               <div className="flex gap-2">
-                <button
+                <DuoButton
+                  variant="primary"
+                  size="sm"
+                  sound="correct"
                   onClick={() => {
                     // 单人局：接单成功（无 error）才置乐观态，失败不污染 UI
                     const out = onClaim({ price: recommend, note });
                     if (!out?.error) setCommitted(true);
                   }}
-                  className="flex-1 py-2.5 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white font-bold text-xs shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform,filter] flex items-center justify-center gap-1.5"
+                  className="flex-1"
                 >
                   <Zap size={12} /> {note.trim() && wave.negotiable ? "发起磋商" : "接单"}
-                </button>
+                </DuoButton>
                 <button
                   onClick={() => {
                     submitReport({

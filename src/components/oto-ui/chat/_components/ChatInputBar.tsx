@@ -57,7 +57,7 @@ export default function ChatInputBar({
         type="submit"
         disabled={streaming || !input.trim()}
         aria-label="发送"
-        className="w-11 h-11 shrink-0 rounded-2xl bg-[#58cc02] border-b-4 border-[#46a302] text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 shadow-sm transition-[transform]"
+        className="w-11 h-11 shrink-0 rounded-2xl bg-[#58cc02] border-b-4 border-[#58a700] text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 shadow-sm transition-[transform]"
       >
         <Send size={16} />
       </button>

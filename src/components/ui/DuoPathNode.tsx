@@ -19,7 +19,7 @@ const ICON: Record<DuoPathStatus, string> = {
 
 const COLOR: Record<DuoPathStatus, string> = {
   completed: "bg-[#ffc800] border-[#e5b400] text-white",
-  current: "bg-[#58cc02] border-[#46a302] text-white shadow-[0_0_18px_rgba(88,204,2,.45)]",
+  current: "bg-[#58cc02] border-[#58a700] text-white shadow-[0_0_18px_rgba(88,204,2,.45)]",
   locked: "bg-[#e5e5e5] border-[#d4d4d4] text-[#9ca3af]",
 };
 

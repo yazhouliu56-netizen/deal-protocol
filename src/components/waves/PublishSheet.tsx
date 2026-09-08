@@ -428,7 +428,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               onClick={() => applySopDefaults(h)}
               className={`px-2.5 min-h-8 rounded-full text-xs font-bold transition-colors ${
                 category === h
-                  ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm"
+                  ? "bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm"
                   : "bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b]"
               }`}
             >
@@ -737,7 +737,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                   onClick={() => setTtl(o.ms === 0 ? 0 : o.ms)}
                   className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
                     active
-                      ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm"
+                      ? "bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm"
                       : "bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b]"
                   }`}
                 >

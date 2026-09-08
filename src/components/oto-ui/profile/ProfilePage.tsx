@@ -255,7 +255,7 @@ export default function ProfilePage({
             openAuthSheet();
           }}
           aria-label={authAccount ? "切换账号" : "登录"}
-          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white text-xs font-bold inline-flex items-center gap-1 shadow-sm active:translate-y-0.5 active:border-b-0 transition-[transform]"
+          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold inline-flex items-center gap-1 shadow-sm active:translate-y-0.5 active:border-b-0 transition-[transform]"
         >
           <LogIn size={9} />
           {authAccount ? "切换账号" : "登录 · 注册"}
@@ -270,7 +270,7 @@ export default function ProfilePage({
         {onGoHome && (
           <button
             onClick={onGoHome}
-            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white text-xs font-bold shadow-sm active:translate-y-0.5 active:border-b-0"
+            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold shadow-sm active:translate-y-0.5 active:border-b-0"
           >
             去雷达
           </button>
@@ -357,7 +357,7 @@ export default function ProfilePage({
         onClick={() => setView("workbench")}
         className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3.5 flex items-center gap-3 text-left hover:border-[#58cc02]/30 active:translate-y-1 active:border-b-2 transition-[transform,border]"
       >
-        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#46a302] flex items-center justify-center shrink-0 shadow-sm text-white">
+        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center shrink-0 shadow-sm text-white">
           <ArrowRightLeft size={16} />
         </div>
         <div className="flex-1 min-w-0">
@@ -534,7 +534,7 @@ export default function ProfilePage({
                     onClick={() => toggleQuietWindow(w.start, w.end)}
                     className={`text-xs px-2.5 py-1 rounded-full border-2 transition-all font-bold ${
                       on
-                        ? "bg-[#58cc02] border-[#46a302] text-white shadow-sm"
+                        ? "bg-[#58cc02] border-[#58a700] text-white shadow-sm"
                         : "bg-[#f7f7f7] border-[#e5e5e5] text-[#4b4b4b]"
                     }`}
                   >
@@ -632,7 +632,7 @@ export default function ProfilePage({
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[#ff9600] border-b-4 border-[#e58700] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#ff9600] border-b-4 border-[#cc7a00] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               👵 长辈模式
             </button>

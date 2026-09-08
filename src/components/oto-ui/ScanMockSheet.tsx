@@ -191,7 +191,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <div className="py-2">
-            <p className="text-xs font-semibold text-[#46a302] flex items-center gap-1">
+            <p className="text-xs font-semibold text-[#58a700] flex items-center gap-1">
               <CheckCircle2 size={11} /> 识别成功 · 分享的线下局
             </p>
             {wave ? (

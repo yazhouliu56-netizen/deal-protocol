@@ -50,7 +50,7 @@ export default function PrivacyCompliancePanel({
           />
           <button
             onClick={onAgeSave}
-            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-xs font-bold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform]"
+            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold shadow-sm active:translate-y-1 active:border-b-0 transition-[transform]"
           >
             保存
           </button>

@@ -30,7 +30,7 @@ export default function FloatingSosButton({ waveId }: { waveId?: string }) {
       onClick={handleSos}
       aria-label="SOS 紧急求助"
       data-testid="floating-sos"
-      className="fixed left-4 bottom-28 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#db2f2f] border-b-4 border-[#d63030] text-white text-xs font-black shadow-lg active:translate-y-0.5 active:border-b-2 transition-[transform]"
+      className="fixed left-4 bottom-28 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#ff4b4b] border-b-4 border-[#ea2b2b] text-white text-xs font-black active:translate-y-0.5 active:border-b-2 transition-[transform]"
     >
       SOS
     </motion.button>

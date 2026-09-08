@@ -5,7 +5,7 @@ import { useToastStore, type ToastTone } from "@/base/platform/toast";
 
 const TONE_STYLE: Record<ToastTone, string> = {
   info: "border-brandCyan/40 text-brandCyan",
-  success: "border-[#58cc02]/50 text-[#46a302]",
+  success: "border-[#58cc02]/50 text-[#58a700]",
   error: "border-[#ff4b4b]/40 text-[#ff4b4b]",
 };
 

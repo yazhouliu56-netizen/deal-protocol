@@ -53,7 +53,7 @@ export default function SafetyCenterCard({
                 ? o.lv === 3
                   ? "bg-[#ff4b4b] border-[#ea2b2b] text-white"
                   : o.lv === 2
-                    ? "bg-[#ff9600] border-[#e58700] text-white"
+                    ? "bg-[#ff9600] border-[#cc7a00] text-white"
                     : "bg-white border-[#e5e5e5] text-[#4b4b4b]"
                 : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
             }`}
@@ -78,7 +78,7 @@ export default function SafetyCenterCard({
         {myCrisis.length > 0 && (
           <button
             onClick={onResolve}
-            className="px-3 py-3 rounded-xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-xs font-bold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+            className="px-3 py-3 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
           >
             已平安，结束
           </button>

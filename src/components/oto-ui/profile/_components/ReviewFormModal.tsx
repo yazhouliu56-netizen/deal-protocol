@@ -40,7 +40,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         </p>
         <button
           onClick={onBack}
-          className="mt-3 px-5 py-2 rounded-full bg-[#58cc02] border-b-2 border-[#46a302] text-white shadow-sm text-xs font-bold"
+          className="mt-3 px-5 py-2 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white shadow-sm text-xs font-bold"
         >
           完成
         </button>

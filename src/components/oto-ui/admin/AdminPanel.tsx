@@ -148,7 +148,7 @@ export default function AdminPanel({
                           }
                           className={`px-2 py-1 rounded-lg text-xs font-bold border ${
                             (pending[r.id] ?? "dismiss") === a
-                              ? "bg-[#58cc02]/15 border-[#58cc02]/50 text-[#46a302]"
+                              ? "bg-[#58cc02]/15 border-[#58cc02]/50 text-[#58a700]"
                               : "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
                           }`}
                         >
@@ -171,7 +171,7 @@ export default function AdminPanel({
                     <button
                       onClick={() => act(r.id)}
                       aria-label={`执行裁定 ${r.id}`}
-                      className="px-3 py-1 rounded-lg bg-[#58cc02]/15 border border-[#58cc02]/50 text-xs font-bold text-[#46a302]"
+                      className="px-3 py-1 rounded-lg bg-[#58cc02]/15 border border-[#58cc02]/50 text-xs font-bold text-[#58a700]"
                     >
                       执行裁定
                     </button>
@@ -186,7 +186,7 @@ export default function AdminPanel({
             <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
               <ShieldCheck size={11} className="text-brandCyan" /> 漫游安全监控
             </h3>
-            {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-[#ff4b4b]" : r.risk === "watch" ? "text-[#ff9600]" : "text-[#46a302]"; return (
+            {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-[#ff4b4b]" : r.risk === "watch" ? "text-[#ff9600]" : "text-[#58a700]"; return (
             <p className={`text-xs font-bold mb-2 ${cls}`}>
               本设备 {deviceId ?? "…"} · 同设备 {r.count} 个身份 · {r.reason}
             </p>

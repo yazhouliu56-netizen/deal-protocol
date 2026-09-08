@@ -201,7 +201,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             aria-pressed={providerId === p.id}
             className={`flex-1 flex items-center gap-1.5 px-3 py-3 rounded-2xl text-xs font-bold transition-all border-b-4 border-x border-t min-h-12 ${
               providerId === p.id
-                ? "bg-[#58cc02] border-[#46a302] text-white shadow-sm"
+                ? "bg-[#58cc02] border-[#58a700] text-white shadow-sm"
                 : "bg-white border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b] hover:border-[#58cc02]/30 shadow-sm"
             }`}
           >
@@ -466,7 +466,7 @@ function WorkerOrderRow({
             <button
               onClick={onAction}
               disabled={dimmed}
-              className="px-4 py-2.5 rounded-xl bg-[#58cc02] border-b-4 border-[#46a302] text-white text-xs font-extrabold shadow-sm disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="px-4 py-2.5 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-extrabold shadow-sm disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               {actionLabel}
             </button>

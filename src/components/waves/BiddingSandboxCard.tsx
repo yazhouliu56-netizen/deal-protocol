@@ -163,7 +163,7 @@ const open = session.status === "open";
           <p className="text-xs font-extrabold text-[#4b4b4b] flex items-center gap-1.5">
             公开竞价 · 演示沙盒
             {picked ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-[#58cc02]/10 border border-[#58cc02]/40 text-xs text-[#46a302] font-extrabold">
+              <span className="px-1.5 py-0.5 rounded-full bg-[#58cc02]/10 border border-[#58cc02]/40 text-xs text-[#58a700] font-extrabold">
                 你的真实需求局
               </span>
             ) : (

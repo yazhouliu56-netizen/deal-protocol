@@ -304,7 +304,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                         key={i}
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs ${
                           i < joinedSeats.length
-                            ? "bg-[#58cc02] border-b-2 border-[#46a302] text-white"
+                            ? "bg-[#58cc02] border-b-2 border-[#58a700] text-white"
                             : "bg-[#f7f7f7] border border-dashed border-[#e5e5e5] text-[#afafaf]"
                         }`}
                       >
