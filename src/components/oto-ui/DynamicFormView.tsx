@@ -34,16 +34,16 @@ export default function DynamicFormView({
         const err = errors.find((e) => e.key === n.key);
         return (
           <div key={n.key} className="space-y-1">
-            <label className="flex items-center gap-1 text-xs text-white/60">
+            <label className="flex items-center gap-1 text-xs text-[#777777]">
               {n.label}
-              {n.required && <span className="text-red-400">*</span>}
+              {n.required && <span className="text-[#ea2b2b]">*</span>}
             </label>
             {n.type === "input" && (
               <input
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
                 placeholder={n.placeholder}
-                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50"
+                className="w-full rounded-lg bg-white border-2 border-[#e5e5e5] px-2.5 py-1.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#1cb0f6]"
               />
             )}
             {n.type === "textarea" && (
@@ -51,14 +51,14 @@ export default function DynamicFormView({
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
                 placeholder={n.placeholder}
-                className="w-full rounded-lg bg-white/[0.06] border border-white/10 px-2.5 py-1.5 text-xs text-white/80 placeholder:text-white/25 focus:outline-none focus:border-brandPurple/50 resize-none"
+                className="w-full rounded-lg bg-white border-2 border-[#e5e5e5] px-2.5 py-1.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#1cb0f6] resize-none"
               />
             )}
             {n.type === "picker" && (
               <select
                 value={String(n.value ?? "")}
                 onChange={(e) => set(n.key, e.target.value)}
-                className="w-full rounded-lg bg-white/[0.08] border border-white/10 px-2 py-1.5 text-xs text-white/80 focus:outline-none focus:border-brandPurple/50 [&>option]:bg-black"
+                className="w-full rounded-lg bg-white border-2 border-[#e5e5e5] px-2 py-1.5 text-xs text-[#4b4b4b] focus:outline-none focus:border-[#1cb0f6]"
               >
                 <option value="" disabled>
                   请选择
@@ -74,10 +74,10 @@ export default function DynamicFormView({
               <button
                 type="button"
                 onClick={() => set(n.key, !n.value)}
-                className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold text-left transition-all ${
+                className={`w-full px-2.5 py-1.5 rounded-lg border-2 text-xs font-bold text-left transition-all ${
                   n.value
-                    ? "bg-brandPurple/20 border-brandPurple/50 text-brandPurple-foreground"
-                    : "bg-white/[0.04] border-white/10 text-white/50"
+                    ? "bg-[#58cc02]/10 border-[#58cc02]/50 text-[#357a00]"
+                    : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
                 }`}
               >
                 {n.value ? "✓ 已开启" : "未开启"}
@@ -98,10 +98,10 @@ export default function DynamicFormView({
                           on ? arr.filter((v) => v !== o.value) : [...arr, o.value]
                         )
                       }
-                      className={`px-2.5 py-1 rounded-full border text-xs transition-all ${
+                      className={`px-2.5 py-1 rounded-full border-2 text-xs transition-all ${
                         on
-                          ? "bg-brandCyan/20 border-brandCyan/50 text-brandCyan"
-                          : "bg-white/[0.04] border-white/10 text-white/50"
+                          ? "bg-[#1cb0f6]/10 border-[#1cb0f6]/50 text-[#0a6ea8]"
+                          : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
                       }`}
                     >
                       {on ? "✓ " : ""}{o.label}
@@ -111,10 +111,10 @@ export default function DynamicFormView({
               </div>
             )}
             {n.hint && !err && (
-              <p className="text-xs text-white/30">{n.hint}</p>
+              <p className="text-xs text-[#afafaf]">{n.hint}</p>
             )}
             {err && (
-              <p className="text-xs text-red-300/90">{err.message}</p>
+              <p className="text-xs text-[#ea2b2b]">{err.message}</p>
             )}
           </div>
         );

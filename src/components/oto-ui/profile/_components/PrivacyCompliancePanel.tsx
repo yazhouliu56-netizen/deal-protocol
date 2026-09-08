@@ -69,11 +69,11 @@ export default function PrivacyCompliancePanel({
               const moneyCheck = ageGate({ age, action: "publish-fee" });
               return (
                 <>
-                  <p className="font-bold text-white/88">
+                  <p className="font-bold text-[#4b4b4b]">
                     {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
                   </p>
                   {age < 18 && (
-                    <p className="mt-1 text-white/68">
+                    <p className="mt-1 text-[#777777]">
                       资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
                       —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
                     </p>
@@ -87,13 +87,13 @@ export default function PrivacyCompliancePanel({
           identity.birthYear ?? new Date().getFullYear(),
           new Date().getFullYear()
         ) < 14 && (
-          <label className="mt-2 flex items-center gap-2 text-xs text-white/68 cursor-pointer">
+          <label className="mt-2 flex items-center gap-2 text-xs text-[#4b4b4b] cursor-pointer">
             <input
               type="checkbox"
               name="guardian-consent"
               checked={identity.guardianConsent ?? false}
               onChange={(e) => onGuardianConsent(e.target.checked)}
-              className="accent-brandPurple"
+              className="accent-[#58cc02]"
             />
             监护人已同意我使用本平台（《未保法》§72）
           </label>

@@ -31,8 +31,8 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         animate={{ opacity: 1, scale: 1 }}
         className="pointer-events-auto bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-6 text-center flex flex-col items-center gap-2"
       >
-        <div className="w-12 h-12 rounded-2xl bg-emerald-400/10 border border-emerald-400/40 flex items-center justify-center">
-          <Check size={22} className="text-emerald-400" />
+        <div className="w-12 h-12 rounded-2xl bg-[#58cc02]/10 border-2 border-[#58cc02]/40 flex items-center justify-center">
+          <Check size={22} className="text-[#58cc02]" />
         </div>
         <h2 className="text-[15px] font-extrabold">感谢评价！</h2>
         <p className="text-xs text-[#777777]">

@@ -168,7 +168,7 @@ export default function SafetyKit() {
               className="mt-3 w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] hover:border-[#58cc02]/50 transition-colors"
             >
               <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
-                <Gavel size={12} className="text-emerald-400" /> 平台治理后台
+                <Gavel size={12} className="text-[#58cc02]" /> 平台治理后台
               </span>
               <span className="text-xs text-[#afafaf]">举报裁定 · 下架 · 封禁</span>
             </button>

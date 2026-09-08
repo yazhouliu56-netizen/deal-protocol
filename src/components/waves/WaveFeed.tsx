@@ -254,7 +254,7 @@ export default function WaveFeed() {
         }}
       />
       {joinError && (
-        <p className="mt-2 px-3 py-2 rounded-2xl bg-red-400/10 border border-red-400/35 text-xs font-bold text-red-300">
+        <p className="mt-2 px-3 py-2 rounded-2xl bg-[#ff4b4b]/[.06] border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
           ⚠ {joinError}
         </p>
       )}

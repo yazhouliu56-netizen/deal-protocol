@@ -154,7 +154,7 @@ export default function NotificationCenter({
       >
         <Bell size={13} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-400 text-[#4b4b4b] text-xs font-extrabold flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] text-white text-xs font-extrabold flex items-center justify-center">
             {unread}
           </span>
         )}

@@ -57,14 +57,14 @@ export default function DataPortCard() {
   };
 
   return (
-    <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-3.5">
+    <div className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3.5">
       <div className="flex items-center gap-2">
-        <Database size={13} className="text-brandPurple" />
-        <span className="text-xs font-extrabold text-white/85">
+        <Database size={13} className="text-[#1cb0f6]" />
+        <span className="text-xs font-extrabold text-[#4b4b4b]">
           本地数据备份
         </span>
       </div>
-      <p className="text-xs text-white/45 mt-1 leading-relaxed">
+      <p className="text-xs text-[#777777] mt-1 leading-relaxed">
         全量导出为 JSON 文件（本地模式数据自主权）· 导入会覆盖当前并重载
       </p>
       <div className="mt-2.5 flex gap-2">
@@ -76,12 +76,15 @@ export default function DataPortCard() {
           >
             <Download size={12} /> 导出备份
           </DuoButton>
-        <button
+        <DuoButton
           onClick={() => fileRef.current?.click()}
-          className="flex-1 py-2 rounded-xl bg-white/5 border border-white/15 text-xs font-bold flex items-center justify-center gap-1.5 text-white/70 hover:bg-white/10 transition-colors"
+          variant="outline"
+          size="sm"
+          sound="click"
+          className="flex-1"
         >
           <Upload size={12} /> 导入恢复
-        </button>
+        </DuoButton>
         <input
           ref={fileRef}
           name="backup-import"
@@ -93,12 +96,12 @@ export default function DataPortCard() {
         />
       </div>
       {msg && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-xs font-bold text-emerald-300 flex items-center gap-1">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-xs font-bold text-[#357a00] flex items-center gap-1">
           <Check size={10} /> {msg}
         </p>
       )}
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-red-400/10 border border-red-400/30 text-xs font-bold text-red-300">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
           ⚠ {error}
         </p>
       )}

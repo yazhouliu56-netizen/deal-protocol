@@ -128,9 +128,9 @@ export default function WaveCard({
               type="button"
               onClick={() => toggleFavorite(wave.id)}
               aria-label={isFav ? `取消关注 ${wave.basics.category}` : `关注 ${wave.basics.category}`}
-              className={`transition-colors ${isFav ? "text-amber-400" : "text-white/30 hover:text-amber-400"}`}
+              className={`transition-colors ${isFav ? "text-[#ff7ab8]" : "text-[#d4d4d4] hover:text-[#ff7ab8]"}`}
             >
-              <Heart size={10} className={isFav ? "fill-amber-400" : ""} />
+              <Heart size={10} className={isFav ? "fill-[#ff7ab8]" : ""} />
             </button>
           </span>
         </div>
@@ -233,7 +233,7 @@ export default function WaveCard({
                 // 候补中：只读展示排队位置（退出候补去「我的接单」）
                 <button
                   disabled
-                  className="flex-1 py-2.5 rounded-2xl bg-amber-400/10 border border-amber-400/40 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 disabled:opacity-90"
+                  className="flex-1 py-2.5 rounded-2xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 text-[#8a6d00] font-bold text-xs flex items-center justify-center gap-1.5 disabled:opacity-90"
                 >
                   <Clock size={12} /> 候补中 · 第 {waitlistPos} 位
                 </button>
@@ -265,7 +265,7 @@ export default function WaveCard({
               ) : full ? (
                 <button
                   onClick={onWaitlist}
-                  className="flex-1 py-2.5 rounded-2xl bg-amber-400/15 border border-amber-400/40 text-amber-300 font-bold text-xs hover:bg-amber-400/25 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-2xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 text-[#8a6d00] font-bold text-xs hover:brightness-105 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
                 >
                   <Clock size={12} /> 进入候补 · 有空位自动补位
                 </button>

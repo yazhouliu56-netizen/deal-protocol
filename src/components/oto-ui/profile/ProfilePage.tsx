@@ -445,7 +445,7 @@ export default function ProfilePage({
                     </span>
                     <span className="text-xs text-[#afafaf] block mt-0.5">[ 预订卡 ]</span>
                   </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border-2 border-[#8b5cf6]/30 text-[#8b5cf6] shrink-0">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#ffc800]/15 border-2 border-[#e5b400]/50 text-[#8a6d00] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
@@ -638,7 +638,7 @@ export default function ProfilePage({
             </button>
             <button
               onClick={() => setStealthOpen(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[#8b5cf6] border-b-4 border-[#7c3aed] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[#1cb0f6] border-b-4 border-[#1899d6] text-white text-xs font-extrabold shadow-sm hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               🛡️ 应急伪装
             </button>
@@ -666,7 +666,7 @@ export default function ProfilePage({
             }}
           />
           {contactsSaved && (
-            <p className="text-xs text-emerald-300/80 mt-2">
+            <p className="text-xs text-[#357a00] mt-2">
               ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}

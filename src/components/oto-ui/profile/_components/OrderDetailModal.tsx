@@ -46,12 +46,12 @@ export default function OrderDetail({
             <p className="text-xs text-[#777777]">{booking.category}</p>
           </div>
           <span
-            className={`text-xs px-2 py-1 rounded-full font-semibold shrink-0 ${
+            className={`text-xs px-2 py-1 rounded-full font-semibold shrink-0 border-2 ${
               booking.status === "upcoming"
-                ? "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple"
+                ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
                 : booking.status === "cancelled"
-                  ? "bg-[#f7f7f7] border border-[#e5e5e5] text-[#777777]"
-                  : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"
+                  ? "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
+                  : "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
             }`}
           >
             {booking.status === "upcoming"
@@ -98,10 +98,10 @@ export default function OrderDetail({
           ].map((step, i) => (
             <div key={step.label} className="flex items-center gap-2.5">
               <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 ${
                   step.done
-                    ? "bg-emerald-400/15 border border-emerald-400/50 text-emerald-400"
-                    : "bg-[#f7f7f7] border border-[#e5e5e5] text-[#777777]"
+                    ? "bg-[#58cc02]/10 border-[#58cc02]/50 text-[#357a00]"
+                    : "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
                 }`}
               >
                 {step.done ? <Check size={11} /> : <span className="text-xs">{i + 1}</span>}
@@ -117,8 +117,8 @@ export default function OrderDetail({
                 <div
                   className={`flex-1 h-px ${
                     [true, true, booking.status === "completed", false][i + 1]
-                      ? "bg-emerald-400/40"
-                      : "bg-[#f7f7f7]"
+                      ? "bg-[#58cc02]/50"
+                      : "bg-[#e5e5e5]"
                   }`}
                 />
               )}
@@ -143,7 +143,7 @@ export default function OrderDetail({
           onClick={() => {
             cancelBooking(booking.id);
           }}
-          className="w-full py-2.5 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-[#4b4b4b] hover:text-red-400 hover:border-red-400/40 transition-colors active:scale-[0.99]"
+          className="w-full py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] text-xs font-bold text-[#4b4b4b] hover:text-[#ea2b2b] hover:border-[#ff4b4b]/50 transition-colors active:scale-[0.99]"
         >
           取消订单
         </button>

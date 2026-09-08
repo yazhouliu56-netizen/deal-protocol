@@ -111,12 +111,12 @@ export default function VoiceBar({
       onPointerUp={() => stopRecording()}
       onPointerLeave={() => stopRecording()}
       onContextMenu={(e) => e.preventDefault()}
-      className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-[filter,transform,background] active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${
+      className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-[filter,transform,background] active:scale-95 disabled:opacity-40 disabled:pointer-events-none border-2 ${
         phase === "recording"
-          ? "bg-red-500/90"
+          ? "bg-[#ff4b4b] border-[#ea2b2b]"
           : phase === "transcribing"
-            ? "bg-brandCyan/30"
-            : "bg-white border border-[#e5e5e5] shadow-sm text-brandCyan hover:text-[#4b4b4b]"
+            ? "bg-[#1cb0f6]/30 border-[#1cb0f6]/50"
+            : "bg-white border-[#e5e5e5] text-[#1cb0f6] hover:text-[#4b4b4b]"
       }`}
     >
       {phase === "recording" ? (

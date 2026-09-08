@@ -92,7 +92,7 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     expect(fieldAppliance!.innerHTML).toContain("空调");
     expect(fieldAppliance!.innerHTML).toContain("洗衣机");
     // 必填星标
-    expect(form!.innerHTML).toContain("text-red-400");
+    expect(form!.innerHTML).toContain("text-[#ea2b2b]");
     // 触控高度 ≥44
     expect(Number((fieldAppliance!.style.minHeight || "48px").replace("px", "")) >= 44 || fieldAppliance!.className.includes("min-h-[48px]")).toBe(true);
     unmount();

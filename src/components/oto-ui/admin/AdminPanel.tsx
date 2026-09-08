@@ -66,7 +66,7 @@ export default function AdminPanel({
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
           <span className="flex items-center gap-2 text-[13px] font-extrabold text-[#4b4b4b]">
-            <Gavel size={15} className="text-emerald-400" /> 平台治理后台
+            <Gavel size={15} className="text-[#58cc02]" /> 平台治理后台
           </span>
           <button
             onClick={onClose}
@@ -95,9 +95,9 @@ export default function AdminPanel({
                 <p className="text-xs text-[#afafaf]">{it.k}</p>
                 <p className="text-[15px] font-extrabold text-[#4b4b4b] mt-0.5 flex items-center gap-1">
                   {it.k.includes("举报") || it.k.includes("拦截") ? (
-                    <Flag size={11} className="text-amber-400" />
+                    <Flag size={11} className="text-[#e5b400]" />
                   ) : (
-                    <TrendingUp size={11} className="text-emerald-400" />
+                    <TrendingUp size={11} className="text-[#58cc02]" />
                   )}
                   {it.v}
                 </p>
@@ -108,7 +108,7 @@ export default function AdminPanel({
           {/* 举报队列 */}
           <div>
             <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <Flag size={11} className="text-amber-400" /> 举报队列（
+              <Flag size={11} className="text-[#e5b400]" /> 举报队列（
               {openQueue.length}）
             </h3>
             {openQueue.length === 0 && (
@@ -126,7 +126,7 @@ export default function AdminPanel({
                     <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
                       {r.targetType} #{r.targetId.slice(-6)}
                       {r.auto && (
-                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-400/15 border border-red-400/40 text-red-300">
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-[#ea2b2b]">
                           ⚡ 敏感词自动
                         </span>
                       )}
@@ -166,7 +166,7 @@ export default function AdminPanel({
                       }
                       placeholder="裁定备注（可选）"
                       aria-label={`裁定备注 ${r.id}`}
-                      className="min-w-[90px] flex-1 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5] px-2 py-1 text-xs outline-none focus:border-emerald-400/50"
+                      className="min-w-[90px] flex-1 rounded-lg bg-white border-2 border-[#e5e5e5] px-2 py-1 text-xs outline-none focus:border-[#58cc02]"
                     />
                     <button
                       onClick={() => act(r.id)}
@@ -184,7 +184,7 @@ export default function AdminPanel({
           {/* 漫游风控监控（P8） */}
           <div>
             <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <ShieldCheck size={11} className="text-brandCyan" /> 漫游安全监控
+              <ShieldCheck size={11} className="text-[#1cb0f6]" /> 漫游安全监控
             </h3>
             {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-[#ff4b4b]" : r.risk === "watch" ? "text-[#ff9600]" : "text-[#58a700]"; return (
             <p className={`text-xs font-bold mb-2 ${cls}`}>
@@ -221,14 +221,14 @@ export default function AdminPanel({
           {/* 数据湖存证（ADR-0014 N14 接线）：哈希链校验 + 最近事件 */}
           <div>
             <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <Database size={11} className="text-brandCyan" /> 数据湖存证（
+              <Database size={11} className="text-[#1cb0f6]" /> 数据湖存证（
               {lake.length} 条 ·{" "}
               <span
                 className={
                   lakeCheck.ok
-                    ? "text-emerald-400"
+                    ? "text-[#58cc02]"
                     : lake.length > 0
-                      ? "text-red-400"
+                      ? "text-[#ea2b2b]"
                       : "text-[#afafaf]"
                 }
               >
@@ -251,7 +251,7 @@ export default function AdminPanel({
                   key={r.id}
                   className="flex items-center gap-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs"
                 >
-                  <span className="font-bold text-brandCyan/90 shrink-0">
+                  <span className="font-bold text-[#0a6ea8] shrink-0">
                     {r.kind}
                   </span>
                   <span className="text-[#afafaf] font-mono truncate">{r.hash}</span>
@@ -266,7 +266,7 @@ export default function AdminPanel({
           {/* 审计记录 */}
           <div>
             <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <ShieldCheck size={11} className="text-emerald-400" /> 裁定记录（审计）
+              <ShieldCheck size={11} className="text-[#58cc02]" /> 裁定记录（审计）
             </h3>
             {resolvedList.length === 0 && (
               <p className="text-xs text-[#afafaf] px-2 py-4 text-center">

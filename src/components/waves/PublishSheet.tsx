@@ -697,7 +697,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           </span>
           <span
             className={`w-9 h-5 rounded-full relative transition-colors shrink-0 ${
-              deposit ? "bg-emerald-400/70" : "bg-white/15"
+              deposit ? "bg-[#58cc02]" : "bg-[#e5e5e5]"
             }`}
           >
             <span
@@ -792,7 +792,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
 
         {error && (
           <>
-            <p className="text-xs text-red-400 font-semibold mb-2">{error}</p>
+            <p className="text-xs text-[#ea2b2b] font-semibold mb-2">{error}</p>
             <div className="mb-2">
               <PublishErrorRecoveryCard reason={mapBlockedToReason(error)} />
             </div>

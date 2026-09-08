@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import DuoButton from "@/components/ui/DuoButton";
 
 type PushState =
   | "unsupported"
@@ -151,16 +152,16 @@ export default function PushEnableBar() {
   }
 
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-3">
+    <div className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-bold text-white/85">
+          <p className="text-xs font-bold text-[#4b4b4b]">
             📡 PWA 真推
             <span
-              className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-extrabold ${
+              className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-extrabold border-2 ${
                 state === "subscribed"
-                  ? "bg-emerald-400/15 text-emerald-300"
-                  : "bg-white/[0.05] text-white/40"
+                  ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+                  : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
               }`}
             >
               {state === "subscribed"
@@ -174,28 +175,21 @@ export default function PushEnableBar() {
                       : "未开启"}
             </span>
           </p>
-          <p className="text-xs text-white/40 mt-0.5">
+          <p className="text-xs text-[#777777] mt-0.5">
             浏览器通知：关闭页面也能收到局信号 · 订阅记录当前端（endpoint）
           </p>
         </div>
         {state === "subscribed" ? (
-          <button
-            onClick={sendTest}
-            className="shrink-0 px-3 py-2 rounded-xl bg-brandCyan/15 border border-brandCyan/40 text-xs font-bold text-brandCyan"
-          >
+          <DuoButton variant="secondary" size="sm" sound="click" onClick={sendTest} className="shrink-0">
             发送测试
-          </button>
+          </DuoButton>
         ) : (
-          <button
-            onClick={enable}
-            disabled={state === "asking"}
-            className="shrink-0 px-3 py-2 rounded-xl bg-brandPurple/20 border border-brandPurple/50 text-xs font-bold text-brandPurple disabled:opacity-40"
-          >
+          <DuoButton variant="primary" size="sm" sound="click" onClick={enable} disabled={state === "asking"} className="shrink-0">
             {state === "denied" ? "重试" : "开启"}
-          </button>
+          </DuoButton>
         )}
       </div>
-      {msg && <p className="text-xs text-white/45 mt-1.5">{msg}</p>}
+      {msg && <p className="text-xs text-[#777777] mt-1.5">{msg}</p>}
     </div>
   );
 }

@@ -85,7 +85,7 @@ interface PublishFormSchemaBridgeProps {
 
 /** 词块胶囊通用样式（圆润高饱和 3D 触感，48px 触控靶区）。 */
 const WORD_PILL_CLASS =
-  "px-3.5 min-h-10 rounded-full text-xs font-bold bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b] border-b-2 active:translate-y-px transition-[transform,color]";
+  "px-3.5 min-h-10 rounded-full text-xs font-bold bg-white border-2 border-[#e5e5e5] text-[#777777] hover:text-[#4b4b4b] active:translate-y-px transition-[transform,color]";
 
 /**
  * P1-5 表单 Schema 渲染桥接：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支。
@@ -110,12 +110,12 @@ export default function PublishFormSchemaBridge({
     <>
       {wordBankVisible && pricingModel && (
         <div
-          className="mb-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3"
+          className="mb-3 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3"
           data-testid="publish-word-bank"
           data-word-bank
         >
-          <div className="text-xs font-bold text-white/85 mb-2 flex items-center gap-1.5">
-            ⚡ 一键词块 <span className="text-white/35 font-normal">· 点选即填，免键盘</span>
+          <div className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
+            ⚡ 一键词块 <span className="text-[#afafaf] font-normal">· 点选即填，免键盘</span>
           </div>
           <div className="space-y-2">
             <div className="flex flex-wrap gap-1.5">
@@ -168,8 +168,8 @@ export default function PublishFormSchemaBridge({
         </div>
       )}
       {fields.length > 0 && (
-        <div className="mb-3 rounded-2xl bg-white/[0.04] border border-white/10 p-3" data-testid="publish-dynamic-form" data-dynamic-form>
-      <div className="text-xs font-bold text-white/85 mb-2 flex items-center gap-1.5">📋 方案专属表单 <span className="text-white/35 font-normal">· {ammoId} · {fields.length} 项</span></div>
+        <div className="mb-3 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3" data-testid="publish-dynamic-form" data-dynamic-form>
+      <div className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">📋 方案专属表单 <span className="text-[#afafaf] font-normal">· {ammoId} · {fields.length} 项</span></div>
       <div className="space-y-2">
         {fields.map((field) => {
           const val = bizParams[field.key];
@@ -177,8 +177,8 @@ export default function PublishFormSchemaBridge({
           if (field.type === "enum" && field.options && field.options.length > 0) {
             return (
               <label key={field.key} className="block">
-                <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
-                  {field.label} {field.required && <span className="text-red-400">*</span>}
+                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
+                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
                 </span>
                 <select
                   value={strVal}
@@ -186,11 +186,11 @@ export default function PublishFormSchemaBridge({
                   aria-label={field.label}
                   name={field.key}
                   data-field={field.key}
-                  className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 outline-none focus:border-brandPurple/50"
+                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
                 >
-                  <option value="" className="bg-[#1a1a2e]">请选择{field.label}</option>
+                  <option value="">请选择{field.label}</option>
                   {field.options.map((opt) => (
-                    <option key={opt} value={opt} className="bg-[#1a1a2e]">{opt}</option>
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
               </label>
@@ -199,8 +199,8 @@ export default function PublishFormSchemaBridge({
           if (field.type === "number") {
             return (
               <label key={field.key} className="block">
-                <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
-                  {field.label} {field.required && <span className="text-red-400">*</span>}
+                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
+                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
                 </span>
                 <input
                   type="number"
@@ -214,16 +214,16 @@ export default function PublishFormSchemaBridge({
                   aria-label={field.label}
                   name={field.key}
                   data-field={field.key}
-                  className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
+                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
                 />
               </label>
             );
           }
           if (field.type === "boolean") {
             return (
-              <label key={field.key} className="flex items-center justify-between min-h-[48px] rounded-2xl bg-white/[0.04] border border-white/10 px-3.5">
-                <span className="text-xs font-semibold text-white/70 flex items-center gap-1">
-                  {field.label} {field.required && <span className="text-red-400">*</span>}
+              <label key={field.key} className="flex items-center justify-between min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5">
+                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1">
+                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
                 </span>
                 <button
                   type="button"
@@ -233,7 +233,7 @@ export default function PublishFormSchemaBridge({
                   name={field.key}
                   data-field={field.key}
                   onClick={() => setBizParams((prev) => ({ ...prev, [field.key]: !Boolean(prev[field.key]) }))}
-                  className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-emerald-400/70" : "bg-white/15"}`}
+                  className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-[#58cc02]" : "bg-[#e5e5e5]"}`}
                 >
                   <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${Boolean(val) ? "left-[22px]" : "left-0.5"}`} />
                 </button>
@@ -242,8 +242,8 @@ export default function PublishFormSchemaBridge({
           }
           return (
             <label key={field.key} className="block">
-              <span className="text-xs font-semibold text-white/70 flex items-center gap-1 mb-1">
-                {field.label} {field.required && <span className="text-red-400">*</span>}
+              <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
+                {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
               </span>
               <input
                 value={strVal}
@@ -252,7 +252,7 @@ export default function PublishFormSchemaBridge({
                 aria-label={field.label}
                 name={field.key}
                 data-field={field.key}
-                className="w-full min-h-[48px] rounded-2xl bg-white/[0.06] border border-white/10 px-3.5 text-xs text-white/90 placeholder:text-white/25 outline-none focus:border-brandPurple/50"
+                className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
               />
             </label>
           );
