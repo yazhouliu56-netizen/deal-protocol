@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito, Geist_Mono } from "next/font/google";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
 import ToastHost from "@/components/oto-ui/ToastHost";
 import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
@@ -7,9 +7,12 @@ import IdentityRehydrator from "@/components/oto-ui/IdentityRehydrator";
 import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/* Duo 圆体：Feather Bold 官方平替（拉丁+数字圆润粗体，中文回退系统粗黑，next/font 自托管离线可用） */
+const duoRounded = Nunito({
+  variable: "--font-duo-rounded",
   subsets: ["latin"],
+  weight: ["700", "800", "900"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -20,7 +23,7 @@ const geistMono = Geist_Mono({
 /**
  * (oto) 路由组嵌套 Layout（D-09/D-10 裁决）：
  * - 根 layout 继续承载全局 Theme/Session/Provider（src/app/layout.tsx 不动）；
- * - 本层仅承载 oto 局部容器：Geist 字体变量、ToastHost、PwaServiceWorker，
+ * - 本层仅承载 oto 局部容器：Duo 圆体变量、ToastHost、PwaServiceWorker，
  *   并挂 .oto-app 作用域类（隔离 CSS 变量与 body 级样式，见 globals.css）。
  */
 export const metadata: Metadata = {
@@ -56,7 +59,7 @@ export default function OtoLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className={`oto-app ${geistSans.variable} ${geistMono.variable} h-full`}>
+    <div className={`oto-app ${duoRounded.variable} ${geistMono.variable} h-full`}>
       {children}
       {/* W6 总装：全局弱网离线指示器（navigator.onLine 桥，断网琥珀条 / 恢复绿 Toast） */}
       <OnlineStatusBridge />
