@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import DuoButton from "@/components/ui/DuoButton";
+import { CapybaraBadge } from "@/components/oto-ui/MascotStates";
 
 /**
  * HeroAiDemandCabin —— 一体化 AI 需求舱（设计图极简形态）。
@@ -23,6 +24,8 @@ interface HeroAiDemandCabinProps {
   onMic: () => void;
   /** 有在途单时水豚睁眼（状态变脸，HomePage 同源投影）。 */
   hasMission?: boolean;
+  /** 起草/发布面板打开时水豚戴侦探帽（searching 态，HomePage 同源投影）。 */
+  composing?: boolean;
 }
 
 /** AI 炫彩星芒图标（inline SVG 渐变，aria-hidden，零外部切图）。 */
@@ -78,95 +81,9 @@ function playLaunchChime() {
   }
 }
 
-/**
- * 卡皮巴拉徽章（用户供图常态：public/mascots/capybara.png，multiply 融入舱底；
- * awake/图裂时回退内联 SVG：浅棕圆身 + 紧闭笑眼 + 上扬嘴角 + 短尾巴 + 头顶小柚子）。
- * 状态变脸：awake=true 睁眼（听你说/有在途单），false 笑眼供图。
- * 真按钮：传 onPress 即渲染为可聚焦 <button>（问候处接 submit，同[ 出发! ]语义，
- * 空输入走“全类目需求”兜底）；庆祝遮罩内不传，保持纯装饰。
- */
-function CapybaraBadge({ awake, large = false, onPress }: { awake: boolean; large?: boolean; onPress?: () => void }) {
-  const cls = `mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`;
-  const [imgOk, setImgOk] = useState(true);
-  // 贴图：用户供图常态展示（白底 multiply 融入舱底）；awake（聆听/在途）切回 SVG 睁眼态；
-  // 图裂 onError 回退 SVG（宪法 #10 降级）。
-  const showArt = !awake && imgOk;
-  const body = (
-    <>
-      {/* 暖黄色环境光晕 */}
-      <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
-      {showArt ? (
-        <img
-          src="/mascots/capybara.png"
-          alt=""
-          aria-hidden="true"
-          width={large ? 150 : 88}
-          height={large ? 150 : 88}
-          draggable={false}
-          onError={() => setImgOk(false)}
-          className="relative h-full w-full object-contain mix-blend-multiply select-none"
-        />
-      ) : (
-      <svg width={large ? 150 : 88} height={large ? 150 : 88} viewBox="0 0 60 60" fill="none" aria-hidden="true" className="relative drop-shadow-[0_10px_18px_rgba(217,119,6,.35)]">
-        {/* 短粗小尾巴 */}
-        <ellipse cx="48" cy="44" rx="4" ry="5" fill="#a9742c" />
-        {/* 圆滚身体（浅棕） */}
-        <ellipse cx="29" cy="36" rx="20" ry="17" fill="#c8956c" />
-        <ellipse cx="29" cy="41" rx="13" ry="10" fill="#dab88f" />
-        {/* 小圆耳 */}
-        <circle cx="15.5" cy="15" r="4.2" fill="#a9742c" />
-        <circle cx="42.5" cy="15" r="4.2" fill="#a9742c" />
-        <circle cx="15.5" cy="15" r="1.8" fill="#7c4a21" />
-        <circle cx="42.5" cy="15" r="1.8" fill="#7c4a21" />
-        {/* 头顶小柚子 */}
-        <circle cx="29" cy="8.5" r="3.6" fill="#f59e0b" />
-        <ellipse cx="27.8" cy="7.4" rx="1.1" ry="1.5" fill="#fcd34d" opacity="0.9" />
-        <path d="M29 5q0.4-1.6 1.8-2" stroke="#15803d" strokeWidth="1.2" strokeLinecap="round" />
-        {/* 眼睛：awake 睁眼聆听（会眨眼），平常紧闭笑眼 */}
-        {awake ? (
-          <g className="mascot-blink">
-            <ellipse cx="20.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
-            <circle cx="21.5" cy="26.8" r="1.1" fill="#fff" />
-            <ellipse cx="37.5" cy="28" rx="3" ry="3.6" fill="#4a2d0c" />
-            <circle cx="38.5" cy="26.8" r="1.1" fill="#fff" />
-          </g>
-        ) : (
-          <>
-            <path d="M17.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
-            <path d="M34.5 28q3 3.2 6 0" stroke="#4a2d0c" strokeWidth="2" strokeLinecap="round" />
-          </>
-        )}
-        {/* 浅色吻部 + 小鼻头 */}
-        <ellipse cx="29" cy="36.5" rx="9" ry="7" fill="#ecd3ac" />
-        <ellipse cx="29" cy="34" rx="3.2" ry="2.4" fill="#4a2d0c" />
-        <ellipse cx="28" cy="33.2" rx="0.9" ry="0.6" fill="#d6d3d1" opacity="0.9" />
-        {/* 上扬微笑嘴 */}
-        <path d="M29 36.4v1.4M29 37.8q-2.8 2.4-5.6 1M29 37.8q2.8 2.4 5.6 1" stroke="#4a2d0c" strokeWidth="1.4" strokeLinecap="round" />
-        {/* 腮红 */}
-        <ellipse cx="18.5" cy="34" rx="2.4" ry="1.6" fill="#f0a08a" opacity="0.7" />
-        <ellipse cx="39.5" cy="34" rx="2.4" ry="1.6" fill="#f0a08a" opacity="0.7" />
-        {/* 小前爪 */}
-        <ellipse cx="19" cy="50" rx="4" ry="2.8" fill="#a9742c" />
-        <ellipse cx="39" cy="50" rx="4" ry="2.8" fill="#a9742c" />
-      </svg>
-      )}
-    </>
-  );
-  if (onPress) {
-    return (
-      <button type="button" onClick={onPress} aria-label="水豚出发：一键发射需求" data-testid="mascot-launch" className={cls}>
-        {body}
-      </button>
-    );
-  }
-  return (
-    <span aria-hidden="true" className={cls}>
-      {body}
-    </span>
-  );
-}
+/* 吉祥物状态表收归 @/components/oto-ui/MascotStates（水豚 5 态：idle/listening/searching/success/sleepy）。 */
 
-function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false }: HeroAiDemandCabinProps) {
+function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false, composing = false }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
   const [focused, setFocused] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
@@ -176,6 +93,8 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
     if (celebTimer.current !== null) window.clearTimeout(celebTimer.current);
   }, []);
   const awake = focused || hasMission;
+  // 水豚 5 态映射：起草中侦探帽 > 聆听睁眼 > 待命笑眼（状态表见 MascotStates）
+  const mood = composing ? "searching" : awake ? "listening" : "idle";
   const submit = () => {
     const t = value.trim();
     // C 位时刻：水豚跳出来报“发射成功”（结构性偏离已特批；z-70 浮于 Sheet 之上，
@@ -204,6 +123,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
   };
   return (
     <div
+      id="ai-cabin"
       className="glass-cabin relative overflow-hidden rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 pt-5"
       data-testid="ai-demand-cabin"
       data-layer="ai-cabin"
@@ -211,7 +131,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
       <div className="relative">
         {/* 问候行：水豚半身 + 气泡（话语从水豚嘴里说出：左尾气泡） */}
         <div className="flex items-center gap-2.5">
-          <CapybaraBadge awake={awake} onPress={submit} />
+          <CapybaraBadge mood={mood} onPress={submit} />
           <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[#f7f7f7] border-l-2 border-b-2 border-[#e5e5e5]" />
             <p className="text-[15px] font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
@@ -282,7 +202,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
               transition={{ type: "spring", stiffness: 320, damping: 17 }}
               className="relative"
             >
-              <CapybaraBadge awake large />
+              <CapybaraBadge mood="success" large />
             </motion.div>
             <motion.div
               initial={{ scale: 0.7, y: 16 }}

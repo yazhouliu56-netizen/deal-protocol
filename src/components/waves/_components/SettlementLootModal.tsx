@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import DuoButton from "@/components/ui/DuoButton";
+import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 import { playDuoSound } from "@/lib/duo-audio";
 import { fireDuoConfetti } from "@/lib/duo-confetti";
 
@@ -81,13 +82,12 @@ export default function SettlementLootModal({ waveId, open, onClose }: Settlemen
       <button
         aria-label="关闭礼遇弹层"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40"
         data-testid="loot-backdrop"
       />
-      <div className="relative w-full max-w-[360px] bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-xl p-5 flex flex-col items-center gap-3 animate-[duo-breathe_1.2s_ease]">
-        <div className="w-14 h-14 rounded-2xl bg-[#ffc800] border-b-4 border-[#e5b400] flex items-center justify-center text-2xl shadow-sm">
-          🎁
-        </div>
+      <div className="bubble-pop relative w-full max-w-[360px] bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-5 flex flex-col items-center gap-3">
+        {/* 平头哥报喜：举爪欢呼（完工情绪闭环，SVG 主） */}
+        <SleepyBeast mood="cheering" interactive={false} />
         {reward.isCritical && (
           <span className="px-2 py-0.5 rounded-full bg-[#ffc800] border-2 border-[#e5b400] text-xs font-extrabold text-[#4b4b4b]">
             ✨ 暴击礼遇

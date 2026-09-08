@@ -115,13 +115,6 @@ export default function HomePage() {
   }, [activeWave, claims, fulfilment]);
   return (
     <div className="oto-pastel-bg pointer-events-auto overflow-x-hidden relative -mx-4 -mt-6 px-4 pt-6 pb-4">
-      {/* 氛围几何装饰层（图纸四角斑块：青绿/天蓝/暖橙/明黄，缓动漂浮，pointer-events-none 禁挡触控） */}
-      <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0 overflow-hidden">
-        <span className="drift absolute -top-6 -left-8 h-28 w-28 rounded-3xl bg-[#58cc02]/15 rotate-12 shadow-sm" />
-        <span className="drift drift-d1 absolute top-24 -right-10 h-32 w-32 rounded-full bg-[#1cb0f6]/10 -rotate-12" />
-        <span className="drift drift-d2 absolute top-[46%] -left-10 h-24 w-24 rounded-3xl bg-[#ff9600]/10 rotate-12" />
-        <span className="drift drift-d1 absolute bottom-24 right-6 h-20 w-20 rounded-2xl bg-[#ffd028]/15 -rotate-12" />
-      </div>
       <div className="relative">
         <HomeTopBar
           activeWave={activeWave}
@@ -135,6 +128,7 @@ export default function HomePage() {
             value={aiInput}
             onChange={setAiInput}
             hasMission={activeWave !== null}
+            composing={draft !== null || publishOpen}
             onLaunch={handleLaunch}
             onMic={handleMic}
           />

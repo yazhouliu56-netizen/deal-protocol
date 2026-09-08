@@ -16,6 +16,16 @@ import RadarInbox from "./RadarInbox";
 import FavoritesSheet from "./FavoritesSheet";
 import { SandboxBadge } from "./SandboxBadge";
 import { toast } from "@/base/platform/toast";
+import DuoButton from "@/components/ui/DuoButton";
+import { SleepyBeast } from "@/components/oto-ui/MascotStates";
+
+/** 空态 CTA：滑回顶部发射舱并聚焦输入（平头哥把人领回水豚身边）。 */
+function goCabin() {
+  document.getElementById("ai-cabin")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.setTimeout(() => {
+    document.querySelector<HTMLElement>('#ai-cabin [role="searchbox"]')?.focus({ preventScroll: true });
+  }, 450);
+}
 
 /**
  * 雷达 Feed — the flipped-primary home.
@@ -149,17 +159,17 @@ export default function WaveFeed() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-6 text-center"
+            className="relative overflow-hidden bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-6 text-center flex flex-col items-center gap-2"
             data-testid="wave-empty-state"
           >
-            {/* 雷达微光扩散（纯 CSS animate-pulse，零重库，防雷：禁挡触控） */}
-            <div aria-hidden="true" className="pointer-events-none select-none absolute inset-0 flex items-center justify-center">
-              <span className="absolute h-24 w-24 rounded-full bg-[#58cc02]/10 animate-pulse" />
-              <span className="absolute h-40 w-40 rounded-full bg-[#58cc02]/5 animate-pulse" />
-            </div>
-            <p className="relative text-xs font-bold text-[#0a6ea8]">附近的雷达</p>
+            {/* 平头哥空态：耷眼守雷达（SVG 主，PNG 彩蛋仅酣睡态） */}
+            <SleepyBeast mood="empty" interactive={false} />
+            <p className="relative text-xs font-bold text-[#0a6ea8]">附近的雷达 · 平头哥守着呢</p>
             <p className="relative text-sm font-extrabold text-[#4b4b4b] mt-1">你附近的OTO社区</p>
             <p className="relative text-xs text-[#767676] mt-1 leading-relaxed">这里暂时静悄悄的，快发出你的第一个需求，点亮OTO社区吧！</p>
+            <DuoButton variant="primary" size="sm" sound="click" onClick={goCabin} data-testid="empty-launch" className="mt-1">
+              去发第一单
+            </DuoButton>
           </motion.div>
         )}
         {feed.map((f) => (

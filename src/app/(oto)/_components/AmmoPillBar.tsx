@@ -1,8 +1,9 @@
 "use client";
-import { memo, useState } from "react";
+import { memo } from "react";
 import { motion } from "framer-motion";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import { inspirationSetFor } from "./InspirationChips";
+import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 
 /** 弹药胶囊描述符（注册表 listAmmoPillDescriptors 单行结构，类型同源零漂移）。 */
 export interface AmmoPillDescriptor {
@@ -64,74 +65,7 @@ export function pillTagFor(theme: ScenarioTheme): string {
   }
 }
 
-/** 熟睡平头哥（用户供图常态：public/mascots/sleepy-beast.png，直贴白瓷片；
- *  awake/图裂时回退内联 SVG：蜷睡圆球 + 白斗篷覆背 + 暖橙底托）。
- *  状态变脸：awake=true（附近有活水）SVG 睁眼醒来收起 zzz，false 供图酣睡。
- *  真按钮：点击平滑滑到 #wave-feed（附近的需求），键盘可达。 */
-function SleepyBeast({ awake = false }: { awake?: boolean }) {
-  const [imgOk, setImgOk] = useState(true);
-  const goFeed = () => {
-    document.getElementById("wave-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-  // 供图本身就是酣睡态：awake 睁眼语义只能由 SVG 表达，图裂亦回退 SVG。
-  const showArt = !awake && imgOk;
-  return (
-    <button
-      type="button"
-      onClick={goFeed}
-      aria-label="平头哥：看看大家在忙什么，去附近的需求"
-      data-testid="beast-feed"
-      className="mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform"
-    >
-      {showArt ? (
-        <img
-          src="/mascots/sleepy-beast.png"
-          alt=""
-          aria-hidden="true"
-          width={72}
-          height={56}
-          draggable={false}
-          onError={() => setImgOk(false)}
-          className="h-[72px] w-[72px] object-contain select-none"
-        />
-      ) : (
-      <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="drop-shadow-[0_10px_16px_rgba(68,64,60,.35)]">
-        {/* 暖橙底托 */}
-        <circle cx="20" cy="20" r="17" fill="#ffedd5" />
-        {/* 蜷睡身（深灰圆球） */}
-        <circle cx="18.5" cy="22.5" r="11.5" fill="#44403c" />
-        {/* 白斗篷覆背（蜜獾标志） */}
-        <ellipse cx="18.5" cy="14.5" rx="8.5" ry="5" fill="#f5f5f4" />
-        {/* 蜷尾（白尖） */}
-        <path d="M28 27q5.5 -1 4.5 -7" stroke="#44403c" strokeWidth="4.5" strokeLinecap="round" />
-        <circle cx="32.6" cy="19.4" r="2.4" fill="#f5f5f4" />
-        {/* 小圆耳 */}
-        <circle cx="8.6" cy="17.5" r="2.6" fill="#292524" />
-        <circle cx="8.6" cy="17.5" r="1" fill="#78716c" />
-        {/* 紧闭笑眼（醒来时睁眼） + 小鼻头 + 微笑 */}
-        {awake ? (
-          <g className="mascot-blink">
-            <circle cx="14.5" cy="23" r="1.9" fill="#f5f5f4" />
-            <circle cx="14.5" cy="23" r="0.8" fill="#1c1917" />
-          </g>
-        ) : (
-          <path d="M12.5 23.5q2 2 4 0" stroke="#f5f5f4" strokeWidth="1.5" strokeLinecap="round" />
-        )}
-        <ellipse cx="20.5" cy="26.5" rx="1.9" ry="1.4" fill="#1c1917" />
-        <path d="M17.5 29.5q3 2.4 6 0" stroke="#f5f5f4" strokeWidth="1.3" strokeLinecap="round" />
-        {/* zzz：有活水醒来即收起 */}
-        {!awake && (
-          <>
-            <text x="29" y="11" fontSize="7" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
-            <text x="33" y="6" fontSize="9" fontWeight="bold" fill="#c2410c" opacity="0.65">z</text>
-            <text x="26" y="6" fontSize="6" fontWeight="bold" fill="#c2410c" opacity="0.45">z</text>
-          </>
-        )}
-      </svg>
-      )}
-    </button>
-  );
-}
+/* 平头哥状态表收归 @/components/oto-ui/MascotStates（5 态：sleeping/awake/cheering/empty/onroute）。 */
 
 /** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。 */
 const TILE_STYLE: Record<string, { bg: string; border: string; text: string; price: string }> = {
