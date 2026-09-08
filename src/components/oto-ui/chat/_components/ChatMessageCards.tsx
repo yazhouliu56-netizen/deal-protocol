@@ -31,7 +31,7 @@ export function GenCardView({
             <button
               key={slot.id}
               onClick={() => onCardSelect(slot.id)}
-              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border border-[#e5e5e5] hover:border-brandPurple/60 hover:bg-brandPurple/15 active:scale-95 transition-[border,background,transform]"
+              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border-2 border-[#e5e5e5] hover:border-[#58cc02]/50 hover:bg-[#58cc02]/[.06] active:scale-95 transition-[border,background,transform]"
             >
               <span className="text-[12px] font-bold text-[#4b4b4b]">
                 {slot.label}
@@ -40,9 +40,9 @@ export function GenCardView({
                 <span
                   className={`text-xs font-bold ${
                     slot.density >= 75
-                      ? "text-orange-400"
+                      ? "text-[#cc7a00]"
                       : slot.density <= 30
-                        ? "text-emerald-400"
+                        ? "text-[#357a00]"
                         : "text-[#777777]"
                   }`}
                 >
@@ -90,17 +90,17 @@ export function GenCardView({
           ))}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[13px] font-extrabold bg-clip-text text-transparent bg-linear-to-r from-brandCyan to-brandPurple">
+          <span className="text-[13px] font-extrabold text-[#357a00] font-tabular">
             {card.price}
           </span>
           {booked ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30">
+              <span className="flex items-center gap-1 text-xs font-bold text-[#357a00] px-3 py-1.5 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40">
                 <Check size={12} /> 已预订
               </span>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
               {card.lines.some((l) => l.k === "方案单号") ? (
-                <span className="text-xs font-bold text-brandCyan px-3 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/40">
+                <span className="text-xs font-bold text-[#0a6ea8] px-3 py-1.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40">
                   已转正式订单 ✅
                 </span>
               ) : (
@@ -153,7 +153,7 @@ function ProviderRow({
     <div className="rounded-xl border border-[#e5e5e5] bg-[#f7f7f7] overflow-hidden">
       <button
         onClick={onSelect}
-        className="w-full flex items-center gap-2.5 p-2 hover:border-brandPurple/50 hover:bg-brandPurple/10 transition-colors text-left active:scale-[0.98]"
+        className="w-full flex items-center gap-2.5 p-2 hover:border-[#58cc02]/50 hover:bg-[#58cc02]/[.06] transition-colors text-left active:scale-[0.98]"
       >
         <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-base shrink-0">
           {provider.emoji}
@@ -164,20 +164,20 @@ function ProviderRow({
               {provider.name}
             </span>
             {provider.tag && (
-              <span className="text-xs px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">
+              <span className="text-xs px-1.5 py-px rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-[#0a6ea8] font-semibold shrink-0">
                 {provider.tag}
               </span>
             )}
             {match && (
               <span
-                className={`text-xs px-1.5 py-px rounded-full font-bold shrink-0 ${
+                className={`text-xs px-1.5 py-px rounded-full font-bold shrink-0 border-2 ${
                   match.badge === "极高匹配"
-                    ? "bg-emerald-400/10 border border-emerald-400/40 text-emerald-400"
+                    ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
                     : match.badge === "高匹配"
-                      ? "bg-brandCyan/10 border border-brandCyan/40 text-brandCyan"
+                      ? "bg-[#1cb0f6]/10 border-[#1cb0f6]/40 text-[#0a6ea8]"
                       : match.badge === "中等"
-                        ? "bg-yellow-400/10 border border-yellow-400/40 text-yellow-400"
-                        : "bg-[#f7f7f7] border border-[#e5e5e5] text-[#afafaf]"
+                        ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
+                        : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
                 }`}
               >
                 {match.badge} {match.score}%
@@ -185,8 +185,8 @@ function ProviderRow({
             )}
           </div>
           <div className="flex items-center gap-1 text-xs text-[#afafaf]">
-            <span className="flex items-center gap-0.5 text-yellow-400">
-              <Star size={9} className="fill-yellow-400" />
+            <span className="flex items-center gap-0.5 text-[#e5b400]">
+              <Star size={9} className="fill-[#ffc800]" />
               {provider.rating}
             </span>
             <span>·</span>
@@ -196,7 +196,7 @@ function ProviderRow({
             <span className="truncate">· {provider.meta}</span>
           </div>
           {provider.availability === "本时段不可约" && (
-            <p className="text-xs text-orange-400/90 mt-0.5">
+            <p className="text-xs text-[#cc7a00] mt-0.5">
               该时段已约满，建议改选空闲时段 ⏳
             </p>
           )}
@@ -206,7 +206,7 @@ function ProviderRow({
             </p>
           )}
         </div>
-        <span className="text-xs font-bold text-brandCyan shrink-0">
+        <span className="text-xs font-bold text-[#0a6ea8] shrink-0">
           {provider.price}
         </span>
       </button>
@@ -234,7 +234,7 @@ function ProviderRow({
                 </span>
                 <div className="flex-1 h-1.5 rounded-full bg-[#f7f7f7] overflow-hidden">
                   <div
-                    className={`h-full rounded-full bg-linear-to-r from-brandCyan to-brandPurple ${
+                    className={`h-full rounded-full bg-[#58cc02] ${
                       pct === 0 ? "w-0" : ""
                     }`}
                     style={{ width: `${pct}%` }}

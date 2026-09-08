@@ -473,7 +473,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
           {!slim && (
             <h2 className="text-[13px] font-extrabold tracking-tight flex items-center gap-1.5">
               <span className="w-7 h-7 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center">
-                <Bot size={13} className="text-brandPurple" />
+                <Bot size={13} className="text-[#1cb0f6]" />
               </span>
               AI 撮合助手
             </h2>
@@ -483,7 +483,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               onClick={() => setTtsEnabled((v) => !v)}
               aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
               className={`text-xs px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors flex items-center gap-1 ${
-                ttsEnabled ? "text-brandCyan" : "text-[#afafaf]"
+                ttsEnabled ? "text-[#0a6ea8]" : "text-[#afafaf]"
               }`}
             >
               {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -503,7 +503,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
       ) : (
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-9 h-9 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center">
-            <Bot size={17} className="text-brandPurple" />
+            <Bot size={17} className="text-[#1cb0f6]" />
           </div>
           <div className="flex-1">
             <h2 className="text-[15px] font-extrabold tracking-tight">
@@ -517,7 +517,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             onClick={() => setTtsEnabled((v) => !v)}
             aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
             className={`text-xs px-2 py-1 rounded-full bg-white border border-[#e5e5e5] shadow-sm transition-colors flex items-center gap-1 ${
-              ttsEnabled ? "text-brandCyan" : "text-[#afafaf]"
+              ttsEnabled ? "text-[#0a6ea8]" : "text-[#afafaf]"
             }`}
           >
             {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -549,7 +549,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               }}
               aria-label={`${b.emoji} ${b.label} 拟物发单`}
               data-ammo={b.ammoKey}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl bg-white border border-[#e5e5e5] shadow-sm hover:border-brandPurple/50 active:scale-95 transition-[border,transform]"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl bg-white border-2 border-[#e5e5e5] hover:border-[#58cc02]/50 active:scale-95 transition-[border,transform]"
             >
               <span className="text-[15px]">{b.emoji}</span>
               <span className="text-xs font-bold text-[#4b4b4b] truncate">
@@ -585,9 +585,9 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={s}
               onClick={() => handleSend(s)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-[#e5e5e5] shadow-sm text-xs text-[#777777] hover:text-[#4b4b4b] hover:border-brandPurple/50 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border-2 border-[#e5e5e5] text-xs text-[#777777] hover:text-[#4b4b4b] hover:border-[#58cc02]/50 transition-colors"
             >
-              <Sparkles size={11} className="text-brandPurple" />
+              <Sparkles size={11} className="text-[#1cb0f6]" />
               {s}
             </button>
           ))}
@@ -601,7 +601,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={h.candidate.id}
               onClick={() => setScreen("home")}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-brandCyan/10 border border-brandCyan/30 text-xs text-brandCyan hover:bg-brandCyan/20 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 text-xs text-[#0a6ea8] hover:brightness-105 transition-[filter]"
             >
               <Sparkles size={9} />
               {h.candidate.label} · {h.candidate.text.split(" ")[1]}

@@ -33,7 +33,7 @@ export function ChatBubble({
       <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
         {!isUser && (
           <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center shrink-0">
-            <Bot size={13} className="text-brandPurple" />
+            <Bot size={13} className="text-[#1cb0f6]" />
           </div>
         )}
         {message.content && (
@@ -53,7 +53,7 @@ export function ChatBubble({
         <button
           onClick={() => void speak(message.content ?? "")}
           aria-label="重播语音"
-          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[#e5e5e5] shadow-sm text-xs text-brandCyan hover:text-[#4b4b4b] flex items-center gap-1 transition-colors"
+          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[#e5e5e5] shadow-sm text-xs text-[#0a6ea8] hover:text-[#4b4b4b] flex items-center gap-1 transition-colors"
         >
           <Volume2 size={9} /> 重播
         </button>
@@ -77,13 +77,13 @@ export function ThinkingDot() {
   return (
     <div className="flex justify-start">
       <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center shrink-0">
-        <Bot size={13} className="text-brandPurple" />
+        <Bot size={13} className="text-[#1cb0f6]" />
       </div>
       <div className="px-4 py-3 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm flex items-center gap-1">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-1.5 h-1.5 rounded-full bg-brandPurple animate-bounce"
+            className="w-1.5 h-1.5 rounded-full bg-[#1cb0f6] animate-bounce"
             style={{ animationDelay: `${i * 0.15}s` }}
           />
         ))}

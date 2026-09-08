@@ -67,13 +67,13 @@ export default function ChatInputBar({
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-brandPurple/30 border border-brandPurple/50 text-xs font-bold text-white/90 flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+          className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
         >
-          <Mic size={10} className="text-brandCyan" />
+          <Mic size={10} className="text-[#1cb0f6]" />
           按住说话 · 自动发布/查局
           <button
             onClick={markVoiceSeen}
-            className="ml-1 px-2 py-1 min-h-8 pointer-events-auto text-white/50 hover:text-white underline underline-offset-2"
+            className="ml-1 px-2 py-1 min-h-8 pointer-events-auto text-[#afafaf] hover:text-[#4b4b4b] underline underline-offset-2"
           >
             知道了
           </button>
