@@ -701,7 +701,7 @@ export default function ProfilePage({
 
       {/* W6 总装：应急伪装计算器覆盖层（5.8.3：真实运算 + 911=/110= 静默报警 + 双击/长按脱身） */}
       {stealthOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80">
           <div className="relative">
             <button
               onClick={() => setStealthOpen(false)}

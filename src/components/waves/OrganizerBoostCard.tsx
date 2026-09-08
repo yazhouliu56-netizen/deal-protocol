@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Rocket, Check } from "lucide-react";
+import DuoButton from "@/components/ui/DuoButton";
 import { useOrganizerSubStore } from "@/store/useOrganizerSubStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import {
@@ -32,73 +33,75 @@ export default function OrganizerBoostCard() {
   };
 
   return (
-    <div className="mt-3 rounded-2xl border border-brandPurple/25 bg-gradient-to-r from-brandPurple/10 via-[#151230]/80 to-brandPurple/10 p-3">
+    <div className="mt-3 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3">
       <div className="flex items-center gap-2.5">
         <div
           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
             active
-              ? "bg-emerald-400/15 border border-emerald-400/30"
+              ? "bg-[#58cc02]/10 border-2 border-[#58cc02]/40"
               : "bg-[#58cc02] border-b-2 border-[#58a700] text-white"
           }`}
         >
           {active ? (
-            <Check size={14} className="text-emerald-300" />
+            <Check size={14} className="text-[#357a00]" />
           ) : (
             <Rocket size={14} />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-extrabold text-white/90">
+          <p className="text-xs font-extrabold text-[#4b4b4b]">
             {active ? "组局加速已生效" : "组局加速 · ¥9.9/月"}
           </p>
-          <p className="text-xs text-white/45 truncate">
+          <p className="text-xs text-[#777777] truncate">
             {active
               ? `到期 ${new Date(sub.expiresAt!).toLocaleDateString()}（剩 ${daysLeft} 天）`
               : "你的局在雷达区优先曝光 · 到期前提醒"}
           </p>
         </div>
         {!confirming && (
-          <button
-            type="button"
+          <DuoButton
+            variant={active ? "outline" : "primary"}
+            size="sm"
+            sound="click"
             onClick={() => setConfirming(true)}
-            className={`shrink-0 px-3 py-2 min-h-10 rounded-full text-xs font-bold transition-colors ${
-              active
-                ? "bg-white/5 border border-white/15 text-white/60"
-                : "bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-extrabold hover:bg-brandPurple/30"
-            }`}
+            className="shrink-0"
           >
             {active ? "续费" : "开通"}
-          </button>
+          </DuoButton>
         )}
       </div>
       {confirming && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="mt-2.5 pt-2.5 border-t border-white/10"
+          className="mt-2.5 pt-2.5 border-t-2 border-[#e5e5e5]"
         >
-          <p className="text-xs text-white/55">
+          <p className="text-xs text-[#777777]">
             模拟收银台 · 确认支付{" "}
-            <span className="text-white font-extrabold">
+            <span className="text-[#4b4b4b] font-extrabold">
               ¥{ORGANIZER_PLAN.priceYuan}
             </span>{" "}
             {active ? "续费 30 天" : "开通 30 天"}
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <button
-              type="button"
+            <DuoButton
+              variant="primary"
+              size="sm"
+              sound="correct"
               onClick={handleConfirm}
-              className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold hover:bg-emerald-400/25 transition-colors"
+              className="flex-1"
             >
               确认支付
-            </button>
-            <button
-              type="button"
+            </DuoButton>
+            <DuoButton
+              variant="outline"
+              size="sm"
+              sound="click"
               onClick={() => setConfirming(false)}
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/15 text-white/60 text-xs font-bold hover:bg-white/10 transition-colors"
+              className="shrink-0"
             >
               取消
-            </button>
+            </DuoButton>
           </div>
         </motion.div>
       )}

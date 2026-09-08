@@ -170,24 +170,24 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       {/* Microkernel 4.4 批次 2 · 服务者连胜火焰（诚实派生：连胜单数 = 真实已完成单数，零臆造） */}
       <div
         data-testid="streak-flame-card"
-        className="duo-3d-card rounded-3xl border-2 border-b-[6px] border-[#ffb020]/30 bg-gradient-to-br from-[#ff9500] via-[#ff6b00] to-[#ff4d00] p-4 shadow-sm text-white"
+        className="duo-3d-card rounded-3xl border-2 border-b-[6px] border-[#e5e5e5] bg-white p-4"
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-xl leading-none" aria-hidden="true">🔥</span>
-            <span className="text-[14px] font-extrabold tabular-nums">
+            <span className="text-[14px] font-extrabold tabular-nums text-[#4b4b4b]">
               连胜 {completed.length} 单
             </span>
-            <span className="text-xs font-bold text-white/85 shrink-0">· 守约率 100%</span>
+            <span className="text-xs font-bold text-[#9a4d00] shrink-0">· 守约率 100%</span>
           </div>
           <span
             data-testid="streak-freeze-badge"
-            className="text-xs font-bold px-2 py-1 rounded-full bg-white/20 border-2 border-white/30 shrink-0 whitespace-nowrap"
+            className="text-xs font-bold px-2 py-1 rounded-full bg-[#ff9600]/10 border-2 border-[#ff9600]/40 text-[#9a4d00] shrink-0 whitespace-nowrap"
           >
             ❄️ 连胜冻结卡 × 1 保护中
           </span>
         </div>
-        <p className="text-xs font-bold text-white/90 mt-1.5">
+        <p className="text-xs font-bold text-[#777777] mt-1.5">
           解锁周末优先派单权 · 1.2x 流量加权
         </p>
       </div>

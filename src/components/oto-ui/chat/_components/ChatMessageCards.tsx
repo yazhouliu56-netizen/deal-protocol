@@ -268,10 +268,10 @@ function CardShell({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className={`ml-9 mt-1 max-w-[88%] px-3.5 py-3 rounded-2xl border backdrop-blur-xl ${
+      className={`ml-9 mt-1 max-w-[88%] px-3.5 py-3 rounded-2xl border-2 ${
         accent
-          ? "bg-[rgba(16,220,140,0.08)] border-emerald-400/30 shadow-[0_0_24px_-8px_rgba(16,220,140,0.4)]"
-          : "bg-white border border-[#e5e5e5] shadow-sm"
+          ? "bg-[#d7ffb8] border-[#58cc02]/40"
+          : "bg-white border-[#e5e5e5]"
       }`}
     >
       <div className="flex items-center gap-2 mb-2">

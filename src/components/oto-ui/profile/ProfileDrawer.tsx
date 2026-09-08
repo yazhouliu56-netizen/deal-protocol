@@ -39,7 +39,7 @@ export default function ProfileDrawer({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
             onClick={onClose}
-            className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/55"
             data-testid={`${testId}-backdrop`}
           />
           <motion.div
