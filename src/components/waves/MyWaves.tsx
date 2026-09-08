@@ -515,14 +515,14 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
                   setVerdictMsg("已标记未到场：该座位款项不退，已分摊补偿在场玩家，发起人下次成局面降标准");
                 }}
                 aria-label="标记未到场"
-                className="px-2.5 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/40 text-xs font-bold text-amber-300 hover:brightness-110"
+                className="px-2.5 py-1.5 rounded-xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 text-xs font-bold text-[#8a6d00] hover:brightness-105"
               >
                 🚫 未到场
               </button>
             )}
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-1.5 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-amber-400/90 flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs font-bold text-[#8a6d00] flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>
@@ -530,8 +530,8 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
         </div>
       )}
       {claim.serviceDoneAt && !claim.fulfilment && (
-        <div className="rounded-2xl bg-emerald-400/[0.06] border border-emerald-400/25 p-2.5">
-          <p className="text-xs font-bold text-emerald-300 mb-1.5">
+        <div className="rounded-2xl bg-[#58cc02]/[.06] border-2 border-[#58cc02]/40 p-2.5">
+          <p className="text-xs font-bold text-[#357a00] mb-1.5">
             服务方已申报完成 —— 验收确认后放款
           </p>
           <input
@@ -539,26 +539,29 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             onChange={(e) => setAcceptNote(e.target.value)}
             placeholder="验收凭证：交付了什么、完成情况（必填）"
             aria-label="验收凭证"
-            className="w-full rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-2 text-xs outline-none focus:border-emerald-400/50 mb-1.5"
+            className="w-full rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#58cc02] mb-1.5"
           />
           <div className="flex gap-2 items-center">
-            <button
+            <DuoButton
+              variant="primary"
+              size="sm"
+              sound="correct"
               onClick={() => {
                 const note = acceptNote.trim();
                 if (!note) return;
                 acceptFulfilment(claim.id, note);
               }}
-              className="flex-1 py-2 rounded-xl bg-emerald-400/15 border border-emerald-400/40 text-xs font-bold text-emerald-300"
+              className="flex-1"
               aria-label="确认验收"
             >
               确认验收 ✅
               {claim.depositPhase === "held" && (
                 <span className="ml-1 text-xs opacity-70">· 解冻押金</span>
               )}
-            </button>
+            </DuoButton>
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-2 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-amber-400/90 flex items-center gap-1"
+              className="px-2.5 py-2 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs font-bold text-[#8a6d00] flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>

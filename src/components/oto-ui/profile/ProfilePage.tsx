@@ -422,11 +422,11 @@ export default function ProfilePage({
                     <span className="text-xs font-extrabold text-[#4b4b4b] block truncate">
                       {o.title} · {o.amountDisplay}
                     </span>
-                    <span className="text-[11px] text-[#afafaf] block mt-0.5">
+                    <span className="text-xs text-[#afafaf] block mt-0.5">
                       [ 方案单 ] · 点击查看履约进度
                     </span>
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#1cb0f6]/15 border-2 border-[#1cb0f6]/30 text-[#1cb0f6] shrink-0">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#1cb0f6]/15 border-2 border-[#1cb0f6]/30 text-[#1cb0f6] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
@@ -443,9 +443,9 @@ export default function ProfilePage({
                     <span className="text-xs font-extrabold text-[#4b4b4b] block truncate">
                       {o.title} · {o.amountDisplay}
                     </span>
-                    <span className="text-[11px] text-[#afafaf] block mt-0.5">[ 预订卡 ]</span>
+                    <span className="text-xs text-[#afafaf] block mt-0.5">[ 预订卡 ]</span>
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border-2 border-[#8b5cf6]/30 text-[#8b5cf6] shrink-0">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border-2 border-[#8b5cf6]/30 text-[#8b5cf6] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
