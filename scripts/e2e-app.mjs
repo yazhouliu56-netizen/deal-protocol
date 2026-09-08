@@ -1,7 +1,7 @@
 /**
  * E2E 补充分支：租壳琥珀金 3 层座舱冒烟 —— 弹药胶囊拟物草稿卡 / 全局发单条
  * → 完整发布面板 / AI 助手冒烟 / 心愿单闭环（AR Dock 直达）/ 工作台接单履约 / AR 锚点重置。
- * 前置：npm run start（3000）。
+ * 前置：node scripts/restart-prod.mjs（3000，standalone 产服）。
  */
 import { chromium } from "playwright-core";
 import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";

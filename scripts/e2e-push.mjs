@@ -1,6 +1,6 @@
 /**
  * E2E: LLM 聚类推送 + 一键接单（真实浏览器，需要生产服务在 localhost:3000）。
- * 用法：npm run test:e2e:push （需先 `npm run start`）
+ * 用法：npm run test:e2e:push （需先 `node scripts/restart-prod.mjs`）
  *
  * 场景：双 tab 双身份 ——
  *   Tab A 发布"厨师上门做饭 + 定制 30 岁女性 + 磋商留言"

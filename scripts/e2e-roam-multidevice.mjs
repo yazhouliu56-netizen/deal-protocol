@@ -1,6 +1,6 @@
 /**
  * E2E: 3-Context 多设备漫游风控真实拦截（P8 roam 商业化前哨）。
- * 用法：npm run start（3000）→ node scripts/e2e-roam-multidevice.mjs
+ * 用法：node scripts/restart-prod.mjs（3000）→ node scripts/e2e-roam-multidevice.mjs
  *
  * 场景：Playwright 3 个独立 BrowserContext（共享同一 userId 语义，但独立 roam-seed → 3 台不同物理设备指纹）：
  *   Context1（设备 A）：初始 safe（单身份）

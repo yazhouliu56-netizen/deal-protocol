@@ -1,6 +1,6 @@
 /**
  * E2E: 真实双端（Dual Browser Context）真人接单履约全链路考卷。
- * 用法：npm run start（3000）→ node scripts/e2e-dual-role-human.mjs
+ * 用法：node scripts/restart-prod.mjs（3000）→ node scripts/e2e-dual-role-human.mjs
  *
  * 与既有考卷的本质区别：
  *  - sos-hardware：同一 Context 内 A/B 双 page（同身份，B 由 sandbox-bot 代抢）；

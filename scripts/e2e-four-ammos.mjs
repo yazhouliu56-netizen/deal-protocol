@@ -1,6 +1,6 @@
 /**
  * E2E: 五大官方标杆弹药全链路真机拟人实测（真实 Chrome 浏览器，需要生产服务 localhost:3000）。
- * 用法：npm run start（3000）→ node scripts/e2e-four-ammos.mjs
+ * 用法：node scripts/restart-prod.mjs（3000）→ node scripts/e2e-four-ammos.mjs
  *
  * 场景：在 3 层黄金座舱逐一实体发单并验证五大官方标杆弹药的解析与流转：
  *   弹药1 日常保洁：家政保洁胶囊（注册表驱动 aria-label）→ ¥60/h × 2h 起 + 🛡️ 财产险 → 发射落库 housekeeping-v1

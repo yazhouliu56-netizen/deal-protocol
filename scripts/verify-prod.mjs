@@ -39,7 +39,7 @@ if (process.argv.includes("--dev-server")) {
   console.log("[verify-prod] using existing server on :3000");
 } else {
   run("npm run build", "build (production bundle)");
-  run("node scripts/restart-prod.mjs", "restart production server (next start)");
+  run("node scripts/restart-prod.mjs", "restart production server (standalone)");
 }
 
 let failed = false;

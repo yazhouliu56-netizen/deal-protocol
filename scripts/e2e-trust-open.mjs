@@ -9,7 +9,7 @@
  *  ③ no-show 欠款锁定：成局后 A 标 C 未到场 → C breached 未结 → C 再拼位被拒
  *     → A 结清违约 → C 恢复可拼位
  *
- * 用法：npm run test:e2e:trustopen（需先 `npm run start`）
+ * 用法：npm run test:e2e:trustopen（需先 `node scripts/restart-prod.mjs`）
  */
 import { chromium } from "playwright-core";
 import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels, resetE2eChannelRow } from "./lib/e2e-channel.mjs";

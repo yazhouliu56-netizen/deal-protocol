@@ -1,6 +1,6 @@
 /**
  * E2E: 多人拼单局 · 拼位闭环（真实浏览器，需要生产服务在 localhost:3000）。
- * 用法：npm run test:e2e:openmatch （需先 `npm run start`）
+ * 用法：npm run test:e2e:openmatch （需先 `node scripts/restart-prod.mjs`）
  *
  * 场景：三 tab 三身份 ——
  *   Tab A 发布"羽毛球约局" 3 人多人拼单局（含自己 = 需 2 位拼位者）+ 爽约保障险

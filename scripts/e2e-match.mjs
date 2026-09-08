@@ -1,6 +1,6 @@
 /**
  * E2E: 撮合全链路测试（真实浏览器，需要生产服务在 http://localhost:3000）。
- * 用法：npm run test:e2e   （需先 `npm run start` 或 READY 后再跑）
+ * 用法：npm run test:e2e   （需先 `node scripts/restart-prod.mjs` 或 READY 后再跑）
  * 覆盖：需求采集 → 时段卡密度徽章 → slot 选择 → 撮合排序 → 预订 → 订单持久化。
  */
 import { chromium } from "playwright-core";

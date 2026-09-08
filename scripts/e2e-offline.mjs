@@ -1,6 +1,6 @@
 /**
  * E2E: 离线降级（P5 回归） — 在生产服务上验证断网时整机可用。
- * 用法：node scripts/e2e-offline.mjs   （需先 npm run start / verify-prod）
+ * 用法：node scripts/e2e-offline.mjs   （需先 node scripts/restart-prod.mjs / verify-prod）
  * 覆盖：SW 预缓存 → 断网重载 → 雷达/AI/AR/行程/我的 五屏兜底可用、无 console error。
  */
 import { chromium } from "playwright-core";
