@@ -50,6 +50,18 @@ describe("DuoCardShell 白卡结构壳（P9-4）", () => {
     unmount();
   });
 
+  it("cn 合并：rounded-2xl/border-b-4 后来居上（P10-1 2xl 卡）", () => {
+    const { host, unmount } = mount(
+      <DuoCardShell className="rounded-2xl border-b-4 p-3.5">内容</DuoCardShell>,
+    );
+    const cls = (host.firstElementChild as HTMLElement).className;
+    expect(cls).toContain("rounded-2xl");
+    expect(cls).not.toContain("rounded-3xl");
+    expect(cls).toContain("border-b-4");
+    expect(cls).not.toContain("border-b-[6px]");
+    unmount();
+  });
+
   it("motion 透传渲染 motion 卡（WorkerWorkbench/ProfilePage 入场守恒）", () => {
     const { host, unmount } = mount(
       <DuoCardShell

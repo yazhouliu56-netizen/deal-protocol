@@ -1,4 +1,5 @@
 "use client";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill from "@/components/ui/DuoPill";
 import type { CrisisLevel, CrisisRecord } from "@/base/safe/crisis";
 
@@ -30,7 +31,7 @@ export default function SafetyCenterCard({
   onResolve,
 }: SafetyCenterCardProps) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+    <DuoCardShell className="rounded-2xl p-3.5">
       <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
         紧急求助
         <DuoPill tone="neutral">
@@ -120,6 +121,6 @@ export default function SafetyCenterCard({
           {myCrisis[0].forensicSnapshot.audioEvidenceSummary.chunkCount} 块 · 🔏 存证哈希已固化）
         </p>
       )}
-    </div>
+    </DuoCardShell>
   );
 }

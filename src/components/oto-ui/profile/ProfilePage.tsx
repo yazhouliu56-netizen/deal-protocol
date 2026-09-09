@@ -472,7 +472,7 @@ export default function ProfilePage({
         testId="drawer-system"
       >
         {/* 撮合偏好（点击标签循环切换，localStorage 持久化） */}
-        <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <DuoCardShell className="rounded-2xl p-3.5">
           <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
             撮合偏好
             <button
@@ -497,13 +497,13 @@ export default function ProfilePage({
           <p className="text-xs text-[var(--color-duo-wolf)] mt-2 leading-relaxed">
             点击标签切换偏好，将用于撮合匹配排序（本地保存）
           </p>
-        </div>
+        </DuoCardShell>
 
         {/* LAUNCH-GAP E 组：PWA 真推（VAPID 订阅 + 测试发送） */}
         <PushEnableBar />
 
         {/* ADR-0016 推送免打扰：用户自主静音窗口（不绑付费） */}
-        <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <DuoCardShell className="rounded-2xl p-3.5">
           <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
             推送免打扰
             <DuoPill tone="neutral">
@@ -546,7 +546,7 @@ export default function ProfilePage({
           <p className="text-xs text-[var(--color-duo-wolf)] mt-2 leading-relaxed">
             静音时段不弹通知；紧急提醒（报价/接单/好友/危机）不受影响
           </p>
-        </div>
+        </DuoCardShell>
 
         {/* 演示座舱：三视角一键切换 */}
         <CockpitDemoCard />
@@ -624,7 +624,7 @@ export default function ProfilePage({
         />
 
         {/* W6 总装：无障碍与隐蔽防护（5.8.2 长辈模式 + 5.8.3 静默伪装计算器生产入口） */}
-        <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <DuoCardShell className="rounded-2xl p-3.5">
           <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2">
             无障碍与隐蔽防护（WCAG AAA / 极端物理防护）
           </h3>
@@ -647,10 +647,10 @@ export default function ProfilePage({
               ⚠️ 静默报警已触发：录音就绪，红色危机流程已启动（界面无任何异常显示）
             </p>
           )}
-        </div>
+        </DuoCardShell>
 
         {/* 紧急联系人登记（动态表单 N2）：SOS 通知对象，schema 驱动 */}
-        <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <DuoCardShell className="rounded-2xl p-3.5">
           <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2">
             紧急联系人（SOS 通知对象）
           </h3>
@@ -669,7 +669,7 @@ export default function ProfilePage({
               ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}
-        </div>
+        </DuoCardShell>
       </ProfileDrawer>
 
       {/* W6 总装：长辈模式全屏覆盖（5.8.2：双主按钮 + 1.4x 字阶 AAA） */}

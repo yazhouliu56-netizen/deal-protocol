@@ -329,14 +329,14 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       <section>
         <SectionTitle icon={<Inbox size={12} className="text-[var(--color-duo-blue)]" />} title="新订单请求" />
         {!workerOnline && (
-          <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold flex items-center gap-2">
+          <DuoCardShell className="rounded-2xl border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold flex items-center gap-2">
             <Power size={12} /> 已暂停接单，AI 撮合会把你推荐给别的服务者
-          </div>
+          </DuoCardShell>
         )}
         {pending.length === 0 ? (
-          <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold">
+          <DuoCardShell className="rounded-2xl border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold">
             {workerOnline ? "没有待接单，AI 撮合正在为你找单～" : "开启接单后会收到新请求"}
-          </div>
+          </DuoCardShell>
         ) : (
           <div className="flex flex-col gap-2">
             {pending.map((o) => (
@@ -431,10 +431,8 @@ function WorkerOrderRow({
   blockedLabel?: string;
 }) {
   return (
-    <div
-      className={`bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3 flex items-center gap-3 ${
-        dimmed ? "opacity-50" : ""
-      }`}
+    <DuoCardShell
+      className={`rounded-2xl p-3 flex items-center gap-3 ${dimmed ? "opacity-50" : ""}`}
     >
       <div className="w-9 h-9 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-base shrink-0">
         {order.icon}
@@ -474,7 +472,7 @@ function WorkerOrderRow({
           )
         )}
       </div>
-    </div>
+    </DuoCardShell>
   );
 }
 

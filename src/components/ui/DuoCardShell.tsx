@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { motion as Motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 
+import { cn } from "@/lib/utils";
+
 /** 白卡 3D 正典（P9-4 收敛值；DuoEmpty 即此形 p-6 居中版） */
 export const DUO_CARD_BASE =
   "bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px]";
@@ -26,8 +28,9 @@ interface DuoCardShellProps {
 }
 
 /**
- * 白卡结构壳（P9-4）：收敛 6 处手工白卡 3D（正典底 + 布局/数据/动画透传）。
- * glass-cabin（HeroAiDemandCabin）非纯白卡，不在收敛域。
+ * 白卡结构壳（P9-4/P10-1）：收敛手工白卡 3D（正典底 + 布局/数据/动画透传）。
+ * glass-cabin（HeroAiDemandCabin）非纯白卡、button 卡（语义不可变 div）不在收敛域；
+ * className 经 cn 合并（rounded-2xl/border-b-4 等后来居上）。
  */
 export default function DuoCardShell({
   children,
@@ -36,7 +39,7 @@ export default function DuoCardShell({
   dataAttrs,
   motion,
 }: DuoCardShellProps) {
-  const cls = `${DUO_CARD_BASE}${className ? ` ${className}` : ""}`;
+  const cls = cn(DUO_CARD_BASE, className);
   if (!motion) {
     return (
       <div className={cls} data-testid={testId} {...dataAttrs}>

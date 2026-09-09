@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill from "@/components/ui/DuoPill";
 import type { Identity } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, modeOfAge } from "@/base/safe/ageGate";
@@ -32,7 +33,7 @@ export default function PrivacyCompliancePanel({
   return (
     <>
       {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+      <DuoCardShell className="rounded-2xl p-3.5">
         <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           未成年人分级
           <DuoPill tone="green" className="ml-auto">
@@ -99,10 +100,10 @@ export default function PrivacyCompliancePanel({
             监护人已同意我使用本平台（《未保法》§72）
           </label>
         )}
-      </div>
+      </DuoCardShell>
 
       {/* 数据脱敏预览（掩码效果演示） */}
-      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+      <DuoCardShell className="rounded-2xl p-3.5">
         <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           数据脱敏
           <DuoPill tone="neutral" className="ml-auto">
@@ -125,10 +126,10 @@ export default function PrivacyCompliancePanel({
             </span>
           </div>
         ))}
-      </div>
+      </DuoCardShell>
 
       {/* 遗忘权 */}
-      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+      <DuoCardShell className="rounded-2xl p-3.5">
         <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1">
           遗忘权（《个保法》§47：删除或匿名化）
         </h3>
@@ -165,23 +166,17 @@ export default function PrivacyCompliancePanel({
                 <span className="text-[var(--color-duo-wolf)]">
                   {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
                 </span>
-                <span
-                  className={`px-1.5 py-px rounded-full font-bold border-2 ${
-                    r.status === "anonymized"
-                      ? "bg-[var(--color-duo-green-light)] border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)]"
-                      : "bg-[#ffebd1] border-[var(--color-duo-orange)]/20 text-[var(--color-duo-orange)]"
-                  }`}
-                >
+                <DuoPill tone={r.status === "anonymized" ? "green" : "orange"} className={r.status === "anonymized" ? "" : "bg-[#ffebd1]"}>
                   {r.status === "anonymized" ? "已匿名化" : "处理中"}
-                </span>
+                </DuoPill>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </DuoCardShell>
 
       {/* E2 合规公示入口：消费者权益与平台规则 */}
-      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+      <DuoCardShell className="rounded-2xl p-3.5">
         <Link
           href="/rights"
           data-testid="rights-entry"
@@ -195,7 +190,7 @@ export default function PrivacyCompliancePanel({
         <p className="text-xs text-[var(--color-duo-wolf)] mt-1.5 leading-relaxed">
           依据《电子商务法》《消费者权益保护法》法定公示：知情权·申诉权·建议权·信用等级·争议仲裁·隐私保护
         </p>
-      </div>
+      </DuoCardShell>
     </>
   );
 }
