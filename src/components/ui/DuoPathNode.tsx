@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import DuoPill from "@/components/ui/DuoPill";
+
 export type DuoPathStatus = "completed" | "current" | "locked";
 
 export interface DuoPathNodeProps {
@@ -48,9 +50,9 @@ export function DuoPathNode({ status, step, title, offsetX = 0 }: DuoPathNodePro
         <span className="max-w-[92px] text-center text-xs font-bold leading-tight text-slate-700">{title}</span>
       )}
       {status === "current" && (
-        <span className="absolute -top-1 -right-1 rounded-full bg-[var(--color-duo-blue)] px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
+        <DuoPill tone="blue" variant="solid" className="absolute -top-1 -right-1 text-[10px] font-extrabold shadow-sm">
           进行中
-        </span>
+        </DuoPill>
       )}
       <style>{`@keyframes duo-breathe{0%,100%{transform:scale(1);box-shadow:0 0 18px rgba(88,204,2,.45)}50%{transform:scale(1.06);box-shadow:0 0 28px rgba(88,204,2,.65)}}`}</style>
     </div>

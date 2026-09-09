@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { MessageSquare, Phone, PhoneCall } from "lucide-react";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { dialInNumber, findSession, maskNumber, minutesLeft } from "@/base/comm/privacyNumber";
@@ -133,9 +134,9 @@ export default function ContactCard({
           <MessageSquare size={9} />
           私信对方
           {unread != null && unread > 0 && (
-            <span className="ml-0.5 px-1 rounded-full bg-[var(--color-duo-green)] text-white text-xs font-extrabold">
+            <DuoPill tone="green" variant="solid" className="ml-0.5 px-1 border-0 font-extrabold">
               {unread}
-            </span>
+            </DuoPill>
           )}
         </button>
       </div>

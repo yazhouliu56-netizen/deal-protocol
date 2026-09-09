@@ -91,9 +91,9 @@ export default function SettlementLootModal({ waveId, open, onClose }: Settlemen
         {/* 平头哥报喜：举爪欢呼（完工情绪闭环，SVG 主） */}
         <SleepyBeast mood="cheering" interactive={false} />
         {reward.isCritical && (
-          <span className="px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)] border-2 border-[var(--color-duo-yellow-dark)] text-xs font-extrabold text-[var(--color-duo-eel)]">
+          <DuoPill tone="yellow" variant="solid" className="font-extrabold">
             ✨ 暴击礼遇
-          </span>
+          </DuoPill>
         )}
         <h3 className="text-[16px] font-extrabold text-[var(--color-duo-eel)] text-center">{reward.title}</h3>
         <p className="text-xs text-[var(--color-duo-wolf)] text-center -mt-1">{reward.subtitle}</p>

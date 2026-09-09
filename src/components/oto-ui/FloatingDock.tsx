@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import DuoPill from "@/components/ui/DuoPill";
 import { Home, Map, MessageCircle, User } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -80,9 +81,9 @@ export default function FloatingDock() {
                   )}
                   <Icon size={20} className="relative" />
                   {nav.id === "im" && msgUnread > 0 && (
-                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] border-2 border-white text-xs font-bold text-white flex items-center justify-center font-tabular shadow-sm">
+                    <DuoPill tone="red" variant="solid" className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 border-white flex items-center justify-center font-tabular shadow-sm">
                       {msgUnread}
-                    </span>
+                    </DuoPill>
                   )}
                   {nav.id === "trip" && hasActiveWave && (
                     <span

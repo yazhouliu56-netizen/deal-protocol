@@ -294,10 +294,10 @@ export default function ProofCamera({
             <div className="proof-camera-img-mask" aria-hidden="true" />
             {forgeryReport && (
               <div className="proof-camera-forgery" data-testid="proof-forgery">
-                <DuoPill tone={badgeToneFor(forgeryReport.riskLevel)} onDark dataAttrs={{ "data-forgery-badge": "" }}>
+                <DuoPill tone={badgeToneFor(forgeryReport.riskLevel)} variant="dark" dataAttrs={{ "data-forgery-badge": "" }}>
                   🔬 鉴真 {Math.round(forgeryReport.overallConfidence * 100)}% · {forgeryReport.riskLevel}
                 </DuoPill>
-                <DuoPill tone="neutral" onDark dataAttrs={{ "data-sha-tag": "" }}>
+                <DuoPill tone="neutral" variant="dark" dataAttrs={{ "data-sha-tag": "" }}>
                   SHA-256 {result.sha256.slice(0, 12)}…
                 </DuoPill>
               </div>

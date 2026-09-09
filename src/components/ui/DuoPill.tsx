@@ -26,10 +26,22 @@ const TONE_DARK: Record<DuoPillTone, string> = {
   neutral: "bg-black/45 border-white/20 text-[#e2e8f0]",
 };
 
+/** 实心演绎（白字计数/徽标；yellow 配 eel 深字） */
+const TONE_SOLID: Record<DuoPillTone, string> = {
+  blue: "bg-[var(--color-duo-blue)] border-[var(--color-duo-blue-dark)] text-white",
+  green: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white",
+  yellow: "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-[var(--color-duo-eel)]",
+  red: "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-white",
+  orange: "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-white",
+  neutral: "bg-[var(--color-duo-swan)] border-[var(--color-duo-hare)] text-[var(--color-duo-eel)]",
+};
+
+export type DuoPillVariant = "soft" | "solid" | "dark";
+
 interface DuoPillProps {
   tone?: DuoPillTone;
-  /** 暗底（照片/深色浮层上的徽标） */
-  onDark?: boolean;
+  /** soft 浅底（默认）/ solid 实心 / dark 暗底（照片/深色浮层） */
+  variant?: DuoPillVariant;
   /** 结构附加（ml-auto/align-middle/whitespace-nowrap…；cn 合并，冲突以后者赢） */
   className?: string;
   children: ReactNode;
@@ -43,13 +55,14 @@ interface DuoPillProps {
  * 正典 inline-flex/border-2/px-2/py-0.5/text-xs/font-bold（border-1→2、/15→/10 归一）；
  * 实心 pills（白字 button 系）与圆点/头像/进度条不在收敛域。
  */
-export default function DuoPill({ tone = "blue", onDark = false, className, children, testId, dataAttrs }: DuoPillProps) {
+export default function DuoPill({ tone = "blue", variant = "soft", className, children, testId, dataAttrs }: DuoPillProps) {
+  const toneCls = variant === "solid" ? TONE_SOLID[tone] : variant === "dark" ? TONE_DARK[tone] : TONE[tone];
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border-2 px-2 py-0.5 text-xs font-bold",
-        onDark && "backdrop-blur",
-        (onDark ? TONE_DARK : TONE)[tone],
+        variant === "dark" && "backdrop-blur",
+        toneCls,
         className,
       )}
       data-testid={testId}

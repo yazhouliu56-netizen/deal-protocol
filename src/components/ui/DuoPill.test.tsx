@@ -49,7 +49,7 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
 
   it("onDark 暗底演绎（ProofCamera 鉴真家族）", () => {
     const { host, unmount } = mount(
-      <DuoPill tone="red" onDark>
+      <DuoPill tone="red" variant="dark">
         x
       </DuoPill>,
     );
@@ -58,6 +58,25 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
     expect(cls).toContain("239,68,68");
     expect(cls).toContain("#fecaca");
     unmount();
+  });
+
+  it("solid 实心演绎（白字计数；yellow 配 eel 深字）", () => {
+    const { host, unmount } = mount(
+      <DuoPill tone="green" variant="solid">
+        3
+      </DuoPill>,
+    );
+    const cls = (host.firstElementChild as HTMLElement).className;
+    expect(cls).toContain("var(--color-duo-green)");
+    expect(cls).toContain("text-white");
+    unmount();
+    const { host: host2, unmount: unmount2 } = mount(
+      <DuoPill tone="yellow" variant="solid">
+        x
+      </DuoPill>,
+    );
+    expect((host2.firstElementChild as HTMLElement).className).toContain("var(--color-duo-eel)");
+    unmount2();
   });
 
   it("className 结构附加经 cn 合并（ml-auto 等透传）", () => {

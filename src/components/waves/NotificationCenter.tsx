@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import DuoPill from "@/components/ui/DuoPill";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Check } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -154,9 +155,9 @@ export default function NotificationCenter({
       >
         <Bell size={13} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] text-white text-xs font-extrabold flex items-center justify-center">
+          <DuoPill tone="red" variant="solid" className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 border-0 font-extrabold flex items-center justify-center">
             {unread}
-          </span>
+          </DuoPill>
         )}
       </button>
 
@@ -204,9 +205,9 @@ export default function NotificationCenter({
                       <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-sm shrink-0">
                         🧺
                         {(cartCount ?? 0) > 0 && (
-                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] border-2 border-white text-xs font-bold text-white flex items-center justify-center">
+                          <DuoPill tone="red" variant="solid" className="absolute -top-1 -right-1 min-w-4 h-4 px-1 border-white flex items-center justify-center">
                             {cartCount}
-                          </span>
+                          </DuoPill>
                         )}
                       </span>
                       <span className="flex-1 min-w-0">

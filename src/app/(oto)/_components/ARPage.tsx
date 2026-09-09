@@ -1,5 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Info, Rotate3d, Star } from "lucide-react";
@@ -46,7 +47,7 @@ export default function ARPage({ proofShots, onProofShot }: { proofShots: Arbitr
           <>
             <div className="absolute inset-0 pointer-events-none"><div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-[var(--color-duo-hare)]"><Rotate3d size={13} className="text-brandCyan" /><span className="text-xs tracking-wide">拖拽鼠标/手指 360° 旋转查看 3D 模型</span></div></div>
             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2.5 z-20 pointer-events-auto"><span className="text-xs tracking-[0.25em] text-[var(--color-duo-hare)] font-medium mb-0.5">材质</span>{SWATCHES.map((s) => (<button key={s.color} onClick={() => setActiveSwatch(s.color)} aria-label={s.label} className={`w-6 h-6 rounded-full transition-transform ${activeSwatch === s.color ? "scale-110 ring-2 ring-white/60 ring-offset-2 ring-offset-black/40" : "opacity-80 hover:opacity-100"}`} style={{ backgroundColor: s.color }} />))}</div>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20 pointer-events-auto"><GlassIconButton size="sm" aria-label="重置视角" onClick={resetView} className="text-brandCyan font-bold text-xs">360</GlassIconButton><GlassIconButton size="sm" aria-label="查看详情" onClick={toggleShowInfo}><Info size={14} /></GlassIconButton><GlassIconButton size="sm" aria-label="拍照存证" onClick={() => { setCameraOrderNo(`AR-${selectedExperience.id}-${Date.now().toString(36)}`); setPhotoOpen(true); }} className="relative"><Camera size={14} />{proofShots.length > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-blue)] border-2 border-white text-xs font-bold text-white flex items-center justify-center">{proofShots.length}</span>}</GlassIconButton></div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20 pointer-events-auto"><GlassIconButton size="sm" aria-label="重置视角" onClick={resetView} className="text-brandCyan font-bold text-xs">360</GlassIconButton><GlassIconButton size="sm" aria-label="查看详情" onClick={toggleShowInfo}><Info size={14} /></GlassIconButton><GlassIconButton size="sm" aria-label="拍照存证" onClick={() => { setCameraOrderNo(`AR-${selectedExperience.id}-${Date.now().toString(36)}`); setPhotoOpen(true); }} className="relative"><Camera size={14} />{proofShots.length > 0 && <DuoPill tone="blue" variant="solid" className="absolute -top-1 -right-1 min-w-4 h-4 px-1 border-white flex items-center justify-center">{proofShots.length}</DuoPill>}</GlassIconButton></div>
           </>
         )}
       </div>

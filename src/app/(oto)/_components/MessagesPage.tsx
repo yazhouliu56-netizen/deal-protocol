@@ -7,6 +7,7 @@ import { keyOf, threadMessages, unreadTotal } from "@/base/comm/im";
 import { dialInNumber, findSession, maskNumber, minutesLeft } from "@/base/comm/privacyNumber";
 import ContactCard from "@/components/waves/ContactCard";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill from "@/components/ui/DuoPill";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import { CATEGORY_EMOJI } from "./categoryEmoji";
 
@@ -49,7 +50,7 @@ export default function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
       <div className="flex items-center gap-2.5 mb-3">
         <div className="w-10 h-10 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] border-b-[4px] shadow-sm flex items-center justify-center shrink-0"><MessageCircle size={17} className="text-[var(--color-duo-blue)]" /></div>
         <div className="flex-1 min-w-0"><h2 className="text-[17px] font-extrabold text-[var(--color-duo-eel)]">消息</h2><p className="text-xs text-[var(--color-duo-wolf)]">即时通讯 · 48h 隐私号会话中枢（双方号码均不落地）</p></div>
-        {unread > 0 && <span className="px-2 py-1 rounded-full bg-[var(--color-duo-green)] border-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold font-tabular shadow-sm">{unread} 条未读</span>}
+        {unread > 0 && <DuoPill tone="green" variant="solid" className="font-tabular shadow-sm">{unread} 条未读</DuoPill>}
       </div>
       {convos.length === 0 ? (
         <DuoEmpty mascot="beast-empty" title="还没有私密会话" desc="去首页发单撮合，订单锁定后隐私号与 IM 私信自动出现在这里 · 48h 后自动回收" action="去首页发单" onAction={onGoHome} testId="messages-empty-state" launchTestId="messages-empty-launch" />
