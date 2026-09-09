@@ -1,8 +1,8 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import { useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
-import { motion } from "framer-motion";
 import { RISE_8 } from "@/components/ui/motion";
 import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -128,10 +128,9 @@ export default function ReviewSection({
       )}
 
       {open && (
-        <motion.div
-          initial={RISE_8.initial}
-          animate={RISE_8.animate}
-          className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3 space-y-2"
+        <DuoCardShell
+          motion={{ initial: RISE_8.initial, animate: RISE_8.animate }}
+          className="rounded-2xl border-b-4 p-3 space-y-2"
         >
           <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">给对方打分</p>
           <div className="flex gap-1">
@@ -184,7 +183,7 @@ export default function ReviewSection({
           >
             <Send size={11} /> 提交评价
           </DuoButton>
-        </motion.div>
+        </DuoCardShell>
       )}
 
       {/* S3 关系沉淀：一次成功后，双方可自愿转友（72h 未确认自动撤回） */}

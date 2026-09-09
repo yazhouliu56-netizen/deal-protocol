@@ -1,7 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { RISE_8 } from "@/components/ui/motion";
 import { Phone, Timer, ShieldCheck } from "lucide-react";
 import { makeDialCode, dialExpiresAt, isDialLive } from "@/base/comm/dialer";
@@ -46,10 +46,9 @@ export default function DialCard({
   }
 
   return (
-    <motion.div
-      initial={RISE_8.initial}
-      animate={RISE_8.animate}
-      className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3"
+    <DuoCardShell
+      motion={{ initial: RISE_8.initial, animate: RISE_8.animate }}
+      className="rounded-2xl border-b-4 p-3"
     >
       <div className="flex items-center justify-between">
         <span className="text-xs font-extrabold text-[var(--color-duo-green-ink)] flex items-center gap-1.5">
@@ -78,6 +77,6 @@ export default function DialCard({
           <ShieldCheck size={10} /> 已模拟拨号 · 双方各自看到的是对方脱敏后的线路
         </p>
       )}
-    </motion.div>
+    </DuoCardShell>
   );
 }
