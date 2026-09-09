@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { toast } from "react-hot-toast";
+import { toast, updateToast } from "@/base/platform/toast";
 import { Wallet, X, CreditCard, Building, ArrowRight } from "lucide-react";
 
 interface WithdrawModalProps {
@@ -22,17 +22,17 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount <= 0 || amount > availableBalance) {
-      toast.error(`有效提现金额需介于 ¥1 与可用余额 ¥${availableBalance.toLocaleString()} 之间`);
+      toast(`有效提现金额需介于 ¥1 与可用余额 ¥${availableBalance.toLocaleString()} 之间`, "error");
       return;
     }
 
     if (!accountInfo.trim()) {
-      toast.error("请输入提现收款账号信息");
+      toast("请输入提现收款账号信息", "error");
       return;
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading("正在发起提现审核与资金划转指令...");
+    const toastId = toast("正在发起提现审核与资金划转指令...", "info");
 
     try {
       const res = await fetch("/api/finance/withdraw", {
@@ -48,11 +48,11 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "提现申请提交失败");
 
-      toast.success("提现申请已提交，预计 1-2 个工作日内到账", { id: toastId });
+      updateToast(toastId, "提现申请已提交，预计 1-2 个工作日内到账", "success");
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: unknown) {
-      toast.error(`提现失败: ${err instanceof Error ? err.message : "未知错误"}`, { id: toastId });
+      updateToast(toastId, `提现失败: ${err instanceof Error ? err.message : "未知错误"}`, "error");
     } finally {
       setIsSubmitting(false);
     }

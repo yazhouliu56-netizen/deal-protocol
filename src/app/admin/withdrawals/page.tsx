@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { toast } from "react-hot-toast"
+import { toast, updateToast } from "@/base/platform/toast";
 import { Wallet, Landmark, CheckCircle, XCircle, RefreshCw, ShieldCheck, AlertCircle, ArrowUpRight } from "lucide-react"
 
 interface WithdrawalItem {
@@ -57,7 +57,7 @@ export default function AdminWithdrawalsWorkspace() {
   const handleReviewAction = async (action: "approve" | "reject") => {
     if (!selectedItem) return
     setIsProcessing(true)
-    const toastId = toast.loading(`财务流水清算中 [${action.toUpperCase()}]...`)
+    const toastId = toast(`财务流水清算中 [${action.toUpperCase()}]...`, "info")
 
     try {
       const response = await fetch("/api/admin/withdraw/review", {
@@ -69,16 +69,17 @@ export default function AdminWithdrawalsWorkspace() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Review operation declined.")
 
-      toast.success(
+      updateToast(
+        toastId,
         action === "approve"
           ? "打款清算成功，扣款状态永久生效"
           : "拒绝成功，冻结金额已原路返还师傅钱包",
-        { id: toastId },
+        "success",
       )
       setRequests((prev) => prev.filter((item) => item.id !== selectedItem.id))
       setSelectedItem(null)
     } catch (error: unknown) {
-      toast.error(`决议中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
+      updateToast(toastId, `决议中断: ${error instanceof Error ? error.message : String(error)}`, "error")
     } finally {
       setIsProcessing(false)
     }

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import React, { useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Skeleton } from "@/components/ui/Skeleton"
 import { useFulfillmentMutation } from "@/hooks/useFulfillmentMutation"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
@@ -101,7 +101,7 @@ export default function OrderFulfillmentClient({
       }) as { success: boolean; updatedStatus: string }
 
       if (result.success) {
-        toast.success("状态流转成功！")
+        toast("状态流转成功！", "success")
         setDemand((prev) => ({ ...prev, status: result.updatedStatus as DemandDetail["status"] }))
       }
     } catch (e) {
@@ -159,7 +159,7 @@ export default function OrderFulfillmentClient({
         (payload) => {
           const newStatus = (payload.new as Partial<DemandDetail>).status
           if (newStatus && newStatus !== demandStatusRef.current) {
-            toast(`订单状态已更新: ${newStatus}`, { icon: "🔔" })
+            toast(`🔔 订单状态已更新: ${newStatus}`)
           }
           setDemand((prev) => ({ ...prev, ...(payload.new as Partial<DemandDetail>) }) as DemandDetail)
         },

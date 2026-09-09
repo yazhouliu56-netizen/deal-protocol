@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import toast from "react-hot-toast"
+import { toast, updateToast, useToastStore } from "@/base/platform/toast";
 
 type SyncState = "idle" | "syncing" | "pending"
 
@@ -21,7 +21,7 @@ export function useFulfillmentMutation(
       } catch {
         localStorage.setItem(`pending_${key}`, JSON.stringify([{ data, createdAt: Date.now() }]))
       }
-      toast.error("网络已断开，操作已暂存，联网后自动同步")
+      toast("网络已断开，操作已暂存，联网后自动同步", "error")
       return
     }
 
@@ -30,7 +30,7 @@ export function useFulfillmentMutation(
       const result = await mutationFnRef.current(data)
       return result
     } catch (e) {
-      toast.error("操作失败，请检查网络")
+      toast("操作失败，请检查网络", "error")
       throw e
     } finally {
       setSyncState("idle")
@@ -53,21 +53,21 @@ export function useFulfillmentMutation(
       if (queue.length === 0) return
 
       setSyncState("syncing")
-      const toastId = toast.loading(`检测到网络恢复，正在同步 ${queue.length} 条暂存操作...`)
+      const toastId = toast(`检测到网络恢复，正在同步 ${queue.length} 条暂存操作...`, "info")
 
       for (let i = 0; i < queue.length; i++) {
         try {
           await mutationFnRef.current(queue[i].data)
-          toast.success(`已同步 ${i + 1}/${queue.length}`, { id: toastId })
+          updateToast(toastId, `已同步 ${i + 1}/${queue.length}`, "success")
         } catch {
-          toast.error(`第 ${i + 1} 条同步失败，将保留在队列中`, { id: toastId })
+          updateToast(toastId, `第 ${i + 1} 条同步失败，将保留在队列中`, "error")
           return
         }
       }
 
       localStorage.removeItem(`pending_${key}`)
-      toast.dismiss()
-      toast.success("所有离线操作已同步！")
+      useToastStore.getState().dismiss(toastId)
+      toast("所有离线操作已同步！", "success")
       setSyncState("idle")
     }
 

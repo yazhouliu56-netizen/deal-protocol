@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import SwipeableCard, { IncomingDemand } from "@/components/SwipeableCard"
 
@@ -106,7 +106,7 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
                 verificationStatus={verificationStatus}
                 onAcceptSuccess={(id) => {
                   setDemands((prev) => prev.filter((d) => d.id !== id))
-                  toast.success("接单成功，已锁定")
+                  toast("接单成功，已锁定", "success")
                 }}
                 onAcceptFailure={(reason) => alert(reason)}
               />

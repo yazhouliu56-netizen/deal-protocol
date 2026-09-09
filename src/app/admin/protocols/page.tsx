@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/components/SessionProvider";
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -66,13 +66,13 @@ export default function AdminProtocolsPage() {
       });
       if (!res.ok) {
         const d = await res.json();
-        toast.error(d.error || "操作失败");
+        toast(d.error || "操作失败", "error");
         return;
       }
-      toast.success(`协议已${enabled ? "禁用" : "启用"}`);
+      toast(`协议已${enabled ? "禁用" : "启用"}`, "success");
       await loadProtocols();
     } catch {
-      toast.error("网络错误");
+      toast("网络错误", "error");
     } finally {
       setToggling(null);
     }
@@ -80,7 +80,7 @@ export default function AdminProtocolsPage() {
 
   const reloadProtocols = async () => {
     await fetch("/api/admin/protocols", { method: "POST" });
-    toast.success("协议已从代码重新加载");
+    toast("协议已从代码重新加载", "success");
     await loadProtocols();
   };
 

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { toast } from "react-hot-toast"
+import { toast, updateToast } from "@/base/platform/toast";
 import { ShieldAlert, UserX, CheckCircle, RefreshCw, AlertTriangle, UserCheck } from "lucide-react"
 
 interface AnomalyProfile {
@@ -52,7 +52,7 @@ export default function AdminReputationWorkspace() {
   const handleAmnesty = async () => {
     if (!selectedProfile) return
     setIsProcessing(true)
-    const toastId = toast.loading("发布官方最高特赦令，正在重写声誉参数...")
+    const toastId = toast("发布官方最高特赦令，正在重写声誉参数...", "info")
 
     try {
       const response = await fetch("/api/admin/reputation/amnesty", {
@@ -64,11 +64,11 @@ export default function AdminReputationWorkspace() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Amnesty request declined.")
 
-      toast.success("特赦洗白成功，该服务商抢单准入限制已全面解除", { id: toastId })
+      updateToast(toastId, "特赦洗白成功，该服务商抢单准入限制已全面解除", "success")
       setProfiles((prev) => prev.filter((p) => p.id !== selectedProfile.id))
       setSelectedProfile(null)
     } catch (error: unknown) {
-      toast.error(`特赦中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
+      updateToast(toastId, `特赦中断: ${error instanceof Error ? error.message : String(error)}`, "error")
     } finally {
       setIsProcessing(false)
     }

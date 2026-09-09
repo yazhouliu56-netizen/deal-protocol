@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Loader2, Sparkles, CheckCircle2, ArrowRight, Camera, Upload } from "lucide-react"
 import {
   collectGrowthAttribution,
@@ -76,7 +76,7 @@ export default function LandingPage() {
       const data = await res.json()
       setResult(data)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "协议生成失败，请重试")
+      toast(err instanceof Error ? err.message : "协议生成失败，请重试", "error")
     } finally {
       setGenerating(false)
     }
@@ -109,10 +109,10 @@ export default function LandingPage() {
     setDone: () => {
       setResult(null)
       setText("")
-      toast.success("发布成功，正在为你匹配服务者")
+      toast("发布成功，正在为你匹配服务者", "success")
     },
     setError: (msg) => {
-      if (msg) toast.error(msg)
+      if (msg) toast(msg, "error")
     },
   })
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/components/SessionProvider';
-import toast from 'react-hot-toast';
+import { toast } from "@/base/platform/toast";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -90,7 +90,7 @@ export default function ProfilePage() {
       setSkillsInput(existingSkills.join(', '));
       setServiceAreas(data.user.service_areas ?? '');
     } catch {
-      toast.error('加载个人信息失败');
+      toast('加载个人信息失败', "error");
     } finally {
       setLoading(false);
     }
@@ -115,9 +115,9 @@ export default function ProfilePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '保存失败');
       setProfile(data.user);
-      toast.success('个人信息已更新');
+      toast('个人信息已更新', "success");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '保存失败');
+      toast(err instanceof Error ? err.message : '保存失败', "error");
     } finally {
       setSaving(false);
     }
@@ -125,15 +125,15 @@ export default function ProfilePage() {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error('请填写所有密码字段');
+      toast('请填写所有密码字段', "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('两次输入的新密码不一致');
+      toast('两次输入的新密码不一致', "error");
       return;
     }
     if (newPassword.length < 6) {
-      toast.error('新密码长度至少为6位');
+      toast('新密码长度至少为6位', "error");
       return;
     }
     setChangingPassword(true);
@@ -145,12 +145,12 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '修改失败');
-      toast.success('密码已修改');
+      toast('密码已修改', "success");
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '修改失败');
+      toast(err instanceof Error ? err.message : '修改失败', "error");
     } finally {
       setChangingPassword(false);
     }
@@ -372,10 +372,10 @@ export default function ProfilePage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ bio, skills, service_areas: serviceAreas }),
                   });
-                  if (res.ok) toast.success('服务商信息已更新');
+                  if (res.ok) toast('服务商信息已更新', "success");
                   else {
                     const err = await res.json();
-                    toast.error(err.error || '保存失败');
+                    toast(err.error || '保存失败', "error");
                   }
                 }} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0">
                   保存服务商信息

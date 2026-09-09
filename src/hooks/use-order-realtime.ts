@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { getBrowserSupabase } from '@/lib/supabase-browser'
-import toast from 'react-hot-toast'
+import { toast } from "@/base/platform/toast";
 
 interface OrderRow {
   id: string
@@ -43,7 +43,7 @@ export function useOrderRealtime(
           const oldData = payload.old as OrderRow
 
           if (newData.status && newData.status !== oldData.status) {
-            toast(`订单状态变更: ${oldData.status} → ${newData.status}`, { icon: '🔔' })
+            toast(`🔔 订单状态变更: ${oldData.status} → ${newData.status}`)
           }
 
           setOrder((prev) => ({ ...prev, ...newData }))

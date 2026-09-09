@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { toast } from "react-hot-toast"
+import { toast, updateToast } from "@/base/platform/toast";
 import { ShieldAlert, Scale, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Image as ImageIcon } from "lucide-react"
 
 interface DisputeItem {
@@ -59,7 +59,7 @@ export default function AdminDisputesWorkspace() {
   const handleArbitrateAction = async () => {
     if (!selectedDispute || !showModal.type) return
     setIsProcessing(true)
-    const toastId = toast.loading("上帝裁决执行中，安全更新物理流水账目...")
+    const toastId = toast("上帝裁决执行中，安全更新物理流水账目...", "info")
 
     try {
       const response = await fetch("/api/admin/arbitrate", {
@@ -77,13 +77,13 @@ export default function AdminDisputesWorkspace() {
         throw new Error(result.error || "判决端点响应失败")
       }
 
-      toast.success("判决生效！资金事务性流转已安全合拢", { id: toastId })
+      updateToast(toastId, "判决生效！资金事务性流转已安全合拢", "success")
 
       setDisputes((prev) => prev.filter((item) => item.id !== selectedDispute.id))
       setSelectedDispute(null)
       setShowModal({ active: false, type: null })
     } catch (error: unknown) {
-      toast.error(`裁决中断: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
+      updateToast(toastId, `裁决中断: ${error instanceof Error ? error.message : String(error)}`, "error")
     } finally {
       setIsProcessing(false)
     }

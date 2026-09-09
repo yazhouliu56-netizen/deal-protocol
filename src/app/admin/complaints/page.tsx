@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "@/components/SessionProvider"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -63,7 +63,7 @@ export default function AdminComplaintsPage() {
       const data = await res.json()
       setComplaints(data.complaints ?? [])
     } catch {
-      toast.error("加载举报列表失败")
+      toast("加载举报列表失败", "error")
     } finally {
       setLoading(false)
     }
@@ -87,15 +87,15 @@ export default function AdminComplaintsPage() {
       })
       if (!res.ok) {
         const d = await res.json()
-        toast.error(d.error || "操作失败")
+        toast(d.error || "操作失败", "error")
         return
       }
-      toast.success("处理完成")
+      toast("处理完成", "success")
       setActionId(null)
       setReason("")
       fetchComplaints()
     } catch {
-      toast.error("网络错误")
+      toast("网络错误", "error")
     } finally {
       setSubmitting(false)
     }

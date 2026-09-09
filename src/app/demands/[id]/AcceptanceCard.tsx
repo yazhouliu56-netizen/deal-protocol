@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import DuoButton from "@/components/ui/DuoButton"
 
 interface AcceptanceCardProps {
@@ -41,7 +41,7 @@ export default function AcceptanceCard({ orderId, title, price, status, released
         throw new Error(json.message || json.error || "放款失败")
       }
       setSettled({ payout: json.payout, fee: json.fee, releasedAt: json.releasedAt })
-      toast.success(`验收成功，已放款 ￥${json.payout}`)
+      toast(`验收成功，已放款 ￥${json.payout}`, "success")
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : "网络异常，放款未执行")
     } finally {

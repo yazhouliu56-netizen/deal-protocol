@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "@/components/SessionProvider"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -48,7 +48,7 @@ export default function AdminReviewPage() {
       const data = await res.json()
       setItems(data.items ?? [])
     } catch {
-      toast.error("加载审核列表失败")
+      toast("加载审核列表失败", "error")
     } finally {
       setLoading(false)
     }
@@ -72,16 +72,16 @@ export default function AdminReviewPage() {
       })
       if (!res.ok) {
         const d = await res.json()
-        toast.error(d.error || "操作失败")
+        toast(d.error || "操作失败", "error")
         return
       }
-      toast.success(actionType === "approve" ? "已通过" : "已拒绝")
+      toast(actionType === "approve" ? "已通过" : "已拒绝", "success")
       setActionId(null)
       setReason("")
       setLoading(true)
       fetchItems()
     } catch {
-      toast.error("网络错误")
+      toast("网络错误", "error")
     } finally {
       setSubmitting(false)
     }

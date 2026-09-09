@@ -3,8 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import { useSession } from "@/components/SessionProvider"
-import { toast } from "react-hot-toast"
-import { BellRing, ShieldAlert, BadgeCent, MessageSquare } from "lucide-react"
+import { toast } from "@/base/platform/toast";
 
 interface NotificationItem {
   id: string
@@ -70,7 +69,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       })
       if (response.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-        toast.success("所有未读通知已全部清理清除完毕")
+        toast("所有未读通知已全部清理清除完毕", "success")
       }
     } catch (e) {
       console.error(e)
@@ -104,45 +103,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           const newNotif = payload.new as NotificationItem
           setNotifications((prev) => [newNotif, ...prev])
 
-          let iconElement = <BellRing className="w-5 h-5 text-amber-400" />
-          if (newNotif.type === "finance")
-            iconElement = <BadgeCent className="w-5 h-5 text-emerald-400" />
-          if (newNotif.type === "arbitration")
-            iconElement = <ShieldAlert className="w-5 h-5 text-red-400" />
-          if (newNotif.type === "order")
-            iconElement = <MessageSquare className="w-5 h-5 text-sky-400" />
-
-          toast.custom(
-            (t) => (
-              <div
-                className={`${
-                  t.visible ? "animate-enter" : "animate-leave"
-                } max-w-md w-full bg-zinc-900 border border-zinc-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 text-left`}
-              >
-                <div className="flex-1 w-0">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 pt-0.5">{iconElement}</div>
-                    <div className="ml-3 flex-1">
-                      <p className="text-xs font-bold text-zinc-100">{newNotif.title}</p>
-                      <p className="mt-1 text-xs text-zinc-400 leading-normal">{newNotif.content}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex border-l border-zinc-800 ml-4 pl-2 items-center">
-                  <button
-                    onClick={() => {
-                      toast.dismiss(t.id)
-                      markAsRead(newNotif.id)
-                    }}
-                    className="w-full border border-transparent rounded-none rounded-r-lg p-2 flex items-center justify-center text-xs font-medium text-zinc-400 hover:text-zinc-200 focus:outline-none"
-                  >
-                    知晓
-                  </button>
-                </div>
-              </div>
-            ),
-            { duration: 5000 },
-          )
+          const tone = newNotif.type === "finance" ? "success" : newNotif.type === "arbitration" ? "error" : "info";
+          toast(`${newNotif.title}：${newNotif.content}`, tone, {
+            label: "知晓",
+            onClick: () => void markAsRead(newNotif.id),
+          });
         },
       )
       .subscribe()

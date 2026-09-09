@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import toast from "react-hot-toast"
+import { toast, updateToast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button"
 import { uploadPhotoWithRetry } from "@/lib/upload"
 import type { VerificationStatus } from "@/lib/types"
@@ -46,11 +46,11 @@ function VerificationForm({
 
   const handleSubmit = async () => {
     if (!realName.trim() || !idNumber.trim()) {
-      toast.error("请填写真实姓名和身份证号")
+      toast("请填写真实姓名和身份证号", "error")
       return
     }
     if (files.length === 0) {
-      toast.error("请上传至少一张身份证或证书图片")
+      toast("请上传至少一张身份证或证书图片", "error")
       return
     }
 
@@ -59,28 +59,29 @@ function VerificationForm({
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      let retryToastId: number | undefined = undefined
       let attempts = 0
       const maxRetries = 3
 
       while (attempts <= maxRetries) {
         try {
           if (attempts > 0) {
-            toast.loading(`正在尝试重试第 ${attempts} 次...`, { id: `upload-retry-${i}` })
+            retryToastId = updateToast(retryToastId, `正在尝试重试第 ${attempts} 次...`, "info")
           }
           const url = await uploadPhotoWithRetry(file, "verification", maxRetries - attempts)
           uploadedUrls.push(url)
           if (attempts > 0) {
-            toast.success(`第 ${i + 1} 张图片上传成功`, { id: `upload-retry-${i}` })
+            retryToastId = updateToast(retryToastId, `第 ${i + 1} 张图片上传成功`, "success")
           }
           break
         } catch {
           attempts++
           if (attempts > maxRetries) {
-            toast.error(`第 ${i + 1} 张图片上传失败，请重试`, { id: `upload-retry-${i}` })
+            retryToastId = updateToast(retryToastId, `第 ${i + 1} 张图片上传失败，请重试`, "error")
             setUploading(false)
             return
           }
-          toast.loading(`上传失败，正在重试第 ${attempts} 次...`, { id: `upload-retry-${i}` })
+          retryToastId = updateToast(retryToastId, `上传失败，正在重试第 ${attempts} 次...`, "info")
           await new Promise((r) => setTimeout(r, Math.pow(2, attempts) * 1000))
         }
       }
@@ -94,15 +95,15 @@ function VerificationForm({
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || "提交失败")
+        toast(data.error || "提交失败", "error")
         setUploading(false)
         return
       }
-      toast.success("资料已提交审核！")
+      toast("资料已提交审核！", "success")
       onSubmitted()
       router.refresh()
     } catch {
-      toast.error("网络错误，请稍后重试")
+      toast("网络错误，请稍后重试", "error")
     } finally {
       setUploading(false)
     }
@@ -225,7 +226,7 @@ export default function VerificationPage() {
       setStatus(profile.verification_status || "unverified")
       setRejectedReason(profile.verification_rejected_reason || null)
     } catch {
-      toast.error("加载用户信息失败")
+      toast("加载用户信息失败", "error")
     } finally {
       setLoading(false)
     }

@@ -6,7 +6,7 @@ import {
   Radio, ShieldAlert, Navigation, ArrowRight, CheckCircle2,
   Upload, CloudLightning, Coins, ArrowLeft, Lock, IdCard,
 } from "lucide-react"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { useClaimDemand } from "@/hooks/useClaimDemand"
 
 interface Demand {
@@ -68,7 +68,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
         setSelectedDemand(json.demands[0])
       }
     } catch {
-      toast.error("加载需求列表失败")
+      toast("加载需求列表失败", "error")
     } finally {
       setLoading(false)
     }
@@ -80,7 +80,7 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
       const json = await res.json()
       setContracts(json.orders ?? [])
     } catch {
-      toast.error("加载合同列表失败")
+      toast("加载合同列表失败", "error")
     }
   }
 
@@ -88,13 +88,13 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
     verificationStatus,
     messages: { network: "网络错误，抢单失败" },
     onSuccess: async () => {
-      toast.success("契约锁定成功！")
+      toast("契约锁定成功！", "success")
       await loadDemands()
       await loadContracts()
       setActiveTab("myTasks")
     },
     onFailure: (message) => {
-      toast.error(message)
+      toast(message, "error")
     },
   })
 
@@ -117,15 +117,15 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
       })
       const json = await res.json()
       if (!res.ok) {
-        toast.error(json.error || "上传失败")
+        toast(json.error || "上传失败", "error")
         setUploadStatus("idle")
         return
       }
       setIpfsHash(json.hash)
       setUploadStatus("done")
-      toast.success("存证上传成功")
+      toast("存证上传成功", "success")
     } catch {
-      toast.error("网络错误，上传失败")
+      toast("网络错误，上传失败", "error")
       setUploadStatus("idle")
     }
   }
@@ -140,13 +140,13 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
       })
       const json = await res.json()
       if (!res.ok) {
-        toast.error(json.error || "结算失败")
+        toast(json.error || "结算失败", "error")
         return
       }
-      toast.success("结算请求已提交")
+      toast("结算请求已提交", "success")
       await loadContracts()
     } catch {
-      toast.error("网络错误，结算失败")
+      toast("网络错误，结算失败", "error")
     } finally {
       setSettlingId(null)
     }

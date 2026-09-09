@@ -90,7 +90,7 @@ export default function RootLayout({
         <SessionProvider>
             <UXProvider>
               <main className="flex-1">{children}</main>
-              {/* P9-1 Toast 单轨：全路由唯一挂载（A轨 zustand），替代 react-hot-toast Toaster */}
+              {/* P9-1 Toast 单轨：全路由唯一挂载（zustand store + Duo 样式） */}
               <ToastHost />
             </UXProvider>
           <Script id="register-sw" strategy="afterInteractive">

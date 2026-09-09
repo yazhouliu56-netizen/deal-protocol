@@ -1,6 +1,5 @@
 "use client"
 
-import { Toaster } from "react-hot-toast"
 import { ErrorBoundary } from "react-error-boundary"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 
@@ -30,7 +29,6 @@ function FallbackComponent({ resetErrorBoundary }: { resetErrorBoundary?: () => 
 export function UXProvider({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary FallbackComponent={FallbackComponent} onReset={() => typeof window !== "undefined" && window.location.reload()}>
-      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       {children}
     </ErrorBoundary>
   )

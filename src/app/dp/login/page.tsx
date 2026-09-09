@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Smartphone, Key, MessageCircle, Loader2 } from "lucide-react"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 
 type TabId = "sms" | "password" | "wechat"
 
@@ -25,7 +25,7 @@ function LoginContent() {
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
-      toast.success("注册成功！请登录")
+      toast("注册成功！请登录", "success")
     }
   }, [searchParams])
 
@@ -113,7 +113,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
       if (!res.ok) { onError(data.error || "发送失败"); return }
       setCodeSent(true)
       setCountdown(60)
-      toast.success("验证码已发送")
+      toast("验证码已发送", "success")
     } catch {
       onError("网络错误，请重试")
     } finally {

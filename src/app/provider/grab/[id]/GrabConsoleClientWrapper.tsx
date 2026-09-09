@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import GrabConsole from "@/components/GrabConsole"
 
 interface GrabConsoleClientWrapperProps {
@@ -34,14 +34,14 @@ export default function GrabConsoleClientWrapper({
   }, [])
 
   const handleGrabSuccess = () => {
-    toast.success("抢单成功！")
+    toast("抢单成功！", "success")
     // 存活路由：/orders/:id 不存在，履约唯一实体为 /provider/orders/[id]。
     router.push(`/provider/orders/${demandId}`)
     router.refresh()
   }
 
   const handleGrabFailure = (reason: string) => {
-    toast.error(reason)
+    toast(reason, "error")
   }
 
   return (

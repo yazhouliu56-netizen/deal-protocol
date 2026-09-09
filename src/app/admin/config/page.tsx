@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "@/components/SessionProvider"
-import toast from "react-hot-toast"
+import { toast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -32,10 +32,10 @@ export default function AdminConfigPage() {
     ;(async () => {
       try {
         const res = await fetch("/api/admin/config")
-        if (!res.ok) { toast.error("加载配置失败"); return }
+        if (!res.ok) { toast("加载配置失败", "error"); return }
         const data = await res.json()
         setConfig(data.config)
-      } catch { toast.error("网络错误") }
+      } catch { toast("网络错误", "error") }
       finally { setLoading(false) }
     })()
   }, [session])
@@ -50,11 +50,11 @@ export default function AdminConfigPage() {
       })
       if (!res.ok) {
         const d = await res.json()
-        toast.error(d.error || "保存失败")
+        toast(d.error || "保存失败", "error")
         return
       }
-      toast.success("配置已保存")
-    } catch { toast.error("网络错误") }
+      toast("配置已保存", "success")
+    } catch { toast("网络错误", "error") }
     finally { setSaving(false) }
   }, [config])
 
