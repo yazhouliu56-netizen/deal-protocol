@@ -106,22 +106,28 @@ export function GenCardView({
                   已转正式订单 ✅
                 </DuoPill>
               ) : (
-                <button
+                <DuoPill
+                  tone="green"
+                  variant="solid"
+                  as="button"
+                  ariaLabel="转为正式订单"
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
-                  aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:scale-95"
+                  className="px-3.5 py-1.5 border-0 border-b-2 active:scale-95"
                 >
                   📡 转为正式订单
-                </button>
+                </DuoPill>
               )}
             </div>
           ) : (
-            <button
+            <DuoPill
+              tone="green"
+              variant="solid"
+              as="button"
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:scale-95"
+              className="px-3.5 py-1.5 border-0 border-b-2 active:scale-95"
             >
               确认预订
-            </button>
+            </DuoPill>
           )}
         </div>
       </CardShell>

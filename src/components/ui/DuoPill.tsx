@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -48,6 +48,10 @@ interface DuoPillProps {
   testId?: string;
   /** data-* 透传（ProofCamera data-forgery-badge/data-sha-tag） */
   dataAttrs?: Record<string, string | number | undefined>;
+  /** 多态：span（默认）/ button（胶囊 CTA；press 态各站经 className 保留） */
+  as?: "span" | "button";
+  onClick?: (e: ReactMouseEvent<HTMLButtonElement>) => void;
+  ariaLabel?: string;
 }
 
 /**
@@ -55,16 +59,31 @@ interface DuoPillProps {
  * 正典 inline-flex/border-2/px-2/py-0.5/text-xs/font-bold（border-1→2、/15→/10 归一）；
  * 实心 pills（白字 button 系）与圆点/头像/进度条不在收敛域。
  */
-export default function DuoPill({ tone = "blue", variant = "soft", className, children, testId, dataAttrs }: DuoPillProps) {
+export default function DuoPill({ tone = "blue", variant = "soft", className, children, testId, dataAttrs, as = "span", onClick, ariaLabel }: DuoPillProps) {
   const toneCls = variant === "solid" ? TONE_SOLID[tone] : variant === "dark" ? TONE_DARK[tone] : TONE[tone];
+  const cls = cn(
+    "inline-flex items-center gap-1 rounded-full border-2 px-2 py-0.5 text-xs font-bold",
+    variant === "dark" && "backdrop-blur",
+    toneCls,
+    className,
+  );
+  if (as === "button") {
+    return (
+      <button
+        type="button"
+        className={cls}
+        data-testid={testId}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        {...dataAttrs}
+      >
+        {children}
+      </button>
+    );
+  }
   return (
     <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border-2 px-2 py-0.5 text-xs font-bold",
-        variant === "dark" && "backdrop-blur",
-        toneCls,
-        className,
-      )}
+      className={cls}
       data-testid={testId}
       {...dataAttrs}
     >

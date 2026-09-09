@@ -250,16 +250,19 @@ export default function ProfilePage({
             ? `已登录 · ${authAccount.nickname}（${authAccount.role === "employer" ? "需求方" : authAccount.role === "provider" ? "服务者" : "组局主理人"}）· 数据存本机浏览器`
             : `访客 · 本地演示身份「${identity.nickname}」 · 数据存本机浏览器`}
         </p>
-        <button
+        <DuoPill
+          tone="green"
+          variant="solid"
+          as="button"
+          ariaLabel={authAccount ? "切换账号" : "登录"}
           onClick={() => {
             openAuthSheet();
           }}
-          aria-label={authAccount ? "切换账号" : "登录"}
-          className="shrink-0 px-2.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold inline-flex items-center gap-1 active:translate-y-0.5 active:border-b-0 transition-[transform]"
+          className="shrink-0 px-2.5 py-1.5 border-0 border-b-2 inline-flex items-center gap-1 active:translate-y-0.5 active:border-b-0 transition-[transform]"
         >
           <LogIn size={9} />
           {authAccount ? "切换账号" : "登录 · 注册"}
-        </button>
+        </DuoPill>
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"
@@ -268,12 +271,15 @@ export default function ProfilePage({
           数据模式
         </button>
         {onGoHome && (
-          <button
+          <DuoPill
+            tone="green"
+            variant="solid"
+            as="button"
             onClick={onGoHome}
-            className="shrink-0 px-2.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:translate-y-0.5 active:border-b-0"
+            className="shrink-0 px-2.5 py-1.5 border-0 border-b-2 active:translate-y-0.5 active:border-b-0"
           >
             去雷达
-          </button>
+          </DuoPill>
         )}
       </div>
 
@@ -287,9 +293,9 @@ export default function ProfilePage({
           title="点击上传本地头像（自动压缩为 96×96）"
         >
           <IdentityAvatar size="lg" />
-          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--color-duo-green)] border-2 border-white flex items-center justify-center text-xs group-hover:scale-110 transition-transform text-white">
-            ✎
-          </span>
+            <DuoPill tone="green" variant="solid" className="absolute -bottom-1 -right-1 w-5 h-5 border-white flex items-center justify-center group-hover:scale-110 transition-transform">
+              ✎
+            </DuoPill>
           <input
             type="file"
             name="avatar-upload"

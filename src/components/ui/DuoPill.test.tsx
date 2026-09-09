@@ -79,6 +79,22 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
     unmount2();
   });
 
+  it("as=button 多态（胶囊 CTA：onClick/aria-label 透传）", () => {
+    let clicked = 0;
+    const { host, unmount } = mount(
+      <DuoPill tone="green" variant="solid" as="button" ariaLabel="转为正式订单" onClick={() => { clicked += 1; }}>
+        go
+      </DuoPill>,
+    );
+    const el = host.firstElementChild as HTMLElement;
+    expect(el.tagName).toBe("BUTTON");
+    expect(el.getAttribute("aria-label")).toBe("转为正式订单");
+    expect(el.getAttribute("type")).toBe("button");
+    el.click();
+    expect(clicked).toBe(1);
+    unmount();
+  });
+
   it("className 结构附加经 cn 合并（ml-auto 等透传）", () => {
     const { host, unmount } = mount(<DuoPill tone="neutral" className="ml-auto whitespace-nowrap">x</DuoPill>);
     const cls = (host.firstElementChild as HTMLElement).className;

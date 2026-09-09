@@ -1,5 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { RISE_10 } from "@/components/ui/motion";
@@ -39,12 +40,15 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         <p className="text-xs text-[var(--color-duo-wolf)]">
           你的反馈会帮助 AI 撮合更准～ 已记录 {rating} 星
         </p>
-        <button
+        <DuoPill
+          tone="green"
+          variant="solid"
+          as="button"
           onClick={onBack}
-          className="mt-3 px-5 py-2 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold"
+          className="mt-3 px-5 py-2 border-0 border-b-2"
         >
           完成
-        </button>
+        </DuoPill>
       </motion.div>
     );
   }
