@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import DuoButton from "@/components/ui/DuoButton";
 
 import {
   applyTimestampGeoWatermark,
@@ -102,16 +103,6 @@ const CAMERA_CSS = `
 .proof-camera-badge-medium{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.45);color:#fde68a}
 .proof-camera-badge-high{background:rgba(249,115,22,.18);border-color:rgba(249,115,22,.5);color:#fed7aa}
 .proof-camera-badge-critical{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
-.proof-camera-actions{display:flex;gap:10px;margin-top:12px}
-.proof-camera-btn{flex:1;display:flex;align-items:center;justify-content:center;
-  border-radius:14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:transform .12s;
-  -webkit-tap-highlight-color:transparent}
-.proof-camera-btn:active{transform:translateY(3px)}
-.proof-camera-btn:disabled{opacity:.45;cursor:not-allowed}
-.proof-camera-btn-primary{background:var(--color-duo-green);color:#fff;
-  border:2px solid var(--color-duo-green-dark);border-bottom-width:4px;box-shadow:none}
-.proof-camera-btn-ghost{background:#fff;color:var(--color-duo-eel);border:2px solid var(--color-duo-swan);border-bottom-width:4px}
-.proof-camera-btn-danger{background:var(--color-duo-red);color:#fff;border:2px solid var(--color-duo-red-dark);border-bottom-width:4px}
 .proof-camera-geo{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
   color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;padding:2px 8px;margin-bottom:8px}
 `;
@@ -360,38 +351,47 @@ export default function ProofCamera({
       />
 
       {phase === "preview" ? (
-        <div className="proof-camera-actions">
-          <button
+        <div className="flex gap-2.5 mt-3">
+          <DuoButton
             type="button"
-            className="proof-camera-btn proof-camera-btn-ghost"
+            variant="ghost"
+            size="sm"
+            sound="none"
+            className="flex-1 rounded-[14px] text-[13.5px] text-[var(--color-duo-eel)]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={retake}
             data-action="retake"
           >
             重新拍摄
-          </button>
-          <button
+          </DuoButton>
+          <DuoButton
             type="button"
-            className={`proof-camera-btn ${isCritical ? "proof-camera-btn-danger" : "proof-camera-btn-primary"}`}
+            variant={isCritical ? "danger" : "primary"}
+            size="sm"
+            sound="none"
+            className="flex-1 rounded-[14px] text-[13.5px]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={confirm}
             data-action="confirm"
           >
             {isCritical ? "⚠️ 仍确认使用" : "✅ 确认使用"}
-          </button>
+          </DuoButton>
         </div>
       ) : (
-        <div className="proof-camera-actions">
-          <button
+        <div className="flex gap-2.5 mt-3">
+          <DuoButton
             type="button"
-            className="proof-camera-btn proof-camera-btn-primary"
+            variant="primary"
+            size="sm"
+            sound="none"
+            className="flex-1 rounded-[14px] text-[13.5px]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={triggerCapture}
             disabled={phase === "processing"}
             data-action="capture"
           >
             {phase === "processing" ? (forgeryLoading ? "🔬 鉴真检测中…" : "压制水印中…") : "📷 拍照打卡"}
-          </button>
+          </DuoButton>
         </div>
       )}
     </div>

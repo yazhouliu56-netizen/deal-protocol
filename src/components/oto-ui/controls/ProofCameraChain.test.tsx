@@ -105,7 +105,7 @@ describe("ProofCamera P0-3/P1-1 全链贯通：水印压制 → SHA-256 → 五�
     expect(container.querySelector('[data-testid="proof-critical"]')!.textContent).toContain("HASH_TAMPERED");
     const confirmBtn = container.querySelector<HTMLButtonElement>('[data-action="confirm"]')!;
     expect(confirmBtn.textContent).toContain("仍确认使用");
-    expect(confirmBtn.className).toContain("proof-camera-btn-danger");
+    expect(confirmBtn.dataset.variant).toBe("danger");
     unmount();
   });
 
