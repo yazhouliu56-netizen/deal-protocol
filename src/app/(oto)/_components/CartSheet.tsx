@@ -1,6 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
-import { AnimatePresence, motion } from "framer-motion";
+import SheetShell from "@/components/ui/SheetShell";
+import { AnimatePresence } from "framer-motion";
 import { ChevronRight, ShoppingBag, Trash2 } from "lucide-react";
 import { otoExperiences } from "@/ammo/experience-catalog";
 import type { OTOExperience } from "@/types/oto-experience";
@@ -31,21 +32,10 @@ export default function CartSheet({
   return (
     <AnimatePresence>
       {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/50"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 40, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4"
-          >
+        <SheetShell
+          onClose={onClose}
+          panelClassName="fixed inset-x-3 bottom-24 z-50 bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4"
+        >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
                 <ShoppingBag size={13} className="text-brandCyan" /> 我的心愿单
@@ -125,8 +115,7 @@ export default function CartSheet({
                 </div>
               </>
             )}
-          </motion.div>
-        </>
+        </SheetShell>
       )}
     </AnimatePresence>
   );

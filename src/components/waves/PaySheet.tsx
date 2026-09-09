@@ -1,8 +1,8 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
 import { CreditCard, Lock } from "lucide-react";
 import { FREE_PUBLISH_PER_DAY } from "@/base/money/pay";
 
@@ -49,31 +49,17 @@ export default function PaySheet({
   const ss = String(countdown % 60).padStart(2, "0");
 
   return createPortal(
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[60] bg-black/60"
-        onClick={onCancel}
-      />
-      <motion.div
-        initial={{ y: 60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        className="fixed inset-x-3 bottom-8 z-[60] bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
-      >
+    <SheetShell
+      onClose={onCancel}
+      maskClassName="fixed inset-0 z-[60] bg-black/60"
+      panelClassName="fixed inset-x-3 bottom-8 z-[60] bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
+      motion={{ y: 60, stiffness: 300, damping: 28 }}
+    >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
             <CreditCard size={13} className="text-[var(--color-duo-blue)]" /> {title}
           </h3>
-          <button
-            onClick={onCancel}
-            aria-label="取消支付"
-            className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
-          >
-            ✕
-          </button>
+          <SheetClose onClose={onCancel} label="取消支付" />
         </div>
 
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-4 mb-3 text-center">
@@ -106,8 +92,7 @@ export default function PaySheet({
             支付锁定剩余 {mm}:{ss} <span className="text-[var(--color-duo-hare)]">(模拟通道)</span>
           </span>
         </div>
-      </motion.div>
-    </>,
+    </SheetShell>,
     document.body
   );
 }

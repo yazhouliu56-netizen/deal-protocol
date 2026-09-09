@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
 import { Send, Sparkles } from "lucide-react";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -385,20 +385,12 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   return (
     <>
       {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/50"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ y: 60, opacity: 0 }}
-            animate={dismissing ? { y: "110%", opacity: 0 } : { y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
-          >
+        <SheetShell
+          onClose={onClose}
+          panelClassName="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"
+          motion={{ y: 60, stiffness: 300, damping: 28 }}
+          animateOverride={dismissing ? { y: "110%", opacity: 0 } : { y: 0, opacity: 1 }}
+        >
         {/* P2：拖拽把手（下拉 >35% 平滑收起） */}
         <div
           ref={sheetDragRef as React.Ref<HTMLDivElement>}
@@ -411,13 +403,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             <Send size={13} className="text-[var(--color-duo-blue)]" /> 发出信号波
             <SandboxBadge />
           </h3>
-          <button
-            onClick={onClose}
-            aria-label="关闭发布"
-            className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
-          >
-            ✕
-          </button>
+          <SheetClose onClose={onClose} label="关闭发布" />
         </div>
 
         {/* 品类快捷 */}
@@ -810,8 +796,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         >
           广播出去 📡
         </DuoButton>
-      </motion.div>
-        </>
+        </SheetShell>
       )}
 
       {/* 模拟收银台：随单支付，钱到位才激活广播 */}

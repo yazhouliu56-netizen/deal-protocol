@@ -1,5 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { QrCode, ScanLine, CheckCircle2 } from "lucide-react";
@@ -114,30 +115,16 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/70"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed inset-x-6 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
-      >
+    <SheetShell
+      onClose={onClose}
+      maskClassName="fixed inset-0 z-40 bg-black/70"
+      panelClassName="fixed inset-x-6 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
+      motion={{ scale: 0.96, stiffness: 300, damping: 25 }}
+    >
         <div className="flex items-center gap-2 mb-3">
           <QrCode size={14} className="text-[var(--color-duo-blue)]" />
           <span className="text-xs font-bold text-[var(--color-duo-eel)]">扫码识别</span>
-          <button
-            onClick={onClose}
-            aria-label="关闭扫码"
-            className="ml-auto text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
-          >
-            ✕
-          </button>
+          <SheetClose onClose={onClose} label="关闭扫码" className="ml-auto" />
         </div>
 
         {phase === "requesting" ? (
@@ -226,7 +213,6 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         )}
-      </motion.div>
-    </>
+    </SheetShell>
   );
 }

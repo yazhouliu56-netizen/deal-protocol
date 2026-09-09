@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
 import { Heart, MapPin, CheckCircle2 } from "lucide-react";
 import { yuan } from "@/base/money/customPricing";
 import type { Wave } from "@/base/order/wave";
@@ -28,32 +28,15 @@ export default function FavoritesSheet({
     .filter((w): w is Wave => Boolean(w));
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/50"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 40, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
-      >
+    <SheetShell
+      onClose={onClose}
+      panelClassName="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-4 max-h-[70vh] overflow-y-auto no-scrollbar"
+    >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
             <Heart size={13} className="text-[#ff7ab8]" /> 我关注的局 {favs.length > 0 && `（${favs.length}）`}
           </h3>
-          <button
-            onClick={onClose}
-            aria-label="关闭关注列表"
-            className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
-          >
-            ✕
-          </button>
+          <SheetClose onClose={onClose} label="关闭关注列表" />
         </div>
 
         {favs.length === 0 ? (
@@ -107,7 +90,6 @@ export default function FavoritesSheet({
             })}
           </div>
         )}
-      </motion.div>
-    </>
+    </SheetShell>
   );
 }
