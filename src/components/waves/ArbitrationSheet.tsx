@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DarkSheetShell from "@/components/ui/DarkSheetShell";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import type { ForgeryRiskLevel } from "@/base/ai/forgery";
@@ -147,14 +148,10 @@ export const CHAIN_BREAK_REASON_LABEL: Record<string, string> = {
 type ExportState = "idle" | "loading" | "done" | "error";
 
 const SHEET_CSS = `
-.arb-mask{position:fixed;inset:0;background:rgba(5,6,15,.62);backdrop-filter:blur(4px);z-index:80}
-.arb-sheet{position:fixed;inset-inline:0;bottom:0;z-index:81;max-width:520px;margin:0 auto;
+.arb-sheet{
   background:linear-gradient(180deg,rgba(23,26,46,.96),rgba(13,16,32,.98));
   border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:none;
-  max-height:72vh;overflow-y:auto;padding:10px 16px 18px;color:#e2e8f0;font-size:13px;
-  transition:transform .2s cubic-bezier(.16,1,.3,1),opacity .2s cubic-bezier(.16,1,.3,1)}
-.arb-sheet-dismissing{transform:translateY(105%);opacity:0}
-.arb-grip{width:44px;height:4px;border-radius:999px;background:rgba(255,255,255,.25);margin:4px auto 10px;cursor:grab;touch-action:none}
+  max-height:72vh;overflow-y:auto;padding:10px 16px 18px;color:#e2e8f0;font-size:13px}
 .arb-title{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800}
 .arb-close{border:none;background:rgba(255,255,255,.08);color:#cbd5e1;border-radius:10px;padding:4px 10px;
   font-size:11px;cursor:pointer}
@@ -309,13 +306,15 @@ export default function ArbitrationSheet({
   return (
     <div data-testid="arbitration-sheet" data-order={orderId}>
       <style>{SHEET_CSS}</style>
-      <div className="arb-mask" onClick={onClose} data-action="mask" />
-      <div
-        className={`arb-sheet${dismissing ? " arb-sheet-dismissing" : ""}`}
-        role="dialog"
-        aria-label="争议调解"
+      <DarkSheetShell
+        onClose={onClose}
+        maskZ={80}
+        panelZ={81}
+        panelClass="arb-sheet"
+        dismissing={dismissing}
+        gripRef={gripDragRef as React.Ref<HTMLDivElement>}
+        ariaLabel="争议调解"
       >
-        <div className="arb-grip" ref={gripDragRef as React.Ref<HTMLDivElement>} data-action="drag-grip" />
 
         <div className="arb-title">
           <span>
@@ -644,7 +643,7 @@ export default function ArbitrationSheet({
             </button>
           </div>
         )}
-      </div>
+      </DarkSheetShell>
     </div>
   );
 }

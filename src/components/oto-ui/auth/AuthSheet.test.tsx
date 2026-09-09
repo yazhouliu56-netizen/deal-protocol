@@ -220,7 +220,7 @@ describe("AuthSheet 真实短信单通道（Phase 2.2）", () => {
     await act(async () => {
       sheet.querySelector<HTMLElement>('[data-action="mask"]')!.click();
     });
-    expect(sheet.querySelector(".auth-sheet")!.className).toContain("auth-sheet-dismissing");
+    expect(sheet.querySelector(".auth-sheet")!.className).toContain("dsheet-dismissing");
     await act(async () => {
       await wait(260);
     });

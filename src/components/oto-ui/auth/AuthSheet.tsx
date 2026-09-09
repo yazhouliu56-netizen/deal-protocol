@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import DarkSheetShell from "@/components/ui/DarkSheetShell";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toast } from "@/base/platform/toast";
@@ -147,19 +148,13 @@ export function openAuthSheet() {
 }
 
 const AUTH_SHEET_CSS = `
-.auth-mask{position:fixed;inset:0;background:rgba(5,6,15,.6);backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);z-index:90}
-.auth-sheet{position:fixed;inset-inline:0;bottom:0;z-index:91;max-width:520px;margin:0 auto;
+.auth-sheet{
   background:linear-gradient(180deg,rgba(30,33,58,.92),rgba(13,16,32,.97));
   backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);
   border-radius:26px 26px 0 0;border:1px solid rgba(255,255,255,.16);border-bottom:none;
   border-top-color:rgba(255,255,255,.42);
   box-shadow:0 -18px 60px -12px rgba(123,97,255,.45),inset 0 1px 0 rgba(255,255,255,.35);
-  max-height:76vh;overflow-y:auto;padding:10px 18px 22px;color:#e2e8f0;font-size:13px;
-  transition:transform .22s cubic-bezier(.16,1,.3,1),opacity .22s cubic-bezier(.16,1,.3,1)}
-.auth-sheet-dismissing{transform:translateY(105%);opacity:0}
-.auth-grip{width:44px;height:4px;border-radius:999px;background:rgba(255,255,255,.3);
-  margin:4px auto 12px;cursor:grab;touch-action:none}
+  max-height:76vh;overflow-y:auto;padding:10px 18px 22px;color:#e2e8f0;font-size:13px}
 .auth-title{display:flex;justify-content:space-between;align-items:center}
 .auth-title h3{margin:0;font-size:16px;font-weight:800;
   background:linear-gradient(90deg,#fff,#c4b5fd,#7b61ff);
@@ -359,17 +354,15 @@ export default function AuthSheet() {
   return (
     <div data-testid="auth-sheet">
       <style>{AUTH_SHEET_CSS}</style>
-      <div
-        className="auth-mask"
-        onClick={() => handleOpenChange(false)}
-        data-action="mask"
-      />
-      <div
-        className={`auth-sheet${dismissing ? " auth-sheet-dismissing" : ""}`}
-        role="dialog"
-        aria-label="登录"
+      <DarkSheetShell
+        onClose={() => handleOpenChange(false)}
+        maskZ={90}
+        panelZ={91}
+        panelClass="auth-sheet"
+        dismissing={dismissing}
+        gripRef={gripDragRef as React.Ref<HTMLDivElement>}
+        ariaLabel="登录"
       >
-        <div className="auth-grip" ref={gripDragRef as React.Ref<HTMLDivElement>} data-action="drag-grip" />
 
         <div className="auth-title">
           <h3 data-testid="auth-title">
@@ -460,7 +453,7 @@ export default function AuthSheet() {
             </div>
           </>
         )}
-      </div>
+      </DarkSheetShell>
     </div>
   );
 }

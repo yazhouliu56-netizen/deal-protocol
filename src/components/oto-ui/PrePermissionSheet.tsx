@@ -1,5 +1,7 @@
 "use client";
 
+import DarkSheetShell from "@/components/ui/DarkSheetShell";
+
 /**
  * 硬件权限防拒绝预授权解释浮层（Pre-permission Sheet · 白皮书 §八）。
  *
@@ -47,13 +49,11 @@ export const PERMANENTLY_DENIED_HINT =
   "浏览器已永久拒绝该权限：请在地址栏点击「锁形图标 → 网站设置 → 权限」，将权限改为「允许」后重试。";
 
 const SHEET_CSS = `
-.prep-sheet{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;
-  background:rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent}
-.prep-sheet-card{width:100%;max-width:520px;margin:0 auto;border-radius:24px 24px 0 0;
+.prep-sheet-card{width:100%;
+  border-radius:24px 24px 0 0;
   background:rgba(15,18,35,.96);border:1px solid rgba(255,255,255,.14);
   border-bottom:none;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
   backdrop-filter:blur(20px) saturate(160%);box-shadow:0 -12px 40px rgba(0,0,0,.5)}
-.prep-sheet-grab{width:44px;height:5px;border-radius:999px;background:rgba(255,255,255,.22);margin:0 auto 16px}
 .prep-sheet-title{font-size:16px;font-weight:800;color:#f1f5f9;margin-bottom:10px}
 .prep-sheet-body{font-size:13px;line-height:1.7;color:#cbd5e1;margin-bottom:18px}
 .prep-sheet-denied{border:1px solid rgba(251,191,36,.4);border-radius:12px;
@@ -80,16 +80,18 @@ export default function PrePermissionSheet({
 
   return (
     <div
-      className="prep-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-label={copy.title}
       data-permission-type={permissionType}
       data-permanently-denied={isPermanentlyDenied ? "1" : "0"}
     >
-      <div className="prep-sheet-card">
+      <DarkSheetShell
+        onClose={onCancel}
+        maskZ={90}
+        panelZ={91}
+        panelClass="prep-sheet-card"
+        maskClosable={false}
+        ariaLabel={copy.title}
+      >
         <style>{SHEET_CSS}</style>
-        <div className="prep-sheet-grab" aria-hidden="true" />
         <div className="prep-sheet-title">{copy.title}</div>
         <div className="prep-sheet-body">{copy.body}</div>
         {isPermanentlyDenied && (
@@ -115,9 +117,9 @@ export default function PrePermissionSheet({
             data-action="confirm"
           >
             {copy.confirm}
-          </button>
-        </div>
-      </div>
+            </button>
+          </div>
+      </DarkSheetShell>
     </div>
   );
 }
