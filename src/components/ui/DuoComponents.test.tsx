@@ -21,6 +21,14 @@ describe("DuoButton 3D 触觉原子", () => {
     }
   });
 
+  it("outline/ghost 走 Duo Token（零硬编码 hex，防回退）", () => {
+    for (const v of ["outline", "ghost"] as const) {
+      const html = renderToStaticMarkup(<DuoButton variant={v}>{v}</DuoButton>);
+      expect(html).toContain("var(--color-duo-");
+      expect(html).not.toMatch(/#(e5e5e5|4b4b4b|afafaf|777777|3c3c3c)/);
+    }
+  });
+
   it("onClick 回调透传（sound=none 静默路径）", () => {
     const fn = vi.fn();
     // sound=none 时不触 Audio，仅透传回调；静态渲染不触发点击，回调 0 次即证明未在渲染期误触发

@@ -145,7 +145,7 @@ export default function WaveFeed() {
         <button
           onClick={() => setFavOpen(true)}
           aria-label={`查看我关注的局，共 ${favorites.length} 个`}
-          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#767676] hover:border-[#1cb0f6]/30 hover:text-[#4b4b4b] transition-colors shrink-0 shadow-sm active:translate-y-1 active:border-b-2"
+          className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-wolf)] hover:border-[var(--color-duo-blue)]/30 hover:text-[var(--color-duo-eel)] transition-[transform,border-color,color] shrink-0 active:translate-y-1 active:border-b-2"
         >
           <Heart size={10} className={favorites.length ? "text-[#ff4b4b] fill-[#ff4b4b]" : "text-[#767676]"} />
           关注 {favorites.length > 0 ? favorites.length : ""}

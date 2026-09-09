@@ -17,9 +17,9 @@ const VARIANT: Record<DuoButtonVariant, string> = {
   warning:
     "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-[var(--color-duo-eel)] hover:brightness-[1.03]",
   outline:
-    "bg-white border-[#e5e5e5] text-[#4b4b4b] hover:border-[#afafaf] hover:text-[#3c3c3c]",
+    "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] hover:border-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]",
   ghost:
-    "bg-white border-[#e5e5e5] text-[#777777] hover:border-[#afafaf] hover:text-[#4b4b4b]",
+    "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] hover:border-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]",
 };
 
 export type DuoButtonSize = "sm" | "md" | "lg";

@@ -265,7 +265,7 @@ export default function WaveCard({
               ) : full ? (
                 <button
                   onClick={onWaitlist}
-                  className="flex-1 py-2.5 rounded-2xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 text-[#8a6d00] font-bold text-xs hover:brightness-105 active:scale-[0.98] transition-[filter,transform] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-2xl bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00] font-bold text-xs hover:brightness-105 active:translate-y-px active:brightness-95 transition-[filter,transform] flex items-center justify-center gap-1.5"
                 >
                   <Clock size={12} /> 进入候补 · 有空位自动补位
                 </button>

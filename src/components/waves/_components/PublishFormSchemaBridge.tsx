@@ -85,7 +85,7 @@ interface PublishFormSchemaBridgeProps {
 
 /** 词块胶囊通用样式（圆润高饱和 3D 触感，48px 触控靶区）。 */
 const WORD_PILL_CLASS =
-  "px-3.5 min-h-10 rounded-full text-xs font-bold bg-white border-2 border-[#e5e5e5] text-[#777777] hover:text-[#4b4b4b] active:translate-y-px transition-[transform,color]";
+  "px-3.5 min-h-10 rounded-full text-xs font-bold bg-white border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] active:translate-y-px active:brightness-[0.97] transition-[transform,filter,color]";
 
 /**
  * P1-5 表单 Schema 渲染桥接：100% 由弹药 D8 formSchema 驱动，零品类硬编码分支。

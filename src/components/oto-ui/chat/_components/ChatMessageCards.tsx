@@ -31,7 +31,7 @@ export function GenCardView({
             <button
               key={slot.id}
               onClick={() => onCardSelect(slot.id)}
-              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border-2 border-[#e5e5e5] hover:border-[#58cc02]/50 hover:bg-[#58cc02]/[.06] active:scale-95 transition-[border,background,transform]"
+              className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border-2 border-[var(--color-duo-swan)] hover:border-[var(--color-duo-green)]/50 hover:bg-[var(--color-duo-green)]/[.06] active:translate-y-px active:brightness-[0.97] transition-[border,background,transform,filter]"
             >
               <span className="text-[12px] font-bold text-[#4b4b4b]">
                 {slot.label}

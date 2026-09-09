@@ -341,7 +341,7 @@ function WaveMiniSheet({
       <button
         onClick={handleShare}
         aria-label="复制分享链接，直达该局拼位"
-        className="mt-2 w-full py-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] text-xs font-bold text-[#777777] flex items-center justify-center gap-1.5 hover:bg-[#f7f7f7] transition-colors active:scale-[0.99]"
+        className="mt-2 w-full py-2 rounded-xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-wolf)] flex items-center justify-center gap-1.5 hover:bg-[var(--color-duo-polar)] transition-[transform,filter,background-color] active:translate-y-px active:brightness-[0.97]"
       >
         <Share2 size={11} /> {copied ? "链接已复制" : "复制分享链接 · 直达拼位"}
       </button>
