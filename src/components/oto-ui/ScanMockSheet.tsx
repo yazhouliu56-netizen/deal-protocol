@@ -126,15 +126,15 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed inset-x-6 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-5"
+        className="fixed inset-x-6 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
       >
         <div className="flex items-center gap-2 mb-3">
-          <QrCode size={14} className="text-[#1cb0f6]" />
-          <span className="text-xs font-bold text-[#4b4b4b]">扫码识别</span>
+          <QrCode size={14} className="text-[var(--color-duo-blue)]" />
+          <span className="text-xs font-bold text-[var(--color-duo-eel)]">扫码识别</span>
           <button
             onClick={onClose}
             aria-label="关闭扫码"
-            className="ml-auto text-[#afafaf] hover:text-[#4b4b4b]"
+            className="ml-auto text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
           >
             ✕
           </button>
@@ -149,7 +149,7 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 className="absolute inset-0 m-auto text-brandCyan animate-pulse"
               />
             </div>
-            <p className="text-xs text-[#777777]">正在调起摄像头…</p>
+            <p className="text-xs text-[var(--color-duo-wolf)]">正在调起摄像头…</p>
           </div>
         ) : phase === "scanning" ? (
           <div className="relative overflow-hidden rounded-2xl border border-brandCyan/40 aspect-[4/3] bg-black">
@@ -182,24 +182,24 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
               />
               <ScanLine size={30} className="absolute inset-0 m-auto text-brandCyan" />
             </div>
-            <p className="text-xs text-[#777777]">
+            <p className="text-xs text-[var(--color-duo-wolf)]">
               正在调起摄像头（本地模拟）…
             </p>
-            <p className="text-xs text-[#afafaf]">
+            <p className="text-xs text-[var(--color-duo-hare)]">
               摄像头不可用，已回退模拟演示
             </p>
           </div>
         ) : (
           <div className="py-2">
-            <p className="text-xs font-semibold text-[#58a700] flex items-center gap-1">
+            <p className="text-xs font-semibold text-[var(--color-duo-green-dark)] flex items-center gap-1">
               <CheckCircle2 size={11} /> 识别成功 · 分享的线下局
             </p>
             {wave ? (
-              <div className="mt-3 rounded-2xl border border-[#e5e5e5] bg-[#f7f7f7] p-3">
-                <p className="text-[12px] font-extrabold text-[#4b4b4b]">
+              <div className="mt-3 rounded-2xl border border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] p-3">
+                <p className="text-[12px] font-extrabold text-[var(--color-duo-eel)]">
                   {wave.basics.category}
                 </p>
-                <p className="text-xs text-[#afafaf] mt-0.5">
+                <p className="text-xs text-[var(--color-duo-hare)] mt-0.5">
                   {wave.basics.area} · {wave.basics.time}
                   {(wave.capacity ?? 1) >= 2 && ` · 拼位 ${wave.capacity} 人`}
                 </p>
@@ -214,13 +214,13 @@ export default function ScanMockSheet({ onClose }: { onClose: () => void }) {
                 </DuoButton>
               </div>
             ) : (
-              <p className="text-xs text-[#afafaf] mt-3 text-center py-2">
+              <p className="text-xs text-[var(--color-duo-hare)] mt-3 text-center py-2">
                 码内局已结束 —— 先去雷达看看附近新的信号波
               </p>
             )}
             <button
               onClick={onClose}
-              className="mt-2 w-full py-2 rounded-xl text-[#afafaf] text-xs hover:text-[#4b4b4b] transition-colors"
+              className="mt-2 w-full py-2 rounded-xl text-[var(--color-duo-hare)] text-xs hover:text-[var(--color-duo-eel)] transition-colors"
             >
               取消
             </button>

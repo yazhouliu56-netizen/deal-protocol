@@ -68,8 +68,8 @@ describe("FloatingDock 弹簧光斑滑块（Spring Glider）", () => {
     const activeTab = container.querySelector('[data-testid="dock-tab-im"]')!;
     const glider = activeTab.querySelector('[data-testid="dock-glider"]');
     expect(glider).not.toBeNull();
-    // 硬件加速：仅 transform/opacity 驱动（Feather 亮白 3D：绿底 + 边框 + shadow，无重排属性）
-    expect(glider!.className).toContain("bg-[#d7ffb8]");
+    // 硬件加速：仅 transform/opacity 驱动（Feather 亮白 3D：绿底 Token，与 #d7ffb8 同值 + 边框 + shadow，无重排属性）
+    expect(glider!.className).toContain("bg-[var(--color-duo-green-light)]");
     expect(glider!.className).toContain("border");
     expect(glider!.className).toContain("shadow-");
     unmount();

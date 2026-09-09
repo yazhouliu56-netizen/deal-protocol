@@ -18,9 +18,9 @@ const ICON: Record<DuoPathStatus, string> = {
 };
 
 const COLOR: Record<DuoPathStatus, string> = {
-  completed: "bg-[#ffc800] border-[#e5b400] text-white",
-  current: "bg-[#58cc02] border-[#58a700] text-white shadow-[0_0_18px_rgba(88,204,2,.45)]",
-  locked: "bg-[#e5e5e5] border-[#d4d4d4] text-[#9ca3af]",
+  completed: "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-white",
+  current: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white shadow-[0_0_18px_rgba(88,204,2,.45)]",
+  locked: "bg-[var(--color-duo-swan)] border-[#d4d4d4] text-[#9ca3af]",
 };
 
 export function DuoPathNode({ status, step, title, offsetX = 0 }: DuoPathNodeProps) {
@@ -48,7 +48,7 @@ export function DuoPathNode({ status, step, title, offsetX = 0 }: DuoPathNodePro
         <span className="max-w-[92px] text-center text-xs font-bold leading-tight text-slate-700">{title}</span>
       )}
       {status === "current" && (
-        <span className="absolute -top-1 -right-1 rounded-full bg-[#1cb0f6] px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
+        <span className="absolute -top-1 -right-1 rounded-full bg-[var(--color-duo-blue)] px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
           进行中
         </span>
       )}

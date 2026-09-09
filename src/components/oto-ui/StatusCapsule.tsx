@@ -85,8 +85,8 @@ export const STATUS_PEEK_TEXT: Record<AtomicFiveState, string> = {
 const CAPSULE_CSS = `
 .status-capsule-wrap{position:relative;display:inline-flex;flex-direction:column;align-items:center}
 .status-capsule{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;
-  border-radius:999px;background:#ffffff;border:2px solid #e5e5e5;border-bottom-width:4px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);font-size:14px;font-weight:700;color:#4b4b4b;position:relative}
+  border-radius:999px;background:#ffffff;border:2px solid var(--color-duo-swan);border-bottom-width:4px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);font-size:14px;font-weight:700;color:var(--color-duo-eel);position:relative}
 .status-capsule-dot{width:9px;height:9px;border-radius:50%;animation:status-pulse 1.6s ease-in-out infinite}
 @keyframes status-pulse{0%,100%{box-shadow:0 0 0 0 rgba(88,204,2,0.35);opacity:.9}
   50%{box-shadow:0 0 0 6px rgba(88,204,2,0);opacity:1}}
@@ -95,16 +95,16 @@ const CAPSULE_CSS = `
   padding:2px 8px;animation:offline-blink 1.2s ease-in-out infinite}
 @keyframes offline-blink{0%,100%{opacity:1}50%{opacity:.45}}
 .status-capsule-sos{display:inline-flex;align-items:center;justify-content:center;
-  width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ff4b4b,#ea2b2b);
+  width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--color-duo-red),var(--color-duo-red-dark));
   color:#fff;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.35);
-  box-shadow:0 2px 8px rgba(255,75,75,.45);border-bottom:2px solid #ea2b2b;cursor:pointer;transition:transform .15s}
+  box-shadow:0 2px 8px rgba(255,75,75,.45);border-bottom:2px solid var(--color-duo-red-dark);cursor:pointer;transition:transform .15s}
 .status-capsule-sos:hover{transform:scale(1.12)}
 .status-capsule-sos:active{transform:scale(.95)}
 .status-peek{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
   display:inline-flex;align-items:center;justify-content:center;
   padding:7px 14px;border-radius:999px;
-  background:#ffffff;border:2px solid #e5e5e5;border-bottom-width:4px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.10);font-size:12px;font-weight:700;color:#4b4b4b;
+  background:#ffffff;border:2px solid var(--color-duo-swan);border-bottom-width:4px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.10);font-size:12px;font-weight:700;color:var(--color-duo-eel);
   white-space:nowrap;pointer-events:none;will-change:transform,opacity}
 .status-peek-enter{animation:peek-in .28s cubic-bezier(.16,1,.3,1) forwards}
 .status-peek-exit{animation:peek-out .22s ease-in forwards}
@@ -187,10 +187,10 @@ export default function StatusCapsule({
         <span className="status-capsule-emoji" aria-hidden="true">
           {STATUS_CAPSULE_EMOJI[status]}
         </span>
-        <span className="status-capsule-label" style={{ color: "#4b4b4b" }}>
+        <span className="status-capsule-label" style={{ color: "var(--color-duo-eel)" }}>
           {meta.label}
           {typeof distanceMeters === "number" && distanceMeters >= 0 && (
-            <span className="status-capsule-distance" style={{ marginLeft: 6, color: "#777777" }}>
+            <span className="status-capsule-distance" style={{ marginLeft: 6, color: "var(--color-duo-wolf)" }}>
               · 距服务者 {distanceMeters}m
             </span>
           )}

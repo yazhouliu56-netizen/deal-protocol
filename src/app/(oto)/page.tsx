@@ -64,7 +64,7 @@ export default function Home() {
   useEdgeSwipeBack({ enabled: !gestureLocked && screen !== "home", onSwipeBack: () => setScreen("home") });
   useEffect(() => { initLowPower(); }, []);
   return (
-    <div className="oto-stage app-env h-dvh w-full overflow-hidden relative text-[#4b4b4b]">
+    <div className="oto-stage app-env h-dvh w-full overflow-hidden relative text-[var(--color-duo-eel)]">
       <div className="nebula nebula-violet" />
       <div className="nebula nebula-cyan" />
       <div className="nebula nebula-deep" />

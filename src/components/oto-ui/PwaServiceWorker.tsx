@@ -63,7 +63,7 @@ export default function PwaServiceWorker() {
   return (
     <button
       onClick={() => window.location.reload()}
-      className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] bg-white border-2 border-[#e5e5e5] border-b-4 rounded-full px-4 py-2 text-xs font-bold text-[#0a6ea8] animate-pulse"
+      className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-full px-4 py-2 text-xs font-bold text-[#0a6ea8] animate-pulse"
       aria-label="刷新以使用新版本"
     >
       ✨ 已更新，点击刷新使用新版本

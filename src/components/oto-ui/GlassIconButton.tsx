@@ -24,10 +24,10 @@ export default function GlassIconButton({
   return (
     <button
       onClick={onClick}
-      className={`duo-3d-button bg-white border-2 border-[#e5e5e5] ${SIZE_CLASS[size]} flex items-center justify-center shrink-0 active:translate-y-px ${
+      className={`duo-3d-button bg-white border-2 border-[var(--color-duo-swan)] ${SIZE_CLASS[size]} flex items-center justify-center shrink-0 active:translate-y-px ${
         tone === "cyan"
-          ? "text-[#1cb0f6] hover:border-[#1cb0f6]"
-          : "text-[#777777] hover:border-[#afafaf] hover:text-[#4b4b4b]"
+          ? "text-[var(--color-duo-blue)] hover:border-[var(--color-duo-blue)]"
+          : "text-[var(--color-duo-wolf)] hover:border-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
       } ${className}`}
       {...rest}
     >

@@ -113,10 +113,10 @@ export default function VoiceBar({
       onContextMenu={(e) => e.preventDefault()}
       className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-[filter,transform,background] active:scale-95 disabled:opacity-40 disabled:pointer-events-none border-2 ${
         phase === "recording"
-          ? "bg-[#ff4b4b] border-[#ea2b2b]"
+          ? "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)]"
           : phase === "transcribing"
-            ? "bg-[#1cb0f6]/30 border-[#1cb0f6]/50"
-            : "bg-white border-[#e5e5e5] text-[#1cb0f6] hover:text-[#4b4b4b]"
+            ? "bg-[var(--color-duo-blue)]/30 border-[var(--color-duo-blue)]/50"
+            : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-blue)] hover:text-[var(--color-duo-eel)]"
       }`}
     >
       {phase === "recording" ? (

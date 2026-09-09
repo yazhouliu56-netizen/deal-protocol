@@ -16,8 +16,8 @@ export default function CategoryPill({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3.5 py-2 min-h-10 rounded-full text-xs font-medium transition-all ${
         active
-          ? "bg-[#58cc02] border-b-2 border-[#58a700] text-white"
-          : "bg-white border border-[#e5e5e5] shadow-sm text-[#777777] hover:text-[#4b4b4b]"
+          ? "bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white"
+          : "bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)]"
       }`}
     >
       {children}

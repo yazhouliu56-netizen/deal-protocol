@@ -39,7 +39,7 @@ export default function FloatingDock() {
       transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="fixed o-safe-bottom o-safe-pb bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px] px-4">
-        <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12">
+        <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12">
           {NAVS.map((nav) => {
             const Icon = nav.icon;
             const isActive = activeTab === nav.id;
@@ -53,7 +53,7 @@ export default function FloatingDock() {
                 className={`relative flex flex-col items-center gap-1 transition-all duration-300 ${
                   isActive
                     ? "text-[#357a00] scale-110"
-                    : "text-[#767676] hover:text-[#4b4b4b] hover:scale-105"
+                    : "text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] hover:scale-105"
                 }`}
               >
                 {/* Spring Glider：半透明高光胶囊，Tab 间弹簧滑行吸附（transform/opacity 硬件加速，60fps） */}
@@ -62,13 +62,13 @@ export default function FloatingDock() {
                     layoutId="activeDockPill"
                     data-testid="dock-glider"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="absolute inset-0 -inset-x-1 -top-1 -bottom-1 rounded-2xl bg-[#d7ffb8] border border-[#58cc02]/30 shadow-[0_4px_12px_rgba(88,204,2,0.25)]"
+                    className="absolute inset-0 -inset-x-1 -top-1 -bottom-1 rounded-2xl bg-[var(--color-duo-green-light)] border border-[var(--color-duo-green)]/30 shadow-[0_4px_12px_rgba(88,204,2,0.25)]"
                     aria-hidden="true"
                   />
                 )}
                 <div
                   className={`relative p-2.5 rounded-full transition-colors duration-300 ${
-                    isActive ? "bg-[#58cc02]/15" : ""
+                    isActive ? "bg-[var(--color-duo-green)]/15" : ""
                   }`}
                 >
                   {isActive && (
@@ -80,14 +80,14 @@ export default function FloatingDock() {
                   )}
                   <Icon size={20} className="relative" />
                   {nav.id === "im" && msgUnread > 0 && (
-                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] border-2 border-white text-xs font-bold text-white flex items-center justify-center font-tabular shadow-sm">
+                    <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] border-2 border-white text-xs font-bold text-white flex items-center justify-center font-tabular shadow-sm">
                       {msgUnread}
                     </span>
                   )}
                   {nav.id === "trip" && hasActiveWave && (
                     <span
                       aria-hidden="true"
-                      className="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-[#58cc02] animate-pulse"
+                      className="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-duo-green)] animate-pulse"
                     />
                   )}
                 </div>

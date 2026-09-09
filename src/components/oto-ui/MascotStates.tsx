@@ -54,15 +54,15 @@ function capybaraHat(mood: CapybaraMood) {
       <>
         <ellipse cx="29" cy="12" rx="13" ry="3.4" fill="#78716c" />
         <path d="M20 12q0-8 9-8t9 8" fill="#57534e" />
-        <circle cx="47" cy="40" r="6.5" fill="none" stroke="#1cb0f6" strokeWidth="2.2" />
-        <path d="M51.5 44.5 56 49" stroke="#1cb0f6" strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx="47" cy="40" r="6.5" fill="none" stroke="var(--color-duo-blue)" strokeWidth="2.2" />
+        <path d="M51.5 44.5 56 49" stroke="var(--color-duo-blue)" strokeWidth="2.4" strokeLinecap="round" />
       </>
     );
   }
   if (mood === "success") {
     return (
       <>
-        <path d="M24 13 29 0l5 13" fill="#1cb0f6" />
+        <path d="M24 13 29 0l5 13" fill="var(--color-duo-blue)" />
         <circle cx="29" cy="0.8" r="2.2" fill="#ff7ab8" />
         <circle cx="26.5" cy="7" r="1" fill="#ffd028" />
         <circle cx="31" cy="9" r="1" fill="#ffffff" />
@@ -162,7 +162,7 @@ function BeastSvg({ mood }: { mood: BeastMood }) {
   const cheering = mood === "cheering";
   return (
     <svg width="60" height="60" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="drop-shadow-[0_10px_16px_rgba(68,64,60,.35)]">
-      <circle cx="20" cy="20" r="17" fill={cheering ? "#d7ffb8" : "#ffedd5"} />
+      <circle cx="20" cy="20" r="17" fill={cheering ? "var(--color-duo-green-light)" : "#ffedd5"} />
       <circle cx="18.5" cy="22.5" r="11.5" fill="#44403c" />
       <ellipse cx="18.5" cy="14.5" rx="8.5" ry="5" fill="#f5f5f4" />
       <path d="M28 27q5.5 -1 4.5 -7" stroke="#44403c" strokeWidth="4.5" strokeLinecap="round" />
@@ -197,7 +197,7 @@ function BeastSvg({ mood }: { mood: BeastMood }) {
         <>
           <path d="M8 30 4.5 26" stroke="#44403c" strokeWidth="3" strokeLinecap="round" />
           <path d="M29 30l3.5-4" stroke="#44403c" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="33" cy="8" r="1.4" fill="#58cc02" />
+          <circle cx="33" cy="8" r="1.4" fill="var(--color-duo-green)" />
           <circle cx="7" cy="9" r="1.4" fill="#ff7ab8" />
           <circle cx="29" cy="4.5" r="1.2" fill="#ffd028" />
         </>
@@ -250,7 +250,7 @@ export function SleepyBeast({
     <BeastSvg mood={m} />
   );
   const cls =
-    "mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[#e5e5e5] select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform";
+    "mascot-bob flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] select-none cursor-pointer active:scale-90 active:rotate-6 transition-transform";
   if (!interactive && !onPress) {
     return (
       <span aria-hidden="true" data-testid="beast-mascot" data-mood={m} className={cls}>

@@ -25,7 +25,7 @@ export default function DuoEmpty({
 }) {
   return (
     <div
-      className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-6 flex flex-col items-center text-center gap-1.5"
+      className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-6 flex flex-col items-center text-center gap-1.5"
       data-testid={testId}
     >
       {mascot === "capy-sleepy" ? (
@@ -34,9 +34,9 @@ export default function DuoEmpty({
         <SleepyBeast mood="empty" interactive={false} />
       )}
       {title && (
-        <p className="text-xs font-extrabold text-[#4b4b4b] mt-1">{title}</p>
+        <p className="text-xs font-extrabold text-[var(--color-duo-eel)] mt-1">{title}</p>
       )}
-      <p className="text-xs text-[#767676] mt-1">{desc}</p>
+      <p className="text-xs text-[var(--color-duo-wolf)] mt-1">{desc}</p>
       <DuoButton variant="primary" size="sm" sound="click" onClick={onAction} data-testid={launchTestId}>
         {action}
       </DuoButton>

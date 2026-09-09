@@ -4,9 +4,9 @@ import { CheckCircle2, Info, XCircle } from "lucide-react";
 import { useToastStore, type ToastTone } from "@/base/platform/toast";
 
 const TONE_STYLE: Record<ToastTone, string> = {
-  info: "border-[#1cb0f6]/50 text-[#0a6ea8]",
-  success: "border-[#58cc02]/50 text-[#58a700]",
-  error: "border-[#ff4b4b]/40 text-[#ea2b2b]",
+  info: "border-[var(--color-duo-blue)]/50 text-[#0a6ea8]",
+  success: "border-[var(--color-duo-green)]/50 text-[var(--color-duo-green-dark)]",
+  error: "border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]",
 };
 
 const TONE_ICON: Record<ToastTone, typeof Info> = {
@@ -34,7 +34,7 @@ export default function ToastHost() {
               exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               onClick={() => dismiss(t.id)}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm text-[#4b4b4b] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
+              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-eel)] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
             >
               <Icon size={14} className="shrink-0" />
               {t.text}

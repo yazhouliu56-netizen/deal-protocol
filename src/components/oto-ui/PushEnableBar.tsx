@@ -152,16 +152,16 @@ export default function PushEnableBar() {
   }
 
   return (
-    <div className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3">
+    <div className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-bold text-[#4b4b4b]">
+          <p className="text-xs font-bold text-[var(--color-duo-eel)]">
             📡 PWA 真推
             <span
               className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-extrabold border-2 ${
                 state === "subscribed"
-                  ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
-                  : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
+                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                  : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
               }`}
             >
               {state === "subscribed"
@@ -175,7 +175,7 @@ export default function PushEnableBar() {
                       : "未开启"}
             </span>
           </p>
-          <p className="text-xs text-[#777777] mt-0.5">
+          <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">
             浏览器通知：关闭页面也能收到局信号 · 订阅记录当前端（endpoint）
           </p>
         </div>
@@ -189,7 +189,7 @@ export default function PushEnableBar() {
           </DuoButton>
         )}
       </div>
-      {msg && <p className="text-xs text-[#777777] mt-1.5">{msg}</p>}
+      {msg && <p className="text-xs text-[var(--color-duo-wolf)] mt-1.5">{msg}</p>}
     </div>
   );
 }
