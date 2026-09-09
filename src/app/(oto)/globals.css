@@ -15,92 +15,10 @@
   --color-brandCyan: #00f0ff;
 }
 
-/* ============ 1:1 Design Token 字典（白皮书 §九，Figma 变量 1:1 映射） ============
-   命名与 Figma 变量一致（Color 族 / Spacing 族 / Radius 族 / Shadow 族 / Motion 族），
-   消费方一律经 var(--token) 引用，禁止硬编码色值/间距（Lighthouse Design QA 验收项 T-3）。 */
+/* P9-8 瘦身：Figma 1:1 :root 字典已出清（全仓 0 消费；品牌色走 @theme；Duo 谱系走根 globals.css） */
 
-:root {
-  --color-primary: #0f52ba;
-  --color-primary-active: #0a3c85;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f4f6f9;
-  --color-text-main: #111827;
-  --color-text-secondary: #6b7280;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  --touch-target-min: 44px;
-  --touch-target-comfort: 48px;
-
-  --radius-component: 12px;
-  --radius-pill: 9999px;
-
-  --shadow-sheet: 0 -4px 20px rgba(0, 0, 0, 0.08);
-
-  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 150ms;
-  --duration-base: 250ms;
-}
-
-/* ============ Phase 1.1 Feather Design Tokens (Microkernel 4.2 · 零业务侵入) ============
-   多邻国极净明亮色谱 + 3D 物理触觉体系。Token 层 0 逻辑，仅 CSS 变量与工具类；
-   暗色兼容：light → #f7f7f7 极净底，dark → #0f172a 深空安全色（prefers-color-scheme + data-theme）。 */
-:root {
-  --color-duo-green: #58cc02;
-  --color-duo-green-dark: #58a700;
-  --color-duo-green-light: #d7ffb8;
-  --color-duo-orange: #ff9600;
-  --color-duo-orange-dark: #cc7a00;
-  --color-duo-blue: #1cb0f6;
-  --color-duo-blue-dark: #1899d6;
-  --color-duo-red: #ff4b4b;
-  --color-duo-red-dark: #ea2b2b;
-  --color-duo-yellow: #ffc800;
-  --color-duo-yellow-dark: #e5b400;
-  --color-duo-polar: #f7f7f7;
-  --color-duo-swan: #e5e5e5;
-  --color-duo-hare: #afafaf;
-  --color-duo-wolf: #777777;
-  --color-duo-eel: #4b4b4b;
-  /* P8-4 增补（与根 globals.css 同值 parity，只增不改义） */
-  --color-duo-green-ink: #357a00;
-  --color-duo-yellow-ink: #8a6d00;
-  --color-duo-blue-ink: #0a6ea8;
-  --color-duo-blue-mist: #ddf4ff;
-  --color-duo-red-mist: #fff5f5;
-}
-
-/* 3D 物理触觉工具：4px 实体底边 + active 4px 下沉（Feather 核心触感）+ Duo 圆体 */
-.duo-3d-button {
-  position: relative;
-  border-bottom-width: 4px;
-  font-family: var(--font-duo-rounded), "Nunito", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
-  transition:
-    transform 80ms ease-out,
-    filter 80ms ease-out,
-    border-bottom-width 80ms ease-out;
-}
-.duo-3d-button:active {
-  transform: translateY(4px);
-  border-bottom-width: 0;
-  filter: brightness(0.96);
-}
-.duo-3d-card {
-  background: #ffffff;
-  border: 2px solid #e5e5e5;
-  border-bottom-width: 6px;
-  border-radius: 1.5rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-}
+/* P9-8 瘦身：Feather Duo :root 与根 globals.css 同值 parity 已出清（根布局全局加载，值一致已核）；
+   3D 触觉/白卡/等宽数字亦由根提供（圆体经 .oto-app 继承）。暗色覆盖与品牌 @theme 保留。 */
 
 /* 昼夜双主题：light 默认极净，dark 深空（data-theme="dark" 或系统偏好） */
 @media (prefers-color-scheme: dark) {
@@ -484,21 +402,7 @@
   display: none;
 }
 
-/* ============ 排版系统（第六军团统一字阶 / 等宽数字 / 对比度） ============ */
-
-/* 金额 / 时间 / 比例 / 尺寸一律等宽数字：秒级对齐、防跳动 */
-.oto-app .font-tabular {
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1;
-}
-
-/* 六步字阶：Display 28 / Title 20 / Subtitle 17 / Body 15 / Caption 13 / Micro 12（字阶底线 ≥12px；标题走 Duo 圆体 800） */
-.oto-app .t-display { font-family: var(--font-duo-rounded), "Nunito", "PingFang SC", "Noto Sans SC", sans-serif; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
-.oto-app .t-title { font-family: var(--font-duo-rounded), "Nunito", "PingFang SC", "Noto Sans SC", sans-serif; font-size: 20px; line-height: 1.2; font-weight: 800; }
-.oto-app .t-subtitle { font-size: 17px; line-height: 1.3; font-weight: 600; }
-.oto-app .t-body { font-size: 15px; line-height: 1.6; }
-.oto-app .t-caption { font-size: 13px; line-height: 1.5; }
-.oto-app .t-micro { font-size: 12px; line-height: 1.45; }
+/* ============ 排版系统（等宽数字 / 对比度；t-* 字阶已出清，全仓 0 引用） ============ */
 
 /* 三级明亮文字对比度（Batch1：tx-* 已出清，全仓 0 引用） */
 
