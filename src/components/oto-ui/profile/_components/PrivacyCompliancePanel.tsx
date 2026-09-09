@@ -31,10 +31,10 @@ export default function PrivacyCompliancePanel({
   return (
     <>
       {/* ADR-0016 未成年人分级：出生年 + 监护人同意 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
-        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
+      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           未成年人分级
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#58cc02]/15 border-2 border-[#58cc02]/20 text-[#58cc02] font-bold">
+          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/15 border-2 border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)] font-bold">
             合规
           </span>
         </h3>
@@ -46,17 +46,17 @@ export default function PrivacyCompliancePanel({
             value={birthYearInput}
             onChange={(e) => onBirthYearInputChange(e.target.value)}
             placeholder="出生年份（如 2008）"
-            className="w-36 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#58cc02]/30"
+            className="w-36 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-2.5 py-2 text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] focus:outline-none focus:border-[var(--color-duo-green)]/30"
           />
           <button
             onClick={onAgeSave}
-            className="px-3 py-2 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold active:translate-y-1 active:border-b-0 transition-[transform]"
+            className="px-3 py-2 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:translate-y-1 active:border-b-0 transition-[transform]"
           >
             保存
           </button>
         </div>
         {identity.birthYear != null && (
-          <div className="mt-2 text-xs text-[#777777] leading-relaxed">
+          <div className="mt-2 text-xs text-[var(--color-duo-wolf)] leading-relaxed">
             {(() => {
               const age = ageFromBirthYear(identity.birthYear, new Date().getFullYear());
               const mode = modeOfAge(age);
@@ -69,11 +69,11 @@ export default function PrivacyCompliancePanel({
               const moneyCheck = ageGate({ age, action: "publish-fee" });
               return (
                 <>
-                  <p className="font-bold text-[#4b4b4b]">
+                  <p className="font-bold text-[var(--color-duo-eel)]">
                     {mode === "adult" ? "✅" : mode === "teen" ? "🛡️" : "🔒"} {label}
                   </p>
                   {age < 18 && (
-                    <p className="mt-1 text-[#777777]">
+                    <p className="mt-1 text-[var(--color-duo-wolf)]">
                       资金功能（发布费/押金/竞价/保险）已被 {moneyCheck.blocked ? "拦截" : "禁用"}
                       —— 依据《未成年人网络保护条例》§31/§43 与《未保法》§72/§76
                     </p>
@@ -87,13 +87,13 @@ export default function PrivacyCompliancePanel({
           identity.birthYear ?? new Date().getFullYear(),
           new Date().getFullYear()
         ) < 14 && (
-          <label className="mt-2 flex items-center gap-2 text-xs text-[#4b4b4b] cursor-pointer">
+          <label className="mt-2 flex items-center gap-2 text-xs text-[var(--color-duo-eel)] cursor-pointer">
             <input
               type="checkbox"
               name="guardian-consent"
               checked={identity.guardianConsent ?? false}
               onChange={(e) => onGuardianConsent(e.target.checked)}
-              className="accent-[#58cc02]"
+              className="accent-[var(--color-duo-green)]"
             />
             监护人已同意我使用本平台（《未保法》§72）
           </label>
@@ -101,10 +101,10 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 数据脱敏预览（掩码效果演示） */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
-        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center">
+      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           数据脱敏
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
+          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-bold">
             对外展示即掩码
           </span>
         </h3>
@@ -118,8 +118,8 @@ export default function PrivacyCompliancePanel({
           ] as const
         ).map((r) => (
           <div key={r.kind} className="flex items-center justify-between text-xs">
-            <span className="text-[#777777]">{r.kind}</span>
-            <span className="text-[#4b4b4b] font-mono font-bold">
+            <span className="text-[var(--color-duo-wolf)]">{r.kind}</span>
+            <span className="text-[var(--color-duo-eel)] font-mono font-bold">
               {mask(r.kind as SensitiveKind, r.v)}
             </span>
           </div>
@@ -127,8 +127,8 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* 遗忘权 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
-        <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1">
+      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+        <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1">
           遗忘权（《个保法》§47：删除或匿名化）
         </h3>
         <div className="flex flex-wrap gap-1.5">
@@ -146,14 +146,14 @@ export default function PrivacyCompliancePanel({
               onClick={() => {
                 onRequestForget(o.kind);
               }}
-              className="px-2.5 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs text-[#4b4b4b] font-bold hover:border-[#ff4b4b]/30 hover:text-[#ff4b4b] active:scale-95 transition-all"
+              className="px-2.5 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs text-[var(--color-duo-eel)] font-bold hover:border-[var(--color-duo-red)]/30 hover:text-[var(--color-duo-red)] active:scale-95 transition-all"
             >
               {o.label}
             </button>
           ))}
         </div>
         {lastForget && (
-          <p className="text-xs text-[#58cc02] mt-2 font-bold">
+          <p className="text-xs text-[var(--color-duo-green)] mt-2 font-bold">
             ✓ 已提交「{lastForget}」域匿名化请求（幂等合并，处理中）
           </p>
         )}
@@ -161,14 +161,14 @@ export default function PrivacyCompliancePanel({
           <div className="space-y-1 mt-2">
             {forgetRequests.map((r) => (
               <div key={r.id} className="flex items-center justify-between text-xs">
-                <span className="text-[#777777]">
+                <span className="text-[var(--color-duo-wolf)]">
                   {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
                 </span>
                 <span
                   className={`px-1.5 py-px rounded-full font-bold border-2 ${
                     r.status === "anonymized"
-                      ? "bg-[#d7ffb8] border-[#58cc02]/20 text-[#58cc02]"
-                      : "bg-[#ffebd1] border-[#ff9600]/20 text-[#ff9600]"
+                      ? "bg-[var(--color-duo-green-light)] border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)]"
+                      : "bg-[#ffebd1] border-[var(--color-duo-orange)]/20 text-[var(--color-duo-orange)]"
                   }`}
                 >
                   {r.status === "anonymized" ? "已匿名化" : "处理中"}
@@ -180,18 +180,18 @@ export default function PrivacyCompliancePanel({
       </div>
 
       {/* E2 合规公示入口：消费者权益与平台规则 */}
-      <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
+      <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
         <Link
           href="/rights"
           data-testid="rights-entry"
-          className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] hover:border-[#58cc02]/30 hover:bg-white active:translate-y-0.5 transition-all"
+          className="flex items-center justify-between gap-2 min-h-12 px-3 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] hover:border-[var(--color-duo-green)]/30 hover:bg-white active:translate-y-0.5 transition-all"
         >
-          <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
+          <span className="text-xs font-bold text-[var(--color-duo-eel)] flex items-center gap-1.5">
             ⚖️ 消费者权益与平台保障公示
           </span>
-          <span className="text-[#afafaf] text-sm">›</span>
+          <span className="text-[var(--color-duo-hare)] text-sm">›</span>
         </Link>
-        <p className="text-xs text-[#777777] mt-1.5 leading-relaxed">
+        <p className="text-xs text-[var(--color-duo-wolf)] mt-1.5 leading-relaxed">
           依据《电子商务法》《消费者权益保护法》法定公示：知情权·申诉权·建议权·信用等级·争议仲裁·隐私保护
         </p>
       </div>

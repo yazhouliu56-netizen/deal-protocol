@@ -57,14 +57,14 @@ export default function DataPortCard() {
   };
 
   return (
-    <div className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3.5">
+    <div className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3.5">
       <div className="flex items-center gap-2">
-        <Database size={13} className="text-[#1cb0f6]" />
-        <span className="text-xs font-extrabold text-[#4b4b4b]">
+        <Database size={13} className="text-[var(--color-duo-blue)]" />
+        <span className="text-xs font-extrabold text-[var(--color-duo-eel)]">
           本地数据备份
         </span>
       </div>
-      <p className="text-xs text-[#777777] mt-1 leading-relaxed">
+      <p className="text-xs text-[var(--color-duo-wolf)] mt-1 leading-relaxed">
         全量导出为 JSON 文件（本地模式数据自主权）· 导入会覆盖当前并重载
       </p>
       <div className="mt-2.5 flex gap-2">
@@ -96,12 +96,12 @@ export default function DataPortCard() {
         />
       </div>
       {msg && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-xs font-bold text-[#357a00] flex items-center gap-1">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-xs font-bold text-[#357a00] flex items-center gap-1">
           <Check size={10} /> {msg}
         </p>
       )}
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-xs font-bold text-[var(--color-duo-red-dark)]">
           ⚠ {error}
         </p>
       )}

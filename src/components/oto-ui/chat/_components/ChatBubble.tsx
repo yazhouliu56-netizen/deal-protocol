@@ -32,16 +32,16 @@ export function ChatBubble({
     >
       <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
         {!isUser && (
-          <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center shrink-0">
-            <Bot size={13} className="text-[#1cb0f6]" />
+          <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[var(--color-duo-swan)] flex items-center justify-center shrink-0">
+            <Bot size={13} className="text-[var(--color-duo-blue)]" />
           </div>
         )}
         {message.content && (
           <div
             className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-[12.5px] leading-relaxed whitespace-pre-wrap break-words ${
               isUser
-                ? "bg-[#58cc02] text-white"
-                : "bg-white border border-[#e5e5e5] text-[#4b4b4b]"
+                ? "bg-[var(--color-duo-green)] text-white"
+                : "bg-white border border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
             }`}
           >
             {message.content}
@@ -53,7 +53,7 @@ export function ChatBubble({
         <button
           onClick={() => void speak(message.content ?? "")}
           aria-label="重播语音"
-          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[#e5e5e5] text-xs text-[#0a6ea8] hover:text-[#4b4b4b] flex items-center gap-1 transition-colors"
+          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[var(--color-duo-swan)] text-xs text-[#0a6ea8] hover:text-[var(--color-duo-eel)] flex items-center gap-1 transition-colors"
         >
           <Volume2 size={9} /> 重播
         </button>
@@ -76,14 +76,14 @@ export function ChatBubble({
 export function ThinkingDot() {
   return (
     <div className="flex justify-start">
-      <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center shrink-0">
-        <Bot size={13} className="text-[#1cb0f6]" />
+      <div className="w-7 h-7 mr-2 mt-0.5 rounded-xl bg-white border border-[var(--color-duo-swan)] flex items-center justify-center shrink-0">
+        <Bot size={13} className="text-[var(--color-duo-blue)]" />
       </div>
-      <div className="px-4 py-3 rounded-2xl bg-white border border-[#e5e5e5] flex items-center gap-1">
+      <div className="px-4 py-3 rounded-2xl bg-white border border-[var(--color-duo-swan)] flex items-center gap-1">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-1.5 h-1.5 rounded-full bg-[#1cb0f6] animate-bounce"
+            className="w-1.5 h-1.5 rounded-full bg-[var(--color-duo-blue)] animate-bounce"
             style={{ animationDelay: `${i * 0.15}s` }}
           />
         ))}

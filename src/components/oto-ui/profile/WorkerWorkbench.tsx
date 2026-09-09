@@ -162,7 +162,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
     <div className="pointer-events-auto flex flex-col gap-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[12px] text-[#777777] hover:text-[#4b4b4b] w-fit font-bold"
+        className="flex items-center gap-1.5 text-[12px] text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] w-fit font-bold"
       >
         <ArrowLeft size={14} /> 返回个人中心
       </button>
@@ -170,24 +170,24 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       {/* Microkernel 4.4 批次 2 · 服务者连胜火焰（诚实派生：连胜单数 = 真实已完成单数，零臆造） */}
       <div
         data-testid="streak-flame-card"
-        className="duo-3d-card rounded-3xl border-2 border-b-[6px] border-[#e5e5e5] bg-white p-4"
+        className="duo-3d-card rounded-3xl border-2 border-b-[6px] border-[var(--color-duo-swan)] bg-white p-4"
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-xl leading-none" aria-hidden="true">🔥</span>
-            <span className="text-[14px] font-extrabold tabular-nums text-[#4b4b4b]">
+            <span className="text-[14px] font-extrabold tabular-nums text-[var(--color-duo-eel)]">
               连胜 {completed.length} 单
             </span>
             <span className="text-xs font-bold text-[#9a4d00] shrink-0">· 守约率 100%</span>
           </div>
           <span
             data-testid="streak-freeze-badge"
-            className="text-xs font-bold px-2 py-1 rounded-full bg-[#ff9600]/10 border-2 border-[#ff9600]/40 text-[#9a4d00] shrink-0 whitespace-nowrap"
+            className="text-xs font-bold px-2 py-1 rounded-full bg-[var(--color-duo-orange)]/10 border-2 border-[var(--color-duo-orange)]/40 text-[#9a4d00] shrink-0 whitespace-nowrap"
           >
             ❄️ 连胜冻结卡 × 1 保护中
           </span>
         </div>
-        <p className="text-xs font-bold text-[#777777] mt-1.5">
+        <p className="text-xs font-bold text-[var(--color-duo-wolf)] mt-1.5">
           解锁周末优先派单权 · 1.2x 流量加权
         </p>
       </div>
@@ -201,8 +201,8 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             aria-pressed={providerId === p.id}
             className={`flex-1 flex items-center gap-1.5 px-3 py-3 rounded-2xl text-xs font-bold transition-all border-b-4 border-x border-t min-h-12 ${
               providerId === p.id
-                ? "bg-[#58cc02] border-[#58a700] text-white"
-                : "bg-white border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b] hover:border-[#58cc02]/30"
+                ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white"
+                : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] hover:border-[var(--color-duo-green)]/30"
             }`}
           >
             <span className="text-sm">{p.emoji}</span>
@@ -216,31 +216,31 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4"
+        className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4"
       >
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center justify-center text-lg shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-lg shrink-0">
             {profile.emoji}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-[14px] font-extrabold text-[#4b4b4b]">{profile.name}</span>
-              <span className="flex items-center gap-0.5 text-xs font-semibold text-[#ffc800]">
-                <Star size={10} className="fill-[#ffc800]" /> {profile.rating}
+              <span className="text-[14px] font-extrabold text-[var(--color-duo-eel)]">{profile.name}</span>
+              <span className="flex items-center gap-0.5 text-xs font-semibold text-[var(--color-duo-yellow)]">
+                <Star size={10} className="fill-[var(--color-duo-yellow)]" /> {profile.rating}
               </span>
             </div>
-            <p className="text-xs text-[#777777] mt-0.5">{profile.desc}</p>
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">{profile.desc}</p>
           </div>
           <button
             onClick={guardProviderAction(() => setWorkerOnline(!workerOnline))}
             aria-label="在线接单开关"
             className={`flex items-center gap-1.5 px-3 py-2 rounded-full border-2 border-b-4 text-xs font-bold transition-[transform] min-h-10 active:translate-y-1 active:border-b-2 ${
               workerOnline
-                ? "bg-[#d7ffb8] border-[#58cc02]/30 text-[#58cc02]"
-                : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
+                ? "bg-[var(--color-duo-green-light)] border-[var(--color-duo-green)]/30 text-[var(--color-duo-green)]"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
             }`}
           >
-            <Power size={11} className={workerOnline ? "fill-[#58cc02] text-[#58cc02]" : ""} />
+            <Power size={11} className={workerOnline ? "fill-[var(--color-duo-green)] text-[var(--color-duo-green)]" : ""} />
             {workerOnline ? "接单中" : "已暂停"}
           </button>
         </div>
@@ -254,12 +254,12 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
           ].map((s) => (
             <div
               key={s.label}
-              className="rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] py-2.5 flex flex-col items-center gap-0.5"
+              className="rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] py-2.5 flex flex-col items-center gap-0.5"
             >
-              <span className="text-[13px] font-extrabold text-[#1cb0f6]">
+              <span className="text-[13px] font-extrabold text-[var(--color-duo-blue)]">
                 {s.value}
               </span>
-              <span className="text-xs text-[#777777] font-bold">{s.label}</span>
+              <span className="text-xs text-[var(--color-duo-wolf)] font-bold">{s.label}</span>
             </div>
           ))}
         </div>
@@ -268,7 +268,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       {/* S1 R_AUTH 全方案资质准入看板（注册表单一真理源：每个当前注册弹药
           的 workerRequirement 均跑一遍资质审查，工厂热注新弹药自动长出卡片） */}
       <section data-testid="ammo-qualification-board">
-        <SectionTitle icon={<BadgeCheck size={12} className="text-[#1cb0f6]" />} title={`全方案资质准入（${registeredAmmos.length}）`} />
+        <SectionTitle icon={<BadgeCheck size={12} className="text-[var(--color-duo-blue)]" />} title={`全方案资质准入（${registeredAmmos.length}）`} />
         <div className="grid grid-cols-2 gap-2">
           {registeredAmmos.map((ammo) => {
             const pill = ammoPills.get(ammo.ammoId);
@@ -282,41 +282,41 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 data-qualified={qualified}
                 className={`rounded-2xl border-2 p-2.5 flex flex-col gap-1.5 ${
                   qualified
-                    ? "border-[#58cc02]/30 bg-[#d7ffb8]/50 border-b-4"
-                    : "border-[#ff4b4b]/20 bg-[#ffdfe0]/40 border-b-4"
+                    ? "border-[var(--color-duo-green)]/30 bg-[var(--color-duo-green-light)]/50 border-b-4"
+                    : "border-[var(--color-duo-red)]/20 bg-[#ffdfe0]/40 border-b-4"
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-sm leading-none shrink-0">{pill?.icon ?? "⚡"}</span>
-                  <span className="text-xs font-extrabold text-[#4b4b4b] truncate flex-1">
+                  <span className="text-xs font-extrabold text-[var(--color-duo-eel)] truncate flex-1">
                     {pill?.label ?? ammo.category}
                   </span>
                   <span
                     className={`text-xs font-bold shrink-0 px-1.5 py-px rounded-full border-2 ${
                       qualified
-                        ? "text-[#58cc02] border-[#58cc02]/30 bg-white"
-                        : "text-[#ff4b4b] border-[#ff4b4b]/20 bg-white"
+                        ? "text-[var(--color-duo-green)] border-[var(--color-duo-green)]/30 bg-white"
+                        : "text-[var(--color-duo-red)] border-[var(--color-duo-red)]/20 bg-white"
                     }`}
                   >
                     {qualified ? "已达标" : "未达标"}
                   </span>
                 </div>
-                <p className="text-xs text-[#afafaf] truncate">{ammo.ammoId}</p>
+                <p className="text-xs text-[var(--color-duo-hare)] truncate">{ammo.ammoId}</p>
                 {!ammo.workerRequirement ? (
-                  <p className="text-xs text-[#777777] font-bold">无门槛 · 通用可接单</p>
+                  <p className="text-xs text-[var(--color-duo-wolf)] font-bold">无门槛 · 通用可接单</p>
                 ) : missing.length > 0 ? (
                   <ul className="flex flex-col gap-0.5">
                     {missing.slice(0, 3).map((m) => (
-                      <li key={m} className="text-xs text-[#4b4b4b] leading-tight">
+                      <li key={m} className="text-xs text-[var(--color-duo-eel)] leading-tight">
                         · {m}
                       </li>
                     ))}
                     {missing.length > 3 && (
-                      <li className="text-xs text-[#afafaf]">+{missing.length - 3} 项待补齐</li>
+                      <li className="text-xs text-[var(--color-duo-hare)]">+{missing.length - 3} 项待补齐</li>
                     )}
                   </ul>
                 ) : (
-                  <p className="text-xs text-[#58cc02] font-bold">✅ 资质已达标 · 可接单</p>
+                  <p className="text-xs text-[var(--color-duo-green)] font-bold">✅ 资质已达标 · 可接单</p>
                 )}
               </motion.div>
             );
@@ -326,14 +326,14 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
 
       {/* 待接单 */}
       <section>
-        <SectionTitle icon={<Inbox size={12} className="text-[#1cb0f6]" />} title="新订单请求" />
+        <SectionTitle icon={<Inbox size={12} className="text-[var(--color-duo-blue)]" />} title="新订单请求" />
         {!workerOnline && (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 px-4 py-3 text-xs text-[#afafaf] font-bold flex items-center gap-2">
+          <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold flex items-center gap-2">
             <Power size={12} /> 已暂停接单，AI 撮合会把你推荐给别的服务者
           </div>
         )}
         {pending.length === 0 ? (
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-4 px-4 py-3 text-xs text-[#afafaf] font-bold">
+          <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-4 px-4 py-3 text-xs text-[var(--color-duo-hare)] font-bold">
             {workerOnline ? "没有待接单，AI 撮合正在为你找单～" : "开启接单后会收到新请求"}
           </div>
         ) : (
@@ -360,7 +360,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       {/* 进行中 */}
       {active.length > 0 && (
         <section>
-          <SectionTitle icon={<Clock3 size={12} className="text-[#1cb0f6]" />} title="进行中" />
+          <SectionTitle icon={<Clock3 size={12} className="text-[var(--color-duo-blue)]" />} title="进行中" />
           <div className="flex flex-col gap-2">
             {active.map((o) => (
               <WorkerOrderRow
@@ -383,19 +383,19 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       {/* 已完成 */}
       {completed.length > 0 && (
         <section>
-          <SectionTitle icon={<CircleDollarSign size={12} className="text-[#58cc02]" />} title="已完成" />
+          <SectionTitle icon={<CircleDollarSign size={12} className="text-[var(--color-duo-green)]" />} title="已完成" />
           <div className="flex flex-col gap-2">
             {completed.map((o) => (
               <WorkerOrderRow key={o.id} order={o} done />
             ))}
           </div>
-          <p className="text-xs text-[#58cc02] mt-2 flex items-center gap-1 font-bold">
+          <p className="text-xs text-[var(--color-duo-green)] mt-2 flex items-center gap-1 font-bold">
             <Check size={11} /> 累计入账 ¥{income} · 评价已同步到你的撮合画像
           </p>
         </section>
       )}
 
-      <p className="text-xs text-[#afafaf] text-center pb-1 font-bold">
+      <p className="text-xs text-[var(--color-duo-hare)] text-center pb-1 font-bold">
         本轮演示 · 收益为虚拟结算 · 累计流水 ¥{incoming}
       </p>
     </div>
@@ -404,8 +404,8 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
 
 function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
-    <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5 text-[#4b4b4b]">
-      <span className="w-1 h-3.5 rounded-full bg-[#58cc02]" />
+    <h3 className="text-[12px] font-bold mb-2 flex items-center gap-1.5 text-[var(--color-duo-eel)]">
+      <span className="w-1 h-3.5 rounded-full bg-[var(--color-duo-green)]" />
       {icon}
       {title}
     </h3>
@@ -431,34 +431,34 @@ function WorkerOrderRow({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3 flex items-center gap-3 ${
+      className={`bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3 flex items-center gap-3 ${
         dimmed ? "opacity-50" : ""
       }`}
     >
-      <div className="w-9 h-9 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center justify-center text-base shrink-0">
+      <div className="w-9 h-9 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-base shrink-0">
         {order.icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-[12px] font-bold text-[#4b4b4b] truncate">
+          <span className="text-[12px] font-bold text-[var(--color-duo-eel)] truncate">
             {order.service}
           </span>
           {done && (
-            <span className="text-xs px-1.5 py-px rounded-full bg-[#d7ffb8] border-2 border-[#58cc02]/20 text-[#58cc02] font-bold shrink-0">
+            <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-green-light)] border-2 border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)] font-bold shrink-0">
               已入账
             </span>
           )}
         </div>
-        <p className="text-xs text-[#777777] mt-0.5 truncate">
+        <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5 truncate">
           {order.client} · {order.time}
         </p>
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className="text-[12px] font-extrabold text-[#58cc02]">
+        <span className="text-[12px] font-extrabold text-[var(--color-duo-green)]">
           {order.price}
         </span>
         {blocked ? (
-          <span className="px-3 py-2 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/20 text-[#ff4b4b] text-xs font-bold shrink-0">
+          <span className="px-3 py-2 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/20 text-[var(--color-duo-red)] text-xs font-bold shrink-0">
             {blockedLabel ?? "不满足接单条件"}
           </span>
         ) : (
@@ -466,7 +466,7 @@ function WorkerOrderRow({
             <button
               onClick={onAction}
               disabled={dimmed}
-              className="px-4 py-2.5 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-extrabold disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="px-4 py-2.5 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white text-xs font-extrabold disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               {actionLabel}
             </button>

@@ -29,14 +29,14 @@ export default function SafetyCenterCard({
   onResolve,
 }: SafetyCenterCardProps) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] border-b-[6px] p-3.5">
-      <h3 className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
+    <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
+      <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
         紧急求助
-        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] font-bold">
+        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-bold">
           EPA 递增通知
         </span>
       </h3>
-      <p className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1">
+      <p className="text-xs font-bold text-[var(--color-duo-eel)] flex items-center gap-1">
         紧急求助（紧急联系人 → 平台值班 → 警方通道）
       </p>
       <div className="flex gap-1.5 mt-2">
@@ -51,11 +51,11 @@ export default function SafetyCenterCard({
             className={`flex-1 px-2 py-1.5 rounded-xl text-xs font-bold border-b-4 border-x border-t transition-all active:translate-y-1 active:border-b-0 ${
               crisisLevel === o.lv
                 ? o.lv === 3
-                  ? "bg-[#ff4b4b] border-[#ea2b2b] text-white"
+                  ? "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-white"
                   : o.lv === 2
-                    ? "bg-[#ff9600] border-[#cc7a00] text-white"
-                    : "bg-white border-[#e5e5e5] text-[#4b4b4b]"
-                : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
+                    ? "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-white"
+                    : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
             }`}
           >
             {o.label}
@@ -66,19 +66,19 @@ export default function SafetyCenterCard({
         value={crisisNote}
         onChange={(e) => onNoteChange(e.target.value)}
         placeholder="备注（如：山野迷路，沿步道 2 号点等待）"
-        className="mt-2 w-full rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:outline-none focus:border-[#ff4b4b]/50"
+        className="mt-2 w-full rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-2.5 py-2 text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] focus:outline-none focus:border-[var(--color-duo-red)]/50"
       />
       <div className="flex items-center gap-2 mt-2">
         <button
           onClick={onRaise}
-          className="flex-1 px-3 py-3 rounded-xl bg-[#ff4b4b] border-b-4 border-[#ea2b2b] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+          className="flex-1 px-3 py-3 rounded-xl bg-[var(--color-duo-red)] border-b-4 border-[var(--color-duo-red-dark)] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
         >
           发起求助
         </button>
         {myCrisis.length > 0 && (
           <button
             onClick={onResolve}
-            className="px-3 py-3 rounded-xl bg-[#58cc02] border-b-4 border-[#58a700] text-white text-xs font-bold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+            className="px-3 py-3 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white text-xs font-bold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
           >
             已平安，结束
           </button>
@@ -90,21 +90,21 @@ export default function SafetyCenterCard({
             {crisisTargets.map((t) => (
               <span
                 key={t}
-                className="px-2 py-0.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/20 text-xs font-bold text-[#ff4b4b]"
+                className="px-2 py-0.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/20 text-xs font-bold text-[var(--color-duo-red)]"
               >
                 📢 已通知 {t}
               </span>
             ))}
           </div>
           {crisisSmsText && (
-            <p className="text-xs text-[#4b4b4b] bg-[#f7f7f7] rounded-xl border-2 border-[#e5e5e5] px-2 py-1.5 leading-relaxed">
+            <p className="text-xs text-[var(--color-duo-eel)] bg-[var(--color-duo-polar)] rounded-xl border-2 border-[var(--color-duo-swan)] px-2 py-1.5 leading-relaxed">
               {crisisSmsText}
             </p>
           )}
         </div>
       )}
       {myCrisis.length > 0 && (
-        <p className="text-xs text-[#ff4b4b] mt-2 font-bold">
+        <p className="text-xs text-[var(--color-duo-red)] mt-2 font-bold">
           处置中：{myCrisis[0].note}（登记于{" "}
           {new Date(myCrisis[0].at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
           ）
@@ -112,7 +112,7 @@ export default function SafetyCenterCard({
       )}
       {myCrisis[0]?.forensicSnapshot && (
         <p
-          className="text-xs text-[#58cc02] bg-[#d7ffb8]/50 border-2 border-[#58cc02]/20 rounded-xl px-2 py-1.5 mt-1.5 font-bold"
+          className="text-xs text-[var(--color-duo-green)] bg-[var(--color-duo-green-light)]/50 border-2 border-[var(--color-duo-green)]/20 rounded-xl px-2 py-1.5 mt-1.5 font-bold"
           data-testid="sos-forensic-badge"
         >
           🛡️ 危机存证已封包（轨迹 {myCrisis[0].forensicSnapshot.trajectoryPayload.pointCount} 点 · 录音{" "}

@@ -50,14 +50,14 @@ export default function ChatInputBar({
         onCompositionEnd={() => (composingRef.current = false)}
         name="ai-demand-input"
         placeholder="想找谁帮忙？一句话告诉我… 描述你的需求，比如：周六下午 2 人羽毛球"
-        className="flex-1 min-w-0 px-4 py-3 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 outline-none text-xs text-[#4b4b4b] placeholder:text-[#afafaf] focus:border-[#58cc02]/30"
+        className="flex-1 min-w-0 px-4 py-3 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 outline-none text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] focus:border-[var(--color-duo-green)]/30"
         enterKeyHint="send"
       />
       <button
         type="submit"
         disabled={streaming || !input.trim()}
         aria-label="发送"
-        className="w-11 h-11 shrink-0 rounded-2xl bg-[#58cc02] border-b-4 border-[#58a700] text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform]"
+        className="w-11 h-11 shrink-0 rounded-2xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform]"
       >
         <Send size={16} />
       </button>
@@ -67,13 +67,13 @@ export default function ChatInputBar({
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] border-b-4 text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+          className="absolute right-0 -top-10 z-10 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-eel)] flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
         >
-          <Mic size={10} className="text-[#1cb0f6]" />
+          <Mic size={10} className="text-[var(--color-duo-blue)]" />
           按住说话 · 自动发布/查局
           <button
             onClick={markVoiceSeen}
-            className="ml-1 px-2 py-1 min-h-8 pointer-events-auto text-[#afafaf] hover:text-[#4b4b4b] underline underline-offset-2"
+            className="ml-1 px-2 py-1 min-h-8 pointer-events-auto text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] underline underline-offset-2"
           >
             知道了
           </button>

@@ -25,7 +25,7 @@ export default function OrderDetail({
     <div className="pointer-events-auto flex flex-col gap-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-[12px] text-[#4b4b4b] hover:text-[#4b4b4b] w-fit"
+        className="flex items-center gap-1.5 text-[12px] text-[var(--color-duo-eel)] hover:text-[var(--color-duo-eel)] w-fit"
       >
         <ArrowLeft size={14} /> 返回订单列表
       </button>
@@ -33,25 +33,25 @@ export default function OrderDetail({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4"
+        className="bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4"
       >
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-xl">
+          <div className="w-11 h-11 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm flex items-center justify-center text-xl">
             {CATEGORY_EMOJI[booking.category] ?? "🎟️"}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-[14px] font-extrabold truncate">
               {booking.providerName}
             </h2>
-            <p className="text-xs text-[#777777]">{booking.category}</p>
+            <p className="text-xs text-[var(--color-duo-wolf)]">{booking.category}</p>
           </div>
           <span
             className={`text-xs px-2 py-1 rounded-full font-semibold shrink-0 border-2 ${
               booking.status === "upcoming"
-                ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
+                ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]"
                 : booking.status === "cancelled"
-                  ? "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
-                  : "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+                  ? "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
+                  : "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
             }`}
           >
             {booking.status === "upcoming"
@@ -62,7 +62,7 @@ export default function OrderDetail({
           </span>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-[#e5e5e5] pt-3 text-[13px]">
+        <div className="flex flex-col gap-2 border-t border-[var(--color-duo-swan)] pt-3 text-[13px]">
           {[
             { k: "服务", v: booking.category },
             { k: "对象", v: booking.providerName },
@@ -71,24 +71,24 @@ export default function OrderDetail({
             { k: "订单号", v: booking.id.slice(0, 8).toUpperCase() },
           ].map((line) => (
             <div key={line.k} className="flex gap-2">
-              <span className="text-[#777777] w-12 shrink-0">{line.k}</span>
-              <span className="text-[#4b4b4b]">{line.v}</span>
+              <span className="text-[var(--color-duo-wolf)] w-12 shrink-0">{line.k}</span>
+              <span className="text-[var(--color-duo-eel)]">{line.v}</span>
             </div>
           ))}
         </div>
       </motion.div>
 
       {booking.status === "cancelled" ? (
-        <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-4">
-          <h3 className="text-xs font-bold text-[#4b4b4b] mb-3">履约进度</h3>
-          <div className="flex items-center gap-2 text-[13px] text-[#777777]">
-            <span className="w-5 h-5 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] flex items-center justify-center text-xs">✕</span>
+        <div className="bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-2xl p-4">
+          <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-3">履约进度</h3>
+          <div className="flex items-center gap-2 text-[13px] text-[var(--color-duo-wolf)]">
+            <span className="w-5 h-5 rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] flex items-center justify-center text-xs">✕</span>
             订单已取消，工作台对应待接单已同步撤回
           </div>
         </div>
       ) : (
-        <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-2xl p-4">
-        <h3 className="text-xs font-bold text-[#4b4b4b] mb-3">履约进度</h3>
+        <div className="bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-2xl p-4">
+        <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-3">履约进度</h3>
         <div className="flex flex-col gap-3">
           {[
             { label: "AI 撮合完成", done: true },
@@ -100,15 +100,15 @@ export default function OrderDetail({
               <div
                 className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 ${
                   step.done
-                    ? "bg-[#58cc02]/10 border-[#58cc02]/50 text-[#357a00]"
-                    : "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/50 text-[#357a00]"
+                    : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
                 }`}
               >
                 {step.done ? <Check size={11} /> : <span className="text-xs">{i + 1}</span>}
               </div>
               <span
                 className={`text-[13px] ${
-                  step.done ? "text-[#4b4b4b]" : "text-[#777777]"
+                  step.done ? "text-[var(--color-duo-eel)]" : "text-[var(--color-duo-wolf)]"
                 }`}
               >
                 {step.label}
@@ -117,8 +117,8 @@ export default function OrderDetail({
                 <div
                   className={`flex-1 h-px ${
                     [true, true, booking.status === "completed", false][i + 1]
-                      ? "bg-[#58cc02]/50"
-                      : "bg-[#e5e5e5]"
+                      ? "bg-[var(--color-duo-green)]/50"
+                      : "bg-[var(--color-duo-swan)]"
                   }`}
                 />
               )}
@@ -143,7 +143,7 @@ export default function OrderDetail({
           onClick={() => {
             cancelBooking(booking.id);
           }}
-          className="w-full py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] text-xs font-bold text-[#4b4b4b] hover:text-[#ea2b2b] hover:border-[#ff4b4b]/50 transition-colors active:scale-[0.99]"
+          className="w-full py-2.5 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-eel)] hover:text-[var(--color-duo-red-dark)] hover:border-[var(--color-duo-red)]/50 transition-colors active:scale-[0.99]"
         >
           取消订单
         </button>

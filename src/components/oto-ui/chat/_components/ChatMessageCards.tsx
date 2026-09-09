@@ -33,17 +33,17 @@ export function GenCardView({
               onClick={() => onCardSelect(slot.id)}
               className="shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-white min-w-[92px] border-2 border-[var(--color-duo-swan)] hover:border-[var(--color-duo-green)]/50 hover:bg-[var(--color-duo-green)]/[.06] active:translate-y-px active:brightness-[0.97] transition-[border,background,transform,filter]"
             >
-              <span className="text-[12px] font-bold text-[#4b4b4b]">
+              <span className="text-[12px] font-bold text-[var(--color-duo-eel)]">
                 {slot.label}
               </span>
               {slot.density != null && (
                 <span
                   className={`text-xs font-bold ${
                     slot.density >= 75
-                      ? "text-[#cc7a00]"
+                      ? "text-[var(--color-duo-orange-dark)]"
                       : slot.density <= 30
                         ? "text-[#357a00]"
-                        : "text-[#777777]"
+                        : "text-[var(--color-duo-wolf)]"
                   }`}
                 >
                   {slot.density >= 75
@@ -54,7 +54,7 @@ export function GenCardView({
                 </span>
               )}
               {slot.sub && (
-                <span className="text-xs text-[#afafaf]">{slot.sub}</span>
+                <span className="text-xs text-[var(--color-duo-hare)]">{slot.sub}</span>
               )}
             </button>
           ))}
@@ -84,8 +84,8 @@ export function GenCardView({
         <div className="flex flex-col gap-1 mb-2.5">
           {card.lines.map((line) => (
             <div key={line.k} className="flex items-start gap-2 text-xs">
-              <span className="text-[#afafaf] shrink-0 w-12">{line.k}</span>
-              <span className="text-[#4b4b4b]">{line.v}</span>
+              <span className="text-[var(--color-duo-hare)] shrink-0 w-12">{line.k}</span>
+              <span className="text-[var(--color-duo-eel)]">{line.v}</span>
             </div>
           ))}
         </div>
@@ -95,19 +95,19 @@ export function GenCardView({
           </span>
           {booked ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-bold text-[#357a00] px-3 py-1.5 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40">
+              <span className="flex items-center gap-1 text-xs font-bold text-[#357a00] px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40">
                 <Check size={12} /> 已预订
               </span>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
               {card.lines.some((l) => l.k === "方案单号") ? (
-                <span className="text-xs font-bold text-[#0a6ea8] px-3 py-1.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40">
+                <span className="text-xs font-bold text-[#0a6ea8] px-3 py-1.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40">
                   已转正式订单 ✅
                 </span>
               ) : (
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
                   aria-label="转为正式订单"
-                  className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold active:scale-95"
+                  className="px-3.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:scale-95"
                 >
                   📡 转为正式订单
                 </button>
@@ -116,7 +116,7 @@ export function GenCardView({
           ) : (
             <button
               onClick={() => onBook(msgId, card.lines, card.price)}
-              className="px-3.5 py-1.5 rounded-full bg-[#58cc02] border-b-2 border-[#58a700] text-white text-xs font-bold active:scale-95"
+              className="px-3.5 py-1.5 rounded-full bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white text-xs font-bold active:scale-95"
             >
               确认预订
             </button>
@@ -150,21 +150,21 @@ function ProviderRow({
     { key: "availability", label: "时段", max: 10 },
   ];
   return (
-    <div className="rounded-xl border border-[#e5e5e5] bg-[#f7f7f7] overflow-hidden">
+    <div className="rounded-xl border border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] overflow-hidden">
       <button
         onClick={onSelect}
-        className="w-full flex items-center gap-2.5 p-2 hover:border-[#58cc02]/50 hover:bg-[#58cc02]/[.06] transition-colors text-left active:scale-[0.98]"
+        className="w-full flex items-center gap-2.5 p-2 hover:border-[var(--color-duo-green)]/50 hover:bg-[var(--color-duo-green)]/[.06] transition-colors text-left active:scale-[0.98]"
       >
-        <div className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center text-base shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-white border border-[var(--color-duo-swan)] flex items-center justify-center text-base shrink-0">
           {provider.emoji}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[12px] font-bold text-[#4b4b4b] truncate">
+            <span className="text-[12px] font-bold text-[var(--color-duo-eel)] truncate">
               {provider.name}
             </span>
             {provider.tag && (
-              <span className="text-xs px-1.5 py-px rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-[#0a6ea8] font-semibold shrink-0">
+              <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[#0a6ea8] font-semibold shrink-0">
                 {provider.tag}
               </span>
             )}
@@ -172,21 +172,21 @@ function ProviderRow({
               <span
                 className={`text-xs px-1.5 py-px rounded-full font-bold shrink-0 border-2 ${
                   match.badge === "极高匹配"
-                    ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
                     : match.badge === "高匹配"
-                      ? "bg-[#1cb0f6]/10 border-[#1cb0f6]/40 text-[#0a6ea8]"
+                      ? "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]"
                       : match.badge === "中等"
-                        ? "bg-[#ffc800]/10 border-[#e5b400]/50 text-[#8a6d00]"
-                        : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
+                        ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]"
+                        : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                 }`}
               >
                 {match.badge} {match.score}%
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-xs text-[#afafaf]">
-            <span className="flex items-center gap-0.5 text-[#e5b400]">
-              <Star size={9} className="fill-[#ffc800]" />
+          <div className="flex items-center gap-1 text-xs text-[var(--color-duo-hare)]">
+            <span className="flex items-center gap-0.5 text-[var(--color-duo-yellow-dark)]">
+              <Star size={9} className="fill-[var(--color-duo-yellow)]" />
               {provider.rating}
             </span>
             <span>·</span>
@@ -196,12 +196,12 @@ function ProviderRow({
             <span className="truncate">· {provider.meta}</span>
           </div>
           {provider.availability === "本时段不可约" && (
-            <p className="text-xs text-[#cc7a00] mt-0.5">
+            <p className="text-xs text-[var(--color-duo-orange-dark)] mt-0.5">
               该时段已约满，建议改选空闲时段 ⏳
             </p>
           )}
           {provider.availability === "已下线" && (
-            <p className="text-xs text-[#afafaf] mt-0.5">
+            <p className="text-xs text-[var(--color-duo-hare)] mt-0.5">
               暂时未接单，换一个在线服务者更稳
             </p>
           )}
@@ -213,7 +213,7 @@ function ProviderRow({
       {provider.breakdown && (
         <button
           onClick={() => setShowDetail((v) => !v)}
-          className="w-full flex items-center justify-center gap-1 py-1 text-xs text-[#afafaf] hover:text-[#777777] transition-colors"
+          className="w-full flex items-center justify-center gap-1 py-1 text-xs text-[var(--color-duo-hare)] hover:text-[var(--color-duo-wolf)] transition-colors"
         >
           <ChevronDown
             size={10}
@@ -229,18 +229,18 @@ function ProviderRow({
             const pct = Math.min(100, (value / row.max) * 100);
             return (
               <div key={row.key} className="flex items-center gap-2">
-                <span className="text-xs text-[#afafaf] w-7 shrink-0">
+                <span className="text-xs text-[var(--color-duo-hare)] w-7 shrink-0">
                   {row.label}
                 </span>
-                <div className="flex-1 h-1.5 rounded-full bg-[#f7f7f7] overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[var(--color-duo-polar)] overflow-hidden">
                   <div
-                    className={`h-full rounded-full bg-[#58cc02] ${
+                    className={`h-full rounded-full bg-[var(--color-duo-green)] ${
                       pct === 0 ? "w-0" : ""
                     }`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className="text-xs text-[#777777] w-9 text-right shrink-0">
+                <span className="text-xs text-[var(--color-duo-wolf)] w-9 text-right shrink-0">
                   {value}/{row.max}
                 </span>
               </div>
@@ -270,16 +270,16 @@ function CardShell({
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={`ml-9 mt-1 max-w-[88%] px-3.5 py-3 rounded-2xl border-2 ${
         accent
-          ? "bg-[#d7ffb8] border-[#58cc02]/40"
-          : "bg-white border-[#e5e5e5]"
+          ? "bg-[var(--color-duo-green-light)] border-[var(--color-duo-green)]/40"
+          : "bg-white border-[var(--color-duo-swan)]"
       }`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-extrabold text-[#4b4b4b]">
+        <span className="text-xs font-extrabold text-[var(--color-duo-eel)]">
           {title}
         </span>
         {subtitle && !accent && (
-          <span className="text-xs text-[#afafaf] truncate">{subtitle}</span>
+          <span className="text-xs text-[var(--color-duo-hare)] truncate">{subtitle}</span>
         )}
       </div>
       {children}
