@@ -7,9 +7,9 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { riskOf, type RiskLevel } from "@/base/risk/roamGuard";
 
 const BADGE: Record<RiskLevel, { label: string; cls: string }> = {
-  safe: { label: "安全", cls: "bg-[#58cc02]/10 text-[#357a00] border-[#58cc02]/40" },
-  watch: { label: "关注", cls: "bg-[#ffc800]/10 text-[#8a6d00] border-[#e5b400]/50" },
-  high: { label: "风险", cls: "bg-[#ff4b4b]/10 text-[#ea2b2b] border-[#ff4b4b]/40" },
+  safe: { label: "安全", cls: "bg-[var(--color-duo-green)]/10 text-[#357a00] border-[var(--color-duo-green)]/40" },
+  watch: { label: "关注", cls: "bg-[var(--color-duo-yellow)]/10 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/50" },
+  high: { label: "风险", cls: "bg-[var(--color-duo-red)]/10 text-[var(--color-duo-red-dark)] border-[var(--color-duo-red)]/40" },
 };
 
 /**
@@ -41,10 +41,10 @@ export default function RoamGuardPanel() {
   const badge = BADGE[risk.risk];
 
   return (
-    <div className="mt-3 rounded-2xl border-2 border-[#e5e5e5] bg-[#f7f7f7] p-3">
+    <div className="mt-3 rounded-2xl border-2 border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] p-3">
       <div className="flex items-center gap-2 mb-2">
-        <Smartphone size={12} className="text-[#1cb0f6]" />
-        <span className="text-xs font-semibold text-[#777777]">
+        <Smartphone size={12} className="text-[var(--color-duo-blue)]" />
+        <span className="text-xs font-semibold text-[var(--color-duo-wolf)]">
           漫游 · 多开风控
         </span>
         <span
@@ -54,10 +54,10 @@ export default function RoamGuardPanel() {
         </span>
       </div>
 
-      <p className="text-xs text-[#777777] break-all mb-2">
+      <p className="text-xs text-[var(--color-duo-wolf)] break-all mb-2">
         本设备 {mounted ? deviceId : "…"} · 同设备 {risk.count} 个身份 · {risk.reason}
         {risk.risk === "high" && (
-          <span className="block mt-0.5 text-[#ea2b2b] font-bold">
+          <span className="block mt-0.5 text-[var(--color-duo-red-dark)] font-bold">
             高危已生效：发布需求将被拦截（到 PublishSheet 验证）
           </span>
         )}
@@ -80,7 +80,7 @@ export default function RoamGuardPanel() {
           {events.slice(0, 3).map((e, i) => (
             <p
               key={`${e.at}-${i}`}
-              className="text-xs text-[#afafaf] truncate"
+              className="text-xs text-[var(--color-duo-hare)] truncate"
             >
               {e.kind === "alert" ? "⚠ " : "· "}
               {e.note}

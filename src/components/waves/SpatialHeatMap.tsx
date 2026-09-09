@@ -49,7 +49,7 @@ function ModeToggle({
 }) {
   return (
     <span className="ml-auto flex items-center gap-2">
-      <span className="text-xs text-[#afafaf]">{count} 条 · 位置模糊</span>
+      <span className="text-xs text-[var(--color-duo-hare)]">{count} 条 · 位置模糊</span>
       <button
         type="button"
         onClick={() => cycleMapPref()}
@@ -61,9 +61,9 @@ function ModeToggle({
               : "强制简约网格（点击切换）"
         }
         aria-label="地图显示模式切换"
-        className="rounded-full border border-[#e5e5e5] p-1 hover:bg-[#f7f7f7]"
+        className="rounded-full border border-[var(--color-duo-swan)] p-1 hover:bg-[var(--color-duo-polar)]"
       >
-        <RotateCw size={10} className="text-[#777777]" />
+        <RotateCw size={10} className="text-[var(--color-duo-wolf)]" />
       </button>
     </span>
   );
@@ -136,7 +136,7 @@ const pref = useMapPref();
     // SSR/首帧同构占位（等高容器，避免水合错位 + 布局跳动）
     return (
       <div className="mt-3">
-        <div className="h-56 rounded-2xl overflow-hidden border border-[#e5e5e5] bg-[#0d1025]/80" />
+        <div className="h-56 rounded-2xl overflow-hidden border border-[var(--color-duo-swan)] bg-[#0d1025]/80" />
       </div>
     );
   }
@@ -145,13 +145,13 @@ const pref = useMapPref();
     return (
       <div className="mt-3">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <MapPin size={12} className="text-[#1cb0f6]" />
-          <span className="text-xs font-bold text-[#777777]">
+          <MapPin size={12} className="text-[var(--color-duo-blue)]" />
+          <span className="text-xs font-bold text-[var(--color-duo-wolf)]">
             附近信号 · 3D 地图
           </span>
           <ModeToggle count={dots.length} pref={pref} />
         </div>
-        <div className="relative h-56 rounded-2xl overflow-hidden border border-[#e5e5e5] bg-[#0d1025]/80">
+        <div className="relative h-56 rounded-2xl overflow-hidden border border-[var(--color-duo-swan)] bg-[#0d1025]/80">
           <MapView
             dots={dots}
             ambient={AMBIENT_POIS}
@@ -175,13 +175,13 @@ const pref = useMapPref();
   return (
     <div className="mt-3">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <MapPin size={12} className="text-[#1cb0f6]" />
-        <span className="text-xs font-bold text-[#777777]">
+        <MapPin size={12} className="text-[var(--color-duo-blue)]" />
+        <span className="text-xs font-bold text-[var(--color-duo-wolf)]">
           匿名热力 · 附近活跃信号波
         </span>
         <ModeToggle count={cssDots.length} pref={pref} />
       </div>
-      <div className="relative h-28 rounded-2xl overflow-hidden border border-[#e5e5e5] bg-[#0d1025]/80">
+      <div className="relative h-28 rounded-2xl overflow-hidden border border-[var(--color-duo-swan)] bg-[#0d1025]/80">
         {/* city grid */}
         <div
           className="absolute inset-0 opacity-60"
@@ -195,7 +195,7 @@ const pref = useMapPref();
         {LOCALITIES.map((l) => (
           <span
             key={l.label}
-            className="absolute text-xs text-[#afafaf] font-medium"
+            className="absolute text-xs text-[var(--color-duo-hare)] font-medium"
             style={{
               left: `${l.x * 100}%`,
               top: `${l.y * 100}%`,
@@ -291,13 +291,13 @@ function WaveMiniSheet({
   };
 
   return (
-    <div className="mt-2 rounded-2xl bg-white border border-[#e5e5e5] shadow-sm p-3">
+    <div className="mt-2 rounded-2xl bg-white border border-[var(--color-duo-swan)] shadow-sm p-3">
       <div className="flex items-start gap-2.5">
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-extrabold text-[#4b4b4b] truncate">
+          <p className="text-[12px] font-extrabold text-[var(--color-duo-eel)] truncate">
             {wave.basics.category}
           </p>
-          <p className="text-xs text-[#afafaf] mt-0.5 flex items-center gap-1 truncate">
+          <p className="text-xs text-[var(--color-duo-hare)] mt-0.5 flex items-center gap-1 truncate">
             <Clock size={9} /> {wave.basics.time} · {wave.basics.area}
           </p>
         </div>
@@ -308,7 +308,7 @@ function WaveMiniSheet({
             className={`p-1.5 rounded-full border-2 transition-colors ${
               favorited
                 ? "border-[#ff7ab8]/60 text-[#ff7ab8]"
-                : "border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b]"
+                : "border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
             }`}
           >
             <Heart size={12} className={favorited ? "fill-[#ff7ab8]/40" : ""} />
@@ -316,21 +316,21 @@ function WaveMiniSheet({
           <button
             onClick={onClose}
             aria-label="关闭详情"
-            className="p-1.5 rounded-full border border-[#e5e5e5] text-[#afafaf] hover:text-[#4b4b4b] transition-colors"
+            className="p-1.5 rounded-full border border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] transition-colors"
           >
             <MapIcon size={12} />
           </button>
         </div>
       </div>
 
-      <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-[#777777]">
-        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5]">
+      <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-[var(--color-duo-wolf)]">
+        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]">
           ¥{price}
         </span>
-        <span className="px-2 py-1 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] flex items-center gap-1">
-          <Users size={9} className="text-[#1cb0f6]" /> 名额 {wave.capacity ?? 1}
+        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center gap-1">
+          <Users size={9} className="text-[var(--color-duo-blue)]" /> 名额 {wave.capacity ?? 1}
         </span>
-        <span className="px-2 py-1 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00]">
+        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00]">
           活跃局
         </span>
         <span className="ml-auto">

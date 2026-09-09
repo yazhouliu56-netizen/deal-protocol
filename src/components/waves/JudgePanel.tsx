@@ -70,7 +70,7 @@ export default function JudgePanel({
   };
 
   return (
-    <div className="rounded-2xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 p-2.5 space-y-2">
+    <div className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 p-2.5 space-y-2">
       <p className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1">
         <Scale size={11} /> AI 小法官 · 静态比对证据链给出赔付建议
       </p>
@@ -82,7 +82,7 @@ export default function JudgePanel({
             onChange={(e) => setDefense(e.target.value)}
             placeholder="你的反驳（如：已免费返工，是甲方没等晾干）"
             aria-label="小法官审查·你的反驳"
-            className="w-full rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
+            className="w-full rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2.5 py-2 text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] outline-none focus:border-[var(--color-duo-blue)]"
           />
           <DuoButton
             variant="secondary"
@@ -99,7 +99,7 @@ export default function JudgePanel({
 
       {verdict && (
         <div className="space-y-2">
-          <div className="rounded-xl bg-white border-2 border-[#e5e5e5] p-2.5 space-y-1.5">
+          <div className="rounded-xl bg-white border-2 border-[var(--color-duo-swan)] p-2.5 space-y-1.5">
             <p className="text-xs font-bold text-[#0a6ea8]">
               {stanceLabel[verdict.stance] ?? verdict.stance} · 建议赔付 ¥
               {verdict.settlement
@@ -109,11 +109,11 @@ export default function JudgePanel({
                 : verdict.amountYuan}
               （{verdict.refundPct}%）
             </p>
-            <p className="text-xs text-[#777777]">{verdict.rationale}</p>
-            <p className="text-xs text-[#4b4b4b] border-t-2 border-[#e5e5e5] pt-1.5">
+            <p className="text-xs text-[var(--color-duo-wolf)]">{verdict.rationale}</p>
+            <p className="text-xs text-[var(--color-duo-eel)] border-t-2 border-[var(--color-duo-swan)] pt-1.5">
               {verdict.replyScript}
             </p>
-            <p className="text-xs text-[#afafaf]">
+            <p className="text-xs text-[var(--color-duo-hare)]">
               置信 {Math.round(verdict.confidence * 100)}% ·{" "}
               {verdict.source === "llm" ? "LLM 语义比对" : "规则引擎（LLM 不可用回落）"}
               {verdict.settlement ? ` · 分币守恒 ✓（结清服务方 ¥${(verdict.settlement.payoutCents / 100).toFixed(verdict.settlement.payoutCents % 100 ? 2 : 0)}）` : ""}

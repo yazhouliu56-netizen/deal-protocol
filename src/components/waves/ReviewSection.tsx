@@ -81,7 +81,7 @@ export default function ReviewSection({
     label: string
   ) => (
     <div className="flex items-center justify-between">
-      <span className="text-xs text-[#777777]">{label}</span>
+      <span className="text-xs text-[var(--color-duo-wolf)]">{label}</span>
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((v) => (
           <button
@@ -89,8 +89,8 @@ export default function ReviewSection({
             onClick={() => setDims((d) => ({ ...d, [key]: v }))}
             className={`w-6 h-6 rounded-full text-xs font-bold border-2 ${
               dims[key] >= v
-                ? "bg-[#ffc800]/15 text-[#8a6d00] border-[#e5b400]/60"
-                : "bg-white text-[#afafaf] border-[#e5e5e5]"
+                ? "bg-[var(--color-duo-yellow)]/15 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/60"
+                : "bg-white text-[var(--color-duo-hare)] border-[var(--color-duo-swan)]"
             }`}
             aria-label={`${label}${v}分`}
           >
@@ -105,19 +105,19 @@ export default function ReviewSection({
     <div className="space-y-1.5">
       {/* 对方给我的评价（脱敏 + 时间衰减） */}
       {theirs && (
-        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00] flex items-start gap-1.5">
+        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-start gap-1.5">
           <ShieldCheck size={10} className="mt-0.5 shrink-0" />
           <span>
             对方评价 ★{theirs.score} · {decayLabel(theirs.at, now)}
             {theirs.comment && ` · ${theirs.comment.slice(0, 24)}`}
-            <span className="text-[#afafaf] ml-1">（脱敏）</span>
+            <span className="text-[var(--color-duo-hare)] ml-1">（脱敏）</span>
           </span>
         </p>
       )}
 
       {/* 我的评价 / 评价入口 */}
       {mine ? (
-        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#777777]">
+        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]">
           ✅ 已评价 ★{mine.score} · {decayLabel(mine.at, now)}
         </p>
       ) : (
@@ -130,9 +130,9 @@ export default function ReviewSection({
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3 space-y-2"
+          className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3 space-y-2"
         >
-          <p className="text-xs font-extrabold text-[#4b4b4b]">给对方打分</p>
+          <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">给对方打分</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((v) => (
               <button
@@ -143,7 +143,7 @@ export default function ReviewSection({
               >
                 <Star
                   size={18}
-                  className={v <= score ? "text-[#ffc800] fill-[#ffc800]" : "text-[#e5e5e5]"}
+                  className={v <= score ? "text-[var(--color-duo-yellow)] fill-[var(--color-duo-yellow)]" : "text-[var(--color-duo-swan)]"}
                 />
               </button>
             ))}
@@ -166,12 +166,12 @@ export default function ReviewSection({
             }
             aria-label="评价留言"
             rows={2}
-            className={`w-full rounded-xl bg-white border-2 px-2.5 py-2 text-xs placeholder:text-[#afafaf] text-[#4b4b4b] outline-none focus:border-[#1cb0f6] resize-none ${
-              explainError ? "border-[#ff4b4b]" : "border-[#e5e5e5]"
+            className={`w-full rounded-xl bg-white border-2 px-2.5 py-2 text-xs placeholder:text-[var(--color-duo-hare)] text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)] resize-none ${
+              explainError ? "border-[var(--color-duo-red)]" : "border-[var(--color-duo-swan)]"
             }`}
           />
           {explainError && (
-            <p className="text-xs font-bold text-[#ff4b4b]">
+            <p className="text-xs font-bold text-[var(--color-duo-red)]">
               ⚠️ {REVIEW_EXPLANATION_THRESHOLD} 星及以下的低分评价必须填写理由
             </p>
           )}

@@ -61,8 +61,8 @@ export default function FriendList() {
   if (mine.length === 0 && incoming.length === 0) return null;
 
   return (
-    <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl p-3.5">
-      <h3 className="text-xs font-bold text-[#777777] mb-2 flex items-center gap-1.5">
+    <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-2xl p-3.5">
+      <h3 className="text-xs font-bold text-[var(--color-duo-wolf)] mb-2 flex items-center gap-1.5">
         <Heart size={11} className="text-[#ff7ab8]" /> 我的关系
       </h3>
 
@@ -74,11 +74,11 @@ export default function FriendList() {
           {incoming.map((r) => (
             <div
               key={r.id}
-              className="rounded-xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 px-2.5 py-2 flex items-center justify-between gap-2"
+              className="rounded-xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 px-2.5 py-2 flex items-center justify-between gap-2"
             >
-              <p className="text-xs font-bold text-[#4b4b4b] truncate">
+              <p className="text-xs font-bold text-[var(--color-duo-eel)] truncate">
                 {r.nickname}
-                <span className="text-[#afafaf] font-normal">
+                <span className="text-[var(--color-duo-hare)] font-normal">
                   {" "}
                   · {r.hours}h 后撤回
                 </span>
@@ -100,18 +100,18 @@ export default function FriendList() {
         {mine.map((f) => (
           <span
             key={f.id}
-            className="text-xs px-2.5 py-1 rounded-full bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00] flex items-center gap-1"
+            className="text-xs px-2.5 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-center gap-1"
           >
             <Users size={9} /> {f.nickname}
           </span>
         ))}
         {mine.length === 0 && (
-          <p className="text-xs text-[#afafaf]">
+          <p className="text-xs text-[var(--color-duo-hare)]">
             还没有好友——完成一次履约后，可自愿与对方互认
           </p>
         )}
       </div>
-      <p className="text-xs text-[#afafaf] mt-2">
+      <p className="text-xs text-[var(--color-duo-hare)] mt-2">
         好友默认不可见 · 转友请求 72h 未确认自动撤回，不产生拒绝提示
       </p>
     </div>

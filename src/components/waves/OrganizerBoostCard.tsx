@@ -33,13 +33,13 @@ export default function OrganizerBoostCard() {
   };
 
   return (
-    <div className="mt-3 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4 p-3">
+    <div className="mt-3 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3">
       <div className="flex items-center gap-2.5">
         <div
           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
             active
-              ? "bg-[#58cc02]/10 border-2 border-[#58cc02]/40"
-              : "bg-[#58cc02] border-b-2 border-[#58a700] text-white"
+              ? "bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40"
+              : "bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white"
           }`}
         >
           {active ? (
@@ -49,10 +49,10 @@ export default function OrganizerBoostCard() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-extrabold text-[#4b4b4b]">
+          <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">
             {active ? "组局加速已生效" : "组局加速 · ¥9.9/月"}
           </p>
-          <p className="text-xs text-[#777777] truncate">
+          <p className="text-xs text-[var(--color-duo-wolf)] truncate">
             {active
               ? `到期 ${new Date(sub.expiresAt!).toLocaleDateString()}（剩 ${daysLeft} 天）`
               : "你的局在雷达区优先曝光 · 到期前提醒"}
@@ -74,11 +74,11 @@ export default function OrganizerBoostCard() {
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="mt-2.5 pt-2.5 border-t-2 border-[#e5e5e5]"
+          className="mt-2.5 pt-2.5 border-t-2 border-[var(--color-duo-swan)]"
         >
-          <p className="text-xs text-[#777777]">
+          <p className="text-xs text-[var(--color-duo-wolf)]">
             模拟收银台 · 确认支付{" "}
-            <span className="text-[#4b4b4b] font-extrabold">
+            <span className="text-[var(--color-duo-eel)] font-extrabold">
               ¥{ORGANIZER_PLAN.priceYuan}
             </span>{" "}
             {active ? "续费 30 天" : "开通 30 天"}

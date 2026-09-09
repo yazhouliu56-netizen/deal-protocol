@@ -132,22 +132,22 @@ export default function WaveFeed() {
     <div className="pointer-events-auto relative">
       <RadarInbox />
 
-      <h1 className="text-[18px] leading-tight font-extrabold mt-1 text-[#4b4b4b] tracking-tight flex items-center gap-1.5">
+      <h1 className="text-[18px] leading-tight font-extrabold mt-1 text-[var(--color-duo-eel)] tracking-tight flex items-center gap-1.5">
         📍 附近的需求
-        <span className="text-xs font-normal text-[#767676]">· 谁正在附近发需求</span>
+        <span className="text-xs font-normal text-[var(--color-duo-wolf)]">· 谁正在附近发需求</span>
         <SandboxBadge />
       </h1>
       <div className="mt-0.5 flex items-center justify-between gap-2">
-        <p className="text-xs text-[#777777] flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#58cc02] animate-pulse" /> 🟢 随时待命的师傅 · 正在接收信号
-          <span className="text-xs text-[#767676]">· 谁合适谁来</span>
+        <p className="text-xs text-[var(--color-duo-wolf)] flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-duo-green)] animate-pulse" /> 🟢 随时待命的师傅 · 正在接收信号
+          <span className="text-xs text-[var(--color-duo-wolf)]">· 谁合适谁来</span>
         </p>
         <button
           onClick={() => setFavOpen(true)}
           aria-label={`查看我关注的局，共 ${favorites.length} 个`}
           className="flex items-center gap-1 px-3 py-2 min-h-10 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-wolf)] hover:border-[var(--color-duo-blue)]/30 hover:text-[var(--color-duo-eel)] transition-[transform,border-color,color] shrink-0 active:translate-y-1 active:border-b-2"
         >
-          <Heart size={10} className={favorites.length ? "text-[#ff4b4b] fill-[#ff4b4b]" : "text-[#767676]"} />
+          <Heart size={10} className={favorites.length ? "text-[var(--color-duo-red)] fill-[var(--color-duo-red)]" : "text-[var(--color-duo-wolf)]"} />
           关注 {favorites.length > 0 ? favorites.length : ""}
         </button>
       </div>
@@ -247,7 +247,7 @@ export default function WaveFeed() {
         }}
       />
       {joinError && (
-        <p className="mt-2 px-3 py-2 rounded-2xl bg-[#ff4b4b]/[.06] border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
+        <p className="mt-2 px-3 py-2 rounded-2xl bg-[var(--color-duo-red)]/[.06] border-2 border-[var(--color-duo-red)]/40 text-xs font-bold text-[var(--color-duo-red-dark)]">
           ⚠ {joinError}
         </p>
       )}

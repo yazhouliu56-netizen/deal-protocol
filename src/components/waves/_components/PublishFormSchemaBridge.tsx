@@ -110,12 +110,12 @@ export default function PublishFormSchemaBridge({
     <>
       {wordBankVisible && pricingModel && (
         <div
-          className="mb-3 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3"
+          className="mb-3 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-3"
           data-testid="publish-word-bank"
           data-word-bank
         >
-          <div className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-            ⚡ 一键词块 <span className="text-[#afafaf] font-normal">· 点选即填，免键盘</span>
+          <div className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+            ⚡ 一键词块 <span className="text-[var(--color-duo-hare)] font-normal">· 点选即填，免键盘</span>
           </div>
           <div className="space-y-2">
             <div className="flex flex-wrap gap-1.5">
@@ -168,8 +168,8 @@ export default function PublishFormSchemaBridge({
         </div>
       )}
       {fields.length > 0 && (
-        <div className="mb-3 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] p-3" data-testid="publish-dynamic-form" data-dynamic-form>
-      <div className="text-xs font-bold text-[#4b4b4b] mb-2 flex items-center gap-1.5">📋 方案专属表单 <span className="text-[#afafaf] font-normal">· {ammoId} · {fields.length} 项</span></div>
+        <div className="mb-3 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-3" data-testid="publish-dynamic-form" data-dynamic-form>
+      <div className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">📋 方案专属表单 <span className="text-[var(--color-duo-hare)] font-normal">· {ammoId} · {fields.length} 项</span></div>
       <div className="space-y-2">
         {fields.map((field) => {
           const val = bizParams[field.key];
@@ -177,8 +177,8 @@ export default function PublishFormSchemaBridge({
           if (field.type === "enum" && field.options && field.options.length > 0) {
             return (
               <label key={field.key} className="block">
-                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
-                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
+                <span className="text-xs font-semibold text-[var(--color-duo-wolf)] flex items-center gap-1 mb-1">
+                  {field.label} {field.required && <span className="text-[var(--color-duo-red-dark)]">*</span>}
                 </span>
                 <select
                   value={strVal}
@@ -186,7 +186,7 @@ export default function PublishFormSchemaBridge({
                   aria-label={field.label}
                   name={field.key}
                   data-field={field.key}
-                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
+                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3.5 text-xs text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
                 >
                   <option value="">请选择{field.label}</option>
                   {field.options.map((opt) => (
@@ -199,8 +199,8 @@ export default function PublishFormSchemaBridge({
           if (field.type === "number") {
             return (
               <label key={field.key} className="block">
-                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
-                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
+                <span className="text-xs font-semibold text-[var(--color-duo-wolf)] flex items-center gap-1 mb-1">
+                  {field.label} {field.required && <span className="text-[var(--color-duo-red-dark)]">*</span>}
                 </span>
                 <input
                   type="number"
@@ -214,16 +214,16 @@ export default function PublishFormSchemaBridge({
                   aria-label={field.label}
                   name={field.key}
                   data-field={field.key}
-                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
+                  className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3.5 text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] outline-none focus:border-[var(--color-duo-blue)]"
                 />
               </label>
             );
           }
           if (field.type === "boolean") {
             return (
-              <label key={field.key} className="flex items-center justify-between min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5">
-                <span className="text-xs font-semibold text-[#777777] flex items-center gap-1">
-                  {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
+              <label key={field.key} className="flex items-center justify-between min-h-[48px] rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3.5">
+                <span className="text-xs font-semibold text-[var(--color-duo-wolf)] flex items-center gap-1">
+                  {field.label} {field.required && <span className="text-[var(--color-duo-red-dark)]">*</span>}
                 </span>
                 <button
                   type="button"
@@ -233,7 +233,7 @@ export default function PublishFormSchemaBridge({
                   name={field.key}
                   data-field={field.key}
                   onClick={() => setBizParams((prev) => ({ ...prev, [field.key]: !Boolean(prev[field.key]) }))}
-                  className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-[#58cc02]" : "bg-[#e5e5e5]"}`}
+                  className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${Boolean(val) ? "bg-[var(--color-duo-green)]" : "bg-[var(--color-duo-swan)]"}`}
                 >
                   <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${Boolean(val) ? "left-[22px]" : "left-0.5"}`} />
                 </button>
@@ -242,8 +242,8 @@ export default function PublishFormSchemaBridge({
           }
           return (
             <label key={field.key} className="block">
-              <span className="text-xs font-semibold text-[#777777] flex items-center gap-1 mb-1">
-                {field.label} {field.required && <span className="text-[#ea2b2b]">*</span>}
+              <span className="text-xs font-semibold text-[var(--color-duo-wolf)] flex items-center gap-1 mb-1">
+                {field.label} {field.required && <span className="text-[var(--color-duo-red-dark)]">*</span>}
               </span>
               <input
                 value={strVal}
@@ -252,7 +252,7 @@ export default function PublishFormSchemaBridge({
                 aria-label={field.label}
                 name={field.key}
                 data-field={field.key}
-                className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[#e5e5e5] px-3.5 text-xs text-[#4b4b4b] placeholder:text-[#afafaf] outline-none focus:border-[#1cb0f6]"
+                className="w-full min-h-[48px] rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3.5 text-xs text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] outline-none focus:border-[var(--color-duo-blue)]"
               />
             </label>
           );

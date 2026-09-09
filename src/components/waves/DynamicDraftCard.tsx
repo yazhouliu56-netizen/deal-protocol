@@ -380,7 +380,7 @@ export default function DynamicDraftCard({
       initial={{ opacity: 0, y: 8, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      className={`draft-card ${themeClass} duo-3d-card bg-white rounded-3xl border-2 border-b-[6px] border-[#e5e5e5] shadow-[0_8px_24px_rgba(0,0,0,0.06)]`}
+      className={`draft-card ${themeClass} duo-3d-card bg-white rounded-3xl border-2 border-b-[6px] border-[var(--color-duo-swan)] shadow-[0_8px_24px_rgba(0,0,0,0.06)]`}
       data-testid="draft-card"
       data-ammo={definition.ammoId}
       data-category={category}
@@ -401,7 +401,7 @@ export default function DynamicDraftCard({
               <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className="w-full flex items-center justify-between rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
@@ -432,7 +432,7 @@ export default function DynamicDraftCard({
               <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className="w-full flex items-center justify-between rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
@@ -450,7 +450,7 @@ export default function DynamicDraftCard({
             <button
               key={row.key}
               type="button"
-              className="rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:brightness-[1.02] transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+              className="rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:brightness-[1.02] transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
               data-param={row.key}
               onClick={() => { setEditing(row.key); onTweak?.(row.key); }}
             >
@@ -478,7 +478,7 @@ export default function DynamicDraftCard({
               <div key={f.key}>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-2 rounded-full bg-white border border-[#e5e5e5] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className="w-full flex items-center justify-between gap-2 rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
                   data-field={f.key}
                   onClick={() => { setEditing(active ? null : f.key); onTweak?.(f.key); }}
                 >

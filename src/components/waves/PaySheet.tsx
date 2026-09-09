@@ -61,28 +61,28 @@ export default function PaySheet({
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        className="fixed inset-x-3 bottom-8 z-[60] bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-5"
+        className="fixed inset-x-3 bottom-8 z-[60] bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-5"
       >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-            <CreditCard size={13} className="text-[#1cb0f6]" /> {title}
+            <CreditCard size={13} className="text-[var(--color-duo-blue)]" /> {title}
           </h3>
           <button
             onClick={onCancel}
             aria-label="取消支付"
-            className="text-[#afafaf] hover:text-[#4b4b4b]"
+            className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
           >
             ✕
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-4 mb-3 text-center">
-          <p className="text-xs text-[#afafaf] mb-1">{desc ?? "应付金额"}</p>
+        <div className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-4 mb-3 text-center">
+          <p className="text-xs text-[var(--color-duo-hare)] mb-1">{desc ?? "应付金额"}</p>
           <p className="text-[28px] font-extrabold text-[#357a00] leading-none font-tabular">
             ¥{amount}
           </p>
           {fee > 0 && (
-            <p className="text-xs text-[#afafaf] mt-1.5">
+            <p className="text-xs text-[var(--color-duo-hare)] mt-1.5">
               含发布费 ¥{fee}（超出每日 {FREE_PUBLISH_PER_DAY} 次免费后的固定发布费，一经支付不退） · 单子金额 ¥{amount - fee}
             </p>
           )}
@@ -98,12 +98,12 @@ export default function PaySheet({
           立即支付 ¥{amount}（模拟）
         </DuoButton>
 
-        <div className="flex items-center justify-between mt-3 text-xs text-[#afafaf]">
+        <div className="flex items-center justify-between mt-3 text-xs text-[var(--color-duo-hare)]">
           <span className="flex items-center gap-1">
             <Lock size={9} /> 随单支付 · 未上线不展示
           </span>
           <span>
-            支付锁定剩余 {mm}:{ss} <span className="text-[#afafaf]">(模拟通道)</span>
+            支付锁定剩余 {mm}:{ss} <span className="text-[var(--color-duo-hare)]">(模拟通道)</span>
           </span>
         </div>
       </motion.div>

@@ -99,29 +99,29 @@ export default function WaveCard({
   );
 
   return (
-    <div className="bg-white rounded-3xl border-2 border-[#e5e5e5] border-b-[6px] p-4 hover:border-[#58cc02]/30 transition-colors">
+    <div className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4 hover:border-[var(--color-duo-green)]/30 transition-colors">
       {/* 头部：品类 + 热度 + 倒计时 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-9 h-9 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] flex items-center justify-center text-base shrink-0 text-white">
+          <span className="w-9 h-9 rounded-2xl bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] flex items-center justify-center text-base shrink-0 text-white">
             {CATEGORY_EMOJI(wave.basics.category)}
           </span>
           <div className="min-w-0">
-            <h3 className="text-[13px] font-extrabold text-[#4b4b4b] truncate">
+            <h3 className="text-[13px] font-extrabold text-[var(--color-duo-eel)] truncate">
               {wave.basics.category}
             </h3>
-            <p className="text-xs text-[#777777] flex items-center gap-1 truncate">
-              <MapPin size={9} className="shrink-0 text-[#1cb0f6]" />
+            <p className="text-xs text-[var(--color-duo-wolf)] flex items-center gap-1 truncate">
+              <MapPin size={9} className="shrink-0 text-[var(--color-duo-blue)]" />
               {wave.basics.area}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="flex items-center gap-1 text-xs font-bold text-[#4b4b4b]">
-            <Users size={10} className="text-[#58cc02]" /> {heat} 人感兴趣
+          <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-duo-eel)]">
+            <Users size={10} className="text-[var(--color-duo-green)]" /> {heat} 人感兴趣
           </span>
           <span className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-xs text-[#afafaf]">
+            <span className="flex items-center gap-1 text-xs text-[var(--color-duo-hare)]">
               <Clock3 size={9} /> {expireLabel}后失效
             </span>
             <button
@@ -137,10 +137,10 @@ export default function WaveCard({
       </div>
 
       {/* 时间 */}
-      <p className="text-xs text-[#4b4b4b] mt-2 flex items-center gap-1">
-        <Clock3 size={10} className="text-[#1cb0f6] shrink-0" /> {wave.basics.time}
+      <p className="text-xs text-[var(--color-duo-eel)] mt-2 flex items-center gap-1">
+        <Clock3 size={10} className="text-[var(--color-duo-blue)] shrink-0" /> {wave.basics.time}
         {isOpen && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#ff9600]/15 border border-[#ff9600]/30 text-[#ff9600] ml-0.5">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-orange)]/15 border border-[var(--color-duo-orange)]/30 text-[var(--color-duo-orange)] ml-0.5">
             🎯 多人拼单局 {wave.capacity} 人
           </span>
         )}
@@ -150,29 +150,29 @@ export default function WaveCard({
       {isOpen && (
         <div className="mt-2">
           <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-[#777777]">
+            <span className="text-[var(--color-duo-wolf)]">
               已拼 {Math.min(joined ?? 0, needed)}/{needed} 位
               {needsApproval && (requested ?? 0) > 0 && (
-                <span className="text-[#ff9600]">
+                <span className="text-[var(--color-duo-orange)]">
                   {" "}· 待审批 {(requested ?? 0)}
                 </span>
               )}
             </span>
-            <span className="text-[#58cc02] font-bold">
+            <span className="text-[var(--color-duo-green)] font-bold">
               {wave.status === "assembled"
                 ? "已成局 · 候补等让位"
                 : full
                   ? "已满员"
                   : `还差 ${needed - (joined ?? 0)} 人成局`}
               {(waitlistCount ?? 0) > 0 && (
-                <span className="text-[#ff9600] font-bold"> · 候补 {(waitlistCount ?? 0)} 人</span>
+                <span className="text-[var(--color-duo-orange)] font-bold"> · 候补 {(waitlistCount ?? 0)} 人</span>
               )}
             </span>
           </div>
-          <div className="h-1.5 rounded-full bg-[#e5e5e5] overflow-hidden">
+          <div className="h-1.5 rounded-full bg-[var(--color-duo-swan)] overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                full ? "bg-[#58cc02]" : "bg-[#1cb0f6]"
+                full ? "bg-[var(--color-duo-green)]" : "bg-[var(--color-duo-blue)]"
               }`}
               style={{ width: `${Math.min(100, ((joined ?? 0) / needed) * 100)}%` }}
             />
@@ -186,7 +186,7 @@ export default function WaveCard({
           {wave.customs.map((c, i) => (
             <span
               key={i}
-              className="px-2 py-0.5 rounded-full bg-[#ff9600]/15 border border-[#ff9600]/30 text-xs font-bold text-[#ff9600]"
+              className="px-2 py-0.5 rounded-full bg-[var(--color-duo-orange)]/15 border border-[var(--color-duo-orange)]/30 text-xs font-bold text-[var(--color-duo-orange)]"
             >
               {c.text} +{15 * (i + 1)}%
             </span>
@@ -196,7 +196,7 @@ export default function WaveCard({
 
       {/* 价格行 */}
       <div className="flex items-baseline gap-2 mt-3">
-        <span className="text-[15px] font-extrabold text-[#58cc02]">
+        <span className="text-[15px] font-extrabold text-[var(--color-duo-green)]">
           {isOpen
             ? yuan(perSeatPrice(wave))
             : wave.customs.length
@@ -204,21 +204,21 @@ export default function WaveCard({
               : yuan(wave.budget)}
         </span>
         {isOpen ? (
-          <span className="text-xs text-[#afafaf]">/人</span>
+          <span className="text-xs text-[var(--color-duo-hare)]">/人</span>
         ) : (
           wave.customs.length > 0 && (
-            <span className="text-xs text-[#afafaf] line-through">
+            <span className="text-xs text-[var(--color-duo-hare)] line-through">
               基础 {yuan(wave.budget)}
             </span>
           )
         )}
         {wave.negotiable && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/15 border border-[#1cb0f6]/30 text-[#1cb0f6]">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/15 border border-[var(--color-duo-blue)]/30 text-[var(--color-duo-blue)]">
             可磋商
           </span>
         )}
         {wave.deposit && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#1cb0f6]/10 border border-[#1cb0f6]/20 text-[#1cb0f6]">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border border-[var(--color-duo-blue)]/20 text-[var(--color-duo-blue)]">
             🕊️ 爽约保障险 ¥5
           </span>
         )}
@@ -233,7 +233,7 @@ export default function WaveCard({
                 // 候补中：只读展示排队位置（退出候补去「我的接单」）
                 <button
                   disabled
-                  className="flex-1 py-2.5 rounded-2xl bg-[#ffc800]/10 border-2 border-[#e5b400]/50 text-[#8a6d00] font-bold text-xs flex items-center justify-center gap-1.5 disabled:opacity-90"
+                  className="flex-1 py-2.5 rounded-2xl bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00] font-bold text-xs flex items-center justify-center gap-1.5 disabled:opacity-90"
                 >
                   <Clock size={12} /> 候补中 · 第 {waitlistPos} 位
                 </button>
@@ -294,7 +294,7 @@ export default function WaveCard({
                 }}
                 disabled={!!myReport?.status}
                 aria-label="举报"
-                className="shrink-0 px-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] hover:text-[#ff9500] hover:border-[#ff9500]/40"
+                className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
               >
                 <Flag size={12} />
               </button>
@@ -337,7 +337,7 @@ export default function WaveCard({
                   }}
                   disabled={!!myReport?.status}
                   aria-label="举报"
-                  className="shrink-0 px-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#afafaf] hover:text-[#ff9500] hover:border-[#ff9500]/40"
+                  className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
                 >
                   <Flag size={12} />
                 </button>
@@ -347,20 +347,20 @@ export default function WaveCard({
         </div>
       )}
       {ownSeat && (
-        <p className="mt-3 text-xs font-bold text-[#58cc02] text-center py-2">
+        <p className="mt-3 text-xs font-bold text-[var(--color-duo-green)] text-center py-2">
           {isOpen ? "✓ 已拼位，等待满员成局" : "✓ 已发出，等待需求方确认"}
         </p>
       )}
       {myReport?.status && (
         <p className="mt-2 text-xs text-center">
           {myReport.status === "resolved" ? (
-            <span className="text-[#58cc02] font-bold">
+            <span className="text-[var(--color-duo-green)] font-bold">
               ✓ 平台已处理：
               {ACTION_LABEL[myReport.action ?? "dismiss"]}
               {myReport.verdictNote ? `（${myReport.verdictNote}）` : ""}
             </span>
           ) : (
-            <span className="text-[#ff9600]">⏳ 已举报，平台核查中</span>
+            <span className="text-[var(--color-duo-orange)]">⏳ 已举报，平台核查中</span>
           )}
         </p>
       )}

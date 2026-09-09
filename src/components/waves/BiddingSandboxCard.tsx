@@ -155,25 +155,25 @@ const open = session.status === "open";
   };
 
   return (
-    <div className="mt-3 rounded-2xl bg-white border border-dashed border-[#e5e5e5] shadow-sm p-3">
+    <div className="mt-3 rounded-2xl bg-white border border-dashed border-[var(--color-duo-swan)] shadow-sm p-3">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center shrink-0">
-          <Gavel size={14} className="text-[#777777]" />
+        <div className="w-8 h-8 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm flex items-center justify-center shrink-0">
+          <Gavel size={14} className="text-[var(--color-duo-wolf)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-extrabold text-[#4b4b4b] flex items-center gap-1.5">
+          <p className="text-xs font-extrabold text-[var(--color-duo-eel)] flex items-center gap-1.5">
             公开竞价 · 演示沙盒
             {picked ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-[#58cc02]/10 border border-[#58cc02]/40 text-xs text-[#58a700] font-extrabold">
+              <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/10 border border-[var(--color-duo-green)]/40 text-xs text-[var(--color-duo-green-dark)] font-extrabold">
                 你的真实需求局
               </span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-xs text-[#afafaf] font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-xs text-[var(--color-duo-hare)] font-bold">
                 演示局 · 无真实资金
               </span>
             )}
           </p>
-          <p className="text-xs text-[#afafaf] truncate">
+          <p className="text-xs text-[var(--color-duo-hare)] truncate">
             {session.title} · 保留价 ¥{session.reserveYuan} · 已收到 {ranked.length} 个报价
           </p>
         </div>
@@ -181,7 +181,7 @@ const open = session.status === "open";
           <button
             type="button"
             onClick={reset}
-            className="shrink-0 px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-[#777777] text-xs font-bold hover:bg-[#f7f7f7] transition-colors"
+            className="shrink-0 px-3 py-2 min-h-10 rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] text-xs font-bold hover:bg-[var(--color-duo-polar)] transition-colors"
           >
             再开一局
           </button>
@@ -200,7 +200,7 @@ const open = session.status === "open";
               else reset();
             }}
             aria-label="选择要竞价的真实需求局"
-            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white border-2 border-[#e5e5e5] px-2 py-1.5 text-xs font-bold text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
+            className="flex-1 min-w-0 min-h-10 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2 py-1.5 text-xs font-bold text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
           >
             <option value="">
               演示局 · 小区保洁
@@ -224,16 +224,16 @@ const open = session.status === "open";
               key={b.bidderId}
               className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs border-2 ${
                 leader
-                  ? "bg-[#58cc02]/10 border-[#58cc02]/40"
+                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40"
                   : mine
-                    ? "bg-white border-[#e5e5e5]"
-                    : "bg-[#f7f7f7] border-transparent"
+                    ? "bg-white border-[var(--color-duo-swan)]"
+                    : "bg-[var(--color-duo-polar)] border-transparent"
               }`}
             >
-              <span className="w-4 text-[#afafaf] font-mono shrink-0">
+              <span className="w-4 text-[var(--color-duo-hare)] font-mono shrink-0">
                 #{i + 1}
               </span>
-              <span className="font-bold text-[#4b4b4b] truncate">
+              <span className="font-bold text-[var(--color-duo-eel)] truncate">
                 {b.bidderName}
                 {leader && (
                   <span className="ml-1.5 text-[#357a00] font-extrabold">
@@ -241,15 +241,15 @@ const open = session.status === "open";
                   </span>
                 )}
               </span>
-              <span className="ml-auto font-mono font-extrabold text-[#4b4b4b]">
+              <span className="ml-auto font-mono font-extrabold text-[var(--color-duo-eel)]">
                 ¥{b.price}
               </span>
-              {b.note && <span className="text-[#afafaf] truncate">{b.note}</span>}
+              {b.note && <span className="text-[var(--color-duo-hare)] truncate">{b.note}</span>}
             </div>
           );
         })}
         {ranked.length === 0 && (
-          <p className="text-xs text-[#afafaf] py-1 text-center">
+          <p className="text-xs text-[var(--color-duo-hare)] py-1 text-center">
             还没有报价 —— 出价抢占榜一
           </p>
         )}
@@ -257,13 +257,13 @@ const open = session.status === "open";
 
       {/* 你的出价 */}
       {open && (
-        <div className="mt-2.5 pt-2.5 border-t border-[#e5e5e5] flex items-center gap-2">
+        <div className="mt-2.5 pt-2.5 border-t border-[var(--color-duo-swan)] flex items-center gap-2">
           <input
             value={myPrice}
             onChange={(e) => setMyPrice(e.target.value)}
             inputMode="numeric"
             aria-label="我的报价"
-            className="w-20 min-h-10 rounded-xl bg-white border-2 border-[#e5e5e5] px-2.5 py-2 text-xs font-mono text-[#4b4b4b] outline-none focus:border-[#1cb0f6]"
+            className="w-20 min-h-10 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2.5 py-2 text-xs font-mono text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
           />
           <DuoButton
             variant="secondary"
@@ -291,14 +291,14 @@ const open = session.status === "open";
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="mt-2.5 pt-2.5 border-t border-[#e5e5e5]"
+          className="mt-2.5 pt-2.5 border-t border-[var(--color-duo-swan)]"
         >
           <div className="flex items-center gap-2 text-xs font-extrabold text-[#357a00]">
             <Trophy size={12} />
             {session.award.winnerId === "me"
               ? "你中标了！"
               : `${session.award.winnerName} 中标`}
-            <span className="text-[#afafaf] font-mono">
+            <span className="text-[var(--color-duo-hare)] font-mono">
               ¥{session.award.price} · 平台佣金 ¥{session.award.feeYuan} ·
               净得 ¥{session.award.netYuan}
             </span>
@@ -307,7 +307,7 @@ const open = session.status === "open";
       )}
 
       {error && (
-        <p className="mt-2 px-3 py-1.5 rounded-xl bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-xs font-bold text-[#ea2b2b]">
+        <p className="mt-2 px-3 py-1.5 rounded-xl bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-xs font-bold text-[var(--color-duo-red-dark)]">
           {error}
         </p>
       )}

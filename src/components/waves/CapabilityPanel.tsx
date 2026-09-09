@@ -74,19 +74,19 @@ export default function CapabilityPanel() {
   }
 
   return (
-    <div className="bg-white border-2 border-[#e5e5e5] border-b-4 rounded-2xl">
+    <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-2xl">
       {/* 头部 */}
       <button
         onClick={() => setOpen(!open)}
         className="w-full p-3.5 flex items-center gap-3 text-left"
         aria-label="能力声明"
       >
-        <div className="w-10 h-10 rounded-xl bg-[#58cc02] border-b-2 border-[#58a700] text-white flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white flex items-center justify-center shrink-0">
           🎯
         </div>
         <div className="flex-1 min-w-0">
           <span className="text-[12.5px] font-bold block">能力声明</span>
-          <span className="text-xs text-[#afafaf] block mt-0.5 truncate">
+          <span className="text-xs text-[var(--color-duo-hare)] block mt-0.5 truncate">
             {identity.categories.length} 个品类 · {identity.tags.length} 个标签 ·{" "}
             {identity.distanceKm} km · {identity.online ? "在线" : "隐身"}
           </span>
@@ -97,7 +97,7 @@ export default function CapabilityPanel() {
             {rankLabel({ ...myStats, completion: myCompletion })}
           </span>
         </div>
-        <span className="text-[#afafaf] text-lg shrink-0">›</span>
+        <span className="text-[var(--color-duo-hare)] text-lg shrink-0">›</span>
       </button>
 
       {open && (
@@ -107,14 +107,14 @@ export default function CapabilityPanel() {
           className="overflow-hidden px-3.5 pb-3.5"
         >
           {/* 状态总闸：在线 / 忙碌 / 隐身 */}
-          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border-2 border-[#e5e5e5] mb-3">
-            <span className="flex items-center gap-2 text-xs text-[#4b4b4b]">
+          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] mb-3">
+            <span className="flex items-center gap-2 text-xs text-[var(--color-duo-eel)]">
               {status === "online" ? (
-                <Wifi size={12} className="text-[#58cc02]" />
+                <Wifi size={12} className="text-[var(--color-duo-green)]" />
               ) : status === "busy" ? (
-                <Timer size={12} className="text-[#e5b400]" />
+                <Timer size={12} className="text-[var(--color-duo-yellow-dark)]" />
               ) : (
-                <WifiOff size={12} className="text-[#afafaf]" />
+                <WifiOff size={12} className="text-[var(--color-duo-hare)]" />
               )}
               状态总闸（隐身/忙碌不接收新广播）
             </span>
@@ -133,11 +133,11 @@ export default function CapabilityPanel() {
                   className={`px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     status === key
                       ? key === "online"
-                        ? "bg-[#58cc02]/15 text-[#357a00] border-[#58cc02]/50"
+                        ? "bg-[var(--color-duo-green)]/15 text-[#357a00] border-[var(--color-duo-green)]/50"
                         : key === "busy"
-                          ? "bg-[#ffc800]/15 text-[#8a6d00] border-[#e5b400]/60"
-                          : "bg-white text-[#777777] border-[#e5e5e5]"
-                      : "bg-[#f7f7f7] text-[#afafaf] border-[#e5e5e5]"
+                          ? "bg-[var(--color-duo-yellow)]/15 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/60"
+                          : "bg-white text-[var(--color-duo-wolf)] border-[var(--color-duo-swan)]"
+                      : "bg-[var(--color-duo-polar)] text-[var(--color-duo-hare)] border-[var(--color-duo-swan)]"
                   }`}
                 >
                   {label}
@@ -147,7 +147,7 @@ export default function CapabilityPanel() {
           </div>
 
           {/* 品类 */}
-          <span className="text-xs font-semibold text-[#afafaf] block mb-1.5">
+          <span className="text-xs font-semibold text-[var(--color-duo-hare)] block mb-1.5">
             服务品类（硬过滤：不声明的品类收不到广播）
           </span>
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -159,8 +159,8 @@ export default function CapabilityPanel() {
                   onClick={() => toggleCategory(c)}
                   className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     on
-                      ? "bg-[#58cc02] border-[#58a700] text-white"
-                      : "bg-white border-[#e5e5e5] text-[#afafaf]"
+                      ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white"
+                      : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                   }`}
                 >
                   {on && <Check size={10} className="inline mr-0.5" />}
@@ -174,7 +174,7 @@ export default function CapabilityPanel() {
                 onChange={(e) => setCustomCat(e.target.value)}
                 placeholder="自定义品类"
                 aria-label="自定义品类"
-                className="w-24 rounded-full bg-white border-2 border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-[#58cc02]"
+                className="w-24 rounded-full bg-white border-2 border-[var(--color-duo-swan)] px-2.5 py-1 text-xs outline-none focus:border-[var(--color-duo-green)]"
               />
               <button
                 onClick={() => {
@@ -184,7 +184,7 @@ export default function CapabilityPanel() {
                     setCustomCat("");
                   }
                 }}
-                className="w-7 h-7 rounded-full bg-white border-2 border-[#e5e5e5] flex items-center justify-center text-[#777777]"
+                className="w-7 h-7 rounded-full bg-white border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-[var(--color-duo-wolf)]"
                 aria-label="添加品类"
               >
                 <Plus size={11} />
@@ -193,7 +193,7 @@ export default function CapabilityPanel() {
           </div>
 
           {/* 标签 */}
-          <span className="text-xs font-semibold text-[#afafaf] block mb-1.5">
+          <span className="text-xs font-semibold text-[var(--color-duo-hare)] block mb-1.5">
             能力标签（匹配定制条件 · 如：女性 / 熟手 / 日系）
           </span>
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -203,7 +203,7 @@ export default function CapabilityPanel() {
                 onClick={() =>
                   commit({ tags: identity.tags.filter((x) => x !== t) })
                 }
-                className="px-2 py-0.5 rounded-full bg-[#1cb0f6]/10 border-2 border-[#1cb0f6]/40 text-xs font-bold text-[#0a6ea8]"
+                className="px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[#0a6ea8]"
               >
                 {t} ✕
               </button>
@@ -214,25 +214,25 @@ export default function CapabilityPanel() {
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="加标签"
                 aria-label="添加标签"
-                className="w-24 rounded-full bg-white border-2 border-[#e5e5e5] px-2.5 py-1 text-xs outline-none focus:border-[#1cb0f6]"
+                className="w-24 rounded-full bg-white border-2 border-[var(--color-duo-swan)] px-2.5 py-1 text-xs outline-none focus:border-[var(--color-duo-blue)]"
               />
               <button
                 onClick={addTag}
-                className="w-7 h-7 rounded-full bg-white border-2 border-[#e5e5e5] flex items-center justify-center text-[#777777]"
+                className="w-7 h-7 rounded-full bg-white border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-[var(--color-duo-wolf)]"
                 aria-label="添加标签"
               >
                 <Plus size={11} />
               </button>
             </div>
           </div>
-          <p className="text-xs text-[#afafaf] -mt-1 mb-2">
+          <p className="text-xs text-[var(--color-duo-hare)] -mt-1 mb-2">
             兴趣标签最多 3 个 · 随时可换（{3 - identity.tags.length} 空位）
             {tagFull && <span className="text-[#8a6d00]"> 已满，先删再改</span>}
           </p>
 
           {/* 距离 */}
           <div className="mb-3">
-            <span className="text-xs font-semibold text-[#afafaf] block mb-1">
+            <span className="text-xs font-semibold text-[var(--color-duo-hare)] block mb-1">
               服务半径 · {identity.distanceKm} km
             </span>
             <input
@@ -244,7 +244,7 @@ export default function CapabilityPanel() {
               onChange={(e) =>
                 commit({ distanceKm: parseFloat(e.target.value) })
               }
-              className="w-full accent-[#58cc02]"
+              className="w-full accent-[var(--color-duo-green)]"
               aria-label="服务半径"
             />
           </div>
@@ -252,17 +252,17 @@ export default function CapabilityPanel() {
           {/* 认证模拟（进家品类硬门槛） */}
           <button
             onClick={() => commit({ verified: !identity.verified })}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5]"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)]"
             aria-label="实名认证模拟"
           >
-            <span className="text-xs text-[#4b4b4b]">
+            <span className="text-xs text-[var(--color-duo-eel)]">
               ✅ 实名认证模拟（信用加权 +5）
             </span>
             <span
               className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 ${
                 identity.verified
-                  ? "bg-[#58cc02]/10 border-[#58cc02]/40 text-[#357a00]"
-                  : "bg-[#f7f7f7] border-[#e5e5e5] text-[#afafaf]"
+                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                  : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
               }`}
             >
               {identity.verified ? "已认证" : "未认证"}

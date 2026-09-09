@@ -22,13 +22,13 @@ import { shouldNotify, minuteOfWeek } from "@/base/platform/quietHours";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
-  offer: ["bg-[#1cb0f6]/10 border-[#1cb0f6]/40", "text-[#0a6ea8]"],
-  accepted: ["bg-[#58cc02]/10 border-[#58cc02]/40", "text-[#357a00]"],
-  push: ["bg-[#ffc800]/10 border-[#e5b400]/50", "text-[#8a6d00]"],
-  friend: ["bg-[#1cb0f6]/10 border-[#1cb0f6]/40", "text-[#0a6ea8]"],
-  report: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
-  wave: ["bg-[#f7f7f7] border-[#e5e5e5]", "text-[#777777]"],
-  fission: ["bg-[#58cc02]/10 border-[#58cc02]/40", "text-[#357a00]"],
+  offer: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[#0a6ea8]"],
+  accepted: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[#357a00]"],
+  push: ["bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50", "text-[#8a6d00]"],
+  friend: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[#0a6ea8]"],
+  report: ["bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]", "text-[var(--color-duo-wolf)]"],
+  wave: ["bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]", "text-[var(--color-duo-wolf)]"],
+  fission: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[#357a00]"],
 };
 
 function NotifyRow({ item }: { item: NotifyItem }) {
@@ -38,7 +38,7 @@ function NotifyRow({ item }: { item: NotifyItem }) {
       <span className="text-lg">{item.emoji}</span>
       <span className="flex-1 min-w-0">
         <span className={`block text-xs font-bold ${fg}`}>{item.title}</span>
-        <span className="block text-xs text-[#afafaf] truncate">{item.desc}</span>
+        <span className="block text-xs text-[var(--color-duo-hare)] truncate">{item.desc}</span>
       </span>
     </div>
   );
@@ -150,11 +150,11 @@ export default function NotificationCenter({
       <button
         onClick={openSheet}
         aria-label={`通知中心，${unread > 0 ? `${unread} 条未读` : "无未读"}`}
-        className="relative w-11 h-11 rounded-full bg-[#f7f7f7] border border-[#e5e5e5] flex items-center justify-center text-[#777777] hover:text-[#4b4b4b] transition-colors shrink-0"
+        className="relative w-11 h-11 rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] flex items-center justify-center text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] transition-colors shrink-0"
       >
         <Bell size={13} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] text-white text-xs font-extrabold flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] text-white text-xs font-extrabold flex items-center justify-center">
             {unread}
           </span>
         )}
@@ -175,16 +175,16 @@ export default function NotificationCenter({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
+              className="fixed inset-x-3 bottom-24 z-50 bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-4 max-h-[65vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-                  <Bell size={13} className="text-[#1cb0f6]" /> 通知{unread > 0 ? `（${unread}）` : ""}
+                  <Bell size={13} className="text-[var(--color-duo-blue)]" /> 通知{unread > 0 ? `（${unread}）` : ""}
                 </h3>
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="关闭通知"
-                  className="text-[#afafaf] hover:text-[#4b4b4b]"
+                  className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
                 >
                   ✕
                 </button>
@@ -199,21 +199,21 @@ export default function NotificationCenter({
                         setOpen(false);
                       }}
                       aria-label={`心愿单，共 ${cartCount ?? 0} 项`}
-                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[#e5e5e5] border-b-4 bg-white px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
+                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-4 bg-white px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
                     >
-                      <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#f7f7f7] border border-[#e5e5e5] text-sm shrink-0">
+                      <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-sm shrink-0">
                         🧺
                         {(cartCount ?? 0) > 0 && (
-                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#ff4b4b] border-2 border-white text-xs font-bold text-white flex items-center justify-center">
+                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[var(--color-duo-red)] border-2 border-white text-xs font-bold text-white flex items-center justify-center">
                             {cartCount}
                           </span>
                         )}
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-xs font-extrabold text-[#4b4b4b]">我的心愿单</span>
-                        <span className="block text-xs text-[#afafaf] truncate">收藏的局 · 一键直达 AR 预览</span>
+                        <span className="block text-xs font-extrabold text-[var(--color-duo-eel)]">我的心愿单</span>
+                        <span className="block text-xs text-[var(--color-duo-hare)] truncate">收藏的局 · 一键直达 AR 预览</span>
                       </span>
-                      <span className="text-[#afafaf] text-xs shrink-0">→</span>
+                      <span className="text-[var(--color-duo-hare)] text-xs shrink-0">→</span>
                     </button>
                   )}
                   {onSos && (
@@ -224,22 +224,22 @@ export default function NotificationCenter({
                         setOpen(false);
                       }}
                       aria-label="SOS 紧急求助"
-                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[#ff4b4b]/40 border-b-4 bg-[#fff5f5] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
+                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-red)]/40 border-b-4 bg-[#fff5f5] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
                     >
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff4b4b] text-white text-sm font-black shrink-0">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-red)] text-white text-sm font-black shrink-0">
                         SOS
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block text-xs font-extrabold text-[#c2410c]">SOS 紧急求助</span>
-                        <span className="block text-xs text-[#afafaf] truncate">一键上报 · 通知紧急联系人/平台/警方</span>
+                        <span className="block text-xs text-[var(--color-duo-hare)] truncate">一键上报 · 通知紧急联系人/平台/警方</span>
                       </span>
-                      <span className="text-[#afafaf] text-xs shrink-0">→</span>
+                      <span className="text-[var(--color-duo-hare)] text-xs shrink-0">→</span>
                     </button>
                   )}
                 </div>
               )}
               {items.length === 0 ? (
-                <p className="text-xs text-[#afafaf] text-center py-6">
+                <p className="text-xs text-[var(--color-duo-hare)] text-center py-6">
                   还没有通知 —— 雷达适配、报价应答、接单进度都会汇总到这里
                 </p>
               ) : (
@@ -249,7 +249,7 @@ export default function NotificationCenter({
                   ))}
                   <button
                     onClick={() => setOpen(false)}
-                    className="w-full py-1.5 text-xs text-[#afafaf] flex items-center justify-center gap-1"
+                    className="w-full py-1.5 text-xs text-[var(--color-duo-hare)] flex items-center justify-center gap-1"
                   >
                     <Check size={9} /> 已读，收起
                   </button>
@@ -260,7 +260,7 @@ export default function NotificationCenter({
                   setNotifPerm(await requestNotifyPermission());
                 }}
                 disabled={notifPerm !== "default"}
-                className="w-full mt-1 py-1.5 rounded-xl bg-white border-2 border-[#e5e5e5] text-xs text-[#0a6ea8] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full mt-1 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs text-[#0a6ea8] disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {notifPerm === "granted"
                   ? "🔔 系统通知已开启"

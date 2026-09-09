@@ -542,16 +542,16 @@ export default function FulfillmentCenter({
       {/* P0 接电：📞 一键虚拟通话弹层（Deterministic 一次性线路，30min 失效） */}
       {dialOpen && (
         <div className="fc-call-mask" data-testid="dial-overlay">
-          <div className="bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4 w-[320px] max-w-[92vw]">
+          <div className="bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4 w-[320px] max-w-[92vw]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-extrabold text-[#4b4b4b]">
+              <span className="text-xs font-extrabold text-[var(--color-duo-eel)]">
                 📞 一键虚拟通话
               </span>
               <button
                 type="button"
                 aria-label="关闭虚拟通话"
                 onClick={() => setDialOpen(false)}
-                className="text-[#afafaf] hover:text-[#4b4b4b] text-[13px]"
+                className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] text-[13px]"
               >
                 ✕
               </button>

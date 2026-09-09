@@ -38,18 +38,18 @@ export default function RadarInbox() {
       <button
         onClick={() => setOpen(!open)}
         aria-label="雷达推送"
-        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white border-2 border-[#e5e5e5] border-b-4"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4"
       >
-        <span className="flex items-center gap-2 text-xs font-extrabold text-[#4b4b4b]">
-          <Radar size={13} className="text-[#58cc02] animate-pulse" />
+        <span className="flex items-center gap-2 text-xs font-extrabold text-[var(--color-duo-eel)]">
+          <Radar size={13} className="text-[var(--color-duo-green)] animate-pulse" />
           雷达 · {mine.length} 条适配推送
           {unread > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-[#ea2b2b] text-xs font-extrabold">
+            <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)] text-xs font-extrabold">
               {unread} 未读
             </span>
           )}
         </span>
-        <span className="text-xs text-[#afafaf]">{open ? "收起" : "查看"}</span>
+        <span className="text-xs text-[var(--color-duo-hare)]">{open ? "收起" : "查看"}</span>
       </button>
 
       <AnimatePresence>
@@ -70,16 +70,16 @@ export default function RadarInbox() {
                     key={p.id}
                     className={`rounded-2xl border-2 p-3 ${
                       p.read
-                        ? "bg-[#f7f7f7] border-[#e5e5e5]"
-                        : "bg-[#58cc02]/[.06] border-[#58cc02]/40"
+                        ? "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]"
+                        : "bg-[var(--color-duo-green)]/[.06] border-[var(--color-duo-green)]/40"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#4b4b4b] truncate">
+                        <p className="text-xs font-bold text-[var(--color-duo-eel)] truncate">
                           {wave.basics.category} · {wave.basics.time}
                         </p>
-                        <p className="text-xs text-[#777777] truncate">
+                        <p className="text-xs text-[var(--color-duo-wolf)] truncate">
                           {wave.basics.area} · 预算 {yuan(wave.budget)}
                         </p>
                         <p className="text-xs text-[#0a6ea8] mt-1 flex items-center gap-1">
@@ -113,7 +113,7 @@ export default function RadarInbox() {
               })}
               <button
                 onClick={() => setOpen(false)}
-                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-[#afafaf]"
+                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-[var(--color-duo-hare)]"
               >
                 <X size={9} /> 收起
               </button>

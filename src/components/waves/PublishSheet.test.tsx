@@ -91,8 +91,8 @@ describe("PublishSheet P1-5 声明式表单驱动", () => {
     expect(fieldAppliance!.tagName.toLowerCase()).toBe("select");
     expect(fieldAppliance!.innerHTML).toContain("空调");
     expect(fieldAppliance!.innerHTML).toContain("洗衣机");
-    // 必填星标
-    expect(form!.innerHTML).toContain("text-[#ea2b2b]");
+    // 必填星标（Duo 红深色 Token，与 #ea2b2b 同值）
+    expect(form!.innerHTML).toContain("text-[var(--color-duo-red-dark)]");
     // 触控高度 ≥44
     expect(Number((fieldAppliance!.style.minHeight || "48px").replace("px", "")) >= 44 || fieldAppliance!.className.includes("min-h-[48px]")).toBe(true);
     unmount();

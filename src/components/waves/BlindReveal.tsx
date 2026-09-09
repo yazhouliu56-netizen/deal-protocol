@@ -26,24 +26,24 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         className="relative [transform-style:preserve-3d]"
       >
         {/* 背面（揭晓内容）—— rotateY 180 后朝前 */}
-        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border-2 border-[#1cb0f6]/40 border-b-4 p-4 rounded-3xl">
+        <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border-2 border-[var(--color-duo-blue)]/40 border-b-4 p-4 rounded-3xl">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#58cc02] border-b-2 border-[#58a700] text-white flex items-center justify-center text-lg shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white flex items-center justify-center text-lg shrink-0">
               {data.nickname.slice(0, 1)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-[13px] font-extrabold text-[#4b4b4b]">
+                <span className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">
                   {maskName(data.nickname)}
                 </span>
-                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#ffc800]/15 border-2 border-[#e5b400]/50 text-[#8a6d00]">
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]">
                   Lv.{data.creditTier}
                 </span>
                 {data.verified && (
-                  <ShieldCheck size={13} className="text-[#58cc02] shrink-0" />
+                  <ShieldCheck size={13} className="text-[var(--color-duo-green)] shrink-0" />
                 )}
               </div>
-              <span className="text-xs text-[#afafaf] block truncate mt-0.5">
+              <span className="text-xs text-[var(--color-duo-hare)] block truncate mt-0.5">
                 {data.meta}
               </span>
             </div>
@@ -54,12 +54,12 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         </div>
 
         {/* 正面（翻转前：悬念卡）—— 平头哥报喜：对方接单了 */}
-        <div className="absolute inset-0 [backface-visibility:hidden] bg-white border-2 border-[#e5e5e5] border-b-4 p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
+        <div className="absolute inset-0 [backface-visibility:hidden] bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-4 rounded-3xl flex flex-col items-center justify-center gap-1.5">
           <SleepyBeast mood="cheering" interactive={false} />
-          <span className="text-xs font-extrabold text-[#4b4b4b]">
+          <span className="text-xs font-extrabold text-[var(--color-duo-eel)]">
             有人接单了！
           </span>
-          <span className="text-xs text-[#afafaf]">身份确认中…</span>
+          <span className="text-xs text-[var(--color-duo-hare)]">身份确认中…</span>
         </div>
       </motion.div>
     </div>

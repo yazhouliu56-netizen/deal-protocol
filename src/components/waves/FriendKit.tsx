@@ -56,7 +56,7 @@ export default function FriendKit({
 
   if (friends) {
     return (
-      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#58cc02]/10 border-2 border-[#58cc02]/40 text-[#357a00] flex items-center gap-1.5">
+      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-center gap-1.5">
         <ShieldCheck size={10} /> 已是好友 · 下次见面有优先匹配
       </p>
     );
@@ -69,7 +69,7 @@ export default function FriendKit({
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-[#1cb0f6]/[.06] border-2 border-[#1cb0f6]/40 px-2.5 py-2"
+        className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 px-2.5 py-2"
       >
         <p className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1">
           <Heart size={10} /> 对方想和你成为好友 · {hours}h 后自动撤回
@@ -90,7 +90,7 @@ export default function FriendKit({
   if (outbound) {
     const hours = Math.ceil(requestTtlLeft(outbound, now) / 3_600_000);
     return (
-      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#f7f7f7] border-2 border-[#e5e5e5] text-[#777777] flex items-center gap-1.5">
+      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] flex items-center gap-1.5">
         <UserPlus size={10} /> 已发出好友请求 · 等待对方确认（{hours}h 后自动撤回）
       </p>
     );
