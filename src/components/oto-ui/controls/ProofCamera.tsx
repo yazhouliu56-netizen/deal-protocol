@@ -269,7 +269,7 @@ export default function ProofCamera({
               📷
             </div>
             <div className="proof-camera-hint">4:3 环境相机直拍 · 禁止相册选取</div>
-            <div className="proof-camera-hint" style={{ color: "#475569" }}>
+            <div className="proof-camera-hint text-[#475569]">
               拍摄后将自动压制时间 / GPS / 订单水印 + 🔬 五信号鉴真
             </div>
           </div>
@@ -321,8 +321,7 @@ export default function ProofCamera({
 
       {error && (
         <div
-          className="proof-camera-warn"
-          style={{ position: "static", marginTop: 10 }}
+          className="proof-camera-warn static mt-2.5"
           role="alert"
           data-testid="proof-error"
         >
@@ -335,7 +334,7 @@ export default function ProofCamera({
         type="file"
         accept="image/*"
         capture="environment"
-        style={{ display: "none" }}
+        className="hidden"
         aria-label="拍照存证（强制后置环境相机）"
         data-testid="proof-input"
         onChange={(e) => {

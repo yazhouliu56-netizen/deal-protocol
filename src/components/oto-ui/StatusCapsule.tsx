@@ -187,10 +187,10 @@ export default function StatusCapsule({
         <span className="status-capsule-emoji" aria-hidden="true">
           {STATUS_CAPSULE_EMOJI[status]}
         </span>
-        <span className="status-capsule-label" style={{ color: "var(--color-duo-eel)" }}>
+        <span className="status-capsule-label text-[var(--color-duo-eel)]">
           {meta.label}
           {typeof distanceMeters === "number" && distanceMeters >= 0 && (
-            <span className="status-capsule-distance" style={{ marginLeft: 6, color: "var(--color-duo-wolf)" }}>
+            <span className="status-capsule-distance ml-1.5 text-[var(--color-duo-wolf)]">
               · 距服务者 {distanceMeters}m
             </span>
           )}

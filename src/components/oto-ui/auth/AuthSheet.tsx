@@ -376,16 +376,16 @@ export default function AuthSheet() {
         {account ? (
           <>
             <div className="auth-signed-in" data-testid="signed-in">
-              <span style={{ fontSize: 20 }}>{account.emoji}</span>
-              <div style={{ minWidth: 0 }}>
+              <span className="text-[20px]">{account.emoji}</span>
+              <div className="min-w-0">
                 <div className="auth-signed-in-name">{account.nickname}</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.5)", marginTop: 1 }}>
+                <div className="text-[10.5px] text-white/50 mt-px">
                   {ROLE_LABEL[account.role]} · 真实身份
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" className="auth-primary auth-quit" style={{ flex: 1 }} data-action="logout" onClick={handleLogout}>
+            <div className="flex gap-2 mt-3">
+              <button type="button" className="auth-primary auth-quit flex-1" data-action="logout" onClick={handleLogout}>
                 退出登录
               </button>
             </div>
@@ -419,9 +419,8 @@ export default function AuthSheet() {
                 </div>
                 {smsSent && (
                   <input
-                    className="auth-input"
+                    className="auth-input mt-2"
                     name="auth-sms-code"
-                    style={{ marginTop: 8 }}
                     inputMode="numeric"
                     maxLength={6}
                     value={smsCode}
@@ -442,7 +441,7 @@ export default function AuthSheet() {
                   {verifying ? "验证中…" : smsSent ? "验证并登录" : "先发送验证码"}
                 </button>
                 {formError && (
-                  <p className="auth-hint" data-testid="auth-error" style={{ color: "#fda4af" }}>
+                  <p className="auth-hint text-[#fda4af]" data-testid="auth-error">
                     {formError}
                   </p>
                 )}

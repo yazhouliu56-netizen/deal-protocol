@@ -98,7 +98,7 @@ export default function MeetupSlot({
       </div>
       {split && (
         <section className="mt-split">
-          <strong style={{ color: "#fdba74" }}>
+          <strong className="text-[#fdba74]">
             💰 AA 分摊对账 · 合计 ¥{split.totalYuan}
           </strong>
           {split.entries.map((entry) => (

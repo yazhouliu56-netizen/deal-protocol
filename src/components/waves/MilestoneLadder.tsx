@@ -114,7 +114,7 @@ export default function MilestoneLadder({
             <span className="ms-title">
               {m.title}
               {m.status === "SUBMITTED" && m.submittedAt ? (
-                <span style={{ color: "#94a3b8", fontSize: 10 }}> · 已交验</span>
+                <span className="text-[10px] text-[#94a3b8]"> · 已交验</span>
               ) : null}
             </span>
             <span className="ms-amount">{fmtYuan(m.amountCents)}</span>
