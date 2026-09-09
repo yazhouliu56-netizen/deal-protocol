@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import DuoPill from "@/components/ui/DuoPill";
 import { motion } from "framer-motion";
 import { Sparkles, MessageSquareText } from "lucide-react";
 import { mockDiagnose, type DiagnosisAdvice } from "@/base/ai/diagnostic";
@@ -75,9 +76,9 @@ export default function DiagnosisCard({ wave }: { wave: Wave }) {
             <MessageSquareText size={11} className="mt-0.5 shrink-0 text-[var(--color-duo-blue)]" />
             {a.title}
             {a.value && (
-              <span className="ml-auto shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
+              <DuoPill tone="blue" className="ml-auto shrink-0">
                 {a.value}
-              </span>
+              </DuoPill>
             )}
           </p>
           <p className="text-xs text-[var(--color-duo-wolf)] mt-1 leading-relaxed">{a.body}</p>

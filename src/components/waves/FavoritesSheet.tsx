@@ -1,5 +1,6 @@
 "use client";
 import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
+import DuoPill from "@/components/ui/DuoPill";
 import { Heart, MapPin, CheckCircle2 } from "lucide-react";
 import { yuan } from "@/base/money/customPricing";
 import type { Wave } from "@/base/order/wave";
@@ -59,9 +60,9 @@ export default function FavoritesSheet({
                     <p className="text-xs font-bold text-[var(--color-duo-eel)] truncate">
                       {w.basics.category}
                       {gone && (
-                        <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] text-[var(--color-duo-hare)]">
+                        <DuoPill tone="neutral" className="ml-1.5 border-0">
                           已结束
-                        </span>
+                        </DuoPill>
                       )}
                     </p>
                     <p className="text-xs text-[var(--color-duo-hare)] flex items-center gap-1 truncate">

@@ -1,6 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
+import DuoPill from "@/components/ui/DuoPill";
 import { useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
@@ -169,14 +170,14 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 <h3 className="text-[13px] font-extrabold">
                     {wave.basics.category}
                     {isOpen && wave.status === "active" && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] align-middle">
+                      <DuoPill tone="yellow" className="ml-1.5 align-middle">
                         🎯 多人拼单局 · {neededJoiners(wave)} 位拼位
-                      </span>
+                      </DuoPill>
                     )}
                     {isOpen && (wave.buffSeats ?? 0) > 0 && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] align-middle">
+                      <DuoPill tone="green" className="ml-1.5 align-middle">
                         ✨ 已降标准 −{(wave.buffSeats ?? 0)}
-                      </span>
+                      </DuoPill>
                     )}
                   </h3>
                   {wave.biddingSettled && (
@@ -191,12 +192,9 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                     {wave.basics.time} · {wave.basics.area} · {isOpen ? `人均 ${yuan(perSeatPrice(wave))}` : `预算 ${yuan(wave.budget)}`}
                   </p>
                   {wave.customs.map((c) => (
-                    <span
-                      key={c.text}
-                      className="inline-block mt-1 mr-1.5 px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
-                    >
+                    <DuoPill key={c.text} tone="blue" className="mt-1 mr-1.5">
                       {c.text}
-                    </span>
+                    </DuoPill>
                   ))}
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
@@ -617,9 +615,9 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             <HelpCircle size={11} className="text-[var(--color-duo-yellow-dark)]" />
             响应方未履约，请裁决谅解与否
             {claim.depositPhase === "held" && (
-              <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
+              <DuoPill tone="blue">
                 🕊️ 押金 ¥5 待定
-              </span>
+              </DuoPill>
             )}
           </p>
           <div className="flex gap-2">

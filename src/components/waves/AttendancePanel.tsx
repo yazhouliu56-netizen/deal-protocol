@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import DuoPill from "@/components/ui/DuoPill";
 import { ClipboardList, Users } from "lucide-react";
 import type { Wave } from "@/base/order/wave";
 import { attendanceLedger } from "@/base/order/attendance";
@@ -94,24 +95,24 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
               </div>
               <div className="flex gap-1.5 shrink-0">
                 {r.noShows > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-xs font-bold text-[var(--color-duo-red-dark)]">
+                  <DuoPill tone="red">
                     鸽 {r.noShows}
-                  </span>
+                  </DuoPill>
                 )}
                 {r.withdrawn > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-wolf)]">
+                  <DuoPill tone="neutral" className="text-[var(--color-duo-wolf)]">
                     退 {r.withdrawn}
-                  </span>
+                  </DuoPill>
                 )}
                 {r.waitlisted > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-xs font-bold text-[var(--color-duo-yellow-ink)]">
+                  <DuoPill tone="yellow">
                     候补 {r.waitlisted}
-                  </span>
+                  </DuoPill>
                 )}
                 {r.guestCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]">
+                  <DuoPill tone="blue">
                     +1 ×{r.guestCount}
-                  </span>
+                  </DuoPill>
                 )}
               </div>
             </div>

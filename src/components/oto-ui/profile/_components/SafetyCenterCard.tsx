@@ -1,4 +1,5 @@
 "use client";
+import DuoPill from "@/components/ui/DuoPill";
 import type { CrisisLevel, CrisisRecord } from "@/base/safe/crisis";
 
 interface SafetyCenterCardProps {
@@ -32,9 +33,9 @@ export default function SafetyCenterCard({
     <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
       <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
         紧急求助
-        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-bold">
+        <DuoPill tone="neutral">
           EPA 递增通知
-        </span>
+        </DuoPill>
       </h3>
       <p className="text-xs font-bold text-[var(--color-duo-eel)] flex items-center gap-1">
         紧急求助（紧急联系人 → 平台值班 → 警方通道）

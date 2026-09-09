@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState, useSyncExternalStore } from "react";
+import DuoPill from "@/components/ui/DuoPill";
 import { motion } from "framer-motion";
 import { MapPin, RotateCw, Clock, Users, Map as MapIcon, Heart, Share2 } from "lucide-react";
 import { geoOf, toMapXy, type GeoPoint } from "@/base/geo/geo";
@@ -324,15 +325,15 @@ function WaveMiniSheet({
       </div>
 
       <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-[var(--color-duo-wolf)]">
-        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]">
+        <DuoPill tone="neutral" className="px-2 py-1 text-[var(--color-duo-wolf)]">
           ¥{price}
-        </span>
-        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center gap-1">
+        </DuoPill>
+        <DuoPill tone="neutral" className="px-2 py-1 text-[var(--color-duo-wolf)]">
           <Users size={9} className="text-[var(--color-duo-blue)]" /> 名额 {wave.capacity ?? 1}
-        </span>
-        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]">
+        </DuoPill>
+        <DuoPill tone="green" className="px-2 py-1">
           活跃局
-        </span>
+        </DuoPill>
         <span className="ml-auto">
           {copied ? "已复制分享链接" : "点地图外信号点可切换"}
         </span>

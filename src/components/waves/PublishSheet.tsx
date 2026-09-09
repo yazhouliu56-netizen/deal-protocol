@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
+import DuoPill from "@/components/ui/DuoPill";
 import { Send, Sparkles } from "lucide-react";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -565,9 +566,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               🤖 AI 拆解复杂任务
             </span>
             {modules && modules.length >= 2 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
+              <DuoPill tone="blue">
                 已拆 {modules.length} 个独立模块
-              </span>
+              </DuoPill>
             )}
           </div>
           <p className="text-xs text-[var(--color-duo-hare)] mb-2">
@@ -628,9 +629,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               🎯 多人拼单局 · 拼位组队
             </span>
             {people >= 2 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]">
+              <DuoPill tone="yellow">
                 满 {people} 人成局 · 人均约 ¥{Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))}
-              </span>
+              </DuoPill>
             )}
           </div>
           <p className="text-xs text-[var(--color-duo-hare)] mb-2">

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 
 import {
   applyTimestampGeoWatermark,
@@ -96,29 +97,22 @@ const CAMERA_CSS = `
   background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.5);color:#fecaca;
   font-size:11px;line-height:1.6;padding:7px 10px;font-weight:700}
 .proof-camera-forgery{position:absolute;left:8px;right:8px;bottom:36px;display:flex;flex-wrap:wrap;gap:6px}
-.proof-camera-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
-  padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(0,0,0,.45);backdrop-filter:blur(8px);color:#e2e8f0}
-.proof-camera-badge-low{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.4);color:#86efac}
-.proof-camera-badge-medium{background:rgba(251,191,36,.18);border-color:rgba(251,191,36,.45);color:#fde68a}
-.proof-camera-badge-high{background:rgba(249,115,22,.18);border-color:rgba(249,115,22,.5);color:#fed7aa}
-.proof-camera-badge-critical{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
 .proof-camera-geo{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
   color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;padding:2px 8px;margin-bottom:8px}
 `;
 
-function badgeClassFor(level: IImageForgeryReport["riskLevel"]): string {
+function badgeToneFor(level: IImageForgeryReport["riskLevel"]): DuoPillTone {
   switch (level) {
     case "LOW":
-      return "proof-camera-badge-low";
+      return "green";
     case "MEDIUM":
-      return "proof-camera-badge-medium";
+      return "yellow";
     case "HIGH":
-      return "proof-camera-badge-high";
+      return "orange";
     case "CRITICAL":
-      return "proof-camera-badge-critical";
+      return "red";
     default:
-      return "";
+      return "neutral";
   }
 }
 
@@ -299,12 +293,12 @@ export default function ProofCamera({
             <div className="proof-camera-img-mask" aria-hidden="true" />
             {forgeryReport && (
               <div className="proof-camera-forgery" data-testid="proof-forgery">
-                <span className={`proof-camera-badge ${badgeClassFor(forgeryReport.riskLevel)}`} data-forgery-badge>
+                <DuoPill tone={badgeToneFor(forgeryReport.riskLevel)} onDark dataAttrs={{ "data-forgery-badge": "" }}>
                   🔬 鉴真 {Math.round(forgeryReport.overallConfidence * 100)}% · {forgeryReport.riskLevel}
-                </span>
-                <span className="proof-camera-badge" data-sha-tag>
+                </DuoPill>
+                <DuoPill tone="neutral" onDark dataAttrs={{ "data-sha-tag": "" }}>
                   SHA-256 {result.sha256.slice(0, 12)}…
-                </span>
+                </DuoPill>
               </div>
             )}
             <div className="proof-camera-hash" data-testid="proof-hash">

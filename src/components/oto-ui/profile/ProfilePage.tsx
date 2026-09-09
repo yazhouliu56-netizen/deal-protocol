@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill from "@/components/ui/DuoPill";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import {
   ArrowRightLeft,
@@ -329,16 +330,17 @@ export default function ProfilePage({
         </div>
         {/* P1 第 3 步：会员徽标仅登录态展示，访客态换中性「演示体验」徽标（根治虚假钻石会员） */}
         {authAccount ? (
-          <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-duo-blue)]/15 border-2 border-[var(--color-duo-blue)]/30 text-[var(--color-duo-blue)] font-semibold shrink-0">
+          <DuoPill tone="blue" className="px-2 py-1 font-semibold shrink-0">
             钻石会员
-          </span>
+          </DuoPill>
         ) : (
-          <span
-            data-testid="guest-demo-badge"
-            className="text-xs px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-semibold shrink-0"
+          <DuoPill
+            tone="neutral"
+            testId="guest-demo-badge"
+            className="px-2 py-1 font-semibold shrink-0"
           >
             [ 演示体验 ]
-          </span>
+          </DuoPill>
         )}
       </DuoCardShell>
 
@@ -423,9 +425,9 @@ export default function ProfilePage({
                       [ 方案单 ] · 点击查看履约进度
                     </span>
                   </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/15 border-2 border-[var(--color-duo-blue)]/30 text-[var(--color-duo-blue)] shrink-0">
+                  <DuoPill tone="blue" className="px-2 shrink-0">
                     {o.statusDisplay}
-                  </span>
+                  </DuoPill>
                 </button>
               ) : (
                 <button
@@ -442,9 +444,9 @@ export default function ProfilePage({
                     </span>
                     <span className="text-xs text-[var(--color-duo-hare)] block mt-0.5">[ 预订卡 ]</span>
                   </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] shrink-0">
+                  <DuoPill tone="yellow" className="px-2 shrink-0">
                     {o.statusDisplay}
-                  </span>
+                  </DuoPill>
                 </button>
               ),
             )}
@@ -504,9 +506,9 @@ export default function ProfilePage({
         <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
           <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
             推送免打扰
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-bold">
+            <DuoPill tone="neutral">
               自主设置 · 不绑付费
-            </span>
+            </DuoPill>
           </h3>
           <label className="flex items-center justify-between gap-2 text-xs text-[var(--color-duo-eel)] font-bold cursor-pointer">
             <span>开启免打扰</span>

@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import DuoPill from "@/components/ui/DuoPill";
 import { ShieldCheck, Clock3 } from "lucide-react";
 import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 import { maskName } from "@/base/trust/reputation";
@@ -36,9 +37,9 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                 <span className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">
                   {maskName(data.nickname)}
                 </span>
-                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]">
+                <DuoPill tone="yellow">
                   Lv.{data.creditTier}
-                </span>
+                </DuoPill>
                 {data.verified && (
                   <ShieldCheck size={13} className="text-[var(--color-duo-green)] shrink-0" />
                 )}

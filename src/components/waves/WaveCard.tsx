@@ -11,6 +11,7 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill from "@/components/ui/DuoPill";
 
 /**
  * A signal-wave demand card — shown in the radar feed to responders.
@@ -141,9 +142,9 @@ export default function WaveCard({
       <p className="text-xs text-[var(--color-duo-eel)] mt-2 flex items-center gap-1">
         <Clock3 size={10} className="text-[var(--color-duo-blue)] shrink-0" /> {wave.basics.time}
         {isOpen && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-orange)]/15 border border-[var(--color-duo-orange)]/30 text-[var(--color-duo-orange)] ml-0.5">
+          <DuoPill tone="orange" className="ml-0.5">
             🎯 多人拼单局 {wave.capacity} 人
-          </span>
+          </DuoPill>
         )}
       </p>
 
@@ -185,12 +186,9 @@ export default function WaveCard({
       {wave.customs.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {wave.customs.map((c, i) => (
-            <span
-              key={i}
-              className="px-2 py-0.5 rounded-full bg-[var(--color-duo-orange)]/15 border border-[var(--color-duo-orange)]/30 text-xs font-bold text-[var(--color-duo-orange)]"
-            >
+            <DuoPill key={i} tone="orange">
               {c.text} +{15 * (i + 1)}%
-            </span>
+            </DuoPill>
           ))}
         </div>
       )}
@@ -214,14 +212,14 @@ export default function WaveCard({
           )
         )}
         {wave.negotiable && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/15 border border-[var(--color-duo-blue)]/30 text-[var(--color-duo-blue)]">
+          <DuoPill tone="blue">
             可磋商
-          </span>
+          </DuoPill>
         )}
         {wave.deposit && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border border-[var(--color-duo-blue)]/20 text-[var(--color-duo-blue)]">
+          <DuoPill tone="blue">
             🕊️ 爽约保障险 ¥5
-          </span>
+          </DuoPill>
         )}
       </div>
 

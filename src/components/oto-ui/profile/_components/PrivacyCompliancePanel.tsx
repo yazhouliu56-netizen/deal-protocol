@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import DuoPill from "@/components/ui/DuoPill";
 import type { Identity } from "@/store/useIdentityStore";
 import { ageFromBirthYear, ageGate, modeOfAge } from "@/base/safe/ageGate";
 import { mask, type ForgetKind, type ForgetRequest, type SensitiveKind } from "@/base/safe/privacy";
@@ -34,9 +35,9 @@ export default function PrivacyCompliancePanel({
       <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
         <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           未成年人分级
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/15 border-2 border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)] font-bold">
+          <DuoPill tone="green" className="ml-auto">
             合规
-          </span>
+          </DuoPill>
         </h3>
         <div className="flex items-center gap-2">
           <input
@@ -104,9 +105,9 @@ export default function PrivacyCompliancePanel({
       <div className="bg-white rounded-2xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-3.5">
         <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center">
           数据脱敏
-          <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] font-bold">
+          <DuoPill tone="neutral" className="ml-auto">
             对外展示即掩码
-          </span>
+          </DuoPill>
         </h3>
         {(
           [

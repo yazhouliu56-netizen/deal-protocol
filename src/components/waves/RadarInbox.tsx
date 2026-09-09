@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Radar, Zap, X } from "lucide-react";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { yuan } from "@/base/money/customPricing";
@@ -44,9 +45,9 @@ export default function RadarInbox() {
           <Radar size={13} className="text-[var(--color-duo-green)] animate-pulse" />
           雷达 · {mine.length} 条适配推送
           {unread > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)] text-xs font-extrabold">
+            <DuoPill tone="red" className="font-extrabold">
               {unread} 未读
-            </span>
+            </DuoPill>
           )}
         </span>
         <span className="text-xs text-[var(--color-duo-hare)]">{open ? "收起" : "查看"}</span>

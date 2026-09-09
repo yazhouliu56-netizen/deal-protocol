@@ -1,0 +1,61 @@
+"use client";
+
+import type { ReactNode } from "react";
+
+import { cn } from "@/lib/utils";
+
+export type DuoPillTone = "blue" | "green" | "yellow" | "red" | "orange" | "neutral";
+
+const TONE: Record<DuoPillTone, string> = {
+  blue: "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]",
+  green: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]",
+  yellow:
+    "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]",
+  red: "bg-[var(--color-duo-red)]/10 border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]",
+  orange: "bg-[var(--color-duo-orange)]/10 border-[var(--color-duo-orange)]/40 text-[var(--color-duo-orange)]",
+  neutral: "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]",
+};
+
+/** 暗底演绎（ProofCamera 鉴真徽标家族；rgba 非 Token，暗岛收拢于此一处） */
+const TONE_DARK: Record<DuoPillTone, string> = {
+  blue: "bg-black/45 border-white/20 text-[#e2e8f0]",
+  green: "bg-[rgba(34,197,94,.18)] border-[rgba(34,197,94,.4)] text-[#86efac]",
+  yellow: "bg-[rgba(251,191,36,.18)] border-[rgba(251,191,36,.45)] text-[#fde68a]",
+  red: "bg-[rgba(239,68,68,.22)] border-[rgba(239,68,68,.6)] text-[#fecaca]",
+  orange: "bg-[rgba(249,115,22,.18)] border-[rgba(249,115,22,.5)] text-[#fed7aa]",
+  neutral: "bg-black/45 border-white/20 text-[#e2e8f0]",
+};
+
+interface DuoPillProps {
+  tone?: DuoPillTone;
+  /** 暗底（照片/深色浮层上的徽标） */
+  onDark?: boolean;
+  /** 结构附加（ml-auto/align-middle/whitespace-nowrap…；cn 合并，冲突以后者赢） */
+  className?: string;
+  children: ReactNode;
+  testId?: string;
+  /** data-* 透传（ProofCamera data-forgery-badge/data-sha-tag） */
+  dataAttrs?: Record<string, string | number | undefined>;
+}
+
+/**
+ * 胶囊徽章（P9-6）：收敛 ~30 处浅色 tone badge + ProofCamera 4 暗 badge。
+ * 正典 inline-flex/border-2/px-2/py-0.5/text-xs/font-bold（border-1→2、/15→/10 归一）；
+ * 实心 pills（白字 button 系）与圆点/头像/进度条不在收敛域。
+ */
+export default function DuoPill({ tone = "blue", onDark = false, className, children, testId, dataAttrs }: DuoPillProps) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border-2 px-2 py-0.5 text-xs font-bold",
+        onDark && "backdrop-blur",
+        (onDark ? TONE_DARK : TONE)[tone],
+        className,
+      )}
+      data-testid={testId}
+      {...dataAttrs}
+    >
+      {children}
+    </span>
+  );
+}

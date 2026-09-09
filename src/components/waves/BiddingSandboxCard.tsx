@@ -1,5 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Gavel, Trophy, Layers } from "lucide-react";
@@ -164,13 +165,13 @@ const open = session.status === "open";
           <p className="text-xs font-extrabold text-[var(--color-duo-eel)] flex items-center gap-1.5">
             公开竞价 · 演示沙盒
             {picked ? (
-              <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/10 border border-[var(--color-duo-green)]/40 text-xs text-[var(--color-duo-green-dark)] font-extrabold">
+              <DuoPill tone="green" className="font-extrabold">
                 你的真实需求局
-              </span>
+              </DuoPill>
             ) : (
-              <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-xs text-[var(--color-duo-hare)] font-bold">
+              <DuoPill tone="neutral">
                 演示局 · 无真实资金
-              </span>
+              </DuoPill>
             )}
           </p>
           <p className="text-xs text-[var(--color-duo-hare)] truncate">

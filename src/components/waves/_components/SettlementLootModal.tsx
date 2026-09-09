@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill from "@/components/ui/DuoPill";
 import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 import { playDuoSound } from "@/lib/duo-audio";
 import { fireDuoConfetti } from "@/lib/duo-confetti";
@@ -96,9 +97,9 @@ export default function SettlementLootModal({ waveId, open, onClose }: Settlemen
         )}
         <h3 className="text-[16px] font-extrabold text-[var(--color-duo-eel)] text-center">{reward.title}</h3>
         <p className="text-xs text-[var(--color-duo-wolf)] text-center -mt-1">{reward.subtitle}</p>
-        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-eel)]">
+        <DuoPill tone="neutral" className="px-2 py-1 text-[var(--color-duo-eel)]">
           {reward.badgeText}
-        </span>
+        </DuoPill>
         <p className="text-xs text-[var(--color-duo-hare)] text-center">完工礼遇已自动入账，下次发单/接单即享</p>
         <DuoButton variant="primary" size="lg" fullWidth onClick={onClose} data-testid="claim-reward-btn">
           收下礼遇

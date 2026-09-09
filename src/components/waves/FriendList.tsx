@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { Heart, Users } from "lucide-react";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { requestTtlLeft } from "@/adapters/social/friends";
@@ -98,12 +99,13 @@ export default function FriendList() {
 
       <div className="flex flex-wrap gap-1.5">
         {mine.map((f) => (
-          <span
+          <DuoPill
             key={f.id}
-            className="text-xs px-2.5 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] flex items-center gap-1"
+            tone="green"
+            className="px-2.5 py-1"
           >
             <Users size={9} /> {f.nickname}
-          </span>
+          </DuoPill>
         ))}
         {mine.length === 0 && (
           <p className="text-xs text-[var(--color-duo-hare)]">

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill from "@/components/ui/DuoPill";
 import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
 import { useSession } from "@/components/SessionProvider";
 import { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
@@ -181,12 +182,13 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             </span>
             <span className="text-xs font-bold text-[#9a4d00] shrink-0">· 守约率 100%</span>
           </div>
-          <span
-            data-testid="streak-freeze-badge"
-            className="text-xs font-bold px-2 py-1 rounded-full bg-[var(--color-duo-orange)]/10 border-2 border-[var(--color-duo-orange)]/40 text-[#9a4d00] shrink-0 whitespace-nowrap"
+          <DuoPill
+            tone="orange"
+            testId="streak-freeze-badge"
+            className="px-2 py-1 text-[#9a4d00] shrink-0 whitespace-nowrap"
           >
             ❄️ 连胜冻结卡 × 1 保护中
-          </span>
+          </DuoPill>
         </div>
         <p className="text-xs font-bold text-[var(--color-duo-wolf)] mt-1.5">
           解锁周末优先派单权 · 1.2x 流量加权
@@ -443,9 +445,9 @@ function WorkerOrderRow({
             {order.service}
           </span>
           {done && (
-            <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-green-light)] border-2 border-[var(--color-duo-green)]/20 text-[var(--color-duo-green)] font-bold shrink-0">
+            <DuoPill tone="green" className="shrink-0">
               已入账
-            </span>
+            </DuoPill>
           )}
         </div>
         <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5 truncate">
@@ -457,9 +459,9 @@ function WorkerOrderRow({
           {order.price}
         </span>
         {blocked ? (
-          <span className="px-3 py-2 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/20 text-[var(--color-duo-red)] text-xs font-bold shrink-0">
-            {blockedLabel ?? "不满足接单条件"}
-          </span>
+            <DuoPill tone="red" className="px-3 py-2 shrink-0">
+              {blockedLabel ?? "不满足接单条件"}
+            </DuoPill>
         ) : (
           onAction && (
             <button

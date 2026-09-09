@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import DuoPill from "@/components/ui/DuoPill";
 import { motion } from "framer-motion";
 import { Check, ChevronDown, Star } from "lucide-react";
 import type { ChatMessage, ProviderItem } from "@/base/ai/chat/types";
@@ -95,14 +96,14 @@ export function GenCardView({
           </span>
           {booked ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-duo-green-ink)] px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40">
+              <DuoPill tone="green" className="px-3 py-1.5">
                 <Check size={12} /> 已预订
-              </span>
+              </DuoPill>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
               {card.lines.some((l) => l.k === "方案单号") ? (
-                <span className="text-xs font-bold text-[var(--color-duo-blue-ink)] px-3 py-1.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40">
+                <DuoPill tone="blue" className="px-3 py-1.5">
                   已转正式订单 ✅
-                </span>
+                </DuoPill>
               ) : (
                 <button
                   onClick={() => onConvertToWave(msgId, card.lines, card.price)}
@@ -164,9 +165,9 @@ function ProviderRow({
               {provider.name}
             </span>
             {provider.tag && (
-              <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)] font-semibold shrink-0">
+              <DuoPill tone="blue" className="shrink-0">
                 {provider.tag}
-              </span>
+              </DuoPill>
             )}
             {match && (
               <span

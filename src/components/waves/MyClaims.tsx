@@ -12,6 +12,7 @@ import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
+import DuoPill from "@/components/ui/DuoPill";
 import { useAppStore } from "@/store/useAppStore";
 import { confirmedCount } from "@/base/order/moduleFulfilment";
 import { visibleGuests } from "@/base/order/guest";
@@ -168,9 +169,9 @@ export default function MyClaims() {
                   <h3 className="text-[13px] font-extrabold truncate">
                     {wave.basics.category}
                     {wave.capacity >= 2 && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] align-middle">
+                      <DuoPill tone="yellow" className="ml-1.5 align-middle">
                         🎯 多人拼单局
-                      </span>
+                      </DuoPill>
                     )}
                   </h3>
                   <p className="text-xs text-[var(--color-duo-hare)] mt-0.5 truncate">
@@ -630,9 +631,9 @@ function GuestSection({
         <span className="text-xs font-bold text-[var(--color-duo-wolf)] flex items-center gap-1.5">
           👥 +1 携伴
           {guests.length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs text-[var(--color-duo-blue-ink)]">
+            <DuoPill tone="blue">
               {guests.length} 位已登记
-            </span>
+            </DuoPill>
           )}
         </span>
         <span className="text-xs text-[var(--color-duo-blue-ink)]">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
