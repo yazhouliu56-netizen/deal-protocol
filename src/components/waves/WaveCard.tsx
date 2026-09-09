@@ -10,6 +10,7 @@ import { displayInterest, useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 
 /**
  * A signal-wave demand card — shown in the radar feed to responders.
@@ -99,7 +100,7 @@ export default function WaveCard({
   );
 
   return (
-    <div className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4 hover:border-[var(--color-duo-green)]/30 transition-colors">
+    <DuoCardShell className="p-4 hover:border-[var(--color-duo-green)]/30 transition-colors">
       {/* 头部：品类 + 热度 + 倒计时 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -364,7 +365,7 @@ export default function WaveCard({
           )}
         </p>
       )}
-    </div>
+    </DuoCardShell>
   );
 }
 

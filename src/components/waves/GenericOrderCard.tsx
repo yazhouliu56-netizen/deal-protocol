@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 
 /**
  * 通用订单卡片纯展示壳（0 业务分支 · 宪法 #1 前端视口解耦）。
@@ -28,8 +29,8 @@ export default function GenericOrderCard({ waveId, children, testId = "generic-o
   }, [mounted]);
 
   return (
-    <div data-testid={testId} data-wave-id={waveId} data-now={now} className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4 space-y-2.5">
+    <DuoCardShell testId={testId} dataAttrs={{ "data-wave-id": waveId, "data-now": now }} className="p-4 space-y-2.5">
       {children}
-    </div>
+    </DuoCardShell>
   );
 }

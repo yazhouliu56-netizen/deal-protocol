@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import {
   ArrowRightLeft,
@@ -277,11 +277,9 @@ export default function ProfilePage({
       </div>
 
       {/* 用户主身份卡（头像 / 昵称 / 认证状态 / 天梯勋章） */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4 flex items-center gap-3"
+      <DuoCardShell
+        className="p-4 flex items-center gap-3"
+        motion={{ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
       >
         <label
           className="relative cursor-pointer group"
@@ -342,7 +340,7 @@ export default function ProfilePage({
             [ 演示体验 ]
           </span>
         )}
-      </motion.div>
+      </DuoCardShell>
 
       {/* 资产钱包卡（总订单 / 待出行 / 已评价 + 点账钱包；子组件化搬移，DOM 零漂移） */}
       <WalletStatsCard

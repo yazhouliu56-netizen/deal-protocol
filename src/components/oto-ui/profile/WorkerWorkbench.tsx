@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import DuoCardShell from "@/components/ui/DuoCardShell";
 import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
 import { useSession } from "@/components/SessionProvider";
 import { openAuthSheet } from "@/components/oto-ui/auth/AuthSheet";
@@ -212,11 +213,9 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* 身份卡 + 在线开关 */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] p-4"
+      <DuoCardShell
+        className="p-4"
+        motion={{ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-lg shrink-0">
@@ -263,7 +262,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             </div>
           ))}
         </div>
-      </motion.div>
+      </DuoCardShell>
 
       {/* S1 R_AUTH 全方案资质准入看板（注册表单一真理源：每个当前注册弹药
           的 workerRequirement 均跑一遍资质审查，工厂热注新弹药自动长出卡片） */}
