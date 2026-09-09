@@ -11,6 +11,7 @@ import {
   type WatermarkResult,
 } from "@/adapters/device/watermark-canvas";
 import { detectImageForgery, type IImageForgeryReport } from "@/base/ai/forgery";
+import { TOUCH_TARGET } from "@/base/platform/touch-targets";
 
 /**
  * 4:3 原生环境相机直拍 + 时空水印注入 + 五信号防伪快筛全链（白皮书 §八 + P0-3/P1-1）。
@@ -27,7 +28,7 @@ import { detectImageForgery, type IImageForgeryReport } from "@/base/ai/forgery"
  * - 水印/鉴真函数可注入（测试 / 真机降级），缺省走引擎默认实现。
  */
 
-export const CAMERA_BUTTON_MIN_HEIGHT_PX = 48;
+export const CAMERA_BUTTON_MIN_HEIGHT_PX = TOUCH_TARGET.primary;
 
 export type ProofCameraWatermarkFn = (
   imageSource: string | Blob,

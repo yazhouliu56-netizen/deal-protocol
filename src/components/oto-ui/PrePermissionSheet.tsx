@@ -1,6 +1,7 @@
 "use client";
 
 import DarkSheetShell from "@/components/ui/DarkSheetShell";
+import { TOUCH_TARGET } from "@/base/platform/touch-targets";
 
 /**
  * 硬件权限防拒绝预授权解释浮层（Pre-permission Sheet · 白皮书 §八）。
@@ -15,8 +16,8 @@ import DarkSheetShell from "@/components/ui/DarkSheetShell";
  *   引导用户去浏览器站点设置恢复权限。
  */
 
-/** 触控规范：交互按钮最小高度（推荐 ≥44px，规范采用 48px）。 */
-export const PERMISSION_BUTTON_MIN_HEIGHT_PX = 48;
+/** 触控规范：交互按钮最小高度（primary 档 48px）。 */
+export const PERMISSION_BUTTON_MIN_HEIGHT_PX = TOUCH_TARGET.primary;
 
 export type PermissionType = "GEOLOCATION" | "CAMERA";
 

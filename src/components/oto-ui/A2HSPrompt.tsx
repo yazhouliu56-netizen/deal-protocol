@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useImperativeHandle, useState } from "react";
 import type { Ref } from "react";
+import { TOUCH_TARGET } from "@/base/platform/touch-targets";
 
 /**
  * A2HS 桌面安装价值时刻引导（Add-to-Home-Screen Prompt · 白皮书 §八/§九）。
@@ -218,7 +219,7 @@ export default function A2HSPrompt({ onInstalled, ua, ref, onPromptChange }: IA2
           <button
             type="button"
             className="a2hs-btn a2hs-btn-skip"
-            style={{ minHeight: 48 }}
+            style={{ minHeight: TOUCH_TARGET.primary }}
             onClick={close}
             data-action="a2hs-later"
           >
@@ -227,7 +228,7 @@ export default function A2HSPrompt({ onInstalled, ua, ref, onPromptChange }: IA2
           <button
             type="button"
             className="a2hs-btn a2hs-btn-install"
-            style={{ minHeight: 48 }}
+            style={{ minHeight: TOUCH_TARGET.primary }}
             onClick={() => void install()}
             data-action="a2hs-install"
           >
