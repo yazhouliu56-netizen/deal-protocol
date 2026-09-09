@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import SessionProvider from "@/components/SessionProvider";
 import Script from "next/script";
 import { UXProvider } from "@/components/providers/UXProvider";
+import ToastHost from "@/components/oto-ui/ToastHost";
 import "./globals.css";
 
 const SITE_URL =
@@ -89,6 +90,8 @@ export default function RootLayout({
         <SessionProvider>
             <UXProvider>
               <main className="flex-1">{children}</main>
+              {/* P9-1 Toast 单轨：全路由唯一挂载（A轨 zustand），替代 react-hot-toast Toaster */}
+              <ToastHost />
             </UXProvider>
           <Script id="register-sw" strategy="afterInteractive">
             {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js', { scope: '/' }); }`}

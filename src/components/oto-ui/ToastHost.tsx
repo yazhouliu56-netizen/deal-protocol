@@ -34,10 +34,22 @@ export default function ToastHost() {
               exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
               onClick={() => dismiss(t.id)}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-eel)] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
+              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
             >
               <Icon size={14} className="shrink-0" />
               {t.text}
+              {t.action && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    t.action!.onClick();
+                    dismiss(t.id);
+                  }}
+                  className="ml-1 shrink-0 px-2.5 py-1 rounded-full bg-white border-2 border-[var(--color-duo-swan)] text-xs font-extrabold text-[var(--color-duo-eel)] active:translate-y-px transition-transform"
+                >
+                  {t.action.label}
+                </button>
+              )}
             </motion.button>
           );
         })}

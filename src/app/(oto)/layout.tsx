@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito, Geist_Mono } from "next/font/google";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
-import ToastHost from "@/components/oto-ui/ToastHost";
 import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
 import IdentityRehydrator from "@/components/oto-ui/IdentityRehydrator";
 import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
@@ -23,8 +22,9 @@ const geistMono = Geist_Mono({
 /**
  * (oto) 路由组嵌套 Layout（D-09/D-10 裁决）：
  * - 根 layout 继续承载全局 Theme/Session/Provider（src/app/layout.tsx 不动）；
- * - 本层仅承载 oto 局部容器：Duo 圆体变量、ToastHost、PwaServiceWorker，
+ * - 本层仅承载 oto 局部容器：Duo 圆体变量、PwaServiceWorker，
  *   并挂 .oto-app 作用域类（隔离 CSS 变量与 body 级样式，见 globals.css）。
+ *   ToastHost 已上移根 layout 全局唯一挂载（P9-1 单轨，此处不再重复）。
  */
 export const metadata: Metadata = {
   title: "Spatial OTO Platform",
@@ -65,7 +65,6 @@ export default function OtoLayout({
       <OnlineStatusBridge />
       {/* D-20260825-01 根治：身份 persist 挂载后重水合闸门（首帧与 SSR 同构防 #418） */}
       <IdentityRehydrator />
-      <ToastHost />
       <PwaServiceWorker />
       {/* P2 总装：A2HS 价值时刻安装引导（首次结算 / 服务者上岗，7 天静默防骚扰） */}
       <A2HSPromptHost />
