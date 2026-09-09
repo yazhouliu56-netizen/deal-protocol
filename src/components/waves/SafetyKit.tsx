@@ -127,7 +127,7 @@ export default function SafetyKit() {
               <span
                 className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 ${
                   checkedIn
-                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
                     : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                 }`}
               >
@@ -152,7 +152,7 @@ export default function SafetyKit() {
                     </span>
                     <span className="text-xs text-[var(--color-duo-hare)]">{s.type}</span>
                   </span>
-                  <span className="text-xs font-bold text-[#357a00]">
+                  <span className="text-xs font-bold text-[var(--color-duo-green-ink)]">
                     {s.safe} 分安全
                   </span>
                 </button>

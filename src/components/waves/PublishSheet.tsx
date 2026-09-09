@@ -475,7 +475,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         {/* P1 第 4 步：价格权威单一源 —— 起步口径 100% 取自当前弹药 D2 计价契约，
             旧「建议起价 ¥{minPriceYuan}」scene 残留出清（底座表保留，UI 不再消费） */}
         {category.trim() && ammoForForm && (
-          <p className="text-xs text-[#0a6ea8] mb-3" data-testid="ammo-floor-price">
+          <p className="text-xs text-[var(--color-duo-blue-ink)] mb-3" data-testid="ammo-floor-price">
             方案起步 {describePricing(ammoForForm.pricingModel)}
           </p>
         )}
@@ -531,7 +531,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             key={i}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 mb-1.5"
           >
-            <span className="text-xs text-[#0a6ea8] font-bold flex-1 truncate">{c}</span>
+            <span className="text-xs text-[var(--color-duo-blue-ink)] font-bold flex-1 truncate">{c}</span>
             <span className="text-xs font-bold text-[var(--color-duo-hare)]">+{15 * (i + 1)}%</span>
             <button
               onClick={() => setCustoms(customs.filter((_, j) => j !== i))}
@@ -557,7 +557,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               if (t && !customs.includes(t)) setCustoms([...customs, t]);
               setCustomText("");
             }}
-            className="px-3.5 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[#0a6ea8] shrink-0"
+            className="px-3.5 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-blue-ink)] shrink-0"
           >
             ＋
           </button>
@@ -579,7 +579,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               🤖 AI 拆解复杂任务
             </span>
             {modules && modules.length >= 2 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
                 已拆 {modules.length} 个独立模块
               </span>
             )}
@@ -642,7 +642,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
               🎯 多人拼单局 · 拼位组队
             </span>
             {people >= 2 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]">
                 满 {people} 人成局 · 人均约 ¥{Math.max(1, Math.round((parseInt(budget, 10) || 0) / people))}
               </span>
             )}
@@ -763,7 +763,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
                 aria-label={`开始时间 ${o.label}`}
                 className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all border-2 ${
                   active
-                    ? "bg-[var(--color-duo-blue)]/15 border-[var(--color-duo-blue)]/50 text-[#0a6ea8]"
+                    ? "bg-[var(--color-duo-blue)]/15 border-[var(--color-duo-blue)]/50 text-[var(--color-duo-blue-ink)]"
                     : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
                 }`}
               >
@@ -782,7 +782,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             </span>
           </span>
           {publishQuota <= 0 && (
-            <span className="text-xs font-bold text-[#0a6ea8]">
+            <span className="text-xs font-bold text-[var(--color-duo-blue-ink)]">
               超出将收发布费 ¥{PUBLISH_FEE}/次
             </span>
           )}

@@ -52,7 +52,7 @@ export default function FloatingDock() {
                 data-active={isActive ? "true" : "false"}
                 className={`relative flex flex-col items-center gap-1 transition-all duration-300 ${
                   isActive
-                    ? "text-[#357a00] scale-110"
+                    ? "text-[var(--color-duo-green-ink)] scale-110"
                     : "text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] hover:scale-105"
                 }`}
               >

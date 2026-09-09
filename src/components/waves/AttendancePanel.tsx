@@ -67,10 +67,10 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
         aria-label="出勤档案"
       >
         <span className="text-xs font-bold text-[var(--color-duo-wolf)] flex items-center gap-1.5">
-          <ClipboardList size={11} className="text-[#0a6ea8]" />
+          <ClipboardList size={11} className="text-[var(--color-duo-blue-ink)]" />
           出勤档案（Meetup 组织者视图）
         </span>
-        <span className="text-xs font-bold text-[#0a6ea8]">
+        <span className="text-xs font-bold text-[var(--color-duo-blue-ink)]">
           {roster.length} 人 {open ? "收起 ▴" : "展开 ▾"}
         </span>
       </button>
@@ -79,7 +79,7 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
           {roster.map((r) => (
             <div key={r.nickname + r.joinedWaves} className="px-3 py-2 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center justify-center text-xs shrink-0">
-                <Users size={10} className="text-[#0a6ea8]" />
+                <Users size={10} className="text-[var(--color-duo-blue-ink)]" />
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-[var(--color-duo-eel)] truncate">
@@ -87,7 +87,7 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
                 </p>
                 <p className="text-xs text-[var(--color-duo-wolf)]">
                   参与 {r.joinedWaves} 局 · 出勤率{" "}
-                  <span className={r.showRate >= 0.8 ? "text-[#357a00]" : r.showRate >= 0.5 ? "text-[#8a6d00]" : "text-[var(--color-duo-red-dark)]"}>
+                  <span className={r.showRate >= 0.8 ? "text-[var(--color-duo-green-ink)]" : r.showRate >= 0.5 ? "text-[var(--color-duo-yellow-ink)]" : "text-[var(--color-duo-red-dark)]"}>
                     {Math.round(r.showRate * 100)}%
                   </span>
                 </p>
@@ -104,12 +104,12 @@ export default function AttendancePanel({ wave }: { wave: Wave }) {
                   </span>
                 )}
                 {r.waitlisted > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-xs font-bold text-[#8a6d00]">
+                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-xs font-bold text-[var(--color-duo-yellow-ink)]">
                     候补 {r.waitlisted}
                   </span>
                 )}
                 {r.guestCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[#0a6ea8]">
+                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]">
                     +1 ×{r.guestCount}
                   </span>
                 )}

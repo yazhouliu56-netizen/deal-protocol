@@ -76,7 +76,7 @@ export default function DynamicFormView({
                 onClick={() => set(n.key, !n.value)}
                 className={`w-full px-2.5 py-1.5 rounded-lg border-2 text-xs font-bold text-left transition-all ${
                   n.value
-                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/50 text-[#357a00]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/50 text-[var(--color-duo-green-ink)]"
                     : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                 }`}
               >
@@ -100,7 +100,7 @@ export default function DynamicFormView({
                       }
                       className={`px-2.5 py-1 rounded-full border-2 text-xs transition-all ${
                         on
-                          ? "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/50 text-[#0a6ea8]"
+                          ? "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/50 text-[var(--color-duo-blue-ink)]"
                           : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                       }`}
                     >

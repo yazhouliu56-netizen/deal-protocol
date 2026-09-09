@@ -63,7 +63,7 @@ export default function DiagnosisCard({ wave }: { wave: Wave }) {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 p-3 space-y-2"
     >
-      <p className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1">
+      <p className="text-xs font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
         <Sparkles size={11} /> AI 主动诊断 · 还没人响应
       </p>
       {advice.map((a, i) => (
@@ -75,7 +75,7 @@ export default function DiagnosisCard({ wave }: { wave: Wave }) {
             <MessageSquareText size={11} className="mt-0.5 shrink-0 text-[var(--color-duo-blue)]" />
             {a.title}
             {a.value && (
-              <span className="ml-auto shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]">
+              <span className="ml-auto shrink-0 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
                 {a.value}
               </span>
             )}

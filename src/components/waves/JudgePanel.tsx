@@ -71,7 +71,7 @@ export default function JudgePanel({
 
   return (
     <div className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 p-2.5 space-y-2">
-      <p className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1">
+      <p className="text-xs font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
         <Scale size={11} /> AI 小法官 · 静态比对证据链给出赔付建议
       </p>
 
@@ -100,7 +100,7 @@ export default function JudgePanel({
       {verdict && (
         <div className="space-y-2">
           <div className="rounded-xl bg-white border-2 border-[var(--color-duo-swan)] p-2.5 space-y-1.5">
-            <p className="text-xs font-bold text-[#0a6ea8]">
+            <p className="text-xs font-bold text-[var(--color-duo-blue-ink)]">
               {stanceLabel[verdict.stance] ?? verdict.stance} · 建议赔付 ¥
               {verdict.settlement
                 ? (verdict.settlement.refundCents / 100).toFixed(

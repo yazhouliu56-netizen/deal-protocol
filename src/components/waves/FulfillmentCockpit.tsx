@@ -243,7 +243,7 @@ export default function FulfillmentCockpit({
       {totalAmount > 0 && (
         <section
           data-testid="cockpit-asset-shield"
-          className="rounded-2xl bg-[#ddf4ff] border border-[var(--color-duo-blue)] border-b-[4px] px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
+          className="rounded-2xl bg-[var(--color-duo-blue-mist)] border border-[var(--color-duo-blue)] border-b-[4px] px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
         >
           💼 Deal 官方资金全额托管中 · ¥{totalAmount} (未完工不放款 🛡️)
         </section>

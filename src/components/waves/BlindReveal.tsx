@@ -36,7 +36,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                 <span className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">
                   {maskName(data.nickname)}
                 </span>
-                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]">
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]">
                   Lv.{data.creditTier}
                 </span>
                 {data.verified && (
@@ -47,7 +47,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
                 {data.meta}
               </span>
             </div>
-            <span className="flex items-center gap-1 text-xs text-[#0a6ea8] font-semibold shrink-0">
+            <span className="flex items-center gap-1 text-xs text-[var(--color-duo-blue-ink)] font-semibold shrink-0">
               <Clock3 size={11} /> {data.responseTime}
             </span>
           </div>

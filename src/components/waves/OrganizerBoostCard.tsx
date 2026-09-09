@@ -43,7 +43,7 @@ export default function OrganizerBoostCard() {
           }`}
         >
           {active ? (
-            <Check size={14} className="text-[#357a00]" />
+            <Check size={14} className="text-[var(--color-duo-green-ink)]" />
           ) : (
             <Rocket size={14} />
           )}

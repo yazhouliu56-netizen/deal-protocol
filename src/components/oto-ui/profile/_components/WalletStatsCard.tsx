@@ -14,7 +14,7 @@ export default function WalletStatsCard({
   reviewed,
 }: WalletStatsCardProps) {
   return (
-    <div className="bg-[#ddf4ff] rounded-3xl border-2 border-[var(--color-duo-blue)] border-b-[6px] p-3.5">
+    <div className="bg-[var(--color-duo-blue-mist)] rounded-3xl border-2 border-[var(--color-duo-blue)] border-b-[6px] p-3.5">
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: "总订单", value: bookingsCount },

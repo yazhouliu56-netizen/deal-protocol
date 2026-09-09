@@ -62,16 +62,16 @@ export default function AdminPanel({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed z-50 inset-4 top-[8%] rounded-3xl bg-white border border-[#e5e5e5] shadow-sm overflow-hidden flex flex-col"
+        className="fixed z-50 inset-4 top-[8%] rounded-3xl bg-white border border-[var(--color-duo-swan)] shadow-sm overflow-hidden flex flex-col"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#e5e5e5]">
-          <span className="flex items-center gap-2 text-[13px] font-extrabold text-[#4b4b4b]">
-            <Gavel size={15} className="text-[#58cc02]" /> 平台治理后台
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-duo-swan)]">
+          <span className="flex items-center gap-2 text-[13px] font-extrabold text-[var(--color-duo-eel)]">
+            <Gavel size={15} className="text-[var(--color-duo-green)]" /> 平台治理后台
           </span>
           <button
             onClick={onClose}
             aria-label="关闭治理后台"
-            className="p-1.5 rounded-lg text-[#afafaf] hover:text-[#4b4b4b]"
+            className="p-1.5 rounded-lg text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
           >
             <X size={15} />
           </button>
@@ -90,14 +90,14 @@ export default function AdminPanel({
             ].map((it) => (
               <div
                 key={it.k}
-                className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5"
+                className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-2.5"
               >
-                <p className="text-xs text-[#afafaf]">{it.k}</p>
-                <p className="text-[15px] font-extrabold text-[#4b4b4b] mt-0.5 flex items-center gap-1">
+                <p className="text-xs text-[var(--color-duo-hare)]">{it.k}</p>
+                <p className="text-[15px] font-extrabold text-[var(--color-duo-eel)] mt-0.5 flex items-center gap-1">
                   {it.k.includes("举报") || it.k.includes("拦截") ? (
-                    <Flag size={11} className="text-[#e5b400]" />
+                    <Flag size={11} className="text-[var(--color-duo-yellow-dark)]" />
                   ) : (
-                    <TrendingUp size={11} className="text-[#58cc02]" />
+                    <TrendingUp size={11} className="text-[var(--color-duo-green)]" />
                   )}
                   {it.v}
                 </p>
@@ -107,12 +107,12 @@ export default function AdminPanel({
 
           {/* 举报队列 */}
           <div>
-            <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <Flag size={11} className="text-[#e5b400]" /> 举报队列（
+            <h3 className="text-xs font-extrabold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+              <Flag size={11} className="text-[var(--color-duo-yellow-dark)]" /> 举报队列（
               {openQueue.length}）
             </h3>
             {openQueue.length === 0 && (
-              <p className="text-xs text-[#afafaf] px-2 py-4 text-center">
+              <p className="text-xs text-[var(--color-duo-hare)] px-2 py-4 text-center">
                 无待处理举报
               </p>
             )}
@@ -120,22 +120,22 @@ export default function AdminPanel({
               {openQueue.map((r) => (
                 <div
                   key={r.id}
-                  className="rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2.5 space-y-1.5"
+                  className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-2.5 space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-[#4b4b4b] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[var(--color-duo-eel)] flex items-center gap-1.5">
                       {r.targetType} #{r.targetId.slice(-6)}
                       {r.auto && (
-                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#ff4b4b]/10 border-2 border-[#ff4b4b]/40 text-[#ea2b2b]">
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-[var(--color-duo-red)]/10 border-2 border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]">
                           ⚡ 敏感词自动
                         </span>
                       )}
                     </span>
-                    <span className="text-xs text-[#afafaf]">
+                    <span className="text-xs text-[var(--color-duo-hare)]">
                       {new Date(r.at).toLocaleTimeString("zh-CN")}
                     </span>
                   </div>
-                  <p className="text-xs text-[#777777] line-clamp-2">
+                  <p className="text-xs text-[var(--color-duo-wolf)] line-clamp-2">
                     [{r.reason}] {r.detail}
                   </p>
                   <div className="flex gap-1.5 flex-wrap">
@@ -148,8 +148,8 @@ export default function AdminPanel({
                           }
                           className={`px-2 py-1 rounded-lg text-xs font-bold border ${
                             (pending[r.id] ?? "dismiss") === a
-                              ? "bg-[#58cc02]/15 border-[#58cc02]/50 text-[#58a700]"
-                              : "bg-[#f7f7f7] border-[#e5e5e5] text-[#777777]"
+                              ? "bg-[var(--color-duo-green)]/15 border-[var(--color-duo-green)]/50 text-[var(--color-duo-green-dark)]"
+                              : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
                           }`}
                         >
                           {ACTION_LABEL[a]}
@@ -166,12 +166,12 @@ export default function AdminPanel({
                       }
                       placeholder="裁定备注（可选）"
                       aria-label={`裁定备注 ${r.id}`}
-                      className="min-w-[90px] flex-1 rounded-lg bg-white border-2 border-[#e5e5e5] px-2 py-1 text-xs outline-none focus:border-[#58cc02]"
+                      className="min-w-[90px] flex-1 rounded-lg bg-white border-2 border-[var(--color-duo-swan)] px-2 py-1 text-xs outline-none focus:border-[var(--color-duo-green)]"
                     />
                     <button
                       onClick={() => act(r.id)}
                       aria-label={`执行裁定 ${r.id}`}
-                      className="px-3 py-1 rounded-lg bg-[#58cc02]/15 border border-[#58cc02]/50 text-xs font-bold text-[#58a700]"
+                      className="px-3 py-1 rounded-lg bg-[var(--color-duo-green)]/15 border border-[var(--color-duo-green)]/50 text-xs font-bold text-[var(--color-duo-green-dark)]"
                     >
                       执行裁定
                     </button>
@@ -183,16 +183,16 @@ export default function AdminPanel({
 
           {/* 漫游风控监控（P8） */}
           <div>
-            <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <ShieldCheck size={11} className="text-[#1cb0f6]" /> 漫游安全监控
+            <h3 className="text-xs font-extrabold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+              <ShieldCheck size={11} className="text-[var(--color-duo-blue)]" /> 漫游安全监控
             </h3>
-            {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-[#ff4b4b]" : r.risk === "watch" ? "text-[#ff9600]" : "text-[#58a700]"; return (
+            {(() => { const r = riskOf(bindings, deviceId, roamParams()); const cls = r.risk === "high" ? "text-[var(--color-duo-red)]" : r.risk === "watch" ? "text-[var(--color-duo-orange)]" : "text-[var(--color-duo-green-dark)]"; return (
             <p className={`text-xs font-bold mb-2 ${cls}`}>
               本设备 {deviceId ?? "…"} · 同设备 {r.count} 个身份 · {r.reason}
             </p>
             ); })()}
             {roamEvents.length === 0 ? (
-              <p className="text-xs text-[#afafaf] px-2 py-4 text-center">
+              <p className="text-xs text-[var(--color-duo-hare)] px-2 py-4 text-center">
                 暂无漫游事件
               </p>
             ) : (
@@ -200,13 +200,13 @@ export default function AdminPanel({
                 {roamEvents.slice(0, 8).map((e, i) => (
                   <div
                     key={`${e.at}-${i}`}
-                    className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5]"
+                    className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)]"
                   >
-                    <span className="text-[#777777] truncate">
+                    <span className="text-[var(--color-duo-wolf)] truncate">
                       {e.kind === "alert" ? "⚠ " : ""}
                       {e.note}
                     </span>
-                    <span className="text-[#afafaf] shrink-0">
+                    <span className="text-[var(--color-duo-hare)] shrink-0">
                       {new Date(e.at).toLocaleTimeString("zh-CN")}
                     </span>
                   </div>
@@ -220,16 +220,16 @@ export default function AdminPanel({
 
           {/* 数据湖存证（ADR-0014 N14 接线）：哈希链校验 + 最近事件 */}
           <div>
-            <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <Database size={11} className="text-[#1cb0f6]" /> 数据湖存证（
+            <h3 className="text-xs font-extrabold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+              <Database size={11} className="text-[var(--color-duo-blue)]" /> 数据湖存证（
               {lake.length} 条 ·{" "}
               <span
                 className={
                   lakeCheck.ok
-                    ? "text-[#58cc02]"
+                    ? "text-[var(--color-duo-green)]"
                     : lake.length > 0
-                      ? "text-[#ea2b2b]"
-                      : "text-[#afafaf]"
+                      ? "text-[var(--color-duo-red-dark)]"
+                      : "text-[var(--color-duo-hare)]"
                 }
               >
                 {lake.length === 0
@@ -241,7 +241,7 @@ export default function AdminPanel({
               ）
             </h3>
             {lake.length === 0 && (
-              <p className="text-xs text-[#afafaf] px-2 py-4 text-center">
+              <p className="text-xs text-[var(--color-duo-hare)] px-2 py-4 text-center">
                 尚无存证事件（验收/争议终局会写入哈希链）
               </p>
             )}
@@ -249,13 +249,13 @@ export default function AdminPanel({
               {lake.slice(-6).reverse().map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center gap-2 rounded-xl bg-[#f7f7f7] border border-[#e5e5e5] px-2.5 py-1.5 text-xs"
+                  className="flex items-center gap-2 rounded-xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] px-2.5 py-1.5 text-xs"
                 >
-                  <span className="font-bold text-[#0a6ea8] shrink-0">
+                  <span className="font-bold text-[var(--color-duo-blue-ink)] shrink-0">
                     {r.kind}
                   </span>
-                  <span className="text-[#afafaf] font-mono truncate">{r.hash}</span>
-                  <span className="ml-auto text-[#afafaf] shrink-0">
+                  <span className="text-[var(--color-duo-hare)] font-mono truncate">{r.hash}</span>
+                  <span className="ml-auto text-[var(--color-duo-hare)] shrink-0">
                     {new Date(r.at).toLocaleTimeString("zh-CN")}
                   </span>
                 </div>
@@ -265,11 +265,11 @@ export default function AdminPanel({
 
           {/* 审计记录 */}
           <div>
-            <h3 className="text-xs font-extrabold text-[#4b4b4b] mb-2 flex items-center gap-1.5">
-              <ShieldCheck size={11} className="text-[#58cc02]" /> 裁定记录（审计）
+            <h3 className="text-xs font-extrabold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+              <ShieldCheck size={11} className="text-[var(--color-duo-green)]" /> 裁定记录（审计）
             </h3>
             {resolvedList.length === 0 && (
-              <p className="text-xs text-[#afafaf] px-2 py-4 text-center">
+              <p className="text-xs text-[var(--color-duo-hare)] px-2 py-4 text-center">
                 暂无裁定记录
               </p>
             )}
@@ -277,13 +277,13 @@ export default function AdminPanel({
               {resolvedList.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-[#f7f7f7] border border-[#e5e5e5]"
+                  className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-lg bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)]"
                 >
-                  <span className="text-[#777777]">
+                  <span className="text-[var(--color-duo-wolf)]">
                     #{r.targetId.slice(-6)} · {ACTION_LABEL[r.action ?? "dismiss"]}
                     {r.verdictNote ? ` · ${r.verdictNote}` : ""}
                   </span>
-                  <span className="text-[#afafaf] shrink-0">
+                  <span className="text-[var(--color-duo-hare)] shrink-0">
                     {r.resolvedBy} {new Date(r.resolvedAt ?? 0).toLocaleTimeString("zh-CN")}
                   </span>
                 </div>

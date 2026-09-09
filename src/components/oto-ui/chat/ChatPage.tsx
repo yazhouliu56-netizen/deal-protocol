@@ -483,7 +483,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               onClick={() => setTtsEnabled((v) => !v)}
               aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
               className={`text-xs px-2 py-1 rounded-full bg-white border border-[var(--color-duo-swan)] shadow-sm transition-colors flex items-center gap-1 ${
-                ttsEnabled ? "text-[#0a6ea8]" : "text-[var(--color-duo-hare)]"
+                ttsEnabled ? "text-[var(--color-duo-blue-ink)]" : "text-[var(--color-duo-hare)]"
               }`}
             >
               {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -517,7 +517,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             onClick={() => setTtsEnabled((v) => !v)}
             aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
             className={`text-xs px-2 py-1 rounded-full bg-white border border-[var(--color-duo-swan)] shadow-sm transition-colors flex items-center gap-1 ${
-              ttsEnabled ? "text-[#0a6ea8]" : "text-[var(--color-duo-hare)]"
+              ttsEnabled ? "text-[var(--color-duo-blue-ink)]" : "text-[var(--color-duo-hare)]"
             }`}
           >
             {ttsEnabled ? <Volume2 size={11} /> : <VolumeX size={11} />}
@@ -601,7 +601,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <button
               key={h.candidate.id}
               onClick={() => setScreen("home")}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs text-[#0a6ea8] hover:brightness-105 transition-[filter]"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs text-[var(--color-duo-blue-ink)] hover:brightness-105 transition-[filter]"
             >
               <Sparkles size={9} />
               {h.candidate.label} · {h.candidate.text.split(" ")[1]}

@@ -444,7 +444,7 @@ export default function ProfilePage({
                     </span>
                     <span className="text-xs text-[var(--color-duo-hare)] block mt-0.5">[ 预订卡 ]</span>
                   </span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00] shrink-0">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] shrink-0">
                     {o.statusDisplay}
                   </span>
                 </button>
@@ -665,7 +665,7 @@ export default function ProfilePage({
             }}
           />
           {contactsSaved && (
-            <p className="text-xs text-[#357a00] mt-2">
+            <p className="text-xs text-[var(--color-duo-green-ink)] mt-2">
               ✓ 已保存：{contacts[0].name}（{mask("phone", contacts[0].phone)}）
             </p>
           )}

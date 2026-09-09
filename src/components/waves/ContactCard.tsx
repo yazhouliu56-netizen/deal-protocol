@@ -85,7 +85,7 @@ export default function ContactCard({
       {/* 弱网离线队列（ADR-0014 N11 接线）：离线消息已缓冲，恢复自动重放 */}
       {!online && pendingIm > 0 && (
         <div className="flex items-center justify-between rounded-xl bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 px-2 py-1.5">
-          <span className="text-xs font-bold text-[#8a6d00]">
+          <span className="text-xs font-bold text-[var(--color-duo-yellow-ink)]">
             离线中 · {pendingIm} 条消息已入队，联网后自动发送
           </span>
           <button
@@ -97,12 +97,12 @@ export default function ContactCard({
         </div>
       )}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-extrabold text-[#0a6ea8] flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1.5">
           <Phone size={11} /> 隐私通话（ADR-0010）
         </span>
         <span
           className={`text-xs font-bold ${
-            live ? "text-[#357a00]" : "text-[var(--color-duo-hare)]"
+            live ? "text-[var(--color-duo-green-ink)]" : "text-[var(--color-duo-hare)]"
           }`}
         >
           {live ? `${minutesLeft(session, now)} 分钟后失效` : "会话已过期"}
@@ -119,7 +119,7 @@ export default function ContactCard({
           }}
           className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
             live
-              ? "bg-[var(--color-duo-blue)]/10 text-[#0a6ea8] border-[var(--color-duo-blue)]/40"
+              ? "bg-[var(--color-duo-blue)]/10 text-[var(--color-duo-blue-ink)] border-[var(--color-duo-blue)]/40"
               : "bg-white text-[var(--color-duo-hare)] border-[var(--color-duo-swan)]"
           }`}
           disabled={!live}

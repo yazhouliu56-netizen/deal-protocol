@@ -53,7 +53,7 @@ export function ChatBubble({
         <button
           onClick={() => void speak(message.content ?? "")}
           aria-label="重播语音"
-          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[var(--color-duo-swan)] text-xs text-[#0a6ea8] hover:text-[var(--color-duo-eel)] flex items-center gap-1 transition-colors"
+          className="ml-9 mt-1 rounded-full px-2 py-0.5 bg-white border border-[var(--color-duo-swan)] text-xs text-[var(--color-duo-blue-ink)] hover:text-[var(--color-duo-eel)] flex items-center gap-1 transition-colors"
         >
           <Volume2 size={9} /> 重播
         </button>

@@ -42,7 +42,7 @@ export function GenCardView({
                     slot.density >= 75
                       ? "text-[var(--color-duo-orange-dark)]"
                       : slot.density <= 30
-                        ? "text-[#357a00]"
+                        ? "text-[var(--color-duo-green-ink)]"
                         : "text-[var(--color-duo-wolf)]"
                   }`}
                 >
@@ -90,17 +90,17 @@ export function GenCardView({
           ))}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[13px] font-extrabold text-[#357a00] font-tabular">
+          <span className="text-[13px] font-extrabold text-[var(--color-duo-green-ink)] font-tabular">
             {card.price}
           </span>
           {booked ? (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-bold text-[#357a00] px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40">
+              <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-duo-green-ink)] px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40">
                 <Check size={12} /> 已预订
               </span>
               {/* P1：AI 意向 → 真实弹药发单（human-in-the-loop，人类点击才落库广播） */}
               {card.lines.some((l) => l.k === "方案单号") ? (
-                <span className="text-xs font-bold text-[#0a6ea8] px-3 py-1.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40">
+                <span className="text-xs font-bold text-[var(--color-duo-blue-ink)] px-3 py-1.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40">
                   已转正式订单 ✅
                 </span>
               ) : (
@@ -164,7 +164,7 @@ function ProviderRow({
               {provider.name}
             </span>
             {provider.tag && (
-              <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[#0a6ea8] font-semibold shrink-0">
+              <span className="text-xs px-1.5 py-px rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)] font-semibold shrink-0">
                 {provider.tag}
               </span>
             )}
@@ -172,11 +172,11 @@ function ProviderRow({
               <span
                 className={`text-xs px-1.5 py-px rounded-full font-bold shrink-0 border-2 ${
                   match.badge === "极高匹配"
-                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
                     : match.badge === "高匹配"
-                      ? "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]"
+                      ? "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]"
                       : match.badge === "中等"
-                        ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]"
+                        ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]"
                         : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                 }`}
               >
@@ -206,7 +206,7 @@ function ProviderRow({
             </p>
           )}
         </div>
-        <span className="text-xs font-bold text-[#0a6ea8] shrink-0">
+        <span className="text-xs font-bold text-[var(--color-duo-blue-ink)] shrink-0">
           {provider.price}
         </span>
       </button>

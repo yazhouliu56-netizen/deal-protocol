@@ -96,7 +96,7 @@ export default function DataPortCard() {
         />
       </div>
       {msg && (
-        <p className="mt-2 px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-xs font-bold text-[#357a00] flex items-center gap-1">
+        <p className="mt-2 px-3 py-1.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-xs font-bold text-[var(--color-duo-green-ink)] flex items-center gap-1">
           <Check size={10} /> {msg}
         </p>
       )}

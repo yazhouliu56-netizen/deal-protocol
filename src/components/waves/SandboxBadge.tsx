@@ -8,7 +8,7 @@ export function SandboxBadge({ label = "本地仿真沙盒" }: { label?: string 
     <span
       data-testid="sandbox-badge"
       title="本地内存仿真，不产生真实资金与订单"
-      className="inline-flex items-center rounded-full border-2 border-dashed border-[var(--color-duo-yellow-dark)]/60 bg-[var(--color-duo-yellow)]/10 px-2 py-0.5 text-xs font-semibold text-[#8a6d00]"
+      className="inline-flex items-center rounded-full border-2 border-dashed border-[var(--color-duo-yellow-dark)]/60 bg-[var(--color-duo-yellow)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--color-duo-yellow-ink)]"
     >
       · 沙盒{label === "本地仿真沙盒" ? "" : ` · ${label}`}
     </span>

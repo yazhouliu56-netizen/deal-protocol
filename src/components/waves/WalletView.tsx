@@ -43,7 +43,7 @@ export default function WalletView() {
     <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-2xl p-3.5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-bold text-[var(--color-duo-wolf)] flex items-center gap-1.5">
-          <Wallet size={12} className="text-[#0a6ea8]" /> 我的钱包
+          <Wallet size={12} className="text-[var(--color-duo-blue-ink)]" /> 我的钱包
           <SandboxBadge />
         </h3>
         <span className="text-xs text-[var(--color-duo-hare)]">沙盒体验环境 · 生产环境将直连持牌银行账户</span>
@@ -52,14 +52,14 @@ export default function WalletView() {
       <div className="grid grid-cols-3 gap-2">
         {/* 余额 */}
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold text-[#357a00] font-tabular">
+          <span className="text-[16px] font-extrabold text-[var(--color-duo-green-ink)] font-tabular">
             ¥{account.balance}
           </span>
           <span className="text-xs text-[var(--color-duo-hare)]">可用余额</span>
         </div>
         {/* 信用 */}
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold text-[#0a6ea8] flex items-center gap-1">
+          <span className="text-[16px] font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
             <ShieldCheck size={13} className="text-[var(--color-duo-green)]" />
             Lv.{creditTier}
           </span>
@@ -67,25 +67,25 @@ export default function WalletView() {
         </div>
         {/* 额度 */}
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-2.5 flex flex-col items-center gap-0.5">
-          <span className="text-[16px] font-extrabold text-[#0a6ea8] flex items-center gap-1 font-tabular">
+          <span className="text-[16px] font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1 font-tabular">
             <Zap size={13} /> {claimQuota}
-            {halved && <span className="text-xs text-[#8a6d00]">(减半)</span>}
+            {halved && <span className="text-xs text-[var(--color-duo-yellow-ink)]">(减半)</span>}
           </span>
           <span className="text-xs text-[var(--color-duo-hare)]">今日接单额度</span>
         </div>
       </div>
       {halved && (
-        <p className="mt-2 text-xs text-[#8a6d00]">
+        <p className="mt-2 text-xs text-[var(--color-duo-yellow-ink)]">
           违约未谅解：3 天响应额度减半生效中
         </p>
       )}
       {frozen > 0 && (
-        <p className="mt-2 text-xs text-[#0a6ea8]">
+        <p className="mt-2 text-xs text-[var(--color-duo-blue-ink)]">
           🕊️ 爽约保障险冻结中：¥{frozen}（履约后自动退回）
         </p>
       )}
       {creditTier >= 4 && (
-        <p className="mt-2 text-xs text-[#357a00]">
+        <p className="mt-2 text-xs text-[var(--color-duo-green-ink)]">
           ⚡ 信用 Lv.{creditTier} 解锁响应额度扩容：今日 {dailyQuotaForTier(creditTier)} 次
         </p>
       )}
@@ -140,7 +140,7 @@ export default function WalletView() {
                 <span className="text-xs text-[var(--color-duo-wolf)] truncate">{e.note}</span>
                 <span
                   className={`text-xs font-bold shrink-0 ml-2 font-tabular ${
-                    e.amount >= 0 ? "text-[#357a00]" : "text-[var(--color-duo-red-dark)]"
+                    e.amount >= 0 ? "text-[var(--color-duo-green-ink)]" : "text-[var(--color-duo-red-dark)]"
                   }`}
                 >
                   {e.amount >= 0 ? "+" : "-"}¥{Math.abs(e.amount)}

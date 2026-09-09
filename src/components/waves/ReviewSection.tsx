@@ -89,7 +89,7 @@ export default function ReviewSection({
             onClick={() => setDims((d) => ({ ...d, [key]: v }))}
             className={`w-6 h-6 rounded-full text-xs font-bold border-2 ${
               dims[key] >= v
-                ? "bg-[var(--color-duo-yellow)]/15 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/60"
+                ? "bg-[var(--color-duo-yellow)]/15 text-[var(--color-duo-yellow-ink)] border-[var(--color-duo-yellow-dark)]/60"
                 : "bg-white text-[var(--color-duo-hare)] border-[var(--color-duo-swan)]"
             }`}
             aria-label={`${label}${v}分`}
@@ -105,7 +105,7 @@ export default function ReviewSection({
     <div className="space-y-1.5">
       {/* 对方给我的评价（脱敏 + 时间衰减） */}
       {theirs && (
-        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-start gap-1.5">
+        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] flex items-start gap-1.5">
           <ShieldCheck size={10} className="mt-0.5 shrink-0" />
           <span>
             对方评价 ★{theirs.score} · {decayLabel(theirs.at, now)}

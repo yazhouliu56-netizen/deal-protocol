@@ -56,7 +56,7 @@ export default function FriendKit({
 
   if (friends) {
     return (
-      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-center gap-1.5">
+      <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] flex items-center gap-1.5">
         <ShieldCheck size={10} /> 已是好友 · 下次见面有优先匹配
       </p>
     );
@@ -71,7 +71,7 @@ export default function FriendKit({
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 px-2.5 py-2"
       >
-        <p className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1">
+        <p className="text-xs font-bold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
           <Heart size={10} /> 对方想和你成为好友 · {hours}h 后自动撤回
         </p>
         <div className="mt-1.5 flex gap-1.5">
@@ -128,7 +128,7 @@ export default function FriendKit({
         💗 成为好友（自愿 · 对方确认后互认）
       </DuoButton>
       {sent && (
-        <p className="text-xs text-[#357a00] mt-1 flex items-center gap-1">
+        <p className="text-xs text-[var(--color-duo-green-ink)] mt-1 flex items-center gap-1">
           <Heart size={9} /> 已发出，对方 {Math.ceil(FRIEND_REQUEST_TTL_MS / 3_600_000)}h 内确认即成好友
         </p>
       )}

@@ -330,7 +330,7 @@ function WaveMiniSheet({
         <span className="px-2 py-1 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] flex items-center gap-1">
           <Users size={9} className="text-[var(--color-duo-blue)]" /> 名额 {wave.capacity ?? 1}
         </span>
-        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00]">
+        <span className="px-2 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]">
           活跃局
         </span>
         <span className="ml-auto">

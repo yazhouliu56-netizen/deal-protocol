@@ -56,7 +56,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[#0a6ea8] hover:border-[var(--color-duo-blue)]/50 transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-blue-ink)] hover:border-[var(--color-duo-blue)]/50 transition-colors"
         aria-label="分享拼位 · 拉新裂变"
         aria-expanded={open}
       >
@@ -80,7 +80,7 @@ export default function ShareKit({ wave }: { wave: Wave }) {
           </p>
           <p className="text-xs leading-relaxed text-[var(--color-duo-wolf)]">
             别人通过你的分享加入并回应/成交，才计裂变
-            <span className="text-[#0a6ea8]">（分享本身不计，防自刷）</span>。
+            <span className="text-[var(--color-duo-blue-ink)]">（分享本身不计，防自刷）</span>。
           </p>
 
           {/* 真二维码：扫码直达分享局 */}

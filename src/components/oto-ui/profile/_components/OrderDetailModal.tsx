@@ -48,10 +48,10 @@ export default function OrderDetail({
           <span
             className={`text-xs px-2 py-1 rounded-full font-semibold shrink-0 border-2 ${
               booking.status === "upcoming"
-                ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]"
+                ? "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]"
                 : booking.status === "cancelled"
                   ? "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
-                  : "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                  : "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
             }`}
           >
             {booking.status === "upcoming"
@@ -100,7 +100,7 @@ export default function OrderDetail({
               <div
                 className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 ${
                   step.done
-                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/50 text-[#357a00]"
+                    ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/50 text-[var(--color-duo-green-ink)]"
                     : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
                 }`}
               >

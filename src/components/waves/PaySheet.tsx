@@ -78,7 +78,7 @@ export default function PaySheet({
 
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-4 mb-3 text-center">
           <p className="text-xs text-[var(--color-duo-hare)] mb-1">{desc ?? "应付金额"}</p>
-          <p className="text-[28px] font-extrabold text-[#357a00] leading-none font-tabular">
+          <p className="text-[28px] font-extrabold text-[var(--color-duo-green-ink)] leading-none font-tabular">
             ¥{amount}
           </p>
           {fee > 0 && (

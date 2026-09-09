@@ -82,7 +82,7 @@ export default function RadarInbox() {
                         <p className="text-xs text-[var(--color-duo-wolf)] truncate">
                           {wave.basics.area} · 预算 {yuan(wave.budget)}
                         </p>
-                        <p className="text-xs text-[#0a6ea8] mt-1 flex items-center gap-1">
+                        <p className="text-xs text-[var(--color-duo-blue-ink)] mt-1 flex items-center gap-1">
                           <Zap size={9} /> 适配 {Math.round(p.score)} 分 · {p.reason}
                         </p>
                       </div>

@@ -108,10 +108,10 @@ const CAMERA_CSS = `
   -webkit-tap-highlight-color:transparent}
 .proof-camera-btn:active{transform:translateY(3px)}
 .proof-camera-btn:disabled{opacity:.45;cursor:not-allowed}
-.proof-camera-btn-primary{background:#58cc02;color:#fff;
-  border:2px solid #58a700;border-bottom-width:4px;box-shadow:none}
-.proof-camera-btn-ghost{background:#fff;color:#4b4b4b;border:2px solid #e5e5e5;border-bottom-width:4px}
-.proof-camera-btn-danger{background:#ff4b4b;color:#fff;border:2px solid #ea2b2b;border-bottom-width:4px}
+.proof-camera-btn-primary{background:var(--color-duo-green);color:#fff;
+  border:2px solid var(--color-duo-green-dark);border-bottom-width:4px;box-shadow:none}
+.proof-camera-btn-ghost{background:#fff;color:var(--color-duo-eel);border:2px solid var(--color-duo-swan);border-bottom-width:4px}
+.proof-camera-btn-danger{background:var(--color-duo-red);color:#fff;border:2px solid var(--color-duo-red-dark);border-bottom-width:4px}
 .proof-camera-geo{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
   color:#fbbf24;border:1px solid rgba(251,191,36,.35);border-radius:999px;padding:2px 8px;margin-bottom:8px}
 `;

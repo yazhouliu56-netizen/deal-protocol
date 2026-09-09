@@ -66,13 +66,14 @@ export function pillTagFor(theme: ScenarioTheme): string {
 
 /* 平头哥状态表收归 @/components/oto-ui/MascotStates（4 态：sleeping/awake/cheering/empty）。 */
 
-/** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。 */
-const TILE_STYLE: Record<string, { bg: string; border: string; text: string; price: string }> = {
-  housekeeping: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥60/h 起" },
-  meetup: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥15 AA制" },
-  companion: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥100/h 起" },
-  tech: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥30 检测" },
-  default: { bg: "#ffffff", border: "#e5e5e5", text: "#4b4b4b", price: "¥80/天" },
+/** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。
+ *  P8-4 死字段收敛：bg/border/text 改走 class 层 Duo Token 后零读取，仅保留 price。 */
+const TILE_STYLE: Record<string, { price: string }> = {
+  housekeeping: { price: "¥60/h 起" },
+  meetup: { price: "¥15 AA制" },
+  companion: { price: "¥100/h 起" },
+  tech: { price: "¥30 检测" },
+  default: { price: "¥80/天" },
 };
 const TILE_ACCENT: Record<string, string> = {
   housekeeping: "#1cb0f6",
@@ -87,11 +88,11 @@ const TILE_ACCENT: Record<string, string> = {
  * TILE_ACCENT 保留给图标投影等装饰用途，图纸色相不变只降明度）。
  */
 const TEXT_ACCENT: Record<string, string> = {
-  housekeeping: "#0a6ea8",
-  meetup: "#8a6d00",
+  housekeeping: "var(--color-duo-blue-ink)",
+  meetup: "var(--color-duo-yellow-ink)",
   companion: "#6d3fd4",
   tech: "#9a4d00",
-  default: "#357a00",
+  default: "var(--color-duo-green-ink)",
 };
 
 function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {

@@ -51,7 +51,7 @@ export default function DialCard({
       className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3"
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-extrabold text-[#357a00] flex items-center gap-1.5">
+        <span className="text-xs font-extrabold text-[var(--color-duo-green-ink)] flex items-center gap-1.5">
           <Phone size={12} /> 一次性虚拟线路
         </span>
         <span className="text-xs text-[var(--color-duo-hare)] flex items-center gap-1">
@@ -73,7 +73,7 @@ export default function DialCard({
         </DuoButton>
       </div>
       {dialed && (
-        <p className="mt-1.5 text-xs text-[#357a00] flex items-center gap-1">
+        <p className="mt-1.5 text-xs text-[var(--color-duo-green-ink)] flex items-center gap-1">
           <ShieldCheck size={10} /> 已模拟拨号 · 双方各自看到的是对方脱敏后的线路
         </p>
       )}

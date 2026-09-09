@@ -264,6 +264,12 @@ body {
   --color-duo-hare: #afafaf;
   --color-duo-wolf: #777777;
   --color-duo-eel: #4b4b4b;
+  /* P8-4 增补（只增不改义）：a11y 深色正文 ink 系（对比度≥4.5）+ 浅底 mist 系 */
+  --color-duo-green-ink: #357a00;
+  --color-duo-yellow-ink: #8a6d00;
+  --color-duo-blue-ink: #0a6ea8;
+  --color-duo-blue-mist: #ddf4ff;
+  --color-duo-red-mist: #fff5f5;
 }
 .duo-3d-button {
   position: relative;

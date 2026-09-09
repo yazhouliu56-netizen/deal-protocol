@@ -191,7 +191,7 @@ const open = session.status === "open";
       {/* 真实局选择：我发出的活跃多人拼单局即拍品候选 */}
       {myActive.length > 0 && (
         <div className="mt-2.5 flex items-center gap-2">
-          <Layers size={10} className="text-[#0a6ea8] shrink-0" />
+          <Layers size={10} className="text-[var(--color-duo-blue-ink)] shrink-0" />
           <select
             value={pickedWaveId ?? ""}
             onChange={(e) => {
@@ -236,7 +236,7 @@ const open = session.status === "open";
               <span className="font-bold text-[var(--color-duo-eel)] truncate">
                 {b.bidderName}
                 {leader && (
-                  <span className="ml-1.5 text-[#357a00] font-extrabold">
+                  <span className="ml-1.5 text-[var(--color-duo-green-ink)] font-extrabold">
                     中标
                   </span>
                 )}
@@ -293,7 +293,7 @@ const open = session.status === "open";
           animate={{ opacity: 1, height: "auto" }}
           className="mt-2.5 pt-2.5 border-t border-[var(--color-duo-swan)]"
         >
-          <div className="flex items-center gap-2 text-xs font-extrabold text-[#357a00]">
+          <div className="flex items-center gap-2 text-xs font-extrabold text-[var(--color-duo-green-ink)]">
             <Trophy size={12} />
             {session.award.winnerId === "me"
               ? "你中标了！"

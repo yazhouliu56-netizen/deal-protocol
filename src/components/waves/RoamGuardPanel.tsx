@@ -7,8 +7,8 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import { riskOf, type RiskLevel } from "@/base/risk/roamGuard";
 
 const BADGE: Record<RiskLevel, { label: string; cls: string }> = {
-  safe: { label: "安全", cls: "bg-[var(--color-duo-green)]/10 text-[#357a00] border-[var(--color-duo-green)]/40" },
-  watch: { label: "关注", cls: "bg-[var(--color-duo-yellow)]/10 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/50" },
+  safe: { label: "安全", cls: "bg-[var(--color-duo-green)]/10 text-[var(--color-duo-green-ink)] border-[var(--color-duo-green)]/40" },
+  watch: { label: "关注", cls: "bg-[var(--color-duo-yellow)]/10 text-[var(--color-duo-yellow-ink)] border-[var(--color-duo-yellow-dark)]/50" },
   high: { label: "风险", cls: "bg-[var(--color-duo-red)]/10 text-[var(--color-duo-red-dark)] border-[var(--color-duo-red)]/40" },
 };
 

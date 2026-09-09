@@ -22,13 +22,13 @@ import { shouldNotify, minuteOfWeek } from "@/base/platform/quietHours";
 import { useQuietPrefStore } from "@/store/useQuietPrefStore";
 
 const KIND_STYLE: Record<NotifyKind, readonly [string, string]> = {
-  offer: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[#0a6ea8]"],
-  accepted: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[#357a00]"],
-  push: ["bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50", "text-[#8a6d00]"],
-  friend: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[#0a6ea8]"],
+  offer: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[var(--color-duo-blue-ink)]"],
+  accepted: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[var(--color-duo-green-ink)]"],
+  push: ["bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50", "text-[var(--color-duo-yellow-ink)]"],
+  friend: ["bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40", "text-[var(--color-duo-blue-ink)]"],
   report: ["bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]", "text-[var(--color-duo-wolf)]"],
   wave: ["bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]", "text-[var(--color-duo-wolf)]"],
-  fission: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[#357a00]"],
+  fission: ["bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40", "text-[var(--color-duo-green-ink)]"],
 };
 
 function NotifyRow({ item }: { item: NotifyItem }) {
@@ -224,7 +224,7 @@ export default function NotificationCenter({
                         setOpen(false);
                       }}
                       aria-label="SOS 紧急求助"
-                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-red)]/40 border-b-4 bg-[#fff5f5] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
+                      className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-red)]/40 border-b-4 bg-[var(--color-duo-red-mist)] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
                     >
                       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-red)] text-white text-sm font-black shrink-0">
                         SOS
@@ -260,7 +260,7 @@ export default function NotificationCenter({
                   setNotifPerm(await requestNotifyPermission());
                 }}
                 disabled={notifPerm !== "default"}
-                className="w-full mt-1 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs text-[#0a6ea8] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full mt-1 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs text-[var(--color-duo-blue-ink)] disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {notifPerm === "granted"
                   ? "🔔 系统通知已开启"

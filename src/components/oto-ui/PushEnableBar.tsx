@@ -160,7 +160,7 @@ export default function PushEnableBar() {
             <span
               className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-extrabold border-2 ${
                 state === "subscribed"
-                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
                   : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
               }`}
             >

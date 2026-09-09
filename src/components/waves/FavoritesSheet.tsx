@@ -86,7 +86,7 @@ export default function FavoritesSheet({
                       {w.basics.area} · {w.basics.time} · {yuan(w.budget)}
                     </p>
                     {gone && (
-                      <p className="text-xs text-[#357a00] flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-[var(--color-duo-green-ink)] flex items-center gap-1 mt-0.5">
                         <CheckCircle2 size={9} /> 该局已被处理，保持关注可跟踪状态
                       </p>
                     )}

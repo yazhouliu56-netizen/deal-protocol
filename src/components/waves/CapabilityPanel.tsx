@@ -91,7 +91,7 @@ export default function CapabilityPanel() {
             {identity.distanceKm} km · {identity.online ? "在线" : "隐身"}
           </span>
           <span
-            className="text-xs font-bold text-[#8a6d00] block mt-0.5 truncate"
+            className="text-xs font-bold text-[var(--color-duo-yellow-ink)] block mt-0.5 truncate"
             aria-label="服务商星级"
           >
             {rankLabel({ ...myStats, completion: myCompletion })}
@@ -133,9 +133,9 @@ export default function CapabilityPanel() {
                   className={`px-2 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     status === key
                       ? key === "online"
-                        ? "bg-[var(--color-duo-green)]/15 text-[#357a00] border-[var(--color-duo-green)]/50"
+                        ? "bg-[var(--color-duo-green)]/15 text-[var(--color-duo-green-ink)] border-[var(--color-duo-green)]/50"
                         : key === "busy"
-                          ? "bg-[var(--color-duo-yellow)]/15 text-[#8a6d00] border-[var(--color-duo-yellow-dark)]/60"
+                          ? "bg-[var(--color-duo-yellow)]/15 text-[var(--color-duo-yellow-ink)] border-[var(--color-duo-yellow-dark)]/60"
                           : "bg-white text-[var(--color-duo-wolf)] border-[var(--color-duo-swan)]"
                       : "bg-[var(--color-duo-polar)] text-[var(--color-duo-hare)] border-[var(--color-duo-swan)]"
                   }`}
@@ -203,7 +203,7 @@ export default function CapabilityPanel() {
                 onClick={() =>
                   commit({ tags: identity.tags.filter((x) => x !== t) })
                 }
-                className="px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[#0a6ea8]"
+                className="px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
               >
                 {t} ✕
               </button>
@@ -227,7 +227,7 @@ export default function CapabilityPanel() {
           </div>
           <p className="text-xs text-[var(--color-duo-hare)] -mt-1 mb-2">
             兴趣标签最多 3 个 · 随时可换（{3 - identity.tags.length} 空位）
-            {tagFull && <span className="text-[#8a6d00]"> 已满，先删再改</span>}
+            {tagFull && <span className="text-[var(--color-duo-yellow-ink)]"> 已满，先删再改</span>}
           </p>
 
           {/* 距离 */}
@@ -261,7 +261,7 @@ export default function CapabilityPanel() {
             <span
               className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 ${
                 identity.verified
-                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                  ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
                   : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
               }`}
             >
@@ -272,7 +272,7 @@ export default function CapabilityPanel() {
             identity.categories.some((c) =>
               requiresVerification(c, dispatchRuleFor(c))
             ) && (
-              <p className="text-xs text-[#8a6d00] mt-1.5">
+              <p className="text-xs text-[var(--color-duo-yellow-ink)] mt-1.5">
                 ⚠️ 陪诊/家政/上门做饭等进家品类需先实名认证（对标 Care.com 接单门槛）
               </p>
             )}

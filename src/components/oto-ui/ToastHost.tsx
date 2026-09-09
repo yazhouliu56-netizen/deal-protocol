@@ -4,7 +4,7 @@ import { CheckCircle2, Info, XCircle } from "lucide-react";
 import { useToastStore, type ToastTone } from "@/base/platform/toast";
 
 const TONE_STYLE: Record<ToastTone, string> = {
-  info: "border-[var(--color-duo-blue)]/50 text-[#0a6ea8]",
+  info: "border-[var(--color-duo-blue)]/50 text-[var(--color-duo-blue-ink)]",
   success: "border-[var(--color-duo-green)]/50 text-[var(--color-duo-green-dark)]",
   error: "border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]",
 };

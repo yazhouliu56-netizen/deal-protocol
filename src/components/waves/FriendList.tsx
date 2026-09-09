@@ -68,7 +68,7 @@ export default function FriendList() {
 
       {incoming.length > 0 && (
         <div className="mb-3 space-y-2">
-          <p className="text-xs font-extrabold text-[#0a6ea8]">
+          <p className="text-xs font-extrabold text-[var(--color-duo-blue-ink)]">
             待确认的好友请求
           </p>
           {incoming.map((r) => (
@@ -100,7 +100,7 @@ export default function FriendList() {
         {mine.map((f) => (
           <span
             key={f.id}
-            className="text-xs px-2.5 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] flex items-center gap-1"
+            className="text-xs px-2.5 py-1 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] flex items-center gap-1"
           >
             <Users size={9} /> {f.nickname}
           </span>

@@ -109,12 +109,12 @@ export default function MyClaims() {
                     {wave.capacity >= 2 && "/人"}
                   </p>
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]">
                   候补中
                 </span>
               </div>
               <div className="rounded-2xl bg-[var(--color-duo-yellow)]/[.06] border-2 border-[var(--color-duo-yellow-dark)]/50 p-3 mt-2.5 space-y-2">
-                <p className="text-xs font-bold text-[#8a6d00] flex items-center gap-1.5">
+                <p className="text-xs font-bold text-[var(--color-duo-yellow-ink)] flex items-center gap-1.5">
                   <Users size={11} /> 候补 · 第 {pos}/{total} 位
                 </p>
                 <p className="text-xs text-[var(--color-duo-hare)]">
@@ -168,7 +168,7 @@ export default function MyClaims() {
                   <h3 className="text-[13px] font-extrabold truncate">
                     {wave.basics.category}
                     {wave.capacity >= 2 && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00] align-middle">
+                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/15 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] align-middle">
                         🎯 多人拼单局
                       </span>
                     )}
@@ -180,12 +180,12 @@ export default function MyClaims() {
                   </p>
                 </div>
                 {claim.status === "negotiating" && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
                     第 {claim.rounds}/{MAX_ROUNDS} 轮
                   </span>
                 )}
                 {isJoined && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full border-2 shrink-0 bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]">
                     已拼位
                   </span>
                 )}
@@ -194,7 +194,7 @@ export default function MyClaims() {
               {/* 拼位等待态：等满员成局（可退出） */}
               {isJoined && (
                 <div className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 p-3 space-y-2">
-                  <p className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-[var(--color-duo-blue-ink)] flex items-center gap-1.5">
                     <Users size={11} /> 已拼位 · 等待满员成局
                   </p>
                   <div className="flex items-center gap-1.5">
@@ -308,14 +308,14 @@ export default function MyClaims() {
                   );
                   if (myRep?.status === "resolved")
                     return (
-                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[#357a00]">
+                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[var(--color-duo-green-ink)]">
                         ✓ 平台已处理：{ACTION_LABEL[myRep.action ?? "dismiss"]}
                         {myRep.verdictNote ? `（${myRep.verdictNote}）` : ""}
                       </p>
                     );
                   if (myRep)
                     return (
-                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[#8a6d00]">
+                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[var(--color-duo-yellow-ink)]">
                         ⏳ 已举报，平台核查中
                       </p>
                     );
@@ -330,7 +330,7 @@ export default function MyClaims() {
                           reporterId: identity.id,
                         })
                       }
-                      className="w-full py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[#8a6d00] hover:border-[var(--color-duo-yellow-dark)]/60"
+                      className="w-full py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-yellow-ink)] hover:border-[var(--color-duo-yellow-dark)]/60"
                     >
                       🚩 举报对方
                     </button>
@@ -367,7 +367,7 @@ export default function MyClaims() {
                         aria-label={`申报模块 ${wave.modules?.[i]?.name ?? `模块${i + 1}`} 完成`}
                         className={`w-full py-1.5 rounded-xl border-2 text-xs font-bold transition-colors ${
                           m.status === "pending"
-                            ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
+                            ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
                             : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                         }`}
                       >
@@ -381,7 +381,7 @@ export default function MyClaims() {
                   </div>
                 )}
               {claim.serviceDoneAt && !claim.fulfilment && !claim.modules && (
-                <p className="text-xs text-[#357a00]">
+                <p className="text-xs text-[var(--color-duo-green-ink)]">
                   ✓ 已申报完成 —— 等待需求方验收（72h 自动放款）
                 </p>
               )}
@@ -441,7 +441,7 @@ function ResponderThread({
   return (
     <div className="rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1">
+        <span className="text-xs font-bold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
           <MessageSquareText size={11} /> 与需求方磋商中
           {claim.lastMessage && ` · "${claim.lastMessage.slice(0, 18)}"`}
         </span>
@@ -486,12 +486,12 @@ function ResponderThread({
         </div>
       )}
       {sent && (
-        <p className="text-xs text-[#357a00] mt-1.5">
+        <p className="text-xs text-[var(--color-duo-green-ink)] mt-1.5">
           ✓ 已回应，等待需求方决策
         </p>
       )}
       {exhausted && (
-        <p className="text-xs text-[#8a6d00] mt-1.5">
+        <p className="text-xs text-[var(--color-duo-yellow-ink)] mt-1.5">
           3 轮已满 · 等待需求方谈成或婉拒
         </p>
       )}
@@ -522,11 +522,11 @@ function DepositBadge({
   const map: Record<DepositPhase, { text: string; cls: string }> = {
     held: {
       text: "🕊️ 押金已冻结 ¥5（履约后退回）",
-      cls: "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]",
+      cls: "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]",
     },
     confirmed: {
       text: "✅ 押金已解冻退回（含平台服务费 ¥0.5）",
-      cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]",
+      cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]",
     },
     forfeited: {
       text: "🕊️ 押金已没收（赔付给需求方）",
@@ -534,7 +534,7 @@ function DepositBadge({
     },
     refunded: {
       text: "✅ 押金已全额退回（需求方谅解）",
-      cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]",
+      cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]",
     },
   };
   const s = map[eff];
@@ -553,7 +553,7 @@ function ResponderDispute({ claim }: { claim: Claim }) {
   if (!d || d.outcome) return null;
   return (
     <div className="rounded-2xl bg-[var(--color-duo-yellow)]/[.06] border-2 border-[var(--color-duo-yellow-dark)]/50 p-2.5 space-y-1.5">
-      <p className="text-xs font-bold text-[#8a6d00]">
+      <p className="text-xs font-bold text-[var(--color-duo-yellow-ink)]">
         ⚖️ 需求方发起了争议：{d.verdict.label}
       </p>
       <p className="text-xs text-[var(--color-duo-wolf)]">凭证：{d.evidence}</p>
@@ -630,12 +630,12 @@ function GuestSection({
         <span className="text-xs font-bold text-[var(--color-duo-wolf)] flex items-center gap-1.5">
           👥 +1 携伴
           {guests.length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs text-[#0a6ea8]">
+            <span className="px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-xs text-[var(--color-duo-blue-ink)]">
               {guests.length} 位已登记
             </span>
           )}
         </span>
-        <span className="text-xs text-[#0a6ea8]">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
+        <span className="text-xs text-[var(--color-duo-blue-ink)]">{open ? "收起 ▴" : guests.length > 0 ? `已登记：${guests[0].name}` : "登记 ▾"}</span>
       </button>
       {guests.length > 0 && (
         <div className="px-2.5 pb-2 flex items-center justify-between gap-2">
@@ -645,7 +645,7 @@ function GuestSection({
             {guests[0].phoneMask ? ` · ${guests[0].phoneMask}` : ""}
             {guests[0].birthYear != null &&
               new Date().getFullYear() - guests[0].birthYear < 14 && (
-                <span className="text-[#8a6d00]"> · 监护人同意在册</span>
+                <span className="text-[var(--color-duo-yellow-ink)]"> · 监护人同意在册</span>
               )}
           </p>
           <button
@@ -729,8 +729,8 @@ function InsureBar({ claim, wave }: { claim: Claim; wave: Wave }) {
       <p
         className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border-2 ${
           pol.claimed
-            ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
-            : "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]"
+            ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
+            : "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]"
         }`}
       >
         🛡️ 履约保险：{pol.claimed

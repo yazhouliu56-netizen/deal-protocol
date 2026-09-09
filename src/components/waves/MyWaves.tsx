@@ -106,7 +106,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
         <button
           onClick={() => window.dispatchEvent(new Event("oto:env-info"))}
           aria-label="了解数据模式"
-          className="shrink-0 px-2 py-1 rounded-full bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[#0a6ea8] hover:border-[var(--color-duo-blue)]/50 transition-colors"
+          className="shrink-0 px-2 py-1 rounded-full bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-blue-ink)] hover:border-[var(--color-duo-blue)]/50 transition-colors"
         >
           数据模式
         </button>
@@ -116,7 +116,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
       <p className="text-xs text-[var(--color-duo-hare)] mb-3">你发出的信号波 · 谁接单算谁的</p>
 
       {myBuffs > 0 && (
-        <p className="mb-3 px-3 py-2 rounded-2xl bg-[var(--color-duo-green)]/[.06] border-2 border-[var(--color-duo-green)]/40 text-xs font-bold text-[#357a00] flex items-center gap-1.5">
+        <p className="mb-3 px-3 py-2 rounded-2xl bg-[var(--color-duo-green)]/[.06] border-2 border-[var(--color-duo-green)]/40 text-xs font-bold text-[var(--color-duo-green-ink)] flex items-center gap-1.5">
           ✨ 持有 {myBuffs} 次「成局面降标准」：下次多人拼单局发布自动少拼 {myBuffs} 人
         </p>
       )}
@@ -169,18 +169,18 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 <h3 className="text-[13px] font-extrabold">
                     {wave.basics.category}
                     {isOpen && wave.status === "active" && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00] align-middle">
+                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)] align-middle">
                         🎯 多人拼单局 · {neededJoiners(wave)} 位拼位
                       </span>
                     )}
                     {isOpen && (wave.buffSeats ?? 0) > 0 && (
-                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] align-middle">
+                      <span className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] align-middle">
                         ✨ 已降标准 −{(wave.buffSeats ?? 0)}
                       </span>
                     )}
                   </h3>
                   {wave.biddingSettled && (
-                    <p className="mt-1 text-xs font-bold text-[#357a00] flex items-center gap-1">
+                    <p className="mt-1 text-xs font-bold text-[var(--color-duo-green-ink)] flex items-center gap-1">
                       <Gavel size={9} className="shrink-0" />
                       公开竞价已结算 · {wave.biddingSettled.winnerName} 中标 ¥
                       {wave.biddingSettled.price} · 佣金 ¥{wave.biddingSettled.feeYuan} · 净得 ¥
@@ -193,7 +193,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                   {wave.customs.map((c) => (
                     <span
                       key={c.text}
-                      className="inline-block mt-1 mr-1.5 px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[#0a6ea8]"
+                      className="inline-block mt-1 mr-1.5 px-2 py-0.5 rounded-full bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
                     >
                       {c.text}
                     </span>
@@ -217,7 +217,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
               {isOpen && wave.status === "active" && wave.needApproval && (
                 <div className="rounded-2xl bg-[var(--color-duo-yellow)]/[.06] border-2 border-[var(--color-duo-yellow-dark)]/50 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#8a6d00] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[var(--color-duo-yellow-ink)] flex items-center gap-1.5">
                       <Shield size={11} /> 待你审批的拼位申请
                     </span>
                     <span className="text-xs text-[var(--color-duo-hare)]">
@@ -255,7 +255,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                                 initiatorId: identity.id,
                               })
                             }
-                            className="px-2 py-1 rounded-lg bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[#357a00] text-xs font-bold hover:brightness-105"
+                            className="px-2 py-1 rounded-lg bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)] text-xs font-bold hover:brightness-105"
                           >
                             批准入局
                           </button>
@@ -347,7 +347,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
               {/* 多人拼单局：已满员成局 → 每位拼位者各自走履约流程 */}
                 {isOpen && wave.status === "assembled" && (
-                  <p className="text-xs font-bold text-[#357a00] flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-[var(--color-duo-green-ink)] flex items-center gap-1.5">
                     <Users size={11} /> 已成局 · {lockSeats.length} 位拼位者
                     {wave.deposit && " · 押金已按位冻结"}
                   </p>
@@ -388,10 +388,10 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    active: { label: "广播中", cls: "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]" },
-    claimed: { label: "已接单", cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]" },
-    locked: { label: "已锁定", cls: "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[#8a6d00]" },
-    assembled: { label: "已成局", cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]" },
+    active: { label: "广播中", cls: "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]" },
+    claimed: { label: "已接单", cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]" },
+    locked: { label: "已锁定", cls: "bg-[var(--color-duo-yellow)]/10 border-[var(--color-duo-yellow-dark)]/50 text-[var(--color-duo-yellow-ink)]" },
+    assembled: { label: "已成局", cls: "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]" },
     closed: { label: "已关闭", cls: "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]" },
     expired: { label: "已失效·已退款", cls: "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]" },
   };
@@ -462,8 +462,8 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           <p
             className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border-2 ${
               pol.claimed
-                ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[#357a00]"
-                : "bg-[var(--color-duo-blue)]/[.06] border-[var(--color-duo-blue)]/40 text-[#0a6ea8]"
+                ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green)]/40 text-[var(--color-duo-green-ink)]"
+                : "bg-[var(--color-duo-blue)]/[.06] border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]"
             }`}
           >
             🛡️ 履约保险：{pol.claimed
@@ -477,12 +477,12 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           (r) => r.reporterId === identity.id && r.targetId === claim.responderId
         );
         return myRep?.status === "resolved" ? (
-          <p className="w-full text-right text-xs font-bold text-[#357a00]">
+          <p className="w-full text-right text-xs font-bold text-[var(--color-duo-green-ink)]">
             ✓ 平台已处理：{ACTION_LABEL[myRep.action ?? "dismiss"]}
             {myRep.verdictNote ? `（${myRep.verdictNote}）` : ""}
           </p>
         ) : myRep ? (
-          <p className="w-full text-right text-xs font-bold text-[#8a6d00]">
+          <p className="w-full text-right text-xs font-bold text-[var(--color-duo-yellow-ink)]">
             ⏳ 已举报，核查中
           </p>
         ) : (
@@ -517,14 +517,14 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
                   setVerdictMsg("已标记未到场：该座位款项不退，已分摊补偿在场玩家，发起人下次成局面降标准");
                 }}
                 aria-label="标记未到场"
-                className="px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-xs font-bold text-[#8a6d00] hover:brightness-105"
+                className="px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-yellow)]/10 border-2 border-[var(--color-duo-yellow-dark)]/50 text-xs font-bold text-[var(--color-duo-yellow-ink)] hover:brightness-105"
               >
                 🚫 未到场
               </button>
             )}
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[#8a6d00] flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-yellow-ink)] flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>
@@ -533,7 +533,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
       )}
       {claim.serviceDoneAt && !claim.fulfilment && (
         <div className="rounded-2xl bg-[var(--color-duo-green)]/[.06] border-2 border-[var(--color-duo-green)]/40 p-2.5">
-          <p className="text-xs font-bold text-[#357a00] mb-1.5">
+          <p className="text-xs font-bold text-[var(--color-duo-green-ink)] mb-1.5">
             服务方已申报完成 —— 验收确认后放款
           </p>
           <input
@@ -563,7 +563,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             </DuoButton>
             <button
               onClick={() => setBreachOpen(true)}
-              className="px-2.5 py-2 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[#8a6d00] flex items-center gap-1"
+              className="px-2.5 py-2 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-yellow-ink)] flex items-center gap-1"
             >
               <AlertTriangle size={11} /> 对方违约
             </button>
@@ -603,7 +603,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
         </div>
       )}
       {verdictMsg && (
-        <p className="text-xs font-bold text-[#357a00]">✓ 已裁决：{verdictMsg}</p>
+        <p className="text-xs font-bold text-[var(--color-duo-green-ink)]">✓ 已裁决：{verdictMsg}</p>
       )}
 
       {/* 违约裁决面板（本席独立） */}
@@ -617,7 +617,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             <HelpCircle size={11} className="text-[var(--color-duo-yellow-dark)]" />
             响应方未履约，请裁决谅解与否
             {claim.depositPhase === "held" && (
-              <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[#0a6ea8]">
+              <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-duo-blue)]/10 border-2 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]">
                 🕊️ 押金 ¥5 待定
               </span>
             )}
@@ -719,7 +719,7 @@ function NegotiationThread({
   return (
     <div className="rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-[#0a6ea8] flex items-center gap-1">
+        <span className="text-xs font-bold text-[var(--color-duo-blue-ink)] flex items-center gap-1">
           <MessageSquareText size={11} /> 响应者磋商
           {claim.lastMessage && ` · "${claim.lastMessage.slice(0, 18)}"`}
         </span>
@@ -740,7 +740,7 @@ function NegotiationThread({
         ))}
         <span
           className={`text-xs font-bold ml-1 ${
-            turn === "demander" ? "text-[#0a6ea8]" : "text-[var(--color-duo-hare)]"
+            turn === "demander" ? "text-[var(--color-duo-blue-ink)]" : "text-[var(--color-duo-hare)]"
           }`}
         >
           {exhausted
@@ -775,7 +775,7 @@ function NegotiationThread({
       )}
       {err && <p className="text-xs text-[var(--color-duo-red-dark)] mt-1">{err}</p>}
       {sent && !exhausted && (
-        <p className="text-xs text-[#357a00] mt-1.5">
+        <p className="text-xs text-[var(--color-duo-green-ink)] mt-1.5">
           ✓ 已还价，等待响应者回应（下一轮轮到他）
         </p>
       )}
