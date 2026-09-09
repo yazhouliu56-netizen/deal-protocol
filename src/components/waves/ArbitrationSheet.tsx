@@ -509,7 +509,7 @@ export default function ArbitrationSheet({
                 </div>
                 <div className="arb-ai-row">
                   <span>证据锚点数</span>
-                  <strong style={{ color: "#cbd5e1" }}>{certificate.hashChain.entries.length} 条</strong>
+                  <strong className="text-slate-300">{certificate.hashChain.entries.length} 条</strong>
                 </div>
                 {certificate.hashChain.entries.length > 0 && (
                   <div className="arb-ai-note" style={{ wordBreak: "break-all" }}>
@@ -531,7 +531,7 @@ export default function ArbitrationSheet({
             </div>
             <div className="arb-ai-row">
               <span>责任说明</span>
-              <span style={{ color: "#cbd5e1" }}>{proposal.liabilityNote}</span>
+              <span className="text-slate-300">{proposal.liabilityNote}</span>
             </div>
             <div className="arb-ai-row">
               <span>建议退款</span>
@@ -541,13 +541,13 @@ export default function ArbitrationSheet({
             </div>
             <div className="arb-ai-row">
               <span>平台补偿券</span>
-              <strong style={{ color: "#fbbf24" }} data-testid="proposal-coupon">
+              <strong className="text-amber-400" data-testid="proposal-coupon">
                 ¥{proposal.compensationCouponYuan}
               </strong>
             </div>
             <div className="arb-ai-row">
               <span>信用扣减</span>
-              <strong style={{ color: "#fca5a5" }} data-testid="proposal-credit">
+              <strong className="text-red-300" data-testid="proposal-credit">
                 -{proposal.creditDeduct} 分
               </strong>
             </div>
@@ -560,7 +560,7 @@ export default function ArbitrationSheet({
           </section>
         ) : isLevel1 ? (
           <section className="arb-ai-card" data-testid="instant-compensate-card" style={{ borderColor: "rgba(74,222,128,.4)", background: "linear-gradient(135deg,rgba(74,222,128,.12),rgba(16,185,129,.04))" }}>
-            <span className="arb-ai-badge" style={{ color: "#4ade80" }}>⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
+            <span className="arb-ai-badge text-green-400">⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
             <div className="arb-ai-row">
               <span>争议金额</span>
               <span className="arb-ai-refund" style={{ color: "#4ade80" }} data-testid="instant-amount">
@@ -569,16 +569,16 @@ export default function ArbitrationSheet({
             </div>
             <div className="arb-ai-row">
               <span>赔付来源</span>
-              <strong style={{ color: "#fbbf24" }}>平台体验保障金（不扣罚服务者）</strong>
+              <strong className="text-amber-400">平台体验保障金（不扣罚服务者）</strong>
             </div>
             <div className="arb-ai-row">
               <span>服务者处置</span>
-              <strong style={{ color: "#4ade80" }}>零扣罚 · 零信用减分 · 即时结案</strong>
+              <strong className="text-green-400">零扣罚 · 零信用减分 · 即时结案</strong>
             </div>
           </section>
         ) : (
           <section className="arb-ai-card" data-testid="legal-direct-card" style={{ borderColor: "rgba(248,113,113,.5)", background: "linear-gradient(135deg,rgba(248,113,113,.14),rgba(127,29,29,.05))" }}>
-            <span className="arb-ai-badge" style={{ color: "#fca5a5" }}>⚖️ 法务专家组接管 · 线上调解已切断</span>
+            <span className="arb-ai-badge text-red-300">⚖️ 法务专家组接管 · 线上调解已切断</span>
             <div className="arb-law-card" data-testid="legal-connect-card">
               <span className="arb-law-pulse" />
               <div>

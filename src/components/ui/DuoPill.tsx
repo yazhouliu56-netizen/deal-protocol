@@ -18,12 +18,12 @@ const TONE: Record<DuoPillTone, string> = {
 
 /** 暗底演绎（ProofCamera 鉴真徽标家族；rgba 非 Token，暗岛收拢于此一处） */
 const TONE_DARK: Record<DuoPillTone, string> = {
-  blue: "bg-black/45 border-white/20 text-[#e2e8f0]",
+  blue: "bg-black/45 border-white/20 text-slate-200",
   green: "bg-[rgba(34,197,94,.18)] border-[rgba(34,197,94,.4)] text-[#86efac]",
   yellow: "bg-[rgba(251,191,36,.18)] border-[rgba(251,191,36,.45)] text-[#fde68a]",
   red: "bg-[rgba(239,68,68,.22)] border-[rgba(239,68,68,.6)] text-[#fecaca]",
   orange: "bg-[rgba(249,115,22,.18)] border-[rgba(249,115,22,.5)] text-[#fed7aa]",
-  neutral: "bg-black/45 border-white/20 text-[#e2e8f0]",
+  neutral: "bg-black/45 border-white/20 text-slate-200",
 };
 
 /** 实心演绎（白字计数/徽标；yellow 配 eel 深字） */

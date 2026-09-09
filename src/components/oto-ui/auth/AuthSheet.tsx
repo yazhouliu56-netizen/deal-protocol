@@ -441,7 +441,7 @@ export default function AuthSheet() {
                   {verifying ? "验证中…" : smsSent ? "验证并登录" : "先发送验证码"}
                 </button>
                 {formError && (
-                  <p className="auth-hint text-[#fda4af]" data-testid="auth-error">
+                  <p className="auth-hint text-rose-300" data-testid="auth-error">
                     {formError}
                   </p>
                 )}

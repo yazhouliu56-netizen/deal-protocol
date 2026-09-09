@@ -67,7 +67,7 @@ export default function CompanionSlot({
       )}
       <div className="cp-distance">
         <span>📡 安全距离 {departureDistanceMeters}m</span>
-        <span className="text-[#cbd5e1]">超出自动停表/结账</span>
+        <span className="text-slate-300">超出自动停表/结账</span>
       </div>
       {onBlockUser && (
         <button type="button" className="cp-block" data-action="block-user" onClick={onBlockUser}>

@@ -309,7 +309,7 @@ export default function FulfillmentCockpit({
         <div className="cockpit-provider-info">
           <strong>
             {provider.name}
-            {provider.verified && <span className="ml-1 text-[#38bdf8]">✓ 实名</span>}
+            {provider.verified && <span className="ml-1 text-sky-400">✓ 实名</span>}
           </strong>
           <span className="cockpit-trust">
             信用 {provider.trustScore} 分

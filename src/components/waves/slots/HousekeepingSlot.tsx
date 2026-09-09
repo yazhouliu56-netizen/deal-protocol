@@ -196,7 +196,7 @@ export default function HousekeepingSlot({
         <section className="hk-quote">
           <div>
             <strong>现场增项：{quote.item}</strong>
-            <div style={{ color: "#fbbf24" }}>+¥{quote.amountYuan}</div>
+            <div className="text-amber-400">+¥{quote.amountYuan}</div>
           </div>
           <div className="hk-quote-btns">
             {quote.confirmed ? (
