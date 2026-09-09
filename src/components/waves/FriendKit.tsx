@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
+import { RISE_6 } from "@/components/ui/motion";
 import { Heart, ShieldCheck, UserPlus } from "lucide-react";
 import DuoButton from "@/components/ui/DuoButton";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -67,8 +68,8 @@ export default function FriendKit({
     const hours = Math.ceil(requestTtlLeft(inbound, now) / 3_600_000);
     return (
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={RISE_6.initial}
+        animate={RISE_6.animate}
         className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 px-2.5 py-2"
       >
         <p className="text-xs font-bold text-[var(--color-duo-blue-ink)] flex items-center gap-1">

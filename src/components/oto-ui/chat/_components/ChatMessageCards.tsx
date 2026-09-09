@@ -2,6 +2,7 @@
 import { useState } from "react";
 import DuoPill from "@/components/ui/DuoPill";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 import { Check, ChevronDown, Star } from "lucide-react";
 import type { ChatMessage, ProviderItem } from "@/base/ai/chat/types";
 import type { ScoreBreakdown } from "@/base/dispatch/match";
@@ -266,8 +267,8 @@ function CardShell({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={RISE_8.initial}
+      animate={RISE_8.animate}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={`ml-9 mt-1 max-w-[88%] px-3.5 py-3 rounded-2xl border-2 ${
         accent

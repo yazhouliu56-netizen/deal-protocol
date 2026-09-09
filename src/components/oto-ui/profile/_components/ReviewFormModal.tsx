@@ -2,6 +2,7 @@
 import DuoButton from "@/components/ui/DuoButton";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { RISE_10 } from "@/components/ui/motion";
 import { ArrowLeft, Check, MapPin, Star } from "lucide-react";
 import { useAppStore, type Booking } from "@/store/useAppStore";
 
@@ -57,8 +58,8 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         <ArrowLeft size={14} /> 返回订单
       </button>
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={RISE_10.initial}
+        animate={RISE_10.animate}
         className="bg-white border border-[var(--color-duo-swan)] rounded-3xl p-4"
       >
         <h2 className="text-[14px] font-extrabold">评价 {booking.providerName}</h2>

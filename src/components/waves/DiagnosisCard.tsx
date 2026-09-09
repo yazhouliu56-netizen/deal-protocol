@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import DuoPill from "@/components/ui/DuoPill";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 import { Sparkles, MessageSquareText } from "lucide-react";
 import { mockDiagnose, type DiagnosisAdvice } from "@/base/ai/diagnostic";
 import type { Wave } from "@/base/order/wave";
@@ -60,8 +61,8 @@ export default function DiagnosisCard({ wave }: { wave: Wave }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={RISE_8.initial}
+      animate={RISE_8.animate}
       className="rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 p-3 space-y-2"
     >
       <p className="text-xs font-extrabold text-[var(--color-duo-blue-ink)] flex items-center gap-1">

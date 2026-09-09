@@ -2,6 +2,7 @@
 import DuoButton from "@/components/ui/DuoButton";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { RISE_6 } from "@/components/ui/motion";
 import { Share2, Check, Users } from "lucide-react";
 import QRCode from "qrcode";
 import type { Wave } from "@/base/order/wave";
@@ -71,8 +72,8 @@ export default function ShareKit({ wave }: { wave: Wave }) {
 
       {open && (
         <motion.div
-          initial={{ opacity: 0, y: 6, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
+          initial={{ ...RISE_6.initial, scale: 0.97 }}
+          animate={{ ...RISE_6.animate, scale: 1 }}
           className="absolute right-0 top-full mt-2 z-30 w-56 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3 space-y-2.5"
         >
           <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">

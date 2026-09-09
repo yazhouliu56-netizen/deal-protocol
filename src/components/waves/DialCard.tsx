@@ -2,6 +2,7 @@
 import DuoButton from "@/components/ui/DuoButton";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 import { Phone, Timer, ShieldCheck } from "lucide-react";
 import { makeDialCode, dialExpiresAt, isDialLive } from "@/base/comm/dialer";
 
@@ -46,8 +47,8 @@ export default function DialCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={RISE_8.initial}
+      animate={RISE_8.animate}
       className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3"
     >
       <div className="flex items-center justify-between">

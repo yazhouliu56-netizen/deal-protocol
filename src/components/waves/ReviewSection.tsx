@@ -3,6 +3,7 @@ import DuoButton from "@/components/ui/DuoButton";
 import { useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import {
@@ -128,8 +129,8 @@ export default function ReviewSection({
 
       {open && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={RISE_8.initial}
+          animate={RISE_8.animate}
           className="rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-4 p-3 space-y-2"
         >
           <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">给对方打分</p>

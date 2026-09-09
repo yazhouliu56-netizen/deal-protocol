@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { RISE_10 } from "@/components/ui/motion";
 import { Bot, Volume2 } from "lucide-react";
 import type { ChatMessage } from "@/base/ai/chat/types";
 import { speak } from "@/adapters/ai/voice/ttsClient";
@@ -25,8 +26,8 @@ export function ChatBubble({
   const isUser = message.role === "user";
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={RISE_10.initial}
+      animate={RISE_10.animate}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
     >

@@ -5,6 +5,7 @@ import DuoPill from "@/components/ui/DuoPill";
 import { useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -607,8 +608,8 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
       {/* 违约裁决面板（本席独立） */}
       {breachOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={RISE_8.initial}
+          animate={RISE_8.animate}
           className="rounded-2xl bg-[var(--color-duo-yellow)]/[.06] border-2 border-[var(--color-duo-yellow-dark)]/50 p-3 space-y-2"
         >
           <p className="text-xs text-[var(--color-duo-eel)] font-bold flex items-center gap-1">

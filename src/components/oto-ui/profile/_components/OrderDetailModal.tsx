@@ -1,6 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
 import { motion } from "framer-motion";
+import { RISE_10 } from "@/components/ui/motion";
 import { ArrowLeft, Check } from "lucide-react";
 import type { Booking } from "@/store/useAppStore";
 
@@ -31,8 +32,8 @@ export default function OrderDetail({
       </button>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={RISE_10.initial}
+        animate={RISE_10.animate}
         className="bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4"
       >
         <div className="flex items-center gap-3 mb-3">

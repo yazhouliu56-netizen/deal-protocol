@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { RISE_6 } from "@/components/ui/motion";
 import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill from "@/components/ui/DuoPill";
 import { ArrowLeft, BadgeCheck, Check, CircleDollarSign, Clock3, Inbox, Power, Star } from "lucide-react";
@@ -277,8 +278,8 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             return (
               <motion.div
                 key={ammo.ammoId}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={RISE_6.initial}
+                animate={RISE_6.animate}
                 data-ammo={ammo.ammoId}
                 data-qualified={qualified}
                 className={`rounded-2xl border-2 p-2.5 flex flex-col gap-1.5 ${

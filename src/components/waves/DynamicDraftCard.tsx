@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { RISE_8 } from "@/components/ui/motion";
 
 import type { IAmmoDefinition, PricingModel } from "@/types/ammo-schema";
 import type { IFuzePolicy } from "@/types/fuze-policy";
@@ -377,8 +378,8 @@ export default function DynamicDraftCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.985 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ ...RISE_8.initial, scale: 0.985 }}
+      animate={{ ...RISE_8.animate, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={`draft-card ${themeClass} duo-3d-card bg-white rounded-3xl border-2 border-b-[6px] border-[var(--color-duo-swan)] shadow-[0_8px_24px_rgba(0,0,0,0.06)]`}
       data-testid="draft-card"
