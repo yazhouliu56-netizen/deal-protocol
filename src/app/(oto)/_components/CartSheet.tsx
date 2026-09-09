@@ -44,7 +44,7 @@ export default function CartSheet({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[#e5e5e5] shadow-sm rounded-3xl p-4"
+            className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4"
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
@@ -53,13 +53,13 @@ export default function CartSheet({
               <button
                 onClick={onClose}
                 aria-label="关闭心愿单"
-                className="text-[#afafaf] hover:text-[#4b4b4b]"
+                className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
               >
                 <ChevronRight size={16} className="rotate-180" />
               </button>
             </div>
             {cart.length === 0 ? (
-              <p className="text-xs text-[#afafaf] text-center py-6">
+              <p className="text-xs text-[var(--color-duo-hare)] text-center py-6">
                 还没有收藏——打开任意目的地卡片收藏起来吧 ♥
               </p>
             ) : (
@@ -71,7 +71,7 @@ export default function CartSheet({
                     return (
                       <div
                         key={id}
-                        className="flex items-center gap-2.5 rounded-2xl bg-[#f7f7f7] border border-[#e5e5e5] p-2"
+                        className="flex items-center gap-2.5 rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-2"
                       >
                         <button
                           onClick={() => onPreviewExperience(exp)}
@@ -82,10 +82,10 @@ export default function CartSheet({
                             {CATEGORY_EMOJI[exp.category] ?? "📍"}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-xs font-bold text-[#4b4b4b] block truncate">
+                            <span className="text-xs font-bold text-[var(--color-duo-eel)] block truncate">
                               {exp.title}
                             </span>
-                            <span className="text-xs text-[#afafaf] block truncate">
+                            <span className="text-xs text-[var(--color-duo-hare)] block truncate">
                               {exp.location} · {exp.rating} 分
                             </span>
                           </div>
@@ -93,7 +93,7 @@ export default function CartSheet({
                         <button
                           onClick={() => onToggleCartItem(id)}
                           aria-label={`移除 ${exp.title}`}
-                          className="text-[#afafaf] hover:text-red-400 transition-colors shrink-0"
+                          className="text-[var(--color-duo-hare)] hover:text-red-400 transition-colors shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -104,7 +104,7 @@ export default function CartSheet({
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={onClearCart}
-                    className="flex-1 py-2 rounded-xl bg-white border border-[#e5e5e5] shadow-sm text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors"
+                    className="flex-1 py-2 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] transition-colors"
                   >
                     清空
                   </button>

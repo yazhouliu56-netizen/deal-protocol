@@ -1,6 +1,5 @@
 "use client";
 import { memo } from "react";
-import { motion } from "framer-motion";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import { inspirationSetFor } from "./InspirationChips";
 import { SleepyBeast } from "@/components/oto-ui/MascotStates";
@@ -109,10 +108,10 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             {/* 整点地雷排爆（2026-09-07 实证）：时段 caption 系服务端按构建小时渲染的静态文本，
                 跨整点水合即 React #418；suppressHydrationWarning 让客户端小时为准静默对齐，
                 跨整点不断开 e2e-acceptance。 */}
-            <p suppressHydrationWarning className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+            <p suppressHydrationWarning className="text-xs font-bold text-[var(--color-duo-wolf)] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
-            <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[#e5e5e5] shadow-sm px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
-              <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[#e5e5e5]" />
+            <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
+              <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[var(--color-duo-swan)]" />
               看看大家都在忙什么？
             </p>
           </div>
@@ -122,16 +121,15 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
           {featured.map((pill) => {
             const s = BRACKET_STYLE[pill.theme] ?? BRACKET_STYLE.default;
             return (
-              <motion.button
+              <button
                 key={pill.ammoId}
-                whileTap={{ scale: 0.96 }}
                 onClick={() => onSelectDraft({ key: pill.label, label: pill.label })}
                 data-ammo={pill.ammoId}
                 data-category={pill.category}
                 data-theme={pill.theme}
                 aria-label={`[ ${pill.icon} ${pill.label} | ${pillTagFor(pill.theme)} ] · 一键弹药发单`}
                 data-testid={`pill-${pill.ammoId}`}
-                className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap min-h-11 active:scale-95 transition-transform"
+                className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap min-h-11 active:translate-y-px active:brightness-[0.97] transition-[transform,filter]"
                 style={{ backgroundColor: s.bg, color: s.text }}
               >
                 <span aria-hidden="true">[</span>
@@ -140,7 +138,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 <span className="font-normal opacity-70" aria-hidden="true">|</span>
                 <span>{pillTagFor(pill.theme)}</span>
                 <span aria-hidden="true">]</span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
@@ -155,7 +153,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="compact">
         {/* 整点地雷排爆：同上，客户端小时为准（见 featured 分支注释）。 */}
-        <p suppressHydrationWarning className="text-xs font-bold text-[#767676] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
+        <p suppressHydrationWarning className="text-xs font-bold text-[var(--color-duo-wolf)] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
         <div
           className="mt-2 flex items-center gap-2 overflow-hidden"
           data-layer="ammo-pills"
@@ -164,22 +162,21 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             {pills.slice(0, 4).map((pill) => {
             const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
             return (
-              <motion.button
+              <button
                 key={pill.ammoId}
-                whileTap={{ scale: 0.96 }}
                 onClick={() => onSelectDraft({ key: pill.label, label: pill.label })}
                 data-ammo={pill.ammoId}
                 data-category={pill.category}
                 data-theme={pill.theme}
                 aria-label={`一键弹药发单：${pill.label} ${pillTagFor(pill.theme)}`}
                 data-testid={`pill-${pill.ammoId}`}
-                className="flex shrink-0 items-center gap-1 px-3 py-2 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-px active:border-b-2 transition-[transform] hover:border-[#58cc02]/20 whitespace-nowrap min-h-10"
+                className="flex shrink-0 items-center gap-1 px-3 py-2 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-eel)] active:translate-y-px active:border-b-2 transition-[transform] hover:border-[var(--color-duo-green)]/20 whitespace-nowrap min-h-10"
               >
                 <span className="text-sm leading-none" aria-hidden="true">{pill.icon}</span>
                 <span className="truncate">{pill.label}</span>
-                <span className="text-[#767676] font-normal" aria-hidden="true">|</span>
+                <span className="text-[var(--color-duo-wolf)] font-normal" aria-hidden="true">|</span>
                 <span className="font-extrabold" style={{ color: textAccent }}>{pillTagFor(pill.theme)}</span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
@@ -199,22 +196,21 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
         const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
         const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
         return (
-          <motion.button
+          <button
             key={pill.ammoId}
-            whileTap={{ scale: 0.97 }}
             onClick={() => onSelectDraft({ key: pill.label, label: pill.label })}
             data-ammo={pill.ammoId}
             data-category={pill.category}
             data-theme={pill.theme}
             aria-label={`${pill.icon} ${pill.label} ${s.price} · 一键弹药发单`}
             data-testid={`pill-${pill.ammoId}`}
-            className="flex flex-col items-center gap-1 px-2 py-3 rounded-2xl bg-white border-2 border-b-[4px] border-[#e5e5e5] shadow-sm active:translate-y-1 active:border-b-2 active:shadow-none transition-[transform,border] min-h-[88px] justify-center hover:border-[#58cc02]/20"
-            style={{ borderBottomColor: "#e5e5e5" }}
+            className="flex flex-col items-center gap-1 px-2 py-3 rounded-2xl bg-white border-2 border-b-[4px] border-[var(--color-duo-swan)] active:translate-y-1 active:border-b-2 active:shadow-none transition-[transform,border] min-h-[88px] justify-center hover:border-[var(--color-duo-green)]/20"
+            style={{ borderBottomColor: "var(--color-duo-swan)" }}
           >
             <span className="text-2xl leading-none" style={{ filter: `drop-shadow(0 1px 0 ${accent}20)` }}>{pill.icon}</span>
-            <span className="text-xs font-extrabold text-[#4b4b4b] truncate w-full text-center leading-tight">{pill.label}</span>
+            <span className="text-xs font-extrabold text-[var(--color-duo-eel)] truncate w-full text-center leading-tight">{pill.label}</span>
             <span className="text-xs font-bold truncate w-full text-center" style={{ color: textAccent }}>{s.price}</span>
-          </motion.button>
+          </button>
         );
       })}
     </div>

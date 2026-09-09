@@ -39,23 +39,23 @@ const AiChatCard = memo(function AiChatCard({
         aria-expanded="false"
         aria-label="展开多轮AI沟通：🤖 AI 撮合对话 · 多轮追问 💬 展开 ↓"
         data-testid="ai-chat-toggle"
-        className="mt-3 w-full flex items-center gap-2 min-h-10 px-3 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-left active:translate-y-px active:border-b-2 transition-[transform]"
+        className="mt-3 w-full flex items-center gap-2 min-h-10 px-3 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-left active:translate-y-px active:border-b-2 transition-[transform]"
       >
-        <span className="text-xs font-extrabold text-[#4b4b4b] flex-1 truncate">🤖 AI 撮合对话 · 多轮追问</span>
-        <span className="text-xs font-bold text-[#767676] shrink-0">💬 展开 ↓</span>
+        <span className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1 truncate">🤖 AI 撮合对话 · 多轮追问</span>
+        <span className="text-xs font-bold text-[var(--color-duo-wolf)] shrink-0">💬 展开 ↓</span>
       </button>
     );
   }
   return (
-    <div className="mt-4 rounded-3xl bg-white border-2 border-[#e5e5e5] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
+    <div className="mt-4 rounded-3xl bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] shadow-sm p-3" data-layer="ai-chat-embedded">
       <div>
         <div className="mb-2 flex items-center gap-1">
-          <p className="text-xs font-extrabold text-[#4b4b4b] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
+          <p className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1">🤖 AI 撮合对话 · 多轮追问</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="收起 ↑，关闭AI对话"
-            className="px-3 py-2 min-h-10 rounded-full bg-[#f7f7f7] border-2 border-[#e5e5e5] text-xs font-bold text-[#afafaf] hover:text-[#4b4b4b] transition-colors shrink-0"
+            className="px-3 py-2 min-h-10 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] transition-colors shrink-0"
           >
             收起 ↑
           </button>
@@ -142,8 +142,8 @@ export default function HomePage() {
       <HomeDraftSheet draft={draft} onClose={() => setDraft(null)} onPublish={(label) => { setPublishCategory(label === "全类目需求" ? "" : label); setDraft(null); setPublishOpen(true); }} />
       <CartSheet open={showCart} cart={cart} onClose={() => setShowCart(false)} onToggleCartItem={toggleCart} onClearCart={clearCart} onPreviewExperience={(exp) => { openExperience(exp); setShowCart(false); }} onAiMatchAll={(titles) => { setAiDraft(`${titles} 帮我撮合`); setShowCart(false); setScreen("home"); }} />
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
-      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileTap={{ scale: 0.94 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm text-xs font-bold text-[#4b4b4b] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[#1cb0f6]/30">
-        <Camera size={14} className="text-[#1cb0f6]" /> AR 扫描
+      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-eel)] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[var(--color-duo-blue)]/30">
+        <Camera size={14} className="text-[var(--color-duo-blue)]" /> AR 扫描
       </motion.button>
       <FloatingSosButton waveId={activeWave?.id} />
     </div>

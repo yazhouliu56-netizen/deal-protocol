@@ -17,7 +17,7 @@ function FallbackComponent({ resetErrorBoundary }: { resetErrorBoundary?: () => 
         </p>
         <button
           onClick={resetErrorBoundary}
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-[0.97]"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[var(--color-duo-blue)] border-b-4 border-[var(--color-duo-blue-dark)] px-5 py-2.5 min-h-12 text-sm font-bold text-white transition-[transform,filter] hover:brightness-[1.03] active:translate-y-1 active:border-b-0"
         >
           <RefreshCw className="size-4" />
           刷新重试

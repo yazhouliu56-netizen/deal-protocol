@@ -25,12 +25,11 @@ export default function FloatingSosButton({ waveId }: { waveId?: string }) {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.5, duration: 0.3 }}
-      whileTap={{ scale: 0.9 }}
       type="button"
       onClick={handleSos}
       aria-label="SOS 紧急求助"
       data-testid="floating-sos"
-      className="fixed left-4 bottom-28 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#ff4b4b] border-b-4 border-[#ea2b2b] text-white text-xs font-black active:translate-y-0.5 active:border-b-2 transition-[transform]"
+      className="fixed left-4 bottom-28 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-duo-red)] border-b-4 border-[var(--color-duo-red-dark)] text-white text-xs font-black active:translate-y-0.5 active:border-b-2 transition-[transform]"
     >
       SOS
     </motion.button>

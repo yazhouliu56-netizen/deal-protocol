@@ -23,11 +23,11 @@ function OtoLogoCapsule() {
   return (
     <span
       aria-hidden="true"
-      className="flex h-11 items-center gap-1 rounded-full bg-white border-2 border-[#e5e5e5] border-b-4 shadow-sm px-2.5 shrink-0 select-none"
+      className="flex h-11 items-center gap-1 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 shadow-sm px-2.5 shrink-0 select-none"
     >
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-        <circle cx="7" cy="11" r="6" fill="#58cc02" />
-        <circle cx="15" cy="11" r="6" fill="#1cb0f6" />
+        <circle cx="7" cy="11" r="6" fill="var(--color-duo-green)" />
+        <circle cx="15" cy="11" r="6" fill="var(--color-duo-blue)" />
         <circle cx="5.2" cy="9.5" r="1" fill="#fff" />
         <circle cx="8.8" cy="9.5" r="1" fill="#fff" />
         <path d="M4.8 12.5q2.2 2 4.4 0" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
@@ -35,7 +35,7 @@ function OtoLogoCapsule() {
         <circle cx="16.8" cy="9.5" r="1" fill="#fff" />
         <path d="M12.8 12.5q2.2 2 4.4 0" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
       </svg>
-      <span className="text-xs font-black tracking-wide text-[#4b4b4b]">OTO</span>
+      <span className="text-xs font-black tracking-wide text-[var(--color-duo-eel)]">OTO</span>
     </span>
   );
 }
@@ -86,8 +86,8 @@ function HomeTopBar({
         </span>
         <p className="text-[15px] text-[#2d3748] font-black flex-1 truncate flex items-center gap-1.5">
           <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#58cc02] opacity-60" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#58cc02]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-duo-green)] opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-duo-green)]" />
           </span>
           <span className="truncate">Hello, {nickname}! 👋</span>
         </p>
