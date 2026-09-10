@@ -9,6 +9,7 @@ import { RISE_8 } from "@/components/ui/motion";
 import { MessageSquareText, AlertTriangle, HelpCircle, Send, Flag, Users, Gavel, Shield } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
+import { trackMetric } from "@/lib/track-metric";
 import { ACTION_LABEL } from "@/base/risk/moderation";
 import { yuan } from "@/base/money/customPricing";
 import { MAX_ROUNDS, neededJoiners, nextSpeaker, perSeatPrice, type Claim, type Wave } from "@/base/order/wave";
@@ -707,6 +708,7 @@ function NegotiationThread({
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState("");
+  const [polishing, setPolishing] = useState(false);
   const turn = nextSpeaker(claim); // who must move now
   const exhausted = claim.rounds >= MAX_ROUNDS;
   // T2：改价确认卡（useMemo 承载取时，render 期纯净；未改价回落 null）
@@ -721,6 +723,35 @@ function NegotiationThread({
     setSent(true);
     setErr("");
     onCounter({ price: n, message: message.trim() });
+  }
+
+  /** LLM 润话术：只填框，发送永远人点（AI 只建议不代按）。失败留原文。 */
+  function polish() {
+    const draft = message.trim();
+    if (!draft || polishing) return;
+    setPolishing(true);
+    void (async () => {
+      try {
+        const res = await fetch("/api/haggle/polish", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ draft, priceYuan: claim.price ?? wave.budget }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { polished?: string };
+        if (res.ok && typeof data.polished === "string" && data.polished) {
+          setMessage(data.polished);
+          try {
+            trackMetric("haggle.polished", 1, {});
+          } catch {}
+        } else {
+          setErr("润色没连上，原文保留");
+        }
+      } catch {
+        setErr("润色没连上，原文保留");
+      } finally {
+        setPolishing(false);
+      }
+    })();
   }
 
   return (
@@ -775,12 +806,20 @@ function NegotiationThread({
             aria-label="还价留言"
             className="flex-1 min-w-0 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2.5 py-1.5 text-xs placeholder:text-[var(--color-duo-hare)] text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
           />
+          <button
+            onClick={polish}
+            aria-label="润一润还价留言"
+            disabled={!message.trim() || polishing}
+            className="shrink-0 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2 py-1.5 text-xs font-extrabold text-[var(--color-duo-blue-ink)] disabled:opacity-40"
+          >
+            {polishing ? "润色中…" : "✨润一润"}
+          </button>
           <DuoButton variant="secondary" size="sm" sound="click" onClick={send} aria-label="发出还价" className="shrink-0">
             <Send size={11} />
           </DuoButton>
         </div>
       )}
-      {err && <p className="text-xs text-[var(--color-duo-red-dark)] mt-1">{err}</p>}
+      {err && <p data-testid="haggle-err" className="text-xs text-[var(--color-duo-red-dark)] mt-1">{err}</p>}
       {sent && !exhausted && (
         <p className="text-xs text-[var(--color-duo-green-ink)] mt-1.5">
           ✓ 已还价，等待响应者回应（下一轮轮到他）

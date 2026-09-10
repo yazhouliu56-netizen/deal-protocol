@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildHaggleOptions, canHaggle, claimToHaggleCard, describeFairness, meanOfQuotes } from "./haggle.ts";
+import { buildHaggleOptions, canHaggle, claimToHaggleCard, describeFairness, meanOfQuotes, sanitizePolishDraft } from "./haggle.ts";
 
 test("均值口径：过滤无效报价，无报价回落null", () => {
   assert.equal(meanOfQuotes([150, 130, 170]), 150);
@@ -29,8 +29,15 @@ test("3轮上限", () => {
   assert.equal(canHaggle(3), false);
 });
 
-test("T2: 仅改价产确认卡", () => {
-  const wave = { id: "w1", budget: 150, basics: { time: "明晚", category: "保洁" } };
+test("润话术输入清洗", () => {
+  assert.equal(sanitizePolishDraft("  便宜点 "), "便宜点");
+  assert.equal(sanitizePolishDraft("```便宜点```"), "便宜点");
+  assert.equal(sanitizePolishDraft("   "), null);
+  assert.equal(sanitizePolishDraft(123), null);
+  assert.equal(sanitizePolishDraft("x".repeat(200))?.length, 120);
+});
+
+test("T2: 仅改价产确认卡", () => {  const wave = { id: "w1", budget: 150, basics: { time: "明晚", category: "保洁" } };
   const card = claimToHaggleCard({ id: "c1", price: 130, responderId: "resp-abc123" }, wave, 1000);
   assert.ok(card);
   assert.equal(card.state, "ready");

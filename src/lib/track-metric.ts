@@ -26,6 +26,7 @@ export const METRIC_NAMES = [
   'panel.intervene',
   'haggle.sent',
   'haggle.conceded',
+  'haggle.polished',
   'factory.generated',
   'factory.sandbox.pass',
   'copilot.used',

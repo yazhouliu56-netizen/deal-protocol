@@ -53,6 +53,13 @@ export function canHaggle(rounds: number): boolean {
   return Number.isFinite(rounds) && rounds >= 0 && rounds < MAX_ROUNDS;
 }
 
+/** 润话术输入清洗（120 字，非空；供 /api/haggle/polish 与调用方共用）。 */
+export function sanitizePolishDraft(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const t = v.trim().replace(/```/g, "").slice(0, 120);
+  return t ? t : null;
+}
+
 /**
  * T2 磋商确认卡适配（与 L1 同构件）：仅改价（price≠budget）时产卡；
  * 未改价/无价回落 null（原价走既有谈成按钮，不添乱）。

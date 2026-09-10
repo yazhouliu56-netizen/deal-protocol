@@ -167,6 +167,24 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   assert.equal(await pageA.getByTestId('haggle-table').count(), 1, 'haggle table renders');
   assert.equal(await pageA.getByTestId('haggle-confirm').count(), 1, 'haggle confirm renders');
   console.log('corridor-haggle: 2 shots PASS');
+  // --- 4b. LLM 润一润：成功则填框，503 则原文保留（双路径契约，不赌 provider 天气） ---
+  await pageA.getByRole("textbox", { name: /还价留言/ }).fill('95能做吗');
+  await pageA.getByRole("button", { name: /润一润/ }).click();
+  await pageA.waitForFunction(() => {
+    const el = document.querySelector('input[aria-label="还价留言"]');
+    const err = document.querySelector('[data-testid="haggle-err"]');
+    return (el && el.value && el.value !== '95能做吗') || !!err;
+  }, null, { timeout: 30000 });
+  const errShown = await pageA.getByTestId('haggle-err').count();
+  if (errShown > 0) {
+    const kept = await pageA.getByRole("textbox", { name: /还价留言/ }).inputValue();
+    assert.equal(kept, '95能做吗', 'fallback keeps original');
+    console.log('corridor-haggle: polish FALLBACK PASS (503 keeps original)');
+  } else {
+    const polished = await pageA.getByRole("textbox", { name: /还价留言/ }).inputValue();
+    assert.ok(polished.length > 6, 'polished message filled');
+    console.log('corridor-haggle: polish PASS (' + polished.slice(0, 24) + '...)');
+  }
   // --- 5. 确认卡 ack→发射→真接单闭环（T2 链路不断言只截图，点下去才算） ---
   await pageA.getByTestId('haggle-confirm').scrollIntoViewIfNeeded();
   await pageA.getByLabel(/已知晓价格与退款规则/).check();
