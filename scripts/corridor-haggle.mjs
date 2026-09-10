@@ -167,6 +167,22 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   assert.equal(await pageA.getByTestId('haggle-table').count(), 1, 'haggle table renders');
   assert.equal(await pageA.getByTestId('haggle-confirm').count(), 1, 'haggle confirm renders');
   console.log('corridor-haggle: 2 shots PASS');
+  // --- 5. 确认卡 ack→发射→真接单闭环（T2 链路不断言只截图，点下去才算） ---
+  await pageA.getByTestId('haggle-confirm').scrollIntoViewIfNeeded();
+  await pageA.getByLabel(/已知晓价格与退款规则/).check();
+  await pageA.getByRole("button", { name: /发射/ }).click();
+  await pageA.waitForTimeout(600);
+  const afterAccept = await pageA.evaluate(() =>
+    JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::wave") || "{}")
+  );
+  assert.equal(afterAccept?.state?.claims?.[0]?.status, "accepted", "confirm card launch accepts claim");
+  await waitUntil(
+    pageA,
+    () => document.body.textContent?.includes("有人接单了"),
+    10000,
+    "A sees accepted"
+  );
+  console.log('corridor-haggle: confirm-launch PASS');
 } catch (e) {
   console.error("E2E 失败:", e.message ?? e);
   failures += 1;

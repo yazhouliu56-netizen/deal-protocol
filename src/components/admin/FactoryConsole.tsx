@@ -16,7 +16,8 @@ interface FactoryResult {
   holographic: Record<string, unknown>;
 }
 
-function pricingText(h: Record<string, unknown>): string {
+/** 定价人话（纯函数，可单测）。 */
+export function pricingText(h: Record<string, unknown>): string {
   const p = h.pricingModel as { kind?: string; amountYuan?: number; rateYuan?: number; minHours?: number; perSeatYuan?: number; minSeats?: number } | undefined;
   if (!p || typeof p.kind !== "string") return "见配置";
   if (p.kind === "FIXED") return `一口价 ¥${p.amountYuan ?? "?"}`;
@@ -25,7 +26,8 @@ function pricingText(h: Record<string, unknown>): string {
   return "公式计价（见配置）";
 }
 
-function strList(v: unknown): string[] {
+/** 字符串数组收敛（纯函数，可单测）。 */
+export function strList(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 }
 
