@@ -97,6 +97,9 @@ export default function DemanderInterveneBar({
         <button
           onClick={() => {
             closeWave(waveId);
+            try {
+              trackMetric("panel.intervene", 1, { kind: "withdraw" });
+            } catch {}
             toast("已无责撤回", "success");
           }}
           aria-label="无责撤回"

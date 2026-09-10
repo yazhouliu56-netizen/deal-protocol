@@ -140,8 +140,8 @@
 | 循环 | 北极星（v1.0 §8） | 护栏（v1.0 §8） | 本地埋点/门现状 | 复盘结论 |
 |---|---|---|---|---|
 | L1 发单 | 意图→发射转化率 | 追问轮次 ≤2 占比 | intent.confirmed/assembled✅；追问计数❌（待补） | （待上线 3 天） |
-| L2 活订单 | 首响时长/准时率 | AI 预警准确率（误报<15%） | panel.open/intervene✅；预警未建（无数据门挡） | （待上线 3 天） |
-| L3 磋商 | 成单率 | 让价幅度分布 | haggle.sent/conceded/polished✅ | （待上线 3 天） |
+| L2 活订单 | 首响时长/准时率 | AI 预警准确率（误报<15%） | panel.open/intervene（含 withdraw）✅；预警未建（无数据门挡） | （待上线 3 天） |
+| L3 磋商 | 成单率 | 让价幅度分布 | haggle.sent/conceded/polished/declined/rework✅（Intervention 度量齐：改/拒/回炉） | （待上线 3 天） |
 | L4 仲裁 | 48h 结案率 | 人工推翻 AI 率（20-40%） | 无埋点（随纠纷单长出） | （待首纠纷单） |
 | L5 副驾 | 师傅周留存 | 派单拒绝率 | copilot.used✅；留存/拒绝无（等数据源） | （待上线 3 天） |
 | L6 工厂 | 开品类→首单时长（<24h） | 试单通过率 | factory.generated/sandbox.pass✅ | （待上架） |

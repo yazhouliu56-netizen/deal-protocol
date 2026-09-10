@@ -335,7 +335,12 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       wave={wave}
                       quotesYuan={waveClaims.map((x) => x.price)}
                       onAccept={() => acceptClaim(c.id)}
-                      onWithdraw={() => withdraw(c.id)}
+                      onWithdraw={() => {
+                        try {
+                          trackMetric("haggle.declined", 1, {});
+                        } catch {}
+                        withdraw(c.id);
+                      }}
                       onCounter={({ price, message }) =>
                         counterOffer({
                           claimId: c.id,
@@ -846,7 +851,12 @@ function NegotiationThread({
 
       {/* P3-T2 磋商确认卡：改价经卡确认（发射＝既有谈成链；既有按钮保留，e2e 不破） */}
       {!exhausted && turn === "demander" && !sent && haggleCard && (
-        <HaggleConfirmCard card={haggleCard} onConfirm={onAccept} onBack={() => setSent(false)} />
+        <HaggleConfirmCard card={haggleCard} onConfirm={onAccept} onBack={() => {
+          try {
+            trackMetric("haggle.rework", 1, {});
+          } catch {}
+          setSent(false);
+        }} />
       )}
 
       <div className="flex gap-2 mt-2">

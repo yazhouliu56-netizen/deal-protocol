@@ -27,6 +27,8 @@ export const METRIC_NAMES = [
   'haggle.sent',
   'haggle.conceded',
   'haggle.polished',
+  'haggle.declined',
+  'haggle.rework',
   'factory.generated',
   'factory.sandbox.pass',
   'copilot.used',
