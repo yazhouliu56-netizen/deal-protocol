@@ -52,7 +52,7 @@ function norm(p) {
   return p.replace(/\\/g, "/").toLowerCase();
 }
 
-let code = 0;
+const EXIT_OK = 0;
 try {
   if (!existsSync(pidFile)) {
     console.log("[stop-stale-prod] no tracked server (no pidfile).");
@@ -87,4 +87,4 @@ try {
 } catch (e) {
   console.log(`[stop-stale-prod] hygiene skipped: ${e instanceof Error ? e.message : e}`);
 }
-process.exit(code);
+process.exit(EXIT_OK);
