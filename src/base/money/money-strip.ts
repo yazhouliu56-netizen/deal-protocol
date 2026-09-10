@@ -24,6 +24,8 @@ export interface MoneyStateInput {
   removed: boolean;
   /** 协商结案金额（原样透出，不解读口径）。 */
   negotiatedAmountYuan?: number;
+  /** 爽约保障押金（响应者侧已冻，非需求方支出；有则拆解展示）。 */
+  depositYuan?: number;
 }
 
 export interface MoneyState {
@@ -32,9 +34,11 @@ export interface MoneyState {
   displayYuan: number;
   synced: boolean;
   label: string;
+  /** 费用拆解行（有押金才有；只陈述事实，不做资金计算）。 */
+  breakdown?: string;
 }
 
-export function describeMoneyState(input: MoneyStateInput): MoneyState {
+function describeCore(input: MoneyStateInput): MoneyState {
   const price = input.claimPriceYuan ?? input.budgetYuan;
   const amount = Number.isFinite(price) && price > 0 ? Math.floor(price) : 0;
   if (amount <= 0) {
@@ -62,4 +66,17 @@ export function describeMoneyState(input: MoneyStateInput): MoneyState {
     return { phase: "await", displayYuan: amount, synced: true, label: `预算 ¥${amount}·待接单` };
   }
   return { phase: "held", displayYuan: amount, synced: true, label: `托管中 ¥${amount}` };
+}
+
+/** 费用拆解（Angi 式信任明示）：服务款＋押金分开讲，先上车后加价的猜疑清零。 */
+export function describeMoneyState(input: MoneyStateInput): MoneyState {
+  const core = describeCore(input);
+  const d = input.depositYuan;
+  if (typeof d === "number" && Number.isFinite(d) && d > 0 && core.synced) {
+    return {
+      ...core,
+      breakdown: `服务 ¥${core.displayYuan} · 爽约保障押金 ¥${Math.floor(d)}（师傅已押，非你支出）`,
+    };
+  }
+  return core;
 }

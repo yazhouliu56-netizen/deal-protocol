@@ -19,6 +19,7 @@ import MoneyStrip from "./MoneyStrip";
 import IntentCard from "./IntentCard";
 import CopilotReplies from "./CopilotReplies";
 import { needsAcceptReminder } from "@/base/order/intervene";
+import { DEPOSIT_AMOUNT } from "@/base/money/deposit";
 import {
   hasCockpitModule,
   resolveCockpitScenario,
@@ -459,6 +460,7 @@ export default function FulfillmentCenter({
         openDispute={openDisputeFlag}
         removed={activeWave.removed === true}
         negotiatedAmountYuan={negotiatedAmount}
+        depositYuan={activeWave.deposit === true ? DEPOSIT_AMOUNT : undefined}
       />
 
       {/* 收拢 P1：过程即资金条五态（复用 MoneyStrip，不另起第二条时间线） */}

@@ -58,6 +58,7 @@ export default function MoneyStrip({
   openDispute,
   removed,
   negotiatedAmountYuan,
+  depositYuan,
 }: {
   budgetYuan: number;
   fiveState: AtomicFiveState;
@@ -67,6 +68,7 @@ export default function MoneyStrip({
   openDispute: boolean;
   removed: boolean;
   negotiatedAmountYuan?: number;
+  depositYuan?: number;
 }) {
   const st = describeMoneyState({
     budgetYuan,
@@ -77,6 +79,7 @@ export default function MoneyStrip({
     openDispute,
     removed,
     negotiatedAmountYuan,
+    depositYuan,
   });
   const shown = useCountUp(st.displayYuan);
   const active = PHASE_ORDER[st.phase];
@@ -112,6 +115,11 @@ export default function MoneyStrip({
           <span key={s.key}>{s.label}</span>
         ))}
       </div>
+      {st.breakdown && (
+        <p data-testid="money-breakdown" className="mt-1 text-[10px] text-[var(--color-duo-hare)]">
+          {st.breakdown}
+        </p>
+      )}
     </div>
   );
 }

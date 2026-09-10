@@ -38,3 +38,12 @@ test("协商结案：终局态＋金额原样透出", () => {
   assert.match(s.label, /协商结算/);
   assert.match(s.label, /60/);
 });
+
+test("费用拆解：有押金才拆解，无押金不打扰", () => {
+  const withDep = describeMoneyState({ ...base, depositYuan: 5 });
+  assert.match(withDep.breakdown ?? "", /服务 ¥150/);
+  assert.match(withDep.breakdown ?? "", /押金 ¥5/);
+  assert.match(withDep.breakdown ?? "", /非你支出/);
+  const without = describeMoneyState(base);
+  assert.equal(without.breakdown, undefined);
+});
