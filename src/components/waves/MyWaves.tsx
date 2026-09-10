@@ -808,7 +808,7 @@ function NegotiationThread({
           />
           <button
             onClick={polish}
-            aria-label="润一润还价留言"
+            aria-label="润色留言"
             disabled={!message.trim() || polishing}
             className="shrink-0 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] px-2 py-1.5 text-xs font-extrabold text-[var(--color-duo-blue-ink)] disabled:opacity-40"
           >

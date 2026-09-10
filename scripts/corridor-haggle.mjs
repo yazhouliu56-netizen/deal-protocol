@@ -169,7 +169,7 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   console.log('corridor-haggle: 2 shots PASS');
   // --- 4b. LLM 润一润：成功则填框，503 则原文保留（双路径契约，不赌 provider 天气） ---
   await pageA.getByRole("textbox", { name: /还价留言/ }).fill('95能做吗');
-  await pageA.getByRole("button", { name: /润一润/ }).click();
+  await pageA.getByRole("button", { name: /润色/ }).click();
   await pageA.waitForFunction(() => {
     const el = document.querySelector('input[aria-label="还价留言"]');
     const err = document.querySelector('[data-testid="haggle-err"]');
