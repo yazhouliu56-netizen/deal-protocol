@@ -18,6 +18,10 @@ export const METRIC_NAMES = [
   'growth.sms_sent',
   'growth.verified',
   'growth.demand_created',
+  'intent.assembled',
+  'intent.confirmed',
+  'intent.edit',
+  'intent.stale',
 ] as const;
 
 export type MetricName = (typeof METRIC_NAMES)[number];

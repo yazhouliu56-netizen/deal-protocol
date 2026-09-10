@@ -92,4 +92,22 @@ describe("POST /api/metrics", () => {
     expect((await res.json()).stored).toBe(0)
     expect(mockInsert).not.toHaveBeenCalled()
   })
+
+  it("P1-T7 intent 四事件进白名单可落库", async () => {
+    const res = (await POST(
+      postReq(
+        {
+          metrics: [
+            { name: "intent.assembled", value: 1 },
+            { name: "intent.confirmed", value: 1 },
+            { name: "intent.edit", value: 1 },
+            { name: "intent.stale", value: 1 },
+          ],
+        },
+        "10.9.0.4",
+      ),
+    )) as { status: number; json: () => Promise<{ stored: number }> }
+    expect(res.status).toBe(200)
+    expect((await res.json()).stored).toBe(4)
+  })
 })

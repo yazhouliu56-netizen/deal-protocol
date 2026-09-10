@@ -35,6 +35,7 @@ import PublishFormSchemaBridge, {
 import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
 import DuoButton from "@/components/ui/DuoButton";
+import { trackMetric } from "@/lib/track-metric";
 import PublishErrorRecoveryCard, { mapBlockedToReason } from "./_components/PublishErrorRecoveryCard";
 
 function getFallbackBudget(): string {
@@ -293,6 +294,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   }
 
   function handleCardEdit(key: string, value: string) {
+    try {
+      trackMetric("intent.edit", 1, { carrier: "form", field: key });
+    } catch {}
     if (key === "category") return setCategory(value);
     if (key === "time") return setTime(value);
     if (key === "area") return setArea(value);
@@ -442,6 +446,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       return;
     }
     // 进入模拟收银台：支付成功才激活广播（含发布费则两笔并列展示）
+    try {
+      trackMetric("intent.confirmed", 1, { carrier: "form" });
+    } catch {}
     setPaying({ id: out.id, amount: out.amount, fee: publishFee });
   }
 

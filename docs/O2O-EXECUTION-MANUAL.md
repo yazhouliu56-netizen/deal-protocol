@@ -31,7 +31,7 @@
 - [ ] T2 纯函数 `src/base/order/intent-card.ts`＋考卷：`assertPriceComplete`、用户值压 AI 值、`AI·猜`不进价、stale 跃迁非法、LLM 空回默认卡仍含完整 PriceAnchor（node:test，跟 publish-draft 体例）
 - [ ] T3 卡 UI `src/components/waves/IntentCard.tsx`：assembling（stagger 点亮＋8s 兜底）→ ready（价格唯一暖色＋AI 标＋勾选发射）→ locked（收拢章戳）→ stale（灰化重组）；价格重算闪差值；重算 1s 内发射禁用
 - [ ] T4 载体接入：TalkPublishSheet 确认区换意图卡；PublishSheet 保留为逃生表单（`onFallback` 原语不动）
-- [ ] T5 收敛：DynamicDraftCard 退役（调用方切卡 → CONVERGENCE-LOG 登记「宪法收敛：条文 #6」→ `check:convergence` 绿）
+- [ ] T5 收敛：DynamicDraftCard 退役（调用方切卡 → CONVERGENCE-LOG 登记「宪法收敛：条文 #6」→ `check:convergence` 绿；注：门禁判定非 T3（无 rename/契约修订）时不登记，以门禁为准——P1-T5 实测即此例，登记行已撤回）
 - [ ] T6 长辈态：三样元素（标题/价格/发射）＋播报＋子女分享键
 - [ ] T7 埋点：`intent.assembled/confirmed/edit/stale` 进 P15（metric_events 白名单＋走廊断言）
 - [ ] T8 走廊：3 截图（组装中/待确认/长辈态）＋布局零漂移 diff

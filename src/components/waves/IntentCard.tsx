@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DuoButton from "@/components/ui/DuoButton";
+import { trackMetric } from "@/lib/track-metric";
 import { aiLevelOf } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
 
@@ -40,6 +41,17 @@ export default function IntentCard({
   const [frozen, setFrozen] = useState(false);
   const [openMark, setOpenMark] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const staleRef = useRef(false);
+
+  // P1-T7：stale 渲染即上报（单卡一次）
+  useEffect(() => {
+    if (card.state === "stale" && !staleRef.current) {
+      staleRef.current = true;
+      try {
+        trackMetric("intent.stale", 1, {});
+      } catch {}
+    }
+  }, [card.state]);
 
   // stagger 点亮＋8s 兜底全显
   useEffect(() => {

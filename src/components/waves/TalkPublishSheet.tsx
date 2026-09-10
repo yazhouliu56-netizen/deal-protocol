@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, Send, ImagePlus, Square } from "lucide-react";
 import SheetShell, { SheetClose } from "@/components/ui/SheetShell";
 import DuoButton from "@/components/ui/DuoButton";
@@ -11,6 +11,7 @@ import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import { recognizeSpeech } from "@/adapters/ai/voice/asrClient";
+import { trackMetric } from "@/lib/track-metric";
 import IntentCard from "./IntentCard";
 import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
@@ -153,6 +154,18 @@ export default function TalkPublishSheet({
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const assembledRef = useRef(false);
+
+  // P1-T7：缺项清零（卡可确认）即 assembled（单会话一次）
+  useEffect(() => {
+    if (missingCount === 0 && !assembledRef.current) {
+      assembledRef.current = true;
+      try {
+        trackMetric("intent.assembled", 1, { carrier: "talk" });
+      } catch {}
+    }
+    if (missingCount > 0) assembledRef.current = false;
+  }, [missingCount]);
 
   async function interpret(text: string, photos: string[]) {
     setBusy(true);
@@ -253,6 +266,9 @@ export default function TalkPublishSheet({
   }
 
   function handleCardEdit(key: string, value: string) {
+    try {
+      trackMetric("intent.edit", 1, { carrier: "talk", field: key });
+    } catch {}
     if (key === "budget") {
       const n = parseInt(value.replace(/[^\d]/g, ""), 10);
       const v = Number.isFinite(n) ? n : 0;
@@ -331,6 +347,9 @@ export default function TalkPublishSheet({
         return;
       }
       toast(`📡 会话发单成功 · ${d.category.trim()} · ¥${d.budgetYuan}`, "success");
+      try {
+        trackMetric("intent.confirmed", 1, { carrier: "talk" });
+      } catch {}
       onClose();
     } finally {
       setPublishing(false);
