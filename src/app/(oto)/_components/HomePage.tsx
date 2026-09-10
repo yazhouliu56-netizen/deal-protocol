@@ -15,6 +15,7 @@ import FloatingSosButton from "./FloatingSosButton";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
 import PublishSheet from "@/components/waves/PublishSheet";
+import TalkPublishSheet from "@/components/waves/TalkPublishSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
 
@@ -78,6 +79,7 @@ export default function HomePage() {
   const [showCart, setShowCart] = useState(false);
   const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [talkOpen, setTalkOpen] = useState(false);
   const [publishCategory, setPublishCategory] = useState("");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
@@ -134,6 +136,14 @@ export default function HomePage() {
           />
           <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
           <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
+          <button
+            onClick={() => setTalkOpen(true)}
+            aria-label="说句话发单"
+            data-testid="talk-publish-entry"
+            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
+          >
+            🎙 说句话发单（语音/照片也行）
+          </button>
           <div className="mt-4" id="wave-feed" data-layer="wave-feed">
             <WaveFeed />
           </div>
@@ -142,6 +152,15 @@ export default function HomePage() {
       <HomeDraftSheet draft={draft} onClose={() => setDraft(null)} onPublish={(label) => { setPublishCategory(label === "全类目需求" ? "" : label); setDraft(null); setPublishOpen(true); }} />
       <CartSheet open={showCart} cart={cart} onClose={() => setShowCart(false)} onToggleCartItem={toggleCart} onClearCart={clearCart} onPreviewExperience={(exp) => { openExperience(exp); setShowCart(false); }} onAiMatchAll={(titles) => { setAiDraft(`${titles} 帮我撮合`); setShowCart(false); setScreen("home"); }} />
       <PublishSheet open={publishOpen} onClose={() => setPublishOpen(false)} initialCategory={publishCategory} />
+      <TalkPublishSheet
+        open={talkOpen}
+        onClose={() => setTalkOpen(false)}
+        onFallback={(cat) => {
+          setTalkOpen(false);
+          setPublishCategory(cat);
+          setPublishOpen(true);
+        }}
+      />
       <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="oto-ar-safe fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-eel)] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[var(--color-duo-blue)]/30">
         <Camera size={14} className="text-[var(--color-duo-blue)]" /> AR 扫描
       </motion.button>
