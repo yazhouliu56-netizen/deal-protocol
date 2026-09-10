@@ -5,7 +5,6 @@
  * 需要 env: OPENCODE_GEMINI_KEY（脚本内映射为 Bearer，不过磁盘）。
  */
 import { generateAmmoFromSentence } from "../src/adapters/ai/sentence-to-ammo.ts";
-import { compileAmmoPrompt } from "../src/base/ai/prompt-compiler.ts";
 
 const MODELS = [
   "gemini-2.5-flash-lite",
@@ -79,7 +78,6 @@ for (let i = 0; i < SENTENCES.length; i += 1) {
     console.log(`FAIL #${String(i + 1).padStart(2, "0")} [${model}] EXC ${String(e).slice(0, 100)}`);
     continue;
   }
-  const dim = r.ok ? "PASS" : (r.failureDimension ?? "UNKNOWN");
   if (r.ok) {
     pass += 1;
     byModel[model].pass += 1;
