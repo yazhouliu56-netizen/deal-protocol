@@ -62,6 +62,8 @@ if rank_ok T0; then
   npm test </dev/null || { echo "[pre-push] BLOCKED: npm test failed."; exit 1; }
 fi
 if rank_ok T1; then
+  echo "[pre-push] stop stale prod servers (hygiene, never blocks) ..."
+  node scripts/stop-stale-prod.mjs </dev/null || true
   echo "[pre-push] npm run build ..."
   npm run build </dev/null || { echo "[pre-push] BLOCKED: build failed."; exit 1; }
 fi
