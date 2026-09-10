@@ -338,6 +338,8 @@ body {
 .bubble-pop-right { transform-origin: right center; }
 @media (prefers-reduced-motion: reduce) {
   .mascot-bob, .bubble-pop { animation: none !important; }
+  /* D4：framer 入场 initial 曾冻结致整屏 opacity:0，敏感用户 CSS 直达终态（覆盖行内样式） */
+  .oto-screen-safe, .oto-ar-safe { opacity: 1 !important; transform: none !important; }
 }
 
 /* 发射舱 Duo 白卡（极简多邻国：纯白实底 + 2px Swan 边框，无 blur 无渐变；触感只给按钮） */
