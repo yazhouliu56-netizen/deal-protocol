@@ -15,6 +15,7 @@ import {
 } from "@/adapters/device/audio-recorder";
 import FulfillmentCockpit from "./FulfillmentCockpit";
 import DemanderInterveneBar from "./DemanderInterveneBar";
+import MoneyStrip from "./MoneyStrip";
 import {
   hasCockpitModule,
   resolveCockpitScenario,
@@ -120,6 +121,7 @@ export default function FulfillmentCenter({
 }) {
   const waves = useWaveStore((s) => s.waves);
   const claims = useWaveStore((s) => s.claims);
+  const disputes = useWaveStore((s) => s.disputes);
   const responders = useWaveStore((s) => s.responders);
   const fulfilment = useWaveStore((s) => s.fulfilment);
   const setFulfilment = useWaveStore((s) => s.setFulfilment);
@@ -401,6 +403,20 @@ export default function FulfillmentCenter({
         createdAt={activeWave.createdAt}
         currentTime={activeWave.basics.time}
         existingCustoms={activeWave.customs.map((c) => c.text)}
+      />
+
+      {/* P2-T2 资金五态条（只读投影，零资金计算） */}
+      <MoneyStrip
+        budgetYuan={activeWave.budget}
+        fiveState={currentState}
+        claimPriceYuan={activeClaim?.price}
+        fulfilled={
+          (activeClaim?.fulfilledAt ?? 0) > 0 ||
+          fulfilment[activeWave.id]?.fulfilmentStatus === "confirmed"
+        }
+        settled={fulfilment[activeWave.id]?.isSettled === true}
+        openDispute={disputes.some((d) => d.claimId === activeClaim?.id && !d.outcome)}
+        removed={activeWave.removed === true}
       />
 
       <FulfillmentCockpit
