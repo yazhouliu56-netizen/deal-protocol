@@ -1,23 +1,26 @@
-type MetricName =
-  | 'api.latency.p50'
-  | 'api.latency.p95'
-  | 'api.latency.p99'
-  | 'llm.extraction.p95'
-  | 'geo.query.p95'
-  | 'match.candidate_count'
-  | 'match.race_conflict_rate'
-  | 'credit.update_count'
-  | 'sos.trigger_count'
-  | 'payment.volume'
-  | 'evidence.log_count'
-  | 'credit.decay_processed'
-  | 'credit.decay_applied'
-  | 'growth.page_view'
-  | 'growth.preset_select'
-  | 'growth.submit_click'
-  | 'growth.sms_sent'
-  | 'growth.verified'
-  | 'growth.demand_created';
+export const METRIC_NAMES = [
+  'api.latency.p50',
+  'api.latency.p95',
+  'api.latency.p99',
+  'llm.extraction.p95',
+  'geo.query.p95',
+  'match.candidate_count',
+  'match.race_conflict_rate',
+  'credit.update_count',
+  'sos.trigger_count',
+  'payment.volume',
+  'evidence.log_count',
+  'credit.decay_processed',
+  'credit.decay_applied',
+  'growth.page_view',
+  'growth.preset_select',
+  'growth.submit_click',
+  'growth.sms_sent',
+  'growth.verified',
+  'growth.demand_created',
+] as const;
+
+export type MetricName = (typeof METRIC_NAMES)[number];
 
 interface MetricPoint {
   name: MetricName;
