@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 /**
  * 吉祥物状态表（极简多邻国情绪闭环 · SVG 主 + PNG 彩蛋）。
@@ -129,7 +130,7 @@ export function CapybaraBadge({
     <>
       <span className="absolute inset-0 rounded-full bg-amber-200/70 blur-md" />
       {showArt ? (
-        <img
+        <Image
           src="/mascots/capybara.png"
           alt=""
           aria-hidden="true"
@@ -236,7 +237,7 @@ export function SleepyBeast({
     document.getElementById("wave-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const art = showArt ? (
-    <img
+    <Image
       src="/mascots/sleepy-beast.png"
       alt=""
       aria-hidden="true"

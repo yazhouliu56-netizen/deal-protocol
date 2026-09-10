@@ -408,7 +408,7 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     } finally {
       setSubmitting(false);
     }
-  }, [draftKey, collect, buildPayload, setSubmitting, setDone, setError]);
+  }, [draftKey, collect, buildPayload, setSubmitting, setDone, setError, pageKey]);
 
   /** 短信建号成功后：Cookie 已就位，重放暂存草稿发单。 */
   const handleVerified = useCallback(async () => {
@@ -430,7 +430,7 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     } finally {
       setSubmitting(false);
     }
-  }, [draftKey, collect, buildPayload, setSubmitting, setDone, setError]);
+  }, [draftKey, collect, buildPayload, setSubmitting, setDone, setError, pageKey]);
 
   return { submit, sheetOpen, setSheetOpen, handleVerified, demandId };
 }
