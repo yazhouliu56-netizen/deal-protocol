@@ -5,9 +5,6 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "workspaces": [
-    "mobile"
-  ],
   "scripts": {
     "prepare": "git config core.hooksPath scripts/hooks",
     "dev": "next dev",
