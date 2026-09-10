@@ -253,7 +253,8 @@ body {
    圆角：Duo 按钮一律 rounded-2xl（DuoButton 正典）；卡片 rounded-2xl/3xl；shadcn 内部 min(radius-md) 豁免
    色值：禁止新增 text-/bg-/border-[#hex]；品牌粉 #ff7ab8→pink-400、野墨 #2d3748→slate-700 已归档；
    功能暗面（地图画布/相机/3D/SVG/图表）与 dp 遗留轨豁免，见提交说明。
-   映射归档：10.5→10 · 12.5→12 · 13.5→13 · 15→16(标题)/15冻(DuoButton) · 17→16 · #9a4d00→amber-800 · #ffdfe0→red-100 · #ffebd1→orange-100 */
+   映射归档：10.5→10 · 12.5→12 · 13.5→13 · 15→16(标题)/15冻(DuoButton) · 17→16 · #9a4d00→amber-800 · #ffdfe0→red-100 · #ffebd1→orange-100
+   动效（D6 单档）：界面转场一律 duration 0.3 + ease[0.16,1,0.3,1]；拖拽/循环/仪式/进度条功能动效豁免 */
 :root {
   --color-duo-green: #58cc02;
   --color-duo-green-dark: #58a700;

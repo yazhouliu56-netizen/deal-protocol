@@ -64,7 +64,7 @@ export default function HomePage() {
           <motion.h1
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.3 }}
             className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-600 tracking-tight leading-tight"
           >
             发布服务委托 <br className="hidden sm:inline" /> 召集认证工程师

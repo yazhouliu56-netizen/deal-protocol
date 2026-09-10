@@ -76,7 +76,7 @@ export default function Home() {
       <div className="noise-overlay" />
       <div className={`absolute inset-0 z-10 overflow-hidden transition-all duration-250 ease-out origin-top will-change-transform ${gestureLocked ? "scale-[0.96] brightness-[0.85]" : "scale-100 brightness-100"}`} style={{ willChange: "transform, filter" }} data-depth-active={gestureLocked ? "true" : "false"}>
         <AnimatePresence mode="wait">
-          <motion.div key={screen} variants={screenVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} className="oto-screen-safe absolute inset-0 overflow-y-auto pointer-events-none">
+          <motion.div key={screen} variants={screenVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} className="oto-screen-safe absolute inset-0 overflow-y-auto pointer-events-none">
             <div className="mx-auto w-full max-w-md min-h-full px-4 pt-6 pb-28 flex flex-col lg:max-w-6xl lg:px-8 xl:max-w-7xl 2xl:max-w-screen-2xl">
               {screen === "home" && <HomePage />}
               {screen === "im" && <MessagesPage onGoHome={() => setScreen("home")} />}

@@ -28,7 +28,7 @@ export function ChatBubble({
     <motion.div
       initial={RISE_10.initial}
       animate={RISE_10.animate}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
     >
       <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>

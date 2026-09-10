@@ -228,7 +228,7 @@ const pref = useMapPref();
             animate={{ scale: 1, opacity: 0.55 + d.hot * 0.4 }}
             transition={{
               delay: (d.id.length % 5) * 0.05,
-              duration: 0.4,
+              duration: 0.3,
               ease: [0.16, 1, 0.3, 1],
             }}
             title={d.category}

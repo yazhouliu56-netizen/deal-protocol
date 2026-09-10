@@ -192,13 +192,13 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             className="pointer-events-none fixed inset-0 z-[70] flex flex-col items-center justify-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.25 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
           >
             <span className="absolute h-56 w-56 rounded-full bg-[var(--color-duo-green-light)]" />
             <motion.div
               initial={{ scale: 0.4, y: 60, rotate: -8 }}
               animate={{ scale: 1, y: 0, rotate: 0 }}
-              exit={{ scale: 0.7, y: 30, transition: { duration: 0.2 } }}
+              exit={{ scale: 0.7, y: 30, transition: { duration: 0.3 } }}
               transition={{ type: "spring", stiffness: 320, damping: 17 }}
               className="relative"
             >

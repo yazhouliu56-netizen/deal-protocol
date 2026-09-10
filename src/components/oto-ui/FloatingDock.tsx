@@ -37,7 +37,7 @@ export default function FloatingDock() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="fixed o-safe-bottom o-safe-pb bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px] px-4">
         <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-full px-5 py-2 flex items-center justify-between gap-6 md:gap-12">
