@@ -58,7 +58,7 @@
 - [ ] T7 L1 补完：服务者预览＋评价摘要进组装卡（撮合投影只读，不改排序；蓝图§3 L1 欠账，P1 先欠、P2 还）
 - [ ] T4 意图卡 locked 态收拢为 Panel 头（P1 复用点）
 - [ ] T5 考卷：五态投影全组合快照、缺数标"同步中"、预警误报走廊
-- [x] T6 走廊：静态断言先行＋真机三图齐（corridor-panel/corridor-dispute，真单态非摆拍：p2-panel-live 进行中 / p2-money-disputed 争议冻结 / p2-money-settled 协商结算）。附带诚实修复：协商结案后资金条误显"托管中"，已加 negotiatedAmountYuan 终局态（金额原样透出，不解读口径）。
+- [x] T6 走廊：静态断言先行＋真机四图齐（corridor-panel/dispute/settle，真单态非摆拍：p2-panel-live 进行中 / p2-money-disputed 争议冻结 / p2-money-settled 协商结算 / p2-money-review 正常验收待结算）。附带诚实注记：正常验收终局本地态为 review（待结算）——isSettled 只由终止事件（争议结案/72h 自动）翻转，settled 纯态本地走不到，不是欠账是门。
 
 ### 2.2 门禁与验收
 
