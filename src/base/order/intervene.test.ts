@@ -5,10 +5,10 @@ import {
   canFreeCancel,
   canReschedule,
   FREE_CANCEL_MS,
+  needsAcceptReminder,
   sanitizeNewCustom,
   sanitizeNewTime,
 } from "./intervene.ts";
-
 test("B1: 无责窗边界 299/300/301s", () => {
   assert.equal(canFreeCancel(0, 299_000), true);
   assert.equal(canFreeCancel(0, FREE_CANCEL_MS), true);
@@ -33,4 +33,11 @@ test("输入清洗：空/超长/重复拦截", () => {
   assert.equal(sanitizeNewTime(123), null);
   assert.equal(sanitizeNewCustom("洗油烟机", ["洗油烟机"]), null);
   assert.equal(sanitizeNewCustom("洗油烟机", []), "洗油烟机");
+});
+
+test("T3a: 师傅报完工＋未验收才提醒", () => {
+  assert.equal(needsAcceptReminder(123456, false), true);
+  assert.equal(needsAcceptReminder(123456, true), false);
+  assert.equal(needsAcceptReminder(undefined, false), false);
+  assert.equal(needsAcceptReminder(0, false), false);
 });

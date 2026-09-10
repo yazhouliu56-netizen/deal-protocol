@@ -40,3 +40,8 @@ export function sanitizeNewCustom(v: unknown, existing: string[]): string | null
   if (!t || existing.includes(t)) return null;
   return t;
 }
+
+/** T3a 到点行动：师傅已报完工且需求方未验收 → 显性确认验收横幅。 */
+export function needsAcceptReminder(serviceDoneAt: number | undefined, fulfilled: boolean): boolean {
+  return typeof serviceDoneAt === "number" && serviceDoneAt > 0 && !fulfilled;
+}

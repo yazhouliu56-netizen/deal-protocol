@@ -16,6 +16,7 @@ import {
 import FulfillmentCockpit from "./FulfillmentCockpit";
 import DemanderInterveneBar from "./DemanderInterveneBar";
 import MoneyStrip from "./MoneyStrip";
+import { needsAcceptReminder } from "@/base/order/intervene";
 import {
   hasCockpitModule,
   resolveCockpitScenario,
@@ -249,6 +250,12 @@ export default function FulfillmentCenter({
   const orderTotal = wave.budget + (hkQuote?.confirmed ? hkQuote.amountYuan : 0);
   const dEvidence = disputeEvidence!;
   const dProposal = disputeProposal!;
+  // P2-T2/T3a：验收态投影（MoneyStrip＋到点横幅共用）
+  const fulfilledFlag =
+    (activeClaim?.fulfilledAt ?? 0) > 0 ||
+    fulfilment[wave.id]?.fulfilmentStatus === "confirmed";
+  const settledFlag = fulfilment[wave.id]?.isSettled === true;
+  const openDisputeFlag = disputes.some((d) => d.claimId === activeClaim?.id && !d.outcome);
 
   // P1 缺陷 1 修复：双拍门禁 —— WATERMARK_CAMERA 弹药（入户类）完工验收前必须
   // 完成 Before/After 双拍存证（红线 4 零信任物理感知）。照片相位沿用动态插槽
@@ -410,14 +417,23 @@ export default function FulfillmentCenter({
         budgetYuan={activeWave.budget}
         fiveState={currentState}
         claimPriceYuan={activeClaim?.price}
-        fulfilled={
-          (activeClaim?.fulfilledAt ?? 0) > 0 ||
-          fulfilment[activeWave.id]?.fulfilmentStatus === "confirmed"
-        }
-        settled={fulfilment[activeWave.id]?.isSettled === true}
-        openDispute={disputes.some((d) => d.claimId === activeClaim?.id && !d.outcome)}
+        fulfilled={fulfilledFlag}
+        settled={settledFlag}
+        openDispute={openDisputeFlag}
         removed={activeWave.removed === true}
       />
+
+      {/* P2-T3a 到点行动：师傅报完工 → 显性确认验收（接线既有 handleComplete 真跃迁） */}
+      {needsAcceptReminder(activeClaim?.serviceDoneAt, fulfilledFlag) && (
+        <button
+          type="button"
+          data-testid="accept-reminder"
+          onClick={() => void handleComplete()}
+          className="mb-2 w-full rounded-2xl bg-[var(--color-duo-green)] px-3 py-2.5 text-xs font-extrabold text-white"
+        >
+          ✅ 师傅已说完工 → 确认验收
+        </button>
+      )}
 
       <FulfillmentCockpit
         status={state}
