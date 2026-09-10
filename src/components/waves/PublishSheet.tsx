@@ -37,6 +37,8 @@ import { sopForCategory } from "@/ammo/sop";
 import type { TaskModule } from "@/base/ai/decompose";
 import DuoButton from "@/components/ui/DuoButton";
 import { trackMetric } from "@/lib/track-metric";
+import { applyRememberEdit, rememberEdit } from "@/base/memory/profile";
+import { saveProfile, loadProfile } from "@/lib/profile-store";
 import PublishErrorRecoveryCard, { mapBlockedToReason } from "./_components/PublishErrorRecoveryCard";
 
 function getFallbackBudget(): string {
@@ -299,6 +301,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   function handleCardEdit(key: string, value: string) {
     try {
       trackMetric("intent.edit", 1, { carrier: "form", field: key });
+    } catch {}
+    // C1：改即记（与会话载体对称捕获；表单无组装步，预填仅会话侧）
+    try {
+      const patch = rememberEdit(key, value, { prevBudgetYuan: parseInt(budget, 10) || 0 });
+      if (patch) saveProfile(applyRememberEdit(loadProfile(), patch, Date.now()));
     } catch {}
     if (key === "category") return setCategory(value);
     if (key === "time") return setTime(value);

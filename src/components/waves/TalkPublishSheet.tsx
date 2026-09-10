@@ -21,6 +21,8 @@ import {
   type IntentDraftRecord,
 } from "@/lib/intent-drafts";
 import IntentCard from "./IntentCard";
+import { applyRememberEdit, rememberEdit, resolveDefaults } from "@/base/memory/profile";
+import { saveProfile, loadProfile, forgetProfileKey } from "@/lib/profile-store";
 import { pickProviderPreview } from "./IntentCard";
 import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
@@ -175,6 +177,8 @@ export default function TalkPublishSheet({
   /** A3：确认态 traceId（幂等键＋审计落盘；handler 内生成，render 期只读 state）。 */
   const [traceId, setTraceId] = useState("talk-pending");
   const [draftBox, setDraftBox] = useState<IntentDraftRecord[]>([]);
+  /** C1/C2：画像默认命中的键（脑 why 配文＋[不对，改]回写位）。 */
+  const [defaulted, setDefaulted] = useState<("time")[]>([]);
 
   // A6：联网横幅——online 事件＋开启时各盘点一次
   useEffect(() => {
@@ -302,6 +306,11 @@ export default function TalkPublishSheet({
     try {
       trackMetric("intent.edit", 1, { carrier: "talk", field: key });
     } catch {}
+    // C1：改即记（白名单三键，位置/金额明细不进记忆）
+    try {
+      const patch = rememberEdit(key, value, { prevBudgetYuan: (edit ?? draft).budgetYuan });
+      if (patch) saveProfile(applyRememberEdit(loadProfile(), patch, Date.now()));
+    } catch {}
     if (key === "budget") {
       const n = parseInt(value.replace(/[^\d]/g, ""), 10);
       const v = Number.isFinite(n) ? n : 0;
@@ -323,7 +332,10 @@ export default function TalkPublishSheet({
   }
 
   function startConfirm() {
-    setEdit(draft);
+    // C1：下次默认命中（空 time＋有画像→预填）
+    const r = resolveDefaults(draft, loadProfile());
+    setEdit({ ...draft, time: r.time });
+    setDefaulted(r.defaulted);
     setFlash(null);
     setTraceId(genTraceId());
     setConfirming(true);
@@ -536,6 +548,23 @@ export default function TalkPublishSheet({
         </>
       ) : (
         <div className="space-y-1.5" data-testid="talk-intent-zone">
+          {/* C2 脑 why：默认命中的项配一句"根据你…"＋[不对，改]回写 */}
+          {defaulted.includes("time") && (
+            <p data-testid="profile-why" className="text-[11px] text-[var(--color-duo-hare)]">
+              根据你上次约的时间预填
+              <button
+                onClick={() => {
+                  forgetProfileKey("timePref");
+                  setDefaulted([]);
+                  setEdit((p) => ({ ...(p ?? draft), time: "" }));
+                }}
+                aria-label="不对，改时间偏好"
+                className="ml-1 font-bold text-[var(--color-duo-blue-ink)]"
+              >
+                [不对，改]
+              </button>
+            </p>
+          )}
           <IntentCard
             card={talkDraftToIntentCard(edit ?? draft, traceId, undefined, pickProviderPreview(responders))}
             mode={elder ? "elder" : "std"}
