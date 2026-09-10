@@ -142,7 +142,7 @@ try {
 
   // --- 1. 弹药1 日常保洁（家政保洁胶囊）---
   await page.getByRole("button", { name: /一键弹药发单.*家政保洁/ }).click();
-  await page.waitForTimeout(600);
+  await waitUntil(page, () => !!document.querySelector('[data-testid="draft-sheet"]'), 15000, "草稿卡挂载");
   const hkDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
     return { ammo: d?.getAttribute("data-ammo") ?? "", text: d?.textContent ?? "" };
@@ -165,7 +165,7 @@ try {
 
   // --- 2. 弹药2 组局社交（组局社交胶囊）---
   await page.getByRole("button", { name: /一键弹药发单.*组局社交/ }).click();
-  await page.waitForTimeout(600);
+  await waitUntil(page, () => !!document.querySelector('[data-testid="draft-sheet"]'), 15000, "草稿卡挂载");
   const mtDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
     return { ammo: d?.getAttribute("data-ammo") ?? "", text: d?.textContent ?? "" };
@@ -188,7 +188,7 @@ try {
 
   // --- 3. 弹药3 同城陪伴（陪伴交友胶囊）---
   await page.getByRole("button", { name: /一键弹药发单.*陪伴交友/ }).click();
-  await page.waitForTimeout(600);
+  await waitUntil(page, () => !!document.querySelector('[data-testid="draft-sheet"]'), 15000, "草稿卡挂载");
   const cpDraft = await page.evaluate(() => {
     const d = document.querySelector('[data-testid="draft-sheet"] .draft-card');
     return { ammo: d?.getAttribute("data-ammo") ?? "", text: d?.textContent ?? "" };
