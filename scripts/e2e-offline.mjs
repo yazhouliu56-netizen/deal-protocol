@@ -43,18 +43,14 @@ try {
 
   // --- 1. 在线首访：预热 SW 预缓存 shell ---
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
-  // 首页重设计：一屏一职，雷达在分段下
-  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "雷达渲染");
   await waitUntil(page, () => navigator.serviceWorker?.controller !== null, 10000, "SW 接管");
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "预热重载");
 
   // --- 2. 断网 → 重载 → 五屏兜底 ---
   await ctx.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "离线雷达");
   await sleep(600);
 
@@ -76,9 +72,6 @@ try {
       have: doc.body.innerText.includes("谁正在附近发需求"),
       chat: !!doc.querySelector('input[placeholder*="描述你的需求"]'),
     };
-    // 回首页发单段验 chat（雷达段切回发单段）
-    await clickDock("发单");
-    out.home.chat = !!doc.querySelector('input[placeholder*="描述你的需求"]');
     await clickDock("AR 扫描");
     await sleep(600);
     out.ar = { have: doc.body.innerText.includes("AR") };
@@ -98,7 +91,6 @@ try {
   // --- 3. 在线恢复 ---
   await ctx.setOffline(false);
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "恢复在线");
 
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);
