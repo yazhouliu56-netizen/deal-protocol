@@ -9,10 +9,13 @@ import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
 import PaySheet from "./PaySheet";
 import { SandboxBadge } from "./SandboxBadge";
-import DynamicDraftCard, {
+import {
   describeFormSchemaFields,
   describePricing,
 } from "./DynamicDraftCard";
+import IntentCard from "./IntentCard";
+import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
+import type { IntentCard as IntentCardData } from "@/types/intent-card";
 import {
   getAmmoById,
   getAmmoDefinition,
@@ -101,6 +104,9 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   const sentinelToastFiredRef = useRef(false);
   /** P1-5 声明式表单：动态参数快照（按 ammo.holographic.formSchema 驱动，零硬编码分支） */
   const [bizParams, setBizParams] = useState<Record<string, unknown>>({});
+  /** P1 意图卡：价格闪现＋重算冻结窗 */
+  const [cardFlash, setCardFlash] = useState<string | null>(null);
+  const [cardTick, setCardTick] = useState(0);
 
   // P1-5：当前选定弹药的声明式表单字段（纯函数投影，红线 2）
   // 复用 DynamicDraftCard 同链：中文别名（家电维修/修空调）经 resolveAmmoIdForPublish 直达整弹，所见即所发
@@ -245,6 +251,62 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
   function editModule(i: number, patch: Partial<TaskModule>) {
     if (!modules) return;
     setModules(modules.map((m, j) => (j === i ? { ...m, ...patch } : m)));
+  }
+
+  /** P1-T5：表单态 → 意图卡（交易确认统一，DynamicDraftCard 退役出交易路径）。 */
+  function formToIntentCard(): IntentCardData {
+    const budgetNum = parseInt(budget, 10) || 0;
+    let floor = 0;
+    try {
+      if (ammoForForm) floor = pricingFloorYuan(ammoForForm.pricingModel);
+    } catch {}
+    return {
+      id: "publish-form",
+      scene: { ammoId: ammoForForm?.ammoId ?? "generic", version: 0 },
+      title: `${time.trim() || "尽快"}·${category.trim()}`,
+      lines: [
+        { key: "category", label: "品类", value: category.trim(), source: "user", editable: true },
+        { key: "time", label: "时间", value: time.trim(), source: "user", editable: true },
+        { key: "area", label: "地点", value: area.trim(), source: "user", editable: true },
+        { key: "budget", label: "预算", value: budgetNum > 0 ? String(budgetNum) : "", source: "user", editable: true },
+        ...(note.trim()
+          ? [{ key: "note", label: "备注", value: note.trim(), source: "user" as const, editable: true as const }]
+          : []),
+      ],
+      price: {
+        totalYuan: Math.max(1, budgetNum),
+        basis: "quote",
+        compareText:
+          floor > 0 && budgetNum > Math.round(floor * 1.2)
+            ? `同类起步¥${floor}，你的¥${budgetNum}`
+            : undefined,
+        changeRule: "现场加项需你点确认才加钱",
+        refundRule: "师傅未上门全额退",
+      },
+      assurance: [{ key: "lock", label: "锁价" }],
+      irreversible: ["确认发射后即进入派单，师傅接单后取消按规则扣款"],
+      aiMarks: [],
+      state: "ready",
+      expiresAt: Date.now() + INTENT_READY_TTL_MS,
+      traceId: "intent-publish-form",
+    };
+  }
+
+  function handleCardEdit(key: string, value: string) {
+    if (key === "category") return setCategory(value);
+    if (key === "time") return setTime(value);
+    if (key === "area") return setArea(value);
+    if (key === "note") return setNote(value);
+    if (key === "budget") {
+      const n = parseInt(value.replace(/[^\d]/g, ""), 10);
+      const v = Number.isFinite(n) ? n : 0;
+      const prev = parseInt(budget, 10) || 0;
+      if (v > 0 && prev > 0 && v !== prev) {
+        setCardFlash(`¥${prev}→¥${v}`);
+        setCardTick((t) => t + 1);
+      }
+      setBudget(v > 0 ? String(v) : "");
+    }
   }
 
   function publish() {
@@ -479,20 +541,16 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           onBackfillBudget={(yuan) => setBudget(String(yuan))}
         />
 
-        {/* W1 总装：弹药驱动草稿预览卡（ammoId/计价模型/安全徽章自动投影），
-            扣动扳机·一键发布 = 真实发射链路（publish → createPendingWave → payWave） */}
+        {/* P1-T5：意图卡统一交易确认（DynamicDraftCard 退役出交易路径，营销预览见 HomeDraftSheet） */}
         {category.trim() && (
           <div className="mb-3">
-            <DynamicDraftCard
-              category={category.trim()}
-              hideLaunchButton={true}
-              onPublish={() => publish()}
-              onTweak={(key) => {
-                // 草稿卡参数行点击微调：聚焦对应表单（多人拼单局容量 → 展开更多选项）
-                if (key === "capacity" || key === "deposit" || key === "rounds") {
-                  setShowMore(true);
-                }
-              }}
+            <IntentCard
+              card={formToIntentCard()}
+              flashText={cardFlash}
+              priceTick={cardTick}
+              onEditLine={handleCardEdit}
+              onRelaunch={() => setCardFlash(null)}
+              onLaunch={() => publish()}
             />
           </div>
         )}
