@@ -64,7 +64,7 @@ export default function FriendList() {
   return (
     <div className="bg-white border-2 border-[var(--color-duo-swan)] border-b-4 rounded-2xl p-3.5">
       <h3 className="text-xs font-bold text-[var(--color-duo-wolf)] mb-2 flex items-center gap-1.5">
-        <Heart size={11} className="text-[#ff7ab8]" /> 我的关系
+        <Heart size={11} className="text-pink-400" /> 我的关系
       </h3>
 
       {incoming.length > 0 && (

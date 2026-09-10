@@ -130,9 +130,9 @@ export default function WaveCard({
               type="button"
               onClick={() => toggleFavorite(wave.id)}
               aria-label={isFav ? `取消关注 ${wave.basics.category}` : `关注 ${wave.basics.category}`}
-              className={`transition-colors ${isFav ? "text-[#ff7ab8]" : "text-[#d4d4d4] hover:text-[#ff7ab8]"}`}
+              className={`transition-colors ${isFav ? "text-pink-400" : "text-neutral-300 hover:text-pink-400"}`}
             >
-              <Heart size={10} className={isFav ? "fill-[#ff7ab8]" : ""} />
+              <Heart size={10} className={isFav ? "fill-pink-400" : ""} />
             </button>
           </span>
         </div>

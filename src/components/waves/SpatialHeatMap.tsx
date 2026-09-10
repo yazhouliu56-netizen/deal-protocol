@@ -308,11 +308,11 @@ function WaveMiniSheet({
             aria-label={favorited ? "取消关注" : "关注该局"}
             className={`p-1.5 rounded-full border-2 transition-colors ${
               favorited
-                ? "border-[#ff7ab8]/60 text-[#ff7ab8]"
+                ? "border-pink-400/60 text-pink-400"
                 : "border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]"
             }`}
           >
-            <Heart size={12} className={favorited ? "fill-[#ff7ab8]/40" : ""} />
+            <Heart size={12} className={favorited ? "fill-pink-400/40" : ""} />
           </button>
           <button
             onClick={onClose}

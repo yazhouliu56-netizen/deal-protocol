@@ -269,7 +269,7 @@ export default function ProofCamera({
               📷
             </div>
             <div className="proof-camera-hint">4:3 环境相机直拍 · 禁止相册选取</div>
-            <div className="proof-camera-hint text-[#475569]">
+            <div className="proof-camera-hint">
               拍摄后将自动压制时间 / GPS / 订单水印 + 🔬 五信号鉴真
             </div>
           </div>

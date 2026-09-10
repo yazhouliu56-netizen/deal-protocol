@@ -181,12 +181,12 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             <span className="text-[14px] font-extrabold tabular-nums text-[var(--color-duo-eel)]">
               连胜 {completed.length} 单
             </span>
-            <span className="text-xs font-bold text-[#9a4d00] shrink-0">· 守约率 100%</span>
+            <span className="text-xs font-bold text-amber-800 shrink-0">· 守约率 100%</span>
           </div>
           <DuoPill
             tone="orange"
             testId="streak-freeze-badge"
-            className="px-2 py-1 text-[#9a4d00] shrink-0 whitespace-nowrap"
+            className="px-2 py-1 text-amber-800 shrink-0 whitespace-nowrap"
           >
             ❄️ 连胜冻结卡 × 1 保护中
           </DuoPill>
@@ -285,7 +285,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
                 className={`rounded-2xl border-2 p-2.5 flex flex-col gap-1.5 ${
                   qualified
                     ? "border-[var(--color-duo-green)]/30 bg-[var(--color-duo-green-light)]/50 border-b-4"
-                    : "border-[var(--color-duo-red)]/20 bg-[#ffdfe0]/40 border-b-4"
+                    : "border-[var(--color-duo-red)]/20 bg-red-100/40 border-b-4"
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0">

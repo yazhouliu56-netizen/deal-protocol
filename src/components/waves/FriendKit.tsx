@@ -133,7 +133,7 @@ export default function FriendKit({
           <Heart size={9} /> 已发出，对方 {Math.ceil(FRIEND_REQUEST_TTL_MS / 3_600_000)}h 内确认即成好友
         </p>
       )}
-      {error && <p className="text-xs text-[#9a4d00] mt-1">{error}</p>}
+      {error && <p className="text-xs text-amber-800 mt-1">{error}</p>}
     </div>
   );
 }

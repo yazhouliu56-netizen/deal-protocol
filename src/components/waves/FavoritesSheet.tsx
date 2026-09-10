@@ -35,7 +35,7 @@ export default function FavoritesSheet({
     >
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[13px] font-extrabold flex items-center gap-1.5">
-            <Heart size={13} className="text-[#ff7ab8]" /> 我关注的局 {favs.length > 0 && `（${favs.length}）`}
+            <Heart size={13} className="text-pink-400" /> 我关注的局 {favs.length > 0 && `（${favs.length}）`}
           </h3>
           <SheetClose onClose={onClose} label="关闭关注列表" />
         </div>

@@ -40,10 +40,10 @@ export default function PublishErrorRecoveryCard({ reason, onAction }: PublishEr
   return (
     <div
       data-testid="error-recovery-card"
-      className="rounded-2xl bg-[#fff7ed] border-2 border-[#ffedd5] border-b-4 p-4 flex flex-col gap-2 shadow-sm"
+      className="rounded-2xl bg-orange-50 border-2 border-orange-100 border-b-4 p-4 flex flex-col gap-2 shadow-sm"
     >
-      <p className="text-xs font-extrabold text-[#9a3412]">{c.title}</p>
-      <p className="text-xs text-[#c2410c] leading-relaxed">{c.desc}</p>
+      <p className="text-xs font-extrabold text-orange-800">{c.title}</p>
+      <p className="text-xs text-orange-700 leading-relaxed">{c.desc}</p>
       <DuoButton variant="outline" size="sm" onClick={onAction} data-testid="error-recovery-action">
         一键了解 / 安全指引
       </DuoButton>

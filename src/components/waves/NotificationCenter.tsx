@@ -231,7 +231,7 @@ export default function NotificationCenter({
                         SOS
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-xs font-extrabold text-[#c2410c]">SOS 紧急求助</span>
+                        <span className="block text-xs font-extrabold text-orange-700">SOS 紧急求助</span>
                         <span className="block text-xs text-[var(--color-duo-hare)] truncate">一键上报 · 通知紧急联系人/平台/警方</span>
                       </span>
                       <span className="text-[var(--color-duo-hare)] text-xs shrink-0">→</span>

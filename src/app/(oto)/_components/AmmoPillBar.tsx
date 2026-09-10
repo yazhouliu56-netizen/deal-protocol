@@ -111,7 +111,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 跨整点不断开 e2e-acceptance。 */}
             <p suppressHydrationWarning className="text-xs font-bold text-[var(--color-duo-wolf)] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
-            <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3 py-1.5 text-sm font-black text-[#2d3748] w-fit max-w-full">
+            <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3 py-1.5 text-sm font-black text-slate-700 w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[var(--color-duo-swan)]" />
               看看大家都在忙什么？
             </p>

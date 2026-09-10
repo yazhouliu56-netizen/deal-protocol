@@ -127,7 +127,7 @@ export function CapybaraBadge({
   const showArt = m === "idle" && imgOk;
   const body = (
     <>
-      <span className="absolute inset-0 rounded-full bg-[#fde68a]/70 blur-md" />
+      <span className="absolute inset-0 rounded-full bg-amber-200/70 blur-md" />
       {showArt ? (
         <img
           src="/mascots/capybara.png"
