@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-10 ｜ HEAD：35f40b5（会话发单三模态收官）｜ 摘要：TalkPublishSheet（文字/语音/照片→interpret多轮→确认卡→同链发射）+ POST /api/publish/interpret（文本走gateway/照片走vision/200降级/6次分限流）+ publish-draft纯层 + 极光层死代码出清（150行）+ lint 0/0 + pre-push残留服务终结器；基线 **2047/2047**（810+1237，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T2（scoped 2 e2e PASS）+ 线上 visions/vision 实探 200（水豚/保洁）
+>
 > 日期：2026-09-10 ｜ HEAD：0a4d410（P15 漏斗遥测 + P16-①信任三事实收官）｜ 摘要：POST /api/metrics（metric_events 迁移，恒200）+ GET /api/admin/growth/roi（ADMIN，source×campaign 聚合）+ 接单人信任三事实可展开（信用/纠纷/在线+派单范围行）；基线 **2036/2036**（806+1230，0 fail）｜ 门禁 tsc 0 + pre-push T2 全绿 + convergence 0（verify-prod 沿用 v4.6.0 基线 13/13，P15/① 纯加法未动既有链路）
 >
 > 日期：2026-09-10 ｜ HEAD：e17bb3f（P14 首单：manifest 单源归一 + landing 开闸）｜ 摘要：删 manifest.json 双胞胎（双 layout 同指 webmanifest，浅色主题 polar/green）+ proxy 放行 /landing（robots 早放行，截图实证诊断舱渲染）；基线 **2016/2016**（沿用，无新增用例）｜ 门禁 tsc 0 + convergence 0 + pre-push T2（npm test + build + scoped 2 e2e PASS）
