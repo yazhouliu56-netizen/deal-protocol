@@ -16,6 +16,7 @@ import {
 import FulfillmentCockpit from "./FulfillmentCockpit";
 import DemanderInterveneBar from "./DemanderInterveneBar";
 import MoneyStrip from "./MoneyStrip";
+import IntentCard from "./IntentCard";
 import { needsAcceptReminder } from "@/base/order/intervene";
 import {
   hasCockpitModule,
@@ -401,6 +402,34 @@ export default function FulfillmentCenter({
         >
           ⚖️ 有争议 · 申诉
         </button>
+      </div>
+
+      {/* P2-T4 意图卡 locked 态收拢为 Panel 头（只读卡语言统一） */}
+      <div className="mb-2">
+        <IntentCard
+          card={{
+            id: `panel-${wave.id}`,
+            scene: { ammoId: "panel", version: 0 },
+            title: `${wave.basics.time}·${wave.basics.category}`,
+            lines: [],
+            price: {
+              totalYuan: Math.max(1, wave.budget),
+              basis: "quote",
+              changeRule: "现场加项需你点确认才加钱",
+              refundRule: "师傅未上门全额退",
+            },
+            assurance: [{ key: "lock", label: "锁价" }],
+            irreversible: ["派单生效后取消按规则扣款"],
+            aiMarks: [],
+            state: "locked",
+            // locked 终态不过期（isStale 对 locked 恒 false），置 0 避 render 期取时
+            expiresAt: 0,
+            traceId: `intent-panel-${wave.id}`,
+          }}
+          onEditLine={() => {}}
+          onRelaunch={() => {}}
+          onLaunch={() => {}}
+        />
       </div>
 
       {/* P2-T1 需求方干预区（改期/加项/无责撤回，真 mutation，无假按钮） */}
