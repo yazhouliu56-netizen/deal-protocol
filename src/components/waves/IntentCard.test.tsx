@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import IntentCard from "./IntentCard";
+import IntentCard, { pickProviderPreview } from "./IntentCard";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
 
 const base: IntentCardData = {
@@ -64,5 +64,45 @@ describe("IntentCard static", () => {
       <IntentCard card={base} flashText="＋¥10，因加洗油烟机" onEditLine={noop} onRelaunch={noop} onLaunch={noop} />,
     );
     expect(html).toContain("intent-price-flash");
+  });
+
+  it("有预览时渲染预览区（非承诺）", () => {
+    const html = renderToStaticMarkup(
+      <IntentCard
+        card={{ ...base, providerPreview: [{ name: "王师傅", trust: "信用96分" }] }}
+        onEditLine={noop}
+        onRelaunch={noop}
+        onLaunch={noop}
+      />,
+    );
+    expect(html).toContain("intent-provider-preview");
+    expect(html).toContain("非承诺");
+  });
+
+  it("无预览时不渲染预览区", () => {
+    const html = renderToStaticMarkup(
+      <IntentCard card={base} onEditLine={noop} onRelaunch={noop} onLaunch={noop} />,
+    );
+    expect(html).not.toContain("intent-provider-preview");
+  });
+});
+
+describe("pickProviderPreview", () => {
+  it("按rating取前3＋脱敏回落", () => {
+    const out = pickProviderPreview([
+      { id: "r1", nickname: "", rating: 1, categories: [], tags: [], online: true },
+      { id: "abc123", nickname: "王师傅", rating: 4.8, categories: [], tags: [], online: true },
+      { id: "r3", nickname: "李师傅", rating: 4.9, categories: [], tags: [], online: true },
+      { id: "r4", nickname: "赵师傅", rating: 4.7, categories: [], tags: [], online: true },
+    ]);
+    expect(out).toHaveLength(3);
+    expect(out[0].name).toBe("李师傅");
+    expect(out[2].trust).toContain("信用");
+  });
+
+  it("无rating回落新服务者", () => {
+    const out = pickProviderPreview([{ id: "xyz789", nickname: "", categories: [], tags: [], online: true }]);
+    expect(out[0].name).toContain("z789");
+    expect(out[0].trust).toBe("新服务者");
   });
 });

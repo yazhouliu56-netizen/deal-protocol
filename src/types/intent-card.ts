@@ -34,6 +34,13 @@ export interface AssuranceBadge {
   label: string;
 }
 
+/** 服务者预览行（P2-T7）：撮合投影只读，非承诺；最多 3 条由调用方约束。 */
+export interface ProviderPreview {
+  name: string;
+  trust: string;
+  note?: string;
+}
+
 export type AiLevel = "high" | "mid" | "guess";
 
 export interface AiMark {
@@ -52,6 +59,8 @@ export interface IntentCard {
   lines: IntentLine[];
   price: PriceAnchor;
   assurance: AssuranceBadge[];
+  /** 服务者预览（可选；渲染为非承诺预览行）。 */
+  providerPreview?: ProviderPreview[];
   /** 不可逆点清单；为空卡不可发射。 */
   irreversible: string[];
   aiMarks: AiMark[];

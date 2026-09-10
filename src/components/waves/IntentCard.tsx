@@ -4,7 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import DuoButton from "@/components/ui/DuoButton";
 import { trackMetric } from "@/lib/track-metric";
 import { aiLevelOf } from "@/base/order/intent-card";
-import type { IntentCard as IntentCardData } from "@/types/intent-card";
+import type { IntentCard as IntentCardData, ProviderPreview } from "@/types/intent-card";
+import type { ResponderCapability } from "@/base/dispatch/broadcast";
+
+/**
+ * P2-T7：撮合投影只读映射（按 rating 取前 3，不改排序源）。
+ * 纯函数，可单测。
+ */
+export function pickProviderPreview(responders: ResponderCapability[]): ProviderPreview[] {
+  return [...responders]
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(0, 3)
+    .map((r) => ({
+      name: r.nickname || `服务者·${r.id.slice(-4)}`,
+      trust: typeof r.rating === "number" ? `信用${Math.round(r.rating * 20)}分` : "新服务者",
+    }));
+}
 
 /**
  * 意图卡（P1-T3）。母本：意图卡开工规格 v1.0 §2-§5。
@@ -181,6 +196,18 @@ export default function IntentCard({
             <div key={`sk-${i}`} data-testid="intent-skeleton" className="h-4 animate-pulse rounded-lg bg-[var(--color-duo-polar)]" />
           ))}
       </div>
+
+      {/* P2-T7 服务者预览（只读，非承诺） */}
+      {card.state === "ready" && card.providerPreview && card.providerPreview.length > 0 && (
+        <div data-testid="intent-provider-preview" className="mt-2 rounded-2xl bg-[var(--color-duo-polar)] px-2.5 py-1.5">
+          <p className="text-[11px] font-bold text-[var(--color-duo-hare)]">👤 附近服务者预览（非承诺）</p>
+          {card.providerPreview.slice(0, 3).map((p) => (
+            <p key={p.name} className="text-xs text-[var(--color-duo-wolf)]">
+              {p.name} · {p.trust}{p.note ? ` · ${p.note}` : ""}
+            </p>
+          ))}
+        </div>
+      )}
 
       {/* 价格行：全卡唯一暖色 */}
       {showRows > card.lines.length && (

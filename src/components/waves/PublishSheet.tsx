@@ -14,6 +14,7 @@ import {
   describePricing,
 } from "./DynamicDraftCard";
 import IntentCard from "./IntentCard";
+import { pickProviderPreview } from "./IntentCard";
 import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
 import {
@@ -71,6 +72,7 @@ export default function PublishSheet({
   initialCategory?: string;
 }) {
 const createPendingWave = useWaveStore((s) => s.createPendingWave);
+  const responders = useWaveStore((s) => s.responders);
   const payWave = useWaveStore((s) => s.payWave);
   const identity = useIdentityStore((s) => s.identity);
   const consumePublishQuota = useIdentityStore((s) => s.consumePublishQuota);
@@ -287,6 +289,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       assurance: [{ key: "lock", label: "锁价" }],
       irreversible: ["确认发射后即进入派单，师傅接单后取消按规则扣款"],
       aiMarks: [],
+      providerPreview: pickProviderPreview(responders),
       state: "ready",
       expiresAt: Date.now() + INTENT_READY_TTL_MS,
       traceId: "intent-publish-form",

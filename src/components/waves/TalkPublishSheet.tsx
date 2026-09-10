@@ -21,6 +21,7 @@ import {
   type IntentDraftRecord,
 } from "@/lib/intent-drafts";
 import IntentCard from "./IntentCard";
+import { pickProviderPreview } from "./IntentCard";
 import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
 import {
@@ -66,7 +67,12 @@ function genTraceId(): string {
 }
 
 /** 会话草稿 → 意图卡（P1-T4 载体适配，纯函数可单测）。 */
-export function talkDraftToIntentCard(d: TalkDraft, id: string, now = Date.now()): IntentCardData {
+export function talkDraftToIntentCard(
+  d: TalkDraft,
+  id: string,
+  now = Date.now(),
+  providerPreview?: IntentCardData["providerPreview"],
+): IntentCardData {
   return {
     id,
     scene: { ammoId: "talk", version: 0 },
@@ -89,6 +95,7 @@ export function talkDraftToIntentCard(d: TalkDraft, id: string, now = Date.now()
     assurance: [{ key: "lock", label: "锁价" }],
     irreversible: ["确认发射后即进入派单，师傅接单后取消按规则扣款"],
     aiMarks: d.note ? [{ lineKey: "note", level: "mid" as const, reason: "会话描述整理" }] : [],
+    providerPreview,
     state: "ready",
     expiresAt: now + INTENT_READY_TTL_MS,
     traceId: `intent-talk-${id}`,
@@ -142,6 +149,7 @@ export default function TalkPublishSheet({
   onFallback: (category: string) => void;
 }) {
   const createPendingWave = useWaveStore((s) => s.createPendingWave);
+  const responders = useWaveStore((s) => s.responders);
   const payWave = useWaveStore((s) => s.payWave);
   const identity = useIdentityStore((s) => s.identity);
   const consumePublishQuota = useIdentityStore((s) => s.consumePublishQuota);
@@ -529,7 +537,7 @@ export default function TalkPublishSheet({
       ) : (
         <div className="space-y-1.5" data-testid="talk-intent-zone">
           <IntentCard
-            card={talkDraftToIntentCard(edit ?? draft, traceId)}
+            card={talkDraftToIntentCard(edit ?? draft, traceId, undefined, pickProviderPreview(responders))}
             mode={elder ? "elder" : "std"}
             flashText={flash}
             priceTick={priceTick}
