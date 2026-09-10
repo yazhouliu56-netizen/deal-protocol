@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-10 ｜ HEAD：927a59f（P12 发版审计收官）｜ 摘要：P11 暗底收敛封账（P11-1 三白卡入壳/P11-2 DuoPill 多态/P11-3 暗hex转palette/P11-4 暗style转palette+2层叠漂移回滚）+ 发版门禁 lint 2 errors 出清；基线 **2016/2016**（786+1230）｜ 门禁 tsc 0 + 全量lint 0 errors（4 warnings 沿用）+ build 101 + verify-prod 13/13 + first-principle ALL PASS + convergence 0（four-ammos/roam 沿用 09-05 基线，本轮未重跑）
+>
 > 日期：2026-09-07 ｜ HEAD：dcbf64e（真机 15/20 收官 + THROTTLED 考卷）｜ 摘要：五池回血复跑 15/20 达标（#02 预期拦截/#03 8s 熔断/回空转 THROTTLED 双锁）；基线 **1984/1984**（763+1221）｜ 门禁 tsc 0 + lint 0 + npm test 全绿 + convergence 0
 >
 > 日期：2026-09-06 ｜ HEAD：da81d78（UI 视觉单轨制与 Feather 体系收官）｜ 摘要：Batch 1~3 + glow 死定义补刀全链贯通（glass/btn-primary/4 预设/主题切换全出清）；基线 **1974/1974**（759+1215）｜ 门禁 tsc 0 + lint 0/0 + build 101 + verify-scoped 6/6 + convergence 0
