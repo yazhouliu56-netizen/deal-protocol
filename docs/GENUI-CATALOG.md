@@ -10,7 +10,7 @@
 | PriceRow 价格行 | 锁价＋差价＋退款三要素行 | PriceAnchor（intent-card.ts） | L1/L3 | ➖ 不独立抽卡，随 IntentCard |
 | ProviderCard 服务者卡 | 服务者预览＋评价摘要 | ProviderPreview（intent-card.ts，pickProviderPreview 只读映射） | L1/L2 | ✅ ready 态预览区（非承诺，最多3） |
 | LiveOrderPanel 活订单 | 履约时间线＋干预区 | 拆分为 DemanderInterveneBar（干预真 mutation）＋MoneyStrip（资金纯投影）＋FulfillmentCockpit（既有时间线/座舱） | L2 | ➖ 不单独立卡，三件套组合即 Panel |
-| HaggleCard 磋商卡 | 三档话术＋改价双方确认 | 待定（P3 定义） | L3 | ⏳ P3 登记 |
+| HaggleCard 磋商卡 | 三档话术＋改价双方确认 | HaggleOption/claimToHaggleCard（base/order/haggle.ts） | L3 | ✅ 三档一键＋超均值警示＋确认卡（仅改价）；发送人点真链 |
 | VerdictCard 仲裁摘要 | stance/rationale/confidence＋拍板 | 待定（L4 触发时定义） | L4 | ⏳ L4 登记 |
 | FactoryCard 开品类确认 | 生成品类确认＋试单报告 | 待定（P4 定义） | L6 | ⏳ P4 登记 |
 

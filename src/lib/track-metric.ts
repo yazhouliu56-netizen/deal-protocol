@@ -24,6 +24,8 @@ export const METRIC_NAMES = [
   'intent.stale',
   'panel.open',
   'panel.intervene',
+  'haggle.sent',
+  'haggle.conceded',
 ] as const;
 
 export type MetricName = (typeof METRIC_NAMES)[number];

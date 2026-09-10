@@ -17,6 +17,8 @@ import { autoFulfilmentRemaining } from "@/base/order/fulfilment";
 import type { BlindRevealData } from "./BlindReveal";
 import BlindReveal from "./BlindReveal";
 import ClaimantTrust from "./ClaimantTrust";
+import HaggleTable, { HaggleConfirmCard } from "./HaggleTable";
+import { claimToHaggleCard } from "@/base/order/haggle";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
@@ -330,6 +332,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
                       key={c.id}
                       claim={c}
                       wave={wave}
+                      quotesYuan={waveClaims.map((x) => x.price)}
                       onAccept={() => acceptClaim(c.id)}
                       onWithdraw={() => withdraw(c.id)}
                       onCounter={({ price, message }) =>
@@ -688,12 +691,14 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
 function NegotiationThread({
   claim,
   wave,
+  quotesYuan,
   onAccept,
   onWithdraw,
   onCounter,
 }: {
   claim: Claim;
   wave: Wave;
+  quotesYuan: (number | undefined)[];
   onAccept: () => void;
   onWithdraw: () => void;
   onCounter: (p: { price: number; message: string }) => void;
@@ -704,6 +709,8 @@ function NegotiationThread({
   const [err, setErr] = useState("");
   const turn = nextSpeaker(claim); // who must move now
   const exhausted = claim.rounds >= MAX_ROUNDS;
+  // T2：改价确认卡（useMemo 承载取时，render 期纯净；未改价回落 null）
+  const haggleCard = useMemo(() => claimToHaggleCard(claim, wave), [claim, wave]);
 
   function send() {
     const n = parseInt(price, 10);
@@ -782,6 +789,26 @@ function NegotiationThread({
 
       {/* 接单人信任三事实（P16-①）：只读展示，数据缺席静默不渲染 */}
       <ClaimantTrust responderId={claim.responderId} radiusKm={wave.basics.radiusKm} />
+
+      {/* P3-T1 磋商桌：三档话术一键还价（接线既有 onCounter 真链） */}
+      {!exhausted && turn === "demander" && !sent && (
+        <HaggleTable
+          quoteYuan={claim.price ?? wave.budget}
+          quotesYuan={quotesYuan}
+          budgetYuan={wave.budget}
+          rounds={claim.rounds}
+          onSend={(p) => {
+            setSent(true);
+            setErr("");
+            onCounter(p);
+          }}
+        />
+      )}
+
+      {/* P3-T2 磋商确认卡：改价经卡确认（发射＝既有谈成链；既有按钮保留，e2e 不破） */}
+      {!exhausted && turn === "demander" && !sent && haggleCard && (
+        <HaggleConfirmCard card={haggleCard} onConfirm={onAccept} onBack={() => setSent(false)} />
+      )}
 
       <div className="flex gap-2 mt-2">
           <DuoButton

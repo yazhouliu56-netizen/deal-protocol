@@ -30,6 +30,7 @@ import ArbitrationSheet, {
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
+import { trackMetric } from "@/lib/track-metric";
 import { personaAvatarForBot } from "@/base/platform/sandbox-bot";
 import type { CockpitSlotActions } from "./slots/DynamicAmmoSlot";
 
@@ -167,6 +168,15 @@ export default function FulfillmentCenter({
       isSettled: flags?.isSettled,
     });
   }, [activeWave, activeClaim, fulfilment]);
+
+  // P2 埋点：Panel 打开（每单一次）
+  useEffect(() => {
+    if (!activeWave) return;
+    try {
+      trackMetric("panel.open", 1, {});
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWave?.id]);
 
   // 插槽本地状态（W4）
   const [hkQuote, setHkQuote] = useState<NonNullable<CockpitSlotActions["quote"]> | null>(null);
