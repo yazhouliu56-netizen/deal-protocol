@@ -124,6 +124,9 @@ try {
   // Playwright 多 page 不触发 storage 事件 → reload 等效"另一设备收到广播"
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
+  // 首页重设计：一屏一职，推送入口在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("雷达") && document.body.textContent?.includes("适配推送"),

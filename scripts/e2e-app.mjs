@@ -122,6 +122,9 @@ try {
   await page.getByRole("button", { name: "关闭拟物草稿" }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("beast-feed").click();
+  // 首页重设计：一屏一职，feed 在雷达段，先切段再断言视口
+  await page.getByTestId("home-tab-radar").click();
+  await page.waitForTimeout(400);
   let feedVisible = false;
   for (let i = 0; i < 10 && !feedVisible; i++) {
     await sleep(300);
@@ -133,6 +136,9 @@ try {
     });
   }
   assert.ok(feedVisible, "点击平头哥应滑到活水 Feed（#wave-feed 进视口）");
+  // 切回发单段，后续不断言 feed
+  await page.getByTestId("home-tab-demand").click();
+  await page.waitForTimeout(400);
   // --- 2. 全局 AI 智能发单条 → 全类目草稿卡 → 扣动扳机 → 完整发布面板 ---
   await page.getByRole("button", { name: "想找什么" }).click();
   await page.waitForTimeout(400);

@@ -124,6 +124,9 @@ try {
   // Playwright 多 page 不触发 storage 事件 → reload B 等效"另一设备实时收到广播"
   await pageB.reload({ waitUntil: "domcontentloaded" });
 
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("滨江球场"),
@@ -229,6 +232,9 @@ try {
   for (const p of [pageB, pageC]) {
     await p.reload({ waitUntil: "domcontentloaded" });
     await p.waitForTimeout(400);
+    // 首页重设计：一屏一职，广播流在雷达段
+    await p.getByTestId("home-tab-radar").click();
+    await waitUntil(p, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "拼位者雷达 feed 挂载");
     await waitUntil(
       p,
       () => document.body.textContent?.includes("高校体育馆"),
@@ -320,6 +326,9 @@ try {
 
   await pageC.reload({ waitUntil: "domcontentloaded" });
   await pageC.waitForTimeout(400);
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageC.getByTestId("home-tab-radar").click();
+  await waitUntil(pageC, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "C 雷达 feed 挂载");
   await waitUntil(
     pageC,
     () => document.body.textContent?.includes("城市书房"),
@@ -357,6 +366,9 @@ try {
   await pageC.reload({ waitUntil: "domcontentloaded" });
   await pageC.waitForTimeout(400);
   await pageC.getByLabel("首页").click();
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageC.getByTestId("home-tab-radar").click();
+  await waitUntil(pageC, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "C 雷达 feed 挂载");
   await waitUntil(
     pageC,
     () => document.body.textContent?.includes("城市书房"),

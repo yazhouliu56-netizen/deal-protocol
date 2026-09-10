@@ -183,6 +183,9 @@ try {
   await pageB.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
   await waitUntil(pageB, () => document.querySelectorAll("button").length > 3, "B reload 就绪");
   step("B", "已认证服务者「王姐」就位（verified=true 预置 + persist 回灌）");
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
 
   // 波卡出现（realtime 推送或 boot-pull 拉到 A 的波）——DOM 即跨 context 互通报文
   const card = pageB
@@ -259,10 +262,10 @@ try {
   await ctaNfc.waitFor({ state: "visible", timeout: 20_000 });
   await ctaNfc.click();
   step("A", "NFC 核销 #1");
-  // 五态锚点用「当前五态 X」前缀精确匹配（MATCHED 提示文案含下一态字样会误匹配）
+  // 五态锚点走资金条 data-phase（收拢后内部态黑话不出屏：IN_SERVICE=service，INSPECTED=review）
   await waitUntil(
     pageA,
-    () => document.body.innerText.includes("当前五态 IN_SERVICE"),
+    () => document.querySelector('[data-testid="money-strip"]')?.getAttribute("data-phase") === "service",
     "五态 IN_SERVICE"
   );
 
@@ -270,7 +273,7 @@ try {
   step("A", "NFC 核销 #2");
   await waitUntil(
     pageA,
-    () => document.body.innerText.includes("当前五态 INSPECTED"),
+    () => document.querySelector('[data-testid="money-strip"]')?.getAttribute("data-phase") === "review",
     "五态 INSPECTED"
   );
 

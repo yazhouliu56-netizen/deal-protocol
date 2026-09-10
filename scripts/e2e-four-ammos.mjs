@@ -309,6 +309,9 @@ try {
   // --- 6. 雷达视角校验：自己发布的波被正确隔离（authorId 视角隔离），顶栏胶囊联动存在 ---
   await page.getByRole("button", { name: "首页" }).click();
   await page.waitForTimeout(800);
+  // 首页重设计：一屏一职，雷达层在分段下，先切段
+  await page.getByTestId("home-tab-radar").click();
+  await page.waitForTimeout(400);
   const feedEvidence = await page.evaluate(() => {
     const text = document.body.textContent ?? "";
     // 雷达为服务者视角（谁正在附近发需求）——发起人自己的波不回流 feed（authorId 隔离）；

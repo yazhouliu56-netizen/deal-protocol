@@ -113,6 +113,9 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("首页").click();
   await pageA.waitForTimeout(400);
+  // 首页重设计：feed 不可见断言必须先切雷达段（否则断言恒真，失去意义）
+  await pageA.getByTestId("home-tab-radar").click();
+  await pageA.waitForTimeout(400);
   const feedText = await pageA.evaluate(() => document.body.innerText);
   assert.ok(
     !feedText.includes("先私下转账") && !feedText.includes("明天 09:00"),
@@ -136,6 +139,9 @@ try {
   await pageB.waitForTimeout(800); // 等水合：水合前点 Dock 会丢点击（落在静态壳上被替换）
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(400);
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () =>
@@ -235,6 +241,9 @@ try {
   // --- 5. 行为举报 + 封禁闭环：B 接 A 的单 → A 举报 B → 管理员封禁 → B 不能再发布 ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("羽毛球约局"),
