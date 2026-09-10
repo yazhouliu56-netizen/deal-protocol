@@ -16,6 +16,7 @@ import { tierRatio } from "@/base/trust/trust";
 import { autoFulfilmentRemaining } from "@/base/order/fulfilment";
 import type { BlindRevealData } from "./BlindReveal";
 import BlindReveal from "./BlindReveal";
+import ClaimantTrust from "./ClaimantTrust";
 import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
@@ -778,6 +779,9 @@ function NegotiationThread({
           ✓ 已还价，等待响应者回应（下一轮轮到他）
         </p>
       )}
+
+      {/* 接单人信任三事实（P16-①）：只读展示，数据缺席静默不渲染 */}
+      <ClaimantTrust responderId={claim.responderId} />
 
       <div className="flex gap-2 mt-2">
           <DuoButton
