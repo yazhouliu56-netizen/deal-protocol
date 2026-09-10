@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { describeTrust } from "./ClaimantTrust";
+import { describeTrust, scopeLine } from "./ClaimantTrust";
 
 describe("describeTrust", () => {
   it("三事实齐全", () => {
@@ -22,5 +22,23 @@ describe("describeTrust", () => {
     expect(describeTrust(null)).toBeNull();
     expect(describeTrust({})).toBeNull();
     expect(describeTrust({ credit_score: NaN })).toBeNull();
+  });
+});
+
+describe("scopeLine", () => {
+  it("整数半径", () => {
+    expect(scopeLine(3)).toBe("同城 3km 范围优先派单");
+  });
+
+  it("小数半径保留一位", () => {
+    expect(scopeLine(2.5)).toBe("同城 2.5km 范围优先派单");
+  });
+
+  it("非法半径回 null", () => {
+    expect(scopeLine(undefined)).toBeNull();
+    expect(scopeLine(0)).toBeNull();
+    expect(scopeLine(-1)).toBeNull();
+    expect(scopeLine(NaN)).toBeNull();
+    expect(scopeLine("3")).toBeNull();
   });
 });

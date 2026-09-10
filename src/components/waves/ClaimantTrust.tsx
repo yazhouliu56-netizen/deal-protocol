@@ -28,7 +28,23 @@ export function describeTrust(p: ClaimantTrustProfile | null): string[] | null {
   return lines.length > 0 ? lines : null;
 }
 
-export default function ClaimantTrust({ responderId }: { responderId: string }) {
+/**
+ * 派单范围保证行（P16-①补）：广播硬门槛以 radiusKm 为界（超远软降权），
+ * 行文只承诺"优先"不承诺"只派"，与 broadcast.ts 软约束语义一致。
+ */
+export function scopeLine(radiusKm: unknown): string | null {
+  if (typeof radiusKm !== "number" || !Number.isFinite(radiusKm) || radiusKm <= 0) return null;
+  const r = Number.isInteger(radiusKm) ? String(radiusKm) : String(Math.round(radiusKm * 10) / 10);
+  return `同城 ${r}km 范围优先派单`;
+}
+
+export default function ClaimantTrust({
+  responderId,
+  radiusKm,
+}: {
+  responderId: string;
+  radiusKm?: number;
+}) {
   const [lines, setLines] = useState<string[] | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -54,7 +70,10 @@ export default function ClaimantTrust({ responderId }: { responderId: string }) 
     };
   }, [responderId]);
 
-  if (!lines) return null;
+  // 画像缺席不挡范围保证行：范围是 wave 级事实，与接单人档案无关
+  const scope = scopeLine(radiusKm);
+  const show = [...(lines ?? []), ...(scope ? [scope] : [])];
+  if (show.length === 0) return null;
   return (
     <div data-testid="claimant-trust" className="rounded-xl bg-white border border-[var(--color-duo-swan)] px-2.5 py-1.5">
       <button
@@ -67,7 +86,7 @@ export default function ClaimantTrust({ responderId }: { responderId: string }) 
       </button>
       {open && (
         <ul className="mt-1 space-y-0.5">
-          {lines.map((l) => (
+          {show.map((l) => (
             <li key={l} className="text-xs text-[var(--color-duo-wolf)]">
               · {l}
             </li>

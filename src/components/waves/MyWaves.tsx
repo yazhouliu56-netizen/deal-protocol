@@ -781,7 +781,7 @@ function NegotiationThread({
       )}
 
       {/* 接单人信任三事实（P16-①）：只读展示，数据缺席静默不渲染 */}
-      <ClaimantTrust responderId={claim.responderId} />
+      <ClaimantTrust responderId={claim.responderId} radiusKm={wave.basics.radiusKm} />
 
       <div className="flex gap-2 mt-2">
           <DuoButton
