@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-10 ｜ HEAD：0a4d410（P15 漏斗遥测 + P16-①信任三事实收官）｜ 摘要：POST /api/metrics（metric_events 迁移，恒200）+ GET /api/admin/growth/roi（ADMIN，source×campaign 聚合）+ 接单人信任三事实可展开（信用/纠纷/在线+派单范围行）；基线 **2036/2036**（806+1230，0 fail）｜ 门禁 tsc 0 + pre-push T2 全绿 + convergence 0（verify-prod 沿用 v4.6.0 基线 13/13，P15/① 纯加法未动既有链路）
+>
 > 日期：2026-09-10 ｜ HEAD：e17bb3f（P14 首单：manifest 单源归一 + landing 开闸）｜ 摘要：删 manifest.json 双胞胎（双 layout 同指 webmanifest，浅色主题 polar/green）+ proxy 放行 /landing（robots 早放行，截图实证诊断舱渲染）；基线 **2016/2016**（沿用，无新增用例）｜ 门禁 tsc 0 + convergence 0 + pre-push T2（npm test + build + scoped 2 e2e PASS）
 >
 > 日期：2026-09-10 ｜ HEAD：5b07b86（P13 视觉冻结线收官）｜ 摘要：D2 量表立宪（字8档/圆角正典/19色归表+契约入 globals）/D1 纯浅 381 死 dark/D4 敏感用户空白 CSS 兜底/D3 单轨确认零删（dp 现役）+mobile 44 删（PWA 单轨）/D5 走廊 hare 禁入/D6 转场 0.3 单档；基线 **2016/2016**（786+1230，P13 无新增用例）｜ 门禁 tsc 0 + lint 0 errors（全量沿用 P12，P13 changed 全绿）+ build 101 + verify-prod 13/13 + first-principle 沿用 P12（base 未动）+ convergence 0
