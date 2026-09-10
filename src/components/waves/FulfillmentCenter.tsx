@@ -447,14 +447,7 @@ export default function FulfillmentCenter({
         />
       </div>
 
-      {/* P2-T1 需求方干预区（改期/加项/无责撤回，真 mutation，无假按钮） */}
-      <DemanderInterveneBar
-        waveId={activeWave.id}
-        fiveState={currentState}
-        createdAt={activeWave.createdAt}
-        currentTime={activeWave.basics.time}
-        existingCustoms={activeWave.customs.map((c) => c.text)}
-      />
+      {/* 收拢 P1：干预区进"更多操作"（见下 details），结果区只留头/钱/下一步 */}
 
       {/* P2-T2 资金五态条（只读投影，零资金计算） */}
       <MoneyStrip
@@ -468,6 +461,15 @@ export default function FulfillmentCenter({
         negotiatedAmountYuan={negotiatedAmount}
       />
 
+      {/* 收拢 P1：过程即资金条五态（复用 MoneyStrip，不另起第二条时间线） */}
+
+      {/* 收拢 P1：下一步行动（人话一行，内部态黑话不出屏） */}
+      {!needsAcceptReminder(activeClaim?.serviceDoneAt, fulfilledFlag) && (
+        <p data-testid="cta-hint" className="fc-note">
+          {describeCtaForState(currentState)}
+        </p>
+      )}
+
       {/* P2-T3a 到点行动：师傅报完工 → 显性确认验收（接线既有 handleComplete 真跃迁） */}
       {needsAcceptReminder(activeClaim?.serviceDoneAt, fulfilledFlag) && (
         <button
@@ -480,8 +482,7 @@ export default function FulfillmentCenter({
         </button>
       )}
 
-      {/* P3-T3 副驾切片：快捷回复（复制版，无送达通道不设发送键） */}
-      <CopilotReplies />
+      {/* 收拢 P1：快捷回复进"更多操作"（见下 details） */}
 
       <FulfillmentCockpit
         status={state}
@@ -568,10 +569,41 @@ export default function FulfillmentCenter({
           ➕ 现场增项改价：深度除螨 +¥80（OnsiteQuoteHook）
         </button>
       )}
-      <div className="fc-total" data-testid="order-total">
-        <span>💰 订单总金额（含增项）</span>
-        <strong>¥{orderTotal}</strong>
-      </div>
+      {/* 收拢 P1：更多操作（改期/加项/快捷回复/总额；接单后平铺，服务中折叠） */}
+      {currentState === "MATCHED" ? (
+        <div data-testid="panel-more">
+          <DemanderInterveneBar
+            waveId={activeWave.id}
+            fiveState={currentState}
+            createdAt={activeWave.createdAt}
+            currentTime={activeWave.basics.time}
+            existingCustoms={activeWave.customs.map((c) => c.text)}
+          />
+          <CopilotReplies />
+          <div className="fc-total" data-testid="order-total">
+            <span>💰 订单总金额（含增项）</span>
+            <strong>¥{orderTotal}</strong>
+          </div>
+        </div>
+      ) : (
+        <details data-testid="panel-more">
+          <summary className="fc-note" style={{ cursor: "pointer", textAlign: "center" }}>
+            更多操作 · 改期 / 加项 / 快捷回复
+          </summary>
+          <DemanderInterveneBar
+            waveId={activeWave.id}
+            fiveState={currentState}
+            createdAt={activeWave.createdAt}
+            currentTime={activeWave.basics.time}
+            existingCustoms={activeWave.customs.map((c) => c.text)}
+          />
+          <CopilotReplies />
+          <div className="fc-total" data-testid="order-total">
+            <span>💰 订单总金额（含增项）</span>
+            <strong>¥{orderTotal}</strong>
+          </div>
+        </details>
+      )}
 
       {/* W4：围栏扫码 → 定金解冻提示（D9 GEOFENCE_ARRIVAL 模块声明驱动显隐） */}
       {hasCockpitModule(ammoDef, "GEOFENCE_ARRIVAL") && depositUnfrozen && (
@@ -593,12 +625,7 @@ export default function FulfillmentCenter({
         </div>
       )}
 
-      {/* W5：核销 CTA（当前态 → 下一态）文案由 FulfillmentCockpit 底部 CTA 承载，
-          此处承接 onComplete 已接线；舱内底部 CTA 文案按场景特化，叠加动态态文案 */}
-      <div className="fc-note" data-testid="cta-hint">
-        {describeCtaForState(currentState)} · 当前五态 {currentState} → 下一态{" "}
-        {nextCockpitState(currentState)}
-      </div>
+      {/* 收拢 P1：旧黑话 CTA 已由顶部 NextAction 人话行替代，此处不再重复 */}
 
       {/* W4：伪装假电话 · 全屏模拟来电遮罩（接听/挂断脱身） */}
       {fakeCallOpen && (
