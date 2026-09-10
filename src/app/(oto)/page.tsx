@@ -65,12 +65,6 @@ export default function Home() {
   useEffect(() => { initLowPower(); }, []);
   return (
     <div className="oto-stage app-env h-dvh w-full overflow-hidden relative text-[var(--color-duo-eel)]">
-      <div className="nebula nebula-violet" />
-      <div className="nebula nebula-cyan" />
-      <div className="nebula nebula-deep" />
-      <div className="aurora-blob aurora-violet top-[-15%] left-[-10%] w-[560px] h-[560px]" />
-      <div className="aurora-blob aurora-cyan top-1/4 right-[-15%] w-[600px] h-[600px]" />
-      <div className="aurora-blob aurora-magenta bottom-[-20%] left-[5%] w-[500px] h-[500px]" />
       <Stage />
       <div className="starfield" />
       <div className="noise-overlay" />

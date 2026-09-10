@@ -75,7 +75,7 @@ function LowPolyEarth() {
   );
 }
 
-/** Falls back to the pure CSS background (aurora + gradients) if WebGL/Canvas fails. */
+/** Renders nothing if WebGL/Canvas fails (page background shows through). */
 class StageBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {

@@ -185,137 +185,6 @@
   background: linear-gradient(160deg, #05060f 0%, #0d1030 45%, #1b1440 100%);
 }
 
-/* ============ Ambient aurora glows ============ */
-
-/* 大尺度深空星云光团：多层景深的第一层（远层） */
-.nebula {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(130px);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  will-change: transform, opacity;
-}
-
-.nebula-violet {
-  width: 760px;
-  height: 760px;
-  top: -22%;
-  left: -18%;
-  background: radial-gradient(
-    circle,
-    rgba(123, 97, 255, 0.4) 0%,
-    rgba(99, 72, 255, 0.12) 45%,
-    transparent 68%
-  );
-  animation: nebula-pulse 19s ease-in-out infinite;
-}
-@media (min-width: 1024px) {
-  .nebula-violet {
-    width: 1200px;
-    height: 1200px;
-    left: -10%;
-  }
-  .nebula-cyan {
-    width: 1000px;
-    height: 1000px;
-  }
-  .nebula-deep {
-    width: 1300px;
-    height: 1300px;
-  }
-  .aurora-blob {
-    filter: blur(160px);
-  }
-}
-
-.nebula-cyan {
-  width: 640px;
-  height: 640px;
-  top: 18%;
-  right: -24%;
-  background: radial-gradient(
-    circle,
-    rgba(0, 240, 255, 0.26) 0%,
-    rgba(0, 180, 255, 0.08) 42%,
-    transparent 66%
-  );
-  animation: nebula-pulse 23s ease-in-out infinite reverse;
-}
-
-.nebula-deep {
-  width: 820px;
-  height: 820px;
-  bottom: -32%;
-  left: 8%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 0, 122, 0.16) 0%,
-    rgba(120, 40, 200, 0.1) 40%,
-    transparent 66%
-  );
-  animation: nebula-pulse 27s ease-in-out infinite;
-}
-
-@keyframes nebula-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.12);
-    opacity: 1;
-  }
-}
-
-/* 3 个自然弥散日光晕，漂浮在真实屏幕背景中（中景层） */
-.aurora-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  will-change: transform, opacity;
-}
-
-.aurora-violet {
-  background: rgba(123, 97, 255, 0.4);
-  animation: aurora-breathe 11s ease-in-out infinite;
-}
-
-.aurora-cyan {
-  background: rgba(0, 240, 255, 0.28);
-  animation: aurora-drift 16s ease-in-out infinite;
-}
-
-.aurora-magenta {
-  background: rgba(255, 0, 122, 0.22);
-  animation: aurora-breathe 14s ease-in-out infinite reverse;
-}
-
-@keyframes aurora-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.75;
-  }
-  50% {
-    transform: scale(1.18);
-    opacity: 1;
-  }
-}
-
-@keyframes aurora-drift {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-42px, 32px);
-  }
-}
-
 /* 全局微粒噪点蒙版 */
 .noise-overlay {
   position: absolute;
@@ -359,15 +228,11 @@
   }
 }
 
-/* Feather 熄灯：亮色默认隐藏星云/极光/星粒/噪点防脏紫，仅暗色保留（参谋部第一道物理防线） */
-.nebula,
-.aurora-blob,
+/* Feather 熄灯：亮色默认隐藏星粒/噪点防脏紫，仅暗色保留（参谋部第一道物理防线） */
 .starfield,
 .noise-overlay {
   display: none;
 }
-.oto-app[data-theme="dark"] .nebula,
-.oto-app[data-theme="dark"] .aurora-blob,
 .oto-app[data-theme="dark"] .starfield,
 .oto-app[data-theme="dark"] .noise-overlay {
   display: block;
@@ -420,13 +285,6 @@
 
 
 /* ============ P5: Low-power degradation (html[data-low-power="1"]) ============ */
-
-html[data-low-power="1"] .aurora-violet,
-html[data-low-power="1"] .aurora-cyan,
-html[data-low-power="1"] .aurora-magenta,
-html[data-low-power="1"] .nebula {
-  animation: none;
-}
 
 html[data-low-power="1"] .starfield {
   animation: none;
