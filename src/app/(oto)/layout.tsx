@@ -3,6 +3,7 @@ import { Nunito, Geist_Mono } from "next/font/google";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
 import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
 import IdentityRehydrator from "@/components/oto-ui/IdentityRehydrator";
+import FactoryShelfBridge from "@/components/oto-ui/FactoryShelfBridge";
 import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
 import "./globals.css";
 
@@ -65,6 +66,8 @@ export default function OtoLayout({
       <OnlineStatusBridge />
       {/* D-20260825-01 根治：身份 persist 挂载后重水合闸门（首帧与 SSR 同构防 #418） */}
       <IdentityRehydrator />
+      {/* P4-T3：工厂货架恢复（落盘品类注回动态池，坏条跳过） */}
+      <FactoryShelfBridge />
       <PwaServiceWorker />
       {/* P2 总装：A2HS 价值时刻安装引导（首次结算 / 服务者上岗，7 天静默防骚扰） */}
       <A2HSPromptHost />

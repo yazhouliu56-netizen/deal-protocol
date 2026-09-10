@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import FactoryConsole, { pricingText, strList } from "./FactoryConsole";
+import { saveToShelf } from "@/lib/factory-shelf";
+import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
 
 describe("FactoryConsole static", () => {
   it("输入＋生成键渲染", () => {
@@ -8,6 +10,13 @@ describe("FactoryConsole static", () => {
     expect(html).toContain("factory-console");
     expect(html).toContain("一句话开品类");
     expect(html).toContain("生成品类");
+  });
+
+  it("上架货架块渲染（落盘即现）", () => {
+    saveToShelf({ category: "上门给猫洗澡" } as IHolographicAmmoConfig);
+    const html = renderToStaticMarkup(<FactoryConsole />);
+    expect(html).toContain("factory-shelf");
+    expect(html).toContain("试运行");
   });
 });
 

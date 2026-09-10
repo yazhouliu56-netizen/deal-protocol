@@ -131,5 +131,7 @@ export const POST = withAuth(async (req, user) => {
     ammoId: assembled.ammo.ammoId,
     category: assembled.ammo.category,
     holographic: assembled.ammo.holographic,
+    // P4-T3：全量 config 随包下发，供控制台落盘（上架持久化）；已过 validate，可直接回池
+    config,
   });
 });

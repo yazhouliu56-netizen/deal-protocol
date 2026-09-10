@@ -2,18 +2,31 @@
 
 import { useState } from "react";
 import { trackMetric } from "@/lib/track-metric";
+import { loadShelf, saveToShelf, trialCountToday, type ShelfEntry } from "@/lib/factory-shelf";
+import { TRIAL_DAILY_CAP } from "@/ammo/trial-cap";
+import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
+
+/** 货架首帧同读（lazy init，SSR/静态与客户端一致；写后由 confirmPilot 直刷）。 */
+function initialShelf(): ShelfEntry[] {
+  try {
+    return loadShelf();
+  } catch {
+    return [];
+  }
+}
 
 /**
  * 工厂控制台（P4-T1）：一句话 → 生成品类卡 → 确认试运行。
  * 引擎与 API 既有（POST /api/ammo/generate：LLM→校验→组装→运行时注册）；
  * 本组件只做开品类操作面＋试运行确认（卡语言与意图卡同构，PriceAnchor 不适用故自立 FactoryCard）。
- * 诚实注记：注册落本机内存，重启失效；上架持久化＋10单/天限流随上线做。
+ * P4-T3 上架：确认即落盘（factory-shelf）＋试运行标＋首周 10 单/天（trial-cap）。
  */
 
 interface FactoryResult {
   ammoId: string;
   category: string;
   holographic: Record<string, unknown>;
+  config?: IHolographicAmmoConfig;
 }
 
 /** 定价人话（纯函数，可单测）。 */
@@ -37,6 +50,7 @@ export default function FactoryConsole() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<FactoryResult | null>(null);
   const [pilots, setPilots] = useState<FactoryResult[]>([]);
+  const [shelf, setShelf] = useState<ShelfEntry[]>(initialShelf);
 
   async function generate() {
     const p = prompt.trim();
@@ -55,7 +69,7 @@ export default function FactoryConsole() {
         setError(data.error ?? data.errors?.join("；") ?? `生成失败（${res.status}）`);
         return;
       }
-      setResult({ ammoId: data.ammoId, category: data.category, holographic: data.holographic ?? {} });
+      setResult({ ammoId: data.ammoId, category: data.category, holographic: data.holographic ?? {}, config: (data as { config?: IHolographicAmmoConfig }).config });
     } catch {
       setError("网络异常，稍后重试");
     } finally {
@@ -66,6 +80,15 @@ export default function FactoryConsole() {
   function confirmPilot() {
     if (!result) return;
     setPilots((list) => (list.some((x) => x.ammoId === result.ammoId) ? list : [...list, result]));
+    // P4-T3 上架：config 落盘（重启可恢复）＋试运行标＋10单/天
+    if (result.config) {
+      try {
+        saveToShelf(result.config);
+        setShelf(loadShelf());
+      } catch {
+        /* 落盘失败＝本次内存有效，不拦确认 */
+      }
+    }
     try {
       trackMetric("factory.generated", 1, { ammoId: result.ammoId });
     } catch {}
@@ -129,7 +152,7 @@ export default function FactoryConsole() {
           >
             确认试运行
           </button>
-          <p className="mt-1 text-[11px] text-slate-400">注册落本机内存，重启失效；上架持久化随上线做。</p>
+          <p className="mt-1 text-[11px] text-slate-400">确认即上架：落盘持久化＋试运行标＋首周 10 单/天。</p>
         </div>
       )}
       {pilots.length > 0 && (
@@ -138,6 +161,16 @@ export default function FactoryConsole() {
           {pilots.map((p) => (
             <p key={p.ammoId} className="mt-1 text-xs">
               {p.category} · {p.ammoId}
+            </p>
+          ))}
+        </div>
+      )}
+      {shelf.length > 0 && (
+        <div data-testid="factory-shelf" className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3 text-sm">
+          <p className="text-xs font-bold text-emerald-700">已上架货架（重启保留 · {shelf.length}）</p>
+          {shelf.map((s) => (
+            <p key={s.config.category} className="mt-1 text-xs text-slate-700">
+              {s.config.category} · 试运行 · 今日 {trialCountToday(s.config.category)}/{TRIAL_DAILY_CAP}
             </p>
           ))}
         </div>

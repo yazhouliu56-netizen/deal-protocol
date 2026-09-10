@@ -95,7 +95,7 @@
 - [x] T5 走廊（P4 施工）：控制台挂载走静态断言；门禁走廊实测未登录/admin/factory→307 /login（proxy 角色闸正常）；可视截图随管理员会话演示补（登录后 30 秒点一次，无需摆拍）。
 - [x] T1 开品类流（已落地）：/admin/factory＋FactoryConsole（一句话→POST /api/ammo/generate→品类卡→确认试运行）；FactoryCard 自立（品类无单一定价锚，PriceAnchor 不适用，卡语言同构，实测修正）；注册落本机内存，重启失效（诚实注记，上架持久化随上线）。
 - [x] T2/T4 沙盒考卷：mock LLM 全链（生成→入池→检索→建单→投影）＋风控缺失拦上架（C2 无背调拒入池，实测命中 IN_HOME_SAFETY_GATE）。
-- [ ] T3 上架：随上线（持久化＋试运行标签＋10单/天限流；秒级全城可发系线上 blast radius，不本地偷跑）。
+- [x] T3 上架（已落地）：确认即上架——config 落盘（factory-shelf，FactoryShelfBridge 重启回池）＋试运行标（控制台货架＋发单页提示）＋首周 10 单/天（trial-cap 纯函数 4/4；PublishSheet 设卡＋onPaid 计单；官方弹药不受影响）。考卷：trial-cap＋货架块静态＋PublishSheet 13/13。
 
 ### 4.2 门禁与验收
 

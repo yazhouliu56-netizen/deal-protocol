@@ -7,6 +7,7 @@ import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
+import { canPublishTrial, isTrialCategory, recordTrialPublish } from "@/lib/factory-shelf";
 import PaySheet from "./PaySheet";
 import { SandboxBadge } from "./SandboxBadge";
 import {
@@ -386,6 +387,11 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
       return;
     }
     const publishFee = free ? 0 : PUBLISH_FEE;
+    // P4-T3：试运行品类 10 单/天（超限拦单，官方弹药不受影响）
+    if (!canPublishTrial(category.trim())) {
+      setError(`发布被拒：试运行品类「${category.trim()}」今日 10 单已满，请明日再来`);
+      return;
+    }
     // 阶段4：需求备注（note）非标定制（着装/年龄/性别）经语义驯化中性化后随单固化；
     // 违禁词命中（blockedReason）时仍正常发单（治理闸门 2 按 customs 词表扫描拦截）。
     const customRequirements = note.trim()
@@ -511,6 +517,17 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
           aria-label="需求品类"
           className="w-full rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] px-3.5 py-2.5 text-xs placeholder:text-[var(--color-duo-hare)] text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)] transition-colors mb-2"
         />
+        {(() => {
+          try {
+            return isTrialCategory(category.trim());
+          } catch {
+            return false;
+          }
+        })() && (
+          <p className="mb-2 text-[11px] font-bold text-amber-600">
+            试运行品类 · 首周每日限 10 单（质量观察期）
+          </p>
+        )}
         <div className="flex gap-2 mb-2">
           <input
             value={time}
@@ -886,6 +903,10 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         onCancel={() => setPaying(null)}
         onPaid={() => {
           if (paying) payWave(paying.id);
+          // P4-T3：试运行品类计单（10单/天）
+          try {
+            recordTrialPublish(category.trim());
+          } catch {}
           setPaying(null);
           reset();
           onClose();
