@@ -30,11 +30,11 @@ export const metadata: Metadata = {
   title: "Spatial OTO Platform",
   description:
     "VisionOS 空间级 1:1 高保真全感知空间 - OTO 全感官 3D/AR 网页空间",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     title: "Spatial OTO Platform",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   icons: {
     icon: [
