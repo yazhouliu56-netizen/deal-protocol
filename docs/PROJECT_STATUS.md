@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-10 ｜ HEAD：5c8c12c（P1 意图卡＋补丁A阶段收官）｜ 摘要：IntentCard 四态（组装stagger/ready锁价/AI三级标/勾选发射/重算冻结/locked章戳/stale/长辈态＋切换）+ 双载体统一（TalkPublish确认区/PublishSheet预览，DynamicDraftCard退守营销预览）+ 埋点intent四事件进P15 + 补丁A（speak播报/长辈发射播报/traceId随单bizParams/子女分享键/网断草稿箱幂等续发）+ 手册§9补丁ABC（蓝图100%对齐）；基线 **2060/2060**（819+1241，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T1/T2 全绿 + 真机走廊（稳定版Chrome＋dev子进程说明：start-server系自家dev子进程，误杀教训记ParentProcessId核对）
+>
 > 日期：2026-09-10 ｜ HEAD：35f40b5（会话发单三模态收官）｜ 摘要：TalkPublishSheet（文字/语音/照片→interpret多轮→确认卡→同链发射）+ POST /api/publish/interpret（文本走gateway/照片走vision/200降级/6次分限流）+ publish-draft纯层 + 极光层死代码出清（150行）+ lint 0/0 + pre-push残留服务终结器；基线 **2047/2047**（810+1237，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T2（scoped 2 e2e PASS）+ 线上 visions/vision 实探 200（水豚/保洁）
 >
 > 日期：2026-09-10 ｜ HEAD：0a4d410（P15 漏斗遥测 + P16-①信任三事实收官）｜ 摘要：POST /api/metrics（metric_events 迁移，恒200）+ GET /api/admin/growth/roi（ADMIN，source×campaign 聚合）+ 接单人信任三事实可展开（信用/纠纷/在线+派单范围行）；基线 **2036/2036**（806+1230，0 fail）｜ 门禁 tsc 0 + pre-push T2 全绿 + convergence 0（verify-prod 沿用 v4.6.0 基线 13/13，P15/① 纯加法未动既有链路）
