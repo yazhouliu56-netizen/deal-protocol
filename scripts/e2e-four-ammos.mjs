@@ -106,22 +106,18 @@ try {
   };
 
   const publishFlow = async ({ label, category, ammoId, time, area, budget, draftChecks }) => {
-    // 发布面板的弹药预览草稿卡完整断言（data-ammo + 计价/徽标文案）
+    // P1-T5：发布面板预览位是 IntentCard（品类+金额人话），ammoId 由落库断言覆盖
     const card = await page.evaluate(() => {
-      const c = document.querySelector(".draft-card");
+      const c = document.querySelector('[data-testid="intent-card"]');
       return {
         ammo: c?.getAttribute("data-ammo") ?? "",
         text: c ? c.textContent ?? "" : "",
       };
     });
-    assert.ok(card.ammo, `${label}: 发布面板应渲染弹药预览卡`);
-    assert.equal(card.ammo, ammoId, `${label}: 预览弹药应为 ${ammoId}，实际 ${card.ammo}`);
-    for (const token of draftChecks) {
-      assert.ok(
-        card.text.includes(token),
-        `${label}: 预览卡应包含「${token}」，实际: ${card.text.slice(0, 200)}`
-      );
-    }
+    assert.ok(card.text.includes(category), `${label}: 意图卡应含品类 ${category}`);
+    // P1-T5：旧草稿卡计价徽标断言退役（意图卡无此文案；ammo 由落库断言覆盖）。
+    // draftChecks 参数保留占位，不再断言。
+    void draftChecks;
     await page.getByLabel("需求时间").fill(time);
     await page.getByLabel("需求地点").fill(area);
     await page.getByLabel("基础预算").fill(String(budget));
@@ -233,13 +229,11 @@ try {
   await page.waitForTimeout(400);
   // 品类输入后发布面板内的弹药预览卡应直拨 appliance-repair-v1 整弹
   const arDraft = await page.evaluate(() => {
-    const c = document.querySelector(".draft-card");
+    const c = document.querySelector('[data-testid="intent-card"]');
     return { ammo: c?.getAttribute("data-ammo") ?? "", text: c?.textContent ?? "" };
   });
-  assert.equal(arDraft.ammo, "appliance-repair-v1", `修空调预览卡应为 appliance-repair-v1，实际 ${arDraft.ammo}`);
-  for (const token of ["上门检测费 ¥30.00", "⏱️ 48h 质保验收"]) {
-    assert.ok(arDraft.text.includes(token), `修空调预览卡缺「${token}」: ${arDraft.text}`);
-  }
+  assert.ok(arDraft.text.includes("修空调"), "修空调意图卡应含品类");
+  // P1-T5：旧草稿卡徽标断言退役（意图卡无此文案；ammo 由落库断言覆盖）
   await page.getByLabel("需求时间").fill("明天 14:00");
   await page.getByLabel("需求地点").fill("幸福家园小区");
   await page.getByLabel("基础预算").fill("500");
@@ -278,13 +272,11 @@ try {
   await page.getByLabel("specialNotes").fill("每日喂食两次 需遛弯");
   await page.waitForTimeout(400);
   const petDraft = await page.evaluate(() => {
-    const c = document.querySelector(".draft-card");
+    const c = document.querySelector('[data-testid="intent-card"]');
     return { ammo: c?.getAttribute("data-ammo") ?? "", text: c?.textContent ?? "" };
   });
-  assert.equal(petDraft.ammo, "pet-boarding-v1", `宠物寄养预览卡应为 pet-boarding-v1，实际 ${petDraft.ammo}`);
-  for (const token of ["¥80", "⏱️ 24h"]) {
-    assert.ok(petDraft.text.includes(token), `宠物寄养预览卡缺「${token}」: ${petDraft.text}`);
-  }
+  assert.ok(petDraft.text.includes("宠物寄养"), "宠物寄养意图卡应含品类");
+  // P1-T5：旧草稿卡徽标断言退役（意图卡无此文案；ammo 由落库断言覆盖）
   await page.getByLabel("需求时间").fill("后天 10:00");
   await page.getByLabel("需求地点").fill("幸福家园小区");
   await page.getByLabel("基础预算").fill("160");
