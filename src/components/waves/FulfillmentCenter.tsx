@@ -460,7 +460,7 @@ export default function FulfillmentCenter({
           onClick={() => void handleComplete()}
           className="mb-2 w-full rounded-2xl bg-[var(--color-duo-green)] px-3 py-2.5 text-xs font-extrabold text-white"
         >
-          ✅ 师傅已说完工 → 确认验收
+          ✅ 师傅已说完工 → 去验收
         </button>
       )}
 
