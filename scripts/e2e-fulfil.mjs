@@ -168,7 +168,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("正在接收信号"),
+    () => !!document.querySelector('[data-testid="home-tabs"]'),
     20000,
     "A reload 挂载"
   );
@@ -215,7 +215,7 @@ try {
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("正在接收信号"),
+    () => !!document.querySelector('[data-testid="home-tabs"]'),
     20000,
     "A reload 挂载 2"
   );

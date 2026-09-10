@@ -97,6 +97,9 @@ try {
 
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(800);
+  // 首页重设计：一屏一职，接单流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () => Array.from(document.querySelectorAll("button")).some((b) => b.textContent?.includes("接单")),
@@ -127,7 +130,7 @@ try {
 await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("正在接收信号"),
+    () => !!document.querySelector('[data-testid="home-tabs"]'),
     10000,
     "A reload"
   );
@@ -160,7 +163,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(pageA, () => { const el = document.querySelector('[data-testid="money-strip"]'); return el && (el.getAttribute('data-phase') === 'settled' || el.getAttribute('data-phase') === 'review'); }, 15000, 'strip settled/review');
   const phaseN = await pageA.getByTestId('money-strip').getAttribute('data-phase');
   console.log('normal settle strip phase=' + phaseN);
-  await pageA.getByTestId('money-strip').screenshot({ path: 'docs/shot/p2-money-settled-normal.png' });
+  await pageA.getByTestId('money-strip').screenshot({ path: 'docs/shot/p2-money-review.png' });
   console.log('corridor-settle: 1 shot PASS');
 } catch (e) {
   console.error("E2E 失败:", String(e).slice(0, 600));

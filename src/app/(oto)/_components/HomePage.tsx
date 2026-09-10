@@ -80,6 +80,7 @@ export default function HomePage() {
   const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [talkOpen, setTalkOpen] = useState(false);
+  const [homeTab, setHomeTab] = useState<"demand" | "radar">("demand");
   const [publishCategory, setPublishCategory] = useState("");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
@@ -125,28 +126,54 @@ export default function HomePage() {
           onOpenCart={handleOpenCart}
         />
         <div className="mt-3" data-layer="action">
-          {/* B1 一体化 AI 需求舱（1:1 图纸：水豚半身 + 星芒输入胶囊 + [ 出发! ]） */}
-          <HeroAiDemandCabin
-            value={aiInput}
-            onChange={setAiInput}
-            hasMission={activeWave !== null}
-            composing={draft !== null || publishOpen}
-            onLaunch={handleLaunch}
-            onMic={handleMic}
-          />
-          <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
-          <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
-          <button
-            onClick={() => setTalkOpen(true)}
-            aria-label="说句话发单"
-            data-testid="talk-publish-entry"
-            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
-          >
-            🎙 说句话发单（语音/照片也行）
-          </button>
-          <div className="mt-4" id="wave-feed" data-layer="wave-feed">
-            <WaveFeed />
+          {/* 首页重设计 P1：一屏一职（分段切换，发单/雷达不再堆叠） */}
+          <div data-testid="home-tabs" className="mb-2 flex rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-1 gap-1">
+            <button
+              type="button"
+              data-testid="home-tab-demand"
+              aria-label="发单"
+              onClick={() => setHomeTab("demand")}
+              className={`flex-1 rounded-xl py-1.5 text-xs font-extrabold ${homeTab === "demand" ? "bg-white text-[var(--color-duo-blue-ink)] shadow-sm" : "text-[var(--color-duo-hare)]"}`}
+            >
+              📣 发单
+            </button>
+            <button
+              type="button"
+              data-testid="home-tab-radar"
+              aria-label="雷达"
+              onClick={() => setHomeTab("radar")}
+              className={`flex-1 rounded-xl py-1.5 text-xs font-extrabold ${homeTab === "radar" ? "bg-white text-[var(--color-duo-blue-ink)] shadow-sm" : "text-[var(--color-duo-hare)]"}`}
+            >
+              📡 雷达
+            </button>
           </div>
+          {homeTab === "demand" ? (
+            <>
+              {/* B1 一体化 AI 需求舱（1:1 图纸：水豚半身 + 星芒输入胶囊 + [ 出发! ]） */}
+              <HeroAiDemandCabin
+                value={aiInput}
+                onChange={setAiInput}
+                hasMission={activeWave !== null}
+                composing={draft !== null || publishOpen}
+                onLaunch={handleLaunch}
+                onMic={handleMic}
+              />
+              <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
+              <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
+              <button
+                onClick={() => setTalkOpen(true)}
+                aria-label="说句话发单"
+                data-testid="talk-publish-entry"
+                className="mt-2 w-full flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
+              >
+                🎙 说句话发单（语音/照片也行）
+              </button>
+            </>
+          ) : (
+            <div className="mt-1" id="wave-feed" data-layer="wave-feed">
+              <WaveFeed />
+            </div>
+          )}
         </div>
       </div>
       <HomeDraftSheet draft={draft} onClose={() => setDraft(null)} onPublish={(label) => { setPublishCategory(label === "全类目需求" ? "" : label); setDraft(null); setPublishOpen(true); }} />

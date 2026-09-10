@@ -2,10 +2,10 @@ import fs from "node:fs";
 const raw = fs.readFileSync("scripts/e2e-acceptance.mjs", "utf8");
 const L = raw.split("\n");
 const head = L.slice(0, 71).join("\n");
-const scenario = L.slice(269, 333).join("\n");
-const tail = L.slice(369, 377).join("\n");
-const clickTrip = L[310];
-const scenario2 = L.slice(341, 366).join("\n");
+const scenario = L.slice(271, 338).join("\n");
+const tail = L.slice(374, 382).join("\n");
+const clickTrip = L[315];
+const scenario2 = L.slice(346, 371).join("\n");
 const shots = [
   "  await pageA.reload({ waitUntil: 'domcontentloaded' });",
   "  " + clickTrip.trim(),

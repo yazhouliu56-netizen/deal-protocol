@@ -69,6 +69,7 @@ try {
   // B 默认声明全部 6 个品类；测试统一用非进家品类「羽毛球约局」——无需实名认证，
   // 规避认证点击的间歇性 flaky，聚焦验收/争议链路本身。
 
+  // ========== 场景 C：争议 · 原因拆分 + 自动判责 + 协商 ==========
   console.log("--- 场景 C：争议按原因 + 协商 ---");
   await pageA.getByLabel("首页").click();
   await pageA.getByRole("button", { name: /发出你的需求/ }).click();
@@ -91,6 +92,8 @@ try {
   await pageB.reload({ waitUntil: "domcontentloaded" });
 
   await pageB.getByLabel("首页").click();
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () => Array.from(document.querySelectorAll("button")).some((b) => b.textContent?.includes("接单")),

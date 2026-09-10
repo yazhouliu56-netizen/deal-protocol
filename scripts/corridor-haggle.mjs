@@ -124,6 +124,9 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("实名认证模拟").click();
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(400);
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () =>

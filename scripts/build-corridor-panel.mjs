@@ -1,8 +1,8 @@
 import fs from "node:fs";
 const L = fs.readFileSync("scripts/e2e-wave.mjs", "utf8").split("\n");
-const head = L.slice(0, 230).join("\n");
-const tail = L.slice(321, 329).join("\n");
-const clickTrip = L[153];
+const head = L.slice(0, 233).join("\n");
+const tail = L.slice(324, 332).join("\n");
+const clickTrip = L[156];
 const shots = [
   "  await pageA.reload({ waitUntil: 'domcontentloaded' });",
   "  " + clickTrip.trim(),

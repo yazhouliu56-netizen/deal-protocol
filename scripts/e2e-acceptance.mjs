@@ -97,6 +97,9 @@ try {
 
   await pageB.getByLabel("首页").click();
   await pageB.waitForTimeout(800);
+  // 首页重设计：一屏一职，接单流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () => Array.from(document.querySelectorAll("button")).some((b) => b.textContent?.includes("接单")),
@@ -127,7 +130,7 @@ try {
 await pageA.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(
     pageA,
-    () => document.body.textContent?.includes("正在接收信号"),
+    () => !!document.querySelector('[data-testid="home-tabs"]'),
     10000,
     "A reload"
   );
@@ -193,6 +196,8 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageB.reload({ waitUntil: "domcontentloaded" });
 
   await pageB.getByLabel("首页").click();
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () => Array.from(document.querySelectorAll("button")).some((b) => b.textContent?.includes("接单")),
@@ -289,6 +294,8 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageB.reload({ waitUntil: "domcontentloaded" });
 
   await pageB.getByLabel("首页").click();
+  await pageB.getByTestId("home-tab-radar").click();
+  await pageB.waitForTimeout(400);
   await waitUntil(
     pageB,
     () => Array.from(document.querySelectorAll("button")).some((b) => b.textContent?.includes("接单")),

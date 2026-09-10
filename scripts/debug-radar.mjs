@@ -1,0 +1,20 @@
+import { chromium } from "playwright-core";
+import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels } from "./lib/e2e-channel.mjs";
+
+const BASE = getE2eBaseUrl();
+const browser = await chromium.launch(getDefaultLaunchOptions());
+isolateBrowserChannels(browser, "wave", { forceLocal: true });
+const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } });
+const page = await ctx.newPage();
+page.on("pageerror", (e) => console.error("[pageerror]", String(e).slice(0, 200)));
+await page.goto(BASE, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(1500);
+console.log("tabs:", await page.getByTestId("home-tabs").count());
+console.log("radar btn:", await page.getByTestId("home-tab-radar").count());
+await page.getByTestId("home-tab-radar").click();
+await page.waitForTimeout(800);
+const txt = await page.evaluate(() => document.body.textContent?.slice(0, 400));
+console.log("body:", txt);
+await page.getByTestId("home-tabs").screenshot({ path: "docs/shot/debug-radar.png" });
+await browser.close();
+console.log("done");
