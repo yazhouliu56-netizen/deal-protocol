@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-10 ｜ HEAD：5b07b86（P13 视觉冻结线收官）｜ 摘要：D2 量表立宪（字8档/圆角正典/19色归表+契约入 globals）/D1 纯浅 381 死 dark/D4 敏感用户空白 CSS 兜底/D3 单轨确认零删（dp 现役）+mobile 44 删（PWA 单轨）/D5 走廊 hare 禁入/D6 转场 0.3 单档；基线 **2016/2016**（786+1230，P13 无新增用例）｜ 门禁 tsc 0 + lint 0 errors（全量沿用 P12，P13 changed 全绿）+ build 101 + verify-prod 13/13 + first-principle 沿用 P12（base 未动）+ convergence 0
+>
 > 日期：2026-09-10 ｜ HEAD：927a59f（P12 发版审计收官）｜ 摘要：P11 暗底收敛封账（P11-1 三白卡入壳/P11-2 DuoPill 多态/P11-3 暗hex转palette/P11-4 暗style转palette+2层叠漂移回滚）+ 发版门禁 lint 2 errors 出清；基线 **2016/2016**（786+1230）｜ 门禁 tsc 0 + 全量lint 0 errors（4 warnings 沿用）+ build 101 + verify-prod 13/13 + first-principle ALL PASS + convergence 0（four-ammos/roam 沿用 09-05 基线，本轮未重跑）
 >
 > 日期：2026-09-07 ｜ HEAD：dcbf64e（真机 15/20 收官 + THROTTLED 考卷）｜ 摘要：五池回血复跑 15/20 达标（#02 预期拦截/#03 8s 熔断/回空转 THROTTLED 双锁）；基线 **1984/1984**（763+1221）｜ 门禁 tsc 0 + lint 0 + npm test 全绿 + convergence 0
