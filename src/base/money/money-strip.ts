@@ -22,6 +22,8 @@ export interface MoneyStateInput {
   settled: boolean;
   openDispute: boolean;
   removed: boolean;
+  /** 协商结案金额（原样透出，不解读口径）。 */
+  negotiatedAmountYuan?: number;
 }
 
 export interface MoneyState {
@@ -43,6 +45,9 @@ export function describeMoneyState(input: MoneyStateInput): MoneyState {
   }
   if (input.openDispute) {
     return { phase: "disputed", displayYuan: amount, synced: true, label: `争议冻结 ¥${amount}` };
+  }
+  if (typeof input.negotiatedAmountYuan === "number" && Number.isFinite(input.negotiatedAmountYuan)) {
+    return { phase: "settled", displayYuan: amount, synced: true, label: `协商结算 ¥${amount}·结案金额¥${input.negotiatedAmountYuan}` };
   }
   if (input.settled || input.fiveState === "SETTLED") {
     return { phase: "settled", displayYuan: amount, synced: true, label: `已结算 ¥${amount}` };

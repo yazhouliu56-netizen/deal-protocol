@@ -57,7 +57,7 @@
 - [ ] T7 L1 补完：服务者预览＋评价摘要进组装卡（撮合投影只读，不改排序；蓝图§3 L1 欠账，P1 先欠、P2 还）
 - [ ] T4 意图卡 locked 态收拢为 Panel 头（P1 复用点）
 - [ ] T5 考卷：五态投影全组合快照、缺数标"同步中"、预警误报走廊
-- [x] T6 走廊：静态断言先行（bar/strip/preview 全覆盖）；进行中真机已补（corridor-panel.mjs，真接单态：锁卡头＋干预区＋资金条，docs/shot/p2-panel-live.png）；异常/结算随首个真实订单补（本地双 tab 够不着争议裁决与 72h 窗，摆拍即造假）。
+- [x] T6 走廊：静态断言先行＋真机三图齐（corridor-panel/corridor-dispute，真单态非摆拍：p2-panel-live 进行中 / p2-money-disputed 争议冻结 / p2-money-settled 协商结算）。附带诚实修复：协商结案后资金条误显"托管中"，已加 negotiatedAmountYuan 终局态（金额原样透出，不解读口径）。
 
 ### 2.2 门禁与验收
 
@@ -107,9 +107,9 @@
 | Phase | 新增 | 复用（只读/调用，不改语义） | 退役 |
 |---|---|---|---|
 | P1 | types/intent-card.ts、base/order/intent-card.ts(+test)、components/waves/IntentCard.tsx | TalkPublishSheet（载体）、ammo D2 底价、evidence_log、P15 metrics、Sheet 动线 | DynamicDraftCard（#6 登记） |
-| P2 | FulfillmentPanel 相关 | toAtomicFiveState、escrow/milestone 纯函数、IntentCard locked 态 | 无 |
-| P3 | 磋商桌/副驾组件 | IntentCard 变体、价格均值口径 | 无（旧磋商留言保留） |
-| P4 | 工厂控制台/沙盒 | sentence-to-ammo、ammo registry、IntentCard 确认变体 | 无 |
+| P2 | DemanderInterveneBar、MoneyStrip（base/order/intervene、base/money/money-strip）、IntentCard locked 头＋providerPreview、panel.open/intervene 埋点 | toAtomicFiveState、escrow/milestone 纯函数、closeWave/counterOffer/acceptClaim 真链、AcceptancePanel 争议链 | 无 |
+| P3 | HaggleTable＋HaggleConfirmCard（base/order/haggle）、haggle.sent/conceded 埋点 | IntentCard 变体、NegotiationThread 既有链（按钮保留 e2e 不破） | 无（旧磋商留言保留；副驾 T3 延期：无送达路径/KB） |
+| P4 | admin/factory＋FactoryConsole、ammo/factory-sandbox 考卷、corridor-factory（门禁走廊） | sentence-to-ammo、ammo registry/factory、POST /api/ammo/generate | 无（T3 上架随上线） |
 
 跨 phase 红线：任何 phase 不许改托管金额计算、不许改风控闸语义、不许新增品类硬编码分支。违者该 phase 打回。
 

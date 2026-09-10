@@ -31,3 +31,10 @@ test("成交价优先于预算", () => {
   const s = describeMoneyState({ ...base, claimPriceYuan: 120 });
   assert.equal(s.displayYuan, 120);
 });
+
+test("协商结案：终局态＋金额原样透出", () => {
+  const s = describeMoneyState({ ...base, negotiatedAmountYuan: 60 });
+  assert.equal(s.phase, "settled");
+  assert.match(s.label, /协商结算/);
+  assert.match(s.label, /60/);
+});

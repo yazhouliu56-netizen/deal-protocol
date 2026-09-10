@@ -267,6 +267,10 @@ export default function FulfillmentCenter({
     fulfilment[wave.id]?.fulfilmentStatus === "confirmed";
   const settledFlag = fulfilment[wave.id]?.isSettled === true;
   const openDisputeFlag = disputes.some((d) => d.claimId === activeClaim?.id && !d.outcome);
+  // P2-T6：协商结案金额原样透出（不解读口径）
+  const resolvedDispute = disputes.find((d) => d.claimId === activeClaim?.id && d.outcome);
+  const negotiatedAmount =
+    resolvedDispute?.outcome?.kind === "negotiated" ? resolvedDispute.outcome.agreedAmount : undefined;
 
   // P1 缺陷 1 修复：双拍门禁 —— WATERMARK_CAMERA 弹药（入户类）完工验收前必须
   // 完成 Before/After 双拍存证（红线 4 零信任物理感知）。照片相位沿用动态插槽
@@ -460,6 +464,7 @@ export default function FulfillmentCenter({
         settled={settledFlag}
         openDispute={openDisputeFlag}
         removed={activeWave.removed === true}
+        negotiatedAmountYuan={negotiatedAmount}
       />
 
       {/* P2-T3a 到点行动：师傅报完工 → 显性确认验收（接线既有 handleComplete 真跃迁） */}
