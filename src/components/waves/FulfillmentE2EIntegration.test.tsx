@@ -321,7 +321,9 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
       cta.click();
     });
     expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("reported");
-    expect(container.textContent).toContain("IN_SERVICE");
+    // 收拢 P1：NextAction 人话行（内部态黑话不出屏）
+    expect(container.textContent).toContain("扫码确认完工");
+    expect(container.textContent).not.toContain("IN_SERVICE");
 
     // ② IN_SERVICE → INSPECTED（扫码确认完工 · 双拍已齐 → 放行）
     cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
@@ -329,7 +331,7 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
       cta.click();
     });
     expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("confirmed");
-    expect(container.textContent).toContain("INSPECTED");
+    expect(container.textContent).toContain("确认收款");
 
     // ③ INSPECTED → SETTLED（确认结算）
     cta = container.querySelector('[data-action="complete"]') as HTMLButtonElement;
@@ -369,7 +371,9 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     expect(useWaveStore.getState().fulfilment[wave.id]?.fulfilmentStatus).toBe("reported");
     expect(useWaveStore.getState().fulfilment[wave.id]?.isSettled).toBe(false);
     expect(container.textContent).toContain("请先完成服务前后双拍存证");
-    expect(container.textContent).toContain("IN_SERVICE");
+    // 滞留态 NextAction 仍是人话行
+    expect(container.textContent).toContain("扫码确认完工");
+    expect(container.textContent).not.toContain("IN_SERVICE");
     root.unmount();
     container.remove();
   });

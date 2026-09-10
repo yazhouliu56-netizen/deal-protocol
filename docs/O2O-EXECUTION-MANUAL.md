@@ -120,7 +120,7 @@
 |---|---|---|
 | intent.assembled/confirmed/edit/stale | P1 | 组装→发射漏斗 |
 | panel.open/intervene | P2 | Panel 使用＋干预类型 |
-| haggle.sent/conceded | P3 | 话术档＋让价 |
+| haggle.sent/conceded/polished/declined/rework | P3 | 话术档＋让价＋润色＋婉拒＋回炉（Intervention 度量） |
 | copilot.used | P3 | 副驾功能使用 |
 | factory.generated/sandbox.pass/published/first-order | P4 | 量产漏斗 |
 
