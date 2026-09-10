@@ -49,7 +49,7 @@ export default function MessagesPage({ onGoHome }: { onGoHome: () => void }) {
     <div className="pointer-events-auto">
       <div className="flex items-center gap-2.5 mb-3">
         <div className="w-10 h-10 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] border-b-[4px] shadow-sm flex items-center justify-center shrink-0"><MessageCircle size={17} className="text-[var(--color-duo-blue)]" /></div>
-        <div className="flex-1 min-w-0"><h2 className="text-[17px] font-extrabold text-[var(--color-duo-eel)]">消息</h2><p className="text-xs text-[var(--color-duo-wolf)]">即时通讯 · 48h 隐私号会话中枢（双方号码均不落地）</p></div>
+        <div className="flex-1 min-w-0"><h2 className="text-base font-extrabold text-[var(--color-duo-eel)]">消息</h2><p className="text-xs text-[var(--color-duo-wolf)]">即时通讯 · 48h 隐私号会话中枢（双方号码均不落地）</p></div>
         {unread > 0 && <DuoPill tone="green" variant="solid" className="font-tabular shadow-sm">{unread} 条未读</DuoPill>}
       </div>
       {convos.length === 0 ? (

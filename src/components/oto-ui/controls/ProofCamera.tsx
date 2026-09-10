@@ -351,7 +351,7 @@ export default function ProofCamera({
             variant="ghost"
             size="sm"
             sound="none"
-            className="flex-1 rounded-[14px] text-[13.5px] text-[var(--color-duo-eel)]"
+            className="flex-1 rounded-2xl text-[13px] text-[var(--color-duo-eel)]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={retake}
             data-action="retake"
@@ -363,7 +363,7 @@ export default function ProofCamera({
             variant={isCritical ? "danger" : "primary"}
             size="sm"
             sound="none"
-            className="flex-1 rounded-[14px] text-[13.5px]"
+            className="flex-1 rounded-2xl text-[13px]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={confirm}
             data-action="confirm"
@@ -378,7 +378,7 @@ export default function ProofCamera({
             variant="primary"
             size="sm"
             sound="none"
-            className="flex-1 rounded-[14px] text-[13.5px]"
+            className="flex-1 rounded-2xl text-[13px]"
             style={{ minHeight: CAMERA_BUTTON_MIN_HEIGHT_PX }}
             onClick={triggerCapture}
             disabled={phase === "processing"}

@@ -247,6 +247,13 @@ body {
 
 /* Batch2 单轨归并：Duo 色谱与 3D 触觉工具收归根入口（与 (oto) 同名定义值一致，全路由可用）
    极简多邻国重塑（2026-09-08 §3裁决：官方 design.duolingo.com 对齐，唇色一律同色系加深纯色无模糊） */
+/* ===== P13-D2 视觉量表冻结线（LLM 生成契约 · 宪法收敛：条文 #4） =====
+   字阶（仅允许 8 档；15 仅 DuoButton 内部 T-btn；28 仅 PaySheet 金额 T-display）：
+   10(text-[10px]) 12(text-xs) 13(text-[13px]·正文签名) 14(text-sm) 16(text-base) 18(text-lg) 20(text-xl)
+   圆角：Duo 按钮一律 rounded-2xl（DuoButton 正典）；卡片 rounded-2xl/3xl；shadcn 内部 min(radius-md) 豁免
+   色值：禁止新增 text-/bg-/border-[#hex]；品牌粉 #ff7ab8→pink-400、野墨 #2d3748→slate-700 已归档；
+   功能暗面（地图画布/相机/3D/SVG/图表）与 dp 遗留轨豁免，见提交说明。
+   映射归档：10.5→10 · 12.5→12 · 13.5→13 · 15→16(标题)/15冻(DuoButton) · 17→16 · #9a4d00→amber-800 · #ffdfe0→red-100 · #ffebd1→orange-100 */
 :root {
   --color-duo-green: #58cc02;
   --color-duo-green-dark: #58a700;

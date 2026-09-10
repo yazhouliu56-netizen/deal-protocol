@@ -36,7 +36,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green)]/40 flex items-center justify-center">
           <Check size={22} className="text-[var(--color-duo-green)]" />
         </div>
-        <h2 className="text-[15px] font-extrabold">感谢评价！</h2>
+        <h2 className="text-base font-extrabold">感谢评价！</h2>
         <p className="text-xs text-[var(--color-duo-wolf)]">
           你的反馈会帮助 AI 撮合更准～ 已记录 {rating} 星
         </p>

@@ -195,7 +195,7 @@ export default function WaveCard({
 
       {/* 价格行 */}
       <div className="flex items-baseline gap-2 mt-3">
-        <span className="text-[15px] font-extrabold text-[var(--color-duo-green)]">
+        <span className="text-base font-extrabold text-[var(--color-duo-green)]">
           {isOpen
             ? yuan(perSeatPrice(wave))
             : wave.customs.length

@@ -84,7 +84,7 @@ function HomeTopBar({
         <span className="rounded-full bg-[#8b5cf6] border-b-2 border-[#7c3aed] p-0.5 shrink-0 shadow-sm">
           <IdentityAvatar />
         </span>
-        <p className="text-[15px] text-[#2d3748] font-black flex-1 truncate flex items-center gap-1.5">
+        <p className="text-base text-[#2d3748] font-black flex-1 truncate flex items-center gap-1.5">
           <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-duo-green)] opacity-60" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-duo-green)]" />

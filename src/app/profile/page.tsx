@@ -199,7 +199,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-0.5 shadow-lg shadow-cyan-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-cyan-300">
+                <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center text-cyan-300">
                   <User className="w-8 h-8" />
                 </div>
               </div>

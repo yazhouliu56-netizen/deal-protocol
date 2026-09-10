@@ -308,7 +308,7 @@ export default function ProfilePage({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             {/* P1 第 3 步：名字动态化（登录态=账号昵称，访客态=本地演示身份昵称），根治 Alex 硬编码 */}
-            <span className="text-[15px] font-extrabold text-[var(--color-duo-eel)]">
+            <span className="text-base font-extrabold text-[var(--color-duo-eel)]">
               {authAccount?.nickname ?? identity.nickname}
             </span>
             <BadgeCheck size={14} className="text-[var(--color-duo-blue)]" />

@@ -134,7 +134,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
           <CapybaraBadge mood={mood} onPress={submit} />
           <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[var(--color-duo-polar)] border-l-2 border-b-2 border-[var(--color-duo-swan)]" />
-            <p className="text-[15px] font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
+            <p className="text-base font-black text-[#2d3748] leading-snug">{nickname}，今天想做什么有趣的事？</p>
             <p className="text-xs font-extrabold text-[var(--color-duo-green-ink)] flex items-center gap-1 mt-0.5">
               ✨ AI 撮合助手 · 慢慢说，都有人兜底
             </p>

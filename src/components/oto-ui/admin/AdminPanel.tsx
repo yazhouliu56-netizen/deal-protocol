@@ -93,7 +93,7 @@ export default function AdminPanel({
                 className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-2.5"
               >
                 <p className="text-xs text-[var(--color-duo-hare)]">{it.k}</p>
-                <p className="text-[15px] font-extrabold text-[var(--color-duo-eel)] mt-0.5 flex items-center gap-1">
+                <p className="text-base font-extrabold text-[var(--color-duo-eel)] mt-0.5 flex items-center gap-1">
                   {it.k.includes("举报") || it.k.includes("拦截") ? (
                     <Flag size={11} className="text-[var(--color-duo-yellow-dark)]" />
                   ) : (

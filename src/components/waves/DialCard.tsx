@@ -59,7 +59,7 @@ export default function DialCard({
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-[15px] text-[var(--color-duo-eel)] bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] rounded-xl py-2 px-3 text-center">
+        <span className="flex-1 tracking-[0.12em] font-mono font-bold text-base text-[var(--color-duo-eel)] bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] rounded-xl py-2 px-3 text-center">
           {code}
         </span>
         <DuoButton

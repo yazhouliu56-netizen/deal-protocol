@@ -379,7 +379,7 @@ export default function AuthSheet() {
               <span className="text-[20px]">{account.emoji}</span>
               <div className="min-w-0">
                 <div className="auth-signed-in-name">{account.nickname}</div>
-                <div className="text-[10.5px] text-white/50 mt-px">
+                <div className="text-[10px] text-white/50 mt-px">
                   {ROLE_LABEL[account.role]} · 真实身份
                 </div>
               </div>

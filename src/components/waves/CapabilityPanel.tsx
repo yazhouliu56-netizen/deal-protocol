@@ -85,7 +85,7 @@ export default function CapabilityPanel() {
           🎯
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-[12.5px] font-bold block">能力声明</span>
+          <span className="text-xs font-bold block">能力声明</span>
           <span className="text-xs text-[var(--color-duo-hare)] block mt-0.5 truncate">
             {identity.categories.length} 个品类 · {identity.tags.length} 个标签 ·{" "}
             {identity.distanceKm} km · {identity.online ? "在线" : "隐身"}

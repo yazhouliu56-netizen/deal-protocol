@@ -506,7 +506,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
             <Bot size={17} className="text-[var(--color-duo-blue)]" />
           </div>
           <div className="flex-1">
-            <h2 className="text-[15px] font-extrabold tracking-tight">
+            <h2 className="text-base font-extrabold tracking-tight">
               AI 撮合助手
             </h2>
             <p className="text-xs text-[var(--color-duo-hare)]">
