@@ -551,7 +551,7 @@ export default function FulfillmentCenter({
                 type="button"
                 aria-label="关闭虚拟通话"
                 onClick={() => setDialOpen(false)}
-                className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] text-[13px]"
+                className="text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] text-[13px]"
               >
                 ✕
               </button>

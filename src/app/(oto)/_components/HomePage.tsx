@@ -55,7 +55,7 @@ const AiChatCard = memo(function AiChatCard({
             type="button"
             onClick={onClose}
             aria-label="收起 ↑，关闭AI对话"
-            className="px-3 py-2 min-h-10 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] transition-colors shrink-0"
+            className="px-3 py-2 min-h-10 rounded-full bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] transition-colors shrink-0"
           >
             收起 ↑
           </button>

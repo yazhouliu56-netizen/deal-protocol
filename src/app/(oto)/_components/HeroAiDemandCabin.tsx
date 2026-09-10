@@ -156,7 +156,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             onBlur={() => setFocused(false)}
             placeholder="一句话描述你的需求，比如：周六晚7点天河2人羽毛球AA制…"
             aria-label="一句话描述你的需求"
-            className="flex-1 min-w-0 bg-transparent py-2 text-sm text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-hare)] focus:outline-none"
+            className="flex-1 min-w-0 bg-transparent py-2 text-sm text-[var(--color-duo-eel)] placeholder:text-[var(--color-duo-wolf)] focus:outline-none"
           />
           <DuoButton
             type="button"

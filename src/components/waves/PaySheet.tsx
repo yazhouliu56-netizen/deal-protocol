@@ -63,12 +63,12 @@ export default function PaySheet({
         </div>
 
         <div className="rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] p-4 mb-3 text-center">
-          <p className="text-xs text-[var(--color-duo-hare)] mb-1">{desc ?? "应付金额"}</p>
+          <p className="text-xs text-[var(--color-duo-wolf)] mb-1">{desc ?? "应付金额"}</p>
           <p className="text-[28px] font-extrabold text-[var(--color-duo-green-ink)] leading-none font-tabular">
             ¥{amount}
           </p>
           {fee > 0 && (
-            <p className="text-xs text-[var(--color-duo-hare)] mt-1.5">
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-1.5">
               含发布费 ¥{fee}（超出每日 {FREE_PUBLISH_PER_DAY} 次免费后的固定发布费，一经支付不退） · 单子金额 ¥{amount - fee}
             </p>
           )}
@@ -84,12 +84,12 @@ export default function PaySheet({
           立即支付 ¥{amount}（模拟）
         </DuoButton>
 
-        <div className="flex items-center justify-between mt-3 text-xs text-[var(--color-duo-hare)]">
+        <div className="flex items-center justify-between mt-3 text-xs text-[var(--color-duo-wolf)]">
           <span className="flex items-center gap-1">
             <Lock size={9} /> 随单支付 · 未上线不展示
           </span>
           <span>
-            支付锁定剩余 {mm}:{ss} <span className="text-[var(--color-duo-hare)]">(模拟通道)</span>
+            支付锁定剩余 {mm}:{ss} <span className="text-[var(--color-duo-wolf)]">(模拟通道)</span>
           </span>
         </div>
     </SheetShell>,
