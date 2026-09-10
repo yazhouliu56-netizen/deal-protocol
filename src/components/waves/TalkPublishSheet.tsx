@@ -12,6 +12,14 @@ import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import { recognizeSpeech } from "@/adapters/ai/voice/asrClient";
 import { trackMetric } from "@/lib/track-metric";
+import { speak } from "@/lib/speak";
+import {
+  buildIntentDraftRecord,
+  clearIntentDraft,
+  loadIntentDrafts,
+  saveIntentDraft,
+  type IntentDraftRecord,
+} from "@/lib/intent-drafts";
 import IntentCard from "./IntentCard";
 import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
 import type { IntentCard as IntentCardData } from "@/types/intent-card";
@@ -50,6 +58,11 @@ export function formatDraftLines(d: TalkDraft): string[] {
     `预算：${d.budgetYuan > 0 ? `¥${d.budgetYuan}` : "（待补充）"}`,
     ...(d.note ? [`备注：${d.note}`] : []),
   ];
+}
+
+/** 会话 traceId 生成（事件 handler 内调用，render 期禁用）。 */
+function genTraceId(): string {
+  return `talk-${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
 }
 
 /** 会话草稿 → 意图卡（P1-T4 载体适配，纯函数可单测）。 */
@@ -151,6 +164,17 @@ export default function TalkPublishSheet({
   const [priceTick, setPriceTick] = useState(0);
   const [elder, setElder] = useState(false);
   const pubRef = useRef(false);
+  /** A3：确认态 traceId（幂等键＋审计落盘；handler 内生成，render 期只读 state）。 */
+  const [traceId, setTraceId] = useState("talk-pending");
+  const [draftBox, setDraftBox] = useState<IntentDraftRecord[]>([]);
+
+  // A6：联网横幅——online 事件＋开启时各盘点一次
+  useEffect(() => {
+    const refresh = () => setDraftBox(loadIntentDrafts());
+    refresh();
+    window.addEventListener("online", refresh);
+    return () => window.removeEventListener("online", refresh);
+  }, []);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -293,7 +317,31 @@ export default function TalkPublishSheet({
   function startConfirm() {
     setEdit(draft);
     setFlash(null);
+    setTraceId(genTraceId());
     setConfirming(true);
+  }
+
+  /** A5：只读摘要分享（无操作权限，纯文本）。 */
+  async function shareToChild() {
+    const d = edit ?? draft;
+    const text = `帮我看看这个发单：${d.category || "服务"}｜${d.time || "时间待定"}｜${d.area || "地点待定"}｜预算¥${d.budgetYuan > 0 ? d.budgetYuan : "待定"}${d.note ? `｜备注${d.note}` : ""}（只读，不用操作）`;
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await (navigator as Navigator & { share: (o: { title: string; text: string }) => Promise<void> }).share({
+          title: "帮我看看发单",
+          text,
+        });
+        return;
+      }
+      throw new Error("no-share");
+    } catch {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("已复制发单摘要，发给孩子看", "success");
+      } catch {
+        setError("当前环境不支持分享，请截图发给孩子");
+      }
+    }
   }
 
   async function confirmPublish() {
@@ -307,6 +355,13 @@ export default function TalkPublishSheet({
     pubRef.current = true;
     setError("");
     try {
+      // A6：无网只存不发（配额不扣，幂等键＝traceId）
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        saveIntentDraft(buildIntentDraftRecord(d, traceId));
+        setDraftBox(loadIntentDrafts());
+        toast("已存草稿，联网后回来接着发", "success");
+        return;
+      }
       const birthYear = identity.birthYear;
       const age = birthYear == null ? null : ageFromBirthYear(birthYear, new Date().getFullYear());
       if (age != null && ageGate({ age, action: "publish", guardianConsent: identity.guardianConsent }).blocked) {
@@ -332,6 +387,14 @@ export default function TalkPublishSheet({
         expiresAt: Date.now() + 7_200_000,
         hotness: 2,
         ammoId: resolveAmmoIdForPublish(d.category.trim()),
+        // A3：traceId＋卡快照随单持久化（bizParams 扩展位）
+        bizParams: {
+          intentTrace: {
+            traceId,
+            totalYuan: d.budgetYuan,
+            basis: "quote",
+          },
+        },
       });
       if (out === null) {
         setError("发布被拒：账号已被平台限制，请稍后或申诉");
@@ -348,6 +411,8 @@ export default function TalkPublishSheet({
         return;
       }
       toast(`📡 会话发单成功 · ${d.category.trim()} · ¥${d.budgetYuan}`, "success");
+      // A2：长辈态播报标题＋价格（标准态不播）
+      if (elder) speak(`${d.time.trim()}${d.category.trim()}，${d.budgetYuan}元`);
       try {
         trackMetric("intent.confirmed", 1, { carrier: "talk" });
       } catch {}
@@ -385,6 +450,22 @@ export default function TalkPublishSheet({
         {busy && <p className="text-xs text-[var(--color-duo-hare)]">AI 拼单中…</p>}
       </div>
 
+      {/* A6：联网续发横幅（草稿箱非空时） */}
+      {!confirming && draftBox.length > 0 && (
+        <button
+          onClick={() => {
+            const rec = draftBox[0];
+            setDraft(rec.draft);
+            setEdit(rec.draft);
+            clearIntentDraft(rec.traceId);
+            setDraftBox(loadIntentDrafts());
+            setConfirming(true);
+          }}
+          className="w-full mb-1.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 px-3 py-2 text-xs font-bold text-[var(--color-duo-blue-ink)]"
+        >
+          📥 有 {draftBox.length} 条离线草稿，回来接着发 →
+        </button>
+      )}
       {!confirming ? (
         <>
           <div className="flex gap-1.5">
@@ -448,7 +529,7 @@ export default function TalkPublishSheet({
       ) : (
         <div className="space-y-1.5" data-testid="talk-intent-zone">
           <IntentCard
-            card={talkDraftToIntentCard(edit ?? draft, "talk")}
+            card={talkDraftToIntentCard(edit ?? draft, traceId)}
             mode={elder ? "elder" : "std"}
             flashText={flash}
             priceTick={priceTick}
@@ -460,8 +541,12 @@ export default function TalkPublishSheet({
             <button onClick={() => setElder((e) => !e)} aria-label="切换长辈模式" className="flex-1 text-xs text-[var(--color-duo-hare)]">
               {elder ? "标准模式" : "👴 长辈模式"}
             </button>
+            {/* A5：子女分享键（只读摘要，无操作权限） */}
+            <button onClick={() => void shareToChild()} aria-label="让孩子帮我看看" className="flex-1 text-xs text-[var(--color-duo-hare)]">
+              👪 让孩子帮我看看
+            </button>
             <button onClick={() => setConfirming(false)} className="flex-1 text-xs text-[var(--color-duo-hare)]">
-              ← 回会话继续说
+              ← 回会话
             </button>
           </div>
           {publishing && <p className="text-xs text-[var(--color-duo-hare)]">发布中…</p>}
