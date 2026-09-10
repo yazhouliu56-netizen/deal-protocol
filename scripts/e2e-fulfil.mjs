@@ -125,9 +125,18 @@ try {
   await pageB.waitForTimeout(800);
   await waitUntil(
     pageB,
-    () => document.body.textContent?.includes("谁正在附近发需求"),
+    () => !!document.querySelector('[data-testid="home-tabs"]'),
     20000,
     "B 首页挂载"
+  );
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  // 先等 feed 挂载（store rehydrate 竞态：内容断言前先等 feed 头）
+  await waitUntil(
+    pageB,
+    () => document.body.textContent?.includes("谁正在附近发需求"),
+    20000,
+    "B 雷达 feed 挂载"
   );
   await waitUntil(
     pageB,

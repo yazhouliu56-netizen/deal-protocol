@@ -126,7 +126,12 @@ await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.waitForTimeout(400);
   // 首页重设计：一屏一职，广播流在雷达段
   await pageB.getByTestId("home-tab-radar").click();
-  await pageB.waitForTimeout(400);
+  await waitUntil(
+    pageB,
+    () => document.body.textContent?.includes("谁正在附近发需求"),
+    20000,
+    "B 雷达 feed 挂载"
+  );
   await waitUntil(
     pageB,
     () =>
