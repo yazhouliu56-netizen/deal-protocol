@@ -53,13 +53,15 @@ export default function IntentCard({
     }
   }, [card.state]);
 
-  // stagger 点亮＋8s 兜底全显
+  // stagger 点亮＋8s 兜底全显（render 期同步重置，替代 setState-in-effect， house 体例见 PublishSheet）
+  const revealKey = `${card.id}:${card.state}`;
+  const [lastRevealKey, setLastRevealKey] = useState(revealKey);
+  if (revealKey !== lastRevealKey) {
+    setLastRevealKey(revealKey);
+    setRevealed(card.state === "assembling" ? 0 : totalRows);
+  }
   useEffect(() => {
-    if (card.state !== "assembling") {
-      setRevealed(totalRows);
-      return;
-    }
-    setRevealed(0);
+    if (card.state !== "assembling") return;
     const step = window.setInterval(() => {
       setRevealed((r) => (r >= totalRows ? r : r + 1));
     }, REVEAL_MS);
@@ -70,10 +72,14 @@ export default function IntentCard({
     };
   }, [card.state, card.id, totalRows]);
 
-  // 价格重算 1s 内发射冻结
+  // 价格重算 1s 内发射冻结（冻结置位 render 期同步，解冻走定时器）
+  const [lastTick, setLastTick] = useState(0);
+  if (priceTick !== lastTick) {
+    setLastTick(priceTick);
+    if (priceTick !== 0) setFrozen(true);
+  }
   useEffect(() => {
     if (priceTick === 0) return;
-    setFrozen(true);
     const t = window.setTimeout(() => setFrozen(false), PRICE_FREEZE_MS);
     return () => window.clearTimeout(t);
   }, [priceTick]);

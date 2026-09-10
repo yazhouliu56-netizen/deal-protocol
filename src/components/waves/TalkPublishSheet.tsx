@@ -62,7 +62,7 @@ export function talkDraftToIntentCard(d: TalkDraft, id: string, now = Date.now()
       { key: "category", label: "品类", value: d.category, source: "user", editable: true },
       { key: "time", label: "时间", value: d.time, source: "user", editable: true },
       { key: "area", label: "地点", value: d.area, source: "user", editable: true },
-      { key: "budget", label: "预算", value: d.budgetYuan > 0 ? String(d.budgetYuan) : "", source: "user", editable: true },
+      { key: "budget", label: "预算", value: d.budgetYuan > 0 ? `¥${d.budgetYuan}` : "", source: "user", editable: true },
       ...(d.note
         ? [{ key: "note", label: "备注", value: d.note, source: "ai" as const, confidence: 0.7, editable: true as const }]
         : []),
@@ -149,6 +149,7 @@ export default function TalkPublishSheet({
   const [edit, setEdit] = useState<TalkDraft | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [priceTick, setPriceTick] = useState(0);
+  const [elder, setElder] = useState(false);
   const pubRef = useRef(false);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -448,15 +449,21 @@ export default function TalkPublishSheet({
         <div className="space-y-1.5" data-testid="talk-intent-zone">
           <IntentCard
             card={talkDraftToIntentCard(edit ?? draft, "talk")}
+            mode={elder ? "elder" : "std"}
             flashText={flash}
             priceTick={priceTick}
             onEditLine={handleCardEdit}
             onRelaunch={() => setConfirming(false)}
             onLaunch={() => void confirmPublish()}
           />
-          <button onClick={() => setConfirming(false)} className="w-full text-xs text-[var(--color-duo-hare)]">
-            ← 回会话继续说
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setElder((e) => !e)} aria-label="切换长辈模式" className="flex-1 text-xs text-[var(--color-duo-hare)]">
+              {elder ? "标准模式" : "👴 长辈模式"}
+            </button>
+            <button onClick={() => setConfirming(false)} className="flex-1 text-xs text-[var(--color-duo-hare)]">
+              ← 回会话继续说
+            </button>
+          </div>
           {publishing && <p className="text-xs text-[var(--color-duo-hare)]">发布中…</p>}
         </div>
       )}

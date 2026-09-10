@@ -269,7 +269,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
         { key: "category", label: "品类", value: category.trim(), source: "user", editable: true },
         { key: "time", label: "时间", value: time.trim(), source: "user", editable: true },
         { key: "area", label: "地点", value: area.trim(), source: "user", editable: true },
-        { key: "budget", label: "预算", value: budgetNum > 0 ? String(budgetNum) : "", source: "user", editable: true },
+        { key: "budget", label: "预算", value: budgetNum > 0 ? `¥${budgetNum}` : "", source: "user", editable: true },
         ...(note.trim()
           ? [{ key: "note", label: "备注", value: note.trim(), source: "user" as const, editable: true as const }]
           : []),
