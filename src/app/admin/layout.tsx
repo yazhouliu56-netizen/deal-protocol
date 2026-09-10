@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
-  LayoutDashboard, FileText, ShieldAlert, Scale, Settings, Gavel, Award, Wallet, Menu, X,
+  LayoutDashboard, FileText, ShieldAlert, Scale, Settings, Gavel, Award, Wallet, Menu, X, Factory,
 } from "lucide-react"
 
 const NAV_ITEMS = [
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: "/admin/review", label: "审核评价", icon: Gavel },
   { href: "/admin/reputation", label: "信誉体系", icon: Award },
   { href: "/admin/withdrawals", label: "提现审核", icon: Wallet },
+  { href: "/admin/factory", label: "工厂开品类", icon: Factory },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

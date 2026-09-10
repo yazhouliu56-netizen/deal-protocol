@@ -12,7 +12,7 @@
 | LiveOrderPanel 活订单 | 履约时间线＋干预区 | 拆分为 DemanderInterveneBar（干预真 mutation）＋MoneyStrip（资金纯投影）＋FulfillmentCockpit（既有时间线/座舱） | L2 | ➖ 不单独立卡，三件套组合即 Panel |
 | HaggleCard 磋商卡 | 三档话术＋改价双方确认 | HaggleOption/claimToHaggleCard（base/order/haggle.ts） | L3 | ✅ 三档一键＋超均值警示＋确认卡（仅改价）；发送人点真链 |
 | VerdictCard 仲裁摘要 | stance/rationale/confidence＋拍板 | 待定（L4 触发时定义） | L4 | ⏳ L4 登记 |
-| FactoryCard 开品类确认 | 生成品类确认＋试单报告 | 待定（P4 定义） | L6 | ⏳ P4 登记 |
+| FactoryCard 开品类确认 | 生成品类确认＋试运行 | POST /api/ammo/generate 结果（holographic 只读投影） | L6 | ✅ 品类卡五要素＋试运行 badge（PriceAnchor 不适用，卡语言同构） |
 
 ## 准入三问（新卡登记时回答）
 
