@@ -364,12 +364,12 @@ export default function DynamicAmmoSlot({
         <div data-testid="dyn-proof-status">
           {twinVerified ? (
             twinCritical ? (
-              <span style={{ fontSize: 12, color: "#fca5a5", fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
+              <span className="text-red-300" style={{ fontSize: 12, fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
             ) : (
               <span className="dyn-verified">✅ 双拍验真已通过（水印相机存证 + 🔬 {beforeResult && afterResult ? `${Math.round(((beforeResult.forgeryReport.overallConfidence + afterResult.forgeryReport.overallConfidence)/2)*100)}%` : ""} 鉴真）</span>
             )
           ) : (
-            <span style={{ fontSize: 12, color: "#cbd5e1" }}>
+            <span className="text-slate-300" style={{ fontSize: 12 }}>
               ⚠️ 完成 Before/After 双拍后按弹药契约核销（红线 4 零信任物理感知）
             </span>
           )}
@@ -410,8 +410,8 @@ export default function DynamicAmmoSlot({
         <div className="dyn-proof-modal" data-testid="dyn-proof-modal" onClick={() => setCapturing(null)}>
           <div className="dyn-proof-sheet" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <strong style={{ fontSize: 13, color: "#e2e8f0" }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
-              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} style={{ color: "#94a3b8", background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
+              <strong className="text-slate-200" style={{ fontSize: 13 }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
+              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="text-slate-400" style={{ background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
             </div>
             <ProofCamera
               orderNo={captureNo ?? `dyn-${capturing}`}

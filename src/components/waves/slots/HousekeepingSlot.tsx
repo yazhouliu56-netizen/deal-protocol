@@ -200,7 +200,7 @@ export default function HousekeepingSlot({
           </div>
           <div className="hk-quote-btns">
             {quote.confirmed ? (
-              <span style={{ color: "#4ade80", fontSize: 12 }}>已确认 ✓</span>
+              <span className="text-green-400" style={{ fontSize: 12 }}>已确认 ✓</span>
             ) : (
               <>
                 <button type="button" className="hk-btn hk-btn-accept" onClick={onAcceptQuote}>
@@ -254,10 +254,10 @@ export default function HousekeepingSlot({
           )}
         </div>
       </section>
-      <div style={{ fontSize: 12, color: "#cbd5e1" }} data-testid="hk-proof-status">
+      <div className="text-slate-300" style={{ fontSize: 12 }} data-testid="hk-proof-status">
         {twinVerified ? (
           twinCritical ? (
-            <span style={{ color: "#fca5a5", fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
+            <span className="text-red-300" style={{ fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
           ) : (
             <span className="hk-verified">✅ 双拍验真已通过（水印相机存证 + 🔬 鉴真）</span>
           )
@@ -282,8 +282,8 @@ export default function HousekeepingSlot({
         <div className="hk-proof-modal" data-testid="hk-proof-modal" onClick={() => setCapturing(null)}>
           <div className="hk-proof-sheet" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <strong style={{ fontSize: 13, color: "#e2e8f0" }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
-              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} style={{ color: "#94a3b8", background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
+              <strong className="text-slate-200" style={{ fontSize: 13 }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
+              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="text-slate-400" style={{ background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
             </div>
             <ProofCamera
               orderNo={captureNo ?? `hk-${capturing}`}

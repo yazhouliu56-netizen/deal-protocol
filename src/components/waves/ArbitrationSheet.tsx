@@ -443,7 +443,7 @@ export default function ArbitrationSheet({
                 <div key={i} className="arb-photo" data-testid="evidence-photo">
                   <div className="arb-photo-thumb">🖼️</div>
                   <div>
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>完工照片 {i + 1} · 哈希锚点</div>
+                    <div className="text-slate-400" style={{ fontSize: 11 }}>完工照片 {i + 1} · 哈希锚点</div>
                     <div className="arb-photo-ai">🤖 AI 视觉标注：{p.aiNote}</div>
                     {p.forgeryReport ? (
                       <div data-testid="photo-forgery">
@@ -461,7 +461,7 @@ export default function ArbitrationSheet({
                           {FORGERY_RISK_META[p.forgeryReport.riskLevel].label}
                         </span>
                         {p.forgeryReport.tamperFlags.length > 0 && (
-                          <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 4 }}>
+                          <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 4 }}>
                             疑点标签：{p.forgeryReport.tamperFlags.join("、")}
                           </div>
                         )}
@@ -503,7 +503,7 @@ export default function ArbitrationSheet({
                 <span className="arb-ai-badge">🔐 SHA-256 审计证书 · 司法级</span>
                 <div className="arb-ai-row">
                   <span>存证链校验</span>
-                  <strong style={{ color: certificate.hashChain.chainValid ? "#4ade80" : "#f87171" }}>
+                  <strong className={certificate.hashChain.chainValid ? "text-green-400" : "text-red-400"}>
                     {certificate.hashChain.chainValid ? "链完整 · 未被篡改" : "链断裂 · 需人工复核"}
                   </strong>
                 </div>
@@ -560,7 +560,7 @@ export default function ArbitrationSheet({
           </section>
         ) : isLevel1 ? (
           <section className="arb-ai-card" data-testid="instant-compensate-card" style={{ borderColor: "rgba(74,222,128,.4)", background: "linear-gradient(135deg,rgba(74,222,128,.12),rgba(16,185,129,.04))" }}>
-            <span className="arb-ai-badge text-green-400">⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
+            <span className="arb-ai-badge" style={{ color: "#4ade80" }}>⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
             <div className="arb-ai-row">
               <span>争议金额</span>
               <span className="arb-ai-refund" style={{ color: "#4ade80" }} data-testid="instant-amount">
@@ -578,12 +578,12 @@ export default function ArbitrationSheet({
           </section>
         ) : (
           <section className="arb-ai-card" data-testid="legal-direct-card" style={{ borderColor: "rgba(248,113,113,.5)", background: "linear-gradient(135deg,rgba(248,113,113,.14),rgba(127,29,29,.05))" }}>
-            <span className="arb-ai-badge text-red-300">⚖️ 法务专家组接管 · 线上调解已切断</span>
+            <span className="arb-ai-badge" style={{ color: "#fca5a5" }}>⚖️ 法务专家组接管 · 线上调解已切断</span>
             <div className="arb-law-card" data-testid="legal-connect-card">
               <span className="arb-law-pulse" />
               <div>
                 <strong>紧急连线安全法务组</strong>
-                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 2 }}>
+                <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 2 }}>
                   法务专家在线值班中 · 平均响应 &lt; 5 分钟
                 </div>
               </div>
@@ -592,7 +592,7 @@ export default function ArbitrationSheet({
               <span style={{ flexShrink: 0 }}>🛡️</span>
               <div>
                 <strong>联动保险公司现场勘查</strong>
-                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 2 }}>
+                <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 2 }}>
                   定损理赔通道已预置 · 勘查员调度中
                 </div>
               </div>

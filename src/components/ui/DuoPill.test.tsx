@@ -56,7 +56,7 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
     const cls = (host.firstElementChild as HTMLElement).className;
     expect(cls).toContain("backdrop-blur");
     expect(cls).toContain("239,68,68");
-    expect(cls).toContain("#fecaca");
+    expect(cls).toContain("text-red-200");
     unmount();
   });
 
