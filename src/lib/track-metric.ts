@@ -22,6 +22,8 @@ export const METRIC_NAMES = [
   'intent.confirmed',
   'intent.edit',
   'intent.stale',
+  'panel.open',
+  'panel.intervene',
 ] as const;
 
 export type MetricName = (typeof METRIC_NAMES)[number];

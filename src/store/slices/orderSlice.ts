@@ -247,6 +247,10 @@ export interface OrderSlice {
   removeGuest: (claimId: string, guestIdx: number) => void;
   /** Entire wave = lock negotiation / close manually. */
   closeWave: (waveId: string) => void;
+  /** P2-T1 需求方干预：改期（调用方以 canReschedule＋sanitizeNewTime 守卫）。 */
+  rescheduleWave: (waveId: string, time: string) => void;
+  /** P2-T1 需求方干预：加项（调用方以 canAddItem＋sanitizeNewCustom 守卫，tags 置空仅展示）。 */
+  addWaveCustom: (waveId: string, text: string) => void;
   /** 关注/取消关注一个局（雷达心愿单，幂等 toggle）。 */
   toggleFavorite: (waveId: string) => void;
 }
@@ -1150,6 +1154,18 @@ export const createOrderSlice: StateCreator<WaveStore, [], [], OrderSlice> = (
         privacySessions: revokeSession(s.privacySessions, waveId, Date.now()),
       };
     }),
+
+  rescheduleWave: (waveId, time) =>
+    set((s) => ({
+      waves: s.waves.map((w) => (w.id === waveId ? { ...w, basics: { ...w.basics, time } } : w)),
+    })),
+
+  addWaveCustom: (waveId, text) =>
+    set((s) => ({
+      waves: s.waves.map((w) =>
+        w.id === waveId ? { ...w, customs: [...w.customs, { text, tags: [] }] } : w
+      ),
+    })),
 
   toggleFavorite: (waveId) =>
     set((s) => ({

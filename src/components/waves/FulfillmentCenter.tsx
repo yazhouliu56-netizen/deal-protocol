@@ -14,6 +14,7 @@ import {
   stopAudioVault,
 } from "@/adapters/device/audio-recorder";
 import FulfillmentCockpit from "./FulfillmentCockpit";
+import DemanderInterveneBar from "./DemanderInterveneBar";
 import {
   hasCockpitModule,
   resolveCockpitScenario,
@@ -392,6 +393,15 @@ export default function FulfillmentCenter({
           ⚖️ 有争议 · 申诉
         </button>
       </div>
+
+      {/* P2-T1 需求方干预区（改期/加项/无责撤回，真 mutation，无假按钮） */}
+      <DemanderInterveneBar
+        waveId={activeWave.id}
+        fiveState={currentState}
+        createdAt={activeWave.createdAt}
+        currentTime={activeWave.basics.time}
+        existingCustoms={activeWave.customs.map((c) => c.text)}
+      />
 
       <FulfillmentCockpit
         status={state}

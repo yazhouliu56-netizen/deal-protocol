@@ -17,6 +17,7 @@
 | L4 仲裁 | 随真实纠纷单长出，不预排期 | — | T2 | 48h 结案率 | 真实纠纷触发器 |
 
 铁律：上一个 phase 的北极星不达标（见各 phase §），下一 phase 不开工——数是裁判。
+（2026-09-10 修订：停工太贵。改判为「施工先行、上线等数」——与数据无关的构造（纯展示/纯函数/目录文档）可提前开工；调参与上线验收仍等北极星。修订人：实测节奏。）
 
 ---
 
@@ -171,4 +172,5 @@
 - [ ] C1 记忆口：`rememberEdit(lineKey, value)`——用户改 AI 行即写画像偏好（偏好键白名单：时间偏好/价格敏感/备注习惯）；考卷：改一次下次同场景默认命中
 - [ ] C2 脑 why 规范：所有"它怎么知道的"时刻配一句"根据你…"＋[不对，改]（改即 C1 回写）；走廊不断言、只截图抽查
 - [ ] C3 AI Elements 评估（蓝图§10）：`ai-elements` 原子组件（message/reasoning/approval）能否替换自研聊天气泡/审批钮；输出半页结论（用/不用＋理由），不用则关闭本项
+  - **结论（2026-09-10，已关闭）：不用，引包。** 实测其注册表（Chatbot：Conversation/Message/Reasoning/Tool/Task/Plan/Confirmation/PromptInput/Suggestion/Sources；Voice：SpeechInput/Transcription；Workflow/Canvas 等，shadcn 底座＋AI SDK 流式集成）。四条理由：① 非 shadcn 栈——duo 主题（6px 厚边/圆角/吉祥物）与 shadcn token 冲突，包进来每个原子都要重套皮，改造成本＞自研；② 语音链已有（asrClient＋GLM/WebSpeech 降级），替换零收益；③ 意图卡等领域卡（锁价/不可逆/发射）通用原子表达不了；④ 唯一值得拿的是 Task/Plan/Reasoning 的 activity 表达范式——抄思想（P2 Panel 时间线照此理），不引包。重估点：P4 工厂控制台（后台味重品牌弱）开工前再看一眼。
 - [ ] C4 门禁：T1，考卷过即合入
