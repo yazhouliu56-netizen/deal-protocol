@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import TalkPublishSheet, { formatDraftLines, mapPublishRejection } from "./TalkPublishSheet";
+import TalkPublishSheet, { formatDraftLines, mapPublishRejection, talkDraftToIntentCard } from "./TalkPublishSheet";
 import { emptyDraft } from "@/base/order/publish-draft";
 
 describe("formatDraftLines", () => {
@@ -25,6 +25,21 @@ describe("mapPublishRejection", () => {
     expect(mapPublishRejection({ blocked: "sentinel" })).toContain("反欺诈");
     expect(mapPublishRejection({ removed: true })).toContain("违禁词");
     expect(mapPublishRejection({})).toBeNull();
+  });
+});
+
+describe("talkDraftToIntentCard", () => {
+  it("草稿→意图卡：行/价格/不可逆齐备", () => {
+    const card = talkDraftToIntentCard(
+      { category: "保洁", time: "明天", area: "幸福家园", budgetYuan: 150, note: "带工具" },
+      "x",
+      1000,
+    );
+    expect(card.state).toBe("ready");
+    expect(card.lines).toHaveLength(5);
+    expect(card.price.totalYuan).toBe(150);
+    expect(card.expiresAt).toBe(1000 + 15 * 60_000);
+    expect(card.aiMarks).toHaveLength(1);
   });
 });
 

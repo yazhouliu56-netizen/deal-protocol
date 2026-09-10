@@ -11,6 +11,9 @@ import { FREE_PUBLISH_PER_DAY, PUBLISH_FEE } from "@/base/money/pay";
 import { ageFromBirthYear, ageGate } from "@/base/safe/ageGate";
 import { toast } from "@/base/platform/toast";
 import { recognizeSpeech } from "@/adapters/ai/voice/asrClient";
+import IntentCard from "./IntentCard";
+import { INTENT_READY_TTL_MS } from "@/base/order/intent-card";
+import type { IntentCard as IntentCardData } from "@/types/intent-card";
 import {
   emptyDraft,
   type TalkDraft,
@@ -46,6 +49,36 @@ export function formatDraftLines(d: TalkDraft): string[] {
     `预算：${d.budgetYuan > 0 ? `¥${d.budgetYuan}` : "（待补充）"}`,
     ...(d.note ? [`备注：${d.note}`] : []),
   ];
+}
+
+/** 会话草稿 → 意图卡（P1-T4 载体适配，纯函数可单测）。 */
+export function talkDraftToIntentCard(d: TalkDraft, id: string, now = Date.now()): IntentCardData {
+  return {
+    id,
+    scene: { ammoId: "talk", version: 0 },
+    title: `${d.time || "尽快"}·${d.category || "服务需求"}`,
+    lines: [
+      { key: "category", label: "品类", value: d.category, source: "user", editable: true },
+      { key: "time", label: "时间", value: d.time, source: "user", editable: true },
+      { key: "area", label: "地点", value: d.area, source: "user", editable: true },
+      { key: "budget", label: "预算", value: d.budgetYuan > 0 ? String(d.budgetYuan) : "", source: "user", editable: true },
+      ...(d.note
+        ? [{ key: "note", label: "备注", value: d.note, source: "ai" as const, confidence: 0.7, editable: true as const }]
+        : []),
+    ],
+    price: {
+      totalYuan: Math.max(1, d.budgetYuan),
+      basis: "quote",
+      changeRule: "现场加项需你点确认才加钱",
+      refundRule: "师傅未上门全额退",
+    },
+    assurance: [{ key: "lock", label: "锁价" }],
+    irreversible: ["确认发射后即进入派单，师傅接单后取消按规则扣款"],
+    aiMarks: d.note ? [{ lineKey: "note", level: "mid" as const, reason: "会话描述整理" }] : [],
+    state: "ready",
+    expiresAt: now + INTENT_READY_TTL_MS,
+    traceId: `intent-talk-${id}`,
+  };
 }
 
 /** 发射拒绝映射（与 ChatPage handleConvertToWave 同语义）。 */
@@ -113,6 +146,9 @@ export default function TalkPublishSheet({
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
   const [edit, setEdit] = useState<TalkDraft | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+  const [priceTick, setPriceTick] = useState(0);
+  const pubRef = useRef(false);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -151,6 +187,7 @@ export default function TalkPublishSheet({
     const t = input.trim();
     if (!t || busy) return;
     setInput("");
+    setFlash(null);
     setMsgs((m) => [...m, { role: "user", text: t }]);
     void interpret(t, []);
   }
@@ -215,18 +252,42 @@ export default function TalkPublishSheet({
     }
   }
 
+  function handleCardEdit(key: string, value: string) {
+    if (key === "budget") {
+      const n = parseInt(value.replace(/[^\d]/g, ""), 10);
+      const v = Number.isFinite(n) ? n : 0;
+      setEdit((p) => {
+        const prev = p ?? draft;
+        if (v > 0 && prev.budgetYuan > 0 && v !== prev.budgetYuan) {
+          setFlash(`¥${prev.budgetYuan}→¥${v}`);
+          setPriceTick((t) => t + 1);
+        }
+        return { ...prev, budgetYuan: v };
+      });
+      return;
+    }
+    if (key === "note") {
+      setEdit((p) => ({ ...(p ?? draft), note: value }));
+      return;
+    }
+    setEdit((p) => ({ ...(p ?? draft), [key]: value }));
+  }
+
   function startConfirm() {
     setEdit(draft);
+    setFlash(null);
     setConfirming(true);
   }
 
   async function confirmPublish() {
+    if (pubRef.current) return;
     const d = edit ?? draft;
     if (!d.category.trim() || !d.time.trim() || !d.area.trim() || d.budgetYuan <= 0) {
       setError("品类、时间、地点、预算请补齐再发布");
       return;
     }
     setPublishing(true);
+    pubRef.current = true;
     setError("");
     try {
       const birthYear = identity.birthYear;
@@ -273,6 +334,7 @@ export default function TalkPublishSheet({
       onClose();
     } finally {
       setPublishing(false);
+      pubRef.current = false;
     }
   }
 
@@ -364,42 +426,19 @@ export default function TalkPublishSheet({
           </button>
         </>
       ) : (
-        <div className="space-y-1.5">
-          {(["category", "time", "area"] as const).map((k) => (
-            <input
-              key={k}
-              value={edit?.[k] ?? ""}
-              onChange={(e) => setEdit((p) => ({ ...(p ?? draft), [k]: e.target.value }))}
-              aria-label={`确认${k}`}
-              className="w-full rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] px-3 py-2 text-xs text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
-            />
-          ))}
-          <input
-            value={edit && edit.budgetYuan > 0 ? String(edit.budgetYuan) : ""}
-            onChange={(e) => {
-              const n = parseInt(e.target.value.replace(/[^\d]/g, ""), 10);
-              setEdit((p) => ({ ...(p ?? draft), budgetYuan: Number.isFinite(n) ? n : 0 }));
-            }}
-            inputMode="numeric"
-            placeholder="预算 ¥"
-            aria-label="确认预算"
-            className="w-full rounded-2xl bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] px-3 py-2 text-xs text-[var(--color-duo-eel)] outline-none focus:border-[var(--color-duo-blue)]"
+        <div className="space-y-1.5" data-testid="talk-intent-zone">
+          <IntentCard
+            card={talkDraftToIntentCard(edit ?? draft, "talk")}
+            flashText={flash}
+            priceTick={priceTick}
+            onEditLine={handleCardEdit}
+            onRelaunch={() => setConfirming(false)}
+            onLaunch={() => void confirmPublish()}
           />
-          <div className="flex gap-2">
-            <DuoButton variant="outline" size="sm" className="flex-1" onClick={() => setConfirming(false)}>
-              ← 回去改
-            </DuoButton>
-            <DuoButton
-              variant="primary"
-              size="sm"
-              sound="correct"
-              className="flex-1"
-              disabled={publishing}
-              onClick={() => void confirmPublish()}
-            >
-              {publishing ? "发布中…" : "确认发布"}
-            </DuoButton>
-          </div>
+          <button onClick={() => setConfirming(false)} className="w-full text-xs text-[var(--color-duo-hare)]">
+            ← 回会话继续说
+          </button>
+          {publishing && <p className="text-xs text-[var(--color-duo-hare)]">发布中…</p>}
         </div>
       )}
       {error && (
