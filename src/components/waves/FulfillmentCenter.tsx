@@ -17,6 +17,7 @@ import FulfillmentCockpit from "./FulfillmentCockpit";
 import DemanderInterveneBar from "./DemanderInterveneBar";
 import MoneyStrip from "./MoneyStrip";
 import IntentCard from "./IntentCard";
+import CopilotReplies from "./CopilotReplies";
 import { needsAcceptReminder } from "@/base/order/intervene";
 import {
   hasCockpitModule,
@@ -478,6 +479,9 @@ export default function FulfillmentCenter({
           ✅ 师傅已说完工 → 去验收
         </button>
       )}
+
+      {/* P3-T3 副驾切片：快捷回复（复制版，无送达通道不设发送键） */}
+      <CopilotReplies />
 
       <FulfillmentCockpit
         status={state}

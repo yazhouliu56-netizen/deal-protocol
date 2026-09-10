@@ -28,6 +28,7 @@ export const METRIC_NAMES = [
   'haggle.conceded',
   'factory.generated',
   'factory.sandbox.pass',
+  'copilot.used',
 ] as const;
 
 export type MetricName = (typeof METRIC_NAMES)[number];
