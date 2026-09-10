@@ -58,12 +58,12 @@ export default function DashboardClient() {
       </div>
 
       {anomalies.length > 0 && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/50">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
           <h2 className="text-red-600 font-bold mb-4">⚠️ 异常滞留工单 (2小时未更新)</h2>
           <div className="space-y-3">
             {anomalies.map((item) => (
-              <div key={item.id as string} className="flex justify-between items-center text-sm p-4 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/50">
-                <span className="font-mono text-zinc-600 dark:text-zinc-400">ID: {(item.id as string).slice(0, 8)}...</span>
+              <div key={item.id as string} className="flex justify-between items-center text-sm p-4 bg-red-50 rounded-xl border border-red-100">
+                <span className="font-mono text-zinc-600">ID: {(item.id as string).slice(0, 8)}...</span>
                 <span className="text-zinc-400">最后更新: {new Date(item.updated_at as string).toLocaleTimeString()}</span>
               </div>
             ))}
@@ -76,7 +76,7 @@ export default function DashboardClient() {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-100">
       <p className="text-zinc-400 text-sm font-medium">{label}</p>
       <p className={`text-5xl font-black ${color} mt-2`}>{value}</p>
     </div>

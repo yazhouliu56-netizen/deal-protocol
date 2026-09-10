@@ -173,7 +173,7 @@ export default function OrderFulfillmentClient({
   }, [demand.id])
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24 text-zinc-900 dark:text-zinc-100 select-none">
+    <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900 select-none">
       <header className="bg-zinc-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow">
         <span className="text-sm font-medium">工单 ID: {demand.id.slice(0, 8)}...</span>
         <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
@@ -182,13 +182,13 @@ export default function OrderFulfillmentClient({
       </header>
 
       <div className="max-w-md mx-auto p-4 space-y-4">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm text-center">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm text-center">
           <p className="text-xs text-zinc-400 mb-1">应收服务费</p>
-          <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-3">￥{demand.price}</p>
+          <p className="text-3xl font-black text-emerald-600 mb-3">￥{demand.price}</p>
           <h2 className="text-base font-bold">{demand.title}</h2>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">联系人与地址信息</h3>
           <div className="text-sm space-y-2">
             <p><span className="text-zinc-400">客户姓名：</span>{demand.client_name || "张先生 (系统脱敏)"}</p>
@@ -202,27 +202,27 @@ export default function OrderFulfillmentClient({
           <div className="grid grid-cols-3 gap-3 pt-2">
             <a
               href={`tel:${demand.client_phone || "13800000000"}`}
-              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 active:scale-95 transition-transform"
+              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 hover:bg-zinc-100 active:scale-95 transition-transform"
             >
               拨打电话
             </a>
             <button
               onClick={() => alert(`唤起导航至: [${demand.latitude}, ${demand.longitude}]`)}
-              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 active:scale-95 transition-transform"
+              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 hover:bg-zinc-100 active:scale-95 transition-transform"
             >
               开启导航
             </button>
             <span
               title="在线聊天即将上线，当前请电话联系"
               aria-disabled="true"
-              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 py-3 rounded-xl text-xs font-medium bg-zinc-50 text-zinc-400 dark:bg-zinc-950 dark:text-zinc-600 cursor-not-allowed"
+              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 text-zinc-400 cursor-not-allowed"
             >
               发起聊天（即将上线）
             </span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">履约进度条</h3>
           <div className="flex justify-between items-center text-xs relative">
             {Object.keys(STATUS_MAP).map((statusKey, index) => {
@@ -230,7 +230,7 @@ export default function OrderFulfillmentClient({
               const isPastOrCurrent = index <= currentStatusIndex
               return (
                 <div key={statusKey} className="flex flex-col items-center z-10 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-white" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-400"}`}>
                     {index + 1}
                   </div>
                   <span className="mt-1 text-xs scale-90">{STATUS_MAP[statusKey as keyof typeof STATUS_MAP].label}</span>
@@ -241,7 +241,7 @@ export default function OrderFulfillmentClient({
         </div>
 
         {(demand.status === "STARTED" || demand.status === "COMPLETED") && (
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
             <div className="flex justify-between items-center">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 完工施工凭证 <span className="text-red-500">(必填, 至少2张)</span>
@@ -251,7 +251,7 @@ export default function OrderFulfillmentClient({
 
             <div className="grid grid-cols-3 gap-2">
               {uploadedImages.map((url, i) => (
-                <div key={i} className="aspect-square relative rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
+                <div key={i} className="aspect-square relative rounded-xl overflow-hidden border border-zinc-100">
                   <Image src={url} alt="完工凭证" width={400} height={400} className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -260,7 +260,7 @@ export default function OrderFulfillmentClient({
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="touch-target aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-950 active:scale-95 transition-transform disabled:opacity-50"
+                  className="touch-target aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl hover:bg-zinc-50 active:scale-95 transition-transform disabled:opacity-50"
                 >
                   {uploading ? (
                     <div className="w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
@@ -286,14 +286,14 @@ export default function OrderFulfillmentClient({
         )}
 
         {errorMsg && (
-          <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-500 text-xs rounded-xl border border-red-200 dark:border-red-900/50">
+          <div className="p-3 bg-red-50 text-red-500 text-xs rounded-xl border border-red-200">
             {errorMsg}
           </div>
         )}
       </div>
 
       {currentConfig.next && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] bg-white/80 dark:bg-zinc-950/80 backdrop-blur border-t border-zinc-200 dark:border-zinc-800 flex justify-center z-50">
+        <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] bg-white/80 backdrop-blur border-t border-zinc-200 flex justify-center z-50">
           <div
                         className={`duo-3d-button relative w-full max-w-md h-14 rounded-2xl overflow-hidden select-none touch-manipulation bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white transition-all ${isMissingCertificates ? "cursor-not-allowed opacity-60 saturate-50" : "cursor-pointer active:brightness-95"}`}
             onMouseDown={startPress}

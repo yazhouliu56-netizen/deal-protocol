@@ -50,17 +50,17 @@ export default function AcceptanceCard({ orderId, title, price, status, released
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+    <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-4">
       <div>
         <p className="text-xs text-zinc-400 mb-1">订单金额</p>
-        <p className="text-3xl font-black text-zinc-900 dark:text-white">
+        <p className="text-3xl font-black text-zinc-900">
           {priceReady ? `￥${price}` : "待定价"}
         </p>
         <h2 className="text-base font-bold mt-2">{title}</h2>
       </div>
 
       {settled ? (
-        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 text-sm rounded-xl border border-emerald-200 dark:border-emerald-900/50">
+        <div className="p-3 bg-emerald-50 text-emerald-700 text-sm rounded-xl border border-emerald-200">
                     已结算{settled.payout > 0 && <>：师傅实收 ￥{settled.payout}，平台保障费 ￥{settled.fee}</>}
         </div>
       ) : awaitable ? (
@@ -86,7 +86,7 @@ export default function AcceptanceCard({ orderId, title, price, status, released
       )}
 
       {errorMsg && (
-        <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-500 text-xs rounded-xl border border-red-200 dark:border-red-900/50">
+        <div className="p-3 bg-red-50 text-red-500 text-xs rounded-xl border border-red-200">
                     {errorMsg}
         </div>
       )}

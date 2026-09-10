@@ -7,11 +7,11 @@ function FallbackComponent({ resetErrorBoundary }: { resetErrorBoundary?: () => 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-8" role="alert">
       <div className="mx-auto max-w-sm text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-950/30">
-          <AlertTriangle className="size-7 text-rose-600 dark:text-rose-400" />
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100">
+          <AlertTriangle className="size-7 text-rose-600" />
         </div>
-        <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">页面出现异常</h2>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+        <h2 className="text-lg font-bold text-zinc-900">页面出现异常</h2>
+        <p className="mt-2 text-sm text-zinc-500 leading-relaxed">
           抱歉，当前页面遇到了意外错误。请尝试刷新页面，或联系客服获取帮助。
         </p>
         <button

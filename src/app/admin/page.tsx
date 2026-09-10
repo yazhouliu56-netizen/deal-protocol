@@ -26,15 +26,15 @@ function StatCard({ title, value, desc, href, icon: Icon, accent }: {
   const count = useCountUp(value)
   return (
     <Link href={href}>
-      <div className="group rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 dark:border-zinc-800/60 dark:bg-zinc-900">
+      <div className="group rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
         <div className="flex items-center justify-between mb-3">
           <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", accent)}>
             <Icon className="size-5 text-white" />
           </div>
-          <Badge variant="outline" className="border-slate-200 text-xs dark:border-zinc-700">{desc}</Badge>
+          <Badge variant="outline" className="border-slate-200 text-xs">{desc}</Badge>
         </div>
-        <p className="text-3xl font-black text-slate-900 tabular-nums dark:text-zinc-100">{count}</p>
-        <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{title}</p>
+        <p className="text-3xl font-black text-slate-900 tabular-nums">{count}</p>
+        <p className="mt-1 text-xs text-slate-500">{title}</p>
       </div>
     </Link>
   )
@@ -91,10 +91,10 @@ export default function AdminDashboardPage() {
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-zinc-800/60 dark:bg-zinc-900">
-                <div className="mb-3 h-10 w-10 rounded-xl bg-slate-200 dark:bg-zinc-700" />
-                <div className="h-8 w-20 rounded bg-slate-200 dark:bg-zinc-700" />
-                <div className="mt-2 h-4 w-24 rounded bg-slate-200 dark:bg-zinc-700" />
+              <div key={i} className="animate-pulse rounded-2xl border border-slate-200/60 bg-white p-6">
+                <div className="mb-3 h-10 w-10 rounded-xl bg-slate-200" />
+                <div className="h-8 w-20 rounded bg-slate-200" />
+                <div className="mt-2 h-4 w-24 rounded bg-slate-200" />
               </div>
             ))}
           </div>
@@ -106,8 +106,8 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">管理后台</h1>
-        <p className="mt-2 text-sm text-slate-500 dark:text-zinc-500">平台运营概览与快捷操作</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">管理后台</h1>
+        <p className="mt-2 text-sm text-slate-500">平台运营概览与快捷操作</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -115,8 +115,8 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-zinc-800/60 dark:bg-zinc-900">
-          <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-zinc-100">快捷入口</h2>
+        <div className="rounded-2xl border border-slate-200/60 bg-white p-6">
+          <h2 className="mb-4 text-sm font-bold text-slate-900">快捷入口</h2>
           <div className="space-y-2">
             {[
               { href: "/admin/review", icon: Gavel, label: "审核队列", desc: "处理待确认的协议和服务者资质" },
@@ -126,35 +126,35 @@ export default function AdminDashboardPage() {
               { href: "/admin/protocols", icon: FileText, label: "协议管理", desc: "启用/禁用交易协议" },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
-                <div className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition-all hover:border-indigo-200 hover:bg-indigo-50/30 dark:border-zinc-800 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/10">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30">
-                    <item.icon className="size-4 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition-all hover:border-indigo-200 hover:bg-indigo-50/30">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
+                    <item.icon className="size-4 text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-zinc-100">{item.label}</p>
-                    <p className="text-xs text-slate-500 dark:text-zinc-500">{item.desc}</p>
+                    <p className="text-sm font-medium text-slate-900">{item.label}</p>
+                    <p className="text-xs text-slate-500">{item.desc}</p>
                   </div>
-                  <span className="text-xs text-slate-400 dark:text-zinc-600">→</span>
+                  <span className="text-xs text-slate-400">→</span>
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/60 bg-white p-6 dark:border-zinc-800/60 dark:bg-zinc-900">
-          <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-zinc-100">平台数据</h2>
+        <div className="rounded-2xl border border-slate-200/60 bg-white p-6">
+          <h2 className="mb-4 text-sm font-bold text-slate-900">平台数据</h2>
           <div className="space-y-3">
             {[
               { label: "累计协议数", value: stats.total_protocols, icon: FileText },
               { label: "活跃协议数", value: stats.active_protocols, icon: FileText },
               { label: "注册服务商", value: stats.total_providers, icon: Users },
             ].map((row) => (
-              <div key={row.label} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3 dark:border-zinc-800">
+              <div key={row.label} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <row.icon className="size-3.5 text-slate-400" />
-                  <span className="text-sm text-slate-600 dark:text-zinc-400">{row.label}</span>
+                  <span className="text-sm text-slate-600">{row.label}</span>
                 </div>
-                <span className="text-base font-bold text-slate-900 tabular-nums dark:text-zinc-100">{row.value}</span>
+                <span className="text-base font-bold text-slate-900 tabular-nums">{row.value}</span>
               </div>
             ))}
           </div>

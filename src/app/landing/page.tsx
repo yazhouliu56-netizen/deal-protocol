@@ -144,18 +144,18 @@ export default function LandingPage() {
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 shadow-sm">
           <Sparkles className="size-7 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">智能诊断舱</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-zinc-500">描述故障，AI 自动诊断并生成服务协议</p>
+        <h1 className="text-2xl font-bold text-slate-900">智能诊断舱</h1>
+        <p className="mt-1 text-sm text-slate-500">描述故障，AI 自动诊断并生成服务协议</p>
       </div>
 
       {/* ═══ AI Input Area ═══ */}
       <div
         className={cn(
-          "relative mb-6 rounded-2xl border-2 border-dashed bg-white p-6 shadow-sm transition-all dark:bg-zinc-900",
+          "relative mb-6 rounded-2xl border-2 border-dashed bg-white p-6 shadow-sm transition-all",
           text.trim()
-            ? "border-indigo-500/50 dark:border-indigo-400/40"
-            : "border-slate-200 dark:border-zinc-800",
-          "focus-within:border-indigo-600 dark:focus-within:border-indigo-400",
+            ? "border-indigo-500/50"
+            : "border-slate-200",
+          "focus-within:border-indigo-600",
         )}
       >
         <textarea
@@ -164,22 +164,22 @@ export default function LandingPage() {
           onChange={(e) => setText(e.target.value)}
           placeholder={PLACEHOLDER_TEXTS[placeholderIdx]}
           rows={4}
-          className="w-full resize-none bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          className="w-full resize-none bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
         />
         <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 dark:bg-indigo-950/30">
-            <Sparkles className={cn("size-3 text-indigo-600 dark:text-indigo-400", generating && "animate-spin")} />
-            <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+          <div className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1">
+            <Sparkles className={cn("size-3 text-indigo-600", generating && "animate-spin")} />
+            <span className="text-xs font-medium text-indigo-600">
               {generating ? "AI 智能解析中..." : "✨ AI 就绪"}
             </span>
           </div>
-          <span className="text-xs text-slate-400 dark:text-zinc-500">{text.length} 字</span>
+          <span className="text-xs text-slate-400">{text.length} 字</span>
         </div>
       </div>
 
       {/* ═══ Category Cards ═══ */}
       <div className="mb-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">选择故障分类</p>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">选择故障分类</p>
         <div className="grid grid-cols-3 gap-3">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id
@@ -191,15 +191,15 @@ export default function LandingPage() {
                 className={cn(
                   "rounded-xl border px-3 py-3 text-center transition-all",
                   isSelected
-                    ? "border-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-950/40"
-                    : "border-slate-200/60 bg-white dark:border-zinc-800/60 dark:bg-zinc-900 hover:border-slate-300 dark:hover:border-zinc-700",
+                    ? "border-indigo-600 bg-indigo-50"
+                    : "border-slate-200/60 bg-white hover:border-slate-300",
                 )}
               >
                 <span className="text-xl">{cat.icon}</span>
                 <p
                   className={cn(
                     "mt-1 text-xs font-semibold",
-                    isSelected ? "text-indigo-600 dark:text-indigo-400" : "text-slate-700 dark:text-zinc-300",
+                    isSelected ? "text-indigo-600" : "text-slate-700",
                   )}
                 >
                   {cat.label}
@@ -211,9 +211,9 @@ export default function LandingPage() {
       </div>
 
       {/* ═══ Severity Slider ═══ */}
-      <div className="mb-6 rounded-2xl border border-slate-200/60 bg-white p-5 dark:border-zinc-800/60 dark:bg-zinc-900">
+      <div className="mb-6 rounded-2xl border border-slate-200/60 bg-white p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">严重程度</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">严重程度</p>
           <span className={cn("text-sm font-bold", severityColor)}>{SEVERITY_LEVELS[severity - 1].label}</span>
         </div>
         <div className="relative flex h-8 items-center">
@@ -233,14 +233,14 @@ export default function LandingPage() {
                     "h-4 w-4 rounded-full border-2 transition-all",
                     isActive
                       ? `${level.bar} border-transparent scale-125`
-                      : "border-slate-300 bg-white dark:border-zinc-600 dark:bg-zinc-800",
+                      : "border-slate-300 bg-white",
                   )}
                 />
               </button>
             )
           })}
           {/* Track background */}
-          <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-slate-100 dark:bg-zinc-800">
+          <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 transition-all"
               style={{ width: `${((severity - 1) / (SEVERITY_LEVELS.length - 1)) * 100}%` }}
@@ -253,7 +253,7 @@ export default function LandingPage() {
               key={level.value}
               className={cn(
                 "text-xs",
-                severity === level.value ? level.color : "text-slate-400 dark:text-zinc-600",
+                severity === level.value ? level.color : "text-slate-400",
               )}
             >
               {level.label}
@@ -265,11 +265,11 @@ export default function LandingPage() {
       {/* ═══ Media Upload ═══ */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">现场资料</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">现场资料</p>
           <button
             type="button"
             onClick={handleMediaAdd}
-            className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400"
+            className="flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-600"
           >
             <Camera className="size-3" />
             添加照片
@@ -279,12 +279,12 @@ export default function LandingPage() {
           {mediaFiles.map((file) => (
             <div
               key={file.id}
-              className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-slate-200/60 bg-slate-50 dark:border-zinc-800/60 dark:bg-zinc-900"
+              className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-xl border border-slate-200/60 bg-slate-50"
             >
               {file.progress < 100 ? (
                 <>
                   <Upload className="size-5 text-slate-400 mb-1" />
-                  <div className="h-1 w-12 overflow-hidden rounded-full bg-slate-200 dark:bg-zinc-700">
+                  <div className="h-1 w-12 overflow-hidden rounded-full bg-slate-200">
                     <div
                       className="h-full rounded-full bg-indigo-500 transition-all"
                       style={{ width: `${file.progress}%` }}
@@ -301,8 +301,8 @@ export default function LandingPage() {
             </div>
           ))}
           {mediaFiles.length === 0 && (
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-slate-200 dark:border-zinc-700">
-              <Camera className="size-5 text-slate-300 dark:text-zinc-600" />
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-slate-200">
+              <Camera className="size-5 text-slate-300" />
             </div>
           )}
         </div>
@@ -324,10 +324,10 @@ export default function LandingPage() {
       {/* ═══ Result ═══ */}
       {result && (
         <div className="mt-8 space-y-4">
-          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 dark:border-zinc-800/60 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5">
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="size-5 text-emerald-500" />
-              <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100">{result.title}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{result.title}</h2>
               <Badge
                 variant={result.risk_tier === "high" ? "destructive" : result.risk_tier === "medium" ? "default" : "secondary"}
                 className="ml-auto"
@@ -335,7 +335,7 @@ export default function LandingPage() {
                 {result.risk_tier === "high" ? "高风险" : result.risk_tier === "medium" ? "中风险" : "低风险"}
               </Badge>
             </div>
-            <p className="text-sm text-slate-500 dark:text-zinc-400 mb-4">{result.description}</p>
+            <p className="text-sm text-slate-500 mb-4">{result.description}</p>
             <div className="flex flex-wrap gap-2">
               {result.category && (
                 <Badge variant="outline" className="border-slate-200">{result.category}</Badge>

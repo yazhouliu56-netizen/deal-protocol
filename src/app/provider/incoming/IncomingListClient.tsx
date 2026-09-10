@@ -79,7 +79,7 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
   }, [])
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
+    <div className="min-h-screen bg-zinc-50 pb-12">
       <header className="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm">
         <h1 className="text-base font-bold">实时接单需求池</h1>
         <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full animate-pulse">
@@ -89,7 +89,7 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
 
       <div className="p-4 space-y-4 max-w-md mx-auto">
         {demands.length === 0 ? (
-          <div className="text-center text-zinc-400 dark:text-zinc-600 py-24 text-sm">
+          <div className="text-center text-zinc-400 py-24 text-sm">
                         暂无附近待接工单，下拉刷新试试
           </div>
         ) : (

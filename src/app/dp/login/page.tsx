@@ -30,8 +30,8 @@ function LoginContent() {
   }, [searchParams])
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-zinc-950">
-      <Card className="w-full max-w-sm rounded-2xl border-zinc-200/60 shadow-sm dark:border-zinc-800/60">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-zinc-50 px-4 py-12">
+      <Card className="w-full max-w-sm rounded-2xl border-zinc-200/60 shadow-sm">
         <CardHeader className="text-center">
           <Link href="/dp" className="mx-auto mb-2 flex items-center justify-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-sm">dp</span>
@@ -41,7 +41,7 @@ function LoginContent() {
           <CardDescription>欢迎回来，登录您的账户</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/50" role="tablist">
+          <div className="flex rounded-xl bg-zinc-100 p-1" role="tablist">
             {TABS.map((t) => {
               const Icon = t.icon
               return (
@@ -52,8 +52,8 @@ function LoginContent() {
                   onClick={() => setTab(t.id)}
                   className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                     tab === t.id
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                      : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                      ? "bg-white text-zinc-900 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-800"
                   }`}
                 >
                   <Icon className="size-3.5" />
@@ -164,7 +164,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             maxLength={11}
-            className="flex-1 rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500 dark:border-zinc-800/60"
+            className="flex-1 rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
           />
           <Button
             type="button"
@@ -189,7 +189,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
             maxLength={6}
             autoComplete="one-time-code"
-            className="rounded-xl border-zinc-200/60 text-center text-lg tracking-[0.5em] transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500 dark:border-zinc-800/60"
+            className="rounded-xl border-zinc-200/60 text-center text-lg tracking-[0.5em] transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
           />
         </div>
       )}
@@ -231,11 +231,11 @@ function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-medium text-foreground">邮箱</label>
-        <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500 dark:border-zinc-800/60" />
+        <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500" />
       </div>
       <div className="space-y-2">
         <label htmlFor="password" className="text-sm font-medium text-foreground">密码</label>
-        <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500 dark:border-zinc-800/60" />
+        <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500" />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "登录中..." : "登录"}

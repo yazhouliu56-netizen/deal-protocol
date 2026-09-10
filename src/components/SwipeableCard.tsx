@@ -82,34 +82,34 @@ export default function SwipeableCard({
 
   const progress = Math.min(currentX / maxSwipeDistance, 1)
   const highlightClass = order.isNew
-    ? "border-2 border-orange-400 shadow-orange-100/60 dark:shadow-none animate-pulse"
-    : "border border-gray-100 dark:border-zinc-800 shadow-sm"
+    ? "border-2 border-orange-400 shadow-orange-100/60 animate-pulse"
+    : "border border-gray-100 shadow-sm"
 
   return (
     <div
-      className={`relative overflow-hidden bg-white dark:bg-zinc-900 rounded-2xl p-5 transition-all duration-300 touch-manipulation ${highlightClass}`}
+      className={`relative overflow-hidden bg-white rounded-2xl p-5 transition-all duration-300 touch-manipulation ${highlightClass}`}
     >
       <div className="flex justify-between items-start mb-3">
-        <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold px-2 py-1 rounded">
+        <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded">
                     家庭维修
         </span>
         <span className="text-xl font-black text-red-500">￥{order.price}</span>
       </div>
 
-      <h3 className="text-base font-bold text-gray-800 dark:text-zinc-200 mb-2">
+      <h3 className="text-base font-bold text-gray-800 mb-2">
         {order.title}
       </h3>
 
-      <div className="text-xs text-gray-500 dark:text-zinc-400 space-y-1 mb-5">
-        <p>距离您当前：<span className="text-blue-600 dark:text-blue-400 font-bold">{currentDistance.toFixed(2)} km</span></p>
+      <div className="text-xs text-gray-500 space-y-1 mb-5">
+        <p>距离您当前：<span className="text-blue-600 font-bold">{currentDistance.toFixed(2)} km</span></p>
         <p>发布时间：{new Date(order.created_at).toLocaleTimeString()}</p>
       </div>
 
       <div
-        className="relative h-12 bg-gray-50 dark:bg-zinc-950 rounded-full flex items-center justify-center overflow-hidden select-none"
+        className="relative h-12 bg-gray-50 rounded-full flex items-center justify-center overflow-hidden select-none"
         style={{ backgroundColor: `rgba(34, 197, 94, ${progress * 0.12})` }}
       >
-        <span className="text-xs font-medium text-gray-400 dark:text-zinc-500 pointer-events-none transition-opacity" style={{ opacity: 1 - progress * 1.8 }}>
+        <span className="text-xs font-medium text-gray-400 pointer-events-none transition-opacity" style={{ opacity: 1 - progress * 1.8 }}>
           {isSubmitting ? "正在锁单中..." : "向右滑动接此单"}
         </span>
 

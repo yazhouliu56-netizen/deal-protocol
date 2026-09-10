@@ -20,11 +20,11 @@ interface ResilienceState {
 }
 
 const LEVEL_COLOR: Record<DegradationLevel, { ring: string; text: string; badge: string; desc: string }> = {
-  NORMAL: { ring: "ring-emerald-500 border-emerald-400", text: "text-emerald-600 dark:text-emerald-400", badge: "bg-emerald-500", desc: "全量放行" },
-  DROP_NON_CORE: { ring: "ring-sky-500 border-sky-400", text: "text-sky-600 dark:text-sky-400", badge: "bg-sky-500", desc: "关闭非核心分析服务" },
-  RATE_LIMIT_QUEUE: { ring: "ring-amber-500 border-amber-400", text: "text-amber-600 dark:text-amber-400", badge: "bg-amber-500", desc: "新需求排队限流 429 + Retry-After 5s" },
-  PRESERVE_CORE: { ring: "ring-orange-500 border-orange-400", text: "text-orange-600 dark:text-orange-400", badge: "bg-orange-500", desc: "仅放行 SOS 与在途履约" },
-  READ_ONLY: { ring: "ring-red-500 border-red-400", text: "text-red-600 dark:text-red-400", badge: "bg-red-500", desc: "全站只读，阻断一切写操作" },
+  NORMAL: { ring: "ring-emerald-500 border-emerald-400", text: "text-emerald-600", badge: "bg-emerald-500", desc: "全量放行" },
+  DROP_NON_CORE: { ring: "ring-sky-500 border-sky-400", text: "text-sky-600", badge: "bg-sky-500", desc: "关闭非核心分析服务" },
+  RATE_LIMIT_QUEUE: { ring: "ring-amber-500 border-amber-400", text: "text-amber-600", badge: "bg-amber-500", desc: "新需求排队限流 429 + Retry-After 5s" },
+  PRESERVE_CORE: { ring: "ring-orange-500 border-orange-400", text: "text-orange-600", badge: "bg-orange-500", desc: "仅放行 SOS 与在途履约" },
+  READ_ONLY: { ring: "ring-red-500 border-red-400", text: "text-red-600", badge: "bg-red-500", desc: "全站只读，阻断一切写操作" },
 }
 
 const CATEGORY_LABEL: Record<SystemActionCategory, string> = {
@@ -108,7 +108,7 @@ export default function ResilienceControlPanel() {
 
   if (loading && !state) {
     return (
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+      <section className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-100">
         <h2 className="text-xl font-black mb-4">🛡️ 容灾控制台</h2>
         <p className="text-sm text-zinc-400 animate-pulse">加载容灾状态…</p>
       </section>
@@ -118,15 +118,15 @@ export default function ResilienceControlPanel() {
   const current = state?.level ?? "NORMAL"
 
   return (
-    <section className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+    <section className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-100">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-xl font-black">🛡️ 容灾控制台</h2>
         <span className="text-xs font-mono text-zinc-400">L6-M3 · 多云多活四步降级</span>
       </div>
 
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 mb-5">
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-zinc-50 border border-zinc-100 mb-5">
         <span className={`w-3 h-3 rounded-full ${LEVEL_COLOR[current].badge} animate-pulse`} />
-        <span className="text-sm font-bold text-zinc-700 dark:text-zinc-200">
+        <span className="text-sm font-bold text-zinc-700">
           当前生效等级：
           <span className={`ml-1 ${LEVEL_COLOR[current].text}`}>{LEVEL_LABEL[current]}</span>
         </span>
@@ -134,12 +134,12 @@ export default function ResilienceControlPanel() {
       </div>
 
       {error && (
-        <p className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm">
+        <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
           ⚠️ {error}
         </p>
       )}
       {okMsg && (
-        <p className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-sm">
+        <p className="mb-4 p-3 rounded-xl bg-emerald-50 text-emerald-600 text-sm">
           ✅ {okMsg}
         </p>
       )}
@@ -157,15 +157,15 @@ export default function ResilienceControlPanel() {
                 onClick={() => void switchLevel(level)}
                 className={`rounded-xl border p-4 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-40 disabled:cursor-not-allowed ${
                   active
-                    ? `bg-white dark:bg-zinc-800 ring-2 ${color.ring}`
-                    : "bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                    ? `bg-white ring-2 ${color.ring}`
+                    : "bg-zinc-50 hover:bg-zinc-100 border-zinc-200"
                 }`}
                 aria-label={`切换容灾等级 ${level}`}
                 aria-pressed={active}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`w-2.5 h-2.5 rounded-full ${color.badge}`} />
-                  <span className={`text-sm font-black ${active ? color.text : "text-zinc-600 dark:text-zinc-300"}`}>
+                  <span className={`text-sm font-black ${active ? color.text : "text-zinc-600"}`}>
                     {LEVEL_LABEL[level]}
                   </span>
                 </div>
@@ -186,12 +186,12 @@ export default function ResilienceControlPanel() {
                 key={r.category}
                 className={`p-2.5 rounded-lg border text-xs ${
                   r.allowed
-                    ? "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/30"
-                    : "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30"
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-red-200 bg-red-50"
                 }`}
               >
-                <p className="font-medium text-zinc-600 dark:text-zinc-300 mb-0.5">{CATEGORY_LABEL[r.category]}</p>
-                <p className={r.allowed ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-red-600 dark:text-red-400 font-bold"}>
+                <p className="font-medium text-zinc-600 mb-0.5">{CATEGORY_LABEL[r.category]}</p>
+                <p className={r.allowed ? "text-emerald-600 font-bold" : "text-red-600 font-bold"}>
                   {r.allowed ? "✓ 放行" : `✗ 阻断 ${r.httpStatus ?? ""}`}
                 </p>
                 {r.errorCode && <p className="text-xs text-zinc-400 mt-0.5 break-all">{r.errorCode}</p>}
@@ -201,7 +201,7 @@ export default function ResilienceControlPanel() {
         </div>
       )}
 
-      <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap gap-3">
+      <div className="mt-5 pt-4 border-t border-zinc-100 flex flex-wrap gap-3">
         <button
           type="button"
           disabled={switching !== null || current === "READ_ONLY"}
@@ -222,7 +222,7 @@ export default function ResilienceControlPanel() {
           type="button"
           onClick={() => void load()}
           disabled={loading}
-          className="px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40"
+          className="px-4 py-2.5 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-40"
         >
           ⟳ 刷新状态
         </button>

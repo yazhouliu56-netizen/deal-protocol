@@ -115,14 +115,14 @@ export default function AdminComplaintsPage() {
 
   const getEventBadge = (type: string) => {
     const map: Record<string, string> = {
-      complaint: "bg-rose-50 text-rose-700 border-0 dark:bg-rose-950/30 dark:text-rose-400",
-      sos: "bg-rose-50 text-rose-700 border-0 dark:bg-rose-950/30 dark:text-rose-400",
-      protocol_created: "bg-emerald-50 text-emerald-700 border-0 dark:bg-emerald-950/30 dark:text-emerald-400",
-      admin_verdict: "bg-purple-50 text-purple-700 border-0 dark:bg-purple-950/30 dark:text-purple-400",
-      review_action: "bg-cyan-50 text-cyan-700 border-0 dark:bg-cyan-950/30 dark:text-cyan-400",
-      location_ping: "bg-gray-50 text-gray-700 border-0 dark:bg-gray-950/30 dark:text-gray-400",
+      complaint: "bg-rose-50 text-rose-700 border-0",
+      sos: "bg-rose-50 text-rose-700 border-0",
+      protocol_created: "bg-emerald-50 text-emerald-700 border-0",
+      admin_verdict: "bg-purple-50 text-purple-700 border-0",
+      review_action: "bg-cyan-50 text-cyan-700 border-0",
+      location_ping: "bg-gray-50 text-gray-700 border-0",
     }
-    return map[type] ?? "bg-gray-50 text-gray-700 border-0 dark:bg-gray-950/30 dark:text-gray-400"
+    return map[type] ?? "bg-gray-50 text-gray-700 border-0"
   }
 
   return (
@@ -130,8 +130,8 @@ export default function AdminComplaintsPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">举报处理</h1>
-            <p className="mt-1 text-slate-500 dark:text-zinc-500">查看举报证据链并作出处理决定</p>
+            <h1 className="text-2xl font-bold text-slate-900">举报处理</h1>
+            <p className="mt-1 text-slate-500">查看举报证据链并作出处理决定</p>
           </div>
         <Button variant="outline" onClick={fetchComplaints} disabled={loading} className="rounded-xl">
           刷新
@@ -141,47 +141,47 @@ export default function AdminComplaintsPage() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-40 animate-pulse rounded-lg bg-slate-200 dark:bg-zinc-800" />
+            <div key={i} className="h-40 animate-pulse rounded-lg bg-slate-200" />
           ))}
         </div>
       ) : complaints.length === 0 ? (
-        <Card className="rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 dark:bg-zinc-900">
+        <Card className="rounded-2xl border border-slate-200/60">
           <CardContent className="py-16 text-center">
-            <p className="text-lg text-slate-500 dark:text-zinc-500">暂无举报</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-zinc-500">所有举报都已处理完毕</p>
+            <p className="text-lg text-slate-500">暂无举报</p>
+            <p className="mt-1 text-sm text-slate-500">所有举报都已处理完毕</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {complaints.map((complaint) => (
-            <Card key={complaint.id} className="rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 dark:bg-zinc-900">
+            <Card key={complaint.id} className="rounded-2xl border border-slate-200/60">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-rose-50 text-rose-700 border-0 dark:bg-rose-950/30 dark:text-rose-400">举报</Badge>
-                      <span className="text-sm text-slate-500 dark:text-zinc-500">
+                      <Badge className="bg-rose-50 text-rose-700 border-0">举报</Badge>
+                      <span className="text-sm text-slate-500">
                         {new Date(complaint.created_at).toLocaleString("zh-CN")}
                       </span>
                     </div>
 
                     <div className="text-sm">
-                      <span className="text-xs text-slate-500/60 dark:text-zinc-500/60">举报人：</span>
+                      <span className="text-xs text-slate-500/60">举报人：</span>
                       {complaint.complainant?.name ?? "未知"}
                     </div>
 
                     {complaint.protocol && (
                       <div className="text-sm">
-                        <span className="text-xs text-slate-500/60 dark:text-zinc-500/60">关联协议：</span>
+                        <span className="text-xs text-slate-500/60">关联协议：</span>
                         {complaint.protocol.category}（{complaint.protocol.status}）
                       </div>
                     )}
 
-                    <div className="rounded-md bg-slate-200 p-3 text-xs dark:bg-zinc-800">
+                    <div className="rounded-md bg-slate-200 p-3 text-xs">
                       {Object.entries(complaint.payload).map(([k, v]) => (
                         <div key={k} className="flex gap-2">
-                          <span className="min-w-[100px] font-medium text-slate-700 dark:text-zinc-300">{k}:</span>
-                          <span className="text-slate-500 dark:text-zinc-500">{typeof v === "string" ? v : JSON.stringify(v)}</span>
+                          <span className="min-w-[100px] font-medium text-slate-700">{k}:</span>
+                          <span className="text-slate-500">{typeof v === "string" ? v : JSON.stringify(v)}</span>
                         </div>
                       ))}
                     </div>
@@ -195,27 +195,27 @@ export default function AdminComplaintsPage() {
                     </button>
 
                     {expandedId === complaint.id && (
-                      <div className="space-y-2 pl-2 border-l-2 border-slate-400/20 dark:border-zinc-600/20">
+                      <div className="space-y-2 pl-2 border-l-2 border-slate-400/20">
                         {complaint.evidence_chain.map((ev) => (
-                          <div key={ev.id} className="rounded-md bg-slate-200/50 dark:bg-zinc-800/50 p-2 text-xs">
+                          <div key={ev.id} className="rounded-md bg-slate-200/50 p-2 text-xs">
                             <div className="flex items-center gap-2 mb-1">
                               <Badge className={getEventBadge(ev.event_type)}>
                                 {getEventTypeLabel(ev.event_type)}
                               </Badge>
-                              <span className="text-slate-500 dark:text-zinc-500">
+                              <span className="text-slate-500">
                                 {new Date(ev.created_at).toLocaleString("zh-CN")}
                               </span>
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-zinc-500">
+                            <div className="text-xs text-slate-500">
                               {Object.entries(ev.payload).map(([k, v]) => (
                                 <div key={k} className="flex gap-1">
-                                  <span className="font-medium text-slate-600 dark:text-zinc-400">{k}:</span>
+                                  <span className="font-medium text-slate-600">{k}:</span>
                                   <span>{typeof v === "string" ? v : JSON.stringify(v)}</span>
                                 </div>
                               ))}
                             </div>
                             {ev.hash && (
-                              <div className="mt-1 font-mono text-xs text-slate-500/60 dark:text-zinc-500/60">
+                              <div className="mt-1 font-mono text-xs text-slate-500/60">
                                 hash: {ev.hash.slice(0, 16)}...
                                 {ev.prev_hash !== "GENESIS" && ev.prev_hash && <> | prev: {ev.prev_hash.slice(0, 16)}...</>}
                               </div>
@@ -253,11 +253,11 @@ export default function AdminComplaintsPage() {
 
       {actionId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-xl bg-white p-4 ring-1 ring-slate-200 dark:bg-zinc-900 dark:ring-zinc-800">
-            <h3 className="font-medium mb-2 text-slate-900 dark:text-zinc-100">
+          <div className="w-full max-w-md rounded-xl bg-white p-4 ring-1 ring-slate-200">
+            <h3 className="font-medium mb-2 text-slate-900">
               {ACTION_CONFIG[actionType]?.label ?? actionType}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-zinc-500 mb-3">
+            <p className="text-sm text-slate-500 mb-3">
               举报 ID: {actionId.slice(0, 8)}...
             </p>
             <div className="space-y-1 mb-3">

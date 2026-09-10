@@ -100,9 +100,9 @@ export default function AdminReviewPage() {
   const getRiskBadge = (tier?: string) => {
     if (!tier) return null
     const map: Record<string, { label: string; color: string }> = {
-      low: { label: "低风险", color: "bg-emerald-50 text-emerald-700 border-0 dark:bg-emerald-950/30 dark:text-emerald-400" },
-      medium: { label: "中风险", color: "bg-amber-50 text-amber-700 border-0 dark:bg-amber-950/30 dark:text-amber-400" },
-      high: { label: "高风险", color: "bg-rose-50 text-rose-700 border-0 dark:bg-rose-950/30 dark:text-rose-400" },
+      low: { label: "低风险", color: "bg-emerald-50 text-emerald-700 border-0" },
+      medium: { label: "中风险", color: "bg-amber-50 text-amber-700 border-0" },
+      high: { label: "高风险", color: "bg-rose-50 text-rose-700 border-0" },
     }
     const c = map[tier] ?? { label: tier, color: "bg-gray-100" }
     return <Badge className={c.color}>{c.label}</Badge>
@@ -113,8 +113,8 @@ export default function AdminReviewPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">审核队列</h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-zinc-500">审核待确认的协议和服务者资质</p>
+            <h1 className="text-2xl font-bold text-slate-900">审核队列</h1>
+            <p className="mt-1 text-sm text-slate-500">审核待确认的协议和服务者资质</p>
           </div>
           <Button variant="outline" onClick={() => { setLoading(true); fetchItems() }} disabled={loading} className="rounded-xl">
             刷新
@@ -124,20 +124,20 @@ export default function AdminReviewPage() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-zinc-800" />
+            <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-200" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <Card className="rounded-2xl border-slate-200/60 dark:border-zinc-800/60 dark:bg-zinc-900">
+        <Card className="rounded-2xl border-slate-200/60">
           <CardContent className="py-16 text-center">
-            <p className="text-lg text-slate-500 dark:text-zinc-400">暂无待审核项</p>
-            <p className="mt-1 text-sm text-slate-400 dark:text-zinc-500">所有协议和资质都已处理完毕</p>
+            <p className="text-lg text-slate-500">暂无待审核项</p>
+            <p className="mt-1 text-sm text-slate-400">所有协议和资质都已处理完毕</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item.id} className="rounded-2xl border-slate-200/60 transition-all hover:shadow-sm dark:border-zinc-800/60 dark:bg-zinc-900">
+            <Card key={item.id} className="rounded-2xl border-slate-200/60 transition-all hover:shadow-sm">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
@@ -148,8 +148,8 @@ export default function AdminReviewPage() {
 
                     <div className="grid gap-3 text-sm sm:grid-cols-3">
                       <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">分类</span>
-                        <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100">{item.category}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">分类</span>
+                        <p className="mt-0.5 font-medium text-slate-900">{item.category}</p>
                       </div>
                       {item.type === "provider_qualification" && (
                         <div>
@@ -159,18 +159,18 @@ export default function AdminReviewPage() {
                       )}
                       {item.final_price != null && (
                         <div>
-                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">金额</span>
-                          <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100 tabular-nums">¥{item.final_price.toFixed(2)}</p>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">金额</span>
+                          <p className="mt-0.5 font-medium text-slate-900 tabular-nums">¥{item.final_price.toFixed(2)}</p>
                         </div>
                       )}
                       <div>
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500">提交时间</span>
-                        <p className="mt-0.5 font-medium text-slate-900 dark:text-zinc-100">{new Date(item.created_at).toLocaleString("zh-CN")}</p>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">提交时间</span>
+                        <p className="mt-0.5 font-medium text-slate-900">{new Date(item.created_at).toLocaleString("zh-CN")}</p>
                       </div>
                     </div>
 
                     {item.user && (
-                      <div className="text-xs text-slate-500 dark:text-zinc-400">
+                      <div className="text-xs text-slate-500">
                         {item.user.name} ({item.user.phone})
                       </div>
                     )}

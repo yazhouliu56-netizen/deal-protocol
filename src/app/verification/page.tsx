@@ -124,7 +124,7 @@ function VerificationForm({
       )}
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
           真实姓名
         </label>
         <input
@@ -132,12 +132,12 @@ function VerificationForm({
           value={realName}
           onChange={(e) => setRealName(e.target.value)}
           placeholder="请输入与身份证一致的姓名"
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
           身份证号
         </label>
         <input
@@ -146,17 +146,17 @@ function VerificationForm({
           onChange={(e) => setIdNumber(e.target.value)}
           placeholder="请输入18位公民身份证号码"
           maxLength={18}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
           身份证正反面 / 技能证书
         </label>
         <div className="grid grid-cols-3 gap-3">
           {previews.map((preview, idx) => (
-            <div key={idx} className="relative aspect-[3/2] overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-700">
+            <div key={idx} className="relative aspect-[3/2] overflow-hidden rounded-xl border border-slate-200">
               <Image src={preview} alt={`证书 ${idx + 1}`} fill className="object-cover" />
               <button
                 type="button"
@@ -172,7 +172,7 @@ function VerificationForm({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex aspect-[3/2] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 text-slate-400 transition-colors hover:border-indigo-400 hover:text-indigo-400 dark:border-zinc-600 dark:hover:border-indigo-400"
+              className="flex aspect-[3/2] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 text-slate-400 transition-colors hover:border-indigo-400 hover:text-indigo-400"
               aria-label="上传证书图片"
             >
               <Upload className="size-5" />
@@ -187,7 +187,7 @@ function VerificationForm({
           onChange={handleFileChange}
           className="hidden"
         />
-        <p className="mt-1.5 text-xs text-slate-400 dark:text-zinc-500">
+        <p className="mt-1.5 text-xs text-slate-400">
           支持 JPG / PNG 格式，最多 5 张
         </p>
       </div>
@@ -241,24 +241,24 @@ export default function VerificationPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-slate-50 dark:bg-zinc-950">
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-slate-50">
         <Loader2 className="size-8 animate-spin text-slate-400" />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-start justify-center bg-slate-50 px-4 py-12 dark:bg-zinc-950">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-start justify-center bg-slate-50 px-4 py-12">
       <div className="w-full max-w-lg">
         {status === "approved" ? (
           <div className="text-center">
-            <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30">
+            <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-emerald-50">
               <ShieldCheck className="size-10 text-emerald-500" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-slate-900">
               恭喜！您已通过实名身份认证
             </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-zinc-400">
+            <p className="mt-2 text-sm text-slate-500">
               您的账户已获得完整信用授信，现在可以正常接单了
             </p>
             <Button
@@ -270,13 +270,13 @@ export default function VerificationPage() {
           </div>
         ) : status === "pending" ? (
           <div className="text-center">
-            <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/30">
+            <div className="mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-amber-50">
               <Clock className="size-10 text-amber-500" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-slate-900">
               资料审核中
             </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-zinc-400">
+            <p className="mt-2 text-sm text-slate-500">
               您的实名认证资料正在人工审核中，预计 1-2 个工作日完成
             </p>
             <div className="mt-8 flex items-center justify-center gap-1">
@@ -286,16 +286,16 @@ export default function VerificationPage() {
               <span className="flex size-2 animate-pulse rounded-full bg-amber-400" style={{ animationDelay: "0.6s" }} />
             </div>
 
-            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 text-left dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-zinc-300">已提交信息</h3>
-              <div className="mt-3 space-y-2 text-sm text-slate-500 dark:text-zinc-400">
+            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 text-left">
+              <h3 className="text-sm font-semibold text-slate-700">已提交信息</h3>
+              <div className="mt-3 space-y-2 text-sm text-slate-500">
                 <div className="flex justify-between">
                   <span>审核状态</span>
                   <span className="font-medium text-amber-500">审核中</span>
                 </div>
                 <div className="flex justify-between">
                   <span>提交时间</span>
-                  <span className="font-medium text-slate-700 dark:text-zinc-300">待确认</span>
+                  <span className="font-medium text-slate-700">待确认</span>
                 </div>
               </div>
             </div>
@@ -314,15 +314,15 @@ export default function VerificationPage() {
               <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-indigo-600 shadow-sm">
                 <Shield className="size-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">实名身份认证</h1>
-              <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">
+              <h1 className="text-2xl font-bold text-slate-900">实名身份认证</h1>
+              <p className="mt-1 text-sm text-slate-500">
                 {status === "rejected"
                   ? "请根据审核意见修改后重新提交"
                   : "完成认证后即可接单并获得平台担保交易服务"}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <VerificationForm
                 status={status || "unverified"}
                 rejectedReason={rejectedReason}

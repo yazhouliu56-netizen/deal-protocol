@@ -38,7 +38,7 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24 text-zinc-900 dark:text-zinc-100">
+    <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900">
       <header className="bg-zinc-900 text-white p-4 sticky top-0 z-50 shadow">
         <span className="text-sm font-medium">订单验收 · {demand.id.slice(0, 8)}...</span>
       </header>

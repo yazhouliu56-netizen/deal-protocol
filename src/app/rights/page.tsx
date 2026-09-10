@@ -66,16 +66,16 @@ const rightsData = [
     ],
     badge: (
       <div className="mt-2 flex flex-wrap gap-2">
-        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
           优秀 ≥200
         </span>
-        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400">
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
           良好 150-199
         </span>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
           一般 100-149
         </span>
-        <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/30 dark:text-rose-400">
+        <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
           待提升 &lt;100
         </span>
       </div>
@@ -113,23 +113,23 @@ const rightsData = [
 export default function RightsPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-zinc-950">
+    <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto max-w-5xl">
         {/* 返回导航（E2 合规收口：48px 触控 + 高对比度） */}
         <button
           onClick={() => router.push("/")}
           data-testid="rights-back"
           aria-label="返回主页"
-          className="min-h-12 inline-flex items-center gap-1.5 px-3.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          className="min-h-12 inline-flex items-center gap-1.5 px-3.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all"
         >
           ‹ 返回主页
         </button>
       {/* Header */}
       <div className="text-center mt-6">
-<h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+<h1 className="text-3xl font-bold tracking-tight text-slate-900">
            用户权利与平台规则
         </h1>
-        <p className="mt-3 text-lg text-slate-500 dark:text-zinc-500">
+        <p className="mt-3 text-lg text-slate-500">
            了解您作为平台用户的权利义务和信用体系规则
         </p>
       </div>
@@ -140,7 +140,7 @@ export default function RightsPage() {
           <a
             key={right.title}
             href={`#${right.title}`}
-            className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/30 dark:hover:text-indigo-400"
+            className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
           >
             {right.icon} {right.title}
           </a>
@@ -150,22 +150,22 @@ export default function RightsPage() {
       {/* Rights cards */}
       <div className="mt-10 grid gap-8">
         {rightsData.map((right) => (
-          <Card key={right.title} id={right.title} className="scroll-mt-20 rounded-2xl border-slate-200/60 dark:border-zinc-800/60 dark:bg-zinc-900">
+          <Card key={right.title} id={right.title} className="scroll-mt-20 rounded-2xl border-slate-200/60">
             <CardHeader>
               <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-2xl dark:bg-indigo-950/30">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-2xl">
                   {right.icon}
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-xl text-slate-900 dark:text-zinc-100">{right.title}</CardTitle>
-                  <CardDescription className="mt-1 text-base text-slate-500 dark:text-zinc-500">
+                  <CardTitle className="text-xl text-slate-900">{right.title}</CardTitle>
+                  <CardDescription className="mt-1 text-base text-slate-500">
                     {right.subtitle}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm leading-6 text-slate-700 dark:text-zinc-300">
+              <p className="text-sm leading-6 text-slate-700">
                 {right.description}
               </p>
 
@@ -178,7 +178,7 @@ export default function RightsPage() {
                 {right.details.map((detail) => (
                   <li
                     key={detail}
-                    className="flex items-start gap-2 text-sm text-slate-500 dark:text-zinc-500"
+                    className="flex items-start gap-2 text-sm text-slate-500"
                   >
                     <span className="mt-0.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
                     {detail}
@@ -192,7 +192,7 @@ export default function RightsPage() {
 
       {/* Bottom CTA */}
       <div className="mt-12 text-center">
-        <p className="text-slate-500 dark:text-zinc-500">
+        <p className="text-slate-500">
           如有任何疑问，请随时联系平台客服
         </p>
         <div className="mt-4 flex items-center justify-center gap-4">

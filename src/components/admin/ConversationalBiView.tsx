@@ -56,19 +56,19 @@ function BarChart({ data }: { data: IBiChartDatum[] }) {
       {data.map((d, i) => (
         <div key={`${d.label}-${i}`} className="flex items-center gap-2 text-sm">
           <span className="w-16 shrink-0 text-zinc-500 truncate">{d.label}</span>
-          <div className="relative flex-1 h-6 bg-zinc-100 dark:bg-zinc-800 rounded overflow-hidden">
+          <div className="relative flex-1 h-6 bg-zinc-100 rounded overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 bg-blue-500/80 rounded"
               style={{ width: `${Math.max(2, (d.value / max) * 100)}%` }}
             />
             {d.secondaryValue !== undefined && (
               <div
-                className="absolute inset-y-0 left-0 bg-zinc-300 dark:bg-zinc-700 rounded"
+                className="absolute inset-y-0 left-0 bg-zinc-300 rounded"
                 style={{ width: `${Math.max(2, (d.secondaryValue / max) * 100)}%` }}
               />
             )}
           </div>
-          <span className="w-20 shrink-0 text-right font-mono text-zinc-600 dark:text-zinc-300">
+          <span className="w-20 shrink-0 text-right font-mono text-zinc-600">
             {d.value}{d.extra ? `（${d.extra}）` : ""}
           </span>
         </div>
@@ -149,7 +149,7 @@ function PieChart({ data }: { data: IBiChartDatum[] }) {
         <circle cx={60} cy={60} r={R} fill="none" stroke="#e4e4e7" strokeWidth={14} />
         {segments}
         <text x={60} y={58} textAnchor="middle" className="fill-zinc-500" fontSize={11}>占比</text>
-        <text x={60} y={74} textAnchor="middle" className="fill-zinc-900 dark:fill-zinc-100" fontSize={14} fontWeight={700}>
+        <text x={60} y={74} textAnchor="middle" className="fill-zinc-900" fontSize={14} fontWeight={700}>
           {data.length} 类
         </text>
       </svg>
@@ -157,7 +157,7 @@ function PieChart({ data }: { data: IBiChartDatum[] }) {
         {data.map((d, i) => (
           <li key={`${d.label}-${i}`} className="flex items-center gap-2">
             <i className="w-3 h-3 rounded-sm inline-block shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-            <span className="text-zinc-600 dark:text-zinc-300 truncate">{d.label}</span>
+            <span className="text-zinc-600 truncate">{d.label}</span>
             <span className="ml-auto font-mono text-zinc-500">{d.value}（{Math.round((d.value / total) * 1000) / 10}%）</span>
           </li>
         ))}
@@ -171,7 +171,7 @@ function DataTable({ data }: { data: IBiChartDatum[] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-zinc-400 border-b border-zinc-200 dark:border-zinc-700">
+          <tr className="text-left text-zinc-400 border-b border-zinc-200">
             <th className="py-2 pr-4 font-medium">类目 / 维度</th>
             <th className="py-2 pr-4 font-medium text-right">主指标</th>
             <th className="py-2 pr-4 font-medium text-right">次指标</th>
@@ -180,8 +180,8 @@ function DataTable({ data }: { data: IBiChartDatum[] }) {
         </thead>
         <tbody>
           {data.map((d, i) => (
-            <tr key={`${d.label}-${i}`} className="border-b border-zinc-100 dark:border-zinc-800/60 last:border-0">
-              <td className="py-2 pr-4 text-zinc-600 dark:text-zinc-300">{d.label}</td>
+            <tr key={`${d.label}-${i}`} className="border-b border-zinc-100 last:border-0">
+              <td className="py-2 pr-4 text-zinc-600">{d.label}</td>
               <td className="py-2 pr-4 text-right font-mono">{d.value}</td>
               <td className="py-2 pr-4 text-right font-mono text-zinc-500">{d.secondaryValue ?? "—"}</td>
               <td className="py-2 text-right font-mono text-zinc-500">{d.extra ?? "—"}</td>
@@ -239,7 +239,7 @@ export default function ConversationalBiView() {
   }, [loading])
 
   return (
-    <section className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800">
+    <section className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-100">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h2 className="text-xl font-black">💬 对话式数据 BI</h2>
         <span className="text-xs font-mono text-zinc-400">L3-M5 · LLM 归因增强 / 规则确定性兜底</span>
@@ -256,7 +256,7 @@ export default function ConversationalBiView() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="用自然语言提问，如：统计各品类违约率与退款分布"
-          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-zinc-200 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           aria-label="BI 查询输入框"
         />
         <button
@@ -278,7 +278,7 @@ export default function ConversationalBiView() {
               void runQuery(chip)
             }}
             disabled={loading}
-            className="px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-40"
+            className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors disabled:opacity-40"
           >
             {chip}
           </button>
@@ -286,34 +286,34 @@ export default function ConversationalBiView() {
       </div>
 
       {error && (
-        <p className="mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm">
+        <p className="mt-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
           ⚠️ {error}
         </p>
       )}
 
       {report && (
         <div className="mt-6 space-y-6">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/50">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
             <div className="flex items-center gap-2 text-sm text-zinc-500 mb-1 flex-wrap">
               <span className="font-mono">📊 {report.title}</span>
               <span className="text-xs">({formatRange(report.timeRange)})</span>
             </div>
-            <p className="text-zinc-700 dark:text-zinc-200 text-sm leading-relaxed">🧠 {report.summary}</p>
+            <p className="text-zinc-700 text-sm leading-relaxed">🧠 {report.summary}</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {report.metrics.map((m) => (
-              <div key={m.key} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700">
+              <div key={m.key} className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
                 <p className="text-xs text-zinc-400 font-medium">{m.label}</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-black text-zinc-800 dark:text-zinc-100 truncate">{m.value}</p>
+                  <p className="text-2xl font-black text-zinc-800 truncate">{m.value}</p>
                   <TrendArrow trend={m.trend} changePercent={m.changePercent} />
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="rounded-xl border border-zinc-100 dark:border-zinc-700 p-4">
+          <div className="rounded-xl border border-zinc-100 p-4">
             <ChartBody report={report} />
           </div>
 
@@ -330,7 +330,7 @@ export default function ConversationalBiView() {
                       void runQuery(f)
                     }}
                     disabled={loading}
-                    className="px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors disabled:opacity-40"
+                    className="px-3 py-1.5 rounded-full border border-zinc-200 text-zinc-600 text-xs hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-40"
                   >
                     {f}
                   </button>

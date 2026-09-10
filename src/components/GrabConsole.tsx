@@ -80,7 +80,7 @@ export default function GrabConsole({
     <motion.div
       variants={cardAnimationVariants}
       animate={status}
-      className={`relative max-w-md w-full mx-auto bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl p-6 shadow-xl overflow-hidden transition-shadow duration-300 ${
+      className={`relative max-w-md w-full mx-auto bg-white border border-gray-100 rounded-3xl p-6 shadow-xl overflow-hidden transition-shadow duration-300 ${
         status === "failed" ? "grayscale brightness-75" : ""
       }`}
     >
@@ -142,7 +142,7 @@ export default function GrabConsole({
       </AnimatePresence>
 
       <div className="flex flex-col items-center text-center space-y-6">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-zinc-200">紧急竞抢控制台</h2>
+        <h2 className="text-lg font-semibold text-gray-800">紧急竞抢控制台</h2>
 
         <div className="relative w-32 h-32 flex items-center justify-center">
           <span className={`text-2xl font-mono font-bold ${status === 'failed' ? 'text-gray-400' : 'text-orange-500'}`}>

@@ -159,10 +159,10 @@ export default function ProfilePage() {
   if (status || loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10">
-        <div className="mx-auto mb-8 h-40 w-64 animate-pulse rounded-3xl bg-slate-200 dark:bg-zinc-800" />
+        <div className="mx-auto mb-8 h-40 w-64 animate-pulse rounded-3xl bg-slate-200" />
         <div className="grid gap-6">
-          <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-zinc-800" />
-          <div className="h-48 animate-pulse rounded-2xl bg-slate-200 dark:bg-zinc-800" />
+          <div className="h-32 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="h-48 animate-pulse rounded-2xl bg-slate-200" />
         </div>
       </div>
     );
