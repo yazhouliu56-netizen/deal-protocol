@@ -32,6 +32,8 @@ import ArbitrationSheet, {
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
+import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { useOnline } from "@/lib/use-online";
 import { trackMetric } from "@/lib/track-metric";
 import { personaAvatarForBot } from "@/base/platform/sandbox-bot";
@@ -96,15 +98,7 @@ const DEMO_SEATS: NonNullable<CockpitSlotActions["seats"]> = [
 
 const CENTER_CSS = `
 .fc-wrap{display:flex;flex-direction:column;gap:8px}
-.fc-dispute-row{display:flex;justify-content:flex-end}
-.fc-dispute{border:1px solid rgba(251,191,36,.45);background:rgba(251,191,36,.1);color:#fbbf24;
-  font-size:12px;font-weight:800;padding:7px 14px;border-radius:999px;cursor:pointer}
-.fc-total{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px}
-.fc-total strong{color:#4ade80;font-size:15px}
-.fc-frozen{font-size:10px;color:#4ade80;text-align:center;padding:6px;border-radius:10px;
-  background:rgba(74,222,128,.1);border:1px dashed rgba(74,222,128,.4)}
-.fc-note{font-size:10px;color:#94a3b8;text-align:center}
+/* W4 伪装假电话 = 功能性深色通话屏（ArbitrationSheet DarkSheetShell 同例，行为资产保留） */
 .fc-call-mask{position:fixed;inset:0;z-index:90;background:rgba(3,4,10,.88);backdrop-filter:blur(6px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#e2e8f0}
 .fc-call-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);
@@ -412,15 +406,10 @@ export default function FulfillmentCenter({
       <style>{CENTER_CSS}</style>
 
       {/* W7：争议入口（座舱右上角） */}
-      <div className="fc-dispute-row">
-        <button
-          type="button"
-          className="fc-dispute"
-          data-action="open-dispute"
-          onClick={() => setDisputeOpen(true)}
-        >
+      <div className="flex justify-end">
+        <DuoButton variant="outline" size="sm" data-action="open-dispute" onClick={() => setDisputeOpen(true)}>
           ⚖️ 有争议 · 申诉
-        </button>
+        </DuoButton>
       </div>
 
       {/* P2-T4 意图卡 locked 态收拢为 Panel 头（只读卡语言统一） */}
@@ -470,7 +459,7 @@ export default function FulfillmentCenter({
 
       {/* 收拢 P1：下一步行动（人话一行，内部态黑话不出屏） */}
       {!needsAcceptReminder(activeClaim?.serviceDoneAt, fulfilledFlag) && (
-        <p data-testid="cta-hint" className="fc-note">
+        <p data-testid="cta-hint" className="text-[10px] text-[var(--color-duo-wolf)] text-center">
           {describeCtaForState(currentState)}
         </p>
       )}
@@ -564,15 +553,14 @@ export default function FulfillmentCenter({
 
       {/* W4：保洁增项 → 订单总额动态更新（D9 ONSITE_QUOTE 模块声明驱动显隐） */}
       {hasCockpitModule(ammoDef, "ONSITE_QUOTE") && !hkQuote && (
-        <button
-          type="button"
-          className="fc-dispute"
-          style={{ width: "100%", borderRadius: 14, padding: "9px 0", borderColor: "rgba(56,132,255,.45)", background: "rgba(56,132,255,.1)", color: "#7fb2ff" }}
+        <DuoButton
+          variant="outline"
+          fullWidth
           data-action="suggest-quote"
           onClick={() => setHkQuote({ item: "深度除螨", amountYuan: 80, confirmed: false })}
         >
           ➕ 现场增项改价：深度除螨 +¥80（OnsiteQuoteHook）
-        </button>
+        </DuoButton>
       )}
       {/* 收拢 P1：更多操作（改期/加项/快捷回复/总额；接单后平铺，服务中折叠） */}
       {currentState === "MATCHED" ? (
@@ -585,14 +573,14 @@ export default function FulfillmentCenter({
             existingCustoms={activeWave.customs.map((c) => c.text)}
           />
           <CopilotReplies />
-          <div className="fc-total" data-testid="order-total">
+          <div className="flex justify-between items-center px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[13px] font-bold text-[var(--color-duo-eel)]" data-testid="order-total">
             <span>💰 订单总金额（含增项）</span>
-            <strong>¥{orderTotal}</strong>
+            <strong className="text-[15px] font-extrabold text-[var(--color-duo-green-dark)]">¥{orderTotal}</strong>
           </div>
         </div>
       ) : (
         <details data-testid="panel-more">
-          <summary className="fc-note" style={{ cursor: "pointer", textAlign: "center" }}>
+          <summary className="text-[10px] text-[var(--color-duo-wolf)] text-center cursor-pointer">
             更多操作 · 改期 / 加项 / 快捷回复
           </summary>
           <DemanderInterveneBar
@@ -603,29 +591,33 @@ export default function FulfillmentCenter({
             existingCustoms={activeWave.customs.map((c) => c.text)}
           />
           <CopilotReplies />
-          <div className="fc-total" data-testid="order-total">
+          <div className="flex justify-between items-center px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[13px] font-bold text-[var(--color-duo-eel)]" data-testid="order-total">
             <span>💰 订单总金额（含增项）</span>
-            <strong>¥{orderTotal}</strong>
+            <strong className="text-[15px] font-extrabold text-[var(--color-duo-green-dark)]">¥{orderTotal}</strong>
           </div>
         </details>
       )}
 
       {/* W4：围栏扫码 → 定金解冻提示（D9 GEOFENCE_ARRIVAL 模块声明驱动显隐） */}
       {hasCockpitModule(ammoDef, "GEOFENCE_ARRIVAL") && depositUnfrozen && (
-        <div className="fc-frozen" data-testid="deposit-unfrozen">
-          🔓 500m 围栏到场验真通过 · 定金已解冻（DELAY 引信放行）
+        <div className="flex justify-center" data-testid="deposit-unfrozen">
+          <DuoPill tone="green">
+            🔓 500m 围栏到场验真通过 · 定金已解冻（DELAY 引信放行）
+          </DuoPill>
         </div>
       )}
 
       {/* W7：人工仲裁受理横幅 */}
       {escalated && (
-        <div className="fc-frozen" data-testid="escalated-banner" style={{ color: "#fbbf24", background: "rgba(251,191,36,.1)", borderColor: "rgba(251,191,36,.45)" }}>
-          🧑‍⚖️ 已提交人工仲裁 · 资金冻结中（进入人工仲裁队列）
+        <div className="flex justify-center" data-testid="escalated-banner">
+          <DuoPill tone="yellow">
+            🧑‍⚖️ 已提交人工仲裁 · 资金冻结中（进入人工仲裁队列）
+          </DuoPill>
         </div>
       )}
 
       {transitError && (
-        <div className="fc-note" style={{ color: "#fca5a5" }} data-testid="transit-error">
+        <div className="text-[10px] text-center text-[var(--color-duo-red-dark)]" data-testid="transit-error">
           ⚠️ {transitError}
         </div>
       )}

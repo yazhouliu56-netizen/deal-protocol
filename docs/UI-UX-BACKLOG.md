@@ -106,3 +106,8 @@
 - 单测 27/27 零改过（data-scenario/data-theme/data-action/data-testid/文案锚点全保留，无用例断言 cockpit-* 类名）；e2e-dyn-slot 重跑 PASS + 整屏落图 docs/shot/cockpit-duo.png。
 - 六圈定位：L1 触达（履约座舱主屏）+ L2 业务核心（五态履约）；复用 base/safe runtime-monitor（徽标语义）+ milestone-escrow（阶梯已 Duo）；弹药表零新增。命中 #1/#4 + 外骨骼红线①，偏离无。
 - 剩余最后 1 岛：FulfillmentCenter。
+
+## Duo 化 Batch①-8：FulfillmentCenter（2026-09-12，8 岛收官）
+- 改写（仅 Center 自有层；IntentCard/MoneyStrip/Cockpit/抽屉/DialCard 本就 Duo，未动）：删 fc-dispute/fc-total/fc-frozen/fc-note 暗岛 → 争议入口 DuoButton outline sm（data-action=open-dispute 原样，e2e-openmatch 回归 PASS）+ 增项改价 DuoButton outline fullWidth + 订单总额 polar 白底卡（金额 Duo green-dark）+ 定金解冻/仲裁横幅 DuoPill green/yellow 居中 + cta-hint/summary/transit-error Duo 语义色。W4 伪装来电遮罩保留深色（功能性通话屏，ArbitrationSheet DarkSheetShell 同例）。
+- 单测 49/49（E2EIntegration/cockpit-battle4/real-user-sim 零改过）+ vitest 843 + oto 1269；e2e-dyn-slot 重跑 PASS（像素级实证：provider/path 行底 #F7F7F7 polar，插槽 #FFFFFF）。
+- 六圈定位：L1 触达（Trip 屏总装）+ L2 业务核心（advanceLifecycle 核销接线不动）；弹药表零新增。命中 #1/#4 + 外骨骼红线①，偏离无。Batch① 8 岛清零。
