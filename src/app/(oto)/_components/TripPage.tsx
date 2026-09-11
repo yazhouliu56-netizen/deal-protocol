@@ -15,6 +15,7 @@ import type { ArbitrationPhotoEvidence } from "@/components/waves/ArbitrationShe
 
 export default function TripPage({ proofShots = [], onProofShot }: { proofShots?: ArbitrationPhotoEvidence[]; onProofShot?: (shot: ArbitrationPhotoEvidence) => void }) {
   const bookings = useAppStore((s) => s.bookings);
+  const goHomeTab = useAppStore((s) => s.goHomeTab);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
   const setScreen = useAppStore((s) => s.setScreen);
   const waves = useWaveStore((s) => s.waves);
@@ -46,7 +47,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
             title="还没有行程"
             desc="去首页说句话——需求、预订、履约都会汇入这里"
             action="✨ 去首页发单"
-            onAction={() => setScreen("home")}
+            onAction={() => goHomeTab("demand")}
             testId="trip-empty-unified"
             launchTestId="trip-empty-unified-launch"
           />
@@ -69,7 +70,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
             title="当前暂无进行中行程"
             desc="去首页发单，或去雷达抢单 · 履约座舱在此实时接管"
             action="✨ 去首页发单"
-            onAction={() => setScreen("home")}
+            onAction={() => goHomeTab("demand")}
             testId="trip-empty-state"
             launchTestId="trip-empty-launch"
           />
@@ -83,7 +84,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
           <div className="flex flex-col gap-2">{upcoming.map((b) => (<button key={b.id} onClick={() => openOrder(b.id)} className="w-full bg-white border border-[var(--color-duo-swan)] rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-[colors,transform,filter] active:translate-y-px active:brightness-[0.97]"><div className="w-10 h-10 rounded-xl bg-white border border-[var(--color-duo-swan)] flex items-center justify-center text-lg shrink-0">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</div><div className="flex-1 min-w-0"><span className="flex items-center gap-2"><span className="text-xs font-bold truncate">{b.title}</span><span className="text-xs px-1.5 py-px rounded-full bg-brandPurple/20 border border-brandPurple/40 text-brandPurple font-semibold shrink-0">待出行</span></span><p className="text-xs text-[var(--color-duo-wolf)] mt-0.5 truncate">{b.time} · {b.providerName}</p></div><span className="text-[12px] font-extrabold text-brandCyan shrink-0">{b.price}</span></button>))}{bookings.filter((b) => b.status !== "upcoming").map((b) => (<button key={b.id} onClick={() => openOrder(b.id)} className="w-full bg-white border border-[var(--color-duo-swan)] rounded-2xl p-3 flex items-center gap-3 text-left hover:border-brandPurple/50 transition-[colors,transform,filter] active:translate-y-px active:brightness-[0.97]"><div className="w-10 h-10 rounded-xl bg-white border border-[var(--color-duo-swan)] flex items-center justify-center text-lg shrink-0">{CATEGORY_EMOJI[b.category] ?? "🎟️"}</div><div className="flex-1 min-w-0"><span className="flex items-center gap-2"><span className="text-xs font-bold truncate">{b.title}</span><span className={`text-xs px-1.5 py-px rounded-full font-semibold shrink-0 ${b.status === "cancelled" ? "bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]" : "bg-emerald-400/10 border border-emerald-400/30 text-emerald-400"}`}>{b.status === "cancelled" ? "已取消" : "已完成"}</span></span><p className="text-xs text-[var(--color-duo-wolf)] mt-0.5 truncate">{b.time} · {b.providerName}</p></div><span className="text-[12px] font-extrabold text-brandCyan shrink-0">{b.price}</span></button>))}</div>
         </div>
       )}
-      {bookings.length === 0 && (<div className="mt-4"><DuoEmpty mascot="beast-empty" desc="还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢" action="去首页看看" onAction={() => setScreen("home")} testId="booking-empty-state" launchTestId="booking-empty-launch" /></div>)}
+      {bookings.length === 0 && (<div className="mt-4"><DuoEmpty mascot="beast-empty" desc="还没有预订——去首页对 AI 说句需求，订单会汇入这里的履约中枢" action="去首页看看" onAction={() => goHomeTab("demand")} testId="booking-empty-state" launchTestId="booking-empty-launch" /></div>)}
       {photoOpen && (<><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 bg-black/50" onClick={() => setPhotoOpen(false)} /><motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 28 }} className="fixed inset-x-3 bottom-24 z-50 bg-white border border-[var(--color-duo-swan)] shadow-sm rounded-3xl p-4 max-h-[72vh] overflow-y-auto no-scrollbar"><div className="flex items-center justify-between mb-3"><h3 className="text-[13px] font-extrabold flex items-center gap-1.5"><Camera size={13} className="text-brandCyan" /> 拍照存证 · 时间地点水印</h3><button onClick={() => setPhotoOpen(false)} aria-label="关闭相机" className="text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)]">✕</button></div>{proofShots.length > 0 && <p className="text-xs text-[var(--color-duo-green-dark)] mb-2">✅ 当前已存证 {proofShots.length} 张（含水印 + SHA-256 指纹）</p>}<ProofCamera orderNo={cameraOrderNo} geo={{ lat: 31.2304, lng: 121.4737, accuracyMeters: 25 }} onCaptured={(result) => { onProofShot?.({ photo: result.dataUrl, aiNote: `水印存证 · 时间地点注入 · 哈希 ${result.sha256.slice(0, 8)}` }); setPhotoOpen(false); }} /></motion.div></>)}
     </div>
   );

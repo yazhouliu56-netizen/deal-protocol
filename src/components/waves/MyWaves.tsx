@@ -47,7 +47,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
   const initiatorBuffs = useWaveStore((s) => s.initiatorBuffs);
   const identity = useIdentityStore((s) => s.identity);
-  const setScreen = useAppStore((s) => s.setScreen);
+  const goHomeTab = useAppStore((s) => s.goHomeTab);
   // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
   // 挂载后立即采样真实时钟（render 期零时钟采样，红线 1）。
   const mounted = useSyncExternalStore(
@@ -133,7 +133,7 @@ const assembleWave = useWaveStore((s) => s.assembleWave);
           mascot="capy-sleepy"
           desc="还没有发出过需求——水豚也在等你的第一单"
           action="去发第一单"
-          onAction={() => setScreen("home")}
+          onAction={() => goHomeTab("demand")}
           testId="mywaves-empty-state"
           launchTestId="mywaves-empty-launch"
         />

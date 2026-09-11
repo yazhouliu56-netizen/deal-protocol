@@ -105,6 +105,8 @@ export const WORKER_SEED_ORDERS: WorkerOrder[] = [
 interface AppState {
   // 3D screen routing
   screen: DockPage;
+  /** 首页发单/雷达段（Batch③-3：跨屏直达雷达，"去雷达"按钮不再谎报）。 */
+  homeTab: "demand" | "radar";
   // Home page state
   activeCategory: OTOCategory | null;
   // AR page state
@@ -129,6 +131,9 @@ interface AppState {
 
   /** 历史旧值 'ai'（原独立 AI 助手屏）自动映射回落 'home'（4 键一体化主屏）。 */
   setScreen: (screen: DockPage | "ai") => void;
+  setHomeTab: (tab: "demand" | "radar") => void;
+  /** 跨屏直达首页某段（行程/我的空卡 CTA 用，不再 setScreen("home") 谎报）。 */
+  goHomeTab: (tab: "demand" | "radar") => void;
   openExperience: (experience: OTOExperience) => void;
   setActiveCategory: (category: OTOCategory | null) => void;
   setActiveSwatch: (color: string) => void;
@@ -157,6 +162,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       screen: "home",
+      homeTab: "demand",
       activeCategory: null,
       activeSwatch: DEFAULT_SWATCH,
       selectedExperience: otoExperiences[0],
@@ -179,6 +185,8 @@ export const useAppStore = create<AppState>()(
       workerOnline: true,
 
       setScreen: (screen) => set({ screen: screen === "ai" ? "home" : screen }),
+      setHomeTab: (homeTab) => set({ homeTab }),
+      goHomeTab: (homeTab) => set({ screen: "home", homeTab }),
       openExperience: (experience) =>
         set({ selectedExperience: experience, screen: "ar" }),
       setActiveCategory: (activeCategory) => set({ activeCategory }),

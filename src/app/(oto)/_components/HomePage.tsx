@@ -121,7 +121,9 @@ export default function HomePage() {
   const [draft, setDraft] = useState<null | { key: string; label: string }>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [talkOpen, setTalkOpen] = useState(false);
-  const [homeTab, setHomeTab] = useState<"demand" | "radar">("demand");
+  // Batch③-3：段状态上 store，跨屏"去雷达"可直达（原 useState 跨屏不可达，空卡 CTA 谎报去向）。
+  const homeTab = useAppStore((s) => s.homeTab);
+  const setHomeTab = useAppStore((s) => s.setHomeTab);
   const [publishCategory, setPublishCategory] = useState("");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);

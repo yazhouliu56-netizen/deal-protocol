@@ -35,7 +35,7 @@ export default function MyClaims() {
   const withdrawReport = useWaveStore((s) => s.withdrawReport);
   const identity = useIdentityStore((s) => s.identity);
   const syncDeposit = useIdentityStore((s) => s.syncDeposit);
-  const setScreen = useAppStore((s) => s.setScreen);
+  const goHomeTab = useAppStore((s) => s.goHomeTab);
   const deposits = useIdentityStore((s) => s.deposits);
   const runAutoFulfilments = useWaveStore((s) => s.runAutoFulfilments);
   const settleExpiredOpen = useWaveStore((s) => s.settleExpiredOpen);
@@ -142,7 +142,7 @@ export default function MyClaims() {
           mascot="beast-empty"
           desc="还没接过单——去雷达 Feed 找适合你的需求"
           action="去雷达看看"
-          onAction={() => setScreen("home")}
+          onAction={() => goHomeTab("radar")}
           testId="myclaims-empty-state"
           launchTestId="myclaims-empty-launch"
         />

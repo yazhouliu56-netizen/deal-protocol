@@ -81,6 +81,7 @@ export default function ProfilePage({
   onGoHome,
 }: { onGoHome?: () => void } = {}) {
   const bookings = useAppStore((s) => s.bookings);
+  const goHomeTab = useAppStore((s) => s.goHomeTab);
   const reviews = useAppStore((s) => s.reviews);
   const selectedBookingId = useAppStore((s) => s.selectedBookingId);
   const setSelectedBooking = useAppStore((s) => s.setSelectedBooking);
@@ -275,7 +276,8 @@ export default function ProfilePage({
             tone="green"
             variant="solid"
             as="button"
-            onClick={onGoHome}
+            // Batch③-3：标签与去向一致（原 onGoHome 去首页却叫"去雷达"，谎报）。
+            onClick={() => goHomeTab("radar")}
             className="shrink-0 px-2.5 py-1.5 border-0 border-b-2 active:translate-y-0.5 active:border-b-0"
           >
             去雷达
@@ -407,7 +409,7 @@ export default function ProfilePage({
             mascot="capy-sleepy"
             desc="还没有订单——去 AI 助手说句需求，马上撮合"
             action="去发单"
-            onAction={() => setScreen("home")}
+            onAction={() => goHomeTab("demand")}
             testId="orders-empty-state"
             launchTestId="orders-empty-launch"
           />
