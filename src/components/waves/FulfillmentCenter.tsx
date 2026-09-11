@@ -102,9 +102,9 @@ const CENTER_CSS = `
 .fc-total{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px}
 .fc-total strong{color:#4ade80;font-size:15px}
-.fc-frozen{font-size:10.5px;color:#4ade80;text-align:center;padding:6px;border-radius:10px;
+.fc-frozen{font-size:10px;color:#4ade80;text-align:center;padding:6px;border-radius:10px;
   background:rgba(74,222,128,.1);border:1px dashed rgba(74,222,128,.4)}
-.fc-note{font-size:10.5px;color:#94a3b8;text-align:center}
+.fc-note{font-size:10px;color:#94a3b8;text-align:center}
 .fc-call-mask{position:fixed;inset:0;z-index:90;background:rgba(3,4,10,.88);backdrop-filter:blur(6px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#e2e8f0}
 .fc-call-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);
@@ -113,7 +113,7 @@ const CENTER_CSS = `
 .fc-call-meta strong{font-size:18px}
 .fc-call-meta p{font-size:12px;color:#94a3b8;margin:4px 0 0}
 .fc-call-btns{display:flex;gap:40px;margin-top:8px}
-.fc-call-btn{width:64px;height:64px;border-radius:50%;border:none;font-size:11px;font-weight:800;cursor:pointer}
+.fc-call-btn{width:64px;height:64px;border-radius:50%;border:none;font-size:12px;font-weight:800;cursor:pointer}
 .fc-call-accept{background:linear-gradient(135deg,#4ade80,#16a34a);color:#04120a}
 .fc-call-hang{background:linear-gradient(135deg,#f87171,#dc2626);color:#fff}
 `;

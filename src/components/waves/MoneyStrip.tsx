@@ -99,7 +99,7 @@ export default function MoneyStrip({
         <p className={`text-lg font-extrabold ${alert ? "text-red-500" : "text-orange-600"}`}>
           ¥{shown}
         </p>
-        <p className="text-[11px] font-bold text-[var(--color-duo-hare)]">{st.label}</p>
+        <p className="text-xs font-bold text-[var(--color-duo-hare)]">{st.label}</p>
       </div>
       <div className="mt-1.5 flex items-center gap-1" aria-hidden="true">
         {STEPS.map((s, i) => (

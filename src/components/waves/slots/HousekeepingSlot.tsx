@@ -82,7 +82,7 @@ const SLOT_CSS = `
   display:flex;align-items:center;justify-content:center;padding:16px}
 .hk-proof-sheet{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#0f172a,#1e293b);
   border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px}
-.hk-forgery{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid}
+.hk-forgery{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid}
 .hk-forgery-low{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#86efac}
 .hk-forgery-medium{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4);color:#fde68a}
 .hk-forgery-high{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.4);color:#fed7aa}

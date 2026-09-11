@@ -166,7 +166,7 @@ export default function PrivacyCompliancePanel({
                 <span className="text-[var(--color-duo-wolf)]">
                   {r.kind} · {new Date(r.requestedAt).toLocaleDateString("zh-CN")}
                 </span>
-                <DuoPill tone={r.status === "anonymized" ? "green" : "orange"} className={r.status === "anonymized" ? "" : "bg-[#ffebd1]"}>
+                <DuoPill tone={r.status === "anonymized" ? "green" : "orange"} className={r.status === "anonymized" ? "" : "bg-orange-100"}>
                   {r.status === "anonymized" ? "已匿名化" : "处理中"}
                 </DuoPill>
               </div>

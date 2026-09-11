@@ -193,7 +193,7 @@ const SLOT_CSS = `
   display:flex;align-items:center;justify-content:center;padding:16px}
 .dyn-proof-sheet{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#0f172a,#1e293b);
   border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px}
-.dyn-forgery{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid;display:inline-flex;align-items:center;gap:4px}
+.dyn-forgery{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid;display:inline-flex;align-items:center;gap:4px}
 .dyn-forgery-low{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#86efac}
 .dyn-forgery-medium{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4);color:#fde68a}
 .dyn-forgery-high{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.4);color:#fed7aa}
@@ -333,7 +333,7 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 Before 待拍摄</span>
-                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-before" data-testid="proof-camera-trigger" onClick={() => openCapture("before")} className="rounded-xl">
+                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-before" data-testid="proof-camera-trigger" onClick={() => openCapture("before")} className="rounded-2xl">
                   📸 拍照打卡
                 </DuoButton>
               </>
@@ -352,7 +352,7 @@ export default function DynamicAmmoSlot({
             ) : (
               <>
                 <span>📷 After 待拍摄</span>
-                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-after" data-testid="proof-camera-trigger" onClick={() => openCapture("after")} className="rounded-xl">
+                <DuoButton variant="secondary" size="sm" sound="click" data-action="proof-after" data-testid="proof-camera-trigger" onClick={() => openCapture("after")} className="rounded-2xl">
                   📸 拍照打卡
                 </DuoButton>
               </>
@@ -401,7 +401,7 @@ export default function DynamicAmmoSlot({
         data-action="dispute"
         data-testid="dispute-entry"
         onClick={() => onActionClick?.("dispute")}
-        className="rounded-xl"
+        className="rounded-2xl"
       >
         ⚖️ 申请调解 / 申诉
       </DuoButton>

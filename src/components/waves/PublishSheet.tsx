@@ -524,7 +524,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             return false;
           }
         })() && (
-          <p className="mb-2 text-[11px] font-bold text-amber-600">
+          <p className="mb-2 text-xs font-bold text-amber-600">
             试运行品类 · 首周每日限 10 单（质量观察期）
           </p>
         )}
@@ -733,7 +733,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             <button
               onClick={() => setPeople(Math.max(1, people - 1))}
               aria-label="减少人数"
-              className="w-8 h-8 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-wolf)] font-bold text-sm shrink-0"
+              className="w-10 h-10 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-wolf)] font-bold text-sm shrink-0"
             >
               −
             </button>
@@ -744,7 +744,7 @@ const createPendingWave = useWaveStore((s) => s.createPendingWave);
             <button
               onClick={() => setPeople(Math.min(8, people + 1))}
               aria-label="增加人数"
-              className="w-8 h-8 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-wolf)] font-bold text-sm shrink-0"
+              className="w-10 h-10 rounded-xl bg-white border border-[var(--color-duo-swan)] shadow-sm text-[var(--color-duo-wolf)] font-bold text-sm shrink-0"
             >
               ＋
             </button>

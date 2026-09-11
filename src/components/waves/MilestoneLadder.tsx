@@ -45,12 +45,12 @@ const LADDER_CSS = `
 .ms-amount{font-weight:700;color:#cbd5e1;flex-shrink:0}
 .ms-chip{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;flex-shrink:0;
   border:1px solid currentColor}
-.ms-btn{border:none;border-radius:9px;padding:5px 10px;font-size:10.5px;font-weight:800;cursor:pointer;
+.ms-btn{border:none;border-radius:9px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
   flex-shrink:0;transition:filter .15s}
 .ms-btn:active{transform:scale(.97)}
 .ms-btn-submit{background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.45);color:#93c5fd}
 .ms-btn-release{background:linear-gradient(135deg,#4ade80,#16a34a);color:#04120a}
-.ms-foot{display:flex;justify-content:space-between;margin-top:4px;color:#94a3b8;font-size:11px}
+.ms-foot{display:flex;justify-content:space-between;margin-top:4px;color:#94a3b8;font-size:12px}
 `;
 
 function fmtYuan(cents: number): string {

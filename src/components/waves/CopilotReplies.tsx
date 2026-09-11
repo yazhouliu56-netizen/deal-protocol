@@ -29,7 +29,7 @@ async function copyText(text: string): Promise<boolean> {
 export default function CopilotReplies() {
   return (
     <div data-testid="copilot-replies" className="mb-2 flex flex-wrap items-center gap-1.5">
-      <span className="text-[11px] font-bold text-[var(--color-duo-hare)]">快捷回复</span>
+      <span className="text-xs font-bold text-[var(--color-duo-hare)]">快捷回复</span>
       {QUICK_REPLIES.map((q) => (
         <button
           key={q}

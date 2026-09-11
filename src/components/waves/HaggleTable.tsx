@@ -60,7 +60,7 @@ export default function HaggleTable({
               aria-label={`还价${o.label}¥${o.priceYuan}`}
               className="rounded-xl border-2 border-[var(--color-duo-blue)] bg-[var(--color-duo-blue-mist)] px-1 py-1.5 text-center"
             >
-              <span className="block text-[11px] font-extrabold text-[var(--color-duo-blue-ink)]">{o.label}</span>
+              <span className="block text-xs font-extrabold text-[var(--color-duo-blue-ink)]">{o.label}</span>
               <span className="block text-xs font-extrabold text-orange-600">¥{o.priceYuan}</span>
             </button>
           ))}

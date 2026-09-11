@@ -133,7 +133,7 @@ export default function FactoryConsole() {
         <div data-testid="factory-card" className="rounded-2xl border-2 border-sky-200 bg-sky-50 p-3 text-sm">
           <p className="font-extrabold">
             {result.category}
-            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
               试运行·本机有效
             </span>
           </p>
@@ -152,7 +152,7 @@ export default function FactoryConsole() {
           >
             确认试运行
           </button>
-          <p className="mt-1 text-[11px] text-slate-400">确认即上架：落盘持久化＋试运行标＋首周 10 单/天。</p>
+          <p className="mt-1 text-xs text-slate-400">确认即上架：落盘持久化＋试运行标＋首周 10 单/天。</p>
         </div>
       )}
       {pilots.length > 0 && (

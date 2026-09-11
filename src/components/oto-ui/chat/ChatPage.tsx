@@ -551,7 +551,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               data-ammo={b.ammoKey}
               className="flex items-center justify-center gap-1.5 px-2.5 py-2.5 min-h-11 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] hover:border-[var(--color-duo-green)]/50 active:scale-95 transition-[border,transform]"
             >
-              <span className="text-[15px]">{b.emoji}</span>
+              <span className="text-sm">{b.emoji}</span>
               <span className="text-xs font-bold text-[var(--color-duo-eel)] truncate">
                 {b.label}
               </span>

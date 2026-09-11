@@ -184,7 +184,7 @@ export default function IntentCard({
                 </button>
               )}
               {openMark === l.key && mark && (
-                <span className="block w-full rounded-xl bg-[var(--color-duo-polar)] p-2 text-[11px] text-[var(--color-duo-wolf)]">
+                <span className="block w-full rounded-xl bg-[var(--color-duo-polar)] p-2 text-xs text-[var(--color-duo-wolf)]">
                   依据：{mark.reason}｜置信{level === "high" ? "高" : level === "mid" ? "中" : "低"}
                 </span>
               )}
@@ -200,7 +200,7 @@ export default function IntentCard({
       {/* P2-T7 服务者预览（只读，非承诺） */}
       {card.state === "ready" && card.providerPreview && card.providerPreview.length > 0 && (
         <div data-testid="intent-provider-preview" className="mt-2 rounded-2xl bg-[var(--color-duo-polar)] px-2.5 py-1.5">
-          <p className="text-[11px] font-bold text-[var(--color-duo-hare)]">👤 附近服务者预览（非承诺）</p>
+          <p className="text-xs font-bold text-[var(--color-duo-hare)]">👤 附近服务者预览（非承诺）</p>
           {card.providerPreview.slice(0, 3).map((p) => (
             <p key={p.name} className="text-xs text-[var(--color-duo-wolf)]">
               {p.name} · {p.trust}{p.note ? ` · ${p.note}` : ""}
@@ -220,14 +220,14 @@ export default function IntentCard({
               </span>
             )}
           </p>
-          {card.price.compareText && <p className="text-[11px] text-[var(--color-duo-wolf)]">{card.price.compareText}</p>}
-          <p className="text-[11px] text-[var(--color-duo-hare)]">{card.price.changeRule}｜{card.price.refundRule}</p>
+          {card.price.compareText && <p className="text-xs text-[var(--color-duo-wolf)]">{card.price.compareText}</p>}
+          <p className="text-xs text-[var(--color-duo-hare)]">{card.price.changeRule}｜{card.price.refundRule}</p>
         </div>
       )}
 
       {card.state === "ready" && (
         <div className="mt-2">
-          <label className="flex items-center gap-1.5 text-[11px] text-[var(--color-duo-wolf)]">
+          <label className="flex items-center gap-1.5 text-xs text-[var(--color-duo-wolf)]">
             <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} aria-label="已知晓价格与退款规则" />
             我已知晓价格与退款规则
           </label>

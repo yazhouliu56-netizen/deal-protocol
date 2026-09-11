@@ -550,7 +550,7 @@ export default function TalkPublishSheet({
         <div className="space-y-1.5" data-testid="talk-intent-zone">
           {/* C2 脑 why：默认命中的项配一句"根据你…"＋[不对，改]回写 */}
           {defaulted.includes("time") && (
-            <p data-testid="profile-why" className="text-[11px] text-[var(--color-duo-hare)]">
+            <p data-testid="profile-why" className="text-xs text-[var(--color-duo-hare)]">
               根据你上次约的时间预填
               <button
                 onClick={() => {
