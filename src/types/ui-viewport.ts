@@ -15,8 +15,10 @@
 
 /**
  * 场景特化微主色令牌（第一层 · 设计令牌与微氛围层）：
- * `housekeeping` 家政专业蓝 / `meetup` 组局活力橙 / `companion` 交友夜幕紫 /
- * `tech` 技术资产工业绿（首枚 C3_TECH_B2B 弹药 appliance-repair-v1 预留，声明即生效）/
+ * `housekeeping` 家政专业蓝 / `meetup` 组局活力黄 / `companion` 交友夜幕紫 /
+ * `tech` 技术维修橙（图纸 BRACKET / 注册表 / 线上像素三方一致为橙系；
+ * 注：2026-08-20 原注记“工业绿”系孤证，全仓 docs/白皮书无第二来源，
+ * 2026-09-12 对账后以三方一致为准，不改逻辑只修正注记）/
  * `default` 全局通用兜底。
  */
 export type ScenarioTheme =
