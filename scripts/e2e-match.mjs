@@ -77,9 +77,17 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await waitUntil(page, () => !!document.querySelector('input[placeholder*="描述你的需求"]'), 10000, "座舱渲染");
   await page.getByRole("button", { name: /知道了/ }).click({ timeout: 3000 }).catch(() => {}); // 关闭 AI 助手引导 chip（遮挡新对话按钮）
+  // Batch③-1：说句话/AI撮合收拢至 more 折叠；入场动画期坐标漂移偶发点空 → 循环点至展开（断言终态）
+  for (let i = 0; i < 4; i++) {
+    const open = await page.evaluate(() => !!document.querySelector('[data-testid="ai-chat-toggle"]'));
+    if (open) break;
+    await page.getByTestId("more-publish-toggle").click({ timeout: 3000, force: true }).catch(() => {});
+    await page.waitForTimeout(400);
+  }
   await page.getByRole("button", { name: /展开多轮AI沟通/ }).click({ timeout: 3000 }).catch(() => {}); // 多轮对话舱默认折叠，先展开再新对话
   await page.getByRole("button", { name: /知道了/ }).click({ timeout: 3000 }).catch(() => {}); // 展开后挂载的引导 chip 二次清除
-  await page.getByRole("button", { name: "新对话" }).click();
+  // Batch③-1：新对话改 testid 口径（role 文本口径在折叠 remount 后偶发失明，testid 硬锚）
+  await page.getByTestId("chat-new").click({ timeout: 10000 });
 
   // --- 2. 需求 → 时段卡（断言密度徽章可见）---
   await page.getByRole("textbox").fill("周末找人打羽毛球，新手，双打，附近，30块");
@@ -113,8 +121,20 @@ try {
   assert.ok(panel, "评分详情面板应展示六维");
 
   // --- 5. 换热门时段 → 排序变化 + 已约满提示 ---
+  // 折叠态回落保障（三态：已展开 emb / 仅外层开 ai / 全关 → 只在全关时点外层，避免 toggle 误关；
+  // synthetic dispatch 在 remount 后打到 detached 节点变空操作，一律用真实 force 点击 + 终态断言）
+  for (let i = 0; i < 4; i++) {
+    const st = await page.evaluate(() => ({
+      ai: !!document.querySelector('[data-testid="ai-chat-toggle"]'),
+      emb: !!document.querySelector('[data-layer="ai-chat-embedded"]'),
+    }));
+    if (st.ai || st.emb) break;
+    await page.getByTestId("more-publish-toggle").click({ timeout: 3000, force: true }).catch(() => {});
+    await page.waitForTimeout(400);
+  }
   await page.getByRole("button", { name: /展开多轮AI沟通/ }).click({ timeout: 3000 }).catch(() => {}); // 折叠态回落保障
-  await page.getByRole("button", { name: "新对话" }).click();
+  await page.getByTestId("chat-new").click({ timeout: 10000 });
+  await page.getByTestId("chat-new").click({ timeout: 10000 });
   await page.getByRole("textbox").fill("周末找人打球，新手，双打，附近，30块");
   await page.keyboard.press("Enter");
   await waitUntil(page, () => document.body.innerText.includes("可选时段"), 15000, "时段卡2");

@@ -494,6 +494,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
                 useAppStore.getState().clearChat();
                 setSession((s) => s + 1);
               }}
+              data-testid="chat-new"
               className="text-xs text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] px-2 py-1 rounded-full bg-white border border-[var(--color-duo-swan)] shadow-sm transition-colors"
             >
               新对话
@@ -528,6 +529,7 @@ export default function ChatPage({ compact = false, slim = false, onAmmoDraft }:
               useAppStore.getState().clearChat();
               setSession((s) => s + 1);
             }}
+            data-testid="chat-new"
             className="text-xs text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] px-2 py-1 rounded-full bg-white border border-[var(--color-duo-swan)] shadow-sm transition-colors"
           >
             新对话

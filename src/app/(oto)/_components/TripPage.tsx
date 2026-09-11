@@ -42,7 +42,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
   if (fullyEmpty) {
     return (
       <div className="pointer-events-auto">
-        <div className="mt-2" data-testid="trip-empty-unified">
+        <div className="mt-2">
           <DuoEmpty
             mascot="beast-empty"
             title="还没有行程"
