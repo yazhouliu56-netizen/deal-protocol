@@ -21,27 +21,42 @@ export default function ToastHost() {
   const dismiss = useToastStore((s) => s.dismiss);
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm">
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm"
+    >
       <AnimatePresence>
         {items.map((t) => {
           const Icon = TONE_ICON[t.tone];
           return (
-            <motion.button
+            <motion.div
               key={t.id}
               layout
               initial={{ opacity: 0, y: -18, scale: 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
+              role="button"
+              tabIndex={0}
+              aria-label={`通知：${t.text}，点击关闭`}
               onClick={() => dismiss(t.id)}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] text-xs font-bold shadow-2xl ${TONE_STYLE[t.tone]}`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  dismiss(t.id);
+                }
+              }}
+              className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] text-xs font-bold shadow-2xl cursor-pointer ${TONE_STYLE[t.tone]}`}
             >
-              <Icon size={14} className="shrink-0" />
+              <Icon size={14} className="shrink-0" aria-hidden="true" />
               {t.text}
               {t.action && (
                 <button
                   type="button"
-                  onClick={() => {
+                  aria-label={t.action.label}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     t.action!.onClick();
                     dismiss(t.id);
                   }}
@@ -50,7 +65,7 @@ export default function ToastHost() {
                   {t.action.label}
                 </button>
               )}
-            </motion.button>
+            </motion.div>
           );
         })}
       </AnimatePresence>

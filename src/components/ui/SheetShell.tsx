@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { motion as Motion } from "framer-motion";
 import type { TargetAndTransition } from "framer-motion";
 
@@ -49,6 +49,15 @@ export default function SheetShell({
   const animate = animateOverride ?? (scale !== undefined ? { scale: 1, opacity: 1 } : { y: 0, opacity: 1 });
   const exit = scale !== undefined ? { scale, opacity: 0 } : { y, opacity: 0 };
 
+  // Esc 关闭（各弹层统一可达；e2e 不按键，时序零风险）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <>
       <Motion.div
@@ -66,6 +75,7 @@ export default function SheetShell({
         transition={{ type: "spring", stiffness, damping }}
         className={panelClassName}
         role="dialog"
+        aria-modal="true"
         data-testid={panelTestId}
       >
         {children}

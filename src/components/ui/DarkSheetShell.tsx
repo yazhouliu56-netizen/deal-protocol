@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode, Ref } from "react";
+import { useEffect, type ReactNode, type Ref } from "react";
 
 /** 暗色弹层三处壳正典（P9-3 收敛值；z 由调用方按原层级透传，行为零漂移） */
 export const DARK_SHEET_CSS = `
@@ -51,6 +51,14 @@ export default function DarkSheetShell({
   panelTestId,
   ariaLabel,
 }: DarkSheetShellProps) {
+  // Esc 关闭（与 SheetShell 同权；maskClosable=false 的强制二选一门不放行 Esc，不断产品语义）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && maskClosable !== false) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, maskClosable]);
   return (
     <>
       <style>{DARK_SHEET_CSS}</style>

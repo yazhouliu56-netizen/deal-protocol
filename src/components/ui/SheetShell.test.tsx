@@ -62,6 +62,17 @@ describe("SheetShell 白弹层结构壳（P9-2）", () => {
     unmount();
   });
 
+  it("面板带 aria-modal + Esc 触发 onClose", () => {
+    const fn = vi.fn();
+    const { host, unmount } = mount(<SheetShell onClose={fn}>内容</SheetShell>);
+    expect(host.querySelector('[role="dialog"]')?.getAttribute("aria-modal")).toBe("true");
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+    expect(fn).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
   it("SheetClose 渲染 aria-label 并触发 onClose（e2e 关闭契约）", () => {
     const fn = vi.fn();
     const { host, unmount } = mount(<SheetClose onClose={fn} label="关闭发布" />);

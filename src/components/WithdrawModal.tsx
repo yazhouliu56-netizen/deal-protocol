@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast, updateToast } from "@/base/platform/toast";
 import { Wallet, X, CreditCard, Building, ArrowRight } from "lucide-react";
 
@@ -16,6 +16,16 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
   const [payoutMethod, setPayoutMethod] = useState<string>("ALIPAY");
   const [accountInfo, setAccountInfo] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Esc 关闭（与 SheetShell 同权）
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -60,7 +70,12 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-2xl p-6 space-y-5 relative shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="发起收益提现"
+        className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-2xl p-6 space-y-5 relative shadow-2xl"
+      >
         <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300" aria-label="关闭提现弹窗">
           <X className="w-4 h-4"/>
         </button>
@@ -105,10 +120,11 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1.5">提现金额 (元)</label>
+            <label htmlFor="withdraw-amount" className="block text-xs font-medium text-zinc-300 mb-1.5">提现金额 (元)</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-xs font-mono text-zinc-500">¥</span>
               <input
+                id="withdraw-amount"
                 type="number"
                 min="1"
                 max={availableBalance}
@@ -120,7 +136,7 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
               <button
                 type="button"
                 onClick={() => setAmount(availableBalance)}
-                className="absolute right-2 top-2 text-xs font-mono text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded"
+                className="absolute right-2 top-1 min-h-8 inline-flex items-center text-xs font-mono text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-2 rounded"
               >
                 全部提现
               </button>
@@ -128,10 +144,11 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+            <label htmlFor="withdraw-account" className="block text-xs font-medium text-zinc-300 mb-1.5">
               {payoutMethod === "ALIPAY" ? "支付宝账号 / 手机号" : "开户行及银行卡号"}
             </label>
             <input
+              id="withdraw-account"
               type="text"
               value={accountInfo}
               onChange={(e) => setAccountInfo(e.target.value)}
