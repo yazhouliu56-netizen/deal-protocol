@@ -144,7 +144,8 @@ try {
 
   // --- 4. A 进履约座舱（fuzePolicy.sos 武装：geo-tracker + audio-recorder 启动） ---
   await waitDock(pageA, "行程");
-  await pageA.getByLabel("行程").click();
+  // exact：接单 toast 文案含“到行程查看进度”子串，非 exact 会撞车（strict mode）
+  await pageA.getByLabel("行程", { exact: true }).click();
   await waitUntil(
     pageA,
     () => !!document.querySelector('[data-testid="fulfillment-center"]'),
@@ -157,6 +158,18 @@ try {
     15000,
     "外骨骼 SOS 锚点"
   );
+
+  // --- 4b. CompanionSlot Duo 化视觉（Batch①首发：白底卡 + 同契约埋点） ---
+  await waitUntil(
+    pageA,
+    () => !!document.querySelector('[data-slot="companion"]'),
+    15000,
+    "CompanionSlot 挂载"
+  );
+  await pageA
+    .locator('[data-slot="companion"]')
+    .screenshot({ path: "docs/shot/companion-slot-duo.png" });
+  step(true, "CompanionSlot Duo 化", "白底卡落图 docs/shot/companion-slot-duo.png");
 
   // --- 5. 等待硬件流积累：≥1 个 5s 录音切片落池 + GPS 面包屑多点 ---
   console.log("   ⏳ 采集窗口 7s（MediaRecorder timeslice=5s 首片落池 + watchPosition 多点累积）…");

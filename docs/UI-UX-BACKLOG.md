@@ -61,3 +61,10 @@
 - 落点：base editReview/withdrawReport + 单测；trustSlice editReview/withdrawReport（重报复活旧件保 id 唯一，留 withdrawnAt 痕）+ useAppStore editReview；UI：ReviewSection/ReviewFormModal 修改入口（走 ConfirmSheet），WaveCard/MyWaves/MyClaims 撤回入口（可逆直执，不走确认）。
 - 考卷：e2e-review 加 A 改一次（5.0→4.7，B 仍 Lv5，二次入口消失）；e2e-governance 加撤回+重报（下游裁定不变）；ReviewFormModal.test.tsx 订单轨。
 - 注记：服务端 POST /api/reviews 零 UI 调用，本次不动（改它需 Supabase evidence_chain 加列，另案）；resolved 后再举报的同 id 并存为既有语义，本次未动。
+
+## Duo 化 Batch①-1：CompanionSlot 首发（2026-09-12）
+- 改写：夜幕紫暗岛 <style>（.cp- 全套渐变/玻璃）删除 → DuoCardShell 白底 + DuoPill（武装绿/未武装黄 solid）+ 伪装假电话 Duo primary + 距离虚线 polar 行 + 拉黑 Duo danger；text-slate-300 收敛 wolf。
+- 决策：夜幕紫身份由父级 data-theme=companion 承载，卡片纯 Duo（未引入紫 token）；拉黑用 danger（破坏性动作诚实映射）。
+- 契约零动：data-slot/data-action/props/文案全保留；cockpit-battle4/FulfillmentCockpit/E2EIntegration 71 例绿。
+- 考卷：e2e-sos-hardware 加 4b（座舱挂载 + 落图 docs/shot/companion-slot-duo.png，Pill 换行修一次）；附带修该脚本预存 flake：接单 toast 文案含“行程”子串撞 getByLabel → exact:true。
+- 剩余 8 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / MilestoneLadder / MeetupSlot / HousekeepingSlot / DynamicAmmoSlot（中心与座舱体量大，另起 commit）。
