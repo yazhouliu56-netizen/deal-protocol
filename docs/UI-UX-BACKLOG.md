@@ -149,3 +149,9 @@
 - 抢单乐观化：useClaimDemand 加 onOptimistic/onRollback（不传=原阻塞语义零漂移；GrabConsole/ProviderConsole 未接保持原样）；IncomingListClient 暂存+先行移除+失败回滚（realtime 通道去重）；SwipeableCard 透传。时序考卷 useClaimDemand.optimistic.test.tsx（成功/被抢/断网三序全断言）。
 - Motion 首用：TripPage 存证钮 + FloatingSosButton 入场切 DUO_SETTLE token。
 - 未动：landing 诊断 spinner（LLM 旁路 8s SLA 真等待，骨架步骤化另案）、verification 短信（阻塞式系统等待，按范式保留）、发布流（本地同步已是乐观语义）。
+
+## Batch③-5：门禁锁死（2026-09-12）
+- e2e-ux-budget.mjs 新套件（SUITE_ORDER 第 15 席，verify-prod 单一源自动拾取）：首页 ≤18 按钮棘轮 + 折叠完整性 + AR 悬浮出清 + 行程统一卡 + 全空存证隐藏 + 访客 SOS 在位。
+- match 考卷同步：新对话改 chat-new 硬锚（role 文本口径在折叠 remount 后偶发失明）+ 三态回落循环（已展开/仅外层开/全关）；教训：synthetic dispatch 打到 detached 节点变空操作，一律真实点击 + 终态断言。
+- 全量：verify-prod 15/15（trust 首轮偶发超时、单跑绿、重跑整轮绿，时序 flake 非回归）+ vitest 851 + oto 1269 + lint 0 + tsc 0 + build 101。
+- Batch③ 收官：UI/UX 冗余与混乱根因（入口无生命周期/系统建而不用/无感知范式/导航缺失）全部落地为规则 + 代码 + 门禁。
