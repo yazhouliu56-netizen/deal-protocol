@@ -219,6 +219,16 @@ try {
     20000,
     "A 看到已成局"
   );
+  // Batch① Duo 化视觉：MeetupSlot 白底卡落图
+  await waitUntil(
+    pageA,
+    () => !!document.querySelector('[data-slot="meetup"]'),
+    15000,
+    "MeetupSlot 挂载"
+  );
+  await pageA
+    .locator('[data-slot="meetup"]')
+    .screenshot({ path: "docs/shot/meetup-slot-duo.png" });
   assert.ok(
     await pageA.evaluate(() =>
       document.body.innerText.includes("2 位拼位者")

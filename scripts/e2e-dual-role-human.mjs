@@ -238,6 +238,17 @@ try {
   // Trip 屏挂载 FulfillmentCenter；Dock 精确导航到「行程」
   await pageA.getByRole("button", { name: "行程", exact: true }).click();
   await pageA.waitForTimeout(900);
+  // Batch① Duo 化视觉：HousekeepingSlot 白底卡落图
+  await waitUntil(
+    pageA,
+    () => !!document.querySelector('[data-slot="housekeeping"]'),
+    15000,
+    "HousekeepingSlot 挂载"
+  );
+  await pageA
+    .locator('[data-slot="housekeeping"]')
+    .screenshot({ path: "docs/shot/housekeeping-slot-duo.png" });
+  step("A", "HousekeepingSlot Duo 化", "白底卡落图 docs/shot/housekeeping-slot-duo.png");
   // housekeeping 座舱为平铺式：推进 = page 级「拍照存证」双拍（evidencePhotos props，
   // advanceLifecycle photos 载荷的唯一来源）+ NFC 核销按钮单步跃迁
   const proofShot = await pageA.screenshot({ type: "jpeg", quality: 85 });

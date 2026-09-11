@@ -68,3 +68,10 @@
 - 契约零动：data-slot/data-action/props/文案全保留；cockpit-battle4/FulfillmentCockpit/E2EIntegration 71 例绿。
 - 考卷：e2e-sos-hardware 加 4b（座舱挂载 + 落图 docs/shot/companion-slot-duo.png，Pill 换行修一次）；附带修该脚本预存 flake：接单 toast 文案含“行程”子串撞 getByLabel → exact:true。
 - 剩余 8 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / MilestoneLadder / MeetupSlot / HousekeepingSlot / DynamicAmmoSlot（中心与座舱体量大，另起 commit）。
+
+## Duo 化 Batch①-2：家政 + 组局双插槽（2026-09-12，Companion 先例复用）
+- HousekeepingSlot：删 hk- 暗岛 <style> 全套 → DuoCardShell + 定制标签 DuoPill neutral/soft + 加价上限三色 polar 横幅（超限红/正常绿/默认灰）+ 确认增项 primary / 拒绝 outline + 双拍格（secondary 拍照打卡，鉴真徽标 DuoPill dark  overlay 专用）+ 损坏包赔 danger + 拍照 modal  mask 留黑、sheet 转白；逻辑/state/ProofCamera/data-* 全保留。
+- MeetupSlot：删 mt- 暗岛 → 座次格（到场绿框绿字/未到场 polar）+ 围栏行 + 扫码到场 warning + AA 对账（补缴绿/退还黄）+ 确认分摊 primary + 放鸽子申诉 outline。
+- 附带： HousekeepingSlot openCapture Date.now 被 react-hooks/purity 新规拦截 → eslint-disable-next-line + 理由（事件回调生成单号，render 纯；仓内既有此惯例）。
+- 考卷：battle4/Cockpit/E2EIntegration/real-user-sim 76 例绿（含确认增项/确认分摊点击语义）；dual-role-human 加 hk 落图、openmatch 加 mt 落图；vitest 843 + oto 1269 + build 过。
+- 剩余 6 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / MilestoneLadder / DynamicAmmoSlot。

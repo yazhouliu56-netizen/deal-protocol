@@ -1,5 +1,8 @@
 "use client";
 
+import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
+
 /**
  * 组局社交特化插槽（Meetup Slot · 活力橙 theme-meetup）。
  *
@@ -7,6 +10,11 @@
  * - 履约核心：实时座次表（到场/未到场）+ 500m 签到围栏 + 扫码到场验真（ArrivalCheckHook UI 形态）；
  * - 核销完工：组织者点选到场成员解冻定金（由 FulfillmentCockpit 底部 CTA 承载）；
  * - 争议售后：AA 多退少补对账卡 + 放鸽子申诉（爽约押金判归守约方，DELAY 引信投影）。
+ *
+ * Duo 化（Batch① 2026-09，Companion 先例）：活力橙暗岛 `<style>` 去除，白底
+ * DuoCardShell + DuoButton；场景身份由父级 data-theme="meetup" 承载。
+ * 扫码/确认分摊收敛 warning/primary，申诉收敛 outline。
+ * 契约与埋点不变：data-slot="meetup" / data-arrived / 文案全保留。
  */
 
 export interface MeetupSeat {
@@ -38,29 +46,6 @@ export interface MeetupSlotProps {
   onDisputeNoShow?: () => void;
 }
 
-const SLOT_CSS = `
-.mt-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(251,146,60,.14),rgba(251,146,60,.04));
-  border:1px solid rgba(251,146,60,.3);color:#e2e8f0;font-size:14px;line-height:1.5}
-.mt-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#fdba74}
-.mt-seats{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
-.mt-seat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:12px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#e2e8f0;font-weight:500}
-.mt-seat-arrived{border-color:rgba(74,222,128,.5);color:#4ade80}
-.mt-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:16px;background:rgba(255,255,255,.1)}
-.mt-fence{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-weight:500}
-.mt-btn{padding:7px 12px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;
-  background:linear-gradient(135deg,#fbbf24,#f97316);color:#05060f}
-.mt-split{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:12px;
-  background:rgba(255,255,255,.06)}
-.mt-split-row{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
-.mt-pay{color:#4ade80}.mt-refund{color:#fbbf24}
-.mt-dispute{width:100%;padding:9px 0;border-radius:12px;border:1px solid rgba(251,191,36,.4);
-  background:rgba(251,191,36,.08);color:#fbbf24;font-size:14px;font-weight:700;cursor:pointer}
-`;
-
 /** 组局社交插槽：座次表 + 500m 围栏签到 + AA 分摊对账 + 放鸽子申诉。 */
 export default function MeetupSlot({
   seats,
@@ -73,54 +58,75 @@ export default function MeetupSlot({
   const arrived = seats.filter((s) => s.arrived).length;
 
   return (
-    <div className="mt-slot" data-slot="meetup">
-      <style>{SLOT_CSS}</style>
-      <h4>🪑 实时座次表 · {arrived}/{seats.length} 已到场</h4>
-      <div className="mt-seats">
+    <DuoCardShell
+      className="p-3.5 space-y-2.5"
+      dataAttrs={{ "data-slot": "meetup" }}
+    >
+      <h4 className="text-sm font-extrabold text-[var(--color-duo-eel)]">
+        🪑 实时座次表 · {arrived}/{seats.length} 已到场
+      </h4>
+      <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(64px,1fr))" }}>
         {seats.map((seat) => (
           <div
             key={seat.id}
-            className={`mt-seat${seat.arrived ? " mt-seat-arrived" : ""}`}
             data-arrived={seat.arrived ? "1" : "0"}
+            className={`flex flex-col items-center gap-1 rounded-xl border-2 px-1 py-2 text-xs font-bold ${
+              seat.arrived
+                ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/60 text-[var(--color-duo-green-ink)]"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
+            }`}
           >
-            <span className="mt-avatar">{seat.arrived ? "✅" : "⏳"}</span>
+            <span className="text-base">{seat.arrived ? "✅" : "⏳"}</span>
             <span>{seat.name}</span>
           </div>
         ))}
       </div>
-      <div className="mt-fence">
-        <span>📍 签到围栏 {fenceMeters}m · 扫码验真解锁定金</span>
+      <div className="flex items-center justify-between gap-2 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-3 py-2">
+        <span className="text-sm font-bold text-[var(--color-duo-eel)]">
+          📍 签到围栏 {fenceMeters}m · 扫码验真解锁定金
+        </span>
         {onScanArrival && (
-          <button type="button" className="mt-btn" onClick={onScanArrival}>
+          <DuoButton variant="warning" size="sm" onClick={onScanArrival} className="shrink-0">
             📷 扫码到场
-          </button>
+          </DuoButton>
         )}
       </div>
       {split && (
-        <section className="mt-split">
-          <strong className="text-orange-300">
+        <section className="flex flex-col gap-1.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-3 py-2">
+          <strong className="text-sm font-extrabold text-[var(--color-duo-eel)]">
             💰 AA 分摊对账 · 合计 ¥{split.totalYuan}
           </strong>
           {split.entries.map((entry) => (
-            <div key={entry.party} className="mt-split-row">
-              <span>{entry.party}</span>
-              <span className={entry.deltaYuan >= 0 ? "mt-pay" : "mt-refund"}>
+            <div key={entry.party} className="flex justify-between text-[13px] font-bold">
+              <span className="text-[var(--color-duo-eel)]">{entry.party}</span>
+              <span
+                className={
+                  entry.deltaYuan >= 0
+                    ? "text-[var(--color-duo-green-ink)]"
+                    : "text-[var(--color-duo-yellow-ink)]"
+                }
+              >
                 {entry.deltaYuan >= 0 ? `补缴 +¥${entry.deltaYuan}` : `退还 ¥${-entry.deltaYuan}`}
               </span>
             </div>
           ))}
           {onConfirmSplit && (
-            <button type="button" className="mt-btn" onClick={onConfirmSplit} style={{ alignSelf: "flex-end" }}>
+            <DuoButton
+              variant="primary"
+              size="sm"
+              onClick={onConfirmSplit}
+              className="self-end"
+            >
               ✓ 确认分摊
-            </button>
+            </DuoButton>
           )}
         </section>
       )}
       {onDisputeNoShow && (
-        <button type="button" className="mt-dispute" onClick={onDisputeNoShow}>
+        <DuoButton variant="outline" fullWidth onClick={onDisputeNoShow}>
           🐦 放鸽子申诉（爽约押金判归守约方）
-        </button>
+        </DuoButton>
       )}
-    </div>
+    </DuoCardShell>
   );
 }

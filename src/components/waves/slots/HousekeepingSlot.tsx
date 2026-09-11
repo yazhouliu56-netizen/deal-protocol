@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import type { INormalizedCustomIntent } from "@/types/ammo-schema";
 import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/controls/ProofCamera";
+import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 
 /**
  * 家政保洁特化插槽（Housekeeping Slot · 清洁蓝 theme-housekeeping）。
@@ -14,6 +17,12 @@ import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/contr
  * - 争议售后：损坏包赔（财产险理赔直连，IMPACT 引信 propertyInsurance 投影）。
  * 自包含 CSS（外骨骼零改动，差异全收敛插槽区，红线 2）。
  * P0-3/P1-1 全链：原生相机直拍 ➔ 水印压制 ➔ SHA-256 ➔ 五信号快筛 ➔ 存证载荷结构化入账。
+ *
+ * Duo 化（Batch① 2026-09，Companion 先例）：清洁蓝暗岛 `<style>` 去除，白底
+ * DuoCardShell + DuoButton/DuoPill；场景身份由父级 data-theme="housekeeping" 承载。
+ * 确认增项/拍照打卡收敛 primary/secondary，拒绝对 outline，损坏包赔 danger；
+ * 照片鉴真徽标用 DuoPill dark（深底 overlay 专用）。
+ * 逻辑与埋点不变：props/state/ProofCamera 接线 + data-slot/testid/action 全保留。
  */
 
 export interface HousekeepingQuote {
@@ -50,45 +59,6 @@ export interface HousekeepingSlotProps {
   onProofCaptured?: (phaseKey: "before" | "after", result: IProofCaptureResult) => void;
 }
 
-const SLOT_CSS = `
-.hk-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(56,132,255,.14),rgba(56,132,255,.04));
-  border:1px solid rgba(56,132,255,.3);color:#e2e8f0;font-size:14px;line-height:1.5}
-.hk-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#8ec3ff}
-.hk-quote{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 11px;
-  border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
-.hk-quote-btns{display:flex;gap:6px}
-.hk-btn{padding:6px 12px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer}
-.hk-btn-accept{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
-.hk-btn-reject{background:rgba(255,255,255,.1);color:#dbe4f0;border:1px solid rgba(255,255,255,.2)}
-.hk-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hk-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;font-size:12px;color:#cbd5e1;
-  overflow:hidden;background:rgba(255,255,255,.05);font-weight:500;flex-direction:column;gap:6px}
-.hk-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.hk-photo-btn{min-height:44px;padding:7px 12px;border-radius:12px;border:none;font-size:12px;font-weight:800;
-  cursor:pointer;color:#fff;background:linear-gradient(135deg,#38bdf8,#2563eb);box-shadow:0 4px 14px rgba(37,99,235,.35)}
-.hk-verified{margin-left:4px;font-size:12px;color:#4ade80;font-weight:600}
-.hk-damage{width:100%;padding:9px 0;border-radius:12px;border:none;font-size:14px;font-weight:700;
-  cursor:pointer;background:linear-gradient(135deg,#f97316,#dc2626);color:#fff}
-.hk-cap{font-size:12px;color:#cbd5e1;padding:6px 10px;border-radius:10px;line-height:1.5;
-  background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25)}
-.hk-cap-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
-.hk-cap-over{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
-.hk-custom{display:flex;flex-wrap:wrap;gap:6px}
-.hk-custom-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
-  background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
-.hk-proof-modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;padding:16px}
-.hk-proof-sheet{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#0f172a,#1e293b);
-  border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px}
-.hk-forgery{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid}
-.hk-forgery-low{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#86efac}
-.hk-forgery-medium{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4);color:#fde68a}
-.hk-forgery-high{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.4);color:#fed7aa}
-.hk-forgery-critical{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);color:#fecaca}
-`;
-
 /** 家政保洁插槽：增项改价确认单 + 双拍照片池 + 损坏包赔直连。 */
 const DRESS_LABEL_HK: Record<string, string> = {
   THEMED_MAID: "女仆主题",
@@ -115,18 +85,18 @@ export function describeSlotCustomTags(
   return tags;
 }
 
-function forgeryClass(level: string): string {
+/** 鉴真风险等级 → DuoPill tone（照片 overlay 用 dark 变体）。 */
+function forgeryTone(level: string): DuoPillTone {
   switch (level) {
-    case "LOW":
-      return "hk-forgery-low";
     case "MEDIUM":
-      return "hk-forgery-medium";
+      return "yellow";
     case "HIGH":
-      return "hk-forgery-high";
+      return "orange";
     case "CRITICAL":
-      return "hk-forgery-critical";
+      return "red";
+    case "LOW":
     default:
-      return "hk-forgery-low";
+      return "green";
   }
 }
 
@@ -153,6 +123,7 @@ export default function HousekeepingSlot({
   const [captureNo, setCaptureNo] = useState<string | null>(null);
   const openCapture = (phase: "before" | "after") => {
     setCapturing(phase);
+    // eslint-disable-next-line react-hooks/purity -- 事件回调内生成拍照单号（用户手势时序），render 输出保持纯
     setCaptureNo(orderNo ?? `hk-${phase}-${Date.now().toString(36)}`);
   };
   const [beforeResult, setBeforeResult] = useState<IProofCaptureResult | null>(null);
@@ -170,22 +141,72 @@ export default function HousekeepingSlot({
     setCapturing(null);
   };
 
+  const photoCell = (
+    phase: "before" | "after",
+    display: string | null,
+    result: IProofCaptureResult | null,
+    emptyLabel: string,
+    forgeryTestId: string
+  ) => (
+    <div
+      className="relative flex flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] text-xs font-bold text-[var(--color-duo-wolf)]"
+      style={{ aspectRatio: "4/3" }}
+      data-photo={phase}
+    >
+      {display ? (
+        <>
+          <Image src={display} alt={phase === "before" ? "服务前照片" : "服务后照片"} fill sizes="50vw" style={{ objectFit: "cover" }} />
+          {result && (
+            <DuoPill
+              tone={forgeryTone(result.forgeryReport.riskLevel)}
+              variant="dark"
+              testId={forgeryTestId}
+              className="absolute bottom-1.5 left-1.5 right-1.5 justify-center text-xs"
+            >
+              🔬 {Math.round(result.forgeryReport.overallConfidence * 100)}% · {result.forgeryReport.riskLevel}
+            </DuoPill>
+          )}
+        </>
+      ) : (
+        <>
+          <span>{emptyLabel}</span>
+          <DuoButton
+            size="sm"
+            variant="secondary"
+            data-action={phase === "before" ? "hk-proof-before" : "hk-proof-after"}
+            onClick={() => openCapture(phase)}
+          >
+            拍照打卡
+          </DuoButton>
+        </>
+      )}
+    </div>
+  );
+
   return (
-    <div className="hk-slot" data-slot="housekeeping">
-      <style>{SLOT_CSS}</style>
+    <DuoCardShell
+      className="p-3.5 space-y-2.5"
+      dataAttrs={{ "data-slot": "housekeeping" }}
+    >
       {customTags.length > 0 && (
-        <section className="hk-custom" data-testid="hk-custom-requirements" data-custom-requirements>
+        <section className="flex flex-wrap gap-1.5" data-testid="hk-custom-requirements" data-custom-requirements>
           {customTags.map((tag) => (
-            <span key={tag} className="hk-custom-tag" data-custom-tag>
+            <DuoPill key={tag} tone="neutral" variant="soft" dataAttrs={{ "data-custom-tag": "" }}>
               {tag}
-            </span>
+            </DuoPill>
           ))}
         </section>
       )}
       {hasBase && capYuan !== null && (
         <section
-          className={`hk-cap ${overCap ? "hk-cap-over" : quote ? "hk-cap-ok" : ""}`}
           data-cap-meta
+          className={`rounded-xl border-2 px-2.5 py-1.5 text-xs font-bold leading-relaxed ${
+            overCap
+              ? "bg-[var(--color-duo-red-mist)] border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]"
+              : quote
+                ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/50 text-[var(--color-duo-green-ink)]"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
+          }`}
         >
           {overCap
             ? `⚠️ 增项 +¥${quote.amountYuan} 超过上限 ¥${capYuan}（基础金额 ${maxSurchargeRatio * 100}%）——超出部分需双方重新确认，防坐地起价`
@@ -193,97 +214,73 @@ export default function HousekeepingSlot({
         </section>
       )}
       {quote && (
-        <section className="hk-quote">
+        <section className="flex items-center justify-between gap-2 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-3 py-2">
           <div>
-            <strong>现场增项：{quote.item}</strong>
-            <div className="text-amber-400">+¥{quote.amountYuan}</div>
+            <strong className="text-sm font-extrabold text-[var(--color-duo-eel)]">
+              现场增项：{quote.item}
+            </strong>
+            <div className="text-sm font-extrabold text-[var(--color-duo-yellow-ink)]">
+              +¥{quote.amountYuan}
+            </div>
           </div>
-          <div className="hk-quote-btns">
+          <div className="flex shrink-0 gap-1.5">
             {quote.confirmed ? (
-              <span className="text-green-400" style={{ fontSize: 12 }}>已确认 ✓</span>
+              <span className="text-xs font-bold text-[var(--color-duo-green-ink)]">已确认 ✓</span>
             ) : (
               <>
-                <button type="button" className="hk-btn hk-btn-accept" onClick={onAcceptQuote}>
+                <DuoButton size="sm" variant="primary" onClick={onAcceptQuote}>
                   确认增项
-                </button>
-                <button type="button" className="hk-btn hk-btn-reject" onClick={onRejectQuote}>
+                </DuoButton>
+                <DuoButton size="sm" variant="outline" onClick={onRejectQuote}>
                   拒绝
-                </button>
+                </DuoButton>
               </>
             )}
           </div>
         </section>
       )}
-      <section className="hk-photos" data-testid="hk-photos">
-        <div className="hk-photo" data-photo="before">
-          {beforeDisplay ? (
-            <>
-              <Image src={beforeDisplay} alt="服务前照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
-              {beforeResult && (
-                <span className={`hk-forgery ${forgeryClass(beforeResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="hk-before-forgery">
-                  🔬 {Math.round(beforeResult.forgeryReport.overallConfidence * 100)}% · {beforeResult.forgeryReport.riskLevel}
-                </span>
-              )}
-            </>
-          ) : (
-            <>
-              <span>📷 Before 待拍摄</span>
-              <button type="button" className="hk-photo-btn" data-action="hk-proof-before" onClick={() => openCapture("before")}>
-                拍照打卡
-              </button>
-            </>
-          )}
-        </div>
-        <div className="hk-photo" data-photo="after">
-          {afterDisplay ? (
-            <>
-              <Image src={afterDisplay} alt="服务后照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
-              {afterResult && (
-                <span className={`hk-forgery ${forgeryClass(afterResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="hk-after-forgery">
-                  🔬 {Math.round(afterResult.forgeryReport.overallConfidence * 100)}% · {afterResult.forgeryReport.riskLevel}
-                </span>
-              )}
-            </>
-          ) : (
-            <>
-              <span>📷 After 待拍摄</span>
-              <button type="button" className="hk-photo-btn" data-action="hk-proof-after" onClick={() => openCapture("after")}>
-                拍照打卡
-              </button>
-            </>
-          )}
-        </div>
+      <section className="grid grid-cols-2 gap-2" data-testid="hk-photos">
+        {photoCell("before", beforeDisplay, beforeResult, "📷 Before 待拍摄", "hk-before-forgery")}
+        {photoCell("after", afterDisplay, afterResult, "📷 After 待拍摄", "hk-after-forgery")}
       </section>
-      <div className="text-slate-300" style={{ fontSize: 12 }} data-testid="hk-proof-status">
+      <div className="text-xs text-[var(--color-duo-wolf)]" data-testid="hk-proof-status">
         {twinVerified ? (
           twinCritical ? (
-            <span className="text-red-300" style={{ fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
+            <span className="font-bold text-[var(--color-duo-red-dark)]">⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
           ) : (
-            <span className="hk-verified">✅ 双拍验真已通过（水印相机存证 + 🔬 鉴真）</span>
+            <span className="font-bold text-[var(--color-duo-green-ink)]">✅ 双拍验真已通过（水印相机存证 + 🔬 鉴真）</span>
           )
         ) : (
           <span>⚠️ 完成双拍后方可验收（红线 4 零信任物理感知）</span>
         )}
       </div>
       {twinVerified && !twinCritical && beforeResult && afterResult && (
-        <div className="hk-cap hk-cap-ok" data-testid="hk-sha-chain">
-          <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, wordBreak: "break-all" }}>
+        <div
+          data-testid="hk-sha-chain"
+          className="rounded-xl border-2 border-[var(--color-duo-green-dark)]/50 bg-[var(--color-duo-green)]/10 px-2.5 py-1.5"
+        >
+          <div className="text-[11px] text-[var(--color-duo-green-ink)]" style={{ fontFamily: "ui-monospace, monospace", wordBreak: "break-all" }}>
             SHA-256 Before {beforeResult.sha256.slice(0, 12)}… · After {afterResult.sha256.slice(0, 12)}…
           </div>
         </div>
       )}
       {onClaimDamage && (
-        <button type="button" className="hk-damage" onClick={onClaimDamage}>
+        <DuoButton variant="danger" fullWidth onClick={onClaimDamage}>
           🛡️ 损坏包赔 · 财产险理赔直连
-        </button>
+        </DuoButton>
       )}
 
       {capturing && (
-        <div className="hk-proof-modal" data-testid="hk-proof-modal" onClick={() => setCapturing(null)}>
-          <div className="hk-proof-sheet" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <strong className="text-slate-200" style={{ fontSize: 13 }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
-              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="text-slate-400" style={{ background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
+        <div
+          data-testid="hk-proof-modal"
+          onClick={() => setCapturing(null)}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          style={{ backdropFilter: "blur(4px)" }}
+        >
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[420px] overflow-auto rounded-3xl border-2 border-[var(--color-duo-swan)] bg-white p-3.5" style={{ maxHeight: "88vh" }}>
+            <div className="mb-2 flex items-center justify-between">
+              <strong className="text-[13px] text-[var(--color-duo-eel)]">📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
+              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="cursor-pointer border-none bg-none text-sm text-[var(--color-duo-hare)]">✕</button>
             </div>
             <ProofCamera
               orderNo={captureNo ?? `hk-${capturing}`}
@@ -293,6 +290,6 @@ export default function HousekeepingSlot({
           </div>
         </div>
       )}
-    </div>
+    </DuoCardShell>
   );
 }
