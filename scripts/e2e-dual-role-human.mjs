@@ -95,9 +95,7 @@ const isNoise = (t) =>
   /^THREE\.(Clock|WebGLProgram)/.test(t) ||
   // supabase-js 官方自述「It is not an error」的已知告警（多 client 实例并存
   // 为产品架构现状），无并发写同一 storage key 的实际冲突。
-  /Multiple GoTrueClient instances/.test(t) ||
-  // Next dev 图片提示（吉祥物 aspect/LCP）：无用户影响，已记 UI-UX-BACKLOG 待修
-  /Image with src "\/mascots\//.test(t);
+  /Multiple GoTrueClient instances/.test(t);
 
 const ctxA = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
 const pageA = await ctxA.newPage();

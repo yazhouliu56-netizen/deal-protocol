@@ -19,6 +19,17 @@ async function waitUntil(page, fn, timeout = 15000, label = "条件") {
   throw new Error(`等待超时: ${label}`);
 }
 
+// online/offline 事件桥（OnlineStatusBridge/sync-bus）与显式 reload 竞态
+// → frame detached/ERR_ABORTED 是测试侧导航竞态，非应用缺陷：重试一次
+async function reloadTolerant(page) {
+  try {
+    await page.reload({ waitUntil: "domcontentloaded" });
+  } catch {
+    await sleep(800);
+    await page.reload({ waitUntil: "domcontentloaded" });
+  }
+}
+
 const browser = await chromium.launch(getDefaultLaunchOptions());
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
@@ -42,15 +53,19 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
 
   // --- 1. 在线首访：预热 SW 预缓存 shell ---
+  // 首页重设计：一屏一职，广播流在雷达段（默认发单段无雷达 Fallback 文案）
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
+  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "雷达渲染");
   await waitUntil(page, () => navigator.serviceWorker?.controller !== null, 10000, "SW 接管");
   await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "预热重载");
 
   // --- 2. 断网 → 重载 → 五屏兜底 ---
   await ctx.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "离线雷达");
   await sleep(600);
 
@@ -70,8 +85,13 @@ try {
     };
     out.home = {
       have: doc.body.innerText.includes("谁正在附近发需求"),
-      chat: !!doc.querySelector('input[placeholder*="描述你的需求"]'),
+      chat: false,
     };
+    // 发单段才有 AI 输入舱：切回发单段再断言（与雷达段分职）
+    const demandTab = doc.querySelector('[data-testid="home-tab-demand"]');
+    if (demandTab) demandTab.click();
+    await sleep(400);
+    out.home.chat = !!doc.querySelector('input[placeholder*="描述你的需求"]');
     await clickDock("AR 扫描");
     await sleep(600);
     out.ar = { have: doc.body.innerText.includes("AR") };
@@ -90,7 +110,8 @@ try {
 
   // --- 3. 在线恢复 ---
   await ctx.setOffline(false);
-  await page.reload({ waitUntil: "domcontentloaded" });
+  await reloadTolerant(page);
+  await page.getByTestId("home-tab-radar").click();
   await waitUntil(page, () => document.body.innerText.includes("谁正在附近发需求"), 15000, "恢复在线");
 
   assert.equal(errors.length, 0, `无 console error，实际: ${errors.join(" | ")}`);

@@ -136,6 +136,7 @@ export function CapybaraBadge({
           aria-hidden="true"
           width={large ? 150 : 88}
           height={large ? 150 : 88}
+          priority
           draggable={false}
           onError={() => setImgOk(false)}
           className="relative h-full w-full object-contain mix-blend-multiply select-none"
@@ -241,11 +242,11 @@ export function SleepyBeast({
       src="/mascots/sleepy-beast.png"
       alt=""
       aria-hidden="true"
-      width={72}
-      height={56}
+      width={180}
+      height={132}
       draggable={false}
       onError={() => setImgOk(false)}
-      className="h-[72px] w-[72px] object-contain select-none"
+      className="h-auto w-[72px] object-contain select-none"
     />
   ) : (
     <BeastSvg mood={m} />

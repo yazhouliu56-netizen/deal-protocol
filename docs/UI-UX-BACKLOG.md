@@ -33,6 +33,6 @@
 - **现象**：hydration warning `#418`（引导条「知道了」、AI 屏语音气泡首次进入闪现）。
 - **根因**：这两处用 `useState(() => typeof window !== "undefined" && !localStorage.getItem(key))` —— 服务端渲染首快照与客户端水合首快照不一致（localStorage 仅客户端可见）。
 - **模式**：`lib/clientFlags.ts` 封装 `makeFlagHook(key)` → `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`：server 快照恒 `false`；`subscribe`（客户端水合时执行）从 localStorage warm 并通知翻转。**结论：该模式与 08-10 已修 NotificationCenter readKeys、08-09 mapPref 同构，已在全库统一（3 处），后续所有「一次性记忆」标志一律走 clientFlags，禁止再直接 useState 读 localStorage。**
-## 图片提示（2026-09-10 dual-role e2e 发现，已在脚本侧降噪）
+## 图片提示（2026-09-10 dual-role e2e 发现，2026-09-11 已修 + 降噪回退）
 
-- sleepy-beast.png 缺 width/height 配比（CSS 改尺寸未同步 width:auto/height:auto）；capybara.png 首屏 LCP 缺 loading=eager。Next dev 警告，无用户影响，顺手修。
+- sleepy-beast.png 按真实 180×132 等比（props 180×132 + `h-auto w-[72px]`，CSS 与宽高比一致，aspect 警告消除）；capybara.png 首屏 LCP 加 `priority`（eager + preload）。e2e-dual-role-human mascots 降噪过滤已删除，零告警实证通过。
