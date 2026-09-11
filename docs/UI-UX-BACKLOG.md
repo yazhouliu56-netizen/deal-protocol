@@ -100,3 +100,9 @@
 - 考卷新建 e2e-dyn-slot.mjs（SUITE_ORDER + MANUAL_ONLY…不，是 SUITE_ORDER 正式位 + RULES 映射 DynamicAmmoSlot/CockpitAmmoSlot/dyn-slot），宠物寄养全链路发单→接单（直达 accepted）→行程座舱落图 docs/shot/dyn-slot-duo.png。
 - 探针三连修（均记档）：① dual-role 行撑爆撞 57014 → 新卷独占 oto::e2e::dyn-slot 行；② B 波卡永不出现 → feed 硬筛 identity.categories 品类匹配，预置须扩「宠物寄养」；③ 修空调 variant=hk（复用家政模板）根本不挂 dynamic-ammo → 改考 pet-boarding-v1（-actionSchema.variant=dyn 唯一真身，registry 全表实测）。
 - 剩余 2 岛（座舱双巨物）：FulfillmentCockpit / FulfillmentCenter。
+
+## Duo 化 Batch①-7：FulfillmentCockpit（2026-09-12）
+- 改写：删 COCKPIT_CSS 暗岛（仅留 max-width 结构钩）→ Duo 白底 3D 大卡（cockpit 首类名保留）+ 服务者卡 polar 白底（实名徽标换 DuoPill green，六维信用分保留）+ 通话/聊天换 DuoButton secondary sm（data-action/aria 原样透传）+ 安全徽标 SAFETY_PILL_META className→tone（GUARDED/ATTENTION/THREAT=green/yellow/red，describeSafetyPill 同步）+ 强化守护条 Duo 绿底 + 定制标签 DuoPill neutral。CTA/资金盾/通关地图/里程碑本就 Duo，未动；StatusCapsule 外骨骼锚点不动（前端红线①）。
+- 单测 27/27 零改过（data-scenario/data-theme/data-action/data-testid/文案锚点全保留，无用例断言 cockpit-* 类名）；e2e-dyn-slot 重跑 PASS + 整屏落图 docs/shot/cockpit-duo.png。
+- 六圈定位：L1 触达（履约座舱主屏）+ L2 业务核心（五态履约）；复用 base/safe runtime-monitor（徽标语义）+ milestone-escrow（阶梯已 Duo）；弹药表零新增。命中 #1/#4 + 外骨骼红线①，偏离无。
+- 剩余最后 1 岛：FulfillmentCenter。

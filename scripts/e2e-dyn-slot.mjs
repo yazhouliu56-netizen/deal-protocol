@@ -190,6 +190,8 @@ try {
   assert.equal(slotMeta.theme, "default", "pet-boarding 插槽 theme 应为 default（variant dyn）");
   await pageA.locator('[data-slot="dynamic-ammo"]').screenshot({ path: "docs/shot/dyn-slot-duo.png" });
   step("A", "DynamicAmmoSlot Duo 化白底卡落图 docs/shot/dyn-slot-duo.png");
+  await pageA.screenshot({ path: "docs/shot/cockpit-duo.png" });
+  step("A", "FulfillmentCockpit Duo 化整屏落图 docs/shot/cockpit-duo.png");
 
   assert.equal(errors.length, 0, `控制台应零业务告警，实际:\n${errors.join("\n")}`);
   console.log("\n🎯 e2e-dyn-slot PASS ✓（长尾弹药座舱 dynamic-ammo 挂载 + Duo 白底实证）");

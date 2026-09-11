@@ -10,6 +10,7 @@ import StatusCapsule from "@/components/oto-ui/StatusCapsule";
 import { CockpitAmmoSlot, type CockpitSlotActions } from "./slots/DynamicAmmoSlot";
 import { useEffect, useState } from "react";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 import DuoProgress from "@/components/ui/DuoProgress";
 import DuoPathNode from "@/components/ui/DuoPathNode";
 import { playDuoSound } from "@/lib/duo-audio";
@@ -104,37 +105,9 @@ export interface FulfillmentCockpitProps {
   waveId?: string;
 }
 
+/** 座舱根容器布局（纯结构；色彩全部走 Duo Token + Tailwind，暗岛已出清）。 */
 const COCKPIT_CSS = `
-.cockpit{max-width:460px;border-radius:22px;padding:14px;color:#e2e8f0;font-size:14px;
-  display:flex;flex-direction:column;gap:12px;line-height:1.5}
-.cockpit-capsule{display:flex;justify-content:center}
-.cockpit-theme{font-size:12px;color:rgba(255,255,255,.68);text-align:center;font-weight:500}
-.cockpit-provider{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
-.cockpit-provider-info strong{font-size:15px;font-weight:700;color:#f1f5f9}
-.cockpit-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:22px;background:rgba(255,255,255,.12)}
-.cockpit-provider-info{display:flex;flex-direction:column;gap:2px}
-.cockpit-trust{display:inline-flex;gap:6px;font-size:12px;color:#cbd5e1;font-weight:500}
-.cockpit-actions{margin-left:auto;display:flex;gap:6px}
-.cockpit-pill{padding:5px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.08);cursor:pointer;color:#e2e8f0}
-.cockpit-cta{width:100%;padding:13px 0;border-radius:16px;border:none;font-size:16px;font-weight:800;
-  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
-  box-shadow:0 8px 24px var(--theme-glow);transition:transform .15s,filter .15s}
-.cockpit-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
-.cockpit-cta:active{transform:scale(.98)}
-.cockpit-safety{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;
-  font-size:12px;font-weight:600;border:1px solid;line-height:1.5}
-.cockpit-safety-guarded{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3)}
-.cockpit-safety-attention{color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3)}
-.cockpit-safety-threat{color:#f87171;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4)}
-.cockpit-armed{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:9px 12px;border-radius:14px;
-  font-size:13px;font-weight:800;color:#34d399;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(251,191,36,.12));
-  border:1px solid rgba(52,211,153,.45);box-shadow:0 0 18px rgba(52,211,153,.18);line-height:1.5}
-.cockpit-custom{display:flex;flex-wrap:wrap;gap:6px}
-.cockpit-custom-tag{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
-  background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
+.cockpit{max-width:460px}
 `;
 
 /** 六维信用雷达预览（trustScore 拆分展示）。 */
@@ -147,12 +120,12 @@ export function sixDimensionScores(trustScore: number): { label: string; value: 
   });
 }
 
-/** S3 SAFE_MONITOR 安全徽标元数据（安全守护状态 → 文案/类名/图标）。 */
+/** S3 SAFE_MONITOR 安全徽标元数据（安全守护状态 → 文案/tone；DuoPill 渲染）。 */
 export const SAFETY_PILL_META = {
-  GUARDED: { label: "🛡️ 安全守护中 · 全维度零威胁", className: "cockpit-safety-guarded" },
-  ATTENTION: { label: "⚠️ 安全守护 · 有告警待确认", className: "cockpit-safety-attention" },
-  THREAT: { label: "🚨 安全守护 · 威胁已联动风控", className: "cockpit-safety-threat" },
-} as const;
+  GUARDED: { label: "🛡️ 安全守护中 · 全维度零威胁", tone: "green" },
+  ATTENTION: { label: "⚠️ 安全守护 · 有告警待确认", tone: "yellow" },
+  THREAT: { label: "🚨 安全守护 · 威胁已联动风控", tone: "red" },
+} as const satisfies Record<string, { label: string; tone: DuoPillTone }>;
 
 /** 阶段4 强化守护徽标默认文案（上层未注入 safetyBadge 时兜底）。 */
 export const ENHANCED_SAFETY_BADGE_DEFAULT = "🛡️ 强化安全守护中（虚拟号通话 + 全程行程守护 + 敏感词实时监听）";
@@ -186,7 +159,7 @@ export function describeCustomRequirementTags(
 /** 安全报告 → 徽标元数据投影（纯函数，供测试直接断言）。 */
 export function describeSafetyPill(
   report: IRuntimeSafetyReport,
-): { label: string; className: string; status: "GUARDED" | "ATTENTION" | "THREAT" } {
+): { label: string; tone: DuoPillTone; status: "GUARDED" | "ATTENTION" | "THREAT" } {
   const meta = SAFETY_PILL_META[report.securityPillStatus];
   return { ...meta, status: report.securityPillStatus };
 }
@@ -229,13 +202,17 @@ export default function FulfillmentCockpit({
   }, [status]);
 
   return (
-    <div className="cockpit" data-scenario={scenario} data-theme={cockpitTheme}>
+    <div
+      className="cockpit duo-3d-card bg-white rounded-3xl border-2 border-[var(--color-duo-swan)] border-b-[6px] px-4 py-4 text-sm text-[var(--color-duo-eel)] flex flex-col gap-3 leading-relaxed"
+      data-scenario={scenario}
+      data-theme={cockpitTheme}
+    >
       <style>{COCKPIT_CSS}</style>
-      <div className="cockpit-capsule">
+      <div className="flex justify-center">
         <StatusCapsule status={status} options={capsule} />
       </div>
 
-      <div className="cockpit-theme" data-theme-label>
+      <div className="text-xs text-[var(--color-duo-wolf)] text-center font-medium" data-theme-label>
         🎨 场景主题 · {theme.label}
       </div>
 
@@ -262,56 +239,58 @@ export default function FulfillmentCockpit({
       {/* 阶段4：引信自适应升级（PROXIMITY_ENHANCED）→ 强化安全守护条 */}
       {armed && (
         <section
-          className="cockpit-armed"
+          className="flex flex-col items-start gap-1 rounded-2xl border-2 border-[var(--color-duo-green)]/40 bg-[var(--color-duo-green)]/10 px-3 py-2 text-[13px] font-extrabold text-[var(--color-duo-green-ink)]"
           data-force-armed="true"
           data-testid="cockpit-armed-banner"
         >
           {safetyBadge ?? ENHANCED_SAFETY_BADGE_DEFAULT}
-          <span style={{ opacity: 0.85, fontSize: 12, fontWeight: 600 }}>
+          <span className="text-xs font-semibold opacity-80">
             虚拟号 · 行程守护 · 敏感词监听 已强制开启
           </span>
         </section>
       )}
 
       {safetyPill && (
-        <section
-          className={`cockpit-safety ${safetyPill.className}`}
-          data-safety={safetyReport?.securityPillStatus}
-          data-safety-count={safetyReport?.activeThreats.length ?? 0}
+        <DuoPill
+          tone={safetyPill.tone}
+          dataAttrs={{
+            "data-safety": safetyReport?.securityPillStatus,
+            "data-safety-count": safetyReport?.activeThreats.length ?? 0,
+          }}
         >
           {safetyPill.label}
           {safetyReport && safetyReport.activeThreats.length > 0 && (
-            <span style={{ opacity: 0.75 }}>
+            <span className="opacity-75">
               · {safetyReport.activeThreats.join(" / ")}
             </span>
           )}
-        </section>
+        </DuoPill>
       )}
 
       {/* 阶段4：定制需求标签栏（仅渲染清洗后的中性化契约，杜绝原始粗糙词直显） */}
       {(customTags.length > 0 || customCleanText) && (
-        <section className="cockpit-custom" data-testid="cockpit-custom-requirements" data-custom-requirements>
+        <section className="flex flex-wrap gap-1.5" data-testid="cockpit-custom-requirements" data-custom-requirements>
           {customTags.map((tag) => (
-            <span key={tag} className="cockpit-custom-tag" data-custom-tag>
+            <DuoPill key={tag} tone="neutral" dataAttrs={{ "data-custom-tag": "" }}>
               {tag}
-            </span>
+            </DuoPill>
           ))}
           {customCleanText && !customTags.some((t) => t.includes("工作着装")) && (
-            <span className="cockpit-custom-tag" data-custom-tag data-clean-text>
+            <DuoPill tone="neutral" dataAttrs={{ "data-custom-tag": "", "data-clean-text": "" }}>
               {customCleanText}
-            </span>
+            </DuoPill>
           )}
         </section>
       )}
 
-      <section className="cockpit-provider">
-        <span className="cockpit-avatar">{provider.avatar}</span>
-        <div className="cockpit-provider-info">
-          <strong>
+      <section className="flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] px-3 py-2.5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-duo-swan)] bg-white text-[22px]">{provider.avatar}</span>
+        <div className="flex flex-col gap-0.5">
+          <strong className="text-[15px] font-bold text-[var(--color-duo-eel)]">
             {provider.name}
-            {provider.verified && <span className="ml-1 text-sky-400">✓ 实名</span>}
+            {provider.verified && <DuoPill tone="green" className="ml-1 align-middle">✓ 实名</DuoPill>}
           </strong>
-          <span className="cockpit-trust">
+          <span className="inline-flex flex-wrap gap-x-1.5 text-xs font-medium text-[var(--color-duo-wolf)]">
             信用 {provider.trustScore} 分
             {sixDimensionScores(provider.trustScore).map((d) => (
               <span key={d.label} title={`${d.label} ${d.value}`}>
@@ -320,13 +299,13 @@ export default function FulfillmentCockpit({
             ))}
           </span>
         </div>
-        <div className="cockpit-actions">
-          <button type="button" className="cockpit-pill" aria-label="一键虚拟通话" data-action="dial" onClick={onDial}>
+        <div className="ml-auto flex shrink-0 gap-1.5">
+          <DuoButton variant="secondary" size="sm" aria-label="一键虚拟通话" data-action="dial" onClick={onDial}>
             📞
-          </button>
-          <button type="button" className="cockpit-pill" aria-label="隐私聊天" data-action="chat" onClick={onChat}>
+          </DuoButton>
+          <DuoButton variant="secondary" size="sm" aria-label="隐私聊天" data-action="chat" onClick={onChat}>
             💬
-          </button>
+          </DuoButton>
         </div>
       </section>
 
