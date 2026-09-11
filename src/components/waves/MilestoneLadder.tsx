@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
+import DuoButton from "@/components/ui/DuoButton";
+import DuoCardShell from "@/components/ui/DuoCardShell";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 import {
   createMilestonePlan,
   releaseMilestone,
@@ -24,35 +27,20 @@ import {
  *
  * 持久化说明：当前批次无 milestone_schedules 写入 API，计划状态为组件内
  * 确定性重放（同输入必同状态）；onPlanChange 钩子预留给后续持久化接线。
+ *
+ * Duo 化（Batch① 2026-09，插槽三件套先例）：暗岛 `<style>`（.ms-）去除，
+ * 白底 DuoCardShell + 状态 DuoPill（soft）+ 提交验收 secondary / 验收放款 primary；
+ * 放款 ConfirmSheet 二次确认保持（Batch②）。
+ * 契约与埋点不变：data-testid / data-status / 文案全保留。
  */
 
-const STATUS_META: Record<MilestoneStatus, { label: string; color: string }> = {
-  PENDING: { label: "待生效", color: "#94a3b8" },
-  HELD: { label: "托管中", color: "#fbbf24" },
-  SUBMITTED: { label: "待验收", color: "#60a5fa" },
-  RELEASED: { label: "已放款", color: "#4ade80" },
-  REFUNDED: { label: "已退款", color: "#f87171" },
+const STATUS_TONE: Record<MilestoneStatus, { label: string; tone: DuoPillTone }> = {
+  PENDING: { label: "待生效", tone: "neutral" },
+  HELD: { label: "托管中", tone: "yellow" },
+  SUBMITTED: { label: "待验收", tone: "blue" },
+  RELEASED: { label: "已放款", tone: "green" },
+  REFUNDED: { label: "已退款", tone: "red" },
 };
-
-const LADDER_CSS = `
-.ms-ladder{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);font-size:12px;color:#e2e8f0}
-.ms-ladder h4{margin:0 0 8px;font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px}
-.ms-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:11px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:6px}
-.ms-step{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:800;background:rgba(123,97,255,.2);color:#c4b5fd;flex-shrink:0}
-.ms-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ms-amount{font-weight:700;color:#cbd5e1;flex-shrink:0}
-.ms-chip{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;flex-shrink:0;
-  border:1px solid currentColor}
-.ms-btn{border:none;border-radius:9px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
-  flex-shrink:0;transition:filter .15s}
-.ms-btn:active{transform:scale(.97)}
-.ms-btn-submit{background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.45);color:#93c5fd}
-.ms-btn-release{background:linear-gradient(135deg,#4ade80,#16a34a);color:#04120a}
-.ms-foot{display:flex;justify-content:space-between;margin-top:4px;color:#94a3b8;font-size:12px}
-`;
 
 function fmtYuan(cents: number): string {
   return `¥${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
@@ -103,31 +91,39 @@ export default function MilestoneLadder({
   const firstHeldIndex = plan.milestones.findIndex((m) => m.status === "HELD");
 
   return (
-    <div className="ms-ladder" data-testid="milestone-ladder">
-      <style>{LADDER_CSS}</style>
-      <h4>
+    <DuoCardShell className="mt-3 p-3.5 space-y-2" dataAttrs={{ "data-testid": "milestone-ladder" }}>
+      <h4 className="flex items-center gap-1.5 text-xs font-extrabold text-[var(--color-duo-eel)]">
         🪜 里程碑分期托管 ·{" "}
         {milestones.length} 期 · 总额 {fmtYuan(plan.totalAmountCents)}
       </h4>
       {plan.milestones.map((m, i) => {
-        const meta = STATUS_META[m.status];
+        const meta = STATUS_TONE[m.status];
         return (
-          <div key={m.id} className="ms-row" data-testid={`milestone-row-${i}`} data-status={m.status}>
-            <span className="ms-step">{i + 1}</span>
-            <span className="ms-title">
+          <div
+            key={m.id}
+            data-testid={`milestone-row-${i}`}
+            data-status={m.status}
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-2.5 py-2"
+          >
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-duo-swan)] text-[10px] font-extrabold text-[var(--color-duo-eel)]">
+              {i + 1}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-xs font-bold text-[var(--color-duo-eel)]">
               {m.title}
               {m.status === "SUBMITTED" && m.submittedAt ? (
-                <span className="text-[10px] text-slate-500"> · 已交验</span>
+                <span className="text-[10px] font-bold text-[var(--color-duo-hare)]"> · 已交验</span>
               ) : null}
             </span>
-            <span className="ms-amount">{fmtYuan(m.amountCents)}</span>
-            <span className="ms-chip" style={{ color: meta.color }}>
-              {meta.label}
+            <span className="shrink-0 text-xs font-extrabold text-[var(--color-duo-eel)]">
+              {fmtYuan(m.amountCents)}
             </span>
+            <DuoPill tone={meta.tone} variant="soft" className="shrink-0 whitespace-nowrap text-xs">
+              {meta.label}
+            </DuoPill>
             {m.status === "HELD" && i === firstHeldIndex && (
-              <button
-                type="button"
-                className="ms-btn ms-btn-submit"
+              <DuoButton
+                size="sm"
+                variant="secondary"
                 data-testid={`milestone-submit-${i}`}
                 onClick={() =>
                   apply(
@@ -136,24 +132,26 @@ export default function MilestoneLadder({
                     }).plan,
                   )
                 }
+                className="shrink-0"
               >
                 提交验收
-              </button>
+              </DuoButton>
             )}
             {m.status === "SUBMITTED" && (
-              <button
-                type="button"
-                className="ms-btn ms-btn-release"
+              <DuoButton
+                size="sm"
+                variant="primary"
                 data-testid={`milestone-release-${i}`}
                 onClick={() => setConfirmReleaseId(m.id)}
+                className="shrink-0"
               >
                 验收放款
-              </button>
+              </DuoButton>
             )}
           </div>
         );
       })}
-      <div className="ms-foot">
+      <div className="flex justify-between text-xs text-[var(--color-duo-wolf)]">
         <span data-testid="milestone-released-total">
           已放款 {fmtYuan(releasedTotalCents(plan))}
         </span>
@@ -173,6 +171,6 @@ export default function MilestoneLadder({
           onCancel={() => setConfirmReleaseId(null)}
         />
       )}
-    </div>
+    </DuoCardShell>
   );
 }

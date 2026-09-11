@@ -75,3 +75,9 @@
 - 附带： HousekeepingSlot openCapture Date.now 被 react-hooks/purity 新规拦截 → eslint-disable-next-line + 理由（事件回调生成单号，render 纯；仓内既有此惯例）。
 - 考卷：battle4/Cockpit/E2EIntegration/real-user-sim 76 例绿（含确认增项/确认分摊点击语义）；dual-role-human 加 hk 落图、openmatch 加 mt 落图；vitest 843 + oto 1269 + build 过。
 - 剩余 6 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / MilestoneLadder / DynamicAmmoSlot。
+
+## Duo 化 Batch①-3：MilestoneLadder（2026-09-12）
+- 改写：删 ms- 暗岛 <style> → DuoCardShell（mt-3 保留原外边距）+ 状态 DuoPill soft（待生效 neutral/托管中 yellow/待验收 blue/已放款 green/已退款 red）+ 提交验收 secondary sm / 验收放款 primary sm；序号徽标收敛 swan 底 eel 字；放款 ConfirmSheet 保持。
+- 契约零动：data-testid/data-status/文案/金额格式全保留；自有单测全状态跃迁 + ConfirmSheet 放款链绿，FulfillmentCockpit 宿主侧绿。
+- 诚实注记：无浏览器落图——尚无 e2e 构造 funding.milestones 挂载 ladder（grep 确认零覆盖）；所用 Duo 原语均已在他岛落图实证，回归由 openmatch（座舱挂载链路）PASS 覆盖。
+- 剩余 5 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot。
