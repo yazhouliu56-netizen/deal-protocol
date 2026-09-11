@@ -57,10 +57,14 @@ describe("MilestoneLadder（方向 1 接线 C · base 纯函数驱动）", () =>
     expect(container.querySelector('[data-testid="milestone-submit-1"]')).toBeTruthy();
   });
 
-  it("验收放款走 RELEASED 且守恒账目同步：放款 ¥500 后冻结降至 ¥500", () => {
+  it("验收放款走二次确认：先弹层，确认后 RELEASED 且守恒账目同步", () => {
     const { container } = mountLadder({ ...PROPS });
     click(container, '[data-testid="milestone-submit-0"]');
     click(container, '[data-testid="milestone-release-0"]');
+    // 确认前不放款
+    expect(container.querySelector('[data-testid="confirm-sheet"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="milestone-row-0"]')?.getAttribute("data-status")).toBe("SUBMITTED");
+    click(container, '[data-testid="confirm-ok"]');
     expect(container.querySelector('[data-testid="milestone-row-0"]')?.getAttribute("data-status")).toBe("RELEASED");
     expect(container.querySelector('[data-testid="milestone-released-total"]')?.textContent).toContain("已放款 ¥500");
     expect(container.querySelector('[data-testid="milestone-frozen"]')?.textContent).toContain("剩余冻结 ¥500");

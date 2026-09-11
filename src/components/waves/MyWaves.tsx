@@ -24,6 +24,7 @@ import DialCard from "./DialCard";
 import ReviewSection from "./ReviewSection";
 import AcceptancePanel from "./AcceptancePanel";
 import ShareKit from "./ShareKit";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DiagnosisCard from "./DiagnosisCard";
 import AttendancePanel from "./AttendancePanel";
 import GenericOrderCard from "./GenericOrderCard";
@@ -440,6 +441,8 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const [breachOpen, setBreachOpen] = useState(false);
   const [verdictMsg, setVerdictMsg] = useState("");
   const [acceptNote, setAcceptNote] = useState("");
+  // 放款二次确认：待确认的验收凭证（null = 未弹层）
+  const [confirmAcceptNote, setConfirmAcceptNote] = useState<string | null>(null);
   // SSR/首帧同构探针（同上 idiom）：首帧 now=0 防 Hydration Mismatch，挂载后立即采样。
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -560,7 +563,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
               onClick={() => {
                 const note = acceptNote.trim();
                 if (!note) return;
-                acceptFulfilment(claim.id, note);
+                setConfirmAcceptNote(note);
               }}
               className="flex-1"
               aria-label="确认验收"
@@ -582,6 +585,21 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             小时后未验收 → 自动放款（对齐默认好评 72h 闸）
           </p>
         </div>
+      )}
+      {/* 放款二次确认（Batch②：直调改显式确认，放款不可逆） */}
+      {confirmAcceptNote != null && (
+        <ConfirmSheet
+          title="确认验收并放款？"
+          body="放款后不可撤销，对方将收到款项。有问题请先走“对方违约”。"
+          danger
+          confirmLabel="确认放款"
+          onConfirm={() => {
+            acceptFulfilment(claim.id, confirmAcceptNote);
+            setAcceptNote("");
+            setConfirmAcceptNote(null);
+          }}
+          onCancel={() => setConfirmAcceptNote(null)}
+        />
       )}
       {claim.fulfilment && (
         <p className="text-xs text-[var(--color-duo-hare)]">

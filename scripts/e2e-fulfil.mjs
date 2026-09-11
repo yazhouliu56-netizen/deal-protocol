@@ -258,9 +258,10 @@ try {
     "held",
     "空凭证不触发验收"
   );
-  // 填写凭证 → 确认验收
+  // 填写凭证 → 确认验收 → 二次确认放款（Batch②）
   await pageA.getByLabel("验收凭证").fill("家宴做完，碗筷收拾干净");
   await pageA.getByRole("button", { name: /确认验收/ }).click();
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
   const fulfilled = await pageA.evaluate(() =>
     JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::fulfil") || "{}")

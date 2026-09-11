@@ -153,6 +153,7 @@ await pageA.reload({ waitUntil: "domcontentloaded" });
   }
   await pageA.getByLabel("验收凭证").fill("马桶通了，水流顺畅");
   await pageA.getByRole("button", { name: /确认验收/ }).click();
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
   const sA = await state(pageA);
   assert.equal(sA?.claims?.[0]?.fulfilment?.confirmedBy, "demander", "A 结果导向验收成功");

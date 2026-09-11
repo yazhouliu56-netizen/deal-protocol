@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { toast } from "@/base/platform/toast";
 import DuoButton from "@/components/ui/DuoButton"
+import ConfirmSheet from "@/components/ui/ConfirmSheet"
 
 interface AcceptanceCardProps {
   orderId: string
@@ -18,6 +19,8 @@ export default function AcceptanceCard({ orderId, title, price, status, released
     status === "settled" ? { payout: 0, fee: 0, releasedAt: releasedAt ?? "" } : null,
   )
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  // 放款二次确认（直调 /api/payment/release 改显式确认，放款不可逆）
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const awaitable = status === "COMPLETED" && !releasedAt && !settled
   const priceReady = price != null && Number(price) > 0
@@ -74,12 +77,25 @@ export default function AcceptanceCard({ orderId, title, price, status, released
             size="lg"
             fullWidth
             sound="click"
-            onClick={handleAccept}
+            onClick={() => setConfirmOpen(true)}
             disabled={isReleasing || !priceReady}
             data-testid="accept-release-btn"
           >
             {isReleasing ? "放款中…" : "确认验收并放款"}
           </DuoButton>
+          {confirmOpen && (
+            <ConfirmSheet
+              title="确认验收并放款？"
+              body={`放款 ￥${price} 后不可撤销，师傅将收到打款（平台抽成后）。`}
+              danger
+              confirmLabel="确认放款"
+              onConfirm={() => {
+                setConfirmOpen(false);
+                void handleAccept();
+              }}
+              onCancel={() => setConfirmOpen(false)}
+            />
+          )}
         </div>
       ) : (
         <p className="text-sm text-zinc-400">当前状态：{status}（完工后可验收）</p>

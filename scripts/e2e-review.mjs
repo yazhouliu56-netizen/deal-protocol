@@ -175,6 +175,7 @@ try {
   );
   await pageA.getByLabel("验收凭证").fill("上门做完，餐桌布置完毕");
   await pageA.getByRole("button", { name: /确认验收/ }).click();
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
   const sharedFulfilled = await pageA.evaluate(() =>
     JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::review") || "{}")

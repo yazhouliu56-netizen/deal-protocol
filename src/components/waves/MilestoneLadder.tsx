@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import {
   createMilestonePlan,
   releaseMilestone,
@@ -91,6 +92,8 @@ export default function MilestoneLadder({
     [],
   );
   const [plan, setPlan] = useState(initial);
+  // 分期放款二次确认：待确认的里程碑 id（null = 未弹层）
+  const [confirmReleaseId, setConfirmReleaseId] = useState<string | null>(null);
 
   const apply = (next: IMilestoneEscrowPlan) => {
     setPlan(next);
@@ -142,7 +145,7 @@ export default function MilestoneLadder({
                 type="button"
                 className="ms-btn ms-btn-release"
                 data-testid={`milestone-release-${i}`}
-                onClick={() => apply(releaseMilestone(plan, m.id).plan)}
+                onClick={() => setConfirmReleaseId(m.id)}
               >
                 验收放款
               </button>
@@ -156,6 +159,20 @@ export default function MilestoneLadder({
         </span>
         <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(frozenRemainingCents(plan))}</span>
       </div>
+      {/* 分期放款二次确认（Batch②：直调改显式确认，放款不可逆） */}
+      {confirmReleaseId != null && (
+        <ConfirmSheet
+          title="确认本期放款？"
+          body="放款后不可撤销，对方将收到本期款项。"
+          danger
+          confirmLabel="确认放款"
+          onConfirm={() => {
+            apply(releaseMilestone(plan, confirmReleaseId).plan);
+            setConfirmReleaseId(null);
+          }}
+          onCancel={() => setConfirmReleaseId(null)}
+        />
+      )}
     </div>
   );
 }
