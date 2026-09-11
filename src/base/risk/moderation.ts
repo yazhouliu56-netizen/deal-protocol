@@ -8,6 +8,8 @@
  *   - Progressive penalties, friction before punishment: warn → suspend →
  *     ban, instead of instant bans. Every decision is an audited record.
  *   - Reports are idempotent per (reporter, target) while still open.
+ *   - 撤销窗 (2026-09)：open + 本人 + 非 auto 可撤回 → withdrawn（退出待处理
+ *     队列，可重报；resolved 不可撤）。
  *
  * Pure + unit-testable; no runtime imports.
  */
@@ -28,11 +30,15 @@ export interface Report {
   at: number;
   /** Set when the sensitive-word filter generated this report. */
   auto?: boolean;
-  status: "open" | "resolved";
+  status: "open" | "resolved" | "withdrawn";
   action?: ModerationAction;
   verdictNote?: string;
   resolvedBy?: string;
   resolvedAt?: number;
+  /** 举报人撤回时间（仅 withdrawn）。 */
+  withdrawnAt?: number;
+  /** 举报人撤回者（= reporterId，审计对齐 resolvedBy 形状）。 */
+  withdrawnBy?: string;
 }
 
 export interface BanRecord {
@@ -135,6 +141,23 @@ export function submitReport(
 }
 
 /**
+ * 举报人撤回 — 仅 open + 本人 + 非 auto。撤回后退出待处理队列，
+ * 幂等门（仅 open 去重）天然允许重新举报；resolved 不可撤。
+ */
+export function withdrawReport(
+  report: Report,
+  requesterId: string,
+  now = Date.now()
+): { report?: Report; error?: string } {
+  if (report.status !== "open") return { error: "report.not-open" };
+  if (report.reporterId !== requesterId) return { error: "report.not-owner" };
+  if (report.auto) return { error: "report.auto" };
+  return {
+    report: { ...report, status: "withdrawn", withdrawnAt: now, withdrawnBy: requesterId },
+  };
+}
+
+/**
  * Moderator verdict — audited, progressive. `remove` unlists a wave/review,
  * `suspend`/`ban` block the account (see isBanned). Dismissing an auto-flagged
  * report restores the removed target via the returned action.
@@ -148,6 +171,10 @@ export function resolveReport(
 ): Report {
   if (report.status === "resolved") {
     throw new Error("report.already-resolved");
+  }
+  // 撤回件已退出队列，管理员不可再裁定
+  if (report.status !== "open") {
+    throw new Error("report.not-open");
   }
   return {
     ...report,

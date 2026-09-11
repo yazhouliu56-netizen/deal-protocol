@@ -3,6 +3,7 @@ import DuoButton from "@/components/ui/DuoButton";
 import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoPill from "@/components/ui/DuoPill";
 import { useState } from "react";
+import { useMountedNow } from "@/lib/use-mounted-now";
 import { motion } from "framer-motion";
 import { RISE_10 } from "@/components/ui/motion";
 import { ArrowLeft, Check, MapPin, Star } from "lucide-react";
@@ -10,10 +11,28 @@ import { useAppStore, type Booking } from "@/store/useAppStore";
 
 export default function ReviewForm({ booking, onBack }: { booking: Booking; onBack: () => void }) {
   const addReview = useAppStore((s) => s.addReview);
+  const editReview = useAppStore((s) => s.editReview);
+  const myReview = useAppStore((s) => s.reviews.find((r) => r.bookingId === booking.id));
   const updateBookingStatus = useAppStore((s) => s.updateBookingStatus);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // 撤销窗：正在修改已提交评价（与 wave 轨同宽：72h 内改 1 次）
+  const [editing, setEditing] = useState(false);
+  const now = useMountedNow();
+  const editable =
+    myReview != null &&
+    (myReview.editCount ?? 0) < 1 &&
+    now > 0 &&
+    now - myReview.createdAt <= 72 * 60 * 60 * 1000;
+
+  function startEdit() {
+    if (!myReview) return;
+    setRating(myReview.rating);
+    setComment(myReview.comment);
+    setEditing(true);
+    setSubmitted(false);
+  }
   // 评价二次确认（提交后不可修改）
   const [confirmSubmit, setConfirmSubmit] = useState(false);
 
@@ -23,13 +42,19 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
   }
 
   function doSubmit() {
-    addReview({
-      bookingId: booking.id,
-      rating,
-      comment: comment.trim(),
-      createdAt: Date.now(),
-    });
-    updateBookingStatus(booking.id, "completed");
+    if (editing) {
+      const out = editReview(booking.id, rating, comment.trim());
+      if (!out.ok) return;
+      setEditing(false);
+    } else {
+      addReview({
+        bookingId: booking.id,
+        rating,
+        comment: comment.trim(),
+        createdAt: Date.now(),
+      });
+      updateBookingStatus(booking.id, "completed");
+    }
     setSubmitted(true);
     setConfirmSubmit(false);
   }
@@ -47,7 +72,19 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         <h2 className="text-base font-extrabold">感谢评价！</h2>
         <p className="text-xs text-[var(--color-duo-wolf)]">
           你的反馈会帮助 AI 撮合更准～ 已记录 {rating} 星
+          {myReview?.editCount ? "（已修改）" : ""}
         </p>
+        {editable && (
+          <DuoButton
+            variant="secondary"
+            size="sm"
+            onClick={startEdit}
+            data-testid="edit-review"
+            className="mt-2"
+          >
+            修改评价（仅一次）
+          </DuoButton>
+        )}
         <DuoPill
           tone="green"
           variant="solid"
@@ -74,7 +111,9 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
         animate={RISE_10.animate}
         className="bg-white border border-[var(--color-duo-swan)] rounded-3xl p-4"
       >
-        <h2 className="text-[14px] font-extrabold">评价 {booking.providerName}</h2>
+        <h2 className="text-[14px] font-extrabold">
+          {editing ? "修改评价（仅一次机会）" : `评价 ${booking.providerName}`}
+        </h2>
         <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">{booking.time}</p>
 
         <div className="flex items-center justify-center gap-2 my-5">
@@ -112,14 +151,18 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
             fullWidth
             className="mt-3"
           >
-            {rating === 0 ? "先点星星再提交" : "提交评价"}
+            {rating === 0 ? "先点星星再提交" : editing ? "确认修改" : "提交评价"}
           </DuoButton>
           {/* 评价二次确认（Batch②：提交后不可改） */}
           {confirmSubmit && (
             <ConfirmSheet
-              title={`确认给 ${rating} 星？`}
-              body="提交后不可修改，请确认评分与留言无误。"
-              confirmLabel="提交评价"
+              title={editing ? `确认修改为 ${rating} 星？` : `确认给 ${rating} 星？`}
+              body={
+                editing
+                  ? "这是唯一一次修改机会，确认后不可再改。"
+                  : "提交后不可修改，请确认评分与留言无误。"
+              }
+              confirmLabel={editing ? "确认修改" : "提交评价"}
               onConfirm={doSubmit}
               onCancel={() => setConfirmSubmit(false)}
             />

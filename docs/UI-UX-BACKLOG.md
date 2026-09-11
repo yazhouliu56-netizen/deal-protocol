@@ -55,3 +55,9 @@
 
 - 首页三态（正常/deuteranopia/protanopia）：绿 CTA 在红绿色盲下偏橄榄黄，但今日本批深色字保证可读；发单/雷达双段（橙标 vs 蓝标 + 文字）、五态胶囊（emoji+文字）、SOS（文字键）、安全/真伪徽章（颜色+文字）均无纯颜色信号。
 - 结论：主轨无色盲阻断；今日深色字裁决附带增益了色盲可读。暂不加 tritanopia（占 CVD <1%）。
+
+## 撤销窗落档（2026-09-12，Batch② 下半）
+- 语义：评价提交后 72h 内本人改 1 次（低分解释门同样适用，改后重算分并记 editedAt/editCount）；举报 open+本人+非auto 可撤 → withdrawn（退出待处理队列、可重报；resolved 不可撤）。
+- 落点：base editReview/withdrawReport + 单测；trustSlice editReview/withdrawReport（重报复活旧件保 id 唯一，留 withdrawnAt 痕）+ useAppStore editReview；UI：ReviewSection/ReviewFormModal 修改入口（走 ConfirmSheet），WaveCard/MyWaves/MyClaims 撤回入口（可逆直执，不走确认）。
+- 考卷：e2e-review 加 A 改一次（5.0→4.7，B 仍 Lv5，二次入口消失）；e2e-governance 加撤回+重报（下游裁定不变）；ReviewFormModal.test.tsx 订单轨。
+- 注记：服务端 POST /api/reviews 零 UI 调用，本次不动（改它需 Supabase evidence_chain 加列，另案）；resolved 后再举报的同 id 并存为既有语义，本次未动。

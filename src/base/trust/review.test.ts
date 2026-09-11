@@ -7,6 +7,7 @@ import {
   creditFromReviews,
   dailyQuotaForTier,
   decayLabel,
+  editReview,
   explanationRequired,
   meanScore,
   reviewDeadline,
@@ -63,6 +64,54 @@ test("creditFromReviews maps average score to tier, empty keeps tier", () => {
   assert.equal(creditFromReviews([mk(4), mk(4)], 3), 4);
   assert.equal(creditFromReviews([mk(3)], 3), 3);
   assert.equal(creditFromReviews([mk(1), mk(1)], 4), 1);
+});
+
+test("editReview: 72h 内本人可改 1 次，改后重算分并记账", () => {
+  const r = createReview({
+    id: "r1",
+    claimId: "c1",
+    fromId: "a",
+    toId: "b",
+    dimensions: dims,
+    at: 1000,
+  });
+  const { review, error } = editReview(
+    r,
+    { dimensions: { punctual: 2, attitude: 2, professional: 2 }, comment: "迟到太久" },
+    "a",
+    1000 + 3600_000
+  );
+  assert.equal(error, undefined);
+  assert.equal(review?.score, 2);
+  assert.equal(review?.comment, "迟到太久");
+  assert.equal(review?.editedAt, 1000 + 3600_000);
+  assert.equal(review?.editCount, 1);
+  // 第二次改写拒绝
+  assert.equal(
+    editReview(review!, { dimensions: dims }, "a", 2000).error,
+    "review.already-edited"
+  );
+});
+
+test("editReview 门禁：非本人/过期/低分无理由一律拒绝", () => {
+  const r = createReview({
+    id: "r1",
+    claimId: "c1",
+    fromId: "a",
+    toId: "b",
+    dimensions: dims,
+    at: 1000,
+  });
+  assert.equal(editReview(r, { dimensions: dims }, "b", 2000).error, "review.not-owner");
+  assert.equal(
+    editReview(r, { dimensions: dims }, "a", 1000 + REVIEW_WINDOW_MS + 1).error,
+    "review.edit-expired"
+  );
+  assert.equal(
+    editReview(r, { dimensions: { punctual: 1, attitude: 1, professional: 1 } }, "a", 2000)
+      .error,
+    "review.explanation-required"
+  );
 });
 
 test("dailyQuotaForTier expands at Lv 4+ (响应额度扩容)", () => {

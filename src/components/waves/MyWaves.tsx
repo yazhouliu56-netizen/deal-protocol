@@ -431,6 +431,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const identity = useIdentityStore((s) => s.identity);
   const policies = useWaveStore((s) => s.policies);
   const submitReport = useWaveStore((s) => s.submitReport);
+  const withdrawReport = useWaveStore((s) => s.withdrawReport);
   const reports = useWaveStore((s) => s.reports);
   const acceptFulfilment = useWaveStore((s) => s.acceptFulfilment);
   const moveDeposit = useWaveStore((s) => s.moveDeposit);
@@ -495,10 +496,32 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
             ✓ 平台已处理：{ACTION_LABEL[myRep.action ?? "dismiss"]}
             {myRep.verdictNote ? `（${myRep.verdictNote}）` : ""}
           </p>
+        ) : myRep?.status === "withdrawn" ? (
+          <div className="flex justify-end items-center gap-2">
+            <span className="text-xs text-[var(--color-duo-hare)]">已撤回</span>
+            <button
+              onClick={() => setReportConfirm(true)}
+              className="px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-red-dark)] hover:border-[var(--color-duo-red)]/50"
+            >
+              🚩 重新举报
+            </button>
+          </div>
         ) : myRep ? (
-          <p className="w-full text-right text-xs font-bold text-[var(--color-duo-yellow-ink)]">
-            ⏳ 已举报，核查中
-          </p>
+          <div className="flex justify-end items-center gap-2">
+            <p className="text-xs font-bold text-[var(--color-duo-yellow-ink)]">
+              ⏳ 已举报，核查中
+            </p>
+            {!myRep.auto && (
+              <button
+                type="button"
+                onClick={() => withdrawReport(myRep.id, identity.id)}
+                data-testid="withdraw-report"
+                className="text-xs font-bold text-[var(--color-duo-hare)] underline underline-offset-2"
+              >
+                撤回
+              </button>
+            )}
+          </div>
         ) : (
           <div className="flex justify-end">
             <button

@@ -32,6 +32,7 @@ export default function MyClaims() {
   const withdraw = useWaveStore((s) => s.withdraw);
   const reportDone = useWaveStore((s) => s.reportDone);
   const submitReport = useWaveStore((s) => s.submitReport);
+  const withdrawReport = useWaveStore((s) => s.withdrawReport);
   const identity = useIdentityStore((s) => s.identity);
   const syncDeposit = useIdentityStore((s) => s.syncDeposit);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -317,11 +318,32 @@ export default function MyClaims() {
                         {myRep.verdictNote ? `（${myRep.verdictNote}）` : ""}
                       </p>
                     );
+                  if (myRep?.status === "withdrawn")
+                    return (
+                      <button
+                        onClick={() => setReportConfirmId(wave.authorId)}
+                        className="w-full py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-yellow-ink)] hover:border-[var(--color-duo-yellow-dark)]/60"
+                      >
+                        🚩 重新举报（上次已撤回）
+                      </button>
+                    );
                   if (myRep)
                     return (
-                      <p className="w-full py-2 rounded-xl text-center text-xs font-bold text-[var(--color-duo-yellow-ink)]">
-                        ⏳ 已举报，平台核查中
-                      </p>
+                      <div className="w-full py-2 rounded-xl text-center">
+                        <span className="text-xs font-bold text-[var(--color-duo-yellow-ink)]">
+                          ⏳ 已举报，平台核查中
+                        </span>
+                        {!myRep.auto && (
+                          <button
+                            type="button"
+                            onClick={() => withdrawReport(myRep.id, identity.id)}
+                            data-testid="withdraw-report"
+                            className="ml-2 text-xs font-bold text-[var(--color-duo-hare)] underline underline-offset-2"
+                          >
+                            撤回
+                          </button>
+                        )}
+                      </div>
                     );
                   return (
                     <button

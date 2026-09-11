@@ -62,6 +62,7 @@ export default function WaveCard({
 }) {
   const identity = useIdentityStore((s) => s.identity);
   const submitReport = useWaveStore((s) => s.submitReport);
+  const withdrawReport = useWaveStore((s) => s.withdrawReport);
   const reports = useWaveStore((s) => s.reports);
   const favorites = useWaveStore((s) => s.favorites);
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
@@ -112,6 +113,10 @@ export default function WaveCard({
   const myReport = reports.find(
     (r) => r.reporterId === identity.id && r.targetId === wave.id
   );
+  // 撤销窗：仅 open + 本人 + 非 auto 可撤（撤后退出队列、可重报）
+  const withdrawable =
+    myReport?.status === "open" && myReport.reporterId === identity.id && !myReport.auto;
+  const reportDisabled = myReport?.status === "open" || myReport?.status === "resolved";
 
   return (
     <DuoCardShell className="p-4 hover:border-[var(--color-duo-green)]/30 transition-colors">
@@ -296,7 +301,7 @@ export default function WaveCard({
               )}
               <button
                 onClick={() => setReportConfirm(true)}
-                disabled={!!myReport?.status}
+                disabled={reportDisabled}
                 aria-label="举报"
                 className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
               >
@@ -331,7 +336,7 @@ export default function WaveCard({
                 </DuoButton>
                 <button
                   onClick={() => setReportConfirm(true)}
-                  disabled={!!myReport?.status}
+                  disabled={reportDisabled}
                   aria-label="举报"
                   className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
                 >
@@ -355,10 +360,22 @@ export default function WaveCard({
               {ACTION_LABEL[myReport.action ?? "dismiss"]}
               {myReport.verdictNote ? `（${myReport.verdictNote}）` : ""}
             </span>
+          ) : myReport.status === "withdrawn" ? (
+            <span className="text-[var(--color-duo-hare)]">已撤回（可重新举报，不占核查队列）</span>
           ) : (
             <span className="text-[var(--color-duo-orange)]">⏳ 已举报，平台核查中</span>
           )}
         </p>
+      )}
+      {withdrawable && (
+        <button
+          type="button"
+          onClick={() => withdrawReport(myReport.id, identity.id)}
+          data-testid="withdraw-report"
+          className="mt-1.5 w-full text-xs font-bold text-[var(--color-duo-hare)] underline underline-offset-2"
+        >
+          撤回举报
+        </button>
       )}
       {/* 举报二次确认（Batch②：直调改显式确认，open 态可等撤回窗） */}
       {reportConfirm && (

@@ -180,6 +180,41 @@ try {
   });
   assert.equal(afterReport, 2, "自动 + 手动 = 2 条举报");
 
+  // --- 2b. 撤销窗：B 撤回手动举报 → 队列仅剩自动 → 重报恢复（下游不变） ---
+  await pageB.getByTestId("withdraw-report").click();
+  await pageB.waitForTimeout(400);
+  const afterWithdraw = await pageB.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
+    return s?.state?.reports ?? [];
+  });
+  assert.equal(
+    afterWithdraw.filter((r) => r.status === "open").length,
+    1,
+    "撤回后仅剩自动举报在队列"
+  );
+  assert.equal(
+    afterWithdraw.filter((r) => r.status === "withdrawn").length,
+    1,
+    "撤回留痕 withdrawn"
+  );
+  // 重报：Flag 按钮重新可用 → 二次确认 → 回到 2 条 open（复活旧件，无重复 id）
+  await pageB.evaluate(() => {
+    const b = document.querySelector('button[aria-label="举报"]');
+    if (b && !b.disabled) b.click();
+  });
+  await pageB.getByTestId("confirm-ok").click();
+  await pageB.waitForTimeout(400);
+  const afterResubmit = await pageB.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
+    return s?.state?.reports ?? [];
+  });
+  assert.equal(afterResubmit.length, 2, "重报复活旧件不追加");
+  assert.equal(
+    afterResubmit.filter((r) => r.status === "open").length,
+    2,
+    "重报后回到 2 条 open"
+  );
+
   // --- 3. 管理后台看板（入口在"我的"页 SafetyKit） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();

@@ -9,6 +9,7 @@ import { Star, Send, ShieldCheck } from "lucide-react";
 import { useWaveStore } from "@/store/useWaveStore";
 import {
   REVIEW_EXPLANATION_THRESHOLD,
+  REVIEW_WINDOW_MS,
   createReview,
   decayLabel,
   explanationRequired,
@@ -35,10 +36,13 @@ export default function ReviewSection({
 }) {
   const reviews = useWaveStore((s) => s.reviews);
   const addReview = useWaveStore((s) => s.addReview);
+  const editReview = useWaveStore((s) => s.editReview);
   const [open, setOpen] = useState(false);
   const [score, setScore] = useState(5);
   const [comment, setComment] = useState("");
   const [explainError, setExplainError] = useState(false);
+  // 撤销窗：正在修改的评价 id（null = 新建）
+  const [editingId, setEditingId] = useState<string | null>(null);
   // 评价二次确认（提交后不可修改，72h 窗内单次）
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
@@ -70,19 +74,46 @@ export default function ReviewSection({
   }
 
   function doSubmit() {
-    addReview(
-      createReview({
-        id: `review-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
-        claimId: claim.id,
-        fromId: myId,
-        toId: peerId,
-        dimensions: dims,
-        comment: comment.trim() || undefined,
-        at: Date.now(),
-      })
-    );
+    if (editingId) {
+      const out = editReview(
+        editingId,
+        { dimensions: dims, comment: comment.trim() || undefined },
+        myId
+      );
+      if (!out.ok) {
+        if (out.error === "review.explanation-required") setExplainError(true);
+        return;
+      }
+      setEditingId(null);
+    } else {
+      addReview(
+        createReview({
+          id: `review-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+          claimId: claim.id,
+          fromId: myId,
+          toId: peerId,
+          dimensions: dims,
+          comment: comment.trim() || undefined,
+          at: Date.now(),
+        })
+      );
+    }
     setOpen(false);
     setConfirmSubmit(false);
+  }
+
+  /** 撤销窗可改：未改过且提交 72h 内（首帧 now=0 时隐藏，防 Hydration 抖动）。 */
+  const editable =
+    mine != null && (mine.editCount ?? 0) < 1 && now > 0 && now - mine.at <= REVIEW_WINDOW_MS;
+
+  function startEdit() {
+    if (!mine) return;
+    setDims({ ...mine.dimensions });
+    setScore(mine.score);
+    setComment(mine.comment ?? "");
+    setExplainError(false);
+    setEditingId(mine.id);
+    setOpen(true);
   }
 
   const dimRow = (
@@ -126,9 +157,22 @@ export default function ReviewSection({
 
       {/* 我的评价 / 评价入口 */}
       {mine ? (
-        <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]">
-          ✅ 已评价 ★{mine.score} · {decayLabel(mine.at, now)}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="flex-1 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]">
+            ✅ 已评价 ★{mine.score} · {decayLabel(mine.at, now)}
+            {mine.editCount ? "（已修改）" : ""}
+          </p>
+          {editable && !open && (
+            <button
+              type="button"
+              onClick={startEdit}
+              data-testid="edit-review"
+              className="shrink-0 text-xs font-bold text-[var(--color-duo-blue-ink)] underline underline-offset-2"
+            >
+              修改（仅1次）
+            </button>
+          )}
+        </div>
       ) : (
         <DuoButton variant="outline" size="sm" sound="click" fullWidth onClick={() => setOpen(true)}>
           ⭐ 评价对方（72 小时内）
@@ -140,7 +184,9 @@ export default function ReviewSection({
           motion={{ initial: RISE_8.initial, animate: RISE_8.animate }}
           className="rounded-2xl border-b-4 p-3 space-y-2"
         >
-          <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">给对方打分</p>
+          <p className="text-xs font-extrabold text-[var(--color-duo-eel)]">
+            {editingId ? "修改评价（仅 1 次机会）" : "给对方打分"}
+          </p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((v) => (
               <button
@@ -189,16 +235,20 @@ export default function ReviewSection({
             size="sm"
             fullWidth
           >
-            <Send size={11} /> 提交评价
+            <Send size={11} /> {editingId ? "确认修改" : "提交评价"}
           </DuoButton>
         </DuoCardShell>
       )}
-      {/* 评价二次确认（Batch②：提交后不可改，落子前最后一次） */}
+      {/* 评价二次确认（Batch②：新建落子 / 撤销窗修改各走一次确认） */}
       {confirmSubmit && (
         <ConfirmSheet
-          title={`确认给对方 ${finalScore} 分？`}
-          body="提交后不可修改，72 小时内单次有效，对方将看到脱敏评价。"
-          confirmLabel="提交评价"
+          title={editingId ? `确认修改为 ${finalScore} 分？` : `确认给对方 ${finalScore} 分？`}
+          body={
+            editingId
+              ? "这是唯一一次修改机会，确认后不可再改。"
+              : "提交后不可修改，72 小时内单次有效，对方将看到脱敏评价。"
+          }
+          confirmLabel={editingId ? "确认修改" : "提交评价"}
           onConfirm={doSubmit}
           onCancel={() => setConfirmSubmit(false)}
         />

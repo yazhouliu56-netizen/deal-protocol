@@ -10,6 +10,8 @@
  *     used to reverse-engineer who reviewed whom.
  *   - Structured 3-dimension score (准时/态度/专业度) + overall stars —
  *     feeds the credit tier and future match weights.
+ *   - 撤销窗 (2026-09)：提交后 72h 内可改 1 次（本人；低分解释门同样适用；
+ *     改后重算分并记 editedAt/editCount）。
  *
  * Pure + unit-testable; no runtime imports.
  */
@@ -35,6 +37,10 @@ export interface Review {
   dimensions: ReviewDimensions;
   comment?: string;
   at: number;
+  /** 撤销窗改写时间（未改过为空）。 */
+  editedAt?: number;
+  /** 撤销窗改写次数（上限 1）。 */
+  editCount?: number;
 }
 
 export const REVIEW_WINDOW_MS = 72 * 60 * 60 * 1000;
@@ -78,6 +84,35 @@ export function createReview(input: {
 /** 72h window after fulfilment confirmation; beyond → auto default good review. */
 export function reviewDeadline(confirmedAt: number): number {
   return confirmedAt + REVIEW_WINDOW_MS;
+}
+
+/**
+ * 撤销窗：提交后 72h 内本人可改 1 次。
+ * 门禁顺序：本人 → 未改过 → 窗内 → 低分解释。返回新 Review（重算分）或 error。
+ */
+export function editReview(
+  review: Review,
+  input: { dimensions: ReviewDimensions; comment?: string },
+  requesterId: string,
+  now = Date.now()
+): { review?: Review; error?: string } {
+  if (review.fromId !== requesterId) return { error: "review.not-owner" };
+  if ((review.editCount ?? 0) >= 1) return { error: "review.already-edited" };
+  if (now - review.at > REVIEW_WINDOW_MS) return { error: "review.edit-expired" };
+  const score = Math.round(meanScore(input.dimensions) * 10) / 10;
+  if (explanationRequired(score, input.comment)) {
+    return { error: "review.explanation-required" };
+  }
+  return {
+    review: {
+      ...review,
+      dimensions: input.dimensions,
+      comment: input.comment,
+      score,
+      editedAt: now,
+      editCount: (review.editCount ?? 0) + 1,
+    },
+  };
 }
 
 export function reviewDue(reviewedAt: number, confirmedAt: number, now: number): boolean {

@@ -9,6 +9,7 @@ import {
   isBanned,
   resolveReport,
   submitReport,
+  withdrawReport,
   SUSPEND_MS,
   type BanRecord,
   type Report,
@@ -79,6 +80,31 @@ test("resolveReport is audited and one-shot", () => {
   assert.equal(out.resolvedBy, "admin-1");
   assert.equal(out.resolvedAt, 999);
   assert.throws(() => resolveReport(out, "ban", "", "admin-1"), /already-resolved/);
+});
+
+test("withdrawReport: open+本人+非auto 可撤，撤后可重报、不可再裁", () => {
+  const { report } = withdrawReport(base, "u-1", 500);
+  assert.equal(report?.status, "withdrawn");
+  assert.equal(report?.withdrawnAt, 500);
+  assert.equal(report?.withdrawnBy, "u-1");
+  // 幂等门只看 open → 撤回后可重新举报
+  const retry = submitReport([report!], {
+    targetId: "w1",
+    targetType: "wave",
+    reporterId: "u-1",
+    reason: "fraud",
+    detail: "w",
+  });
+  assert.ok(retry.report, "撤回后可重报");
+  // 管理员不可裁定撤回件
+  assert.throws(() => resolveReport(report!, "dismiss", "", "admin-1"), /not-open/);
+});
+
+test("withdrawReport 门禁：非本人/auto/已决一律拒绝", () => {
+  assert.equal(withdrawReport(base, "u-2").error, "report.not-owner");
+  assert.equal(withdrawReport({ ...base, auto: true }, "u-1").error, "report.auto");
+  const resolved = resolveReport(base, "dismiss", "不成立", "admin-1");
+  assert.equal(withdrawReport(resolved, "u-1").error, "report.not-open");
 });
 
 test("isBanned: ban permanent, suspend expires after 24h", () => {

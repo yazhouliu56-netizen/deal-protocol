@@ -221,6 +221,32 @@ try {
   await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
 
+  // --- 6b. 撤销窗：A 改评价 1 次（5.0 → 4.7；第二次入口消失） ---
+  await pageA.getByTestId("edit-review").click();
+  await pageA.getByRole("button", { name: /准时4分/ }).click();
+  await pageA.getByRole("button", { name: /确认修改/ }).click();
+  await pageA.getByTestId("confirm-ok").click();
+  await pageA.waitForTimeout(500);
+  const aId = await pageA.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem(`oto-identity-${window.name || "ssr"}`) || "{}").state
+        ?.identity?.id
+  );
+  const editedA = await pageA.evaluate(
+    ([k, id]) =>
+      (JSON.parse(localStorage.getItem(k) || "{}").state?.reviews ?? []).find(
+        (r) => r.fromId === id
+      ),
+    ["oto-broadcast-v1::oto::e2e::review", aId]
+  );
+  assert.equal(editedA?.score, 4.7, "撤销窗改后重算分 4.7（B 仍 Lv5）");
+  assert.equal(editedA?.editCount, 1, "改写记账仅 1 次");
+  assert.equal(
+    await pageA.getByTestId("edit-review").count(),
+    0,
+    "第二次改写入口消失"
+  );
+
   // --- 7. B 评价 A（三维全 4 → score 4.0） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();

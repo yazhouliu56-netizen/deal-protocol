@@ -26,6 +26,10 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: number;
+  /** 撤销窗改写时间（未改过为空）。 */
+  editedAt?: number;
+  /** 撤销窗改写次数（上限 1）。 */
+  editCount?: number;
 }
 
 export type WorkerOrderStatus = "pending" | "active" | "completed";
@@ -138,6 +142,8 @@ interface AppState {
   clearChat: () => void;
   addBooking: (booking: Booking) => void;
   addReview: (review: Review) => void;
+  /** 撤销窗：提交后 72h 内改订单评价 1 次。 */
+  editReview: (bookingId: string, rating: number, comment: string) => { ok: boolean; error?: string };
   updateBookingStatus: (id: string, status: Booking["status"]) => void;
   cancelBooking: (id: string) => void;
   setSelectedBooking: (id: string | null) => void;
@@ -149,7 +155,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       screen: "home",
       activeCategory: null,
       activeSwatch: DEFAULT_SWATCH,
@@ -221,6 +227,24 @@ clearChat: () =>
         ),
       addReview: (review) =>
         set((s) => ({ reviews: [...s.reviews, review] })),
+      editReview: (bookingId, rating, comment) => {
+        const review = get().reviews.find((r) => r.bookingId === bookingId);
+        if (!review) return { ok: false, error: "review.not-found" };
+        if ((review.editCount ?? 0) >= 1) return { ok: false, error: "review.already-edited" };
+        // 与 wave 评价窗同宽：提交后 72h
+        if (Date.now() - review.createdAt > 72 * 60 * 60 * 1000) {
+          return { ok: false, error: "review.edit-expired" };
+        }
+        if (rating < 1 || rating > 5) return { ok: false, error: "review.invalid-rating" };
+        set((s) => ({
+          reviews: s.reviews.map((r) =>
+            r.bookingId === bookingId
+              ? { ...r, rating, comment, editedAt: Date.now(), editCount: (r.editCount ?? 0) + 1 }
+              : r
+          ),
+        }));
+        return { ok: true };
+      },
       updateBookingStatus: (id, status) =>
         set((s) => ({
           bookings: s.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
