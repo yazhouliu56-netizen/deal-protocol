@@ -12,6 +12,7 @@ import {
   useLeadDemandSubmit,
   type LeadDraft,
 } from "@/components/growth/sms-lead-sheet"
+import { trackMetric } from "@/lib/track-metric"
 
 const CATEGORIES = [
   { id: "c1", icon: "🛠", label: "管道疏通", desc: "下水道/马桶/地漏" },
@@ -55,6 +56,12 @@ export default function LandingPage() {
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  // 漏斗可见性（Batch④-1）：进页分母，渠道 tag 随归因走（f20/m20 同口径）。
+  useEffect(() => {
+    const a = collectGrowthAttribution("landing")
+    trackMetric("growth.page_view", 1, { page: "landing", channel: a.source })
+  }, [])
+
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIdx((i) => (i + 1) % PLACEHOLDER_TEXTS.length)
@@ -66,6 +73,9 @@ export default function LandingPage() {
     if (!text.trim()) return
     setGenerating(true)
     setResult(null)
+    const startedAt = Date.now()
+    const channel = collectGrowthAttribution("landing").source
+    trackMetric("growth.diagnose_click", 1, { page: "landing", channel })
     try {
       const res = await fetch("/api/protocols/generate", {
         method: "POST",
@@ -75,7 +85,9 @@ export default function LandingPage() {
       if (!res.ok) throw new Error((await res.json()).error)
       const data = await res.json()
       setResult(data)
+      trackMetric("growth.diagnose_result", 1, { page: "landing", channel, outcome: "ok", elapsed_ms: String(Date.now() - startedAt) })
     } catch (err) {
+      trackMetric("growth.diagnose_result", 1, { page: "landing", channel, outcome: "fail", elapsed_ms: String(Date.now() - startedAt) })
       toast(err instanceof Error ? err.message : "协议生成失败，请重试", "error")
     } finally {
       setGenerating(false)

@@ -14,6 +14,8 @@ export const METRIC_NAMES = [
   'credit.decay_applied',
   'growth.page_view',
   'growth.preset_select',
+  'growth.diagnose_click',
+  'growth.diagnose_result',
   'growth.submit_click',
   'growth.sms_sent',
   'growth.verified',

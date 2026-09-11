@@ -160,3 +160,9 @@
 - 现象：verify-prod 重拍后 docs/shot/*.png 反复出现 M（cockpit/dyn-slot 等），commit+push 后仍复现，无 headless/playwright 残留进程，45s 稳定性测试无写入者。
 - 实证：像素级比对 worktree vs HEAD（7 点采样×2 图）0 差异、同尺寸——纯 PNG 元数据块 churn，视觉基线无损，以 checkout 恢复为准。
 - 处置：不追 commit，保持 checkout-clean；若未来复现且伴随像素差异，转缺陷单深挖（候选：截图流 flush 与 git add 竞态）。
+
+## Batch④-1：landing 漏斗可见性（2026-09-12）
+- 补 3 埋点：growth.page_view{page:landing}（进页分母，f20/m20 同口径）＋diagnose_click＋diagnose_result{outcome,elapsed_ms}；METRIC_NAMES 注册（/api/metrics allow 名单自动生效）。
+- 切阀门：.env.local METRICS_BACKEND=console→api；POST 实测 {stored:3} 进库（metric_events 表＋service client 全通）。
+- 门禁：tsc 0＋lint 0＋vitest 853（109 文件，含 landing.test.tsx 新 2 例）＋build exit 0。
+- 未动：呈现层（首屏 CTA/标题/Duo 化/sticky 条）等漏斗数据出来再议；SmsLeadSheet friction 不动；线上 Vercel 需同步设 NEXT_PUBLIC_METRICS_BACKEND=api（本地 .env.local 不进线上）。
