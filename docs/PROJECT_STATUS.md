@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-12 ｜ HEAD：v4.6.2（Batch③ UX 治本收官）｜ 摘要：③-0 立规矩（motion token＋屏幕预算＋mutation 范式＋入口 in/out）＋③-1 首页减法（ticker 砍＋4 门折叠＋AR 降级＋§3 裁决 C：SOS 有单隐藏）＋③-2 行程三卡合一＋③-3 空卡 CTA 去向诚实化（goHomeTab）＋③-4 抢单乐观化＋③-5 ux-budget 门禁（SUITE_ORDER 第 15 席）；基线 **2120/2120**（851+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 15/15 + convergence 0。
+>
 > 日期：2026-09-12 ｜ HEAD：v4.6.1（Batch①② Duo 化＋发版收官）｜ 摘要：Batch① 8 岛收官（ArbitrationSheet/DynamicDraftCard/MilestoneLadder/Companion/Housekeeping/Meetup/DynamicAmmoSlot/FulfillmentCockpit/FulfillmentCenter）+ Batch②（根级 404/error/global-error＋demands 骨架＋admin 轨深黑壳出清＋杂项核销零代码）+ verify-prod 改吃 SUITE_ORDER 单一源（13→14 套）；基线 **2117/2117**（848+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 14/14（含 dual-role/dyn-slot，09-05 掉线链路恢复）+ convergence 0。
 >
 > 日期：2026-09-10 ｜ HEAD：9406a9d（P2/P3/P4 本地施工收官）｜ 摘要：P2（干预区/资金五态条/锁卡头/服务者预览/到点横幅/走廊三图齐＋协商结案终局态修复）+ P3（磋商桌三档/确认卡发射闭环/副驾复制版；顺路参谋政策问答延期）+ P4（/admin/factory＋沙盒＋门禁走廊；T3上架随上线）+ 补丁B/C（Undo/目录/画像记忆口/C3关闭）+ panel.open补发射；基线 **2095/2095**（836+1259，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T2 全绿 + 真机走廊（haggle/panel/dispute/factory-gate）
