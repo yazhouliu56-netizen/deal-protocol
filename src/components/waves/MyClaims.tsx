@@ -11,6 +11,7 @@ import DialCard from "./DialCard";
 import ContactCard from "./ContactCard";
 import ReviewSection from "./ReviewSection";
 import DuoButton from "@/components/ui/DuoButton";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import DuoPill from "@/components/ui/DuoPill";
 import { useAppStore } from "@/store/useAppStore";
@@ -42,6 +43,8 @@ export default function MyClaims() {
   const leaveWaitlist = useWaveStore((s) => s.leaveWaitlist);
   const addGuest = useWaveStore((s) => s.addGuest);
   const removeGuest = useWaveStore((s) => s.removeGuest);
+  // 举报二次确认：待确认的目标 authorId（null = 未弹层）
+  const [reportConfirmId, setReportConfirmId] = useState<string | null>(null);
 
   // 自动放款：72h 未验收的申报在挂载/变更时结算（幂等）；顺带结算到期未成局的多人拼单局退款
   // waves 依赖：transport 降级恢复异步（首帧空 → degrade 回灌），数据迟到时补跑
@@ -322,21 +325,33 @@ export default function MyClaims() {
                     );
                   return (
                     <button
-                      onClick={() =>
-                        submitReport({
-                          targetId: wave.authorId,
-                          targetType: "responder",
-                          reason: "harassment",
-                          detail: "对方行为不当",
-                          reporterId: identity.id,
-                        })
-                      }
+                      onClick={() => setReportConfirmId(wave.authorId)}
                       className="w-full py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-yellow-ink)] hover:border-[var(--color-duo-yellow-dark)]/60"
                     >
                       🚩 举报对方
                     </button>
                   );
                 })()}
+
+              {/* 举报二次确认（Batch②） */}
+              {reportConfirmId != null && (
+                <ConfirmSheet
+                  title="确认举报对方？"
+                  body="举报将进入平台核查；请确认对方确有不当行为，误报会打扰对方。"
+                  confirmLabel="确认举报"
+                  onConfirm={() => {
+                    submitReport({
+                      targetId: reportConfirmId,
+                      targetType: "responder",
+                      reason: "harassment",
+                      detail: "对方行为不当",
+                      reporterId: identity.id,
+                    });
+                    setReportConfirmId(null);
+                  }}
+                  onCancel={() => setReportConfirmId(null)}
+                />
+              )}
 
               {/* 申报完成 → 请求放款（Airtasker 放款闸门） */}
               {isLocked &&

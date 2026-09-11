@@ -9,6 +9,7 @@ import { ACTION_LABEL } from "@/base/risk/moderation";
 import { displayInterest, useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import NegotiationBox from "./NegotiationBox";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill from "@/components/ui/DuoPill";
@@ -66,6 +67,18 @@ export default function WaveCard({
   const toggleFavorite = useWaveStore((s) => s.toggleFavorite);
   const [note, setNote] = useState("");
   const [committed, setCommitted] = useState(false);
+  // 举报二次确认（两处 Flag 共用同一弹层，payload 一致）
+  const [reportConfirm, setReportConfirm] = useState(false);
+  const doReport = () => {
+    submitReport({
+      targetId: wave.id,
+      targetType: "wave",
+      reason: "sensitive",
+      detail: "内容疑似违规",
+      reporterId: identity.id,
+    });
+    setReportConfirm(false);
+  };
   // SSR/首帧同构探针（use-mounted-now 共享范式）：首帧 now=0 两端一致防 Hydration
   // Mismatch，挂载后立即采样真实时钟（render 期零时钟采样，红线 1）。
   const now = useMountedNow();
@@ -282,15 +295,7 @@ export default function WaveCard({
                 </DuoButton>
               )}
               <button
-                onClick={() => {
-                  submitReport({
-                    targetId: wave.id,
-                    targetType: "wave",
-                    reason: "sensitive",
-                    detail: "内容疑似违规",
-                    reporterId: identity.id,
-                  });
-                }}
+                onClick={() => setReportConfirm(true)}
                 disabled={!!myReport?.status}
                 aria-label="举报"
                 className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
@@ -325,15 +330,7 @@ export default function WaveCard({
                   <Zap size={12} /> {note.trim() && wave.negotiable ? "发起磋商" : "接单"}
                 </DuoButton>
                 <button
-                  onClick={() => {
-                    submitReport({
-                      targetId: wave.id,
-                      targetType: "wave",
-                      reason: "sensitive",
-                      detail: "内容疑似违规",
-                      reporterId: identity.id,
-                    });
-                  }}
+                  onClick={() => setReportConfirm(true)}
                   disabled={!!myReport?.status}
                   aria-label="举报"
                   className="shrink-0 px-2.5 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-orange)] hover:border-[var(--color-duo-orange)]/40"
@@ -362,6 +359,16 @@ export default function WaveCard({
             <span className="text-[var(--color-duo-orange)]">⏳ 已举报，平台核查中</span>
           )}
         </p>
+      )}
+      {/* 举报二次确认（Batch②：直调改显式确认，open 态可等撤回窗） */}
+      {reportConfirm && (
+        <ConfirmSheet
+          title="确认举报这条需求？"
+          body="举报将进入平台核查；请确认内容确有违规，误报会打扰对方。"
+          confirmLabel="确认举报"
+          onConfirm={doReport}
+          onCancel={() => setReportConfirm(false)}
+        />
       )}
     </DuoCardShell>
   );

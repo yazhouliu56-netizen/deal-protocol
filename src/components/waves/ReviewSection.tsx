@@ -1,6 +1,7 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import { useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
 import { RISE_8 } from "@/components/ui/motion";
@@ -38,6 +39,8 @@ export default function ReviewSection({
   const [score, setScore] = useState(5);
   const [comment, setComment] = useState("");
   const [explainError, setExplainError] = useState(false);
+  // 评价二次确认（提交后不可修改，72h 窗内单次）
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   // SSR/首帧同构探针（page.tsx 同款 idiom）：首帧 now=0 两端一致防 Hydration Mismatch，
   const now = useMountedNow();
   const [dims, setDims] = useState<ReviewDimensions>({
@@ -63,6 +66,10 @@ export default function ReviewSection({
       setExplainError(true);
       return;
     }
+    setConfirmSubmit(true);
+  }
+
+  function doSubmit() {
     addReview(
       createReview({
         id: `review-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -75,6 +82,7 @@ export default function ReviewSection({
       })
     );
     setOpen(false);
+    setConfirmSubmit(false);
   }
 
   const dimRow = (
@@ -184,6 +192,16 @@ export default function ReviewSection({
             <Send size={11} /> 提交评价
           </DuoButton>
         </DuoCardShell>
+      )}
+      {/* 评价二次确认（Batch②：提交后不可改，落子前最后一次） */}
+      {confirmSubmit && (
+        <ConfirmSheet
+          title={`确认给对方 ${finalScore} 分？`}
+          body="提交后不可修改，72 小时内单次有效，对方将看到脱敏评价。"
+          confirmLabel="提交评价"
+          onConfirm={doSubmit}
+          onCancel={() => setConfirmSubmit(false)}
+        />
       )}
 
       {/* S3 关系沉淀：一次成功后，双方可自愿转友（72h 未确认自动撤回） */}

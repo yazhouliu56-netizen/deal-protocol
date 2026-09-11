@@ -171,6 +171,8 @@ try {
     const b = document.querySelector('button[aria-label="举报"]');
     if (b && !b.disabled) b.click();
   });
+  // 举报二次确认（Batch②）
+  await pageB.getByTestId("confirm-ok").click();
   await pageB.waitForTimeout(400);
   const afterReport = await pageB.evaluate(() => {
     const s = JSON.parse(localStorage.getItem("oto-broadcast-v1::oto::e2e::governance") || "{}");
@@ -269,6 +271,8 @@ try {
     "A 见举报按钮"
   );
   await pageA.getByRole("button", { name: /举报对方/ }).click();
+  // 举报二次确认（Batch②）
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(400);
 
   // 管理员：处理针对 B 的举报 → 封禁

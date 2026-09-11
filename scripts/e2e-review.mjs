@@ -217,6 +217,8 @@ try {
   await pageA.getByRole("button", { name: /评价对方/ }).click();
   await pageA.getByLabel("评价留言").fill("很准时，态度很好，专业");
   await pageA.getByRole("button", { name: /提交评价/ }).click();
+  // 评价二次确认（Batch②）
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
 
   // --- 7. B 评价 A（三维全 4 → score 4.0） ---
@@ -233,6 +235,8 @@ try {
   await pageB.getByRole("button", { name: /态度4分/ }).click();
   await pageB.getByRole("button", { name: /专业度4分/ }).click();
   await pageB.getByRole("button", { name: /提交评价/ }).click();
+  // 评价二次确认（Batch②）
+  await pageB.getByTestId("confirm-ok").click();
   await pageB.waitForTimeout(500);
 
   const sharedReviews = await pageB.evaluate(() =>

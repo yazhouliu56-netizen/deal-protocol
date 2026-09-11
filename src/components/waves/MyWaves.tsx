@@ -443,6 +443,8 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
   const [acceptNote, setAcceptNote] = useState("");
   // 放款二次确认：待确认的验收凭证（null = 未弹层）
   const [confirmAcceptNote, setConfirmAcceptNote] = useState<string | null>(null);
+  // 举报二次确认
+  const [reportConfirm, setReportConfirm] = useState(false);
   // SSR/首帧同构探针（同上 idiom）：首帧 now=0 防 Hydration Mismatch，挂载后立即采样。
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -500,15 +502,7 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
         ) : (
           <div className="flex justify-end">
             <button
-              onClick={() =>
-                submitReport({
-                  targetId: claim.responderId,
-                  targetType: "responder",
-                  reason: "harassment",
-                  detail: "对方行为不当",
-                  reporterId: identity.id,
-                })
-              }
+              onClick={() => setReportConfirm(true)}
               className="px-2.5 py-1.5 rounded-xl bg-white border-2 border-[var(--color-duo-swan)] text-xs font-bold text-[var(--color-duo-hare)] hover:text-[var(--color-duo-red-dark)] hover:border-[var(--color-duo-red)]/50"
             >
               🚩 举报对方
@@ -516,6 +510,25 @@ function LockedSeatFlow({ wave, claim }: { wave: Wave; claim: Claim }) {
           </div>
         );
       })()}
+      {/* 举报二次确认（Batch②） */}
+      {reportConfirm && (
+        <ConfirmSheet
+          title="确认举报对方？"
+          body="举报将进入平台核查；请确认对方确有不当行为，误报会打扰对方。"
+          confirmLabel="确认举报"
+          onConfirm={() => {
+            submitReport({
+              targetId: claim.responderId,
+              targetType: "responder",
+              reason: "harassment",
+              detail: "对方行为不当",
+              reporterId: identity.id,
+            });
+            setReportConfirm(false);
+          }}
+          onCancel={() => setReportConfirm(false)}
+        />
+      )}
       {!claim.serviceDoneAt && (
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-[var(--color-duo-hare)]">

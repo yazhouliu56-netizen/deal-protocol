@@ -1,5 +1,6 @@
 "use client";
 import DuoButton from "@/components/ui/DuoButton";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoPill from "@/components/ui/DuoPill";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -13,9 +14,15 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // 评价二次确认（提交后不可修改）
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   function submit() {
     if (rating === 0) return;
+    setConfirmSubmit(true);
+  }
+
+  function doSubmit() {
     addReview({
       bookingId: booking.id,
       rating,
@@ -24,6 +31,7 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
     });
     updateBookingStatus(booking.id, "completed");
     setSubmitted(true);
+    setConfirmSubmit(false);
   }
 
   if (submitted) {
@@ -106,6 +114,16 @@ export default function ReviewForm({ booking, onBack }: { booking: Booking; onBa
           >
             {rating === 0 ? "先点星星再提交" : "提交评价"}
           </DuoButton>
+          {/* 评价二次确认（Batch②：提交后不可改） */}
+          {confirmSubmit && (
+            <ConfirmSheet
+              title={`确认给 ${rating} 星？`}
+              body="提交后不可修改，请确认评分与留言无误。"
+              confirmLabel="提交评价"
+              onConfirm={doSubmit}
+              onCancel={() => setConfirmSubmit(false)}
+            />
+          )}
         <p className="text-xs text-[var(--color-duo-wolf)] mt-2 text-center flex items-center justify-center gap-1">
           <MapPin size={9} /> AI 会把评价总结进撮合画像
         </p>

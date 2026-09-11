@@ -155,6 +155,8 @@ try {
     "A 见举报按钮"
   );
   await pageA.getByRole("button", { name: /举报对方/ }).click();
+  // 举报二次确认（Batch②）
+  await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(400);
 
   // 管理员（B 自己开后台）：裁定警告

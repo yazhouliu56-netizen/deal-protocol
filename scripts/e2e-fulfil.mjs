@@ -314,6 +314,8 @@ assert.ok(
   await pageA.getByRole("button", { name: /态度5分/ }).click();
   await pageA.getByRole("button", { name: /专业度5分/ }).click();
   await pageA.getByRole("button", { name: /提交评价/ }).click();
+  // 评价二次确认（Batch②）
+  await pageA.getByTestId("confirm-ok").click();
   console.log('--- 7 星钻成长 ---');
   await pageA.waitForTimeout(500);
 
