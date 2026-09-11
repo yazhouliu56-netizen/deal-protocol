@@ -187,3 +187,12 @@
 - 考卷：AmmoPillBar.test.tsx 5 例（三变体零 hex 断言＋锚点＋pillTagFor 口径）；e2e-ux-budget PASS（按钮普查 18/18 未动）；首页胶囊落图实证。
 - 遗留另案：ui-viewport 注释 tech=工业绿 vs 图纸/实现 tech=橙，不动像素，只记档。
 - 门禁：tsc 0＋lint 0＋vitest 858（110 文件）＋build exit 0。
+
+## Batch⑤：legacy web 轨 Duo 化（2026-09-12，用户开工＋拆桥令）
+- ⑤-1 拆桥：删 /dp/console＋/provider＋/console 3 redirect 垫片；入链改道直达 /dp/provider/incoming（dp/login×3、dp 页、verification×2）；Header 路由守卫＋robots＋dp/layout 注记同步；考卷零引用；构建路由物理消失实证。
+- ⑤-2 Header：深黑壳→白底（蓝 soft active＋黄 admin＋绿注册主按钮＋red-600 退出，09-11 裁决口径）；NotificationBell 系 shadcn 中性 token 自适应未动。
+- ⑤-3 /profile 整页：19 处深黑→Duo（白卡＋绿认证＋黄信用条）；诚实化出清 mock：写死账单 BILLING_HISTORY→DuoEmpty、Lv.42/EXP4200→删、权益 DEFAULT_INVENTORY→空态（组件逻辑保留可逆）、EscrowStats 2 张 mock 卡（结案率/胜诉率）＋字面 Tier4→删（只留托管余额＋信誉积分真数）；英文 Guild Adventurer Board→删、ADVENTURER→普通用户。
+- ⑤-4 grab/dp-login/dp 营销页：grab 两深黑壳→polar 底白卡（GrabConsole 本体白卡不动）；login indigo→Duo 蓝；dp 营销 pastel（cyan/purple/amber）→蓝/绿/黄 soft，hero 渐变字→eel 实色。
+- ⑤-5 incoming/demands/orders 顶栏：zinc-900→白底 Duo（抢单乐观化/验收/履约语义零动；blue-600 徽标→蓝 soft＋深色字，emerald 金额/进度→Duo 绿系）。
+- 实证：tsc 0＋lint 0＋vitest 858＋build exit 0；/dp/login SSR 零暗类＋真机落图（白 Header＋绿注册）；垫片路由构建产物物理消失。
+- 遗留另案：OrderFulfillmentClient 联系人 fallback（张先生/13800000000/中关村）系演示占位，诚实性待查未动；orders/demands 页身 zinc 浅中性保留（可读，整页收敛另案）。
