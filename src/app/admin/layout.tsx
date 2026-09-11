@@ -24,17 +24,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-[var(--color-duo-polar)]">
       {/* Mobile header */}
-      <div className="sticky top-0 z-40 flex items-center gap-3 border-b border-zinc-200/60 bg-white px-4 py-3 lg:hidden">
+      <div className="sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--color-duo-swan)] bg-white px-4 py-3 lg:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 rounded-lg hover:bg-zinc-100"
+          className="p-1.5 rounded-lg hover:bg-[var(--color-duo-polar)]"
           aria-label={sidebarOpen ? "关闭侧边栏" : "打开侧边栏"}
         >
           {sidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
-        <span className="text-sm font-bold text-zinc-900">管理后台</span>
+        <span className="text-sm font-bold text-[var(--color-duo-eel)]">管理后台</span>
       </div>
 
       {/* Overlay for mobile */}
@@ -47,15 +47,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-zinc-200/60 bg-white transition-transform duration-200 lg:static lg:tranzinc-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-[var(--color-duo-swan)] bg-white transition-transform duration-200 lg:static lg:tranzinc-x-0 ${
           sidebarOpen ? "tranzinc-x-0" : "-tranzinc-x-full"
         }`}
       >
-        <div className="flex h-14 items-center gap-2 border-b border-zinc-200/60 px-5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
+        <div className="flex h-14 items-center gap-2 border-b border-[var(--color-duo-swan)] px-5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-duo-blue)] text-xs font-bold text-white">
             dp
           </span>
-          <span className="text-sm font-bold text-zinc-900">
+          <span className="text-sm font-bold text-[var(--color-duo-eel)]">
             管理控制台
           </span>
         </div>
@@ -70,8 +70,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-zinc-600 hover:bg-zinc-100"
+                    ? "bg-[var(--color-duo-blue)]/10 text-[var(--color-duo-blue-ink)]"
+                    : "text-[var(--color-duo-wolf)] hover:bg-[var(--color-duo-polar)]"
                 }`}
               >
                 <item.icon className="size-4 shrink-0" />
@@ -81,10 +81,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="border-t border-zinc-200/60 p-4">
+        <div className="border-t border-[var(--color-duo-swan)] p-4">
           <Link
             href="/admin"
-            className="flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-600"
+            className="flex items-center gap-2 text-xs text-[var(--color-duo-hare)] hover:text-[var(--color-duo-wolf)]"
           >
             <LayoutDashboard className="size-3.5" />
             返回管理概览

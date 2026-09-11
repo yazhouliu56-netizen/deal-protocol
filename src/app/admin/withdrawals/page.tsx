@@ -86,20 +86,20 @@ export default function AdminWithdrawalsWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6 font-sans">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-5 mb-6">
+    <div className="space-y-4 font-sans">
+      <div className="flex items-center justify-between border-b border-[var(--color-duo-swan)] pb-5 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 rounded-xl">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">财务清算与提现控制台</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">面向全站服务商的资金核销与出账总线 · 具备高严谨防双花资产校验机制</p>
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">面向全站服务商的资金核销与出账总线 · 具备高严谨防双花资产校验机制</p>
           </div>
         </div>
         <button
           onClick={fetchRequests}
-          className="p-2 text-zinc-400 hover:text-zinc-100 border border-zinc-800 rounded-xl hover:bg-zinc-900 transition flex items-center gap-1.5 text-xs"
+          className="p-2 text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] border border-[var(--color-duo-swan)] rounded-xl hover:bg-[var(--color-duo-polar)] transition flex items-center gap-1.5 text-xs"
         >
           <RefreshCw className="w-3.5 h-3.5" /> 刷新申请单
         </button>
@@ -107,18 +107,18 @@ export default function AdminWithdrawalsWorkspace() {
 
       <div className="block lg:flex lg:gap-6">
         <div className="w-full lg:w-7/12 mb-6 lg:mb-0">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3">
             待处理提现队列 ({requests.length})
           </h2>
 
           {isLoading ? (
-            <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
-              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
+              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-[var(--color-duo-hare)]" />
               正在检索全站冻结中提现单据档案...
             </div>
           ) : loadError ? (
-            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
-              <p className="text-rose-300">{loadError}</p>
+            <div className="border border-rose-200 bg-rose-50 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-700">{loadError}</p>
               <button
                 type="button"
                 onClick={fetchRequests}
@@ -128,7 +128,7 @@ export default function AdminWithdrawalsWorkspace() {
               </button>
             </div>
           ) : requests.length === 0 ? (
-            <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
               <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
               全站提现队列已完全出账核销，目前清算总线无任何堆积负债。
             </div>
@@ -140,25 +140,25 @@ export default function AdminWithdrawalsWorkspace() {
                   onClick={() => setSelectedItem(item)}
                   className={`p-5 rounded-2xl border transition-all cursor-pointer text-left ${
                     selectedItem?.id === item.id
-                      ? "bg-zinc-900 border-zinc-700 ring-1 ring-zinc-700"
-                      : "bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900"
+                      ? "bg-white border-[var(--color-duo-swan)] ring-1 ring-[var(--color-duo-swan)]"
+                      : "bg-white border-[var(--color-duo-swan)] hover:bg-[var(--color-duo-polar)]"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] border border-[var(--color-duo-swan)]">
                       ID: {item.id}
                     </span>
-                    <span className="text-base font-bold text-emerald-400 font-mono">
+                    <span className="text-base font-bold text-emerald-700 font-mono">
                       ¥{item.amount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="text-sm font-medium text-zinc-200">
+                  <div className="text-sm font-medium text-[var(--color-duo-eel)]">
                     {item.profiles?.full_name || "未知服务商"}
-                    <span className="text-xs text-zinc-500 ml-2">({item.profiles?.email})</span>
+                    <span className="text-xs text-[var(--color-duo-wolf)] ml-2">({item.profiles?.email})</span>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
+                  <div className="mt-3 pt-3 border-t border-[var(--color-duo-swan)] flex items-center justify-between text-xs text-[var(--color-duo-wolf)]">
                     <span className="flex items-center gap-1">
-                      <Landmark className="w-3 h-3 text-zinc-400" /> {item.channel}
+                      <Landmark className="w-3 h-3 text-[var(--color-duo-wolf)]" /> {item.channel}
                     </span>
                     <span>申请于: {new Date(item.created_at).toLocaleString()}</span>
                   </div>
@@ -169,33 +169,33 @@ export default function AdminWithdrawalsWorkspace() {
         </div>
 
         <div className="w-full lg:w-5/12">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3">
             出账审查决议装甲板
           </h2>
 
           {selectedItem ? (
-            <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
-                <span className="text-xs uppercase font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
+                <span className="text-xs uppercase font-bold bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded border border-emerald-500/20">
                   当前审查账单
                 </span>
-                <div className="text-2xl font-black text-zinc-100 font-mono mt-3 text-emerald-400">
+                <div className="text-2xl font-black text-[var(--color-duo-eel)] font-mono mt-3 text-emerald-700">
                   ¥{selectedItem.amount.toFixed(2)}
                 </div>
               </div>
 
-              <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800 mb-5 space-y-3 text-xs">
+              <div className="bg-[var(--color-duo-polar)] rounded-xl p-4 border border-[var(--color-duo-swan)] mb-5 space-y-3 text-xs">
                 <div>
-                  <span className="text-zinc-500 block mb-0.5">服务商主体：</span>
-                  <p className="text-zinc-200 font-medium">{selectedItem.profiles?.full_name}</p>
+                  <span className="text-[var(--color-duo-wolf)] block mb-0.5">服务商主体：</span>
+                  <p className="text-[var(--color-duo-eel)] font-medium">{selectedItem.profiles?.full_name}</p>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block mb-0.5">收款渠道：</span>
-                  <p className="text-zinc-200 font-mono">{selectedItem.channel}</p>
+                  <span className="text-[var(--color-duo-wolf)] block mb-0.5">收款渠道：</span>
+                  <p className="text-[var(--color-duo-eel)] font-mono">{selectedItem.channel}</p>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block mb-0.5">物理放款账号详情：</span>
-                  <p className="text-zinc-200 bg-zinc-900 p-2.5 rounded border border-zinc-800 font-mono text-zinc-300">
+                  <span className="text-[var(--color-duo-wolf)] block mb-0.5">物理放款账号详情：</span>
+                  <p className="text-[var(--color-duo-eel)] bg-white p-2.5 rounded border border-[var(--color-duo-swan)] font-mono text-[var(--color-duo-eel)]">
                     {selectedItem.account_info}
                   </p>
                 </div>
@@ -219,15 +219,15 @@ export default function AdminWithdrawalsWorkspace() {
                 <button
                   disabled={isProcessing}
                   onClick={() => handleReviewAction("approve")}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-50 py-2.5 text-xs font-semibold shadow-lg shadow-emerald-950/20 transition flex items-center justify-center gap-1.5"
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-50 py-2.5 text-xs font-semibold shadow-lg shadow-emerald-200/50 transition flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle className="w-4 h-4" /> 确认打款已核销 <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="border border-dashed border-zinc-800 bg-zinc-900/10 rounded-2xl p-12 text-center text-zinc-500 text-xs">
-              <Wallet className="w-6 h-6 text-zinc-700 mx-auto mb-2.5" />
+            <div className="border border-dashed border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-xs">
+              <Wallet className="w-6 h-6 text-[var(--color-duo-hare)] mx-auto mb-2.5" />
               请在左侧列表中任选一笔挂起的提现申请单进行物理账目审查。
             </div>
           )}

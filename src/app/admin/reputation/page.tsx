@@ -75,20 +75,20 @@ export default function AdminReputationWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6 font-sans">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-5 mb-6">
+    <div className="space-y-4 font-sans">
+      <div className="flex items-center justify-between border-b border-[var(--color-duo-swan)] pb-5 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">声誉防御与画像风控工作台</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">面向全站服务主体的信任链分析沙盒 · 自动熔断降权及高阶清洗控制中心</p>
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">面向全站服务主体的信任链分析沙盒 · 自动熔断降权及高阶清洗控制中心</p>
           </div>
         </div>
         <button
           onClick={fetchAnomalies}
-          className="p-2 text-zinc-400 hover:text-zinc-100 border border-zinc-800 rounded-xl hover:bg-zinc-900 transition flex items-center gap-1.5 text-xs"
+          className="p-2 text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] border border-[var(--color-duo-swan)] rounded-xl hover:bg-[var(--color-duo-polar)] transition flex items-center gap-1.5 text-xs"
         >
           <RefreshCw className="w-3.5 h-3.5" /> 刷新风控名单
         </button>
@@ -96,18 +96,18 @@ export default function AdminReputationWorkspace() {
 
       <div className="block lg:flex lg:gap-6">
         <div className="w-full lg:w-7/12 mb-6 lg:mb-0">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3">
             异常声誉预警队列 ({profiles.length})
           </h2>
 
           {isLoading ? (
-            <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
-              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
+              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-[var(--color-duo-hare)]" />
               正在提取信誉链污染源档案...
             </div>
           ) : loadError ? (
-            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
-              <p className="text-rose-300">{loadError}</p>
+            <div className="border border-rose-200 bg-rose-50 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-700">{loadError}</p>
               <button
                 type="button"
                 onClick={fetchAnomalies}
@@ -117,7 +117,7 @@ export default function AdminReputationWorkspace() {
               </button>
             </div>
           ) : profiles.length === 0 ? (
-            <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
               <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
               全站主体信誉表现极其优异，没有任何服务商触发降权熔断阈值。
             </div>
@@ -129,12 +129,12 @@ export default function AdminReputationWorkspace() {
                   onClick={() => setSelectedProfile(item)}
                   className={`p-5 rounded-2xl border transition-all cursor-pointer text-left ${
                     selectedProfile?.id === item.id
-                      ? "bg-zinc-900 border-zinc-700 ring-1 ring-zinc-700"
-                      : "bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900"
+                      ? "bg-white border-[var(--color-duo-swan)] ring-1 ring-[var(--color-duo-swan)]"
+                      : "bg-white border-[var(--color-duo-swan)] hover:bg-[var(--color-duo-polar)]"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-[var(--color-duo-swan)] text-[var(--color-duo-wolf)] border border-[var(--color-duo-swan)]">
                       UID: {item.id}
                     </span>
                     <span
@@ -147,12 +147,12 @@ export default function AdminReputationWorkspace() {
                       {item.compliance_status}
                     </span>
                   </div>
-                  <div className="text-sm font-medium text-zinc-200">
+                  <div className="text-sm font-medium text-[var(--color-duo-eel)]">
                     {item.full_name}
-                    <span className="text-xs text-zinc-500 ml-2">({item.email})</span>
+                    <span className="text-xs text-[var(--color-duo-wolf)] ml-2">({item.email})</span>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
-                    <span className="flex items-center gap-1 font-semibold text-zinc-400">
+                  <div className="mt-3 pt-3 border-t border-[var(--color-duo-swan)] flex items-center justify-between text-xs text-[var(--color-duo-wolf)]">
+                    <span className="flex items-center gap-1 font-semibold text-[var(--color-duo-wolf)]">
                       综合信誉分:
                       <span
                         className={
@@ -171,31 +171,31 @@ export default function AdminReputationWorkspace() {
         </div>
 
         <div className="w-full lg:w-5/12">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3">
             声誉清洗及干预决策板
           </h2>
 
           {selectedProfile ? (
-            <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
                 <span className="text-xs uppercase font-bold bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">
                   当前锁定的制裁对象
                 </span>
-                <div className="text-lg font-bold text-zinc-100 mt-3">
+                <div className="text-lg font-bold text-[var(--color-duo-eel)] mt-3">
                   {selectedProfile.full_name}
                 </div>
-                <p className="text-xs text-zinc-400 font-mono mt-0.5">{selectedProfile.email}</p>
+                <p className="text-xs text-[var(--color-duo-wolf)] font-mono mt-0.5">{selectedProfile.email}</p>
               </div>
 
-              <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800 mb-5 space-y-3 text-xs">
+              <div className="bg-[var(--color-duo-polar)] rounded-xl p-4 border border-[var(--color-duo-swan)] mb-5 space-y-3 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">当前计算得分：</span>
-                  <span className="font-mono font-bold text-zinc-200 text-sm">
+                  <span className="text-[var(--color-duo-wolf)]">当前计算得分：</span>
+                  <span className="font-mono font-bold text-[var(--color-duo-eel)] text-sm">
                     {selectedProfile.reputation_score.toFixed(2)} / 5.00
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">市场准入限制：</span>
+                  <span className="text-[var(--color-duo-wolf)]">市场准入限制：</span>
                   <span
                     className={`font-bold ${
                       selectedProfile.compliance_status === "SUSPENDED"
@@ -210,8 +210,8 @@ export default function AdminReputationWorkspace() {
                 </div>
               </div>
 
-              <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl flex gap-2.5 mb-5 text-xs text-zinc-400 leading-relaxed">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+              <div className="p-3 bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] rounded-xl flex gap-2.5 mb-5 text-xs text-[var(--color-duo-wolf)] leading-relaxed">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                 <div>
                   风控介入法则：此控制台专用于应对由于不可抗力或客户恶意刷差评导致的优质服务商被{"\u201C"}误伤{"\u201D"}锁定的特赦修复通道。
                 </div>
@@ -226,8 +226,8 @@ export default function AdminReputationWorkspace() {
               </button>
             </div>
           ) : (
-            <div className="border border-dashed border-zinc-800 bg-zinc-900/10 rounded-2xl p-12 text-center text-zinc-500 text-xs">
-              <UserX className="w-6 h-6 text-zinc-700 mx-auto mb-2.5" />
+            <div className="border border-dashed border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-xs">
+              <UserX className="w-6 h-6 text-[var(--color-duo-hare)] mx-auto mb-2.5" />
               请在左侧风险队列中点选主体，执行特赦或者降权状态校验。
             </div>
           )}

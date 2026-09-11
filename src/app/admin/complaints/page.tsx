@@ -188,7 +188,7 @@ export default function AdminComplaintsPage() {
 
                     <button
                       type="button"
-                      className="text-sm text-indigo-600 hover:underline"
+                      className="text-sm text-[var(--color-duo-blue-ink)] hover:underline"
                       onClick={() => setExpandedId(expandedId === complaint.id ? null : complaint.id)}
                     >
                       {expandedId === complaint.id ? "收起证据链" : `查看证据链（${complaint.evidence_chain.length} 条记录）`}

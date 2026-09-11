@@ -117,3 +117,9 @@
 - 实证：browser 真 404（/m20/不存在…，status 404，白底卡 rgb(255,255,255)，落图 root-not-found-duo.png）；npm run build 101 路由（/_not-found 注册）；root-states.test.tsx 5 例。
 - 附带：proxy.ts 摸清——未知路径先撞 auth 网关（未登录→/login 302），真 404 只发生在放行前缀下；这也是 demands 未登录走 notFound（→登录后才见 404）的语义来源。
 - admin/error.tsx 深底未动——留待 Batch②-2 admin 轨 Duo 化一并处理。
+
+## Batch②-2：admin 轨 Duo 化（2026-09-12）
+- 现状：layout 本就浅（zinc-50+白侧边栏），7 个业务页在里面套 min-h-screen zinc-950 深黑壳（视觉打架）；admin 首页/review/config/protocols 早就是浅 shadcn 系，未动。
+- 改写（机械映射，零逻辑，diff 抽查 disputes 确认纯 class）：深黑壳→去壳（layout 已供底+padding）/白卡，zinc-800/900 边框→swan，zinc 灰字→eel/wolf/hare，emerald-400/rose-300→700 系（亮底可读），rose 错误块→rose-50/200，amber 图标→600；语义红/绿实心判定按钮保留（内控台豁免延续）；layout indigo→duo-blue（含首页 5 处）。
+- error.tsx 重写 Duo 白卡（unstable_retry）；modal 黑遮罩/来电式暗层保留（功能性）。
+- 门禁：tsc 0 + lint 0 + vitest 848 + oto 1269 + build exit 0 + corridor-factory  scoped PASS。EPERM 插曲：standalone server 占锁导致 build 失败，走 kill→build→restart-prod 3100 标准流恢复。

@@ -90,20 +90,20 @@ export default function AdminDisputesWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 p-6 font-sans">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-5 mb-6">
+    <div className="space-y-4 font-sans">
+      <div className="flex items-center justify-between border-b border-[var(--color-duo-swan)] pb-5 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl">
+          <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-xl">
             <Scale className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight">上帝仲裁工作台</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">面向托管资金纠纷的终极判定控制中心 · 具备物理划账最高系统权限</p>
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-0.5">面向托管资金纠纷的终极判定控制中心 · 具备物理划账最高系统权限</p>
           </div>
         </div>
         <button
           onClick={fetchDisputes}
-          className="p-2 text-zinc-400 hover:text-zinc-100 border border-zinc-800 rounded-xl hover:bg-zinc-900 transition flex items-center gap-1.5 text-xs"
+          className="p-2 text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] border border-[var(--color-duo-swan)] rounded-xl hover:bg-[var(--color-duo-polar)] transition flex items-center gap-1.5 text-xs"
         >
           <RefreshCw className="w-3.5 h-3.5" /> 刷新队列
         </button>
@@ -111,18 +111,18 @@ export default function AdminDisputesWorkspace() {
 
       <div className="block lg:flex lg:gap-6">
         <div className="w-full lg:w-7/12 mb-6 lg:mb-0">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3 flex items-center gap-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3 flex items-center gap-2">
             待处理纠纷队列 ({disputes.filter((d) => d.status === "pending").length})
           </h2>
 
           {isLoading ? (
-            <div className="border border-zinc-800 bg-zinc-900/40 rounded-2xl p-12 text-center text-zinc-500 text-sm">
-              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-zinc-600" />
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
+              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-3 text-[var(--color-duo-hare)]" />
               正在提取云端物理纠纷链条档案...
             </div>
           ) : loadError ? (
-            <div className="border border-rose-900/60 bg-rose-950/20 rounded-2xl p-12 text-center text-sm">
-              <p className="text-rose-300">{loadError}</p>
+            <div className="border border-rose-200 bg-rose-50 rounded-2xl p-12 text-center text-sm">
+              <p className="text-rose-700">{loadError}</p>
               <button
                 type="button"
                 onClick={fetchDisputes}
@@ -132,7 +132,7 @@ export default function AdminDisputesWorkspace() {
               </button>
             </div>
           ) : disputes.length === 0 ? (
-            <div className="border border-zinc-800 bg-zinc-900/20 rounded-2xl p-12 text-center text-zinc-400 text-sm">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-sm">
               <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
               当前全站所有订单资金咬合完美，无可挑剔，监管天平处于静止平衡状态。
             </div>
@@ -144,25 +144,25 @@ export default function AdminDisputesWorkspace() {
                   onClick={() => setSelectedDispute(item)}
                   className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer text-left ${
                     selectedDispute?.id === item.id
-                      ? "bg-zinc-900 border-zinc-700 ring-1 ring-zinc-700"
-                      : "bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900 hover:border-zinc-700"
+                      ? "bg-white border-[var(--color-duo-swan)] ring-1 ring-[var(--color-duo-swan)]"
+                      : "bg-white border-[var(--color-duo-swan)] hover:bg-[var(--color-duo-polar)] hover:border-[var(--color-duo-swan)]"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4 mb-2.5">
-                    <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700">
+                    <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-[var(--color-duo-swan)] text-[var(--color-duo-eel)] border border-[var(--color-duo-swan)]">
                       ID: {item.order_id}
                     </span>
-                    <span className="text-sm font-semibold text-emerald-400 font-mono">
+                    <span className="text-sm font-semibold text-emerald-700 font-mono">
                       ¥{item.demand_price?.toFixed(2)}
                     </span>
                   </div>
-                  <h3 className="text-sm font-medium text-zinc-200 mb-2 truncate">
+                  <h3 className="text-sm font-medium text-[var(--color-duo-eel)] mb-2 truncate">
                     {item.demand_title}
                   </h3>
-                  <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-[var(--color-duo-wolf)] line-clamp-2 leading-relaxed">
                     {item.reason}
                   </p>
-                  <div className="mt-3.5 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-500">
+                  <div className="mt-3.5 pt-3 border-t border-[var(--color-duo-swan)] flex items-center justify-between text-xs text-[var(--color-duo-wolf)]">
                     <span>申诉人ID: {item.initiator_id}</span>
                     <span>提交于: {new Date(item.created_at).toLocaleString()}</span>
                   </div>
@@ -173,39 +173,39 @@ export default function AdminDisputesWorkspace() {
         </div>
 
         <div className="w-full lg:w-5/12">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-duo-wolf)] mb-3">
             上帝裁决控制台面板
           </h2>
 
           {selectedDispute ? (
-            <div className="border border-zinc-800 bg-zinc-900/60 rounded-2xl p-5 sticky top-6">
+            <div className="border border-[var(--color-duo-swan)] bg-white rounded-2xl p-5 sticky top-6">
               <div className="mb-4">
-                <span className="text-xs uppercase tracking-widest text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                <span className="text-xs uppercase tracking-widest text-amber-600 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   当前审阅案件
                 </span>
-                <h3 className="text-base font-bold text-zinc-100 mt-2">
+                <h3 className="text-base font-bold text-[var(--color-duo-eel)] mt-2">
                   {selectedDispute.demand_title}
                 </h3>
-                <div className="flex gap-4 mt-2 text-xs font-mono text-zinc-400">
-                  <p>订单号: <span className="text-zinc-200">{selectedDispute.order_id}</span></p>
-                  <p>担保资金: <span className="text-emerald-400 font-semibold">¥{selectedDispute.demand_price?.toFixed(2)}</span></p>
+                <div className="flex gap-4 mt-2 text-xs font-mono text-[var(--color-duo-wolf)]">
+                  <p>订单号: <span className="text-[var(--color-duo-eel)]">{selectedDispute.order_id}</span></p>
+                  <p>担保资金: <span className="text-emerald-700 font-semibold">¥{selectedDispute.demand_price?.toFixed(2)}</span></p>
                 </div>
               </div>
 
-              <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800 mb-5">
-                <h4 className="text-xs font-medium text-zinc-400 mb-2 flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> 客户控诉及索赔理由：
+              <div className="bg-[var(--color-duo-polar)] rounded-xl p-4 border border-[var(--color-duo-swan)] mb-5">
+                <h4 className="text-xs font-medium text-[var(--color-duo-wolf)] mb-2 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> 客户控诉及索赔理由：
                 </h4>
-                <p className="text-xs text-zinc-300 leading-relaxed">
+                <p className="text-xs text-[var(--color-duo-eel)] leading-relaxed">
                   {selectedDispute.reason}
                 </p>
 
-                <div className="mt-4 pt-3.5 border-t border-zinc-900">
-                  <h5 className="text-xs font-medium text-zinc-500 mb-2 flex items-center gap-1">
+                <div className="mt-4 pt-3.5 border-t border-[var(--color-duo-swan)]">
+                  <h5 className="text-xs font-medium text-[var(--color-duo-wolf)] mb-2 flex items-center gap-1">
                     <ImageIcon className="w-3.5 h-3.5" /> 双端履约及现场证据链 (0)
                   </h5>
                   <div className="flex gap-2">
-                    <div className="w-16 h-16 border border-dashed border-zinc-800 bg-zinc-900/50 rounded-lg flex items-center justify-center text-xs text-zinc-600">
+                    <div className="w-16 h-16 border border-dashed border-[var(--color-duo-swan)] bg-white rounded-lg flex items-center justify-center text-xs text-[var(--color-duo-hare)]">
                       无图证
                     </div>
                   </div>
@@ -213,21 +213,21 @@ export default function AdminDisputesWorkspace() {
               </div>
 
               <div className="space-y-3">
-                <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
-                  <p className="text-xs text-zinc-400 mb-2.5">此操作将撤销托管池资金，原路全额退款给下单客户</p>
+                <div className="p-3.5 bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] rounded-xl text-center">
+                  <p className="text-xs text-[var(--color-duo-wolf)] mb-2.5">此操作将撤销托管池资金，原路全额退款给下单客户</p>
                   <button
                     onClick={() => setShowModal({ active: true, type: "refund" })}
-                    className="w-full rounded-xl bg-red-600 hover:bg-red-500 text-zinc-50 py-2.5 text-xs font-semibold tracking-wide shadow-lg shadow-red-950/20 transition duration-150"
+                    className="w-full rounded-xl bg-red-600 hover:bg-red-500 text-zinc-50 py-2.5 text-xs font-semibold tracking-wide shadow-lg shadow-red-200/50 transition duration-150"
                   >
                     判定 A：全额退款给客户
                   </button>
                 </div>
 
-                <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl text-center">
-                  <p className="text-xs text-zinc-400 mb-2.5">此操作将强行完成分账，按 90% 划拨给服务商师傅钱包</p>
+                <div className="p-3.5 bg-[var(--color-duo-polar)] border border-[var(--color-duo-swan)] rounded-xl text-center">
+                  <p className="text-xs text-[var(--color-duo-wolf)] mb-2.5">此操作将强行完成分账，按 90% 划拨给服务商师傅钱包</p>
                   <button
                     onClick={() => setShowModal({ active: true, type: "force_settle" })}
-                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-50 py-2.5 text-xs font-semibold tracking-wide shadow-lg shadow-emerald-950/20 transition duration-150"
+                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-50 py-2.5 text-xs font-semibold tracking-wide shadow-lg shadow-emerald-200/50 transition duration-150"
                   >
                     判定 B：强行结算放款给师傅
                   </button>
@@ -235,8 +235,8 @@ export default function AdminDisputesWorkspace() {
               </div>
             </div>
           ) : (
-            <div className="border border-dashed border-zinc-800 bg-zinc-900/10 rounded-2xl p-12 text-center text-zinc-500 text-xs">
-              <ShieldAlert className="w-6 h-6 text-zinc-700 mx-auto mb-2.5" />
+            <div className="border border-dashed border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] rounded-2xl p-12 text-center text-[var(--color-duo-wolf)] text-xs">
+              <ShieldAlert className="w-6 h-6 text-[var(--color-duo-hare)] mx-auto mb-2.5" />
               请在左侧列表中任选一笔挂起的纠纷案宗进行细化调阅与判定。
             </div>
           )}
@@ -245,22 +245,22 @@ export default function AdminDisputesWorkspace() {
 
       {showModal.active && showModal.type && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm transition-all">
-          <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-left shadow-2xl mx-4">
-            <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--color-duo-swan)] bg-white p-6 text-left shadow-2xl mx-4">
+            <h3 className="text-base font-bold text-[var(--color-duo-eel)] flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               触发最高管理员上帝裁决权？
             </h3>
-            <p className="text-xs text-zinc-400 mt-2.5 leading-relaxed">您当前正在启动由平台总控介入的终极硬核分账判决。一旦确认执行：</p>
-            <ul className="list-disc list-inside text-xs text-zinc-400 mt-2 space-y-1 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+            <p className="text-xs text-[var(--color-duo-wolf)] mt-2.5 leading-relaxed">您当前正在启动由平台总控介入的终极硬核分账判决。一旦确认执行：</p>
+            <ul className="list-disc list-inside text-xs text-[var(--color-duo-wolf)] mt-2 space-y-1 bg-[var(--color-duo-polar)] p-3 rounded-lg border border-[var(--color-duo-swan)]">
               <li>资金将发生不可逆转的物理层面划扣。</li>
               <li>{showModal.type === "refund" ? "客户将重新获得全部工单款项。" : "师傅将按照 90% 的比例获得最终结款报酬。"}</li>
               <li>全站相关的自动化订单流水流水线会自动增量更新。</li>
             </ul>
-            <div className="mt-5 pt-3.5 border-t border-zinc-800 flex items-center justify-end gap-3">
+            <div className="mt-5 pt-3.5 border-t border-[var(--color-duo-swan)] flex items-center justify-end gap-3">
               <button
                 disabled={isProcessing}
                 onClick={() => setShowModal({ active: false, type: null })}
-                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:bg-zinc-800/40 rounded-xl transition"
+                className="px-4 py-2 text-xs font-medium text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] border border-[var(--color-duo-swan)] hover:bg-[var(--color-duo-polar)] rounded-xl transition"
               >
                 取消关闭
               </button>

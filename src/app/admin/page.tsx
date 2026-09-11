@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
   }, [session])
 
   const cards = [
-    { title: "今日协议数", value: stats?.total_protocols_today ?? 0, desc: "今日新增", href: "/admin/review", icon: FileText, accent: "bg-indigo-600" },
+    { title: "今日协议数", value: stats?.total_protocols_today ?? 0, desc: "今日新增", href: "/admin/review", icon: FileText, accent: "bg-[var(--color-duo-blue)]" },
     { title: "待审核", value: stats?.pending_reviews ?? 0, desc: "待处理", href: "/admin/review", icon: Clock, accent: "bg-amber-500" },
     { title: "待处理举报", value: stats?.active_complaints ?? 0, desc: "待响应", href: "/admin/complaints", icon: ShieldAlert, accent: "bg-rose-500" },
     { title: "近期 SOS", value: stats?.recent_sos ?? 0, desc: "24小时", href: "#", icon: AlertTriangle, accent: "bg-orange-500" },
@@ -126,9 +126,9 @@ export default function AdminDashboardPage() {
               { href: "/admin/protocols", icon: FileText, label: "协议管理", desc: "启用/禁用交易协议" },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
-                <div className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition-all hover:border-indigo-200 hover:bg-indigo-50/30">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
-                    <item.icon className="size-4 text-indigo-600" />
+                <div className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 transition-all hover:border-[var(--color-duo-blue)]/40 hover:bg-[var(--color-duo-blue)]/10">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-duo-blue)]/10">
+                    <item.icon className="size-4 text-[var(--color-duo-blue-ink)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900">{item.label}</p>
