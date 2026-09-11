@@ -26,13 +26,41 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
     const mine = waves.filter((w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired" && w.status !== "pending" && !w.removed);
     return mine[0] ?? null;
   }, [waves, identity.id]);
+  // Batch③-2：三空卡合一。fullyEmpty（无在途/无我发/无预订）只 render 一张统一空卡；
+  // 非全空时各区按原语义展示（mywaves/booking 空卡保留，testid 零漂移）。
+  const hasMyWaves = useMemo(
+    () => waves.some((w) => w.authorId === identity.id),
+    [waves, identity.id],
+  );
+  const fullyEmpty = !activeOrder && !hasMyWaves && bookings.length === 0;
+  // 拍照存证按"有可证之物"显隐：全空访客态不再悬浮无单可拍的按钮。
+  const canCertify = !fullyEmpty || proofShots.length > 0;
   function openOrder(bookingId: string) { setSelectedBooking(bookingId); setScreen("profile"); }
   const upcoming = bookings.filter((b) => b.status === "upcoming");
+  if (fullyEmpty) {
+    return (
+      <div className="pointer-events-auto">
+        <div className="mt-2" data-testid="trip-empty-unified">
+          <DuoEmpty
+            mascot="beast-empty"
+            title="还没有行程"
+            desc="去首页说句话——需求、预订、履约都会汇入这里"
+            action="✨ 去首页发单"
+            onAction={() => setScreen("home")}
+            testId="trip-empty-unified"
+            launchTestId="trip-empty-unified-launch"
+          />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="pointer-events-auto">
+      {canCertify && (
       <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} onClick={() => { const active = waves.find((w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired"); setCameraOrderNo(`TRIP-${active?.id ?? "visit"}-${Date.now().toString(36)}`); setPhotoOpen(true); }} aria-label="拍照存证" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border border-[var(--color-duo-swan)] border-brandCyan/40 text-xs font-bold text-[var(--color-duo-eel)] shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:translate-y-px active:brightness-[0.97] transition-[transform,filter]">
         <Camera size={14} className="text-brandCyan" /> 拍照存证 {proofShots.length > 0 && <span className="min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center font-tabular">{proofShots.length}</span>}
       </motion.button>
+      )}
       <FulfillmentCenter evidencePhotos={proofShots} />
       {!activeOrder && (
         <div className="mt-2" data-testid="trip-empty-state">
