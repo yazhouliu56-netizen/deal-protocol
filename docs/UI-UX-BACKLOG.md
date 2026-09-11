@@ -130,3 +130,11 @@
 - 5 处 fire-and-forget 定时器：逐一审计——use-mounted-now（clearTimeout+clearInterval 双清）/ use-sse（fallback+es 双关）/ track-metric（flushTimer 单例守卫+60s 批刷，设计如此）/ duo-audio-confetti（毫秒级自清）/ sla-enforcer（服务端有意轮询壳）。零泄漏，不动。
 - identity 顶层 localStorage：typeof window + try/catch 双守卫 + skipHydration（D-20260825-01），值回灌走 IdentityRehydrator effect。低风险成立，不动。
 - 结论：Batch② 全清（矩阵+admin+杂项），UI/UX BACKLOG 无 open 项；冻结项（暗岛 hex/阴影/来电暗层/tritanopia）维持原裁决。
+
+## Batch③-0：立规矩（2026-09-12，用户三拍板：SOS降级认/ticker砍/主循环认）
+- 主循环一句话：说句话→有人接→履约到底。配角（AR/SOS/ticker/吉祥物）视觉权重不得与主循环平权。
+- Motion token：src/lib/duo-motion.ts（press 180ms / settle 320ms / back-out[0.34,1.56,0.64,1]，theater 900ms 须单处注释理由）。新动效一律吃 token，手写 duration 即债。
+- 屏幕预算：单视口可见行动 ≤10，有滚动则首屏主行动唯一；超限必须滚屏或折叠，禁止硬塞（home/trip/profile 三屏 932 零滚动即本案）。
+- Mutation 范式：用户高频写操作（发布/接单/评价/仲裁确认）一律 useOptimistic + 失败 rollback + toast；spinner 只允许阻塞式系统等待（登录/支付），业务等待一律骨架（须与内容 1:1 映射）。
+- 入口 in/out 对：新增入口必须在 BACKLOG 指名替换掉的旧入口；空态统一走 DuoEmpty（零引用即债，行程三卡是本案）。
+- e2e 门禁（③-5 落）：首屏 button 普查上限 + 单主行动断言 + DuoEmpty 覆盖率。
