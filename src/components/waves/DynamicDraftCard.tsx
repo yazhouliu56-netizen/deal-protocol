@@ -10,6 +10,7 @@ import type { ScenarioTheme } from "@/types/ui-viewport";
 import { resolveAmmoIdForPublish, getAmmoById } from "@/ammo/registry";
 import { normalizeAmmoTheme } from "./slots/DynamicAmmoSlot";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill from "@/components/ui/DuoPill";
 import { fireDuoConfetti } from "@/lib/duo-confetti";
 
 /**
@@ -23,6 +24,10 @@ import { fireDuoConfetti } from "@/lib/duo-confetti";
  * - 结构化参数列表 ← `IAmmoDefinition.sop` 默认值；
  * - 预估费用与计价模型 ← `pricingModel`；
  * - 安全底线徽章 ← `fuzePolicy`（IFuzePolicy 投影，随弹药自动装填）。
+ *
+ * Duo 化（Batch① 2026-09）：玻璃拟物暗岛 `<style>`（DRAFT_CSS）删除，内层全部
+ * 收敛 Duo 白底原语（polar 行 / DuoPill 徽章 / eel 正文）；外层 motion + 首类名
+ * `draft-card` + `draft-*` 主题类 + data-* + 文案保持（单测硬锚点）。
  */
 
 export interface DynamicDraftCardProps {
@@ -273,70 +278,19 @@ export function describeAssuranceBadge(fuze: IFuzePolicy): string {
   return `🛡️ 平台全额托管 · 完工前资金不落服务者 · ${insurance}争议 100% 证据包定责`;
 }
 
-const DRAFT_CSS = `
-.draft-card{position:relative;max-width:420px;border-radius:20px;padding:18px 18px 14px;
-  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.05));
-  border:1px solid var(--theme-border);box-shadow:0 12px 40px rgba(0,0,0,.35),
-  inset 0 1px 0 rgba(255,255,255,.28),0 0 32px var(--theme-glow);backdrop-filter:blur(24px) saturate(170%);
-  color:#e2e8f0;font-size:14px;line-height:1.5}
-.draft-card-title{font-size:18px;font-weight:700;margin-bottom:10px;display:flex;
-  justify-content:space-between;align-items:center;color:#f1f5f9}
-.draft-card-ammo{font-size:12px;color:rgba(255,255,255,.68);font-weight:500}
-.draft-card-rows{display:flex;flex-direction:column;gap:6px}
-.draft-card-row{display:flex;justify-content:space-between;padding:7px 10px;border-radius:10px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;
-  transition:background .15s;font-size:14px;font-weight:500;color:#ecf1f8;line-height:1.5}
-.draft-card-row:hover{background:rgba(255,255,255,.12)}
-.draft-card-price{margin:10px 0;padding:8px 10px;border-radius:10px;font-weight:600;font-size:14px;
-  color:#f1f5f9;background:linear-gradient(90deg,var(--theme-surface-tint),rgba(123,97,255,.16))}
-.draft-card-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.draft-card-badge{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dbe4f0}
-.draft-card-cta{width:100%;padding:11px 0;border-radius:14px;font-weight:800;font-size:15px;
-  color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
-  border:none;cursor:pointer;box-shadow:0 6px 20px var(--theme-glow);
-  transition:transform .15s,filter .15s}
-.draft-card-cta:hover{transform:translateY(-1px);filter:brightness(1.1)}
-.draft-card-cta:active{transform:scale(.98)}
-/* D8 视觉微氛围：弹药主题令牌经 [data-theme] 作用域注入（--theme-border/glow/primary），
-   draft-* 类保留输出以兼容既有断言；未知/缺失主题由 data-theme="default" 安全兜底 */
-/* D8 动态扩展字段区（formSchema 声明式驱动，可点击微调） */
-.draft-card-form{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}
-.draft-card-form-row{display:flex;justify-content:space-between;align-items:center;gap:8px;
-  padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05);
-  border:1px dashed rgba(255,255,255,.14);cursor:pointer;transition:background .15s}
-.draft-card-form-row:hover{background:rgba(255,255,255,.1)}
-.draft-card-form-row > span:first-child{display:flex;align-items:center;gap:4px;color:#d7dee9;font-size:14px;
-  font-weight:500}
-.draft-card-required{color:#f87171}
-.draft-card-form-options{font-size:12px;color:#cbd5e1}
-.draft-card-form-value{color:#e2e8f0;font-size:13px;font-weight:600}
-/* 内联参数调节器（点击参数行展开抽屉式微调） */
-.draft-card-adj{display:flex;align-items:center;gap:8px;margin:-2px 0 8px;padding:8px 10px;
-  border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(123,97,255,.35)}
-.draft-adj-btn{min-width:28px;height:26px;border-radius:8px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.08);color:#e2e8f0;font-size:14px;font-weight:800;cursor:pointer;
-  user-select:none;transition:background .12s,transform .12s}
-.draft-adj-btn:hover{background:rgba(255,255,255,.16)}
-.draft-adj-btn:active{transform:scale(.92)}
-.draft-adj-value{flex:1;text-align:center;color:#f1f5f9;font-size:14px;font-weight:700;
-  font-variant-numeric:tabular-nums}
-.draft-adj-hint{font-size:12px;color:#cbd5e1}
-.draft-adj-reset{border:none;background:none;color:#cbd5e1;font-size:12px;cursor:pointer;
-  padding:4px 6px;border-radius:6px;font-weight:500}
-.draft-adj-reset:hover{color:#e2e8f0;background:rgba(255,255,255,.08)}
-.draft-card-guide{margin:6px 0 4px;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600;color:#cbd5e1;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.12)}
-.draft-card-assurance{margin:4px 0 8px;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600;color:#a7f3d0;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22)}
-/* 深压 CTA 反馈：点击涟漪 + 按压内缩 */
-.draft-card-cta{position:relative;overflow:hidden}
-.draft-card-cta:active{transform:scale(.97)}
-.draft-card-ripple{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;
-  border-radius:50%;background:rgba(255,255,255,.35);pointer-events:none;
-  animation:draft-ripple-kf .55s ease-out forwards}
-@keyframes draft-ripple-kf{from{transform:scale(.05);opacity:.85}to{transform:scale(3);opacity:0}}
-`;
+// Duo 内联调节器抽屉（polar 底 + 白按钮；替代已删 .draft-card-adj 暗岛）。
+const ADJ_DRAWER =
+  "flex items-center gap-2 -mt-0.5 mb-2 px-2.5 py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]";
+const ADJ_BTN =
+  "min-w-7 h-[26px] px-2 rounded-lg border-2 border-[var(--color-duo-swan)] bg-white text-[var(--color-duo-eel)] text-sm font-extrabold cursor-pointer select-none transition-[filter] hover:brightness-[1.03] active:translate-y-[1px]";
+const ADJ_VALUE =
+  "flex-1 text-center text-[var(--color-duo-eel)] text-sm font-extrabold tabular-nums";
 
-/** 拟物磨砂玻璃草稿卡：弹药驱动参数 + 计价 + 安全徽章 + 一键发布 CTA。 */
+/** 参数胶囊（白底 Duo 小按钮；替代已删 .draft-card-row 暗岛）。 */
+const PARAM_PILL =
+  "rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2 text-sm font-bold text-[var(--color-duo-eel)] shadow-sm hover:brightness-[1.02] transition-[transform,filter] active:translate-y-[2px] active:border-b-0";
+
+/** 拟物草稿卡（已 Duo 化）：弹药驱动参数 + 计价 + 安全徽章 + 一键发布 CTA。 */
 export default function DynamicDraftCard({
   category,
   ammo,
@@ -388,12 +342,11 @@ export default function DynamicDraftCard({
       data-theme={resolveAmmoTheme(definition)}
       style={{ willChange: "transform, opacity" }}
     >
-      <style>{DRAFT_CSS}</style>
-      <div className="draft-card-title">
+      <div className="mb-2.5 flex items-center justify-between text-lg font-extrabold text-[var(--color-duo-eel)]">
         <span>✦ 需求草稿</span>
-        <span className="draft-card-ammo">{definition.ammoId} · v{definition.version}</span>
+        <span className="text-xs font-bold text-[var(--color-duo-hare)]">{definition.ammoId} · v{definition.version}</span>
       </div>
-      <div className="draft-card-rows flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {params.map((row) => {
           const adj = adjByKey.get(row.key);
           if (editing === row.key && adj) {
@@ -402,20 +355,20 @@ export default function DynamicDraftCard({
               <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className={`w-full flex items-center justify-between px-4 py-2.5 ${PARAM_PILL}`}
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
                   <span>{row.label}</span>
                   <span aria-hidden="true">▲</span>
                 </button>
-                <div className="draft-card-adj" data-testid={`sop-adjuster-${row.key}`}>
-                  <button type="button" data-minus className="draft-adj-btn" onClick={() => setAdj(row.key, current - adj.step)}>−</button>
-                  <span className="draft-adj-value">{current}{adj.unit}</span>
-                  <button type="button" data-plus className="draft-adj-btn" onClick={() => setAdj(row.key, current + adj.step)}>+</button>
+                <div className={ADJ_DRAWER} data-testid={`sop-adjuster-${row.key}`}>
+                  <button type="button" data-minus className={ADJ_BTN} onClick={() => setAdj(row.key, current - adj.step)}>−</button>
+                  <span className={ADJ_VALUE}>{current}{adj.unit}</span>
+                  <button type="button" data-plus className={ADJ_BTN} onClick={() => setAdj(row.key, current + adj.step)}>+</button>
                   <button
                     type="button"
-                    className="draft-adj-reset"
+                    className="border-none bg-none px-1.5 py-1 rounded-md text-xs font-bold text-[var(--color-duo-wolf)] cursor-pointer hover:text-[var(--color-duo-eel)] hover:bg-[var(--color-duo-swan)]/60"
                     onClick={() => setOverrides((prev) => {
                       const next = { ...prev };
                       delete next[row.key];
@@ -433,16 +386,16 @@ export default function DynamicDraftCard({
               <div key={row.key} className="w-full">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className={`w-full flex items-center justify-between px-4 py-2.5 ${PARAM_PILL}`}
                   data-param={row.key}
                   onClick={() => { setEditing(null); onTweak?.(row.key); }}
                 >
                   <span>{row.label}</span>
                   <span aria-hidden="true">▲</span>
                 </button>
-                <div className="draft-card-adj" data-testid={`sop-adjuster-${row.key}`}>
-                  <span className="draft-adj-value" style={{ flex: "none" }}>已按出厂默认锁定</span>
-                  <span className="draft-adj-hint">完整发布面板可再微调</span>
+                <div className={ADJ_DRAWER} data-testid={`sop-adjuster-${row.key}`}>
+                  <span className={`${ADJ_VALUE} flex-none`}>已按出厂默认锁定</span>
+                  <span className="text-xs text-[var(--color-duo-wolf)]">完整发布面板可再微调</span>
                 </div>
               </div>
             );
@@ -451,7 +404,7 @@ export default function DynamicDraftCard({
             <button
               key={row.key}
               type="button"
-              className="rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:brightness-[1.02] transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+              className={PARAM_PILL}
               data-param={row.key}
               onClick={() => { setEditing(row.key); onTweak?.(row.key); }}
             >
@@ -462,7 +415,7 @@ export default function DynamicDraftCard({
         })}
       </div>
       {formFields.length > 0 && (
-        <div className="draft-card-form" data-testid="draft-form-fields">
+        <div className="flex flex-col gap-1.5 my-1.5" data-testid="draft-form-fields">
           {formFields.map((f) => {
             const current = typeof overrides[f.key] !== "undefined" ? overrides[f.key] : f.value;
             const active = editing === f.key;
@@ -479,33 +432,33 @@ export default function DynamicDraftCard({
               <div key={f.key}>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between gap-2 rounded-full bg-white border border-[var(--color-duo-swan)] border-b-[3px] px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-[transform,filter] active:translate-y-[2px] active:border-b-0"
+                  className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 ${PARAM_PILL}`}
                   data-field={f.key}
                   onClick={() => { setEditing(active ? null : f.key); onTweak?.(f.key); }}
                 >
                   <span>
                     {f.required && (
-                      <span className="draft-card-required" aria-hidden="true">
+                      <span className="draft-card-required" aria-hidden="true" style={{ color: "var(--color-duo-red-dark)" }}>
                         *
                       </span>
                     )}
                     {f.label}
                     {f.options && f.options.length > 0 && (
-                      <span className="draft-card-form-options">[{f.options.join("/")}]</span>
+                      <span className="text-xs text-[var(--color-duo-wolf)]">[{f.options.join("/")}]</span>
                     )}
                   </span>
-                  <span className="draft-card-form-value">
+                  <span className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">
                     {String(current === "" ? "待填写" : current)}
                   </span>
                   <span aria-hidden="true">{active ? "▲" : "✎"}</span>
                 </button>
                 {active && (
-                  <div className="draft-card-adj" data-testid={`field-adjuster-${f.key}`}>
+                  <div className={ADJ_DRAWER} data-testid={`field-adjuster-${f.key}`}>
                     {type === "number" && (
                       <>
-                        <button type="button" data-minus className="draft-adj-btn" onClick={() => num(typeof current === "number" ? current - 1 : 0)}>−</button>
-                        <span className="draft-adj-value">{String(current === "" ? 0 : current)}</span>
-                        <button type="button" data-plus className="draft-adj-btn" onClick={() => num(typeof current === "number" ? current + 1 : 1)}>+</button>
+                        <button type="button" data-minus className={ADJ_BTN} onClick={() => num(typeof current === "number" ? current - 1 : 0)}>−</button>
+                        <span className={ADJ_VALUE}>{String(current === "" ? 0 : current)}</span>
+                        <button type="button" data-plus className={ADJ_BTN} onClick={() => num(typeof current === "number" ? current + 1 : 1)}>+</button>
                       </>
                     )}
                     {type === "enum" && f.options && f.options.length > 0 && (
@@ -513,7 +466,7 @@ export default function DynamicDraftCard({
                         <button
                           type="button"
                           data-minus
-                          className="draft-adj-btn"
+                          className={ADJ_BTN}
                           onClick={() => {
                             const i = f.options!.indexOf(String(current));
                             const next = f.options![(i - 1 + f.options!.length) % f.options!.length];
@@ -522,11 +475,11 @@ export default function DynamicDraftCard({
                         >
                           ‹
                         </button>
-                        <span className="draft-adj-value">{String(current === "" ? "请选择" : current)}</span>
+                        <span className={ADJ_VALUE}>{String(current === "" ? "请选择" : current)}</span>
                         <button
                           type="button"
                           data-plus
-                          className="draft-adj-btn"
+                          className={ADJ_BTN}
                           onClick={() => {
                             const i = f.options!.indexOf(String(current));
                             const next = f.options![(i + 1) % f.options!.length];
@@ -541,7 +494,7 @@ export default function DynamicDraftCard({
                       <input
                         data-input
                         name={`draft-field-${f.key}`}
-                        className="draft-adj-value flex-1 bg-transparent border border-white/20 rounded-lg px-2 py-1.5 outline-none"
+                        className="flex-1 rounded-lg border-2 border-[var(--color-duo-swan)] bg-white px-2 py-1.5 text-[13px] font-bold text-[var(--color-duo-eel)] outline-none tabular-nums"
                         value={String(current)}
                         placeholder="填写"
                         onChange={(e) => setOverrides((prev) => ({ ...prev, [f.key]: e.target.value }))}
@@ -553,7 +506,7 @@ export default function DynamicDraftCard({
                         role="switch"
                         aria-checked={Boolean(current)}
                         data-testid={`field-boolean-${f.key}`}
-                        className={`draft-adj-btn ${Boolean(current) ? "bg-emerald-500/30 border-emerald-400/50" : ""}`}
+                        className={`${ADJ_BTN} ${Boolean(current) ? "bg-[var(--color-duo-green)]/20 border-[var(--color-duo-green-dark)]/60" : ""}`}
                         onClick={() => setOverrides((prev) => ({ ...prev, [f.key]: !Boolean(current) }))}
                       >
                         {Boolean(current) ? "✅ 已开启" : "⭕ 已关闭"}
@@ -566,7 +519,7 @@ export default function DynamicDraftCard({
           })}
         </div>
       )}
-      <div className="draft-card-price">
+      <div className="my-2.5 px-2.5 py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-sm font-extrabold text-[var(--color-duo-eel)]">
         <span className="font-tabular">{priceText}</span>
         {liveEstimate && (
           <span key={liveEstimate} className="price-roll block mt-1 text-xs opacity-90 font-tabular">
@@ -575,19 +528,19 @@ export default function DynamicDraftCard({
         )}
       </div>
       {pricingGuide && (
-        <div className="draft-card-guide" data-testid="pricing-guide">
+        <div className="my-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-[var(--color-duo-wolf)] bg-[var(--color-duo-polar)] border-2 border-dashed border-[var(--color-duo-swan)]" data-testid="pricing-guide">
           {pricingGuide}
         </div>
       )}
-      <div className="draft-card-assurance" data-testid="assurance-badge">
+      <div className="my-1 mb-2 px-2.5 py-1.5 rounded-xl text-xs font-bold text-[var(--color-duo-green-ink)] bg-[var(--color-duo-green)]/10 border-2 border-[var(--color-duo-green-dark)]/50" data-testid="assurance-badge">
         {assuranceBadge}
       </div>
       {badges.length > 0 && (
-        <div className="draft-card-badges">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {badges.map((badge) => (
-            <span key={badge} className="draft-card-badge">
+            <DuoPill key={badge} tone="neutral" variant="soft">
               {badge}
-            </span>
+            </DuoPill>
           ))}
         </div>
       )}

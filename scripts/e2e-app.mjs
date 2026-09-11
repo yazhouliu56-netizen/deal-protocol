@@ -103,6 +103,10 @@ try {
   });
   assert.ok(draft.sheet && draft.title, "点击弹药胶囊应呼出拟物草稿卡");
   assert.equal(draft.ammo, "housekeeping-v1", "家政弹药应装配 housekeeping-v1");
+  // Batch① Duo 化视觉：草稿卡白底落图
+  await page
+    .locator('[data-testid="draft-sheet"] .draft-card')
+    .screenshot({ path: "docs/shot/draft-card-duo.png" });
   await page.getByRole("button", { name: "关闭拟物草稿" }).click();
   await page.waitForTimeout(400);
 

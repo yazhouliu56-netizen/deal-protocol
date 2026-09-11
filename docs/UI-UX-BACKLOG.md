@@ -81,3 +81,9 @@
 - 契约零动：data-testid/data-status/文案/金额格式全保留；自有单测全状态跃迁 + ConfirmSheet 放款链绿，FulfillmentCockpit 宿主侧绿。
 - 诚实注记：无浏览器落图——尚无 e2e 构造 funding.milestones 挂载 ladder（grep 确认零覆盖）；所用 Duo 原语均已在他岛落图实证，回归由 openmatch（座舱挂载链路）PASS 覆盖。
 - 剩余 5 岛：ArbitrationSheet / DynamicDraftCard / FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot。
+
+## Duo 化 Batch①-4：DynamicDraftCard（2026-09-12）
+- 本单特殊：外层已是 Duo 白底（Feather 3D 卡 + DuoButton CTA），残留暗岛 = DRAFT_CSS 玻璃拟物 <style> + 内层深色字。删整块 CSS（含已死亡的 .draft-card-cta ripple——CTA 早换 DuoButton），内层收敛：参数胶囊 PARAM_PILL（eel 字）/ 调节器抽屉 ADJ_*（polar 底白按钮）/ 价格 polar 行 / 指南 polar 虚线 / 保障 Duo 绿 / 安全徽章 DuoPill neutral。
+- 硬锚点全保：外层首类名 draft-card + draft-* 主题类 + motion(stiffness400/damping30/willChange) + draft-card-required 精确类名（style 补 red-dark 字色）+ data-*/文案；自有 25 例 + ThemeIsolation 绿。
+- 考卷：e2e-app 加草稿卡落图 docs/shot/draft-card-duo.png，一次过；vitest 843 + oto 1269 + build 过。
+- 剩余 4 岛：ArbitrationSheet / FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot（座舱三巨物 + 仲裁）。
