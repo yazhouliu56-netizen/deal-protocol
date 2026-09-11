@@ -174,9 +174,10 @@ export default function OrderFulfillmentClient({
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900 select-none">
-      <header className="bg-zinc-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow">
+      {/* Batch⑤-5：深黑顶栏→Duo 白底（履约语义零动） */}
+      <header className="bg-white/90 backdrop-blur-xl border-b-2 border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] p-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
         <span className="text-sm font-medium">工单 ID: {demand.id.slice(0, 8)}...</span>
-        <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+        <span className="bg-[var(--color-duo-blue)] border-b-2 border-[var(--color-duo-blue-dark)] text-neutral-900 text-xs px-2 py-0.5 rounded-full font-bold">
           {currentConfig.label}
         </span>
       </header>
@@ -184,7 +185,7 @@ export default function OrderFulfillmentClient({
       <div className="max-w-md mx-auto p-4 space-y-4">
         <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm text-center">
           <p className="text-xs text-zinc-400 mb-1">应收服务费</p>
-          <p className="text-3xl font-black text-emerald-600 mb-3">￥{demand.price}</p>
+          <p className="text-3xl font-black text-[var(--color-duo-green-ink)] mb-3">￥{demand.price}</p>
           <h2 className="text-base font-bold">{demand.title}</h2>
         </div>
 
@@ -230,7 +231,7 @@ export default function OrderFulfillmentClient({
               const isPastOrCurrent = index <= currentStatusIndex
               return (
                 <div key={statusKey} className="flex flex-col items-center z-10 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-neutral-900" : "bg-zinc-200 text-zinc-400"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-[var(--color-duo-green)] text-neutral-900" : "bg-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"}`}>
                     {index + 1}
                   </div>
                   <span className="mt-1 text-xs scale-90">{STATUS_MAP[statusKey as keyof typeof STATUS_MAP].label}</span>

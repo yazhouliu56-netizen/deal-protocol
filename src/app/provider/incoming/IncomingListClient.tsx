@@ -82,9 +82,10 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-12">
-      <header className="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm">
+      {/* Batch⑤-5：深黑顶栏→Duo 白底（抢单乐观化语义零动） */}
+      <header className="bg-white/90 backdrop-blur-xl border-b-2 border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] p-4 sticky top-0 z-50 flex justify-between items-center shadow-sm">
         <h1 className="text-base font-bold">实时接单需求池</h1>
-        <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full animate-pulse">
+        <span className="text-xs bg-[var(--color-duo-green)]/10 text-[var(--color-duo-green-ink)] border border-[var(--color-duo-green)]/40 px-2 py-0.5 rounded-full animate-pulse">
                     实时定位中 · 附近工单
         </span>
       </header>

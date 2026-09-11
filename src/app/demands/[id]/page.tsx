@@ -39,7 +39,8 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900">
-      <header className="bg-zinc-900 text-white p-4 sticky top-0 z-50 shadow">
+      {/* Batch⑤-5：深黑顶栏→Duo 白底（验收语义零动） */}
+      <header className="bg-white/90 backdrop-blur-xl border-b-2 border-[var(--color-duo-swan)] text-[var(--color-duo-eel)] p-4 sticky top-0 z-50 shadow-sm">
         <span className="text-sm font-medium">订单验收 · {demand.id.slice(0, 8)}...</span>
       </header>
       <div className="max-w-md mx-auto p-4">
