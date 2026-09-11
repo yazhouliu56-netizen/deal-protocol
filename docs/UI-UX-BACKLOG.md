@@ -93,3 +93,10 @@
 - 契约零动：data-testid/data-action/data-level/data-order/文案全保留；三级分流单测 + chain-anchor 单测 + E2EIntegration 52 例绿。
 - 考卷：openmatch 加抽屉落图 docs/shot/arbitration-sheet-duo.png。探针修两次：① 零尺寸 wrapper 不可截图 → 补 panelTestId=arbitration-panel（组件侧）；② 抽屉遮罩挡住后续步骤 → 落图后点关闭再走。落图恰好命中司法导出 401 错误态，Duo 错误路径一并实证（后端鉴权 env 问题，非本单范围）。
 - 剩余 3 岛（座舱三巨物）：FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot。
+
+## Duo 化 Batch①-6：DynamicAmmoSlot（2026-09-12）
+- 改写：删 SLOT_CSS 暗岛 → Duo 白底卡（dyn-slot 首类名保留作身份钩）+ polar 参数行（dyn-param/dyn-param-icon 首类名前缀保留，单测 class="dyn-param 前缀锚点绿）+ 定制标签/引信徽标/SHA 链全换 DuoPill（鉴真 forgeryClass() 色映射→forgeryTone() tone 映射，solid 变体浮于照片）+ 双拍状态文案 Duo 语义色 + 拍照弹窗白底 Duo 卡（原深蓝渐变 sheet）。
+- 争议入口 DuoButton（outline/⚖️ 申请调解/申诉）本单未动——已是 Duo。
+- 考卷新建 e2e-dyn-slot.mjs（SUITE_ORDER + MANUAL_ONLY…不，是 SUITE_ORDER 正式位 + RULES 映射 DynamicAmmoSlot/CockpitAmmoSlot/dyn-slot），宠物寄养全链路发单→接单（直达 accepted）→行程座舱落图 docs/shot/dyn-slot-duo.png。
+- 探针三连修（均记档）：① dual-role 行撑爆撞 57014 → 新卷独占 oto::e2e::dyn-slot 行；② B 波卡永不出现 → feed 硬筛 identity.categories 品类匹配，预置须扩「宠物寄养」；③ 修空调 variant=hk（复用家政模板）根本不挂 dynamic-ammo → 改考 pet-boarding-v1（-actionSchema.variant=dyn 唯一真身，registry 全表实测）。
+- 剩余 2 岛（座舱双巨物）：FulfillmentCockpit / FulfillmentCenter。

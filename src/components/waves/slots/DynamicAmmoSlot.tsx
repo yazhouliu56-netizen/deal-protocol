@@ -11,6 +11,7 @@ import type { IFuzePolicy } from "@/types/fuze-policy";
 import type { ScenarioTheme } from "@/types/ui-viewport";
 import ProofCamera, { type IProofCaptureResult } from "@/components/oto-ui/controls/ProofCamera";
 import DuoButton from "@/components/ui/DuoButton";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 
 /**
  * 长尾动态弹药通用履约插槽（Dynamic Ammo Slot · 自适应 theme-dynamic）。
@@ -25,7 +26,11 @@ import DuoButton from "@/components/ui/DuoButton";
  *
  * 视界理论（白皮书 §五 5.7 维度 5 + §十 D8）：弹药 8 维全息配置驱动，零品类
  * 硬编码；未声明任何特化位时安全回落本插槽（红线 2/4，严禁白屏）。
- * 自包含 CSS（外骨骼零改动，差异全收敛插槽区，红线 2）。
+ * 自包含（外骨骼零改动，差异全收敛插槽区，红线 2）。
+ *
+ * Duo 化（Batch① 2026-09）：暗岛 SLOT_CSS 删除，白底 Duo 卡 + polar 参数行 +
+ * DuoPill 徽章群（引信/定制/鉴真）；`dyn-slot`/`dyn-*` 首类名与 data-* 锚点保留
+ * （单测 `class="dyn-param` 前缀 + cockpit-battle4 data 面全绿）。
  */
 
 export interface DynamicAmmoSlotProps {
@@ -152,53 +157,17 @@ export function paramIconOf(key: string): string {
   return "⚙️";
 }
 
-const SLOT_CSS = `
-.dyn-slot{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(123,97,255,.06));
-  border:1px solid var(--theme-border);color:#e2e8f0;font-size:14px;line-height:1.5}
-.dyn-slot h4{margin:0 0 6px;font-size:15px;font-weight:600;color:#67e8f9}
-.dyn-meta{font-size:12px;color:rgba(255,255,255,.68);font-weight:500}
-.dyn-params{display:flex;flex-direction:column;gap:6px;padding:10px 11px;border-radius:14px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)}
-.dyn-param{display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 9px;border-radius:12px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
-  backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
-.dyn-param-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;
-  justify-content:center;font-size:15px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--theme-surface-tint),rgba(255,255,255,.08));
-  border:1px solid var(--theme-border)}
-.dyn-param b{color:#f1f5f9;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;font-size:13px;font-weight:600}
-.dyn-param span{color:#cbd5e1;text-align:right;word-break:break-all;font-weight:600}
-.dyn-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dyn-photo{position:relative;aspect-ratio:4/3;border-radius:12px;border:1px dashed rgba(255,255,255,.25);
-  display:flex;align-items:center;justify-content:center;font-size:12px;color:#cbd5e1;
-  overflow:hidden;background:rgba(255,255,255,.05);flex-direction:column;gap:6px;font-weight:500}
-.dyn-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
-.dyn-photo-btn{min-height:44px;padding:8px 14px;border-radius:12px;border:none;font-size:13px;font-weight:800;
-  cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--theme-primary),var(--theme-primary-active));
-  box-shadow:0 6px 18px var(--theme-glow)}
-.dyn-verified{font-size:12px;color:#4ade80;font-weight:600}
-.dyn-badges{display:flex;flex-wrap:wrap;gap:6px}
-.dyn-badge{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dbe4f0}
-.dyn-dispute{width:100%;min-height:44px;padding:9px 0;border-radius:12px;
-  border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);
-  color:#fbbf24;font-size:14px;font-weight:700;cursor:pointer}
-.dyn-custom{display:flex;flex-wrap:wrap;gap:6px;padding:8px 11px;border-radius:12px;
-  background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3)}
-.dyn-custom-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
-  background:rgba(123,97,255,.16);border:1px solid rgba(123,97,255,.4);color:#c4b5fd}
-.dyn-proof-modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;padding:16px}
-.dyn-proof-sheet{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#0f172a,#1e293b);
-  border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:14px}
-.dyn-forgery{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid;display:inline-flex;align-items:center;gap:4px}
-.dyn-forgery-low{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#86efac}
-.dyn-forgery-medium{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4);color:#fde68a}
-.dyn-forgery-high{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.4);color:#fed7aa}
-.dyn-forgery-critical{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);color:#fecaca}
-`;
+/** Duo 白底卡（`dyn-slot` 首类名保留作身份钩）+ polar 参数行。 */
+const SLOT_CARD =
+  "dyn-slot flex flex-col gap-2.5 p-3.5 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] border-b-[5px] text-sm leading-relaxed text-[var(--color-duo-eel)] shadow-sm";
+const PARAM_ROW =
+  "dyn-param flex items-center gap-2 text-[13px] px-2.5 py-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]";
+const PARAM_ICON =
+  "dyn-param-icon w-7 h-7 rounded-lg flex items-center justify-center text-[15px] shrink-0 bg-white border-2 border-[var(--color-duo-swan)]";
+const SECTION_POLAR =
+  "flex flex-col gap-1.5 p-2.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]";
+const PHOTO_CELL =
+  "relative aspect-[4/3] rounded-xl border-2 border-dashed border-[var(--color-duo-swan)] bg-[var(--color-duo-polar)] flex flex-col items-center justify-center gap-1.5 text-xs font-bold text-[var(--color-duo-wolf)] overflow-hidden";
 
 /** 长尾动态弹药通用履约插槽：参数快照 + 存证打卡 + 引信徽标 + 申诉入口。 */
 const DRESS_LABEL_DYN: Record<string, string> = {
@@ -226,18 +195,17 @@ export function describeDynamicCustomTags(
   return tags;
 }
 
-function forgeryClass(level: string): string {
+function forgeryTone(level: string): DuoPillTone {
   switch (level) {
-    case "LOW":
-      return "dyn-forgery-low";
     case "MEDIUM":
-      return "dyn-forgery-medium";
+      return "yellow";
     case "HIGH":
-      return "dyn-forgery-high";
+      return "orange";
     case "CRITICAL":
-      return "dyn-forgery-critical";
+      return "red";
+    case "LOW":
     default:
-      return "dyn-forgery-low";
+      return "green";
   }
 }
 
@@ -281,53 +249,57 @@ export default function DynamicAmmoSlot({
   };
 
   return (
-    <div className={`dyn-slot ${themeClass}`} data-slot="dynamic-ammo" data-theme={normalizeAmmoTheme(ammo.holographic?.theme)}>
-      <style>{SLOT_CSS}</style>
-      <h4>⚙️ 动态履约 · {ammo.category}</h4>
-      <div className="dyn-meta">
+    <div className={`${SLOT_CARD} ${themeClass}`} data-slot="dynamic-ammo" data-theme={normalizeAmmoTheme(ammo.holographic?.theme)}>
+      <h4 className="m-0 mb-1 text-[15px] font-extrabold text-[var(--color-duo-eel)]">⚙️ 动态履约 · {ammo.category}</h4>
+      <div className="text-xs font-bold text-[var(--color-duo-wolf)]">
         {ammo.ammoId} · v{ammo.version}
       </div>
 
       {customTags.length > 0 && (
-        <section className="dyn-custom" data-testid="dyn-custom-requirements" data-custom-requirements>
+        <section className={`${SECTION_POLAR} flex-row flex-wrap`} data-testid="dyn-custom-requirements" data-custom-requirements>
           {customTags.map((tag) => (
-            <span key={tag} className="dyn-custom-tag" data-custom-tag>
+            <DuoPill key={tag} tone="blue" variant="soft" data-custom-tag>
               {tag}
-            </span>
+            </DuoPill>
           ))}
         </section>
       )}
 
-      <section className="dyn-params" data-testid="dyn-params">
+      <section className={SECTION_POLAR} data-testid="dyn-params">
         {paramRows.length > 0 ? (
           paramRows.map((row) => (
-            <div key={row.key} className="dyn-param" data-param={row.key}>
-              <span className="dyn-param-icon" data-param-icon aria-hidden="true">
+            <div key={row.key} className={PARAM_ROW} data-param={row.key}>
+              <span className={PARAM_ICON} data-param-icon aria-hidden="true">
                 {paramIconOf(row.key)}
               </span>
-              <b>{row.key}</b>
-              <span>{row.display}</span>
+              <b className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-bold text-[var(--color-duo-eel)]">{row.key}</b>
+              <span className="text-right font-bold text-[var(--color-duo-eel)] break-all">{row.display}</span>
             </div>
           ))
         ) : (
-          <div className="dyn-param" data-empty-params>
-            <span className="dyn-param-icon" aria-hidden="true">⚙️</span>
-            <b>自定义参数</b>
-            <span>未固化</span>
+          <div className={PARAM_ROW} data-empty-params>
+            <span className={PARAM_ICON} aria-hidden="true">⚙️</span>
+            <b className="flex-1 text-[13px] font-bold text-[var(--color-duo-eel)]">自定义参数</b>
+            <span className="font-bold text-[var(--color-duo-wolf)]">未固化</span>
           </div>
         )}
       </section>
 
       {needsCamera && (
-        <section className="dyn-photos" data-testid="dyn-proof">
-          <div className="dyn-photo" data-photo="before">
+        <section className="grid grid-cols-2 gap-2" data-testid="dyn-proof">
+          <div className={PHOTO_CELL} data-photo="before">
             {beforeDisplay ? (
               <>
                 <Image src={beforeDisplay} alt="存证 Before 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
                 {beforeResult && (
-                  <span className={`dyn-forgery ${forgeryClass(beforeResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="dyn-before-forgery">
+                  <DuoPill
+                    tone={forgeryTone(beforeResult.forgeryReport.riskLevel)}
+                    variant="solid"
+                    testId="dyn-before-forgery"
+                    className="absolute bottom-1.5 left-1.5 right-1.5 justify-center"
+                  >
                     🔬 {Math.round(beforeResult.forgeryReport.overallConfidence * 100)}% · {beforeResult.forgeryReport.riskLevel}
-                  </span>
+                  </DuoPill>
                 )}
               </>
             ) : (
@@ -339,14 +311,19 @@ export default function DynamicAmmoSlot({
               </>
             )}
           </div>
-          <div className="dyn-photo" data-photo="after">
+          <div className={PHOTO_CELL} data-photo="after">
             {afterDisplay ? (
               <>
                 <Image src={afterDisplay} alt="存证 After 照片" fill sizes="50vw" style={{ objectFit: "cover" }} />
                 {afterResult && (
-                  <span className={`dyn-forgery ${forgeryClass(afterResult.forgeryReport.riskLevel)}`} style={{ position: "absolute", bottom: 6, left: 6, right: 6, textAlign: "center" }} data-testid="dyn-after-forgery">
+                  <DuoPill
+                    tone={forgeryTone(afterResult.forgeryReport.riskLevel)}
+                    variant="solid"
+                    testId="dyn-after-forgery"
+                    className="absolute bottom-1.5 left-1.5 right-1.5 justify-center"
+                  >
                     🔬 {Math.round(afterResult.forgeryReport.overallConfidence * 100)}% · {afterResult.forgeryReport.riskLevel}
-                  </span>
+                  </DuoPill>
                 )}
               </>
             ) : (
@@ -364,31 +341,31 @@ export default function DynamicAmmoSlot({
         <div data-testid="dyn-proof-status">
           {twinVerified ? (
             twinCritical ? (
-              <span className="text-red-300" style={{ fontSize: 12, fontWeight: 700 }}>⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
+              <span className="text-[12px] font-bold text-[var(--color-duo-red-dark)]">⚠️ 伪造拦截：CRITICAL 照片已被系统标记，请重拍真实照片</span>
             ) : (
-              <span className="dyn-verified">✅ 双拍验真已通过（水印相机存证 + 🔬 {beforeResult && afterResult ? `${Math.round(((beforeResult.forgeryReport.overallConfidence + afterResult.forgeryReport.overallConfidence)/2)*100)}%` : ""} 鉴真）</span>
+              <span className="text-[12px] font-bold text-[var(--color-duo-green-ink)]">✅ 双拍验真已通过（水印相机存证 + 🔬 {beforeResult && afterResult ? `${Math.round(((beforeResult.forgeryReport.overallConfidence + afterResult.forgeryReport.overallConfidence)/2)*100)}%` : ""} 鉴真）</span>
             )
           ) : (
-            <span className="text-slate-300" style={{ fontSize: 12 }}>
+            <span className="text-[12px] text-[var(--color-duo-wolf)]">
               ⚠️ 完成 Before/After 双拍后按弹药契约核销（红线 4 零信任物理感知）
             </span>
           )}
         </div>
       )}
       {twinVerified && !twinCritical && beforeResult && afterResult && (
-        <div className="dyn-badges" data-testid="dyn-sha-chain" style={{ flexDirection: "column" }}>
-          <span className="dyn-badge" style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, wordBreak: "break-all" }}>
+        <div className="flex flex-wrap gap-1.5 flex-col" data-testid="dyn-sha-chain">
+          <DuoPill tone="neutral" variant="soft" className="font-mono !text-[11px] break-all">
             SHA-256 Before {beforeResult.sha256.slice(0, 12)}… · After {afterResult.sha256.slice(0, 12)}…
-          </span>
+          </DuoPill>
         </div>
       )}
 
       {badges.length > 0 && (
-        <div className="dyn-badges" data-testid="dyn-badges">
+        <div className="flex flex-wrap gap-1.5" data-testid="dyn-badges">
           {badges.map((badge) => (
-            <span key={badge} className="dyn-badge">
+            <DuoPill key={badge} tone="neutral" variant="soft">
               {badge}
-            </span>
+            </DuoPill>
           ))}
         </div>
       )}
@@ -407,11 +384,11 @@ export default function DynamicAmmoSlot({
       </DuoButton>
 
       {capturing && (
-        <div className="dyn-proof-modal" data-testid="dyn-proof-modal" onClick={() => setCapturing(null)}>
-          <div className="dyn-proof-sheet" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <strong className="text-slate-200" style={{ fontSize: 13 }}>📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
-              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="text-slate-400" style={{ background: "none", border: "none", fontSize: 14, cursor: "pointer" }}>✕</button>
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" data-testid="dyn-proof-modal" onClick={() => setCapturing(null)}>
+          <div className="w-full max-w-[420px] max-h-[88vh] overflow-auto bg-white border-2 border-[var(--color-duo-swan)] border-b-[6px] rounded-3xl p-3.5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-2">
+              <strong className="text-[13px] text-[var(--color-duo-eel)]">📷 {capturing === "before" ? "服务前" : "服务后"} 拍照存证 · 水印相机</strong>
+              <button type="button" aria-label="关闭" onClick={() => setCapturing(null)} className="text-[var(--color-duo-wolf)] hover:text-[var(--color-duo-eel)] bg-none border-none text-sm cursor-pointer">✕</button>
             </div>
             <ProofCamera
               orderNo={captureNo ?? `dyn-${capturing}`}

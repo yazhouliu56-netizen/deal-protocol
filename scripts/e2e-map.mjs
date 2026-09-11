@@ -40,6 +40,7 @@ export const SUITE_ORDER = [
   "e2e-governance.mjs",
   "e2e-offline.mjs",
   "e2e-dual-role-human.mjs",
+  "e2e-dyn-slot.mjs",
 ];
 
 /** 全部已知脚本名（含手动专线），--only 合法性校验用。 */
@@ -60,6 +61,7 @@ export const RULES = [
   { e2e: "e2e-governance.mjs", keys: ["govern", "Govern", "moderation", "Moderation", "admission", "Admission", "sentinel", "Sentinel", "crisis", "Crisis"] },
   { e2e: "e2e-offline.mjs", keys: ["offline", "Offline", "OnlineStatus", "serwist", "Serwist", "service-worker", "ServiceWorker", "sw.ts"] },
   { e2e: "e2e-dual-role-human.mjs", keys: ["dual-role", "p2p", "P2P"] },
+  { e2e: "e2e-dyn-slot.mjs", keys: ["DynamicAmmoSlot", "CockpitAmmoSlot", "dyn-slot"] },
   { e2e: "e2e-four-ammos.mjs", keys: ["four-ammos", "four_ammos"] },
   { e2e: "e2e-sos-hardware.mjs", keys: ["sos-hardware", "SosHardware"] },
   { e2e: "e2e-roam-multidevice.mjs", keys: ["roam", "Roam", "multidevice"] },
