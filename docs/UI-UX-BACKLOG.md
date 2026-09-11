@@ -35,4 +35,12 @@
 - **模式**：`lib/clientFlags.ts` 封装 `makeFlagHook(key)` → `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`：server 快照恒 `false`；`subscribe`（客户端水合时执行）从 localStorage warm 并通知翻转。**结论：该模式与 08-10 已修 NotificationCenter readKeys、08-09 mapPref 同构，已在全库统一（3 处），后续所有「一次性记忆」标志一律走 clientFlags，禁止再直接 useState 读 localStorage。**
 ## 图片提示（2026-09-10 dual-role e2e 发现，2026-09-11 已修 + 降噪回退）
 
-- sleepy-beast.png 按真实 180×132 等比（props 180×132 + `h-auto w-[72px]`，CSS 与宽高比一致，aspect 警告消除）；capybara.png 首屏 LCP 加 `priority`（eager + preload）。e2e-dual-role-human mascots 降噪过滤已删除，零告警实证通过。
+- sleepy-beast.png 按真实 180×132 等比（props 180×132 + `h-auto w-[72px]`，CSS 与宽高比一致，aspect 警告消除）；capybara.png 首屏 hero 加 `priority`（`eager` 透传，仅 hero，列表/空态不抢 LCP）。e2e-dual-role-human mascots 降噪过滤已删除，零告警实证通过。
+
+## P2  parked（2026-09-11 三路审计结论：不动的需设计裁决/基线重拍，不顺手改）
+
+- **8 自造体系迁移**（draft/cockpit/fc/hk/mt/cp/dyn/ms 嵌入式 CSS）：e2e 选择器依赖 `.draft-card` 等类名 + docs/shot 截图基线，整迁需设计裁决 + 基线重拍，另起批次。
+- **暗岛 hex**（仲裁/座舱 inline + 渐变 + AmmoPillBar/Tier 动态 map）：值为动态 theme 查找，无法静态 class 化；且本仓未 emit TW color vars，`var(--color-red-300)` 式映射会静默断色。冻结。
+- **阴影 25 行**：P13 冻结范围（卡片/按钮）之外，无功能影响。冻结。
+- **loading/not-found/error 矩阵**（32 页仅 5 loading、无根 not-found/error）：加法安全但改动面广，另起批次。
+- **杂项**：favicon.ico 缺失（404 噪音）、sitemap 仅收 3 页、fire-and-forget 定时器 5 处、`useIdentityStore` 顶层 localStorage（有守卫，低风险）。

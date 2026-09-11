@@ -131,7 +131,7 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
       <div className="relative">
         {/* 问候行：水豚半身 + 气泡（话语从水豚嘴里说出：左尾气泡） */}
         <div className="flex items-center gap-2.5">
-          <CapybaraBadge mood={mood} onPress={submit} />
+          <CapybaraBadge mood={mood} onPress={submit} eager />
           <div className="bubble-pop relative min-w-0 flex-1 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-3 py-2 ml-1">
             <span aria-hidden="true" className="absolute -left-[8px] top-1/2 -translate-y-1/2 h-3.5 w-3.5 rotate-45 bg-[var(--color-duo-polar)] border-l-2 border-b-2 border-[var(--color-duo-swan)]" />
             <p className="text-base font-black text-slate-700 leading-snug">{nickname}，今天想做什么有趣的事？</p>

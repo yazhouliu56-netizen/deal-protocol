@@ -114,12 +114,15 @@ export function CapybaraBadge({
   awake,
   large = false,
   onPress,
+  /** 首屏 hero 才传 true（LCP eager；列表/空态禁抢） */
+  eager = false,
 }: {
   mood?: CapybaraMood;
   /** 兼容旧 awake 布尔：true→listening，false→idle */
   awake?: boolean;
   large?: boolean;
   onPress?: () => void;
+  eager?: boolean;
 }) {
   const m: CapybaraMood = mood ?? (awake ? "listening" : "idle");
   const cls = `mascot-bob relative flex shrink-0 items-center justify-center select-none cursor-pointer active:scale-90 active:-rotate-6 transition-transform ${large ? "h-40 w-40" : "h-24 w-24"}`;
@@ -136,7 +139,7 @@ export function CapybaraBadge({
           aria-hidden="true"
           width={large ? 150 : 88}
           height={large ? 150 : 88}
-          priority
+          priority={eager}
           draggable={false}
           onError={() => setImgOk(false)}
           className="relative h-full w-full object-contain mix-blend-multiply select-none"
