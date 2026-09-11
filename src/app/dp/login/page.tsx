@@ -143,7 +143,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
       const data = await res.json()
       if (!res.ok) { onError(data.error || "验证失败"); return }
       // 存活路由：/dashboard 不存在，协议控制台唯一实体为 /dp/console。
-      window.location.href = "/dp/console"
+      window.location.href = "/dp/provider/incoming"
     } catch {
       onError("网络错误，请重试")
     } finally {
@@ -224,7 +224,7 @@ function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
       return
     }
 
-    window.location.href = "/dp/console"
+    window.location.href = "/dp/provider/incoming"
   }
 
   return (
@@ -263,7 +263,7 @@ function WechatLoginForm({ onError }: { onError: (msg: string) => void }) {
         window.location.href = data.url
       } else {
         // 存活路由：/dashboard 不存在，回落协议控制台。
-        window.location.href = "/dp/console"
+        window.location.href = "/dp/provider/incoming"
       }
     } catch {
       onError("网络错误，请重试")

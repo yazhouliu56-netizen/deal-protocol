@@ -22,7 +22,8 @@ export default function Header() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/console") || pathname?.startsWith("/dp/console") || pathname?.startsWith("/dp/provider") || pathname === "/") return null
+  // Batch⑤ 拆桥：/console 与 /dp/console 路由已删，守卫只留现存前缀
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/dp/provider") || pathname === "/") return null
 
   const parseRoles = (roles: unknown): string[] => {
     if (Array.isArray(roles)) return roles

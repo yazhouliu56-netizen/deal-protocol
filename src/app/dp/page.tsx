@@ -40,8 +40,8 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-muted-foreground">
             <Link href="/dp" className="text-cyan-600 transition">首页</Link>
             <Link href="/dp/provider/incoming" className="hover:text-cyan-600 transition">需求大厅</Link>
-            {/* 我的协议：需求方订单列表页缺失（P1 缺口挂账），暂由 redirect 兜底进接单池。 */}
-            <Link href="/dp/console" className="hover:text-cyan-600 transition">我的协议</Link>
+            {/* 我的协议：需求方订单列表页缺失（P1 缺口挂账），直达接单池（原经 /dp/console 中转，Batch⑤ 拆桥）。 */}
+            <Link href="/dp/provider/incoming" className="hover:text-cyan-600 transition">我的协议</Link>
             <Link href="/profile" className="hover:text-cyan-600 transition">个人中心</Link>
           </nav>
         </div>

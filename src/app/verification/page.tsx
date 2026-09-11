@@ -267,7 +267,7 @@ export default function VerificationPage() {
               您的账户已获得完整信用授信，现在可以正常接单了
             </p>
             <Button
-              onClick={() => router.push("/provider")}
+              onClick={() => router.push("/dp/provider/incoming")}
               className="mt-8 rounded-xl"
             >
               返回服务商控制台 <ArrowRight className="ml-1 size-4" />
@@ -307,7 +307,7 @@ export default function VerificationPage() {
 
             <Button
               variant="outline"
-              onClick={() => router.push("/provider")}
+              onClick={() => router.push("/dp/provider/incoming")}
               className="mt-6 rounded-xl"
             >
               返回服务商控制台

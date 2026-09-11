@@ -21,7 +21,6 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/profile",
           "/verification",
-          "/console",
           "/_next/",
           "/offline",
         ],
