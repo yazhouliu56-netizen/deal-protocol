@@ -34,8 +34,8 @@ function LoginContent() {
       <Card className="w-full max-w-sm rounded-2xl border-zinc-200/60 shadow-sm">
         <CardHeader className="text-center">
           <Link href="/dp" className="mx-auto mb-2 flex items-center justify-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-sm">dp</span>
-            <span className="text-sm font-semibold text-foreground">deal<span className="text-indigo-600">-protocol</span></span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-duo-blue)] text-xs font-bold text-white shadow-sm">dp</span>
+            <span className="text-sm font-semibold text-foreground">deal<span className="text-[var(--color-duo-blue-ink)]">-protocol</span></span>
           </Link>
           <CardTitle className="text-xl">登录</CardTitle>
           <CardDescription>欢迎回来，登录您的账户</CardDescription>
@@ -142,7 +142,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
       })
       const data = await res.json()
       if (!res.ok) { onError(data.error || "验证失败"); return }
-      // 存活路由：/dashboard 不存在，协议控制台唯一实体为 /dp/console。
+      // 存活路由：/dashboard 不存在，协议控制台唯一实体为 /dp/provider/incoming（Batch⑤ 拆桥）。
       window.location.href = "/dp/provider/incoming"
     } catch {
       onError("网络错误，请重试")
@@ -164,7 +164,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
             maxLength={11}
-            className="flex-1 rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+            className="flex-1 rounded-xl border-zinc-200/60 transition-all focus-visible:border-[var(--color-duo-blue)] focus-visible:border-[var(--color-duo-blue)]"
           />
           <Button
             type="button"
@@ -189,7 +189,7 @@ function SmsLoginForm({ onError }: { onError: (msg: string) => void }) {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
             maxLength={6}
             autoComplete="one-time-code"
-            className="rounded-xl border-zinc-200/60 text-center text-lg tracking-[0.5em] transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+            className="rounded-xl border-zinc-200/60 text-center text-lg tracking-[0.5em] transition-all focus-visible:border-[var(--color-duo-blue)] focus-visible:border-[var(--color-duo-blue)]"
           />
         </div>
       )}
@@ -231,18 +231,18 @@ function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-medium text-foreground">邮箱</label>
-        <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500" />
+        <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:border-[var(--color-duo-blue)] focus-visible:border-[var(--color-duo-blue)]" />
       </div>
       <div className="space-y-2">
         <label htmlFor="password" className="text-sm font-medium text-foreground">密码</label>
-        <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:ring-indigo-500 focus-visible:border-indigo-500" />
+        <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="rounded-xl border-zinc-200/60 transition-all focus-visible:border-[var(--color-duo-blue)] focus-visible:border-[var(--color-duo-blue)]" />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "登录中..." : "登录"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         还没有账户？{" "}
-        <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">注册</Link>
+        <Link href="/register" className="font-medium text-[var(--color-duo-blue-ink)] hover:text-[var(--color-duo-blue-dark)]">注册</Link>
       </p>
     </form>
   )
@@ -293,7 +293,7 @@ function WechatLoginForm({ onError }: { onError: (msg: string) => void }) {
       </Button>
       <p className="text-center text-sm text-muted-foreground">
         还没有账户？{" "}
-        <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">注册</Link>
+        <Link href="/register" className="font-medium text-[var(--color-duo-blue-ink)] hover:text-[var(--color-duo-blue-dark)]">注册</Link>
       </p>
     </div>
   )

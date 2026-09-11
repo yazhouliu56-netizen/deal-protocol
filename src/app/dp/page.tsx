@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Scroll, Sparkles, Cpu, Zap, Lock, Info } from "lucide-react"
 
 /** Batch3：锁死浅色 Feather 单一设计系统 —— 背景光晕与徽章不再跟随主题切换。 */
-const BG_GLOW = "from-cyan-500/10 to-purple-500/10"
-const ACCENT_BADGE = "bg-cyan-50 border-cyan-200 text-cyan-700"
+const BG_GLOW = "from-[var(--color-duo-blue)]/10 to-[var(--color-duo-green)]/10"
+const ACCENT_BADGE = "bg-[var(--color-duo-blue)]/10 border-[var(--color-duo-blue)]/40 text-[var(--color-duo-blue-ink)]"
 
 export default function HomePage() {
   return (
@@ -25,24 +25,24 @@ export default function HomePage() {
       {/* 顶部 Header Navigation */}
       <header className="relative z-20 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-0.5 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <div className="w-full h-full rounded-[10px] bg-background text-cyan-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[var(--color-duo-blue)] p-0.5 flex items-center justify-center shadow-sm">
+            <div className="w-full h-full rounded-[10px] bg-white text-[var(--color-duo-blue-ink)] flex items-center justify-center">
               <Scroll className="w-5 h-5" />
             </div>
           </div>
           <span className="font-black text-base sm:text-lg tracking-tight text-foreground font-mono">
-            deal-protocol <span className="text-xs font-normal ml-1 text-cyan-600">| 同城服务网络</span>
+            deal-protocol <span className="text-xs font-normal ml-1 text-[var(--color-duo-blue-ink)]">| 同城服务网络</span>
           </span>
         </div>
 
         {/* 导航菜单 */}
         <div className="flex items-center gap-4 sm:gap-6">
           <nav className="hidden md:flex items-center gap-5 text-xs font-bold text-muted-foreground">
-            <Link href="/dp" className="text-cyan-600 transition">首页</Link>
-            <Link href="/dp/provider/incoming" className="hover:text-cyan-600 transition">需求大厅</Link>
+            <Link href="/dp" className="text-[var(--color-duo-blue-ink)] transition">首页</Link>
+            <Link href="/dp/provider/incoming" className="hover:text-[var(--color-duo-blue-ink)] transition">需求大厅</Link>
             {/* 我的协议：需求方订单列表页缺失（P1 缺口挂账），直达接单池（原经 /dp/console 中转，Batch⑤ 拆桥）。 */}
-            <Link href="/dp/provider/incoming" className="hover:text-cyan-600 transition">我的协议</Link>
-            <Link href="/profile" className="hover:text-cyan-600 transition">个人中心</Link>
+            <Link href="/dp/provider/incoming" className="hover:text-[var(--color-duo-blue-ink)] transition">我的协议</Link>
+            <Link href="/profile" className="hover:text-[var(--color-duo-blue-ink)] transition">个人中心</Link>
           </nav>
         </div>
       </header>
@@ -65,7 +65,7 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-600 tracking-tight leading-tight"
+            className="text-3xl sm:text-5xl md:text-6xl font-black text-[var(--color-duo-eel)] tracking-tight leading-tight"
           >
             发布服务委托 <br className="hidden sm:inline" /> 召集认证工程师
           </motion.h1>
@@ -119,7 +119,8 @@ export default function HomePage() {
             whileHover={{ y: -6, scale: 1.02 }}
             className="rounded-3xl border border-border bg-card p-6 hover:shadow-lg transition-all space-y-3"
           >
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600">
+            {/* Batch⑤-4 pastel 图标 tile→Duo soft（紫按不引紫裁决收敛蓝） */}
+            <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-blue)]/10 border border-[var(--color-duo-blue)]/40 flex items-center justify-center text-[var(--color-duo-blue-ink)]">
               <Cpu className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-foreground">智能需求解析</h3>
@@ -132,7 +133,7 @@ export default function HomePage() {
             whileHover={{ y: -6, scale: 1.02 }}
             className="rounded-3xl border border-border bg-card p-6 hover:shadow-lg transition-all space-y-3"
           >
-            <div className="w-12 h-12 rounded-2xl bg-cyan-100 border border-cyan-200 flex items-center justify-center text-cyan-600">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-green)]/10 border border-[var(--color-duo-green)]/40 flex items-center justify-center text-[var(--color-duo-green-ink)]">
               <Zap className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-foreground">认证工程师即时响应</h3>
@@ -145,7 +146,7 @@ export default function HomePage() {
             whileHover={{ y: -6, scale: 1.02 }}
             className="rounded-3xl border border-border bg-card p-6 hover:shadow-lg transition-all space-y-3"
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--color-duo-yellow)]/10 border border-[var(--color-duo-yellow-dark)]/50 flex items-center justify-center text-[var(--color-duo-yellow-ink)]">
               <Lock className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-foreground">资金托管结算</h3>

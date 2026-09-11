@@ -22,12 +22,13 @@ export default async function DpGrabPage({ params }: PageProps) {
     .single()
 
   if (!demand || demand.status === "ACCEPTED" || demand.status === "CANCELLED" || demand.matched_provider_id) {
+    // Batch⑤-4：深黑壳→Duo 白卡（GrabConsole 本体已是白卡，壳只换底，语义零动）
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="text-center p-8 bg-slate-900 border border-slate-800 rounded-3xl max-w-sm text-white">
+      <div className="min-h-screen bg-[var(--color-duo-polar)] flex items-center justify-center p-4">
+        <div className="text-center p-8 bg-white border-2 border-[var(--color-duo-swan)] rounded-3xl max-w-sm text-[var(--color-duo-eel)]">
           <div className="text-4xl mb-4">🔍</div>
           <h2 className="text-lg font-bold mb-2">该订单已结束竞抢</h2>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="text-[var(--color-duo-wolf)] text-sm leading-relaxed">
             该订单已被其他师傅成功匹配，或已被发布者撤回。
           </p>
         </div>
@@ -52,7 +53,7 @@ export default async function DpGrabPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--color-duo-polar)] flex flex-col items-center justify-center p-4">
       <GrabConsoleClientWrapper
         demandId={demandId}
         initialCreatedAt={demand.created_at}
