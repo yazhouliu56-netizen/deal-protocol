@@ -20,8 +20,8 @@ const ICON: Record<DuoPathStatus, string> = {
 };
 
 const COLOR: Record<DuoPathStatus, string> = {
-  completed: "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-white",
-  current: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white shadow-[0_0_18px_rgba(88,204,2,.45)]",
+  completed: "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-[var(--color-duo-eel)]",
+  current: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900 shadow-[0_0_18px_rgba(88,204,2,.45)]",
   locked: "bg-[var(--color-duo-swan)] border-neutral-300 text-gray-400",
 };
 

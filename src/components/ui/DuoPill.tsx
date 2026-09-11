@@ -26,13 +26,13 @@ const TONE_DARK: Record<DuoPillTone, string> = {
   neutral: "bg-black/45 border-white/20 text-slate-200",
 };
 
-/** 实心演绎（白字计数/徽标；yellow 配 eel 深字） */
+/** 实心演绎（亮底深色字；2026-09-11 对比度裁决，neutral-900 全员 ≥4.9） */
 const TONE_SOLID: Record<DuoPillTone, string> = {
-  blue: "bg-[var(--color-duo-blue)] border-[var(--color-duo-blue-dark)] text-white",
-  green: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white",
+  blue: "bg-[var(--color-duo-blue)] border-[var(--color-duo-blue-dark)] text-neutral-900",
+  green: "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900",
   yellow: "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-[var(--color-duo-eel)]",
-  red: "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-white",
-  orange: "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-white",
+  red: "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-neutral-900",
+  orange: "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-neutral-900",
   neutral: "bg-[var(--color-duo-swan)] border-[var(--color-duo-hare)] text-[var(--color-duo-eel)]",
 };
 

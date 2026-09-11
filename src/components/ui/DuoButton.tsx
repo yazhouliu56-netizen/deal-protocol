@@ -8,12 +8,13 @@ export type DuoButtonVariant = "primary" | "secondary" | "danger" | "warning" | 
 export type DuoSound = "click" | "correct" | "error" | "none";
 
 const VARIANT: Record<DuoButtonVariant, string> = {
+  // 亮底深色字（2026-09-11 对比度裁决：白字在绿/蓝/红上仅 2.1~3.3，neutral-900 全员 ≥4.9）
   primary:
-    "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white hover:brightness-[1.03]",
+    "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900 hover:brightness-[1.03]",
   secondary:
-    "bg-[var(--color-duo-blue)] border-[var(--color-duo-blue-dark)] text-white hover:brightness-[1.03]",
+    "bg-[var(--color-duo-blue)] border-[var(--color-duo-blue-dark)] text-neutral-900 hover:brightness-[1.03]",
   danger:
-    "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-white hover:brightness-[1.03]",
+    "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-neutral-900 hover:brightness-[1.03]",
   warning:
     "bg-[var(--color-duo-yellow)] border-[var(--color-duo-yellow-dark)] text-[var(--color-duo-eel)] hover:brightness-[1.03]",
   outline:

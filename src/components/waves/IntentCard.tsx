@@ -103,7 +103,7 @@ export default function IntentCard({
     return (
       <div data-testid="intent-locked" className="rounded-3xl border-2 border-[var(--color-duo-green)] bg-white p-3">
         <p className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">{card.title}</p>
-        <p className="mt-1 inline-block rounded-full bg-orange-600 px-2.5 py-0.5 text-xs font-extrabold text-white">
+        <p className="mt-1 inline-block rounded-full bg-orange-600 px-2.5 py-0.5 text-xs font-extrabold text-neutral-900">
           已锁 ¥{card.price.totalYuan}
         </p>
       </div>

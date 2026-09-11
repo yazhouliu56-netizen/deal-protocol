@@ -227,7 +227,7 @@ export default function NotificationCenter({
                       aria-label="SOS 紧急求助"
                       className="w-full flex items-center gap-2.5 rounded-2xl border-2 border-[var(--color-duo-red)]/40 border-b-4 bg-[var(--color-duo-red-mist)] px-3 py-2.5 text-left shadow-sm active:translate-y-px active:border-b-2 transition-[transform]"
                     >
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-red)] text-white text-sm font-black shrink-0">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-duo-red)] text-neutral-900 text-sm font-black shrink-0">
                         SOS
                       </span>
                       <span className="flex-1 min-w-0">

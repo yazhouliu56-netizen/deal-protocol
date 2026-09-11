@@ -159,7 +159,7 @@ export default function CapabilityPanel() {
                   onClick={() => toggleCategory(c)}
                   className={`px-2.5 py-1 rounded-full text-xs font-bold transition-colors border-2 ${
                     on
-                      ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white"
+                      ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900"
                       : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
                   }`}
                 >

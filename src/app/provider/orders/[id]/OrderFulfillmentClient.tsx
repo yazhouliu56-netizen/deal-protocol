@@ -176,7 +176,7 @@ export default function OrderFulfillmentClient({
     <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900 select-none">
       <header className="bg-zinc-900 text-white p-4 sticky top-0 z-50 flex items-center justify-between shadow">
         <span className="text-sm font-medium">工单 ID: {demand.id.slice(0, 8)}...</span>
-        <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+        <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">
           {currentConfig.label}
         </span>
       </header>
@@ -230,7 +230,7 @@ export default function OrderFulfillmentClient({
               const isPastOrCurrent = index <= currentStatusIndex
               return (
                 <div key={statusKey} className="flex flex-col items-center z-10 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-white" : "bg-zinc-200 text-zinc-400"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isPastOrCurrent ? "bg-emerald-500 text-neutral-900" : "bg-zinc-200 text-zinc-400"}`}>
                     {index + 1}
                   </div>
                   <span className="mt-1 text-xs scale-90">{STATUS_MAP[statusKey as keyof typeof STATUS_MAP].label}</span>
@@ -295,7 +295,7 @@ export default function OrderFulfillmentClient({
       {currentConfig.next && (
         <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] bg-white/80 backdrop-blur border-t border-zinc-200 flex justify-center z-50">
           <div
-                        className={`duo-3d-button relative w-full max-w-md h-14 rounded-2xl overflow-hidden select-none touch-manipulation bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white transition-all ${isMissingCertificates ? "cursor-not-allowed opacity-60 saturate-50" : "cursor-pointer active:brightness-95"}`}
+                        className={`duo-3d-button relative w-full max-w-md h-14 rounded-2xl overflow-hidden select-none touch-manipulation bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900 transition-all ${isMissingCertificates ? "cursor-not-allowed opacity-60 saturate-50" : "cursor-pointer active:brightness-95"}`}
             onMouseDown={startPress}
             onMouseUp={endPress}
             onMouseLeave={endPress}
@@ -312,7 +312,7 @@ export default function OrderFulfillmentClient({
               />
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base text-white pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center font-extrabold text-base text-neutral-900 pointer-events-none">
               {loading ? (
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : isMissingCertificates ? (

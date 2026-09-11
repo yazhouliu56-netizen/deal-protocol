@@ -205,7 +205,7 @@ export default function WorkerWorkbench({ onBack }: { onBack: () => void }) {
             aria-pressed={providerId === p.id}
             className={`flex-1 flex items-center gap-1.5 px-3 py-3 rounded-2xl text-xs font-bold transition-all border-b-4 border-x border-t min-h-12 ${
               providerId === p.id
-                ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white"
+                ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900"
                 : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-hare)] hover:text-[var(--color-duo-eel)] hover:border-[var(--color-duo-green)]/30"
             }`}
           >
@@ -466,7 +466,7 @@ function WorkerOrderRow({
             <button
               onClick={onAction}
               disabled={dimmed}
-              className="px-4 py-2.5 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white text-xs font-extrabold disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="px-4 py-2.5 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-neutral-900 text-xs font-extrabold disabled:opacity-40 disabled:pointer-events-none active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               {actionLabel}
             </button>

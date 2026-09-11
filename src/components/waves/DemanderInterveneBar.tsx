@@ -123,7 +123,7 @@ export default function DemanderInterveneBar({
           <button
             onClick={mode === "time" ? submitTime : submitCustom}
             aria-label="确认干预"
-            className="px-2.5 min-h-8 rounded-full text-xs font-extrabold bg-[var(--color-duo-green)] text-white shrink-0"
+            className="px-2.5 min-h-8 rounded-full text-xs font-extrabold bg-[var(--color-duo-green)] text-neutral-900 shrink-0"
           >
             定
           </button>

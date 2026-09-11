@@ -29,7 +29,7 @@ export default function BlindReveal({ data }: { data: BlindRevealData }) {
         {/* 背面（揭晓内容）—— rotateY 180 后朝前 */}
         <div className="[transform:rotateY(180deg)] [backface-visibility:hidden] bg-white border-2 border-[var(--color-duo-blue)]/40 border-b-4 p-4 rounded-3xl">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-white flex items-center justify-center text-lg shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-[var(--color-duo-green)] border-b-2 border-[var(--color-duo-green-dark)] text-neutral-900 flex items-center justify-center text-lg shrink-0">
               {data.nickname.slice(0, 1)}
             </div>
             <div className="flex-1 min-w-0">

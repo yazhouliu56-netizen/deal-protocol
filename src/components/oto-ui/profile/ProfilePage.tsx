@@ -539,7 +539,7 @@ export default function ProfilePage({
                     onClick={() => toggleQuietWindow(w.start, w.end)}
                     className={`text-xs px-2.5 py-1 rounded-full border-2 transition-all font-bold ${
                       on
-                        ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-white"
+                        ? "bg-[var(--color-duo-green)] border-[var(--color-duo-green-dark)] text-neutral-900"
                         : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
                     }`}
                   >
@@ -637,13 +637,13 @@ export default function ProfilePage({
           <div className="flex gap-1.5">
             <button
               onClick={() => setSeniorMode(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[var(--color-duo-orange)] border-b-4 border-[var(--color-duo-orange-dark)] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[var(--color-duo-orange)] border-b-4 border-[var(--color-duo-orange-dark)] text-neutral-900 text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               👵 长辈模式
             </button>
             <button
               onClick={() => setStealthOpen(true)}
-              className="flex-1 px-2 py-3 rounded-xl bg-[var(--color-duo-blue)] border-b-4 border-[var(--color-duo-blue-dark)] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+              className="flex-1 px-2 py-3 rounded-xl bg-[var(--color-duo-blue)] border-b-4 border-[var(--color-duo-blue-dark)] text-neutral-900 text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
             >
               🛡️ 应急伪装
             </button>

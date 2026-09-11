@@ -461,7 +461,7 @@ export default function TalkPublishSheet({
             className={`text-xs px-2.5 py-1.5 rounded-2xl max-w-[90%] ${
               m.role === "ai"
                 ? "bg-[var(--color-duo-polar)] text-[var(--color-duo-eel)]"
-                : "bg-[var(--color-duo-green)] text-white ml-auto"
+                : "bg-[var(--color-duo-green)] text-neutral-900 ml-auto"
             }`}
           >
             {m.text}

@@ -60,7 +60,7 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
     unmount();
   });
 
-  it("solid 实心演绎（白字计数；yellow 配 eel 深字）", () => {
+  it("solid 实心演绎（亮底深色字；yellow 配 eel）", () => {
     const { host, unmount } = mount(
       <DuoPill tone="green" variant="solid">
         3
@@ -68,7 +68,7 @@ describe("DuoPill 胶囊徽章（P9-6）", () => {
     );
     const cls = (host.firstElementChild as HTMLElement).className;
     expect(cls).toContain("var(--color-duo-green)");
-    expect(cls).toContain("text-white");
+    expect(cls).toContain("text-neutral-900");
     unmount();
     const { host: host2, unmount: unmount2 } = mount(
       <DuoPill tone="yellow" variant="solid">

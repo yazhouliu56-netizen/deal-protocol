@@ -41,7 +41,7 @@ export function ChatBubble({
           <div
             className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap break-words ${
               isUser
-                ? "bg-[var(--color-duo-green)] text-white"
+                ? "bg-[var(--color-duo-green)] text-neutral-900"
                 : "bg-white border border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
             }`}
           >

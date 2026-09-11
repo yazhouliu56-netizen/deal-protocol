@@ -53,9 +53,9 @@ export default function SafetyCenterCard({
             className={`flex-1 px-2 py-1.5 rounded-xl text-xs font-bold border-b-4 border-x border-t transition-all active:translate-y-1 active:border-b-0 ${
               crisisLevel === o.lv
                 ? o.lv === 3
-                  ? "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-white"
+                  ? "bg-[var(--color-duo-red)] border-[var(--color-duo-red-dark)] text-neutral-900"
                   : o.lv === 2
-                    ? "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-white"
+                    ? "bg-[var(--color-duo-orange)] border-[var(--color-duo-orange-dark)] text-neutral-900"
                     : "bg-white border-[var(--color-duo-swan)] text-[var(--color-duo-eel)]"
                 : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-hare)]"
             }`}
@@ -73,14 +73,14 @@ export default function SafetyCenterCard({
       <div className="flex items-center gap-2 mt-2">
         <button
           onClick={onRaise}
-          className="flex-1 px-3 py-3 rounded-xl bg-[var(--color-duo-red)] border-b-4 border-[var(--color-duo-red-dark)] text-white text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+          className="flex-1 px-3 py-3 rounded-xl bg-[var(--color-duo-red)] border-b-4 border-[var(--color-duo-red-dark)] text-neutral-900 text-xs font-extrabold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
         >
           发起求助
         </button>
         {myCrisis.length > 0 && (
           <button
             onClick={onResolve}
-            className="px-3 py-3 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-white text-xs font-bold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
+            className="px-3 py-3 rounded-xl bg-[var(--color-duo-green)] border-b-4 border-[var(--color-duo-green-dark)] text-neutral-900 text-xs font-bold hover:brightness-[1.03] active:translate-y-1 active:border-b-0 transition-[transform] min-h-12"
           >
             已平安，结束
           </button>
