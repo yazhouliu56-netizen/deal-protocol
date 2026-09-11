@@ -276,6 +276,8 @@ body {
   --color-duo-green-ink: #357a00;
   --color-duo-yellow-ink: #8a6d00;
   --color-duo-blue-ink: #0a6ea8;
+  /* Batch④-4：orange-ink 取弹药条既有 tech 正文值（零视觉差收编为 token，Duo 橙系补齐） */
+  --color-duo-orange-ink: #9a4d00;
   --color-duo-blue-mist: #ddf4ff;
   --color-duo-red-mist: #fff5f5;
 }

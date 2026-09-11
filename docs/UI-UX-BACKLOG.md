@@ -178,3 +178,12 @@
 - 不做：发送状态（审计证实已闭环：在线本地同步必达＋离线队列横幅＋手动重发）；正在输入（单机架构无对端实时通道，做 mock 属造假，诚实性否决）。
 - 零契约变更：ImMsg/ImThread 字段不动；comm.test.ts＋2 用例（9/9 绿）。
 - 门禁：tsc 0＋lint 0（含 base 八项物理门禁）＋vitest 853＋build exit 0。
+
+## Batch④-4：暗岛 hex 出清（2026-09-12，用户要求即刻清，冻结令解除）
+- 手法（forgeryTone/SAFETY_PILL_META 同例）：THEME_TONE 唯一映射（家政蓝/组局黄/陪伴蓝/维修橙/默认绿）＋TONE_TEXT/TONE_WASH/TONE_VAR 三表；theme 仍唯一 key（宪法 #4 不破）。
+- 新 token 仅 1 个：--color-duo-orange-ink 取既有 tech 正文值 #9a4d00（零视觉差收编）；陪伴紫按 Batch①-1 不引入紫裁决收敛蓝（中括号本就蓝底）。
+- 像素变化（如实申报 3 处）：featured 家政黄底→蓝 wash（原与磁贴蓝自相矛盾，治本）；featured 组局玫红→黄 wash；磁贴陪伴紫装饰/价→蓝系。
+- 对比度脚本实证：ink/wash 最低 4.70（黄）、ink/白底最低 4.92，全员 ≥4.5。
+- 考卷：AmmoPillBar.test.tsx 5 例（三变体零 hex 断言＋锚点＋pillTagFor 口径）；e2e-ux-budget PASS（按钮普查 18/18 未动）；首页胶囊落图实证。
+- 遗留另案：ui-viewport 注释 tech=工业绿 vs 图纸/实现 tech=橙，不动像素，只记档。
+- 门禁：tsc 0＋lint 0＋vitest 858（110 文件）＋build exit 0。

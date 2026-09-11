@@ -1,6 +1,7 @@
 "use client";
 import { memo } from "react";
 import type { ScenarioTheme } from "@/types/ui-viewport";
+import type { DuoPillTone } from "@/components/ui/DuoPill";
 import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 
 /** 弹药胶囊描述符（注册表 listAmmoPillDescriptors 单行结构，类型同源零漂移）。 */
@@ -38,14 +39,51 @@ const FEATURED_PILL_AMMO_IDS = [
   "appliance-repair-v1",
 ];
 
-/** 中括号胶囊主题配色（图纸精确色值，theme 派生，零品类名硬编码分支）。 */
-const BRACKET_STYLE: Record<string, { bg: string; text: string }> = {
-  meetup: { bg: "#ffe4e6", text: "#e11d48" },
-  housekeeping: { bg: "#fef9c3", text: "#713f12" },
-  companion: { bg: "#dbeafe", text: "#1d4ed8" },
-  tech: { bg: "#ffedd5", text: "#c2410c" },
-  default: { bg: "#ffedd5", text: "#c2410c" },
+/**
+ * Batch④-4 暗岛 hex 出清：主题→Duo tone 唯一映射（forgeryTone/SAFETY_PILL_META 同例）。
+ * 口径：创始人契约 ui-viewport（家政蓝/组局橙/交友紫/维修橙图纸实现/default 绿）+
+ * Batch①-1 不引入紫 token 裁决 → companion 收敛蓝（中括号本就蓝底，零差）。
+ * theme 仍是唯一 key（宪法 #4：零品类硬编码分支）；未知 theme 兜底 default。
+ */
+export const THEME_TONE: Record<ScenarioTheme, DuoPillTone> = {
+  housekeeping: "blue",
+  meetup: "yellow",
+  companion: "blue",
+  tech: "orange",
+  default: "green",
 };
+
+/** tone → Duo 基色 var（图标投影等装饰位，color-mix 取透明度，零 hex）。 */
+const TONE_VAR: Record<DuoPillTone, string> = {
+  blue: "--color-duo-blue",
+  green: "--color-duo-green",
+  yellow: "--color-duo-yellow",
+  red: "--color-duo-red",
+  orange: "--color-duo-orange",
+  neutral: "--color-duo-hare",
+};
+
+/** tone → 深色正文 class（白底/浅底通用，a11y ≥4.5 实证见单测）。 */
+const TONE_TEXT: Record<DuoPillTone, string> = {
+  blue: "text-[var(--color-duo-blue-ink)]",
+  green: "text-[var(--color-duo-green-ink)]",
+  yellow: "text-[var(--color-duo-yellow-ink)]",
+  red: "text-[var(--color-duo-red-dark)]",
+  orange: "text-[var(--color-duo-orange-ink)]",
+  neutral: "text-[var(--color-duo-eel)]",
+};
+
+/** tone → 浅底 wash（featured 整底按钮，DuoPill soft 同配方：基色/10 + ink 字）。 */
+const TONE_WASH: Record<DuoPillTone, string> = {
+  blue: "bg-[var(--color-duo-blue)]/10 text-[var(--color-duo-blue-ink)]",
+  green: "bg-[var(--color-duo-green)]/10 text-[var(--color-duo-green-ink)]",
+  yellow: "bg-[var(--color-duo-yellow)]/10 text-[var(--color-duo-yellow-ink)]",
+  red: "bg-[var(--color-duo-red)]/10 text-[var(--color-duo-red-dark)]",
+  orange: "bg-[var(--color-duo-orange)]/10 text-[var(--color-duo-orange-ink)]",
+  neutral: "bg-[var(--color-duo-polar)] text-[var(--color-duo-eel)]",
+};
+
+const toneOf = (theme: ScenarioTheme): DuoPillTone => THEME_TONE[theme] ?? THEME_TONE.default;
 
 /** 轻标签后缀纯函数：由弹药 theme 派生，零品类名硬编码分支（宪法 #4）。 */
 export function pillTagFor(theme: ScenarioTheme): string {
@@ -65,33 +103,14 @@ export function pillTagFor(theme: ScenarioTheme): string {
 
 /* 平头哥状态表收归 @/components/oto-ui/MascotStates（4 态：sleeping/awake/cheering/empty）。 */
 
-/** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜，零硬编码价格人话化）。
- *  P8-4 死字段收敛：bg/border/text 改走 class 层 Duo Token 后零读取，仅保留 price。 */
+/** 品类大磁贴：注册表动态驱动 — 48px+ 大触控方块（老少皆宜）。
+ * Batch④-4：价格文案走 TONE_TEXT（ incubation 遗留 bg/border/text 死字段 P8-4 已删，此处仅保留 price）。 */
 const TILE_STYLE: Record<string, { price: string }> = {
   housekeeping: { price: "¥60/h 起" },
   meetup: { price: "¥15 AA制" },
   companion: { price: "¥100/h 起" },
   tech: { price: "¥30 检测" },
   default: { price: "¥80/天" },
-};
-const TILE_ACCENT: Record<string, string> = {
-  housekeeping: "#1cb0f6",
-  meetup: "#ffc800",
-  companion: "#8b5cf6",
-  tech: "#ff9600",
-  default: "#58cc02",
-};
-
-/**
- * 小字正文用加深色板（a11y 对比度≥4.5:1 实测：蓝 5.51/芥 4.92/紫 6.34/橙 6.11/绿 5.34；
- * TILE_ACCENT 保留给图标投影等装饰用途，图纸色相不变只降明度）。
- */
-const TEXT_ACCENT: Record<string, string> = {
-  housekeeping: "var(--color-duo-blue-ink)",
-  meetup: "var(--color-duo-yellow-ink)",
-  companion: "#6d3fd4",
-  tech: "#9a4d00",
-  default: "var(--color-duo-green-ink)",
 };
 
 function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
@@ -114,7 +133,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {featured.map((pill) => {
-            const s = BRACKET_STYLE[pill.theme] ?? BRACKET_STYLE.default;
+            const tone = toneOf(pill.theme);
             return (
               <button
                 key={pill.ammoId}
@@ -124,8 +143,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 data-theme={pill.theme}
                 aria-label={`[ ${pill.icon} ${pill.label} | ${pillTagFor(pill.theme)} ] · 一键弹药发单`}
                 data-testid={`pill-${pill.ammoId}`}
-                className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap min-h-11 active:translate-y-px active:brightness-[0.97] transition-[transform,filter]"
-                style={{ backgroundColor: s.bg, color: s.text }}
+                className={`flex items-center justify-center gap-1 px-2 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap min-h-11 active:translate-y-px active:brightness-[0.97] transition-[transform,filter] ${TONE_WASH[tone]}`}
               >
                 <span aria-hidden="true">[</span>
                 <span className="text-sm leading-none" aria-hidden="true">{pill.icon}</span>
@@ -150,7 +168,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
         >
           <div className="flex flex-1 min-w-0 items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
             {pills.slice(0, 4).map((pill) => {
-            const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
+            const tone = toneOf(pill.theme);
             return (
               <button
                 key={pill.ammoId}
@@ -165,7 +183,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
                 <span className="text-sm leading-none" aria-hidden="true">{pill.icon}</span>
                 <span className="truncate">{pill.label}</span>
                 <span className="text-[var(--color-duo-wolf)] font-normal" aria-hidden="true">|</span>
-                <span className="font-extrabold" style={{ color: textAccent }}>{pillTagFor(pill.theme)}</span>
+                <span className={`font-extrabold ${TONE_TEXT[tone]}`}>{pillTagFor(pill.theme)}</span>
               </button>
             );
           })}
@@ -183,8 +201,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     >
       {pills.slice(0, 5).map((pill) => {
         const s = TILE_STYLE[pill.theme] ?? TILE_STYLE.default;
-        const accent = TILE_ACCENT[pill.theme] ?? TILE_ACCENT.default;
-        const textAccent = TEXT_ACCENT[pill.theme] ?? TEXT_ACCENT.default;
+        const tone = toneOf(pill.theme);
         return (
           <button
             key={pill.ammoId}
@@ -197,9 +214,9 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             className="flex flex-col items-center gap-1 px-2 py-3 rounded-2xl bg-white border-2 border-b-[4px] border-[var(--color-duo-swan)] active:translate-y-1 active:border-b-2 active:shadow-none transition-[transform,border] min-h-[88px] justify-center hover:border-[var(--color-duo-green)]/20"
             style={{ borderBottomColor: "var(--color-duo-swan)" }}
           >
-            <span className="text-2xl leading-none" style={{ filter: `drop-shadow(0 1px 0 ${accent}20)` }}>{pill.icon}</span>
+            <span className="text-2xl leading-none" style={{ filter: `drop-shadow(0 1px 0 color-mix(in srgb, var(${TONE_VAR[tone]}) 20%, transparent))` }}>{pill.icon}</span>
             <span className="text-xs font-extrabold text-[var(--color-duo-eel)] truncate w-full text-center leading-tight">{pill.label}</span>
-            <span className="text-xs font-bold truncate w-full text-center" style={{ color: textAccent }}>{s.price}</span>
+            <span className={`text-xs font-bold truncate w-full text-center ${TONE_TEXT[tone]}`}>{s.price}</span>
           </button>
         );
       })}
