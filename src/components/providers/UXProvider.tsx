@@ -1,6 +1,7 @@
 "use client"
 
 import { ErrorBoundary } from "react-error-boundary"
+import { MotionConfig } from "framer-motion"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 
 function FallbackComponent({ resetErrorBoundary }: { resetErrorBoundary?: () => void }) {
@@ -29,7 +30,8 @@ function FallbackComponent({ resetErrorBoundary }: { resetErrorBoundary?: () => 
 export function UXProvider({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary FallbackComponent={FallbackComponent} onReset={() => typeof window !== "undefined" && window.location.reload()}>
-      {children}
+      {/* 系统“减少动态”偏好全局直通：全仓 framer 动效自动落终态（与 CSS reduced-motion 块同构） */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </ErrorBoundary>
   )
 }

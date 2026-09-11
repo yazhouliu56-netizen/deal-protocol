@@ -369,3 +369,15 @@ html[data-low-power="1"] .price-roll {
   background: inherit;
   animation: ping-once-kf 1.8s ease-out infinite;
 }
+
+/* 减少动态：oto 私有关键帧兜底（data-low-power 只在 oto 首页挂载时置位；
+   本块跟随系统偏好，全路由生效；根 globals 覆盖公有类） */
+@media (prefers-reduced-motion: reduce) {
+  .typing-caret,
+  .animate-ping-once::after,
+  .animate-float-slow,
+  .starfield,
+  .price-roll {
+    animation: none !important;
+  }
+}
