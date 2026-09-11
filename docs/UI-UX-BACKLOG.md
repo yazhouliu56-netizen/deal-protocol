@@ -155,3 +155,8 @@
 - match 考卷同步：新对话改 chat-new 硬锚（role 文本口径在折叠 remount 后偶发失明）+ 三态回落循环（已展开/仅外层开/全关）；教训：synthetic dispatch 打到 detached 节点变空操作，一律真实点击 + 终态断言。
 - 全量：verify-prod 15/15（trust 首轮偶发超时、单跑绿、重跑整轮绿，时序 flake 非回归）+ vitest 851 + oto 1269 + lint 0 + tsc 0 + build 101。
 - Batch③ 收官：UI/UX 冗余与混乱根因（入口无生命周期/系统建而不用/无感知范式/导航缺失）全部落地为规则 + 代码 + 门禁。
+
+## 截图元数据幽灵变更（2026-09-12 记档，非阻塞）
+- 现象：verify-prod 重拍后 docs/shot/*.png 反复出现 M（cockpit/dyn-slot 等），commit+push 后仍复现，无 headless/playwright 残留进程，45s 稳定性测试无写入者。
+- 实证：像素级比对 worktree vs HEAD（7 点采样×2 图）0 差异、同尺寸——纯 PNG 元数据块 churn，视觉基线无损，以 checkout 恢复为准。
+- 处置：不追 commit，保持 checkout-clean；若未来复现且伴随像素差异，转缺陷单深挖（候选：截图流 flush 与 git add 竞态）。
