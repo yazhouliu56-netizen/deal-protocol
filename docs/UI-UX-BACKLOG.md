@@ -111,3 +111,9 @@
 - 改写（仅 Center 自有层；IntentCard/MoneyStrip/Cockpit/抽屉/DialCard 本就 Duo，未动）：删 fc-dispute/fc-total/fc-frozen/fc-note 暗岛 → 争议入口 DuoButton outline sm（data-action=open-dispute 原样，e2e-openmatch 回归 PASS）+ 增项改价 DuoButton outline fullWidth + 订单总额 polar 白底卡（金额 Duo green-dark）+ 定金解冻/仲裁横幅 DuoPill green/yellow 居中 + cta-hint/summary/transit-error Duo 语义色。W4 伪装来电遮罩保留深色（功能性通话屏，ArbitrationSheet DarkSheetShell 同例）。
 - 单测 49/49（E2EIntegration/cockpit-battle4/real-user-sim 零改过）+ vitest 843 + oto 1269；e2e-dyn-slot 重跑 PASS（像素级实证：provider/path 行底 #F7F7F7 polar，插槽 #FFFFFF）。
 - 六圈定位：L1 触达（Trip 屏总装）+ L2 业务核心（advanceLifecycle 核销接线不动）；弹药表零新增。命中 #1/#4 + 外骨骼红线①，偏离无。Batch① 8 岛清零。
+
+## Batch②-1：loading/error 矩阵（2026-09-12）
+- 范围诚实化：32 页中仅 demands/[id] 是异步服务端页（配 loading 骨架）；其余同步/客户端页加 loading 属死文件，不加。根级补齐 not-found（非法 URL + demands 三分支 notFound 全进 Duo 404）+ error（unstable_retry，16.2 新契约，读 dist/docs 核验）+ global-error（自带 document，全内联样式，零 Token 引用有单测锁死）。
+- 实证：browser 真 404（/m20/不存在…，status 404，白底卡 rgb(255,255,255)，落图 root-not-found-duo.png）；npm run build 101 路由（/_not-found 注册）；root-states.test.tsx 5 例。
+- 附带：proxy.ts 摸清——未知路径先撞 auth 网关（未登录→/login 302），真 404 只发生在放行前缀下；这也是 demands 未登录走 notFound（→登录后才见 404）的语义来源。
+- admin/error.tsx 深底未动——留待 Batch②-2 admin 轨 Duo 化一并处理。
