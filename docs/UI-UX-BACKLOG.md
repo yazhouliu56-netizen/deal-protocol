@@ -196,3 +196,10 @@
 - ⑤-5 incoming/demands/orders 顶栏：zinc-900→白底 Duo（抢单乐观化/验收/履约语义零动；blue-600 徽标→蓝 soft＋深色字，emerald 金额/进度→Duo 绿系）。
 - 实证：tsc 0＋lint 0＋vitest 858＋build exit 0；/dp/login SSR 零暗类＋真机落图（白 Header＋绿注册）；垫片路由构建产物物理消失。
 - 遗留另案：OrderFulfillmentClient 联系人 fallback（张先生/13800000000/中关村）系演示占位，诚实性待查未动；orders/demands 页身 zinc 浅中性保留（可读，整页收敛另案）。
+
+## Batch⑤-6：首页灰幕根因（2026-09-12，用户报“点胶囊全屏发灰”）
+- 定案：与胶囊无关。像素级实证：tap 前后 DOM 零遮罩（fixed 扫描空）/body filter 无 /opacity 1；桌面与移动仿真渲染逐像素一致（整页均值同为 210,210,207），tap 不改变任何像素。
+- 根因：Stage 的 ContactShadows（scale 8 全屏阴影面，opacity .5）本是给 AR 沙发垫的，却挂载在全屏；首页无遮挡物时，阴影面在手机真机 GPU（渲染管线/驱动差异，桌面 SwiftShader 恰好正确合成故本地不可见）下糊成全屏灰 veil。Dock/SOS 是 DOM 浮层故保持鲜艳——与用户截图完全吻合。
+- 治本：ContactShadows＋Environment 只在 screen=ar 挂载（影子只属于沙发；Environment 只服务沙发反射，首页还省电）。AR 屏视觉由 e2e-app AR 锚链路回归覆盖。
+- 教训：真机 GPU  artifact 本地 SwiftShader 不可复现——此类“某设备才有”问题优先怀疑全屏 3D 面（shadow/env/post），不从 DOM 入手。
+- 门禁：tsc 0＋lint 0＋build exit 0＋e2e-app/ux-budget 全绿。

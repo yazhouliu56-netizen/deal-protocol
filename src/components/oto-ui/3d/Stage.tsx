@@ -146,8 +146,10 @@ export default function Stage() {
             ) : (
               <TemplateStage />
             )}
-            {/* Floating contact shadow grounds the sofa (skipped on low power) */}
-            {!lowPower && (
+            {/* Batch⑤-6 根因：ContactShadows 给沙发垫的影子，却挂载在全屏（含首页）——
+              无遮挡物时阴影面在软渲染（手机 SwiftShader）下糊成全屏灰幕。
+              只在 AR 屏挂载（影子只属于沙发）；Environment 同理（只服务沙发反射，首页纯耗电）。 */}
+            {screen === "ar" && !lowPower && (
               <ContactShadows
                 position={[0, -0.65, 0]}
                 opacity={0.5}
@@ -161,7 +163,7 @@ export default function Stage() {
             {/* Synthetic studio environment: crisp clearcoat reflections,
                 fully local (no network HDR) so offline PWA keeps the look.
                 Skipped entirely on low-power devices. */}
-            {!lowPower && (
+            {screen === "ar" && !lowPower && (
               <Environment resolution={256} frames={1}>
                 <Lightformer
                   intensity={2.4}
