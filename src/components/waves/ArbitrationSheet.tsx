@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import DarkSheetShell from "@/components/ui/DarkSheetShell";
+import DuoButton from "@/components/ui/DuoButton";
+import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import type { ForgeryRiskLevel } from "@/base/ai/forgery";
@@ -22,6 +24,11 @@ import type { ForgeryRiskLevel } from "@/base/ai/forgery";
  * 2. 分级仲裁区 —— L1 秒赔卡 / L2 AI 建议卡 / L3 法务直连卡（互斥渲染）；
  * 3. 分级出口 —— L1 一键补偿 / L2 双出口 / L3 法务 + 保险联动。
  * 红线 1：分流判定与 L1 秒赔为确定性纯函数，LLM 仅存在于 L2 Advisory。
+ *
+ * Duo 化（Batch① 2026-09）：暗岛 SHEET_CSS 删除。DarkSheetShell 保留
+ * （深色遮罩/z80-81/拖拽离场/Esc/data-action 契约均为行为资产），面板视觉换
+ * Duo 白底 + 内层 polar/DuoPill/DuoButton；把手经 arbitrary variant 浅色化。
+ * 契约与埋点不变：data-testid/data-action/data-level/data-order/文案全保留。
  */
 
 /** 三级仲裁层级（漏洞五 · 确定性分流结果）。 */
@@ -60,11 +67,12 @@ export interface ArbitrationPhotoEvidence {
   };
 }
 
-const FORGERY_RISK_META: Record<ForgeryRiskLevel, { color: string; label: string }> = {
-  LOW: { color: "#4ade80", label: "LOW 可信" },
-  MEDIUM: { color: "#fbbf24", label: "MEDIUM 存疑" },
-  HIGH: { color: "#f97316", label: "HIGH 嫌疑" },
-  CRITICAL: { color: "#ef4444", label: "CRITICAL 伪造" },
+/** 鉴真风险等级 → DuoPill tone + 标签（浅底用 soft 变体）。 */
+const FORGERY_RISK_META: Record<ForgeryRiskLevel, { tone: DuoPillTone; label: string }> = {
+  LOW: { tone: "green", label: "LOW 可信" },
+  MEDIUM: { tone: "yellow", label: "MEDIUM 存疑" },
+  HIGH: { tone: "orange", label: "HIGH 嫌疑" },
+  CRITICAL: { tone: "red", label: "CRITICAL 伪造" },
 };
 
 export interface ArbitrationEvidence {
@@ -147,58 +155,17 @@ export const CHAIN_BREAK_REASON_LABEL: Record<string, string> = {
 
 type ExportState = "idle" | "loading" | "done" | "error";
 
-const SHEET_CSS = `
-.arb-sheet{
-  background:linear-gradient(180deg,rgba(23,26,46,.96),rgba(13,16,32,.98));
-  border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:none;
-  max-height:72vh;overflow-y:auto;padding:10px 16px 18px;color:#e2e8f0;font-size:13px}
-.arb-title{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800}
-.arb-close{border:none;background:rgba(255,255,255,.08);color:#cbd5e1;border-radius:10px;padding:4px 10px;
-  font-size:11px;cursor:pointer}
-.arb-section{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1)}
-.arb-section h4{margin:0 0 8px;font-size:12px;color:#94a3b8}
-.arb-quote{font-size:13px;line-height:1.6;color:#f8fafc}
-.arb-photo{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;
-  background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.16)}
-.arb-photo-thumb{width:52px;height:52px;border-radius:10px;background:rgba(123,97,255,.22);
-  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.arb-photo-ai{font-size:11px;color:#a5b4fc;line-height:1.5}
-.arb-chat{font-size:11.5px;color:#cbd5e1;line-height:1.7;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
-.arb-chat:last-child{border-bottom:none}
-.arb-ai-card{margin-top:12px;padding:14px;border-radius:16px;
-  background:linear-gradient(135deg,rgba(123,97,255,.16),rgba(0,240,255,.06));
-  border:1px solid rgba(123,97,255,.4)}
-.arb-ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;
-  color:#c4b5fd;padding:3px 9px;border-radius:999px;background:rgba(123,97,255,.18);
-  border:1px solid rgba(123,97,255,.45)}
-.arb-ai-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
-.arb-ai-row:last-of-type{border-bottom:none}
-.arb-ai-refund{font-size:17px;font-weight:900;color:#fca5a5}
-.arb-ai-note{font-size:11px;color:#94a3b8;margin-top:6px}
-.arb-reason{font-size:11px;color:#a5b4fc;line-height:1.6;margin-top:6px;padding-left:12px}
-.arb-actions{display:flex;gap:10px;margin-top:14px}
-.arb-btn{flex:1;padding:13px 0;border-radius:16px;border:none;font-size:14px;font-weight:800;cursor:pointer;
-  transition:transform .15s,filter .15s}
-.arb-btn:active{transform:scale(.98)}
-.arb-btn-accept{background:linear-gradient(135deg,#4ade80,#16a34a);color:#04120a}
-.arb-btn-escalate{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#1a0b02}
-.arb-level{margin-top:12px;padding:12px 14px;border-radius:16px;font-size:12px;line-height:1.6}
-.arb-level-1{background:linear-gradient(135deg,rgba(74,222,128,.14),rgba(34,197,94,.05));
-  border:1px solid rgba(74,222,128,.4)}
-.arb-level-3{background:linear-gradient(135deg,rgba(248,113,113,.16),rgba(220,38,38,.06));
-  border:1px solid rgba(248,113,113,.5)}
-.arb-level-title{font-size:13px;font-weight:800}
-.arb-level-note{font-size:11px;color:#94a3b8;margin-top:4px}
-.arb-law-card{margin-top:10px;padding:11px 13px;border-radius:14px;font-size:11.5px;
-  display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06)}
-.arb-law-card strong{font-size:12px}
-.arb-law-pulse{width:9px;height:9px;border-radius:50%;background:#ef4444;
-  animation:law-pulse 1.2s ease-in-out infinite;flex-shrink:0}
-@keyframes law-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5);opacity:.8}
-  50%{box-shadow:0 0 0 6px rgba(239,68,68,0);opacity:1}}
-`;
+/** Duo 白底面板（把手浅色化；定位/圆角顶沿 bottom-sheet 形态）。 */
+const PANEL_CLASS =
+  "bg-white border-2 border-[var(--color-duo-swan)] border-b-0 rounded-t-3xl " +
+  "max-h-[72vh] overflow-y-auto px-4 pt-2.5 pb-4 text-[13px] text-[var(--color-duo-eel)] " +
+  "shadow-[0_-8px_32px_rgba(0,0,0,0.18)] [&_.dsheet-grip]:bg-[var(--color-duo-swan)]";
+
+const SECTION_CLASS =
+  "mt-3 p-3 rounded-2xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)]";
+const SECTION_TITLE = "m-0 mb-2 text-xs font-extrabold text-[var(--color-duo-hare)]";
+const KV_ROW =
+  "flex justify-between gap-2 py-1.5 border-b border-dashed border-[var(--color-duo-swan)] last:border-b-0 text-[13px]";
 
 const LIABILITY_LABEL: Record<ArbitrationProposal["liability"], string> = {
   employer: "雇方责任",
@@ -303,74 +270,56 @@ export default function ArbitrationSheet({
 
   if (!open) return null;
 
+  const chainBroken = exportState === "done" && !certificate?.hashChain?.chainValid;
+
   return (
     <div data-testid="arbitration-sheet" data-order={orderId}>
-      <style>{SHEET_CSS}</style>
       <DarkSheetShell
         onClose={onClose}
         maskZ={80}
         panelZ={81}
-        panelClass="arb-sheet"
+        panelClass={PANEL_CLASS}
         dismissing={dismissing}
         gripRef={gripDragRef as React.Ref<HTMLDivElement>}
         ariaLabel="争议调解"
+        panelTestId="arbitration-panel"
       >
 
-        <div className="arb-title">
-          <span>
+        <div className="flex items-center justify-between gap-2 text-[15px] font-extrabold">
+          <span className="flex flex-wrap items-center gap-1.5">
             🧑‍⚖️ 争议调解 · 小法官
             {isLevel3 && (
-              <span className="arb-ai-badge" style={{ marginLeft: 6, color: "#fca5a5" }}>
-                🔴 Level 3 法务直通
-              </span>
+              <DuoPill tone="red" variant="solid">🔴 Level 3 法务直通</DuoPill>
             )}
             {isLevel1 && (
-              <span className="arb-ai-badge" style={{ marginLeft: 6, color: "#4ade80" }}>
-                🟢 Level 1 极小额
-              </span>
+              <DuoPill tone="green" variant="solid">🟢 Level 1 极小额</DuoPill>
             )}
             {!isLevel1 && !isLevel3 && (
-              <span className="arb-ai-badge" style={{ marginLeft: 6 }}>
-                🟡 Level 2 双轨
-              </span>
+              <DuoPill tone="yellow" variant="solid">🟡 Level 2 双轨</DuoPill>
             )}
             {currentState ? (
-              <span className="arb-ai-badge" style={{ marginLeft: 6 }}>
-                争议窗口 {currentState}
-              </span>
+              <DuoPill tone="neutral" variant="soft">争议窗口 {currentState}</DuoPill>
             ) : null}
             {ammoId ? (
-              <span className="arb-ai-badge" style={{ marginLeft: 6 }}>
-                弹药 {ammoId}
-              </span>
+              <DuoPill tone="neutral" variant="soft">弹药 {ammoId}</DuoPill>
             ) : null}
           </span>
-          <button type="button" className="arb-close" data-action="close" onClick={onClose}>
+          <DuoButton variant="ghost" size="sm" data-action="close" onClick={onClose} className="shrink-0">
             ✕ 关闭
-          </button>
+          </DuoButton>
         </div>
 
         {/* 接线 A③：司法证据链常驻锚定徽标（打开即校验，断裂显式定位） */}
         <div
           data-testid="chain-anchor"
           data-state={exportState}
-          className="arb-ai-badge"
-          style={{
-            display: "flex",
-            width: "100%",
-            justifyContent: "center",
-            marginTop: 8,
-            color:
-              exportState === "done" && !certificate?.hashChain?.chainValid
-                ? "#fca5a5"
-                : exportState === "done"
-                  ? "#4ade80"
-                  : "#94a3b8",
-            borderColor:
-              exportState === "done" && !certificate?.hashChain?.chainValid
-                ? "rgba(248,113,113,.5)"
-                : undefined,
-          }}
+          className={`mt-2 flex w-full items-center justify-center rounded-xl border-2 px-2.5 py-1.5 text-xs font-bold ${
+            chainBroken
+              ? "bg-[var(--color-duo-red-mist)] border-[var(--color-duo-red)]/40 text-[var(--color-duo-red-dark)]"
+              : exportState === "done"
+                ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/50 text-[var(--color-duo-green-ink)]"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]"
+          }`}
         >
           {exportState === "loading" && "🛡️ 司法证据链校验中…"}
           {exportState === "idle" && "🛡️ 司法证据链待锚定"}
@@ -392,14 +341,20 @@ export default function ArbitrationSheet({
 
         {/* 分级仲裁头卡（漏洞五 · 确定性分流） */}
         <div
-          className={`arb-level ${isLevel1 ? "arb-level-1" : isLevel3 ? "arb-level-3" : ""}`}
           data-level={level}
           data-amount={disputeAmountYuan ?? ""}
+          className={`mt-3 px-3.5 py-3 rounded-2xl border-2 text-xs leading-relaxed ${
+            isLevel1
+              ? "bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/50"
+              : isLevel3
+                ? "bg-[var(--color-duo-red-mist)] border-[var(--color-duo-red)]/40"
+                : "bg-[var(--color-duo-polar)] border-[var(--color-duo-swan)]"
+          }`}
         >
           {isLevel1 && (
             <>
-              <div className="arb-level-title">🟢 Level 1 极小额争议 · 规则引擎自动秒赔</div>
-              <div className="arb-level-note">
+              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟢 Level 1 极小额争议 · 规则引擎自动秒赔</div>
+              <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
                 争议金额 ¥{disputeAmountYuan} ≤ 30 元且无安全告警——符合小额速赔规则，
                 由平台体验保障金直接补偿，不扣罚服务者信用与收入。
               </div>
@@ -407,8 +362,8 @@ export default function ArbitrationSheet({
           )}
           {isLevel3 && (
             <>
-              <div className="arb-level-title">🔴 Level 3 重大争议/人身安全警报 · 已切入法务专家组</div>
-              <div className="arb-level-note">
+              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🔴 Level 3 重大争议/人身安全警报 · 已切入法务专家组</div>
+              <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
                 {hasSafetyAlert
                   ? "检测到人身安全红色告警——线上调解自动切断，由安全法务组接管取证与处置。"
                   : `争议金额 ¥${disputeAmountYuan} > 500 元——超出线上调解额度，转入法务专家组审理。`}
@@ -417,8 +372,8 @@ export default function ArbitrationSheet({
           )}
           {!isLevel1 && !isLevel3 && (
             <>
-              <div className="arb-level-title">🟡 Level 2 中额争议 · AI + 人工双轨</div>
-              <div className="arb-level-note">
+              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟡 Level 2 中额争议 · AI + 人工双轨</div>
+              <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
                 金额 {disputeAmountYuan === undefined ? "未知" : `¥${disputeAmountYuan}`}
                 落在 30~500 元区间——AI 建议书先行，人工审核员复核双出口。
               </div>
@@ -427,41 +382,37 @@ export default function ArbitrationSheet({
         </div>
 
         {/* ① 物证比对链 */}
-        <section className="arb-section" data-testid="evidence-chain">
-          <h4>📋 物证比对链 · 数据湖存证锚点</h4>
-          <div className="arb-quote" data-testid="evidence-complaint">
+        <section className={SECTION_CLASS} data-testid="evidence-chain">
+          <h4 className={SECTION_TITLE}>📋 物证比对链 · 数据湖存证锚点</h4>
+          <div className="text-[13px] font-bold leading-relaxed text-[var(--color-duo-eel)]" data-testid="evidence-complaint">
             🙋 {evidence.complaint}
           </div>
           {evidence.providerStatement && (
-            <div className="arb-quote" style={{ color: "#93c5fd", marginTop: 8 }} data-testid="evidence-statement">
+            <div className="mt-2 text-[13px] font-bold leading-relaxed text-[var(--color-duo-blue-ink)]" data-testid="evidence-statement">
               🧑‍🔧 履约方陈述：{evidence.providerStatement}
             </div>
           )}
           {evidence.photos && evidence.photos.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+            <div className="mt-2.5 flex flex-col gap-2">
               {evidence.photos.map((p, i) => (
-                <div key={i} className="arb-photo" data-testid="evidence-photo">
-                  <div className="arb-photo-thumb">🖼️</div>
-                  <div>
-                    <div className="text-slate-400" style={{ fontSize: 11 }}>完工照片 {i + 1} · 哈希锚点</div>
-                    <div className="arb-photo-ai">🤖 AI 视觉标注：{p.aiNote}</div>
+                <div key={i} className="flex items-start gap-2.5 rounded-xl border-2 border-dashed border-[var(--color-duo-swan)] bg-white p-2" data-testid="evidence-photo">
+                  <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-xl">🖼️</div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-[var(--color-duo-wolf)]">完工照片 {i + 1} · 哈希锚点</div>
+                    <div className="text-xs font-bold text-[var(--color-duo-blue-ink)]">🤖 AI 视觉标注：{p.aiNote}</div>
                     {p.forgeryReport ? (
                       <div data-testid="photo-forgery">
-                        <span
-                          className="arb-ai-badge"
-                          data-testid="forgery-risk"
-                          style={{
-                            marginTop: 6,
-                            color: FORGERY_RISK_META[p.forgeryReport.riskLevel].color,
-                            borderColor: `${FORGERY_RISK_META[p.forgeryReport.riskLevel].color}66`,
-                            background: `${FORGERY_RISK_META[p.forgeryReport.riskLevel].color}1f`,
-                          }}
+                        <DuoPill
+                          tone={FORGERY_RISK_META[p.forgeryReport.riskLevel].tone}
+                          variant="soft"
+                          testId="forgery-risk"
+                          className="mt-1.5"
                         >
                           🔬 AIGC 鉴真 {Math.round(p.forgeryReport.overallConfidence * 100)}% ·{" "}
                           {FORGERY_RISK_META[p.forgeryReport.riskLevel].label}
-                        </span>
+                        </DuoPill>
                         {p.forgeryReport.tamperFlags.length > 0 && (
-                          <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 4 }}>
+                          <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
                             疑点标签：{p.forgeryReport.tamperFlags.join("、")}
                           </div>
                         )}
@@ -473,9 +424,9 @@ export default function ArbitrationSheet({
             </div>
           )}
           {evidence.chatTranscript && evidence.chatTranscript.length > 0 && (
-            <div style={{ marginTop: 10 }} data-testid="evidence-chat">
+            <div className="mt-2.5" data-testid="evidence-chat">
               {evidence.chatTranscript.map((line, i) => (
-                <div key={i} className="arb-chat">
+                <div key={i} className="border-b border-dashed border-[var(--color-duo-swan)] py-1.5 text-xs leading-relaxed text-[var(--color-duo-wolf)] last:border-b-0">
                   💬 {line}
                 </div>
               ))}
@@ -483,36 +434,36 @@ export default function ArbitrationSheet({
           )}
 
           {/* 司法存证包导出（L2 证据链 → 司法级 SHA-256 审计证书） */}
-          <div style={{ marginTop: 12 }}>
-            <button
-              type="button"
-              className="arb-btn arb-btn-escalate"
+          <div className="mt-3">
+            <DuoButton
+              variant="outline"
+              fullWidth
               data-action="export-judicial"
               onClick={handleExportJudicial}
               disabled={exportState === "loading"}
             >
               {exportState === "loading" ? "⏳ 打包存证链…" : "📦 导出司法级存证包"}
-            </button>
+            </DuoButton>
             {exportState === "error" && (
-              <div className="arb-quote" style={{ marginTop: 8, color: "#fca5a5" }} data-testid="export-error">
+              <div className="mt-2 text-[13px] font-bold text-[var(--color-duo-red-dark)]" data-testid="export-error">
                 ⚠️ {exportError}
               </div>
             )}
             {exportState === "done" && certificate?.hashChain && (
-              <div className="arb-ai-card" style={{ marginTop: 8 }} data-testid="judicial-certificate">
-                <span className="arb-ai-badge">🔐 SHA-256 审计证书 · 司法级</span>
-                <div className="arb-ai-row">
-                  <span>存证链校验</span>
-                  <strong className={certificate.hashChain.chainValid ? "text-green-400" : "text-red-400"}>
+              <div className={`${SECTION_CLASS} bg-white`} data-testid="judicial-certificate">
+                <DuoPill tone="neutral" variant="soft">🔐 SHA-256 审计证书 · 司法级</DuoPill>
+                <div className={KV_ROW}>
+                  <span className="text-[var(--color-duo-wolf)]">存证链校验</span>
+                  <strong className={certificate.hashChain.chainValid ? "text-[var(--color-duo-green-ink)]" : "text-[var(--color-duo-red-dark)]"}>
                     {certificate.hashChain.chainValid ? "链完整 · 未被篡改" : "链断裂 · 需人工复核"}
                   </strong>
                 </div>
-                <div className="arb-ai-row">
-                  <span>证据锚点数</span>
-                  <strong className="text-slate-300">{certificate.hashChain.entries.length} 条</strong>
+                <div className={KV_ROW}>
+                  <span className="text-[var(--color-duo-wolf)]">证据锚点数</span>
+                  <strong className="text-[var(--color-duo-eel)]">{certificate.hashChain.entries.length} 条</strong>
                 </div>
                 {certificate.hashChain.entries.length > 0 && (
-                  <div className="arb-ai-note" style={{ wordBreak: "break-all" }}>
+                  <div className="mt-1.5 text-xs text-[var(--color-duo-wolf)]" style={{ wordBreak: "break-all" }}>
                     📜 链首哈希：{String((certificate.hashChain.entries[0] as { hash?: string }).hash ?? "-").slice(0, 24)}…
                   </div>
                 )}
@@ -523,76 +474,79 @@ export default function ArbitrationSheet({
 
         {/* ② 分级仲裁区：L2 = AI 小法官建议卡（Advisory）；L1/L3 自动切断线上调解 */}
         {isLevel2 ? (
-          <section className="arb-ai-card" data-testid="ai-proposal-card">
-            <span className="arb-ai-badge">🤖 AI 小法官裁定 · 仅 Advisory（红线 1）</span>
-            <div className="arb-ai-row">
-              <span>责任认定</span>
-              <strong data-testid="proposal-liability">{LIABILITY_LABEL[proposal.liability]}</strong>
+          <section className={`${SECTION_CLASS} bg-white`} data-testid="ai-proposal-card">
+            <DuoPill tone="blue" variant="soft">🤖 AI 小法官裁定 · 仅 Advisory（红线 1）</DuoPill>
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">责任认定</span>
+              <strong className="text-[var(--color-duo-eel)]" data-testid="proposal-liability">{LIABILITY_LABEL[proposal.liability]}</strong>
             </div>
-            <div className="arb-ai-row">
-              <span>责任说明</span>
-              <span className="text-slate-300">{proposal.liabilityNote}</span>
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">责任说明</span>
+              <span className="text-right text-[var(--color-duo-eel)]">{proposal.liabilityNote}</span>
             </div>
-            <div className="arb-ai-row">
-              <span>建议退款</span>
-              <span className="arb-ai-refund" data-testid="proposal-refund">
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">建议退款</span>
+              <span className="text-[17px] font-black text-[var(--color-duo-red-dark)]" data-testid="proposal-refund">
                 ¥{proposal.refundAmount.toFixed(proposal.refundAmount % 1 ? 2 : 0)}
               </span>
             </div>
-            <div className="arb-ai-row">
-              <span>平台补偿券</span>
-              <strong className="text-amber-400" data-testid="proposal-coupon">
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">平台补偿券</span>
+              <strong className="text-[var(--color-duo-yellow-ink)]" data-testid="proposal-coupon">
                 ¥{proposal.compensationCouponYuan}
               </strong>
             </div>
-            <div className="arb-ai-row">
-              <span>信用扣减</span>
-              <strong className="text-red-300" data-testid="proposal-credit">
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">信用扣减</span>
+              <strong className="text-[var(--color-duo-red-dark)]" data-testid="proposal-credit">
                 -{proposal.creditDeduct} 分
               </strong>
             </div>
-            <div className="arb-ai-note">📐 理由链（LLM 失败回落确定性规则）：</div>
-            <ul className="arb-reason" data-testid="proposal-reasons">
+            <div className="mt-1.5 text-xs text-[var(--color-duo-wolf)]">📐 理由链（LLM 失败回落确定性规则）：</div>
+            <ul className="mt-1.5 list-disc space-y-1 pl-3 text-xs leading-relaxed text-[var(--color-duo-blue-ink)]" data-testid="proposal-reasons">
               {proposal.reasonChain.map((r, i) => (
                 <li key={i}>{r}</li>
               ))}
             </ul>
           </section>
         ) : isLevel1 ? (
-          <section className="arb-ai-card" data-testid="instant-compensate-card" style={{ borderColor: "rgba(74,222,128,.4)", background: "linear-gradient(135deg,rgba(74,222,128,.12),rgba(16,185,129,.04))" }}>
-            <span className="arb-ai-badge" style={{ color: "#4ade80" }}>⚡ 规则引擎秒赔 · 确定性规则（红线 1）</span>
-            <div className="arb-ai-row">
-              <span>争议金额</span>
-              <span className="arb-ai-refund" style={{ color: "#4ade80" }} data-testid="instant-amount">
+          <section className={`${SECTION_CLASS} bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/50`} data-testid="instant-compensate-card">
+            <DuoPill tone="green" variant="solid">⚡ 规则引擎秒赔 · 确定性规则（红线 1）</DuoPill>
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">争议金额</span>
+              <span className="text-[17px] font-black text-[var(--color-duo-green-ink)]" data-testid="instant-amount">
                 ¥{disputeAmountYuan}
               </span>
             </div>
-            <div className="arb-ai-row">
-              <span>赔付来源</span>
-              <strong className="text-amber-400">平台体验保障金（不扣罚服务者）</strong>
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">赔付来源</span>
+              <strong className="text-[var(--color-duo-yellow-ink)]">平台体验保障金（不扣罚服务者）</strong>
             </div>
-            <div className="arb-ai-row">
-              <span>服务者处置</span>
-              <strong className="text-green-400">零扣罚 · 零信用减分 · 即时结案</strong>
+            <div className={KV_ROW}>
+              <span className="text-[var(--color-duo-wolf)]">服务者处置</span>
+              <strong className="text-[var(--color-duo-green-ink)]">零扣罚 · 零信用减分 · 即时结案</strong>
             </div>
           </section>
         ) : (
-          <section className="arb-ai-card" data-testid="legal-direct-card" style={{ borderColor: "rgba(248,113,113,.5)", background: "linear-gradient(135deg,rgba(248,113,113,.14),rgba(127,29,29,.05))" }}>
-            <span className="arb-ai-badge" style={{ color: "#fca5a5" }}>⚖️ 法务专家组接管 · 线上调解已切断</span>
-            <div className="arb-law-card" data-testid="legal-connect-card">
-              <span className="arb-law-pulse" />
+          <section className={`${SECTION_CLASS} bg-[var(--color-duo-red-mist)] border-[var(--color-duo-red)]/40`} data-testid="legal-direct-card">
+            <DuoPill tone="red" variant="solid">⚖️ 法务专家组接管 · 线上调解已切断</DuoPill>
+            <div className="mt-2.5 flex items-center gap-2.5 rounded-xl border-2 border-[var(--color-duo-swan)] bg-white p-2.5" data-testid="legal-connect-card">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--color-duo-red)] opacity-75 motion-safe:animate-ping" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--color-duo-red)]" />
+              </span>
               <div>
-                <strong>紧急连线安全法务组</strong>
-                <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 2 }}>
+                <strong className="text-xs text-[var(--color-duo-eel)]">紧急连线安全法务组</strong>
+                <div className="mt-0.5 text-xs text-[var(--color-duo-wolf)]">
                   法务专家在线值班中 · 平均响应 &lt; 5 分钟
                 </div>
               </div>
             </div>
-            <div className="arb-law-card" data-testid="legal-insurance-card">
-              <span style={{ flexShrink: 0 }}>🛡️</span>
+            <div className="mt-2.5 flex items-center gap-2.5 rounded-xl border-2 border-[var(--color-duo-swan)] bg-white p-2.5" data-testid="legal-insurance-card">
+              <span className="shrink-0">🛡️</span>
               <div>
-                <strong>联动保险公司现场勘查</strong>
-                <div className="text-slate-400" style={{ fontSize: 10.5, marginTop: 2 }}>
+                <strong className="text-xs text-[var(--color-duo-eel)]">联动保险公司现场勘查</strong>
+                <div className="mt-0.5 text-xs text-[var(--color-duo-wolf)]">
                   定损理赔通道已预置 · 勘查员调度中
                 </div>
               </div>
@@ -602,45 +556,45 @@ export default function ArbitrationSheet({
 
         {/* ③ 分级出口：L2 隔离墙双出口 / L1 一键秒赔 / L3 法务直连 */}
         {isLevel1 ? (
-          <div className="arb-actions">
-            <button
-              type="button"
-              className="arb-btn arb-btn-accept"
+          <div className="mt-3.5 flex gap-2.5">
+            <DuoButton
+              variant="primary"
+              fullWidth
               data-action="instant-compensate"
               onClick={onInstantCompensate}
             >
               ⚡ 一键秒级补偿（扣除平台体验保障金）
-            </button>
+            </DuoButton>
           </div>
         ) : isLevel3 ? (
-          <div className="arb-actions">
-            <button
-              type="button"
-              className="arb-btn arb-btn-escalate"
+          <div className="mt-3.5 flex gap-2.5">
+            <DuoButton
+              variant="danger"
+              fullWidth
               data-action="connect-legal"
               onClick={onConnectLegal}
             >
               🚨 紧急连线安全法务组
-            </button>
+            </DuoButton>
           </div>
         ) : (
-          <div className="arb-actions">
-            <button
-              type="button"
-              className="arb-btn arb-btn-accept"
+          <div className="mt-3.5 flex gap-2.5">
+            <DuoButton
+              variant="primary"
               data-action="accept-proposal"
               onClick={onAcceptProposal}
+              className="flex-1"
             >
               🤝 接受调解方案
-            </button>
-            <button
-              type="button"
-              className="arb-btn arb-btn-escalate"
+            </DuoButton>
+            <DuoButton
+              variant="outline"
               data-action="escalate-manual"
               onClick={onEscalateManual}
+              className="flex-1"
             >
               🧑‍⚖️ 申请人工客服
-            </button>
+            </DuoButton>
           </div>
         )}
       </DarkSheetShell>

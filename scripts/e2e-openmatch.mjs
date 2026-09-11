@@ -229,6 +229,28 @@ try {
   await pageA
     .locator('[data-slot="meetup"]')
     .screenshot({ path: "docs/shot/meetup-slot-duo.png" });
+  // Batch① Duo 化视觉：ArbitrationSheet 白底抽屉落图（座舱争议入口常驻）
+  // 抽屉打开后遮罩盖住按钮导致点击稳定性循环 → evaluate 直派点击
+  await pageA
+    .locator('[data-action="open-dispute"]')
+    .evaluate((el) => el.click());
+  await waitUntil(
+    pageA,
+    () => !!document.querySelector('[data-testid="arbitration-sheet"]'),
+    15000,
+    "ArbitrationSheet 挂载"
+  );
+  await pageA
+    .locator('[data-testid="arbitration-panel"]')
+    .screenshot({ path: "docs/shot/arbitration-sheet-duo.png" });
+  // 抽屉遮罩会挡住后续步骤 → 关抽屉再走
+  await pageA.locator('[data-testid="arbitration-panel"] [data-action="close"]').click();
+  await waitUntil(
+    pageA,
+    () => !document.querySelector('[data-testid="arbitration-sheet"]'),
+    10000,
+    "ArbitrationSheet 关闭"
+  );
   assert.ok(
     await pageA.evaluate(() =>
       document.body.innerText.includes("2 位拼位者")

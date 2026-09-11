@@ -87,3 +87,9 @@
 - 硬锚点全保：外层首类名 draft-card + draft-* 主题类 + motion(stiffness400/damping30/willChange) + draft-card-required 精确类名（style 补 red-dark 字色）+ data-*/文案；自有 25 例 + ThemeIsolation 绿。
 - 考卷：e2e-app 加草稿卡落图 docs/shot/draft-card-duo.png，一次过；vitest 843 + oto 1269 + build 过。
 - 剩余 4 岛：ArbitrationSheet / FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot（座舱三巨物 + 仲裁）。
+
+## Duo 化 Batch①-5：ArbitrationSheet（2026-09-12）
+- 改写：删 SHEET_CSS 暗岛 → DarkSheetShell 保留（深色遮罩/z80-81/拖拽离场/Esc/data-action 契约是行为资产，只换面板视觉），面板 Duo 白底（把手经 [&_.dsheet-grip] 浅色化）+ 标题 DuoPill（L1 绿/L2 黄/L3 红 solid，中性窗口/弹药 soft）+ 关闭 ghost + 证据区 polar + 鉴真徽标 DuoPill soft（色→tone 映射）+ AI 卡白底 + L1 绿 tint/L3 红 mist + 法务红点改 motion-safe:animate-ping（减弱动效偏好生效）+ 出口：接受 primary/人工 outline/秒赔 primary/法务 danger。
+- 契约零动：data-testid/data-action/data-level/data-order/文案全保留；三级分流单测 + chain-anchor 单测 + E2EIntegration 52 例绿。
+- 考卷：openmatch 加抽屉落图 docs/shot/arbitration-sheet-duo.png。探针修两次：① 零尺寸 wrapper 不可截图 → 补 panelTestId=arbitration-panel（组件侧）；② 抽屉遮罩挡住后续步骤 → 落图后点关闭再走。落图恰好命中司法导出 401 错误态，Duo 错误路径一并实证（后端鉴权 env 问题，非本单范围）。
+- 剩余 3 岛（座舱三巨物）：FulfillmentCenter / FulfillmentCockpit / DynamicAmmoSlot。
