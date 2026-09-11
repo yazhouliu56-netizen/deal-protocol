@@ -92,6 +92,10 @@ try {
     if (demandTab) demandTab.click();
     await sleep(400);
     out.home.chat = !!doc.querySelector('input[placeholder*="描述你的需求"]');
+    // Batch③-1：AR 入口收拢至雷达段，先切段再点
+    const radarTab = doc.querySelector('[data-testid="home-tab-radar"]');
+    if (radarTab) radarTab.click();
+    await sleep(400);
     await clickDock("AR 扫描");
     await sleep(600);
     out.ar = { have: doc.body.innerText.includes("AR") };

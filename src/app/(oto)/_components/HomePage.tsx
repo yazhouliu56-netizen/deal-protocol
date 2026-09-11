@@ -1,7 +1,5 @@
 "use client";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Camera } from "lucide-react";
 import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { listAmmoPillDescriptors } from "@/ammo/registry";
@@ -19,8 +17,51 @@ import TalkPublishSheet from "@/components/waves/TalkPublishSheet";
 import WaveFeed from "@/components/waves/WaveFeed";
 import ChatPage from "@/components/oto-ui/chat/ChatPage";
 
-/** AI 撮合对话卡（memo 抽取：广播同步时 chatOpen 未变即跳过整卡重渲染）。
- *  折叠线案（F2）：未展开态压成单行胶囊（锚点 testid + aria-label 保真，e2e-match 零触碰）。 */
+/** 更多发单方式折叠（Batch③-1：4 门→1+折叠；hero 输入框为主门，
+ *  说句话/ AI 撮合收拢至此；内部门 testid/aria 原样保留，e2e 零漂移）。 */
+const MorePublishWays = memo(function MorePublishWays({
+  onTalk,
+  chatOpen,
+  onOpenChat,
+  onCloseChat,
+  onDraft,
+}: {
+  onTalk: () => void;
+  chatOpen: boolean;
+  onOpenChat: () => void;
+  onCloseChat: () => void;
+  onDraft: (draft: { key: string; label: string }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={open ? "收起更多发单方式" : "展开更多发单方式：说句话发单、AI 撮合对话"}
+        data-testid="more-publish-toggle"
+        className="w-full flex items-center gap-2 min-h-10 px-3 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-left active:translate-y-px active:border-b-2 transition-[transform]"
+      >
+        <span className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1 truncate">✨ 更多发单方式</span>
+        <span className="text-xs font-bold text-[var(--color-duo-wolf)] shrink-0">{open ? "收起 ↑" : "语音/照片/多轮追问 ↓"}</span>
+      </button>
+      {open && (
+        <>
+          <button
+            onClick={onTalk}
+            aria-label="说句话发单"
+            data-testid="talk-publish-entry"
+            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
+          >
+            🎙 说句话发单（语音/照片也行）
+          </button>
+          <AiChatCard open={chatOpen} onOpen={onOpenChat} onClose={onCloseChat} onDraft={onDraft} />
+        </>
+      )}
+    </div>
+  );
+});
 const AiChatCard = memo(function AiChatCard({
   open,
   onOpen,
@@ -159,18 +200,27 @@ export default function HomePage() {
                 onMic={handleMic}
               />
               <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
-              <AiChatCard open={chatOpen} onOpen={handleOpenChat} onClose={handleCloseChat} onDraft={setDraft} />
-              <button
-                onClick={() => setTalkOpen(true)}
-                aria-label="说句话发单"
-                data-testid="talk-publish-entry"
-                className="mt-2 w-full flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[var(--color-duo-blue)]/[.06] border-2 border-[var(--color-duo-blue)]/40 text-xs font-bold text-[var(--color-duo-blue-ink)]"
-              >
-                🎙 说句话发单（语音/照片也行）
-              </button>
+              <MorePublishWays
+                onTalk={() => setTalkOpen(true)}
+                chatOpen={chatOpen}
+                onOpenChat={handleOpenChat}
+                onCloseChat={handleCloseChat}
+                onDraft={setDraft}
+              />
             </>
           ) : (
             <div className="mt-1" id="wave-feed" data-layer="wave-feed">
+              {/* Batch③-1 AR 降级：悬浮 pill 撤除，入口收拢至雷达段内联行（aria 口径保留，e2e-app/offline 仅增一切段动作）。 */}
+              <button
+                type="button"
+                onClick={() => setScreen("ar")}
+                aria-label="AR 扫描"
+                data-testid="radar-ar-entry"
+                className="mb-2 w-full flex items-center gap-2 min-h-10 px-3 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] text-left active:brightness-[0.97] transition-[filter]"
+              >
+                <span className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1 truncate">📷 AR 场景探索</span>
+                <span className="text-xs font-bold text-[var(--color-duo-wolf)] shrink-0">对准真实场景找服务 →</span>
+              </button>
               <WaveFeed />
             </div>
           )}
@@ -188,10 +238,8 @@ export default function HomePage() {
           setPublishOpen(true);
         }}
       />
-      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} onClick={() => setScreen("ar")} aria-label="AR 扫描" className="oto-ar-safe fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border-2 border-[var(--color-duo-swan)] border-b-4 text-xs font-bold text-[var(--color-duo-eel)] active:translate-y-1 active:border-b-2 transition-[transform] hover:border-[var(--color-duo-blue)]/30">
-        <Camera size={14} className="text-[var(--color-duo-blue)]" /> AR 扫描
-      </motion.button>
-      <FloatingSosButton waveId={activeWave?.id} />
+      {/* Batch③-1：AR 悬浮 pill 撤除（入口见雷达段 radar-ar-entry）；SOS 按 §3 裁决 C：有在途单隐藏（胶囊 SOS 在位），无单保留兜底。 */}
+      <FloatingSosButton waveId={activeWave?.id} hidden={activeWave !== null} />
     </div>
   );
 }

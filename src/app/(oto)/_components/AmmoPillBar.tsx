@@ -1,7 +1,6 @@
 "use client";
 import { memo } from "react";
 import type { ScenarioTheme } from "@/types/ui-viewport";
-import { inspirationSetFor } from "./InspirationChips";
 import { SleepyBeast } from "@/components/oto-ui/MascotStates";
 
 /** 弹药胶囊描述符（注册表 listAmmoPillDescriptors 单行结构，类型同源零漂移）。 */
@@ -100,16 +99,11 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
       (p): p is AmmoPillDescriptor => !!p,
     );
-    // 精简案：灵感 chips 整块并入，时段商业信息收拢至副标题一行
-    const insp = inspirationSetFor(new Date().getHours());
+    // 精简案：灵感 chips 整块并入；时段 caption 按 Batch③-1 用户裁决（ticker 砍）移除。
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="featured">
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            {/* 整点地雷排爆（2026-09-07 实证）：时段 caption 系服务端按构建小时渲染的静态文本，
-                跨整点水合即 React #418；suppressHydrationWarning 让客户端小时为准静默对齐，
-                跨整点不断开 e2e-acceptance。 */}
-            <p suppressHydrationWarning className="text-xs font-bold text-[var(--color-duo-wolf)] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
             {/* 平头哥说的话：右尾气泡指向熟睡的它 */}
             <p className="bubble-pop bubble-pop-right relative mt-1 mr-1 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] px-3 py-1.5 text-sm font-black text-slate-700 w-fit max-w-full">
               <span aria-hidden="true" className="absolute -right-[8px] top-1/2 -translate-y-1/2 h-3 w-3 rotate-45 bg-white border-r-2 border-t-2 border-[var(--color-duo-swan)]" />
@@ -147,14 +141,9 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
     );
   }
   if (variant === "compact") {
-    // 折叠线案（F1）：时段副标题从 featured 搬入（灵感 chips 合并资产不回退）；
-    // 展位切 4 与图纸四展位对齐；平头哥接 hasLiveWaves 同源信号
-    //（宪法收敛：条文 #1，compact 分支此前漏接 awake 永酣睡）。
-    const insp = inspirationSetFor(new Date().getHours());
+    // 折叠线案（F1）出清时段副标题（Batch③-1 ticker 砍）；展位切 4 与图纸四展位对齐；
     return (
       <div className="mt-4" data-layer="ammo-library" data-testid="ammo-pill-bar" data-variant="compact">
-        {/* 整点地雷排爆：同上，客户端小时为准（见 featured 分支注释）。 */}
-        <p suppressHydrationWarning className="text-xs font-bold text-[var(--color-duo-wolf)] truncate">弹药库预览 · {insp.emoji}{insp.period}｜{insp.caption}</p>
         <div
           className="mt-2 flex items-center gap-2 overflow-hidden"
           data-layer="ammo-pills"

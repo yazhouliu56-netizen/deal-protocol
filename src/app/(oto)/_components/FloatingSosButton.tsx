@@ -7,8 +7,12 @@ import { useWaveStore } from "@/store/useWaveStore";
  * 首页悬浮 SOS 安全触点（1:1 图纸收官裁决：顶栏视觉零多余按钮，
  * SOS 逻辑收拢至铃铛抽屉 + 本全局悬浮触点双保险，必选兜底）。
  * 与 StatusCapsule 内 SOS 同源（raiseCrisis level 3 + EPA 三通道 toast）。
+ *
+ * Batch③-1 §3 裁决 C（用户 2026-09-12）：有在途单时隐藏本触点
+ * （此时 StatusCapsule SOS 已在位，三 SOS 并存→两处）；无单时保留，
+ * 访客态双保险不断。hidden 由 HomePage 经 activeWave 传入。
  */
-export default function FloatingSosButton({ waveId }: { waveId?: string }) {
+export default function FloatingSosButton({ waveId, hidden }: { waveId?: string; hidden?: boolean }) {
   const handleSos = () => {
     useWaveStore
       .getState()
@@ -20,6 +24,7 @@ export default function FloatingSosButton({ waveId }: { waveId?: string }) {
       });
     toast("🚨 SOS 已上报 · 已通知紧急联系人/平台值班/警方通道", "success");
   };
+  if (hidden) return null;
   return (
     <motion.button
       initial={{ opacity: 0, scale: 0.8 }}

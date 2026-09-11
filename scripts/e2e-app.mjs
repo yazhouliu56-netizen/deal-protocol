@@ -171,6 +171,9 @@ try {
   await page.waitForTimeout(500);
 
   // --- 3. 心愿单闭环：AR 直达 → 收藏 → 面板 → 条目直达 AR 预览 ---
+  // Batch③-1：AR 悬浮 pill 撤除，入口收拢至雷达段（先切段）
+  await page.getByTestId("home-tab-radar").click();
+  await page.waitForTimeout(400);
   await page.getByRole("button", { name: "AR 扫描" }).click();
   await page.waitForTimeout(700);
   // AR 默认场景模式，先切"体验预览"才有收藏按钮
@@ -220,9 +223,11 @@ assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo
   const wang = await page.evaluate(() => document.body.innerText);
   assert.ok(wang.includes("王阿姨") && wang.includes("保洁"), "王姐身份应见保洁单");
 
-  // --- 5. AR 锚点重置：场景点锚 → 预览 → 切回场景无残留（AR 键现为首页上下文悬浮按钮）---
+  // --- 5. AR 锚点重置：场景点锚 → 预览 → 切回场景无残留（Batch③-1：AR 入口在雷达段）---
   await page.getByRole("button", { name: "首页" }).click();
   await page.waitForTimeout(500);
+  await page.getByTestId("home-tab-radar").click();
+  await page.waitForTimeout(400);
   await page.getByRole("button", { name: "AR 扫描" }).click();
   await page.waitForTimeout(700);
   const anchor = page.getByRole("button", { name: /星羽羽毛球馆|滨江街拍点位|王姐保洁/ }).first();

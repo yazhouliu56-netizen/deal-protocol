@@ -134,7 +134,13 @@
 ## Batch③-0：立规矩（2026-09-12，用户三拍板：SOS降级认/ticker砍/主循环认）
 - 主循环一句话：说句话→有人接→履约到底。配角（AR/SOS/ticker/吉祥物）视觉权重不得与主循环平权。
 - Motion token：src/lib/duo-motion.ts（press 180ms / settle 320ms / back-out[0.34,1.56,0.64,1]，theater 900ms 须单处注释理由）。新动效一律吃 token，手写 duration 即债。
-- 屏幕预算：单视口可见行动 ≤10，有滚动则首屏主行动唯一；超限必须滚屏或折叠，禁止硬塞（home/trip/profile 三屏 932 零滚动即本案）。
+- 屏幕预算：单视口主行动组 ≤5（组内副按钮必须同 job，如 hero 输入/麦/出发=同一复合 CTA）；超限必须滚屏或折叠，禁止硬塞（home/trip/profile 三屏 932 零滚动即本案）。hero 麦保留：复合主行动内件，Duo 同款 pattern，砍它为凑数而非治本。
 - Mutation 范式：用户高频写操作（发布/接单/评价/仲裁确认）一律 useOptimistic + 失败 rollback + toast；spinner 只允许阻塞式系统等待（登录/支付），业务等待一律骨架（须与内容 1:1 映射）。
 - 入口 in/out 对：新增入口必须在 BACKLOG 指名替换掉的旧入口；空态统一走 DuoEmpty（零引用即债，行程三卡是本案）。
 - e2e 门禁（③-5 落）：首屏 button 普查上限 + 单主行动断言 + DuoEmpty 覆盖率。
+
+## Batch③-1：首页减法（2026-09-12）
+- ticker 砍：AmmoPillBar 两处时段 caption 删除 + 死文件出清（HomeTickerMarquee 空壳/InspirationChips 数据孤岛，零引用实证）。
+- 4 门→1+折叠：hero 输入+出发为主门；说句话发单/AI 撮合收拢至 more-publish-toggle（内部门 testid/aria 原样，零漂移）。
+- AR 降级：悬浮 pill 撤除 → 雷达段内联 radar-ar-entry（aria-label=AR 扫描保留）；e2e-app 2 处 + e2e-offline 1 处各增一切段动作。
+- ⚠️ §3 裁决 C（用户 2026-09-12）：悬浮 SOS 有在途单隐藏（胶囊 SOS 在位）、无单保留。铃铛行/胶囊/座舱 SOS 不动；sos-hardware 考卷在行程屏（座舱 SOS）不受影响。
