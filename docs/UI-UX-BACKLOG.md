@@ -123,3 +123,10 @@
 - 改写（机械映射，零逻辑，diff 抽查 disputes 确认纯 class）：深黑壳→去壳（layout 已供底+padding）/白卡，zinc-800/900 边框→swan，zinc 灰字→eel/wolf/hare，emerald-400/rose-300→700 系（亮底可读），rose 错误块→rose-50/200，amber 图标→600；语义红/绿实心判定按钮保留（内控台豁免延续）；layout indigo→duo-blue（含首页 5 处）。
 - error.tsx 重写 Duo 白卡（unstable_retry）；modal 黑遮罩/来电式暗层保留（功能性）。
 - 门禁：tsc 0 + lint 0 + vitest 848 + oto 1269 + build exit 0 + corridor-factory  scoped PASS。EPERM 插曲：standalone server 占锁导致 build 失败，走 kill→build→restart-prod 3100 标准流恢复。
+
+## Batch②-3：杂项核销（2026-09-12，零代码，全实证）
+- favicon 404：已 stale——src/app/favicon.ico 存在，真机 curl /favicon.ico = 200。不动。
+- sitemap 3 页：实为 4 条（/、/landing、/rights、/offline），/sitemap.xml = 200；login/register 系有意不收（禁爬.auth 壳），demands 动态段随宿主消亡已移除（注释留痕）。不收不动。
+- 5 处 fire-and-forget 定时器：逐一审计——use-mounted-now（clearTimeout+clearInterval 双清）/ use-sse（fallback+es 双关）/ track-metric（flushTimer 单例守卫+60s 批刷，设计如此）/ duo-audio-confetti（毫秒级自清）/ sla-enforcer（服务端有意轮询壳）。零泄漏，不动。
+- identity 顶层 localStorage：typeof window + try/catch 双守卫 + skipHydration（D-20260825-01），值回灌走 IdentityRehydrator effect。低风险成立，不动。
+- 结论：Batch② 全清（矩阵+admin+杂项），UI/UX BACKLOG 无 open 项；冻结项（暗岛 hex/阴影/来电暗层/tritanopia）维持原裁决。
