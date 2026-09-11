@@ -44,3 +44,9 @@
 - **阴影 25 行**：P13 冻结范围（卡片/按钮）之外，无功能影响。冻结。
 - **loading/not-found/error 矩阵**（32 页仅 5 loading、无根 not-found/error）：加法安全但改动面广，另起批次。
 - **杂项**：favicon.ico 缺失（404 噪音）、sitemap 仅收 3 页、fire-and-forget 定时器 5 处、`useIdentityStore` 顶层 localStorage（有守卫，低风险）。
+
+## 对比度裁决落地（2026-09-11 用户拍板：亮底按钮改深色字）
+
+- 实测：白字在绿/蓝/橙/红上仅 2.1~3.3（AA 要 4.5）；eel（#4b4b4b）也不够（2.6~4.2）。
+- 落地：DuoButton 主/次/险 + DuoPill solid + DuoPathNode + 主轨 15+ 文案按钮一律 `text-neutral-900`（各底 ≥4.9，脚本实测）；wolf `#777777`→`#767676`（4.48→4.54，同像素级）。
+- 豁免：图标/emoji 徽章（非文本不适用）、深底白字（zinc/slate 底本就达标）、admin 渐变按钮（随 Batch① 全面Duo化到 admin 轨时一并处理）；hare #afafaf 纯装饰位保留。
