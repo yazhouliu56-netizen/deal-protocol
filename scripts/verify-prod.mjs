@@ -9,24 +9,11 @@
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { SUITE_ORDER } from "./e2e-map.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const suite = [
-  "e2e-app.mjs",
-  "e2e-acceptance.mjs",
-  "e2e-match.mjs",
-  "e2e-openmatch.mjs",
-  "e2e-push.mjs",
-  "e2e-wave.mjs",
-  "e2e-trust.mjs",
-  "e2e-trust-open.mjs",
-  "e2e-review.mjs",
-  "e2e-fulfil.mjs",
-  "e2e-governance.mjs",
-  "e2e-offline.mjs",
-  // 真实双端真人接单履约（云端 p2p_broadcast 通道 + 原子合并写，2026-08-25 战役收口）
-  "e2e-dual-role-human.mjs",
-];
+// 单一事实源：suite 顺序与 verify-scoped 共享 e2e-map SUITE_ORDER（硬编码已出清）。
+const suite = SUITE_ORDER;
 
 const run = (cmd, label) => {
   console.log(`\n=== ${label} ===`);
