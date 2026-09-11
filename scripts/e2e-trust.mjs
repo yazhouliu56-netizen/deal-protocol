@@ -89,6 +89,9 @@ try {
   // B 未实名 → 进家单不可见（feed 用定制条件指纹判定）
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
+  // 首页重设计：一屏一职，广播流在雷达段（不切段则“不可见”断言恒真，失去意义）
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("需要擦窗") === false,
@@ -119,6 +122,9 @@ try {
   // 认证落盘后 reload，让 B 重新读取 A 已发布的 wave（同上下文多 page 不触发 storage 事件）
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("首页").click();
+  // 首页重设计：一屏一职，广播流在雷达段
+  await pageB.getByTestId("home-tab-radar").click();
+  await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
   await waitUntil(
     pageB,
     () => document.body.textContent?.includes("需要擦窗"),
