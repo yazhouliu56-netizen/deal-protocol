@@ -11,9 +11,11 @@ import {
   type PrivacySession,
 } from "./privacyNumber.ts";
 import {
+  avgResponseMs,
   ensureThread,
   keyOf,
   markRead,
+  peerReadState,
   sendMsg,
   threadMessages,
   unreadTotal,
@@ -82,4 +84,43 @@ test("IM：建线程幂等，发消息未读+1，已读清零", () => {
   assert.equal(unreadTotal(threads, "u1"), 0);
   assert.equal(threadMessages(msgs, "u1|u2").length, 2);
   assert.equal(threadMessages(msgs, "nope").length, 0);
+});
+
+test("Batch④-3：已读回执派生（对方清零即我方已读）", () => {
+  let threads: ReturnType<typeof ensureThread>["threads"] = [];
+  let msgs: ReturnType<typeof sendMsg>["messages"] = [];
+  // 无线程 / 我没发言 → none
+  assert.equal(peerReadState(threads, msgs, "u1|u2", "u1"), "none");
+  const s1 = sendMsg(threads, msgs, "u2", "u1", "在吗", 1000);
+  threads = s1.threads;
+  msgs = s1.messages;
+  assert.equal(peerReadState(threads, msgs, "u1|u2", "u1"), "none");
+  // 我发言后对方未读 → unread；对方已读 → read
+  const s2 = sendMsg(threads, msgs, "u1", "u2", "在", 2000);
+  threads = s2.threads;
+  msgs = s2.messages;
+  assert.equal(peerReadState(threads, msgs, "u1|u2", "u1"), "unread");
+  threads = markRead(threads, "u1|u2", "u2");
+  assert.equal(peerReadState(threads, msgs, "u1|u2", "u1"), "read");
+});
+
+test("Batch④-3：平均响应时长（无样本 null，有样本取均值）", () => {
+  let threads: ReturnType<typeof ensureThread>["threads"] = [];
+  let msgs: ReturnType<typeof sendMsg>["messages"] = [];
+  assert.equal(avgResponseMs(msgs, "u1|u2", "u2", "u1"), null);
+  const s1 = sendMsg(threads, msgs, "u1", "u2", "在吗", 1000);
+  threads = s1.threads;
+  msgs = s1.messages;
+  assert.equal(avgResponseMs(msgs, "u1|u2", "u2", "u1"), null);
+  const s2 = sendMsg(threads, msgs, "u2", "u1", "在", 2000);
+  threads = s2.threads;
+  msgs = s2.messages;
+  assert.equal(avgResponseMs(msgs, "u1|u2", "u2", "u1"), 1000);
+  const s3 = sendMsg(threads, msgs, "u1", "u2", "约吗", 5000);
+  threads = s3.threads;
+  msgs = s3.messages;
+  const s4 = sendMsg(threads, msgs, "u2", "u1", "约", 9000);
+  threads = s4.threads;
+  msgs = s4.messages;
+  assert.equal(avgResponseMs(msgs, "u1|u2", "u2", "u1"), 2500);
 });

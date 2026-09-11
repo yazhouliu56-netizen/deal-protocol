@@ -172,3 +172,9 @@
 - 不动：screen id=ar、testid radar-ar-entry、DockPage 联合类型（契约零漂移）；内部注释/类型 AR 字样保留（非用户可见）。
 - 考卷同步：e2e-app 3 处＋e2e-offline 断言跟随更名；教训：offline 按字面 “AR” 断言屏存在，文案一改即挂——断言应锚新文案。
 - 门禁：tsc 0＋lint 0＋vitest 853＋oto 1269＋build exit 0＋e2e-app/offline/ux-budget 全绿。
+
+## Batch④-3：消息信任信号（2026-09-12）
+- 做：已读回执（peerReadState 纯派生：对方侧未读清零⇒我最后一条已读，仅断言最后一条，不伪造逐条）＋响应时间（avgResponseMs 纯函数＋“对方通常约X分钟回复” badge，无样本不展示）。
+- 不做：发送状态（审计证实已闭环：在线本地同步必达＋离线队列横幅＋手动重发）；正在输入（单机架构无对端实时通道，做 mock 属造假，诚实性否决）。
+- 零契约变更：ImMsg/ImThread 字段不动；comm.test.ts＋2 用例（9/9 绿）。
+- 门禁：tsc 0＋lint 0（含 base 八项物理门禁）＋vitest 853＋build exit 0。

@@ -92,3 +92,47 @@ export function threadMessages(messages: ImMsg[], threadId: string): ImMsg[] {
 export function unreadTotal(threads: ImThread[], whoId: string): number {
   return threads.reduce((s, t) => s + (t.aId === whoId ? t.unreadA : t.bId === whoId ? t.unreadB : 0), 0);
 }
+
+/**
+ * Batch④-3 已读回执（纯派生，零契约变更）。
+ * 对方侧未读计数即"我发出的消息还有几条对方没看"——清零 ⇒ 我最后一条已读。
+ * 返回：none（我没发过言/无线程）| unread（对方还没看）| read（对方已读）。
+ */
+export function peerReadState(
+  threads: ImThread[],
+  messages: ImMsg[],
+  threadId: string,
+  meId: string,
+): "none" | "unread" | "read" {
+  const thread = threads.find((t) => t.id === threadId);
+  if (!thread) return "none";
+  const mine = threadMessages(messages, threadId).filter((m) => m.fromId === meId);
+  if (mine.length === 0) return "none";
+  const peerUnread = thread.aId === meId ? thread.unreadB : thread.unreadA;
+  return peerUnread === 0 ? "read" : "unread";
+}
+
+/**
+ * Batch④-3 对方平均响应时长（纯派生，毫秒；无样本返回 null 则 UI 不展示）。
+ * 样本 = 对方每条回复相对我上一条发言的间隔（取我方前一条，防止串话）。
+ */
+export function avgResponseMs(
+  messages: ImMsg[],
+  threadId: string,
+  peerId: string,
+  meId: string,
+): number | null {
+  const ordered = threadMessages(messages, threadId);
+  const samples: number[] = [];
+  let lastMine = -1;
+  for (const m of ordered) {
+    if (m.fromId === meId) {
+      lastMine = m.at;
+    } else if (m.fromId === peerId && lastMine >= 0) {
+      samples.push(m.at - lastMine);
+      lastMine = -1;
+    }
+  }
+  if (samples.length === 0) return null;
+  return Math.round(samples.reduce((s, v) => s + v, 0) / samples.length);
+}

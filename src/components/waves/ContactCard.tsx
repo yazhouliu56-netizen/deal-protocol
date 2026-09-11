@@ -10,6 +10,7 @@ import DuoPill from "@/components/ui/DuoPill";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import { dialInNumber, findSession, maskNumber, minutesLeft } from "@/base/comm/privacyNumber";
+import { avgResponseMs, peerReadState } from "@/base/comm/im";
 
 /**
  * 隐私号 + 私信中枢卡（ADR-0010，N1+N15）。
@@ -62,6 +63,19 @@ export default function ContactCard({
 
   const unread =
     peerName && (peerName.aId === me ? peerName.unreadA : peerName.unreadB);
+
+  // Batch④-3：已读回执＋响应时间（纯派生，线程聚合口径：只断言"最后一条"，不伪造逐条已读）
+  const readState = peerName ? peerReadState(imThreads, imMessages, peerName.id, me) : "none";
+  const lastMine = threadMsgs.length > 0 && threadMsgs[threadMsgs.length - 1].fromId === me;
+  const responseMs = peerName ? avgResponseMs(imMessages, peerName.id, peerId, me) : null;
+  const responseLabel =
+    responseMs == null
+      ? null
+      : responseMs < 60_000
+        ? "对方通常 1 分钟内回复"
+        : responseMs < 3_600_000
+          ? `对方通常约 ${Math.round(responseMs / 60_000)} 分钟内回复`
+          : `对方通常约 ${Math.round(responseMs / 3_600_000)} 小时内回复`;
 
   if (!session) return null;
 
@@ -135,6 +149,7 @@ export default function ContactCard({
       </div>
       <p className="text-xs text-[var(--color-duo-hare)]">
         虚拟线路 · 双方号码均不落地真实号 · 订单终局自动回收
+        {responseLabel && <span className="ml-1 font-bold text-[var(--color-duo-blue-ink)]">· {responseLabel}</span>}
       </p>
 
       {open && (
@@ -157,6 +172,12 @@ export default function ContactCard({
                 {m.text}
               </div>
             ))}
+            {/* Batch④-3：已读回执（线程聚合口径：仅最后一条是我发的才断言，避免伪造逐条已读） */}
+            {lastMine && readState !== "none" && (
+              <p className="text-right text-xs text-[var(--color-duo-hare)]">
+                {readState === "read" ? "对方已读 ✓✓" : "已送达 ✓"}
+              </p>
+            )}
           </div>
           <div className="flex gap-1.5">
             <input
