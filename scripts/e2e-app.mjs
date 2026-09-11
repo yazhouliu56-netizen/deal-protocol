@@ -174,7 +174,7 @@ try {
   // Batch③-1：AR 悬浮 pill 撤除，入口收拢至雷达段（先切段）
   await page.getByTestId("home-tab-radar").click();
   await page.waitForTimeout(400);
-  await page.getByRole("button", { name: "AR 扫描" }).click();
+  await page.getByRole("button", { name: "附近服务" }).click();
   await page.waitForTimeout(700);
   // AR 默认场景模式，先切"体验预览"才有收藏按钮
   await page.getByRole("button", { name: "✨ 体验预览" }).click();
@@ -228,7 +228,7 @@ assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo
   await page.waitForTimeout(500);
   await page.getByTestId("home-tab-radar").click();
   await page.waitForTimeout(400);
-  await page.getByRole("button", { name: "AR 扫描" }).click();
+  await page.getByRole("button", { name: "附近服务" }).click();
   await page.waitForTimeout(700);
   const anchor = page.getByRole("button", { name: /星羽羽毛球馆|滨江街拍点位|王姐保洁/ }).first();
   if (await anchor.isVisible().catch(() => false)) {
@@ -237,7 +237,7 @@ assert.ok(await page.evaluate(() => !!document.querySelector('[data-testid="ammo
     assert.ok(await page.evaluate(() => document.body.innerText.includes("距你")), "锚点详情出现");
     await page.getByRole("button", { name: /体验预览/ }).click();
     await page.waitForTimeout(500);
-    await page.getByRole("button", { name: /场景探索/ }).click();
+    await page.getByRole("button", { name: /附近探索/ }).click();
     await page.waitForTimeout(500);
     const back = await page.evaluate(() =>
       [...document.querySelectorAll("button")]

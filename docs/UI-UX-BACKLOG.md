@@ -166,3 +166,9 @@
 - 切阀门：.env.local METRICS_BACKEND=console→api；POST 实测 {stored:3} 进库（metric_events 表＋service client 全通）。
 - 门禁：tsc 0＋lint 0＋vitest 853（109 文件，含 landing.test.tsx 新 2 例）＋build exit 0。
 - 未动：呈现层（首屏 CTA/标题/Duo 化/sticky 条）等漏斗数据出来再议；SmsLeadSheet friction 不动；线上 Vercel 需同步设 NEXT_PUBLIC_METRICS_BACKEND=api（本地 .env.local 不进线上）。
+
+## Batch④-2：AR 去伪装更名“附近服务”（2026-09-12，用户裁决）
+- 用户可见 AR 字样 5 处出清：雷达入口“AR 场景探索/对准真实场景找服务”→“附近服务/看看附近可撮合的服务”（aria-label 同步）；ARPage 模式“场景探索”→“附近探索”、“全息 3D 体验”→“3D 模型预览”、“AR 取景框”→“服务探索区”、空态去“对准真实场景”。
+- 不动：screen id=ar、testid radar-ar-entry、DockPage 联合类型（契约零漂移）；内部注释/类型 AR 字样保留（非用户可见）。
+- 考卷同步：e2e-app 3 处＋e2e-offline 断言跟随更名；教训：offline 按字面 “AR” 断言屏存在，文案一改即挂——断言应锚新文案。
+- 门禁：tsc 0＋lint 0＋vitest 853＋oto 1269＋build exit 0＋e2e-app/offline/ux-budget 全绿。

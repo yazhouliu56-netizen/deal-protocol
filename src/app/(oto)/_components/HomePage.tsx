@@ -216,12 +216,12 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setScreen("ar")}
-                aria-label="AR 扫描"
+                aria-label="附近服务"
                 data-testid="radar-ar-entry"
                 className="mb-2 w-full flex items-center gap-2 min-h-10 px-3 rounded-2xl bg-white border-2 border-[var(--color-duo-swan)] text-left active:brightness-[0.97] transition-[filter]"
               >
-                <span className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1 truncate">📷 AR 场景探索</span>
-                <span className="text-xs font-bold text-[var(--color-duo-wolf)] shrink-0">对准真实场景找服务 →</span>
+                <span className="text-xs font-extrabold text-[var(--color-duo-eel)] flex-1 truncate">📷 附近服务</span>
+                <span className="text-xs font-bold text-[var(--color-duo-wolf)] shrink-0">看看附近可撮合的服务 →</span>
               </button>
               <WaveFeed />
             </div>

@@ -96,9 +96,10 @@ try {
     const radarTab = doc.querySelector('[data-testid="home-tab-radar"]');
     if (radarTab) radarTab.click();
     await sleep(400);
-    await clickDock("AR 扫描");
+    await clickDock("附近服务");
     await sleep(600);
-    out.ar = { have: doc.body.innerText.includes("AR") };
+    // Batch④-2：AR 去伪装更名"附近服务"，断言跟随（仍验证离线 2D 兜底可渲染）
+    out.ar = { have: doc.body.innerText.includes("附近服务") || doc.body.innerText.includes("服务探索区") };
     await clickDock("行程");
     await sleep(500);
     out.trip = { have: doc.body.innerText.length > 60 };
@@ -110,7 +111,7 @@ try {
 
   assert.ok(screens.home.have, "离线首页可渲染");
   assert.ok(screens.home.chat, "离线 AI 对话区内嵌首页可渲染（MockEngine 降级）");
-  assert.ok(screens.ar.have, "离线 AR 屏可渲染（2D 兜底）");
+  assert.ok(screens.ar.have, "离线附近服务屏可渲染（2D 兜底）");
 
   // --- 3. 在线恢复 ---
   await ctx.setOffline(false);
