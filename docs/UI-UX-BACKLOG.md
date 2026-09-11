@@ -144,3 +144,8 @@
 - 4 门→1+折叠：hero 输入+出发为主门；说句话发单/AI 撮合收拢至 more-publish-toggle（内部门 testid/aria 原样，零漂移）。
 - AR 降级：悬浮 pill 撤除 → 雷达段内联 radar-ar-entry（aria-label=AR 扫描保留）；e2e-app 2 处 + e2e-offline 1 处各增一切段动作。
 - ⚠️ §3 裁决 C（用户 2026-09-12）：悬浮 SOS 有在途单隐藏（胶囊 SOS 在位）、无单保留。铃铛行/胶囊/座舱 SOS 不动；sos-hardware 考卷在行程屏（座舱 SOS）不受影响。
+
+## Batch③-4：丝滑（2026-09-12）
+- 抢单乐观化：useClaimDemand 加 onOptimistic/onRollback（不传=原阻塞语义零漂移；GrabConsole/ProviderConsole 未接保持原样）；IncomingListClient 暂存+先行移除+失败回滚（realtime 通道去重）；SwipeableCard 透传。时序考卷 useClaimDemand.optimistic.test.tsx（成功/被抢/断网三序全断言）。
+- Motion 首用：TripPage 存证钮 + FloatingSosButton 入场切 DUO_SETTLE token。
+- 未动：landing 诊断 spinner（LLM 旁路 8s SLA 真等待，骨架步骤化另案）、verification 短信（阻塞式系统等待，按范式保留）、发布流（本地同步已是乐观语义）。

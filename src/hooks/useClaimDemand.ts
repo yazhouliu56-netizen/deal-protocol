@@ -33,6 +33,13 @@ interface ClaimDemandOpts {
   onBlocked?: () => void;
   onSuccess: (demandId: string) => void | Promise<void>;
   onFailure: (message: string) => void;
+  /**
+   * Batch③-4 乐观抢单：fetch 前同步触发（调用方先行移除卡片/置灰）；
+   * 失败时 onRollback 紧随 onFailure 之前触发（调用方恢复卡片）。
+   * 不传 = 原阻塞语义，零行为漂移。
+   */
+  onOptimistic?: (demandId: string) => void;
+  onRollback?: (demandId: string, message: string) => void;
   /** 调用方历史文案覆盖（缺省用归一常量）。 */
   messages?: {
     network?: string;
@@ -41,7 +48,7 @@ interface ClaimDemandOpts {
 }
 
 export function useClaimDemand(opts: ClaimDemandOpts) {
-  const { verificationStatus, onBlocked, onSuccess, onFailure, messages } = opts;
+  const { verificationStatus, onBlocked, onSuccess, onFailure, onOptimistic, onRollback, messages } = opts;
   const networkMessage = messages?.network ?? CLAIM_NETWORK_MESSAGE;
   const fallbackMessage = messages?.fallback ?? CLAIM_DEFAULT_MESSAGE;
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -59,20 +66,24 @@ export function useClaimDemand(opts: ClaimDemandOpts) {
       }
       setClaimingId(demandId);
       try {
+        onOptimistic?.(demandId);
         const res = await fetch(`/api/demands/${demandId}/assign`, { method: "POST" });
         const data = (await res.json().catch(() => null)) as unknown;
         if (!res.ok) {
-          onFailure(extractAssignError(data, fallbackMessage));
+          const message = extractAssignError(data, fallbackMessage);
+          onRollback?.(demandId, message);
+          onFailure(message);
           return;
         }
         await onSuccess(demandId);
       } catch {
+        onRollback?.(demandId, networkMessage);
         onFailure(networkMessage);
       } finally {
         setClaimingId(null);
       }
     },
-    [claimingId, verificationStatus, onBlocked, onSuccess, onFailure, networkMessage, fallbackMessage],
+    [claimingId, verificationStatus, onBlocked, onSuccess, onFailure, onOptimistic, onRollback, networkMessage, fallbackMessage],
   );
 
   return { claim, claimingId, isClaiming: claimingId !== null };

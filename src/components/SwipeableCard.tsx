@@ -18,6 +18,9 @@ interface SwipeableCardProps {
   currentDistance: number
   onAcceptSuccess: (id: string) => void
   onAcceptFailure: (reason: string) => void
+  /** Batch③-4 乐观抢单（可选）：先行移除卡片 + 失败回滚，不传即原阻塞语义。 */
+  onAcceptOptimistic?: (id: string) => void
+  onAcceptRollback?: (id: string, reason: string) => void
   verificationStatus?: string
 }
 
@@ -26,6 +29,8 @@ export default function SwipeableCard({
   currentDistance,
   onAcceptSuccess,
   onAcceptFailure,
+  onAcceptOptimistic,
+  onAcceptRollback,
   verificationStatus,
 }: SwipeableCardProps) {
   const [startX, setStartX] = useState(0)
@@ -64,6 +69,8 @@ export default function SwipeableCard({
   const { claim } = useClaimDemand({
     verificationStatus,
     messages: { network: "网络异常，请重试", fallback: "被其他师傅捷足先登了" },
+    onOptimistic: onAcceptOptimistic,
+    onRollback: onAcceptRollback,
     onSuccess: (id) => {
       onAcceptSuccess(id)
     },

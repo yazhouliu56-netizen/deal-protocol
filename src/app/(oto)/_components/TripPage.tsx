@@ -1,5 +1,6 @@
 "use client";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
+import { DUO_SETTLE } from "@/lib/duo-motion";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Camera } from "lucide-react";
@@ -58,7 +59,7 @@ export default function TripPage({ proofShots = [], onProofShot }: { proofShots?
   return (
     <div className="pointer-events-auto">
       {canCertify && (
-      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} onClick={() => { const active = waves.find((w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired"); setCameraOrderNo(`TRIP-${active?.id ?? "visit"}-${Date.now().toString(36)}`); setPhotoOpen(true); }} aria-label="拍照存证" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border border-[var(--color-duo-swan)] border-brandCyan/40 text-xs font-bold text-[var(--color-duo-eel)] shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:translate-y-px active:brightness-[0.97] transition-[transform,filter]">
+      <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...DUO_SETTLE, delay: 0.35 }} onClick={() => { const active = waves.find((w) => w.authorId === identity.id && w.status !== "closed" && w.status !== "expired"); setCameraOrderNo(`TRIP-${active?.id ?? "visit"}-${Date.now().toString(36)}`); setPhotoOpen(true); }} aria-label="拍照存证" className="fixed right-4 bottom-28 z-40 flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white border border-[var(--color-duo-swan)] border-brandCyan/40 text-xs font-bold text-[var(--color-duo-eel)] shadow-[0_4px_20px_-4px_rgba(0,240,255,0.5)] active:translate-y-px active:brightness-[0.97] transition-[transform,filter]">
         <Camera size={14} className="text-brandCyan" /> 拍照存证 {proofShots.length > 0 && <span className="min-w-4 h-4 px-1 rounded-full bg-brandPurple border border-white/30 text-xs font-bold text-white flex items-center justify-center font-tabular">{proofShots.length}</span>}
       </motion.button>
       )}

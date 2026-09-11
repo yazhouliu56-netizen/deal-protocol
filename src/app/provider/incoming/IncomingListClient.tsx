@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { toast } from "@/base/platform/toast";
 import { getBrowserSupabase } from "@/lib/supabase-browser"
 import SwipeableCard, { IncomingDemand } from "@/components/SwipeableCard"
@@ -23,6 +23,8 @@ interface IncomingListClientProps {
 
 export default function IncomingListClient({ initialDemands }: IncomingListClientProps) {
   const [demands, setDemands] = useState<IncomingDemand[]>(initialDemands)
+  // Batch③-4 乐观抢单暂存：先行移除的卡片在此等服务端确认，失败回滚（去重防 realtime 通道重复加回）。
+  const optimisticStash = useRef(new Map<string, IncomingDemand>())
   const [geo, setGeo] = useState({ lat: 39.915, lng: 116.404 })
   const [verificationStatus, setVerificationStatus] = useState<string | undefined>(undefined)
 
@@ -105,8 +107,24 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
                 currentDistance={distance}
                 verificationStatus={verificationStatus}
                 onAcceptSuccess={(id) => {
+                  optimisticStash.current.delete(id)
                   setDemands((prev) => prev.filter((d) => d.id !== id))
                   toast("接单成功，已锁定", "success")
+                }}
+                onAcceptOptimistic={(id) => {
+                  setDemands((prev) => {
+                    const hit = prev.find((d) => d.id === id)
+                    if (hit) optimisticStash.current.set(id, hit)
+                    return prev.filter((d) => d.id !== id)
+                  })
+                }}
+                onAcceptRollback={(id) => {
+                  const stashed = optimisticStash.current.get(id)
+                  optimisticStash.current.delete(id)
+                  if (stashed) {
+                    setDemands((prev) => (prev.some((d) => d.id === id) ? prev : [stashed, ...prev]))
+                    toast("手慢了，单子回来了", "error")
+                  }
                 }}
                 onAcceptFailure={(reason) => alert(reason)}
               />

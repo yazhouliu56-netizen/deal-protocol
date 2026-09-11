@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { DUO_SETTLE } from "@/lib/duo-motion";
 import { toast } from "@/base/platform/toast";
 import { useWaveStore } from "@/store/useWaveStore";
 
@@ -29,7 +30,7 @@ export default function FloatingSosButton({ waveId, hidden }: { waveId?: string;
     <motion.button
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.5, duration: 0.3 }}
+      transition={{ ...DUO_SETTLE, delay: 0.5 }}
       type="button"
       onClick={handleSos}
       aria-label="SOS 紧急求助"
