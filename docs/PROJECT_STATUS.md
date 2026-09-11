@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-12 ｜ HEAD：v4.6.1（Batch①② Duo 化＋发版收官）｜ 摘要：Batch① 8 岛收官（ArbitrationSheet/DynamicDraftCard/MilestoneLadder/Companion/Housekeeping/Meetup/DynamicAmmoSlot/FulfillmentCockpit/FulfillmentCenter）+ Batch②（根级 404/error/global-error＋demands 骨架＋admin 轨深黑壳出清＋杂项核销零代码）+ verify-prod 改吃 SUITE_ORDER 单一源（13→14 套）；基线 **2117/2117**（848+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 14/14（含 dual-role/dyn-slot，09-05 掉线链路恢复）+ convergence 0。
+>
 > 日期：2026-09-10 ｜ HEAD：9406a9d（P2/P3/P4 本地施工收官）｜ 摘要：P2（干预区/资金五态条/锁卡头/服务者预览/到点横幅/走廊三图齐＋协商结案终局态修复）+ P3（磋商桌三档/确认卡发射闭环/副驾复制版；顺路参谋政策问答延期）+ P4（/admin/factory＋沙盒＋门禁走廊；T3上架随上线）+ 补丁B/C（Undo/目录/画像记忆口/C3关闭）+ panel.open补发射；基线 **2095/2095**（836+1259，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T2 全绿 + 真机走廊（haggle/panel/dispute/factory-gate）
 >
 > 日期：2026-09-10 ｜ HEAD：5c8c12c（P1 意图卡＋补丁A阶段收官）｜ 摘要：IntentCard 四态（组装stagger/ready锁价/AI三级标/勾选发射/重算冻结/locked章戳/stale/长辈态＋切换）+ 双载体统一（TalkPublish确认区/PublishSheet预览，DynamicDraftCard退守营销预览）+ 埋点intent四事件进P15 + 补丁A（speak播报/长辈发射播报/traceId随单bizParams/子女分享键/网断草稿箱幂等续发）+ 手册§9补丁ABC（蓝图100%对齐）；基线 **2060/2060**（819+1241，0 fail）｜ 门禁 tsc 0 + 全量lint 0/0 + pre-push T1/T2 全绿 + 真机走廊（稳定版Chrome＋dev子进程说明：start-server系自家dev子进程，误杀教训记ParentProcessId核对）
