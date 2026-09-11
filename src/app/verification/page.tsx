@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { toast, updateToast } from "@/base/platform/toast";
 import { Button } from "@/components/ui/button"
 import { uploadPhotoWithRetry } from "@/lib/upload"
@@ -124,10 +123,11 @@ function VerificationForm({
       )}
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+        <label htmlFor="verify-realname" className="mb-1.5 block text-xs font-semibold text-slate-700">
           真实姓名
         </label>
         <input
+          id="verify-realname"
           type="text"
           value={realName}
           onChange={(e) => setRealName(e.target.value)}
@@ -137,10 +137,11 @@ function VerificationForm({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+        <label htmlFor="verify-idnumber" className="mb-1.5 block text-xs font-semibold text-slate-700">
           身份证号
         </label>
         <input
+          id="verify-idnumber"
           type="text"
           value={idNumber}
           onChange={(e) => setIdNumber(e.target.value)}
@@ -151,13 +152,15 @@ function VerificationForm({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+        <label htmlFor="verify-cert-files" className="mb-1.5 block text-xs font-semibold text-slate-700">
           身份证正反面 / 技能证书
         </label>
         <div className="grid grid-cols-3 gap-3">
           {previews.map((preview, idx) => (
             <div key={idx} className="relative aspect-[3/2] overflow-hidden rounded-xl border border-slate-200">
-              <Image src={preview} alt={`证书 ${idx + 1}`} fill className="object-cover" />
+              {/* data: 预览 next/image 不支持（见 ProofCamera 同款），原生 img */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={preview} alt={`证书 ${idx + 1}`} className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => removeFile(idx)}
@@ -181,9 +184,11 @@ function VerificationForm({
         </div>
         <input
           ref={fileInputRef}
+          id="verify-cert-files"
           type="file"
           accept="image/*"
           multiple
+          aria-label="选择证书图片文件"
           onChange={handleFileChange}
           className="hidden"
         />

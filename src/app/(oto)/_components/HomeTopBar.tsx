@@ -3,6 +3,7 @@ import { memo } from "react";
 import type { Wave } from "@/base/order/wave";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { toast } from "@/base/platform/toast";
+import { useOnline } from "@/lib/use-online";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
 import StatusCapsule from "@/components/oto-ui/StatusCapsule";
@@ -53,6 +54,8 @@ function HomeTopBar({
   onOpenCart,
 }: HomeTopBarProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
+  // 离线旗：render 期直读 navigator.onLine 会 hydration #418，一律走 useOnline
+  const isOffline = !useOnline();
   const handleSos = () => {
     useWaveStore
       .getState()
@@ -72,7 +75,7 @@ function HomeTopBar({
           <StatusCapsule
             status={activeFiveState}
             options={{
-              isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
+              isOffline,
               // P0 接电：SOS 一键报警 → 危机应急预案（级别 3 极端紧急，EPA 三通道通知）
               onSosClick: handleSos,
             }}

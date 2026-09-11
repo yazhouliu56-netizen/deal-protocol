@@ -32,6 +32,7 @@ import ArbitrationSheet, {
   type ArbitrationProposal,
 } from "./ArbitrationSheet";
 import { toast } from "@/base/platform/toast";
+import { useOnline } from "@/lib/use-online";
 import { trackMetric } from "@/lib/track-metric";
 import { personaAvatarForBot } from "@/base/platform/sandbox-bot";
 import type { CockpitSlotActions } from "./slots/DynamicAmmoSlot";
@@ -190,6 +191,8 @@ export default function FulfillmentCenter({
   const [transitError, setTransitError] = useState<string | null>(null);
   /** P0 接电：📞 一键虚拟通话弹层（DialCard 一次性线路）。 */
   const [dialOpen, setDialOpen] = useState(false);
+  // 离线旗：render 期直读 navigator.onLine 会 hydration #418，一律走 useOnline
+  const capsuleOffline = !useOnline();
 
   const scenario: CockpitScenario | null = activeWave
     ? resolveCockpitScenario(activeWave)
@@ -490,7 +493,7 @@ export default function FulfillmentCenter({
         status={state}
         ammo={ammoDef}
         capsule={{
-          isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
+          isOffline: capsuleOffline,
           distanceMeters: hasCockpitModule(ammoDef, "GEOFENCE_ARRIVAL")
             ? 500
             : hasCockpitModule(ammoDef, "PRIVACY_SHIELD")

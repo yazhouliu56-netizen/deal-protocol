@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMountedNow } from "@/lib/use-mounted-now";
+import { useOnline } from "@/lib/use-online";
+import { syncBus } from "@/adapters/platform/sync-bus";
 import { MessageSquare, Phone, PhoneCall } from "lucide-react";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoPill from "@/components/ui/DuoPill";
@@ -32,24 +34,15 @@ export default function ContactCard({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [dialed, setDialed] = useState(false);
-  /** 在线状态（online 事件触发重放）。 */
-  const [online, setOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine
-  );
+  /** 在线状态（render 期直读 navigator.onLine 会 hydration #418，一律走 useOnline）。 */
+  const online = useOnline();
   useEffect(() => {
-    const on = () => {
-      setOnline(true);
-      replayQueue();
-    };
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // 在线恢复即重放离线 IM 队列（旗语由 useOnline 持有，此处只负责重放副作用）
+    const unsub = syncBus.subscribeOnlineStatus((on) => {
+      if (on) replayQueue();
+    });
+    return unsub;
+  }, [replayQueue]);
   const pendingIm = offlineQueue.filter((q) => !q.done && q.op.kind === "sendIm").length;
 
   // 会话倒计时/过期判定实时刷新（30s 周期，避免挂载后冻结）。

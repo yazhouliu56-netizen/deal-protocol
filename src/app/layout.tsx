@@ -21,6 +21,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: "cover",
+  themeColor: "#58cc02",
 };
 
 export const metadata: Metadata = {
@@ -42,6 +43,13 @@ export const metadata: Metadata = {
     "Deal Protocol",
   ],
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     title: "DealProtocol",

@@ -12,15 +12,18 @@ export function useSSE(type: string, id: string | null, onEvent: () => void) {
   useEffect(() => {
     if (!id) return
 
+    let fallback: ReturnType<typeof setInterval> | null = null
     const es = new EventSource(`/api/sse?type=${type}&id=${id}`, { withCredentials: true })
     es.onmessage = () => onEventRef.current()
     es.onerror = () => {
       es.close()
-      const fallback = setInterval(() => onEventRef.current(), 5000)
-      const cleanup = () => clearInterval(fallback)
-      return cleanup
+      if (fallback) return
+      fallback = setInterval(() => onEventRef.current(), 5000)
     }
 
-    return () => es.close()
+    return () => {
+      if (fallback) clearInterval(fallback)
+      es.close()
+    }
   }, [type, id])
 }

@@ -25,11 +25,8 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
  * OTO_PUSH_RESUBSCRIBE（sw pushsubscriptionchange 广播）→ 自动重订阅。
  */
 export default function PushEnableBar() {
-  const capable =
-    typeof window !== "undefined" &&
-    "serviceWorker" in navigator &&
-    "PushManager" in window;
-  const [state, setState] = useState<PushState>(capable ? "idle" : "unsupported");
+  // 首帧恒 unsupported（服务端/客户端首快照一致，防 hydration #418）；能力探测只在 effect 内做
+  const [state, setState] = useState<PushState>("unsupported");
   const [msg, setMsg] = useState("");
 
   const syncSubscription = useCallback(async () => {

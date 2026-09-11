@@ -54,6 +54,10 @@ function isProtectedRoute(pathname: string): boolean {
     pathname === "/manifest.webmanifest" ||
     pathname === "/icon-512.png" ||
     pathname === "/icon-192.png" ||
+    pathname === "/icon-maskable-512.png" ||
+    pathname === "/oto-icon-192.png" ||
+    pathname === "/oto-icon-512.png" ||
+    pathname.startsWith("/models/") ||
     pathname.startsWith("/mascots/") ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
@@ -136,6 +140,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|icon-512\\.png|icon-192\\.png|mascots/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|icon-512\\.png|icon-192\\.png|icon-maskable-512\\.png|oto-icon-192\\.png|oto-icon-512\\.png|models/|mascots/).*)",
   ],
 }
