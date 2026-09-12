@@ -32,6 +32,14 @@ export const P1_SLA_MS = 5 * 60 * 1000;
 /** 升级金额阈值（单笔熔断超 2000 自动升级 L3）。 */
 export const UPGRADE_AMOUNT_YUAN = 2000;
 
+/**
+ * 升级通讯录（2026-09-12 定稿）：
+ * L1＝值班运营群占位（具体人选待补，补上即替换本行）；
+ * L2＝创始人。空级跳过规则（PagerDuty 同款）：L1 无人认领→自动到 L2。
+ */
+export const ESCALATION_L1 = "值班运营群（占位，具体人选待补）";
+export const ESCALATION_L2 = "创始人";
+
 export type P1Kind =
   | "R1_CRITICAL_FIRST"
   | "FUSE_CASE"

@@ -7,6 +7,8 @@ import {
   autoFuse,
   buildP2Digest,
   claimP1,
+  ESCALATION_L1,
+  ESCALATION_L2,
   needsUpgrade,
   pushP1,
   resolveP1,
@@ -66,4 +68,9 @@ test("P2 日报：已决聚合＋规则沉淀数", () => {
   assert.equal(d.resolved, 2);
   assert.equal(d.rulesMinted, 3);
   assert.deepEqual(d.byKind, { FUSE_CASE: 1, APPEAL: 1 });
+});
+
+test("升级通讯录定稿：L1 值班运营群占位，L2 创始人", () => {
+  assert.match(ESCALATION_L1, /值班运营/);
+  assert.equal(ESCALATION_L2, "创始人");
 });
