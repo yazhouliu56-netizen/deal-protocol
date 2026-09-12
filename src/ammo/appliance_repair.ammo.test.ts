@@ -182,6 +182,13 @@ test("8D 全息出厂：D1~D8 逐维契约断言 + 出厂审查通过", () => {
     1
   );
   assert.deepEqual(c.splitRules, { providerRatio: 0.82, platformRatio: 0.13, insuranceRatio: 0.05 });
+  // ADR-0020 转岗试单：R1 特种＋入户显式声明
+  assert.deepEqual(applianceRepairAmmo.transferPolicy, {
+    riskTier: "R1",
+    probationOrders: 5,
+    dailyCap: 2,
+    fuseOnComplaint: true,
+  });
   // ADR-0021 D7.5：维修配件涉假风险高，自动线收紧至 0.9
   assert.deepEqual(c.arbitrationPolicy, {
     easyMaxAmount: 200,

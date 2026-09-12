@@ -153,6 +153,13 @@ if (!_petBoardingAssembled.ok) {
 
 export const petBoardingAmmo: Readonly<IAmmoDefinition> = deepFreeze({
   ..._petBoardingAssembled.ammo,
+  /* ADR-0020 转岗试单：R1 活体＋入户（5 单试单/日限 2/投诉熔断） */
+  transferPolicy: {
+    riskTier: "R1",
+    probationOrders: 5,
+    dailyCap: 2,
+    fuseOnComplaint: true,
+  },
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {

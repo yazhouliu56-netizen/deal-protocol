@@ -15,6 +15,15 @@ import type {
   ICustomRequirements,
 } from "../../types/ammo-schema.ts";
 
+/** evaluateTriCreditAdmission 扩展开关（ADR-0020 转岗试单）。 */
+export interface TriCreditOptions {
+  /**
+   * PQS 缺失延期：true = 跳过垂直技能 PQS 门（硬门槛公安/ESF/BCS 保持），
+   * 缺失的 PQS 交由试单期补齐。既有调用缺省 false，零回归。
+   */
+  deferPQS?: boolean;
+}
+
 /** 入户/密闭空间类目安全分一票否决阈值（ESF 0-100 分制；弹药可经
  *  workerRequirement.minSafetyScore 收紧，缺省 70）。 */
 export const DEFAULT_ESF_GATE = 70;
@@ -38,6 +47,7 @@ export function evaluateTriCreditAdmission(
   credit: ITriDimensionalCredit,
   ammo: IAmmoDefinition,
   custom?: ICustomRequirements,
+  opts?: TriCreditOptions,
 ): { isAdmitted: boolean; reason?: string } {
   /**
    * 阶段3 定制年龄硬门禁（一票熔断，置于信用校验之前）：
@@ -86,7 +96,8 @@ export function evaluateTriCreditAdmission(
   }
   const pqs = credit.pqsScores[ammo.category];
   const pqsGate = ammo.workerRequirement?.minSafetyScore ?? 60;
-  if (pqs === undefined || !Number.isFinite(pqs) || pqs < pqsGate) {
+  // ADR-0020 deferPQS：PQS 缺失不直接拒，转岗试单期补齐（硬门槛已在上游熔断）。
+  if (!opts?.deferPQS && (pqs === undefined || !Number.isFinite(pqs) || pqs < pqsGate)) {
     return {
       isAdmitted: false,
       reason: `tri-credit-blocked: pqs[${ammo.category}] ${

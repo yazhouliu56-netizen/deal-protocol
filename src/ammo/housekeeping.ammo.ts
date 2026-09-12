@@ -270,6 +270,13 @@ if (!_housekeepingAssembled.ok) {
 
 export const housekeepingAmmo: Readonly<IAmmoDefinition> = deepFreeze({
   ..._housekeepingAssembled.ammo,
+  /* ADR-0020 转岗试单：R1 入户高风险（5 单试单/日限 2/投诉熔断） */
+  transferPolicy: {
+    riskTier: "R1",
+    probationOrders: 5,
+    dailyCap: 2,
+    fuseOnComplaint: true,
+  },
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {

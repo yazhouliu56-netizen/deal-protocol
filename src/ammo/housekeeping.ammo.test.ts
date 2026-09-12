@@ -91,6 +91,13 @@ test("8D 全息出厂：D1 入户一票否决 / D2 计价护栏 / D4 传感降�
   assert.equal(h.cockpitSlot, "HousekeepingSlot");
   // 流水线出厂镜像：弹药本体直挂全息配置（视界层/座舱只读消费）
   assert.equal(housekeepingAmmo.holographic, HOUSEKEEPING_HOLOGRAPHIC_CONFIG);
+  // ADR-0020 转岗试单：R1 显式声明
+  assert.deepEqual(housekeepingAmmo.transferPolicy, {
+    riskTier: "R1",
+    probationOrders: 5,
+    dailyCap: 2,
+    fuseOnComplaint: true,
+  });
 });
 
 test("存量协议资产升级：六阶段/退款规则/证据契约投影完整", () => {

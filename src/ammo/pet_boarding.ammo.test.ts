@@ -97,6 +97,13 @@ test("弹药装备完整性：pet-boarding-v1 声明式装填无误", () => {
     "宠物寄养",
     "上门",
   ]);
+  // ADR-0020 转岗试单：R1 活体＋入户显式声明
+  assert.deepEqual(petBoardingAmmo.transferPolicy, {
+    riskTier: "R1",
+    probationOrders: 5,
+    dailyCap: 2,
+    fuseOnComplaint: true,
+  });
 });
 
 test("8D 全息出厂：D1~D8 逐维契约断言 + 出厂审查通过", () => {

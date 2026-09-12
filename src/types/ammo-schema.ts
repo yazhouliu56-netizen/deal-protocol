@@ -517,6 +517,22 @@ export interface IWorkerRequirement {
 }
 
 /**
+ * 跨类目转岗试单策略（ADR-0020 · 宪法 #5 引信跟弹药走）。
+ * 语义圈定只做候选池；能否上岗看硬门槛（一票否决保持）＋本策略试单。
+ * 全可选，缺省按档位默认（R1: 5 单/日限 2/投诉熔断；R2: 3 单/投诉熔断；R3: 直通）。
+ */
+export interface ITransferPolicy {
+  /** 风险档（缺省按 supplyCluster 推导）。 */
+  riskTier?: "R1" | "R2" | "R3";
+  /** 试单期单数（缺省按档）。 */
+  probationOrders?: number;
+  /** 试单期每日接单上限（R1 缺省 2；null = 不限）。 */
+  dailyCap?: number | null;
+  /** 试单期投诉即熔断回见习（R1/R2 缺省 true）。 */
+  fuseOnComplaint?: boolean;
+}
+
+/**
  * 定向信用折抵规则（分维度信用折抵 · 防信用错位）。
  * 数字人格信用飞轮的兑换闸门：仅允许指定信用维度折抵指定资金门槛
  * （如「安全分 → 押金」/「守时分 → 预付定金」），禁止跨维度通兑
@@ -601,6 +617,11 @@ export interface IAmmoDefinition {
   sop?: IAmmoSopOverrides;
   /** 供给端准入门槛（S1 R_AUTH；缺省 = 无额外要求）。 */
   workerRequirement?: IWorkerRequirement;
+  /**
+   * 跨类目转岗试单策略（ADR-0020 · R1/R2/R3 风险分档）。
+   * 缺省 = 按 supplyCluster 推导（C2/C3→R1，C1→R3，其余→R2）。
+   */
+  transferPolicy?: ITransferPolicy;
   /** 定向信用折抵规则（信用飞轮兑换闸门；缺省 = 不开放折抵）。 */
   creditWaiverRule?: ICreditWaiverRule;
   /** 现场加价上限比例（防坐地起价：增项金额 ≤ 初始基准价 × 此比例；缺省 0.5）。 */
