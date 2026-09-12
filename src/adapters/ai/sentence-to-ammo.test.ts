@@ -135,7 +135,7 @@ test("C2 无背调一票否决 → CLUSTER 维度上报", async () => {
   assert.equal(r.failureDimension, "CLUSTER");
 });
 
-test("非法输入：垃圾文本 → PARSE；空串 → PARSE 且不调传输", async () => {
+test("非法输入：垃圾文本 → PARSE（默认重试 2 次）；空串 → PARSE 且不调传输", async () => {
   let calls = 0;
   const fn = (async () => {
     calls += 1;
@@ -144,10 +144,37 @@ test("非法输入：垃圾文本 → PARSE；空串 → PARSE 且不调传输",
   const r1 = await generateAmmoFromSentence("嗯嗯哈哈", { completeFn: fn });
   assert.equal(r1.ok, false);
   assert.equal(r1.failureDimension, "PARSE");
+  assert.equal(r1.attempts, 2);
+  assert.equal(r1.schemaVersion, "ammo-llm/1");
   const r2 = await generateAmmoFromSentence("   ", { completeFn: fn });
   assert.equal(r2.ok, false);
   assert.equal(r2.failureDimension, "PARSE");
-  assert.equal(calls, 1);
+  assert.equal(r2.attempts, 0);
+  assert.equal(calls, 2);
+});
+
+test("A3 重试：首次拒收、二次带错重出即过；maxAttempts=1 保持旧行为", async () => {
+  const category = track("test-retry-ok");
+  const bad = "```json\n{\"ammoId\": \"x\"}\n```";
+  let calls = 0;
+  const fn = (async () => {
+    calls += 1;
+    return calls === 1 ? bad : JSON.stringify(validConfig(category));
+  }) as unknown as CompleteTextFn;
+  const r = await generateAmmoFromSentence("电脑点不亮了，来个人看看", { completeFn: fn });
+  assert.equal(r.ok, true);
+  assert.equal(r.attempts, 2);
+  assert.equal(calls, 2);
+
+  let calls1 = 0;
+  const fn1 = (async () => {
+    calls1 += 1;
+    return bad;
+  }) as unknown as CompleteTextFn;
+  const r1 = await generateAmmoFromSentence("嗯嗯哈哈", { completeFn: fn1, maxAttempts: 1 });
+  assert.equal(r1.ok, false);
+  assert.equal(r1.attempts, 1);
+  assert.equal(calls1, 1);
 });
 
 test("extractAmmoJson：围栏剥离与花括号截取", () => {

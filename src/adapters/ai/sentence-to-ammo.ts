@@ -48,15 +48,24 @@ export interface ISentenceToAmmoResult {
   autoRepaired?: boolean;
   /** 实际命中的上游 provider（网关 TextOutcome 透出；Mock/注入传输无此字段时为 undefined）。 */
   provider?: string;
+  /** A3/A4：装配 Schema 版本（Schema 当 API 管，升级即换号，进日志）。 */
+  schemaVersion: typeof AMMO_LLM_SCHEMA_VERSION;
+  /** A3：实际传输次数（含重试；0 = 未进传输即失败）。 */
+  attempts: number;
 }
 
 export interface IGenerateAmmoOpts {
   categoryHint?: string;
-  /** 默认 8000ms（旁路 SLA）。 */
+  /** 默认 8000ms（旁路 SLA；每次尝试独立计时）。 */
   timeoutMs?: number;
   /** 依赖注入（单测/CI Mock；缺省直连 gateway）。 */
   completeFn?: CompleteTextFn;
+  /** A3：传输上限次数（默认 2；失败携带 validation error 重试，1 = 旧行为）。 */
+  maxAttempts?: number;
 }
+
+/** A3：装配 Schema 版本（与 IHolographicAmmoConfig 同步演进，升级即换号）。 */
+export const AMMO_LLM_SCHEMA_VERSION = "ammo-llm/1" as const;
 
 export const SENTENCE_TO_AMMO_TIMEOUT_MS = 8000;
 
@@ -183,14 +192,15 @@ export function autoRepairAmmoConfig(
 export function toFailureDimension(errors: string[]): AmmoFailureDimension {
   const joined = errors.join("\n");
   if (/UNKNOWN_HOOK_OPERATOR/.test(joined)) return "HOOK";
+  if (/STATE_INVENTION/.test(joined)) return "HOOK";
   if (
-    /SPLIT_|PRICE_|ANTI_GOUGING_|CANCELLATION_|PRICING_MODEL|FUNDING/.test(joined)
+    /SPLIT_|PRICE_|ANTI_GOUGING_|CANCELLATION_|PRICING_MODEL|FUNDING|FORMULA_|PERSONA_PRICING|INVALID_PRICING_KIND/.test(joined)
   ) {
     return "PRICE";
   }
   if (/FUZE_POLICY|FUZE/.test(joined)) return "FUZE";
-  if (/IN_HOME_SAFETY_GATE|CLUSTER|POLICE|SAFETY/.test(joined)) return "CLUSTER";
-  if (/INVALID_AMMO_ID|INVALID_CATEGORY|INVALID_VERSION|INVALID_AMMO_ALIAS/.test(joined)) {
+  if (/IN_HOME_SAFETY_GATE|CLUSTER|POLICE|SAFETY|DISCRIMINATORY_TAG|SCORE_AS_GATE/.test(joined)) return "CLUSTER";
+  if (/INVALID_AMMO_ID|INVALID_CATEGORY|INVALID_VERSION|INVALID_AMMO_ALIAS|UNKNOWN_FIELD|SENSITIVE_ALIAS|AGREEMENT_REF/.test(joined)) {
     return "PARSE";
   }
   return "UNKNOWN";
@@ -213,6 +223,7 @@ function pickTokens(raw: unknown): { prompt: number; completion: number } | unde
 
 /**
  * 一句话量产（永不抛错；所有失败走结构化返回）。
+ * A3：失败携带 validation error 有界重试（默认 2 次；maxAttempts=1 即旧行为）。
  */
 export async function generateAmmoFromSentence(
   sentence: string,
@@ -220,12 +231,16 @@ export async function generateAmmoFromSentence(
 ): Promise<ISentenceToAmmoResult> {
   const startedAt = Date.now();
   const timeoutMs = opts?.timeoutMs ?? SENTENCE_TO_AMMO_TIMEOUT_MS;
+  const maxAttempts = Math.max(1, Math.floor(opts?.maxAttempts ?? 2));
   let provider: string | undefined;
+  let attempts = 0;
   const finish = (
-    rest: Omit<ISentenceToAmmoResult, "latencyMs" | "provider">,
+    rest: Omit<ISentenceToAmmoResult, "latencyMs" | "provider" | "schemaVersion" | "attempts">,
   ): ISentenceToAmmoResult => ({
     ...rest,
     ...(provider ? { provider } : {}),
+    schemaVersion: AMMO_LLM_SCHEMA_VERSION,
+    attempts,
     latencyMs: Date.now() - startedAt,
   });
 
@@ -236,105 +251,119 @@ export async function generateAmmoFromSentence(
   const compiled = compileAmmoPrompt(sentence, {
     categoryHint: opts?.categoryHint,
   });
-
-  let raw: unknown;
-  try {
-    const transport: CompleteTextFn =
-      opts?.completeFn ??
-      (async (args) =>
-        gatewayCompleteText({
-          task: "decompose",
-          messages: args.messages,
-          temperature: args.temperature ?? 0,
-          maxTokens: args.maxTokens ?? 2048,
-          timeoutMs: args.timeoutMs ?? timeoutMs,
-        }));
-    raw = await withTimeout(
-      transport({
+  const transport: CompleteTextFn =
+    opts?.completeFn ??
+    (async (args) =>
+      gatewayCompleteText({
         task: "decompose",
-        messages: [
-          { role: "system", content: compiled.systemPrompt },
-          { role: "user", content: compiled.userPrompt },
-        ],
-        temperature: 0,
-        maxTokens: 2048,
-        timeoutMs,
-      }),
-      timeoutMs,
-    );
-    if (raw !== null && typeof raw === "object") {
-      const p = (raw as Record<string, unknown>).provider;
-      if (typeof p === "string" && p !== "") provider = p;
-    }
-  } catch {
-    return finish({
-      ok: false,
-      errors: ["AMMO_COMPLETE_TIMEOUT"],
-      failureDimension: "TIMEOUT",
-    });
-  }
+        messages: args.messages,
+        temperature: args.temperature ?? 0,
+        maxTokens: args.maxTokens ?? 2048,
+        timeoutMs: args.timeoutMs ?? timeoutMs,
+      }));
 
-  const tokens = pickTokens(raw);
-  const content = extractContent(raw);
-  if (!content) {
-    // 上游回空（免费池短句偶发 EMPTY_COMPLETION）是配额/限流侧症状，
-    // 不是解析错误：标 THROTTLED（网关内已对下一家 fallback），禁入 PARSE。
-    //（2026-09-07 真机 15/20 实证：#12/#14/#16，缺陷→考卷。）
-    return finish({
-      ok: false,
-      errors: ["EMPTY_COMPLETION"],
-      failureDimension: "THROTTLED",
-      ...(tokens ? { tokens } : {}),
-    });
-  }
-
-  const parsed = extractAmmoJson(content);
-  if (!parsed.ok || !parsed.value) {
-    return finish({
-      ok: false,
-      errors: ["AMMO_JSON_UNPARSEABLE"],
-      failureDimension: "PARSE",
-      ...(tokens ? { tokens } : {}),
-    });
-  }
-
-  const candidate = parsed.value;
-  let verdict = validateAmmoConfig(candidate as unknown as IHolographicAmmoConfig);
+  let lastErrors: string[] = ["AMMO_COMPLETE_TIMEOUT"];
+  let lastDimension: AmmoFailureDimension = "TIMEOUT";
+  let lastTokens: { prompt: number; completion: number } | undefined;
   let autoRepaired = false;
-  if (!verdict.ok) {
-    const repaired = autoRepairAmmoConfig(candidate, compiled.targetCategory);
-    if (repaired) {
-      autoRepaired = true;
-      verdict = validateAmmoConfig(candidate as unknown as IHolographicAmmoConfig);
-    }
-  }
-  if (!verdict.ok) {
-    const errors = verdict.errors;
-    return finish({
-      ok: false,
-      errors,
-      failureDimension: toFailureDimension(errors),
-      autoRepaired,
-      ...(tokens ? { tokens } : {}),
-    });
-  }
+  let prevRejections: string[] = [];
 
-  const registered = registerDynamicAmmo(candidate as unknown as IHolographicAmmoConfig);
-  if (!registered.ok) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    attempts = attempt;
+    // 重试时把上次拒收原因喂回去（只喂错误码＋头条，不喂全文，防上下文污染）。
+    const userPrompt =
+      prevRejections.length === 0
+        ? compiled.userPrompt
+        : `${compiled.userPrompt}\n\n[上次输出被拒收，重出完整 JSON，不得解释]\n${prevRejections.slice(0, 5).join("\n")}`;
+
+    let raw: unknown;
+    try {
+      raw = await withTimeout(
+        transport({
+          task: "decompose",
+          messages: [
+            { role: "system", content: compiled.systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0,
+          maxTokens: 2048,
+          timeoutMs,
+        }),
+        timeoutMs,
+      );
+      if (raw !== null && typeof raw === "object") {
+        const p = (raw as Record<string, unknown>).provider;
+        if (typeof p === "string" && p !== "") provider = p;
+      }
+    } catch {
+      lastErrors = ["AMMO_COMPLETE_TIMEOUT"];
+      lastDimension = "TIMEOUT";
+      prevRejections = lastErrors;
+      continue;
+    }
+
+    const tokens = pickTokens(raw);
+    if (tokens) lastTokens = tokens;
+    const content = extractContent(raw);
+    if (!content) {
+      // 上游回空（免费池短句偶发 EMPTY_COMPLETION）是配额/限流侧症状，
+      // 不是解析错误：标 THROTTLED（网关内已对下一家 fallback），禁入 PARSE。
+      //（2026-09-07 真机 15/20 实证：#12/#14/#16，缺陷→考卷。）
+      lastErrors = ["EMPTY_COMPLETION"];
+      lastDimension = "THROTTLED";
+      prevRejections = lastErrors;
+      continue;
+    }
+
+    const parsed = extractAmmoJson(content);
+    if (!parsed.ok || !parsed.value) {
+      lastErrors = ["AMMO_JSON_UNPARSEABLE"];
+      lastDimension = "PARSE";
+      prevRejections = lastErrors;
+      continue;
+    }
+
+    const candidate = parsed.value;
+    let verdict = validateAmmoConfig(candidate as unknown as IHolographicAmmoConfig);
+    if (!verdict.ok) {
+      const repaired = autoRepairAmmoConfig(candidate, compiled.targetCategory);
+      if (repaired) {
+        autoRepaired = true;
+        verdict = validateAmmoConfig(candidate as unknown as IHolographicAmmoConfig);
+      }
+    }
+    if (!verdict.ok) {
+      lastErrors = verdict.errors;
+      lastDimension = toFailureDimension(lastErrors);
+      prevRejections = lastErrors;
+      continue;
+    }
+
+    const registered = registerDynamicAmmo(candidate as unknown as IHolographicAmmoConfig);
+    if (!registered.ok) {
+      return finish({
+        ok: false,
+        errors: registered.errors,
+        failureDimension: "UNKNOWN",
+        autoRepaired,
+        ...(lastTokens ? { tokens: lastTokens } : {}),
+      });
+    }
+
     return finish({
-      ok: false,
-      errors: registered.errors,
-      failureDimension: "UNKNOWN",
+      ok: true,
+      ammoId: registered.ammo.ammoId,
+      ammo: registered.ammo as IAmmoDefinition,
       autoRepaired,
-      ...(tokens ? { tokens } : {}),
+      ...(lastTokens ? { tokens: lastTokens } : {}),
     });
   }
 
   return finish({
-    ok: true,
-    ammoId: registered.ammo.ammoId,
-    ammo: registered.ammo as IAmmoDefinition,
+    ok: false,
+    errors: lastErrors,
+    failureDimension: lastDimension,
     autoRepaired,
-    ...(tokens ? { tokens } : {}),
+    ...(lastTokens ? { tokens: lastTokens } : {}),
   });
 }

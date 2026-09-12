@@ -146,7 +146,7 @@ describe("base/openapi — 动态热注弹药即时反射", () => {
       pricingModel: { kind: "FIXED", amountYuan: 99 },
       fuzePolicy: { fuzeId: "test-fuze", fuzeTypes: ["IMPACT"] } as never,
       theme: "default",
-      aliases: ["测试动态弹药"],
+      aliases: ["测试动态类目"],
       formSchema: {
         customField: { type: "string", required: true },
       },

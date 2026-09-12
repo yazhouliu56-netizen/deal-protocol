@@ -26,6 +26,8 @@ import type {
 } from "../types/ammo-schema.ts";
 // Microkernel 2.0 战役 1（P0-1）：资金模式能力白名单（base 单向依赖，宪法 #3）
 import { validateFundingModeSupport } from "../base/money/funding-dispatcher.ts";
+// A 批 A1/V4：别名敏感词筛查（moderation 纯函数，零运行时导入，宪法 #3 合规）
+import { autoFlag } from "../base/risk/moderation.ts";
 
 /* =====================================================================
  * 运行时动态弹药池（人类创始人裁决 2026-08-16 · 循环依赖治理）：
@@ -194,6 +196,46 @@ const inUnitInterval = (v: unknown): v is number =>
  *   6. 逆向违约阶梯合法性：退款/扣金比例 ∈ [0,1]、车马费补偿 ≥ 0；
  *   7. 钩子名解析：D5 forwardHooks 每个名称必须命中静态白名单。
  */
+
+/* =====================================================================
+ * A 批 A1 · LLM 输入专用审查常量（V1–V5）
+ * ===================================================================== */
+
+/** IHolographicAmmoConfig 已知顶层键（V1 形状门禁：未知即拒收）。 */
+const LLM_KNOWN_HOLOGRAPHIC_KEYS: ReadonlySet<string> = new Set([
+  "ammoId", "category", "version", "supplyCluster", "workerRequirement",
+  "pricingModel", "pricingParams", "minFloorPrice", "maxCeilingPrice",
+  "maxSurchargeRatio", "creditWaiverRule", "fuzePolicy", "requiredSensors",
+  "sensorFallbackLadder", "forwardHooks", "cancellationTiers", "slaPhases",
+  "fundingMode", "autoAcceptanceTimeoutHours", "splitRules", "arbitrationPolicy",
+  "agreementTemplateId", "theme", "formSchema", "cockpitSlot", "aliases",
+  "homeAccessKeywords", "declaredRiskRules", "dispatchRule", "sop", "actionSchema",
+]);
+
+/** 先天属性准入黑名单（V2）：英文整词匹配，中文子串匹配。 */
+const DISCRIMINATORY_EN = ["GENDER", "PHYSICAL_STRENGTH", "RACE", "BLOOD_TYPE"];
+const DISCRIMINATORY_CJK = [
+  "性别", "身高", "种族", "血型", "男优先", "女优先",
+  "仅限男", "仅限女", "只招男", "只招女", "不要女", "不要男",
+];
+
+function findDiscriminatoryTag(tag: string): string | null {
+  const tokens = tag.toUpperCase().split(/[^A-Z0-9_]+/);
+  for (const bad of DISCRIMINATORY_EN) {
+    if (tokens.includes(bad)) return bad;
+  }
+  for (const bad of DISCRIMINATORY_CJK) {
+    if (tag.includes(bad)) return bad;
+  }
+  return null;
+}
+
+/** 评价分做准入门（V2）：好评/评分/COMMUNICATION_SCORE 出现在准入字段即拒。 */
+const SCORE_AS_GATE_RE = /好评|评分|COMMUNICATION_SCORE/i;
+
+/** 画像因子进定价（A2 防火墙）：定价参数键出现即拒。 */
+const PERSONA_PRICING_KEY_RE = /INCOME|房价|GENDER|画像|消费能力|HOUSEHOLD/i;
+
 export function validateAmmoConfig(
   config: IHolographicAmmoConfig
 ): ValidationResult {
@@ -316,6 +358,109 @@ export function validateAmmoConfig(
   for (const alias of config.aliases ?? []) {
     if (typeof alias !== "string" || alias.trim() === "") {
       errors.push("INVALID_AMMO_ALIAS: aliases must be non-empty strings");
+    }
+  }
+
+  // ── A 批 A1 · LLM 输入专用 V1–V5（对齐版 Prompt 消费侧防线） ──
+  const record = config as unknown as Record<string, unknown>;
+
+  // V1 形状门禁：未知字段拒收（防 LLM 夹带）；五态之外节点单独定罪。
+  for (const key of Object.keys(record)) {
+    if (!LLM_KNOWN_HOLOGRAPHIC_KEYS.has(key)) {
+      if (/state|transition/i.test(key)) {
+        errors.push(
+          `STATE_INVENTION_REJECTED: "${key}" invents lifecycle states (五态绝对封闭，子流程走 forwardHooks 白名单)`,
+        );
+      } else {
+        errors.push(
+          `UNKNOWN_FIELD_REJECTED: "${key}" is not part of IHolographicAmmoConfig (additionalProperties=false)`,
+        );
+      }
+    }
+  }
+
+  // V2 供给标签黑名单：先天属性做准入整单拒收；评价分做准入拒收。
+  // （画像只许选档推荐，不许进准入/定价；PQS 缺失走试单，不直拒——ADR-0020。）
+  const tagSources: unknown[] = [
+    ...(config.homeAccessKeywords ?? []),
+    ...(config.workerRequirement?.requiredCertificates ?? []),
+    ...(config.declaredRiskRules ?? []),
+  ];
+  for (const tag of tagSources) {
+    if (typeof tag !== "string") continue;
+    const hit = findDiscriminatoryTag(tag);
+    if (hit) {
+      errors.push(
+        `DISCRIMINATORY_TAG_REJECTED: "${tag}" contains prohibited gate "${hit}" (先天属性禁做准入)`,
+      );
+    } else if (SCORE_AS_GATE_RE.test(tag)) {
+      errors.push(
+        `SCORE_AS_GATE_REJECTED: "${tag}" uses review scores as admission gate (评价分只许排序)`,
+      );
+    }
+  }
+
+  // V3 价格承诺门禁：计价 kind 白名单；FORMULA 只许表引用，公式字符串拒收；
+  // 画像因子进定价拒收（A2 防火墙：推荐可看人，定价不许看人）。
+  const pm = record.pricingModel as Record<string, unknown> | undefined;
+  if (pm !== undefined && pm !== null && typeof pm === "object") {
+    const kind = (pm as Record<string, unknown>).kind;
+    if (
+      kind !== "FIXED" &&
+      kind !== "HOURLY" &&
+      kind !== "PER_SEAT" &&
+      kind !== "FORMULA"
+    ) {
+      errors.push(
+        `INVALID_PRICING_KIND: pricingModel.kind must be FIXED/HOURLY/PER_SEAT/FORMULA (got ${String(kind)})`,
+      );
+    }
+    if (kind === "FORMULA") {
+      const formulaId = (pm as Record<string, unknown>).formulaId;
+      if (typeof formulaId !== "string" || formulaId.trim() === "") {
+        errors.push(
+          "FORMULA_REF_INVALID: FORMULA pricing must reference a versioned formulaId (严禁公式字符串)",
+        );
+      }
+      const params = (pm as Record<string, unknown>).params;
+      if (params !== null && typeof params === "object") {
+        for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
+          if (typeof v === "string") {
+            errors.push(
+              `FORMULA_STRING_REJECTED: formula param "${k}" smuggles logic as string (风险定级只进派单，加价查版本化表)`,
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+  const pricingParams = record.pricingParams;
+  if (pricingParams !== null && typeof pricingParams === "object") {
+    for (const k of Object.keys(pricingParams as Record<string, unknown>)) {
+      if (PERSONA_PRICING_KEY_RE.test(k)) {
+        errors.push(
+          `PERSONA_PRICING_REJECTED: pricing param "${k}" prices by persona (选档可看人，定价不许看人)`,
+        );
+        break;
+      }
+    }
+  }
+
+  // V4 文本门禁：别名过敏感词；协议只认模板 ID 形状（内容由 Loop B 双签）。
+  for (const alias of config.aliases ?? []) {
+    if (typeof alias !== "string") continue;
+    const hit = autoFlag(alias);
+    if (hit) {
+      errors.push(`SENSITIVE_ALIAS_REJECTED: alias "${alias}" flagged as ${hit} (先挡后审，不许出厂)`);
+    }
+  }
+  if (record.agreementTemplateId !== undefined) {
+    const tid = record.agreementTemplateId;
+    if (typeof tid !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(tid)) {
+      errors.push(
+        "AGREEMENT_REF_INVALID: agreementTemplateId must be a legal template id (协议只许引用模板，严禁自由文本)",
+      );
     }
   }
 

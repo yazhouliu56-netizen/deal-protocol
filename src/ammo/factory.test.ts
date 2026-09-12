@@ -428,3 +428,96 @@ test("快照透传：钩子上下文可读 ammoSnapshot，执行严格基于快�
   assert.equal(r.ok, true);
   assert.deepEqual(seen, { ammoId: "snap-v9", to: "IN_SERVICE" });
 });
+
+/* ============ A 批 A1 · LLM 输入专用 V1–V5 ============ */
+
+test("V1 形状门禁：未知字段拒收（防 LLM 夹带）", () => {
+  expectRejected(
+    assembleAmmo(validConfig({ backdoor: true } as never)),
+    "UNKNOWN_FIELD_REJECTED",
+  );
+});
+
+test("V1/V5 状态封闭：发明状态节点单独定罪", () => {
+  expectRejected(
+    assembleAmmo(validConfig({ state_machine_flow: ["ORDERED"] } as never)),
+    "STATE_INVENTION_REJECTED",
+  );
+  // 存量合法配置无未知键，零回归
+  const ammo = expectAssembled(assembleAmmo(validConfig()));
+  assert.equal(ammo.ammoId, "car-wash-v1");
+});
+
+test("V2 歧视标签：先天属性做准入整单拒收（中英）", () => {
+  expectRejected(
+    assembleAmmo(
+      validConfig({ homeAccessKeywords: ["PHYSICAL_STRENGTH == HIGH"] }),
+    ),
+    "DISCRIMINATORY_TAG_REJECTED",
+  );
+  expectRejected(
+    assembleAmmo(
+      validConfig({
+        workerRequirement: {
+          requiredIdentityLevel: "REAL_NAME",
+          requiredCertificates: ["身高180以上优先"],
+        },
+      }),
+    ),
+    "DISCRIMINATORY_TAG_REJECTED",
+  );
+});
+
+test("V2 评价分做准入：拒收（只许排序）", () => {
+  expectRejected(
+    assembleAmmo(
+      validConfig({ homeAccessKeywords: ["COMMUNICATION_SCORE > 95"] }),
+    ),
+    "SCORE_AS_GATE_REJECTED",
+  );
+});
+
+test("V3 价格门禁：非法 kind/公式字符串/画像定价一律拒收", () => {
+  expectRejected(
+    assembleAmmo(validConfig({ pricingModel: { kind: "HYBRID_DYNAMIC" } } as never)),
+    "INVALID_PRICING_KIND",
+  );
+  expectRejected(
+    assembleAmmo(
+      validConfig({ pricingModel: { kind: "FORMULA", params: { multiplier: "IF HIGH THEN 1.5" } } } as never),
+    ),
+    "FORMULA_STRING_REJECTED",
+  );
+  expectRejected(
+    assembleAmmo(
+      validConfig({ pricingModel: { kind: "FORMULA" } } as never),
+    ),
+    "FORMULA_REF_INVALID",
+  );
+  expectRejected(
+    assembleAmmo(validConfig({ pricingParams: { 房价系数: 2 } } as never)),
+    "PERSONA_PRICING_REJECTED",
+  );
+  // 合法 FORMULA 引用放行
+  const ammo = expectAssembled(
+    assembleAmmo(
+      validConfig({
+        pricingModel: { kind: "FORMULA", formulaId: "night-risk-v3", params: { base: 150 } },
+      }),
+    ),
+  );
+  assert.equal(ammo.pricingModel.kind, "FORMULA");
+});
+
+test("V4 文本门禁：协议只认模板 ID 形状", () => {
+  expectRejected(
+    assembleAmmo(
+      validConfig({ agreementTemplateId: "平台将移交录音证据至警方，全文照抄执行" }),
+    ),
+    "AGREEMENT_REF_INVALID",
+  );
+  const ammo = expectAssembled(
+    assembleAmmo(validConfig({ agreementTemplateId: "night-onsite-v2" })),
+  );
+  assert.equal(ammo.holographic?.agreementTemplateId, "night-onsite-v2");
+});

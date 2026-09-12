@@ -353,6 +353,12 @@ export interface IHolographicAmmoConfig {
    * 经 projectAmmoToProtocol 投影进 ProtocolDef.dispute.arbitration，resolver 消费。
    */
   arbitrationPolicy?: IArbitrationPolicy;
+  /**
+   * D7 · 法务协议模板引用（Loop B 双签 · A 批 A1/V4）。
+   * 只许法务模板库 ID（如 "night-onsite-v2"），严禁自由文本协议；
+   * 形状校验在 factory V4（AGREEMENT_REF_INVALID），模板内容由法务人工签发。
+   */
+  agreementTemplateId?: string;
 
   /* ===== D8 视界与表单（前端视界投影隔离 · 动态视口装载） ===== */
   /** 场景特化微主色令牌（housekeeping/meetup/companion/default）。 */

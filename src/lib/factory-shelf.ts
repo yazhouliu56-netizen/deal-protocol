@@ -7,16 +7,90 @@
  * - 试运行：trial 标＋10 单/天（trial-cap 纯函数），发单侧 PublishSheet 设卡。
  */
 import { registerDynamicAmmo } from "@/ammo/factory";
-import type { IHolographicAmmoConfig } from "@/types/ammo-schema";
+import type { IAmmoDefinition, IHolographicAmmoConfig } from "@/types/ammo-schema";
 import { canTrialOrder, nextTrialCount, todayStamp, type TrialCounter } from "@/ammo/trial-cap";
+import { riskTierFor } from "@/base/trust/probation";
 
 const SHELF_KEY = "oto-factory-shelf-v1";
 
 export interface ShelfEntry {
   config: IHolographicAmmoConfig;
-  trial: true;
+  /** 试运行标（true＝限流试单；转正后 false）。 */
+  trial: boolean;
   listedAt: number;
   counter: TrialCounter;
+  /** A5：转正签发记录（Loop B 双签审计；缺席＝未转正）。 */
+  release?: { approvedBy: string[]; releasedAt: number };
+}
+
+/* =====================================================================
+ * A 批 A5 · Loop B 双签（模板沉淀发布：起草＋签发分离）
+ * 规则：起草人不可自签；R1 需 2 个独立签发人，其余 1 个。
+ * Ticket 为可序列化对象，控制台负责持久化；转正即 trial 摘标。
+ * ===================================================================== */
+
+export interface ReleaseTicket {
+  category: string;
+  ammoId: string;
+  draftedBy: string;
+  draftedAt: number;
+  requiredSigners: number;
+  approvals: string[];
+}
+
+/** 起草转正单（所需签发人数按弹药风险档位：R1 双人）。 */
+export function draftRelease(
+  ammo: Pick<IAmmoDefinition, "ammoId" | "category"> & Partial<IAmmoDefinition>,
+  draftedBy: string,
+  now = Date.now(),
+): ReleaseTicket {
+  const tier = riskTierFor(ammo as IAmmoDefinition);
+  return {
+    category: ammo.category,
+    ammoId: ammo.ammoId,
+    draftedBy,
+    draftedAt: now,
+    requiredSigners: tier === "R1" ? 2 : 1,
+    approvals: [],
+  };
+}
+
+/** 签发（起草人自签拒绝；重复签发幂等；集齐即 released=true）。 */
+export function approveRelease(
+  ticket: ReleaseTicket,
+  signer: string,
+): { ticket: ReleaseTicket; released: boolean; error?: string } {
+  if (signer === ticket.draftedBy) {
+    return { ticket, released: false, error: "SELF_APPROVAL_REJECTED: 起草人不可自签（起草签发分离）" };
+  }
+  if (ticket.approvals.includes(signer)) return { ticket, released: isReleased(ticket) };
+  const next: ReleaseTicket = { ...ticket, approvals: [...ticket.approvals, signer] };
+  return { ticket: next, released: isReleased(next) };
+}
+
+export function isReleased(ticket: ReleaseTicket): boolean {
+  return ticket.approvals.length >= ticket.requiredSigners;
+}
+
+/** 转正执行：凭 released 票据摘 trial 标＋写签发审计（票据未集齐拒绝）。 */
+export function graduateShelfEntry(
+  category: string,
+  ticket: ReleaseTicket,
+  now = Date.now(),
+): { ok: boolean; error?: string } {
+  if (ticket.category !== category || !isReleased(ticket)) {
+    return { ok: false, error: "RELEASE_NOT_READY: 票据未集齐所需签发" };
+  }
+  const all = readRaw();
+  const entry = all[category];
+  if (!entry) return { ok: false, error: "RELEASE_NO_ENTRY: 货架无此条目" };
+  all[category] = {
+    ...entry,
+    trial: false,
+    release: { approvedBy: ticket.approvals, releasedAt: now },
+  };
+  writeRaw(all);
+  return { ok: true };
 }
 
 const memFallback = new Map<string, ShelfEntry>();
