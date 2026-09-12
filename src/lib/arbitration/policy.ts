@@ -145,3 +145,44 @@ export function evaluateIssuance(
 export function appealDeadline(resolvedAtMs: number, windowHours: number = APPEAL_WINDOW_HOURS): number {
   return resolvedAtMs + windowHours * 60 * 60 * 1000;
 }
+
+export interface VerdictEnvelope {
+  providerAmount: number;
+  customerAmount: number;
+  appealUntil: number | null;
+}
+
+/**
+ * 终裁信封解析（resolver 申诉窗补划转用）。
+ * 新格式含 gate/appealUntil；兼容旧 {providerAmount, customerAmount}（无窗＝到期）。
+ * 不可解析 → null（调用方转人工，不猜金额）。
+ */
+export function parseVerdictEnvelope(raw: unknown): VerdictEnvelope | null {
+  try {
+    const v = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (typeof v?.providerAmount !== "number" || typeof v?.customerAmount !== "number") return null;
+    return {
+      providerAmount: v.providerAmount,
+      customerAmount: v.customerAmount,
+      appealUntil: typeof v.appealUntil === "number" ? v.appealUntil : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export type RefundTiming = "REFUND" | "HOLD_APPEAL" | "QUEUE_REVIEW";
+
+/**
+ * 划转时机判定（resolver 唯一划转闸口，防 REVIEW/窗内资金被划走）。
+ * REVIEW → 只排队人工；AUTO 但窗内 → 冻结等窗过；其余 → 划转。
+ */
+export function decideRefundTiming(
+  gate: "AUTO" | "REVIEW",
+  appealUntil: number | null,
+  now: number = Date.now(),
+): RefundTiming {
+  if (gate !== "AUTO") return "QUEUE_REVIEW";
+  if (appealUntil != null && now < appealUntil) return "HOLD_APPEAL";
+  return "REFUND";
+}

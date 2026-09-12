@@ -3,8 +3,10 @@ import { arbitrate } from "@/lib/arbitration"
 import {
   appealDeadline,
   classifyEvidence,
+  decideRefundTiming,
   determineTierWithPolicy,
   evaluateIssuance,
+  parseVerdictEnvelope,
   resolvePolicy,
   type IssuanceVerdict,
 } from "@/lib/arbitration/policy"
@@ -223,24 +225,7 @@ export async function resolveDispute(
   };
 }
 
-/** 终裁信封解析（新格式含 gate/appealUntil；兼容旧 {providerAmount,customerAmount}）。 */
-function parseVerdictEnvelope(raw: unknown): {
-  providerAmount: number;
-  customerAmount: number;
-  appealUntil: number | null;
-} | null {
-  try {
-    const v = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (typeof v?.providerAmount !== "number" || typeof v?.customerAmount !== "number") return null;
-    return {
-      providerAmount: v.providerAmount,
-      customerAmount: v.customerAmount,
-      appealUntil: typeof v.appealUntil === "number" ? v.appealUntil : null,
-    };
-  } catch {
-    return null;
-  }
-}
+/** 终裁信封解析见 policy.parseVerdictEnvelope（纯核，可单测）。 */
 
 /** 扫描所有需要 LLM 裁决的争议并自动处理 */
 export async function processPendingDisputes(): Promise<string[]> {
@@ -299,28 +284,29 @@ export async function processPendingDisputes(): Promise<string[]> {
           getProtocol(contract.protocol_id)?.dispute ?? null,
         );
 
-        // ADR-0021：门禁拦截（REVIEW）→ 只排队人工，不划转（修复旧行为：REVIEW 仍被退款）。
-        if (decision.issuance.decision !== "AUTO") {
+        // ADR-0021 划转唯一闸口（pur核 decideRefundTiming）：REVIEW 只排队人工，
+        // AUTO 窗内冻结等窗过（修复旧行为：REVIEW 仍被退款）。
+        const timing = decideRefundTiming(decision.issuance.decision, decision.appealUntil, Date.now());
+        if (timing === "QUEUE_REVIEW") {
           results.push(`review_queued: ${dispute.id} — ${decision.issuance.reasons.join(",") || decision.resolution}`)
           continue
         }
-        // 申诉窗内资金冻结不划转：本轮跳过（状态已 RESOLVED），窗过后由后续 cron 补划转。
-        if (decision.appealUntil != null && Date.now() < decision.appealUntil) {
-          results.push(`appeal_hold: ${dispute.id} — 申诉窗至 ${new Date(decision.appealUntil).toISOString()}`)
+        if (timing === "HOLD_APPEAL") {
+          results.push(`appeal_hold: ${dispute.id} — 申诉窗至 ${new Date(decision.appealUntil!).toISOString()}`)
           continue
         }
         providerAmount = decision.providerAmount;
         customerAmount = decision.customerAmount;
         label = decision.resolution;
       } else {
-        // RESOLVED：申诉窗暂缓件，窗过补划转（不重仲裁，直接读终裁信封）。
+        // RESOLVED：申诉窗暂缓件，窗过补划转（不重仲裁，直接读终裁信封；同走划转闸口）。
         const env = parseVerdictEnvelope(dispute.llm_verdict);
         if (!env) {
           results.push(`appeal_hold_broken: ${dispute.id} — 终裁信封不可解析，转人工`);
           continue
         }
-        if (env.appealUntil != null && Date.now() < env.appealUntil) {
-          results.push(`appeal_hold: ${dispute.id} — 申诉窗至 ${new Date(env.appealUntil).toISOString()}`)
+        if (decideRefundTiming("AUTO", env.appealUntil, Date.now()) === "HOLD_APPEAL") {
+          results.push(`appeal_hold: ${dispute.id} — 申诉窗至 ${new Date(env.appealUntil!).toISOString()}`)
           continue
         }
         providerAmount = env.providerAmount;

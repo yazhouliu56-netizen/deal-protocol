@@ -5,8 +5,10 @@ import {
   DEFAULT_ARBITRATION_POLICY,
   appealDeadline,
   classifyEvidence,
+  decideRefundTiming,
   determineTierWithPolicy,
   evaluateIssuance,
+  parseVerdictEnvelope,
   resolvePolicy,
 } from "./policy";
 
@@ -130,5 +132,42 @@ describe("appealDeadline", () => {
   it("终裁 + 72h（窗内资金冻结不划转）", () => {
     expect(APPEAL_WINDOW_HOURS).toBe(72);
     expect(appealDeadline(1_000_000)).toBe(1_000_000 + 72 * 3600 * 1000);
+  });
+});
+
+describe("parseVerdictEnvelope（深夜特工演练吸收：信封坏＝转人工不猜金额）", () => {
+  it("新格式：金额＋申诉窗", () => {
+    const env = parseVerdictEnvelope(
+      JSON.stringify({ providerAmount: 200, customerAmount: 150, gate: {}, appealUntil: 999 }),
+    );
+    expect(env).toEqual({ providerAmount: 200, customerAmount: 150, appealUntil: 999 });
+  });
+
+  it("旧格式兼容：无窗＝到期（直接可划转）", () => {
+    const env = parseVerdictEnvelope(JSON.stringify({ providerAmount: 200, customerAmount: 150 }));
+    expect(env?.appealUntil).toBeNull();
+  });
+
+  it("坏信封→null（缺字段/非 JSON/空），调用方转人工", () => {
+    expect(parseVerdictEnvelope(JSON.stringify({ providerAmount: 200 }))).toBeNull();
+    expect(parseVerdictEnvelope("not-json{{")).toBeNull();
+    expect(parseVerdictEnvelope(null)).toBeNull();
+    expect(parseVerdictEnvelope({})).toBeNull();
+  });
+});
+
+describe("decideRefundTiming 划转唯一闸口", () => {
+  it("REVIEW → 只排队人工（置信/证据再好也不划）", () => {
+    expect(decideRefundTiming("REVIEW", null, 1_000)).toBe("QUEUE_REVIEW");
+  });
+
+  it("AUTO 窗内 → 冻结（毫秒边界：恰到期＝可划）", () => {
+    expect(decideRefundTiming("AUTO", 2_000, 1_999)).toBe("HOLD_APPEAL");
+    expect(decideRefundTiming("AUTO", 2_000, 2_000)).toBe("REFUND");
+    expect(decideRefundTiming("AUTO", 2_000, 2_001)).toBe("REFUND");
+  });
+
+  it("AUTO 无窗（旧信封）→ 直接划转", () => {
+    expect(decideRefundTiming("AUTO", null, 1_000)).toBe("REFUND");
   });
 });
