@@ -68,4 +68,17 @@ describe("视口景深微缩（Viewport Depth）· 250ms 硬件加速", () => {
     // 严禁重排属性（width/height/top/left）驱动动画
     expect(homeSrc).not.toMatch(/transition-all[^;]*width/);
   });
+
+  it("内联草稿展开不触发视口变暗（锁条件仅真弹层 showCart/publishOpen）", async () => {
+    // 回归锁死：pill 点开展开的 HomeDraftSheet 是内联白卡、无遮罩，
+    // 若 draft 进锁条件，整页 brightness 0.85 会被读成全屏灰幕。
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(path.join(process.cwd(), "src/app/(oto)/_components/HomePage.tsx"), "utf-8");
+    const m = src.match(/lockEdgeGesture\(([^)]*)\)/);
+    expect(m).not.toBeNull();
+    expect(m![1]).toContain("showCart");
+    expect(m![1]).toContain("publishOpen");
+    expect(m![1]).not.toContain("draft");
+  });
 });

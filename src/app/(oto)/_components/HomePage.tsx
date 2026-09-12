@@ -136,9 +136,11 @@ export default function HomePage() {
   const handleOpenCart = useCallback(() => setShowCart(true), []);
   const handleOpenChat = useCallback(() => setChatOpen(true), []);
   const handleCloseChat = useCallback(() => setChatOpen(false), []);
+  // 视口景深只属于真弹层（Cart/Publish 带遮罩）：内联草稿卡无遮罩，
+  // 若跟随变暗整页 brightness 0.85 会被读成全屏灰幕，故 draft 不进锁条件。
   useEffect(() => {
-    lockEdgeGesture(showCart || draft !== null || publishOpen);
-  }, [showCart, draft, publishOpen]);
+    lockEdgeGesture(showCart || publishOpen);
+  }, [showCart, publishOpen]);
   const ammoPills = useMemo(() => listAmmoPillDescriptors(), []);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
