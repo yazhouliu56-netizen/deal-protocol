@@ -100,11 +100,14 @@ export default function IntentCard({
   }, [priceTick]);
 
   if (card.state === "locked") {
+    const branch = card.price.selectedBranchId
+      ? card.price.branches?.find((b) => b.id === card.price.selectedBranchId)
+      : undefined;
     return (
       <div data-testid="intent-locked" className="rounded-3xl border-2 border-[var(--color-duo-green)] bg-white p-3">
         <p className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">{card.title}</p>
         <p className="mt-1 inline-block rounded-full bg-orange-600 px-2.5 py-0.5 text-xs font-extrabold text-neutral-900">
-          已锁 ¥{card.price.totalYuan}
+          已锁 ¥{card.price.totalYuan}{branch ? `（${branch.label}）` : ""}
         </p>
       </div>
     );
@@ -209,17 +212,28 @@ export default function IntentCard({
         </div>
       )}
 
-      {/* 价格行：全卡唯一暖色 */}
+      {/* 价格行：全卡唯一暖色；区间卡展示 floor–ceiling＋分支清单（ADR-0019） */}
       {showRows > card.lines.length && (
         <div className="mt-2 rounded-2xl bg-orange-50 px-2.5 py-1.5">
           <p className="text-lg font-extrabold text-orange-600">
-            ¥{card.price.totalYuan}
+            {card.price.branches && card.price.branches.length > 0
+              ? `¥${card.price.floorYuan}–${card.price.ceilingYuan}`
+              : `¥${card.price.totalYuan}`}
             {flashText && (
               <span data-testid="intent-price-flash" className="ml-2 text-xs font-bold text-orange-500">
                 {flashText}
               </span>
             )}
           </p>
+          {card.price.branches && card.price.branches.length > 0 && (
+            <div data-testid="intent-price-branches" className="mt-1 space-y-0.5">
+              {card.price.branches.map((b) => (
+                <p key={b.id} className="text-xs text-[var(--color-duo-wolf)]">
+                  {b.label}：¥{b.totalYuan}{b.probabilityNote ? `（${b.probabilityNote}）` : ""} ｜封顶不加价
+                </p>
+              ))}
+            </div>
+          )}
           {card.price.compareText && <p className="text-xs text-[var(--color-duo-wolf)]">{card.price.compareText}</p>}
           <p className="text-xs text-[var(--color-duo-hare)]">{card.price.changeRule}｜{card.price.refundRule}</p>
         </div>

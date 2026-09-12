@@ -48,6 +48,11 @@
 - **师傅现场口头报价**：即 315 曝光模式的复刻，否决。
 - **一口价统一定价**：尺寸/环境/辅材不确定使一口价无法落地（腾讯新闻实测：平台价表被师傅以"实际情况"架空），区间 + 确诊是唯一可行形态。
 
+## 落地状态（2026-09-12）
+
+- ✅ 已落地：区间类型＋组装/确诊纯函数＋quote 隔离断言（assertSettlementReady）＋检测费 milestone-0 预冻结＋IntentCard 区间展示；门禁 T2 全绿。
+- ⏳ 后续片 0019-F2（定损单 FSM DIAGNOSED/CONFIRM_QUOTE＋order PATCH 409 强约束）：需先裁决双轨路由（contracts DB 轨 vs waves 本地轨走哪条），另起任务，不阻塞本片。
+
 ## Consequences
 
 - 新增/修改：`src/types/intent-card.ts`（区间类型）、`src/base/order/intent-card.ts`（区间组装纯函数＋单测）、定损单 API 与 FSM 节点、`ammo/<品类>` pricing 配置（首批：appliance_repair）。

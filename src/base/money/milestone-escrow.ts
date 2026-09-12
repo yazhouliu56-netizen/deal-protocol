@@ -316,3 +316,38 @@ export function frozenRemainingCents(plan: IMilestoneEscrowPlan): number {
     .filter((m) => m.status === "HELD" || m.status === "SUBMITTED")
     .reduce((s, m) => s + m.amountCents, 0);
 }
+
+/* =====================================================================
+ * ADR-0019 · 检测费预冻结计划（上门确诊类目）
+ * ===================================================================== */
+
+/**
+ * 下单时冻结封顶价（ceiling），拆 milestone-0 检测费（不修不退，由调用方
+ * 在师傅到场后 release）＋ milestone-1 尾款（确诊后多退少补走
+ * refundRemainingMilestones）。守恒：m0 ＋ m1 ＝ ceiling。
+ * detectionCents = 0 → 退化为单 milestone 全额计划（零回归）。
+ */
+export function createDetectionFeePlan(
+  detectionCents: number,
+  ceilingCents: number,
+): IMilestoneEscrowPlan {
+  assertIntegerCents(detectionCents, "INVALID_TOTAL_AMOUNT", "detectionCents");
+  assertIntegerCents(ceilingCents, "INVALID_TOTAL_AMOUNT", "ceilingCents");
+  if (ceilingCents <= 0) {
+    throw new MilestoneEscrowError("INVALID_TOTAL_AMOUNT", `封顶价必须为正，收到 ${ceilingCents}`);
+  }
+  if (detectionCents < 0 || detectionCents > ceilingCents) {
+    throw new MilestoneEscrowError(
+      "INVALID_RATIOS",
+      `检测费必须落在 [0, 封顶价] 内，收到 ${detectionCents} / ${ceilingCents}`,
+    );
+  }
+  if (detectionCents === 0) {
+    return createMilestonePlan(ceilingCents, [1], [{ title: "服务款" }]);
+  }
+  return createMilestonePlan(
+    ceilingCents,
+    [detectionCents / ceilingCents, (ceilingCents - detectionCents) / ceilingCents],
+    [{ title: "上门检测费（不修不退）" }, { title: "服务尾款（确诊多退少补）" }],
+  );
+}

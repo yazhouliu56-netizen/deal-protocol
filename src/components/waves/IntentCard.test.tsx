@@ -87,6 +87,56 @@ describe("IntentCard static", () => {
   });
 });
 
+describe("IntentCard range-quote (ADR-0019)", () => {
+  const rangePrice = {
+    totalYuan: 350,
+    basis: "range-quote" as const,
+    changeRule: "确诊分支封顶",
+    refundRule: "师傅未上门全额退",
+    floorYuan: 85,
+    ceilingYuan: 350,
+    branches: [
+      { id: "A", label: "更换启动电容", totalYuan: 85, probabilityNote: "高概率" },
+      { id: "B", label: "电机调换", totalYuan: 350, probabilityNote: "低概率" },
+    ],
+  };
+  const rangeCard = { ...base, price: rangePrice };
+
+  it("ready: 展示区间＋分支清单＋封顶", () => {
+    const html = renderToStaticMarkup(
+      <IntentCard card={rangeCard} onEditLine={noop} onRelaunch={noop} onLaunch={noop} />,
+    );
+    expect(html).toContain("intent-price-branches");
+    expect(html).toContain("¥85–350");
+    expect(html).toContain("更换启动电容");
+    expect(html).toContain("封顶不加价");
+  });
+
+  it("locked: 已确诊分支带标签", () => {
+    const html = renderToStaticMarkup(
+      <IntentCard
+        card={{
+          ...rangeCard,
+          state: "locked",
+          price: { ...rangePrice, totalYuan: 85, basis: "diagnosed", selectedBranchId: "A" },
+        }}
+        onEditLine={noop}
+        onRelaunch={noop}
+        onLaunch={noop}
+      />,
+    );
+    expect(html).toContain("已锁 ¥85（更换启动电容）");
+  });
+
+  it("单值老卡零回归：无分支区块", () => {
+    const html = renderToStaticMarkup(
+      <IntentCard card={base} onEditLine={noop} onRelaunch={noop} onLaunch={noop} />,
+    );
+    expect(html).not.toContain("intent-price-branches");
+    expect(html).toContain("¥80");
+  });
+});
+
 describe("pickProviderPreview", () => {
   it("按rating取前3＋脱敏回落", () => {
     const out = pickProviderPreview([

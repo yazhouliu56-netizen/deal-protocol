@@ -7,6 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  createDetectionFeePlan,
   createMilestonePlan,
   evaluateMilestoneTimeout,
   frozenRemainingCents,
@@ -230,4 +231,39 @@ test("非法违约金拦截：负数与小数一律 INVALID_PENALTY", () => {
   const plan = createMilestonePlan(10000, [1], [{ title: "a" }]);
   assert.throws(() => refundRemainingMilestones(plan, -5), /INVALID_PENALTY/);
   assert.throws(() => refundRemainingMilestones(plan, 10.5), /INVALID_PENALTY/);
+});
+
+/* =====================================================================
+ * ADR-0019 · detection fee pre-freeze plan (ASCII-only: file is GBK-encoded)
+ * ===================================================================== */
+
+test("detection plan: m0 fee + m1 balance, conserved = ceiling", () => {
+  const plan = createDetectionFeePlan(3000, 35000);
+  assert.equal(plan.totalAmountCents, 35000);
+  assert.equal(plan.milestones.length, 2);
+  assert.equal(plan.milestones[0].amountCents, 3000);
+  assert.equal(plan.milestones[1].amountCents, 32000);
+  assert.equal(plan.milestones[0].amountCents + plan.milestones[1].amountCents, 35000);
+  assert.ok(plan.milestones.every((m) => m.status === "HELD"));
+});
+
+test("detection plan: illegal inputs rejected (negative/over/zero/non-integer)", () => {
+  assert.throws(() => createDetectionFeePlan(-1, 35000), /INVALID_RATIOS/);
+  assert.throws(() => createDetectionFeePlan(35001, 35000), /INVALID_RATIOS/);
+  assert.throws(() => createDetectionFeePlan(3000, 0), /INVALID_TOTAL_AMOUNT/);
+  assert.throws(() => createDetectionFeePlan(30.5, 35000), /INVALID_TOTAL_AMOUNT/);
+});
+
+test("detection plan: detection=0 degrades to single milestone (no regression)", () => {
+  const plan = createDetectionFeePlan(0, 35000);
+  assert.equal(plan.milestones.length, 1);
+  assert.equal(plan.milestones[0].amountCents, 35000);
+});
+
+test("detection plan: m0 release on arrival + m1 fully refundable", () => {
+  const plan = createDetectionFeePlan(3000, 35000);
+  const released = releaseMilestone(plan, "milestone-1");
+  assert.equal(released.releasedCents, 3000);
+  const refunded = refundRemainingMilestones(released.plan, 0);
+  assert.equal(refunded.refundedCents, 32000);
 });
