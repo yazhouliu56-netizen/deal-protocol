@@ -242,6 +242,28 @@ export interface ISplitRules {
 }
 
 /* =====================================================================
+ * D7 清算与仲裁 · 争议仲裁签发策略（ADR-0021 · 宪法 #5 引信跟弹药走）
+ * ===================================================================== */
+
+/**
+ * 争议仲裁签发策略：LLM 永远只出《仲裁建议书》，能否自动生效由本策略
+ * 的确定性门禁判定（金额分档＋置信度自动线＋三前提）。全字段可选，
+ * 缺省逐项回落 policy.ts 全局默认。
+ */
+export interface IArbitrationPolicy {
+  /** EASY 档金额上限（分/元口径与调用方一致；缺省 200）。 */
+  easyMaxAmount?: number;
+  /** MEDIUM 档金额上限（缺省 2000；超出即 HARD 强制人工）。 */
+  mediumMaxAmount?: number;
+  /** 自动生效置信度下限（缺省 0.85；低于即转人工复核）。 */
+  autoConfidence?: number;
+  /** 单笔先行赔付上限（元；缺省不限，由 escrow 余额约束）。 */
+  advanceCompCapYuan?: number;
+  /** 终裁后申诉窗（小时；缺省 72；窗内资金冻结不划转）。 */
+  appealWindowHours?: number;
+}
+
+/* =====================================================================
  * D2 计价与护栏 · 计价参数集（公式类定价的附加参数）
  * ===================================================================== */
 
@@ -325,6 +347,12 @@ export interface IHolographicAmmoConfig {
   autoAcceptanceTimeoutHours?: number;
   /** 终局分账规则（三比之和 = 1.0，资金守恒硬校验）。 */
   splitRules?: ISplitRules;
+  /**
+   * D7 · 争议仲裁签发策略（ADR-0021 · 宪法 #5 引信跟弹药走）。
+   * 全可选：缺省逐项回落全局默认（EASY ≤200 / MEDIUM ≤2000 / 自动线 0.85）。
+   * 经 projectAmmoToProtocol 投影进 ProtocolDef.dispute.arbitration，resolver 消费。
+   */
+  arbitrationPolicy?: IArbitrationPolicy;
 
   /* ===== D8 视界与表单（前端视界投影隔离 · 动态视口装载） ===== */
   /** 场景特化微主色令牌（housekeeping/meetup/companion/default）。 */

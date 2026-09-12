@@ -79,6 +79,14 @@ test("8D 全息出厂：D1 入户一票否决 / D2 计价护栏 / D4 传感降�
   });
   assert.equal(h.autoAcceptanceTimeoutHours, 24);
   assert.equal(h.splitRules!.providerRatio + h.splitRules!.platformRatio + h.splitRules!.insuranceRatio, 1);
+  // ADR-0021 D7.5：仲裁签发策略随弹药走（LLM 只出建议书，自动生效看门禁）
+  assert.deepEqual(h.arbitrationPolicy, {
+    easyMaxAmount: 200,
+    mediumMaxAmount: 500,
+    autoConfidence: 0.85,
+    advanceCompCapYuan: 500,
+    appealWindowHours: 72,
+  });
   assert.equal(h.theme, "housekeeping");
   assert.equal(h.cockpitSlot, "HousekeepingSlot");
   // 流水线出厂镜像：弹药本体直挂全息配置（视界层/座舱只读消费）

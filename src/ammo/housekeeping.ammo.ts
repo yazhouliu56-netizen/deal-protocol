@@ -226,6 +226,14 @@ export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   /* D7 清算与仲裁（24h 超时代验收 + 分账资金守恒 0.85+0.10+0.05=1.0） */
   autoAcceptanceTimeoutHours: 24,
   splitRules: { providerRatio: 0.85, platformRatio: 0.1, insuranceRatio: 0.05 },
+  /* D7.5 争议仲裁签发（ADR-0021 · 引信跟弹药走 #5：LLM 只出建议书，自动生效看门禁） */
+  arbitrationPolicy: {
+    easyMaxAmount: 200,
+    mediumMaxAmount: 500,
+    autoConfidence: 0.85,
+    advanceCompCapYuan: 500,
+    appealWindowHours: 72,
+  },
 
   /* D8 视界与表单（housekeeping 主题 + HousekeepingSlot 座舱插槽） */
   theme: "housekeeping",

@@ -1,7 +1,7 @@
 # ADR-0021: 争议处置「LLM 仲裁建议书 + 分级签发」（EASY/MEDIUM/HARD）
 
 日期：2026-09-12
-状态：Proposed（ADR-0008 遗留"自动执行"项的正式续篇；0008 本轮不改）
+状态：Accepted（2026-09-12 落地：policy 纯核＋resolver 接线＋housekeeping/appliance_repair 弹药配置；门禁 T2 全绿）
 
 > **宪法声明（强制字段，见 docs/DESIGN_CONSTITUTION.md §3/§4）**
 > 本 ADR 派生自宪法 #7（LLM 介入点评估）#8（隐私血液，不可豁免）#10（降级）及 §6.1 V4（资金反二清，不可豁免）、§6.3 #7 替代（成本与延迟护栏）。

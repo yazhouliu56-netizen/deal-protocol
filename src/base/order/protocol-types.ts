@@ -4,6 +4,8 @@
 // 合约引擎不识别任何协议内容，只按照协议定义走。
 // ============================================================
 
+import type { IArbitrationPolicy } from "@/types/ammo-schema";
+
 // ── 基础类型 ──
 
 export type StringMap = Record<string, string>
@@ -313,6 +315,12 @@ export interface DisputeDef {
     red: { minAmount: number; llmHours: number; resolveHours: number }
   }
   autoTimeoutDays?: number           // 争议超时N天自动裁决
+  /**
+   * 仲裁签发策略（ADR-0021 · 宪法 #5 引信跟弹药走）：
+   * 由 projectAmmoToProtocol 从弹药 holographic.arbitrationPolicy 投影；
+   * 缺省（undefined）= 全局默认（EASY ≤200 / MEDIUM ≤2000 / 自动线 0.85）。
+   */
+  arbitration?: IArbitrationPolicy
 }
 
 // ── 条件事件（引擎自动任务） ──

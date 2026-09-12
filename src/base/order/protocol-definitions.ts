@@ -269,7 +269,14 @@ function projectAmmoToProtocol(
     default: meta.default,
     review: meta.review,
     evidence: meta.evidence,
-    dispute: meta.dispute,
+    // ADR-0021 · 宪法 #5 引信跟弹药走：弹药 holographic.arbitrationPolicy
+    // 投影为协议争议签发策略；未声明 = undefined → resolver 回落全局默认。
+    dispute: {
+      ...meta.dispute,
+      ...(ammo.holographic?.arbitrationPolicy
+        ? { arbitration: ammo.holographic.arbitrationPolicy }
+        : {}),
+    },
   }
 }
 

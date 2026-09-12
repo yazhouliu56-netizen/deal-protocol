@@ -111,6 +111,14 @@ export const APPLIANCE_REPAIR_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   /* D7 清算与仲裁（48h 质保验收期 + 分账资金守恒 0.82+0.13+0.05=1.0） */
   autoAcceptanceTimeoutHours: 48,
   splitRules: { providerRatio: 0.82, platformRatio: 0.13, insuranceRatio: 0.05 },
+  /* D7.5 争议仲裁签发（ADR-0021：维修配件涉假风险高，自动线收紧至 0.9） */
+  arbitrationPolicy: {
+    easyMaxAmount: 200,
+    mediumMaxAmount: 500,
+    autoConfidence: 0.9,
+    advanceCompCapYuan: 500,
+    appealWindowHours: 72,
+  },
 
   /* D8 视界与表单（default 主题 + HousekeepingSlot 座舱插槽 + 家电表单） */
   theme: "default",

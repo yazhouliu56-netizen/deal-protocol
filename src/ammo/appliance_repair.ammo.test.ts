@@ -182,6 +182,14 @@ test("8D 全息出厂：D1~D8 逐维契约断言 + 出厂审查通过", () => {
     1
   );
   assert.deepEqual(c.splitRules, { providerRatio: 0.82, platformRatio: 0.13, insuranceRatio: 0.05 });
+  // ADR-0021 D7.5：维修配件涉假风险高，自动线收紧至 0.9
+  assert.deepEqual(c.arbitrationPolicy, {
+    easyMaxAmount: 200,
+    mediumMaxAmount: 500,
+    autoConfidence: 0.9,
+    advanceCompCapYuan: 500,
+    appealWindowHours: 72,
+  });
 
   /* D8 视界与表单：default 主题 + HousekeepingSlot 座舱 + 家电表单 schema */
   assert.equal(c.theme, "default");

@@ -69,3 +69,19 @@ test("resolveSlaPhases：未投影协议整体回落默认底表（纯函数）"
   assert.deepEqual(resolveSlaPhases(undefined), { ACCEPTED: 1800, DEPARTED: 3600 });
   assert.deepEqual(resolveSlaPhases(getProtocol("protocol_base")), { ACCEPTED: 1800, DEPARTED: 3600 });
 });
+
+test("ADR-0021：仲裁签发策略随弹药投影（housekeeping 显式 / meetup 缺省回落）", () => {
+  // 家政弹药 D7.5 显式声明 → 投影进 protocol_housekeeping.dispute.arbitration
+  const hk = protocolRegistry.get("protocol_housekeeping")!;
+  assert.deepEqual(hk.dispute.arbitration, {
+    easyMaxAmount: 200,
+    mediumMaxAmount: 500,
+    autoConfidence: 0.85,
+    advanceCompCapYuan: 500,
+    appealWindowHours: 72,
+  });
+  // 组局弹药未声明 → undefined → resolver 回落通道推导/全局默认（零回归）
+  const mu = protocolRegistry.get("protocol_meetup")!;
+  assert.equal(mu.dispute.arbitration, undefined);
+  assert.equal(mu.dispute.channels.green.maxAmount, 500);
+});
