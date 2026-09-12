@@ -36,6 +36,7 @@ import type {
 } from "../types/ammo-schema.ts";
 import { IMPACT_INHOME_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
+import { R1_TRANSFER_POLICY } from "./baseline.ts";
 
 /* =====================================================================
  * 8 维全息配置（AmmoFactory 装配原料 · 静态审查出厂）
@@ -174,13 +175,8 @@ if (!_applianceRepairAssembled.ok) {
 
 export const applianceRepairAmmo: Readonly<IAmmoDefinition> = deepFreeze({
   ..._applianceRepairAssembled.ammo,
-  /* ADR-0020 转岗试单：R1 特种作业＋入户（5 单试单/日限 2/投诉熔断） */
-  transferPolicy: {
-    riskTier: "R1",
-    probationOrders: 5,
-    dailyCap: 2,
-    fuseOnComplaint: true,
-  },
+  /* ADR-0020 转岗试单：R1 特种作业＋入户（L1 基线 R1_TRANSFER_POLICY） */
+  transferPolicy: { ...R1_TRANSFER_POLICY },
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {

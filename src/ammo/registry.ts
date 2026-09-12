@@ -320,8 +320,19 @@ export function listRegisteredAmmos(): IAmmoDefinition[] {
  */
 export function listAmmoPillDescriptors(
   limit = 8,
+  orderAmmoIds?: string[],
 ): Array<{ ammoId: string; category: string; label: string; icon: string; theme: ScenarioTheme }> {
-  return listRegisteredAmmos()
+  const all = listRegisteredAmmos();
+  const ordered =
+    orderAmmoIds && orderAmmoIds.length > 0
+      ? [
+          ...orderAmmoIds
+            .map((id) => all.find((a) => a.ammoId === id))
+            .filter((a): a is IAmmoDefinition => !!a),
+          ...all.filter((a) => !orderAmmoIds.includes(a.ammoId)),
+        ]
+      : all;
+  return ordered
     .slice(0, limit)
     .map((ammo) => {
       const meta = PILL_META[ammo.ammoId];

@@ -110,9 +110,13 @@ if (opt.dryRun) {
 let up = await probe();
 const prod = up ? confirmOwnProd() : { ok: false, why: "no server" };
 console.log(`[verify-scoped] server up=${up} ownProd=${prod.ok} (${prod.why})`);
+// B6 门禁回收：只有本轮接管（restart-prod 自起）的服务才在收尾时停掉；
+// 复用的外部服务（用户 dev-server）一律不动。
+let tookOver = false;
 if (!up || (needsProd && !prod.ok)) {
   // needsProd 链不将就：非自有 prod（dev-server 复用态语义漂移）直接接管。
   restartProd();
+  tookOver = true;
   await sleep(3000);
   up = await probe();
   if (!up) { console.error(`[verify-scoped] server still down on :${opt.port}`); process.exit(1); }
@@ -128,6 +132,10 @@ for (const script of set) {
   if (r.status !== 0) { failed = script; console.error(`✗ ${script} FAILED (fail-fast)`); break; }
   console.log(`✓ ${script} PASS`);
   await sleep(1000);
+}
+if (tookOver) {
+  console.log("[verify-scoped] stopping own prod server (B6 hygiene) ...");
+  spawnSync(process.execPath, ["scripts/stop-stale-prod.mjs"], { cwd: root, stdio: "inherit" });
 }
 if (failed) process.exit(1);
 console.log(`\nverify-scoped: ${set.length} scoped e2e PASS ✓`);

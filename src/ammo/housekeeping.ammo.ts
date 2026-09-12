@@ -30,6 +30,11 @@ import type {
 } from "../types/ammo-schema.ts";
 import { IMPACT_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
+import {
+  CANCELLATION_4STAGE_STANDARD,
+  R1_TRANSFER_POLICY,
+  STANDARD_SPLIT_85_10_5,
+} from "./baseline.ts";
 import { HOME_ACCESS_KEYWORDS_MAP } from "./risk-rule.ts";
 import { AIGC_PHOTO_FORGERY_DETECTED } from "../base/ai/forgery.ts";
 
@@ -209,13 +214,8 @@ export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   /* D5 正向钩子（HOOK_OPERATOR_REGISTRY 静态白名单解析） */
   forwardHooks: ["OnsiteQuoteHook", "CleaningCheckHook"],
 
-  /* D6 逆向违约阶梯（分阶段退款/车马费/保证金扣划） */
-  cancellationTiers: [
-    { stage: "BEFORE_MATCH", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 0 },
-    { stage: "AFTER_MATCH_EN_ROUTE", demanderRefundRatio: 0.8, providerCompensationYuan: 20, deductDepositRatio: 0.2 },
-    { stage: "ON_SITE", demanderRefundRatio: 0.5, providerCompensationYuan: 0, deductDepositRatio: 0.5 },
-    { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
-  ],
+  /* D6 逆向违约阶梯（分阶段退款/车马费/保证金扣划 · L1 基线 CANCELLATION_4STAGE_STANDARD） */
+  cancellationTiers: [...CANCELLATION_4STAGE_STANDARD],
 
   /* D6.5 SLA 阶段时间纪律（Microkernel 2.0 战役 1 · 接单30min/出发60min（等值迁移原全局纪律）） */
   slaPhases: {
@@ -225,7 +225,7 @@ export const HOUSEKEEPING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   fundingMode: "full_prepay",
   /* D7 清算与仲裁（24h 超时代验收 + 分账资金守恒 0.85+0.10+0.05=1.0） */
   autoAcceptanceTimeoutHours: 24,
-  splitRules: { providerRatio: 0.85, platformRatio: 0.1, insuranceRatio: 0.05 },
+  splitRules: { ...STANDARD_SPLIT_85_10_5 },
   /* D7.5 争议仲裁签发（ADR-0021 · 引信跟弹药走 #5：LLM 只出建议书，自动生效看门禁） */
   arbitrationPolicy: {
     easyMaxAmount: 200,
@@ -270,13 +270,8 @@ if (!_housekeepingAssembled.ok) {
 
 export const housekeepingAmmo: Readonly<IAmmoDefinition> = deepFreeze({
   ..._housekeepingAssembled.ammo,
-  /* ADR-0020 转岗试单：R1 入户高风险（5 单试单/日限 2/投诉熔断） */
-  transferPolicy: {
-    riskTier: "R1",
-    probationOrders: 5,
-    dailyCap: 2,
-    fuseOnComplaint: true,
-  },
+  /* ADR-0020 转岗试单：R1 入户高风险（L1 基线 R1_TRANSFER_POLICY） */
+  transferPolicy: { ...R1_TRANSFER_POLICY },
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {

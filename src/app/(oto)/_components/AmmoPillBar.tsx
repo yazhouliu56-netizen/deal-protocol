@@ -23,6 +23,26 @@ interface AmmoPillBarProps {
   variant?: "tiles" | "compact" | "featured";
   /** 附近有活水时平头哥醒来（HomePage 同源投影，默认酣睡）。 */
   hasLiveWaves?: boolean;
+  /** B4 推荐开关：prefsOn 缺省 true；onTogglePrefs 缺席则整行不渲染。 */
+  prefsOn?: boolean;
+  onTogglePrefs?: () => void;
+}
+
+/** B4 推荐开关行（默认开，可关；关＝永远图纸序）。 */
+function PrefsToggle({ prefsOn, onTogglePrefs }: { prefsOn: boolean; onTogglePrefs?: () => void }) {
+  if (!onTogglePrefs) return null;
+  return (
+    <button
+      type="button"
+      data-testid="discovery-prefs-toggle"
+      aria-pressed={prefsOn}
+      aria-label={prefsOn ? "关闭个性化推荐" : "开启个性化推荐"}
+      onClick={onTogglePrefs}
+      className="mt-1 text-[11px] font-bold text-[var(--color-duo-wolf)]"
+    >
+      {prefsOn ? "✨ 为你推荐 · 开" : "✨ 为你推荐 · 关"}
+    </button>
+  );
 }
 
 /**
@@ -113,7 +133,7 @@ const TILE_STYLE: Record<string, { price: string }> = {
   default: { price: "¥80/天" },
 };
 
-function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false }: AmmoPillBarProps) {
+function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = false, prefsOn = true, onTogglePrefs }: AmmoPillBarProps) {
   if (variant === "featured") {
     const featured = FEATURED_PILL_AMMO_IDS.map((id) => pills.find((p) => p.ammoId === id)).filter(
       (p): p is AmmoPillDescriptor => !!p,
@@ -155,6 +175,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
             );
           })}
         </div>
+        <PrefsToggle prefsOn={prefsOn} onTogglePrefs={onTogglePrefs} />
       </div>
     );
   }
@@ -190,6 +211,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
         </div>
         <SleepyBeast awake={hasLiveWaves} />
       </div>
+      <PrefsToggle prefsOn={prefsOn} onTogglePrefs={onTogglePrefs} />
     </div>
     );
   }
@@ -220,6 +242,7 @@ function AmmoPillBar({ pills, onSelectDraft, variant = "tiles", hasLiveWaves = f
           </button>
         );
       })}
+      <PrefsToggle prefsOn={prefsOn} onTogglePrefs={onTogglePrefs} />
     </div>
   );
 }

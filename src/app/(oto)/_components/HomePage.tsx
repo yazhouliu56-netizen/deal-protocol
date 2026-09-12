@@ -2,7 +2,13 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toAtomicFiveState } from "@/base/ammo/runner";
-import { listAmmoPillDescriptors } from "@/ammo/registry";
+import { listAmmoPillDescriptors, listRegisteredAmmos } from "@/ammo/registry";
+import { orderPills, suggestByPrefix } from "@/base/growth/discovery";
+import {
+  loadDiscoveryProfile,
+  recordPillClick,
+  setDiscoveryOptOut,
+} from "@/lib/discovery-profile";
 import { useAppStore } from "@/store/useAppStore";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useHasLiveWaves, useMyActiveWave } from "@/hooks/useActiveWave";
@@ -113,6 +119,14 @@ const AiChatCard = memo(function AiChatCard({
  * ➔ AI 对话单行入口 ➔ 活水 Feed ➔ 温情雷达空态。
  * 卖家工作台按裁决收归 我的 → 服务者工作台（ProfilePage 内，e2e-app 锁定）。
  */
+
+/** B4 图纸教育序（新用户冷启动：与 AmmoPillBar 展位同源，改动需同步）。 */
+const FEATURED_PILL_ORDER = [
+  "meetup-social-v1",
+  "housekeeping-v1",
+  "companion-v1",
+  "appliance-repair-v1",
+];
 export default function HomePage() {
   const setScreen = useAppStore((s) => s.setScreen);
   const openExperience = useAppStore((s) => s.openExperience);
@@ -127,6 +141,16 @@ export default function HomePage() {
   const [publishCategory, setPublishCategory] = useState("");
   const [aiInput, setAiInput] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  // B4 发现推荐：画像（订单＋点击＋开关）→ 胶囊动态排序（新用户图纸教育序）。
+  const [discoveryProfile, setDiscoveryProfile] = useState(loadDiscoveryProfile);
+  const handleSelectPill = useCallback((d: { key: string; label: string }) => {
+    const pill = listAmmoPillDescriptors().find((p) => p.label === d.label);
+    if (pill) setDiscoveryProfile(recordPillClick(pill.category));
+    setDraft(d);
+  }, []);
+  const handleTogglePrefs = useCallback(() => {
+    setDiscoveryProfile((prev) => setDiscoveryOptOut(!prev.optOut));
+  }, []);
   // 回调固化：memo 子组件 props 引用稳定，广播同步时才能跳过重渲染
   const handleLaunch = useCallback((text: string) => {
     setDraft({ key: "default-ammo", label: text });
@@ -141,7 +165,22 @@ export default function HomePage() {
   useEffect(() => {
     lockEdgeGesture(showCart || publishOpen || talkOpen);
   }, [showCart, publishOpen, talkOpen]);
-  const ammoPills = useMemo(() => listAmmoPillDescriptors(), []);
+  const ammoPills = useMemo(
+    () => orderPills(listAmmoPillDescriptors(), discoveryProfile, FEATURED_PILL_ORDER),
+    [discoveryProfile],
+  );
+  // B4 输入联想：模板别名前缀/包含匹配（空输入不渲染）。
+  const aiSuggestions = useMemo(() => {
+    if (!aiInput.trim()) return [];
+    const entries = listRegisteredAmmos().flatMap((a) =>
+      (a.holographic?.aliases ?? []).map((alias) => ({
+        alias,
+        category: a.category,
+        label: a.holographic?.aliases?.[0] ?? a.category,
+      })),
+    );
+    return suggestByPrefix(aiInput, entries).map((e) => ({ label: e.alias, hint: e.label }));
+  }, [aiInput]);
   const cart = useAppStore((s) => s.cart);
   const toggleCart = useAppStore((s) => s.toggleCart);
   const clearCart = useAppStore((s) => s.clearCart);
@@ -202,8 +241,10 @@ export default function HomePage() {
                 composing={draft !== null || publishOpen}
                 onLaunch={handleLaunch}
                 onMic={handleMic}
+                suggestions={aiSuggestions}
+                onSuggestSelect={(label) => setAiInput(label)}
               />
-              <AmmoPillBar pills={ammoPills} onSelectDraft={setDraft} variant="compact" hasLiveWaves={hasLiveWaves} />
+              <AmmoPillBar pills={ammoPills} onSelectDraft={handleSelectPill} variant="compact" hasLiveWaves={hasLiveWaves} prefsOn={!discoveryProfile.optOut} onTogglePrefs={handleTogglePrefs} />
               <MorePublishWays
                 onTalk={() => setTalkOpen(true)}
                 chatOpen={chatOpen}

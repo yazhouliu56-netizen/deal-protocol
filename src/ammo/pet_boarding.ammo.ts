@@ -28,6 +28,11 @@ import type {
 } from "../types/ammo-schema.ts";
 import { IMPACT_INHOME_FUZE_TEMPLATE } from "../types/fuze-policy.ts";
 import { assembleAmmo, deepFreeze } from "./factory.ts";
+import {
+  CANCELLATION_4STAGE_STANDARD,
+  R1_TRANSFER_POLICY,
+  STANDARD_SPLIT_85_10_5,
+} from "./baseline.ts";
 
 /* =====================================================================
  * 8 维全息配置（AmmoFactory 装配原料 · 静态审查出厂）
@@ -85,13 +90,8 @@ export const PET_BOARDING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   /* D5 正向钩子（HOOK_OPERATOR_REGISTRY 静态白名单解析） */
   forwardHooks: ["ArrivalCheckHook", "CleaningCheckHook"],
 
-  /* D6 逆向违约阶梯（匹配前全退 → 途中 80%+20 → 现场 50% → 服务中 0%） */
-  cancellationTiers: [
-    { stage: "BEFORE_MATCH", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 0 },
-    { stage: "AFTER_MATCH_EN_ROUTE", demanderRefundRatio: 0.8, providerCompensationYuan: 20, deductDepositRatio: 0.2 },
-    { stage: "ON_SITE", demanderRefundRatio: 0.5, providerCompensationYuan: 0, deductDepositRatio: 0.5 },
-    { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
-  ],
+  /* D6 逆向违约阶梯（匹配前全退 → 途中 80%+20 → 现场 50% → 服务中 0% · L1 基线） */
+  cancellationTiers: [...CANCELLATION_4STAGE_STANDARD],
 
   /* D6.5 SLA 阶段时间纪律（30min 接单 / 60min 出发） */
   slaPhases: {
@@ -101,7 +101,7 @@ export const PET_BOARDING_HOLOGRAPHIC_CONFIG: IHolographicAmmoConfig = {
   fundingMode: "full_prepay",
   /* D7 清算与仲裁（24h 超时代验收 + 分账资金守恒 0.85+0.10+0.05=1.0） */
   autoAcceptanceTimeoutHours: 24,
-  splitRules: { providerRatio: 0.85, platformRatio: 0.1, insuranceRatio: 0.05 },
+  splitRules: { ...STANDARD_SPLIT_85_10_5 },
 
   /* D8 视界与表单（default 主题 + HousekeepingSlot 复用 + 宠物表单） */
   theme: "default",
@@ -153,13 +153,8 @@ if (!_petBoardingAssembled.ok) {
 
 export const petBoardingAmmo: Readonly<IAmmoDefinition> = deepFreeze({
   ..._petBoardingAssembled.ammo,
-  /* ADR-0020 转岗试单：R1 活体＋入户（5 单试单/日限 2/投诉熔断） */
-  transferPolicy: {
-    riskTier: "R1",
-    probationOrders: 5,
-    dailyCap: 2,
-    fuseOnComplaint: true,
-  },
+  /* ADR-0020 转岗试单：R1 活体＋入户（L1 基线 R1_TRANSFER_POLICY） */
+  transferPolicy: { ...R1_TRANSFER_POLICY },
   dispatchRule: {
     weights: { distance: 40, credit: 25, custom: 20, verifiedBonus: 5 },
     hardGates: {

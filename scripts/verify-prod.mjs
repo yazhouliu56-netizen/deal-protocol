@@ -45,3 +45,5 @@ if (failed) {
   process.exit(1);
 }
 console.log(`\nverify-prod: 生产模拟验收全部通过（${suite.length} 个演练项）✓`);
+// B6 hygiene (same as verify-scoped): stop self-started prod server so next build never locks .next.
+run("node scripts/stop-stale-prod.mjs", "stop own prod server (B6 hygiene)");

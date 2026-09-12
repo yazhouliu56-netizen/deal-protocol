@@ -22,10 +22,13 @@ interface HeroAiDemandCabinProps {
   onChange: (v: string) => void;
   onLaunch: (text: string) => void;
   onMic: () => void;
-  /** 有在途单时水豚睁眼（状态变脸，HomePage 同源投影）。 */
+  /** 紧急用途时水豚流汗＋Biru 标语（状态混乱 HomePage 同源投影）。 */
   hasMission?: boolean;
-  /** 起草/发布面板打开时水豚戴侦探帽（searching 态，HomePage 同源投影）。 */
+  /** 组装/发布中时水豚戴墨镜＋searching 态（HomePage 同源投影）。 */
   composing?: boolean;
+  /** B4 输入联想：模板别名匹配（缺省不渲染，E2E 零影响）。 */
+  suggestions?: Array<{ label: string; hint?: string }>;
+  onSuggestSelect?: (label: string) => void;
 }
 
 /** AI 炫彩星芒图标（inline SVG 渐变，aria-hidden，零外部切图）。 */
@@ -83,7 +86,7 @@ function playLaunchChime() {
 
 /* 吉祥物状态表收归 @/components/oto-ui/MascotStates（水豚 5 态：idle/listening/searching/success/sleepy）。 */
 
-function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false, composing = false }: HeroAiDemandCabinProps) {
+function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false, composing = false, suggestions = [], onSuggestSelect }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
   const [focused, setFocused] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
@@ -182,6 +185,34 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             出发!
           </DuoButton>
         </div>
+        {/* B4 输入联想：聚焦且有匹配时展开（缺省 suggestions=[] 不渲染，E2E 零影响） */}
+        {focused && suggestions.length > 0 && (
+          <ul
+            role="listbox"
+            aria-label="需求联想"
+            data-testid="ai-suggest-list"
+            className="mt-2 overflow-hidden rounded-2xl bg-white border-2 border-[var(--color-duo-swan)]"
+          >
+            {suggestions.slice(0, 5).map((s) => (
+              <li key={s.label} role="option" aria-selected="false">
+                <button
+                  type="button"
+                  data-testid={`ai-suggest-${s.label}`}
+                  aria-label={`使用联想：${s.label}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => onSuggestSelect?.(s.label)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-bold text-[var(--color-duo-eel)] active:bg-[var(--color-duo-polar)]"
+                >
+                  <span aria-hidden="true">✨</span>
+                  <span className="truncate">{s.label}</span>
+                  {s.hint && (
+                    <span className="ml-auto shrink-0 text-xs font-normal text-[var(--color-duo-wolf)]">{s.hint}</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {/* 发射庆祝遮罩：C 位水豚弹簧入场报“发射成功”，1.5s 退场 */}
       <AnimatePresence>
