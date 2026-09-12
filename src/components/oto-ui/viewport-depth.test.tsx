@@ -79,6 +79,7 @@ describe("视口景深微缩（Viewport Depth）· 250ms 硬件加速", () => {
     expect(m).not.toBeNull();
     expect(m![1]).toContain("showCart");
     expect(m![1]).toContain("publishOpen");
+    expect(m![1]).toContain("talkOpen");
     expect(m![1]).not.toContain("draft");
   });
 });
