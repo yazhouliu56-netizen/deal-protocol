@@ -18,8 +18,10 @@ import type { ISplitRetrySchedule } from "../../types/ammo-schema.ts";
 export const DEFAULT_DEPOSIT_RATE = 0.3;
 /** 默认平台抽成率（映射 api/payment/release 与 m13 commission 0.10）。 */
 export const DEFAULT_PLATFORM_RATE = 0.1;
-/** 满意度暂存比例（m13 satisfactionHold = holdAmount × 0.1）。 */
-export const SATISFACTION_HOLD_RATIO = 0.1;
+/** 满意度暂存比例（用户裁决 2026-09-16：Type1 通用 15%）。
+ * 收敛声明：本常量为存量别名，唯一真相源 = base/money/type1-settlement.ts
+ * ＋ protocol 表 satisfaction_hold；新增代码禁引本常量。零实际消费方（经 grep 核实）。 */
+export const SATISFACTION_HOLD_RATIO = 0.15;
 /** 违约罚金比例（isBreach 时 provider 应得部分扣 20% 归需求方抵扣）。 */
 export const BREACH_PENALTY_RATE = 0.2;
 /** 服务中上门费/检测费封顶（m13 DEPARTED ¥50 / ARRIVED ¥100）。 */

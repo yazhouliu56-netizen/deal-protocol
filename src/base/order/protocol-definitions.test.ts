@@ -27,7 +27,7 @@ test("housekeeping 投影：7 态 17 转换 + 金额/时机与 ammo 一致", () 
   assert.equal(d.transitions.length, 17);
   assert.equal(d.serviceStages?.length, 6);
   assert.equal(d.funding.fees.platform_commission, 0.15);
-  assert.equal(d.funding.fees.satisfaction_hold, 0.1);
+  assert.equal(d.funding.fees.satisfaction_hold, 0.15);
   assert.equal(d.completion.autoTimeoutSeconds, 24 * 3600);
   assert.equal(d.refundRules?.length, 6);
   // 退款计算权威在 Base 合同引擎（旧 engine.calcRefund 语义等价）

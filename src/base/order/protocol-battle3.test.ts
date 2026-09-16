@@ -33,7 +33,7 @@ test("快照：protocol_housekeeping 投影指纹与重构前逐键等价", () =
   assert.equal(d!.states.length, 7);
   assert.equal(d!.transitions.length, 17);
   assert.equal(d!.funding.fees.platform_commission, 0.15);
-  assert.equal(d!.funding.fees.satisfaction_hold, 0.1);
+  assert.equal(d!.funding.fees.satisfaction_hold, 0.15);
   assert.equal(d!.funding.autoReleaseTimeout, 7 * 86400);
   assert.deepEqual(d!.slaPhases, { ACCEPTED: 1800, DEPARTED: 3600 });
   assert.equal(d!.refundRules?.length, 6);

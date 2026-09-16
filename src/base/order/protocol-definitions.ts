@@ -87,7 +87,8 @@ const BASE_PROTOCOL_DEF: ProtocolDef = {
     release: ["on_confirm"],
     fees: {
       platform_commission: 0.15,
-      satisfaction_hold: 0,
+      // Type1 通用默认 15%（用户裁决 2026-09-16；Type2 commitment 在各自 meta 显式 0 覆盖）。
+      satisfaction_hold: 0.15,
     },
     autoReleaseTimeout: 7 * 86400,
   },
@@ -305,7 +306,8 @@ const HOUSEKEEPING_PROTO_META: Parameters<typeof projectAmmoToProtocol>[1] = {
         release: ["on_confirm", "auto_timeout"],
         fees: {
           platform_commission: 0.15,
-          satisfaction_hold: 0.1,
+          // Type1 通用 15%（用户裁决 2026-09-16；唯一真相源见 base/money/type1-settlement.ts）。
+          satisfaction_hold: 0.15,
         },
       },
 
@@ -1019,7 +1021,8 @@ export function projectDynamicAmmo(ammo: IAmmoDefinition): ProtocolDef {
       mode: (ammo.holographic?.fundingMode ?? "full_prepay") as ProtocolDef["funding"]["mode"],
       hold: "platform_escrow",
       release: ["on_confirm", "auto_timeout"],
-      fees: { platform_commission: 0.15, satisfaction_hold: 0 },
+      // Type1 通用 15%（用户裁决 2026-09-16；动态长尾与官方弹药同口径）。
+      fees: { platform_commission: 0.15, satisfaction_hold: 0.15 },
     },
     states: BASE_PROTOCOL_DEF.states,
     transitions: BASE_PROTOCOL_DEF.transitions,
