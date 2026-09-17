@@ -11,6 +11,7 @@ import {
   subjectiveGoodRate,
   subjectiveTierScore,
   tierFromBayesianWindow,
+  toPunctualFlags,
 } from "./bayesian-rating.ts";
 import type { CreditSample } from "./credit-window.ts";
 
@@ -46,6 +47,19 @@ test("双率：客观=准时率，主观=≥2 勾占比；空窗回 null", () =>
   assert.deepEqual(objectiveGoodRate([true, true, false]), { rate: 2 / 3, n: 3 });
   assert.deepEqual(subjectiveGoodRate([3, 2, 1, 0]), { rate: 0.5, n: 4 });
   assert.deepEqual(objectiveGoodRate([]), { rate: null, n: 0 });
+});
+
+test("准时 flag：仅完工计入，违约记 false，非完工丢弃（R6）", () => {
+  assert.deepEqual(
+    toPunctualFlags([
+      { completed: true, breached: false },
+      { completed: true, breached: true },
+      { completed: false, breached: false },
+      { completed: false, breached: true },
+    ]),
+    [true, false],
+  );
+  assert.deepEqual(toPunctualFlags([]), []);
 });
 
 test("窗内定档：新人保护沿用旧 tier；全满冲 Lv5", () => {

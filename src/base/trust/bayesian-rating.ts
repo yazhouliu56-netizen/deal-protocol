@@ -75,6 +75,17 @@ export function objectiveGoodRate(punctualFlags: boolean[]): DualRate {
   return { rate: punctualFlags.filter(Boolean).length / n, n };
 }
 
+/**
+ * 完工行 → 准时 flag（R6 · 用户裁决 2026-09-18）：
+ * 仅完工单计入（COMPLETED/SATISFACTION_HELD/SETTLED），有 sla_breach 记 false；
+ * 纠纷/取消/退款等非完工行不计入（调用方过滤，completed=false 的行直接丢弃）。
+ */
+export function toPunctualFlags(
+  rows: { completed: boolean; breached: boolean }[],
+): boolean[] {
+  return rows.filter((r) => r.completed).map((r) => !r.breached);
+}
+
 /** 主观好评率 = ≥2 勾（完美＋好评）占比。 */
 export function subjectiveGoodRate(passedCounts: number[]): DualRate {
   const n = passedCounts.length;

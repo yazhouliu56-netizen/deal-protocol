@@ -54,6 +54,8 @@ interface AggregateState {
   kGate: boolean;
   goodRate: number | null;
   n: number;
+  objectiveRate: number | null;
+  objectiveN: number;
   details: { alias: string; when: string; passedCount: number; comment: string | null; tags: unknown }[];
 }
 
@@ -106,6 +108,8 @@ export default function ReviewSection({
             kGate: data.kGate === true,
             goodRate: typeof data.subjectiveGoodRate === "number" ? data.subjectiveGoodRate : null,
             n: typeof data.n === "number" ? data.n : 0,
+            objectiveRate: typeof data.objectiveGoodRate === "number" ? data.objectiveGoodRate : null,
+            objectiveN: typeof data.objectiveN === "number" ? data.objectiveN : 0,
             details: Array.isArray(data.details) ? data.details : [],
           });
         }
@@ -272,12 +276,15 @@ export default function ReviewSection({
         )
       )}
 
-      {/* 对方聚合双率（k 门未过只显示积累中，不露明细） */}
-      {agg && agg.n > 0 && (
+      {/* 对方聚合双率（k 门未过只显示积累中，不露明细；客观率无明细恒展示） */}
+      {agg && (agg.n > 0 || agg.objectiveN > 0) && (
         <p className="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] text-[var(--color-duo-wolf)]">
+          {agg.objectiveRate != null
+            ? `对方准时率 ${Math.round(agg.objectiveRate * 100)}% · ${agg.objectiveN} 单`
+            : `对方准时率积累中`}
           {agg.goodRate != null
-            ? `对方主观好评率 ${Math.round(agg.goodRate * 100)}% · ${agg.n} 单`
-            : `对方评价积累中（${REVIEW_K_ANONYMITY} 条后展示明细）`}
+            ? ` ｜ 主观好评率 ${Math.round(agg.goodRate * 100)}% · ${agg.n} 单`
+            : ` ｜ 主观评价积累中（${REVIEW_K_ANONYMITY} 条后展示明细）`}
         </p>
       )}
 

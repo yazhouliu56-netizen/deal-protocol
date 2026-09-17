@@ -19,7 +19,7 @@ import {
   revealAt,
 } from "@/base/trust/review-privacy";
 import { decayLabel } from "@/base/trust/review";
-import { subjectiveGoodRate } from "@/base/trust/bayesian-rating";
+import { objectiveGoodRate, subjectiveGoodRate, toPunctualFlags } from "@/base/trust/bayesian-rating";
 
 /** 三勾→星翻译表（默认锁定：3→5 / 2→4 / 1→2 / 0→1，改一行即换）。 */
 const CHECKS_TO_STARS = [1, 2, 4, 5] as const;
@@ -289,6 +289,32 @@ export const GET = withAuth(async (req, user) => {
   const good = subjectiveGoodRate(
     rows.map((r) => r.passed_count ?? 0),
   );
+  // R6 客观率（用户裁决 2026-09-18）：完工单派生准时 flag，有 sla_breach 记迟到；
+  // 只给聚合（rate＋n），无明细；链路缺席回 null，不拦主观。
+  let objective: { rate: number | null; n: number } = { rate: null, n: 0 };
+  try {
+    const done = await supabase
+      .from('contracts')
+      .select('id')
+      .eq('provider_id', revieweeId)
+      .in('fund_status', ['COMPLETED', 'SATISFACTION_HELD', 'SETTLED']);
+    const ids = ((done.data ?? []) as { id: string }[]).map((c) => c.id);
+    if (ids.length > 0) {
+      const breached = await supabase
+        .from('contract_events')
+        .select('contract_id')
+        .in('contract_id', ids)
+        .eq('action', 'sla_breach');
+      const breachedIds = new Set(
+        ((breached.data ?? []) as { contract_id: string }[]).map((e) => e.contract_id),
+      );
+      objective = objectiveGoodRate(
+        toPunctualFlags(ids.map((id) => ({ completed: true, breached: breachedIds.has(id) }))),
+      );
+    }
+  } catch (e) {
+    console.warn("objective rate skipped:", e);
+  }
   const nowMs = now;
   const details = kGatePassed(rows.length)
     ? rows
@@ -305,6 +331,8 @@ export const GET = withAuth(async (req, user) => {
   return NextResponse.json({
     subjectiveGoodRate: good.rate,
     n: good.n,
+    objectiveGoodRate: objective.rate,
+    objectiveN: objective.n,
     kGate: kGatePassed(rows.length),
     details,
     mutual,
