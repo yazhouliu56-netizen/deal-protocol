@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase-client"
+import { getServiceClient } from "@/lib/supabase-client"
 import { getConfig } from "@/lib/platform/config"
 
 export async function checkCancelPenalty(userId: string): Promise<{
@@ -11,7 +11,8 @@ export async function checkCancelPenalty(userId: string): Promise<{
   const config = await getConfig()
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const supabase = getSupabase()
+  // R10：匿名读 contracts 全被 parties 策略过滤 → cancelCount 恒 0 = 罚则静默失效；走 service。
+  const supabase = getServiceClient()
 
   const { count } = await supabase
     .from('contracts')

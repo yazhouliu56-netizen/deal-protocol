@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { matchNearby } from '@/modules/m05-geo-index/geo-service'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
 import { getCreditScore, isColdStart, getNewbornProtectionFactor, getWeekendMultiplier } from '@/modules/m07-credit/credit-engine'
@@ -123,7 +123,7 @@ async function processCandidates(
   const creditResults = await batchLoadCreditScores(providerIds)
   const creditMap = new Map(creditResults.map((c) => [c.userId, c]))
 
-  const { data: walletData } = await getSupabase()
+  const { data: walletData } = await getServiceClient()
     .from('provider_wallets')
     .select('provider_id, deposit_amount, is_staked')
     .in('provider_id', providerIds)
@@ -209,7 +209,7 @@ async function processCandidates(
   const ranked = await rankerToUse.rank(candidateRecords)
   const topCandidates = ranked.slice(0, 10)
 
-  const { data: tipProtocol } = await getSupabase()
+  const { data: tipProtocol } = await getServiceClient()
     .from('protocols')
     .select('core_fields')
     .eq('id', protocolId)
@@ -223,7 +223,7 @@ async function processCandidates(
   }))
   boostedCandidates.sort((a, b) => b.credit_score - a.credit_score)
 
-  await getSupabase()
+  await getServiceClient()
     .from('protocols')
     .update({ status: 'matching' })
     .eq('id', protocolId)
@@ -250,7 +250,7 @@ async function checkQualifications(
   category: string,
   requiredQuals: string[],
 ): Promise<boolean> {
-  const { data } = await getSupabase()
+  const { data } = await getServiceClient()
     .from('provider_qualifications')
     .select('qualification_type, verified')
     .eq('user_id', userId)
@@ -271,7 +271,7 @@ async function maybeActivateBandit(category: string, candidates: CandidateProvid
   if (currentRanker instanceof StaticRanker === false) return currentRanker
 
   for (const c of candidates) {
-    const { data } = await getSupabase()
+    const { data } = await getServiceClient()
       .from('credit_records')
       .select('base_total_deals')
       .eq('user_id', c.provider_id)
@@ -291,12 +291,12 @@ async function maybeActivateBandit(category: string, candidates: CandidateProvid
 }
 
 async function logEmptyPool(protocolId: string, category: string): Promise<void> {
-  await getSupabase().from('evidence_log').insert({
+  await getServiceClient().from('evidence_log').insert({
     protocol_id: protocolId,
     event_type: 'match_empty',
     payload: { category, reason: 'No candidates found after all escalation steps' },
   })
-  await getSupabase().from('admin_tasks').insert({
+  await getServiceClient().from('admin_tasks').insert({
     protocol_id: protocolId,
     type: 'manual_assignment',
     payload: { category, reason: 'Empty candidate pool after 20km expansion' },

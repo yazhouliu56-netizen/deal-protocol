@@ -1,6 +1,6 @@
 import { tool } from "ai"
 import { z } from "zod"
-import { getSupabase } from "@/lib/supabase-client"
+import { getServiceClient } from "@/lib/supabase-client"
 
 const classifyParams = z.object({
   text: z.string().optional().describe("The user's original request text"),
@@ -72,7 +72,7 @@ export const generateProtocolTool = tool({
   description: "Generate a smart protocol card based on a classified demand's category. Must be called AFTER classifyDemand.",
   inputSchema: generateParams,
   execute: async ({ category, title, description }: z.infer<typeof generateParams>) => {
-    const supabase = getSupabase()
+    const supabase = getServiceClient()
     const { data: config } = await supabase
       .from("category_configs")
       .select("*")
@@ -120,7 +120,7 @@ export const createDemandTool = tool({
   description: "Create a demand in the database after the user confirms. Must be called AFTER the user explicitly confirms.",
   inputSchema: createParams,
   execute: async (params: z.infer<typeof createParams>) => {
-    const supabase = getSupabase()
+    const supabase = getServiceClient()
 
     const { data: demand, error } = await supabase
       .from("demands")

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { __setSupabaseClient, __resetSupabaseClient } from '../src/lib/supabase-client'
+import { __setServiceClient, __resetServiceClient } from '../src/lib/supabase-client'
 
 vi.mock('../src/modules/m11-evidence-log/evidence-chain', () => ({
   appendEvidence: vi.fn(),
@@ -23,7 +23,7 @@ describe('M07 Cross-Category Score Isolation', () => {
   beforeEach(() => {
     chain = new MockChain()
     chain.single.mockResolvedValue({ data: { id: 'test-evidence-id' } })
-    __setSupabaseClient({ from: chain.from })
+    __setServiceClient({ from: chain.from })
 
     appendEvidence.mockResolvedValue({
       id: 'ev-1',
@@ -40,7 +40,7 @@ describe('M07 Cross-Category Score Isolation', () => {
   })
 
   afterEach(() => {
-    __resetSupabaseClient()
+    __resetServiceClient()
   })
 
   it('getCreditScore returns different scores for different categories', async () => {

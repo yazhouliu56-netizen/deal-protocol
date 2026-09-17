@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { callLLM } from '@/lib/llm-adapter'
 
 interface FulfillmentSnapshot {
@@ -9,7 +9,7 @@ interface FulfillmentSnapshot {
 export async function generateFulfillmentSnapshot(
   contractId: string,
 ): Promise<FulfillmentSnapshot | null> {
-  const { data: contract } = await getSupabase()
+  const { data: contract } = await getServiceClient()
     .from('contracts')
     .select('id, protocol_id, demander_id, provider_id, amount, status, created_at')
     .eq('id', contractId)
@@ -17,7 +17,7 @@ export async function generateFulfillmentSnapshot(
 
   if (!contract) return null
 
-  const { data: evidenceRows } = await getSupabase()
+  const { data: evidenceRows } = await getServiceClient()
     .from('evidence_log')
     .select('event_type, payload, created_at')
     .or(`protocol_id.eq.${contract.protocol_id},order_id.eq.${contractId}`)

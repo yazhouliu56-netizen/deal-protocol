@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import type { CreditDimension } from '@/lib/contracts'
 import { computeCompositeScore, ageFactor, decayFactor } from "@/base/trust/credit-formula"
@@ -63,7 +63,7 @@ function calculateDelta(eventType: string): Partial<Record<CreditDimension, numb
 }
 
 export async function updateCredit(input: CreditUpdateInput): Promise<{ success: boolean; newScore?: number }> {
-  const { data: evidence } = await getSupabase()
+  const { data: evidence } = await getServiceClient()
     .from('evidence_log')
     .select('id')
     .eq('id', input.evidenceId)
@@ -73,7 +73,7 @@ export async function updateCredit(input: CreditUpdateInput): Promise<{ success:
     throw new Error('Credit update must reference an existing evidence_log record')
   }
 
-  const { data: current } = await getSupabase()
+  const { data: current } = await getServiceClient()
     .from('credit_records')
     .select('*')
     .eq('user_id', input.userId)
@@ -114,11 +114,11 @@ export async function updateCredit(input: CreditUpdateInput): Promise<{ success:
     upsertData[dimCol(dim)] = dims[dim]
   }
 
-  await getSupabase().from('credit_records').upsert(upsertData)
+  await getServiceClient().from('credit_records').upsert(upsertData)
 
   for (const [dim, delta] of Object.entries(deltaMap)) {
     const d = dim as CreditDimension
-    await getSupabase().from('credit_events').insert({
+    await getServiceClient().from('credit_events').insert({
       user_id: input.userId,
       dimension: d,
       category: rowCategory,
@@ -148,7 +148,7 @@ export async function updateCredit(input: CreditUpdateInput): Promise<{ success:
     import('@/lib/fulfillment-summarizer').then(({ generateFulfillmentSnapshot }) => {
       generateFulfillmentSnapshot(input.contractId!).then(async (snapshot) => {
         if (snapshot) {
-          await getSupabase()
+          await getServiceClient()
             .from('credit_events')
             .update({
               sentiment: snapshot.sentiment,
@@ -180,7 +180,7 @@ export const DECAY_CONFIG = {
  * 返回: 衰减后的新分数（如未衰减则返回当前分数）
  */
 export async function applyCreditDecay(userId: string): Promise<number | null> {
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
 
   const { data: credit } = await supabase
     .from('credit_records')
@@ -249,7 +249,7 @@ export async function applyCreditDecay(userId: string): Promise<number | null> {
  * 设计方案§5.6: 定时任务调用
  */
 export async function applyBulkCreditDecay(): Promise<{ processed: number; decayed: number }> {
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
 
   const { data: allCredits } = await supabase
     .from('credit_records')
@@ -273,7 +273,7 @@ export async function getCreditScore(userId: string, category?: string): Promise
   dimensions: Record<string, number>
   baseTotalDeals: number
 }> {
-  const query = getSupabase()
+  const query = getServiceClient()
     .from('credit_records')
     .select('*')
     .eq('user_id', userId)
@@ -320,7 +320,7 @@ export function getWeekendMultiplier(): number {
 }
 
 export async function isColdStart(userId: string, category?: string): Promise<boolean> {
-  const { data } = await getSupabase()
+  const { data } = await getServiceClient()
     .from('credit_records')
     .select('base_total_deals')
     .eq('user_id', userId)

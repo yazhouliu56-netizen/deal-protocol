@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from '@/modules/m07-credit/credit-engine'
 
@@ -55,7 +55,7 @@ export interface TeamInfo {
 }
 
 export async function createTeamProtocol(input: TeamProtocolInput): Promise<CreateTeamResult> {
-  const { data: protocol } = await getSupabase()
+  const { data: protocol } = await getServiceClient()
     .from('protocols')
     .insert({
       demander_id: input.leaderId,
@@ -73,7 +73,7 @@ export async function createTeamProtocol(input: TeamProtocolInput): Promise<Crea
 
   const requestIds: string[] = []
   for (const tr of input.teamRequests) {
-    const { data: req } = await getSupabase()
+    const { data: req } = await getServiceClient()
       .from('team_requests')
       .insert({
         parent_protocol_id: protocol.id,
@@ -109,7 +109,7 @@ export async function createTeamProtocol(input: TeamProtocolInput): Promise<Crea
 }
 
 export async function addTeamRequest(input: TeamRequestInput): Promise<TeamRequestResult> {
-  const { data: req } = await getSupabase()
+  const { data: req } = await getServiceClient()
     .from('team_requests')
     .insert({
       parent_protocol_id: input.parentProtocolId,
@@ -130,7 +130,7 @@ export async function expressTeamInterest(
   requestId: string,
   providerId: string,
 ): Promise<{ success: boolean }> {
-  const { data: req } = await getSupabase()
+  const { data: req } = await getServiceClient()
     .from('team_requests')
     .select('id, status')
     .eq('id', requestId)
@@ -152,7 +152,7 @@ export async function fillTeamSlot(
   requestId: string,
   providerId: string,
 ): Promise<{ success: boolean }> {
-  const { data: req } = await getSupabase()
+  const { data: req } = await getServiceClient()
     .from('team_requests')
     .select('id, status, parent_protocol_id, leader_id, reward')
     .eq('id', requestId)
@@ -160,7 +160,7 @@ export async function fillTeamSlot(
 
   if (!req || req.status !== 'open') return { success: false }
 
-  const { error } = await getSupabase()
+  const { error } = await getServiceClient()
     .from('team_requests')
     .update({ status: 'filled', member_id: providerId })
     .eq('id', requestId)
@@ -195,7 +195,7 @@ export async function releaseSubTaskPayout(input: {
   subTaskAmount: number
   subTaskTitle: string
 }): Promise<{ success: boolean; settledAmount: number }> {
-  const { data: order } = await getSupabase()
+  const { data: order } = await getServiceClient()
     .from('orders')
     .select('id, amount, escrow_status')
     .eq('protocol_id', input.contractId)
@@ -211,7 +211,7 @@ export async function releaseSubTaskPayout(input: {
 
   await performWalletTransfer(input.memberId, netAmount, `Sub-task payout: ${input.subTaskTitle} (contract ${input.contractId})`)
 
-  await getSupabase()
+  await getServiceClient()
     .from('team_requests')
     .update({ sub_task_status: 'SETTLED', settled_amount: netAmount })
     .eq('parent_protocol_id', input.contractId)
@@ -233,20 +233,20 @@ export async function releaseSubTaskPayout(input: {
 }
 
 async function performWalletTransfer(userId: string, amount: number, description: string): Promise<void> {
-  const { data: wallet } = await getSupabase()
+  const { data: wallet } = await getServiceClient()
     .from('provider_wallets')
     .select('balance')
     .eq('provider_id', userId)
     .single()
 
   if (wallet) {
-    await getSupabase()
+    await getServiceClient()
       .from('provider_wallets')
       .update({ balance: Math.round((Number(wallet.balance) + amount) * 100) / 100 })
       .eq('provider_id', userId)
   }
 
-  await getSupabase()
+  await getServiceClient()
     .from('wallet_logs')
     .insert({
       provider_id: userId,
@@ -258,7 +258,7 @@ async function performWalletTransfer(userId: string, amount: number, description
 }
 
 export async function getTeamInfo(protocolId: string): Promise<TeamInfo> {
-  const { data: protocol } = await getSupabase()
+  const { data: protocol } = await getServiceClient()
     .from('protocols')
     .select('provider_id')
     .eq('id', protocolId)
@@ -270,13 +270,13 @@ export async function getTeamInfo(protocolId: string): Promise<TeamInfo> {
 
   const leaderId = protocol.provider_id
 
-  const { data: leaderUser } = await getSupabase()
+  const { data: leaderUser } = await getServiceClient()
     .from('users')
     .select('id, nickname')
     .eq('id', leaderId)
     .single()
 
-  const { data: allRequests } = await getSupabase()
+  const { data: allRequests } = await getServiceClient()
     .from('team_requests')
     .select('*')
     .eq('parent_protocol_id', protocolId)

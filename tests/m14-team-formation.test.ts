@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/lib/supabase-client', () => ({
-  getSupabase: vi.fn(),
+  getServiceClient: vi.fn(),
 }))
 
 vi.mock('@/modules/m11-evidence-log/evidence-chain', () => ({
@@ -12,7 +12,7 @@ vi.mock('@/modules/m07-credit/credit-engine', () => ({
   updateCredit: vi.fn(),
 }))
 
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { addTeamRequest, expressTeamInterest, fillTeamSlot, getTeamInfo } from '@/modules/m14-team-formation/team-formation'
 
@@ -36,7 +36,7 @@ describe('M14 Team Formation', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    getSupabase.mockReturnValue({ from: chain.from })
+    getServiceClient.mockReturnValue({ from: chain.from })
     appendEvidence.mockResolvedValue({
       id: 'ev-1',
       protocol_id: 'proto-1',

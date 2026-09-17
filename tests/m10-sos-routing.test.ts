@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { __setSupabaseClient, __resetSupabaseClient } from '../src/lib/supabase-client'
+import { __setSupabaseClient, __setServiceClient, __resetServiceClient } from '../src/lib/supabase-client'
 
 vi.mock('../src/modules/m11-evidence-log/evidence-chain', () => ({
   appendEvidence: vi.fn(),
@@ -31,7 +31,7 @@ describe('M10 SOS Routing Exclusion', () => {
 
   beforeEach(() => {
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from })
+    __setServiceClient({ from: chain.from })
     chain.single.mockResolvedValue({ data: null, error: null })
     chain.maybeSingle.mockResolvedValue({ data: null, error: null })
 
@@ -53,7 +53,7 @@ describe('M10 SOS Routing Exclusion', () => {
   })
 
   afterEach(() => {
-    __resetSupabaseClient()
+    __resetServiceClient()
   })
 
   it('suspended provider is excluded from matchNearby results via is_online=false', async () => {

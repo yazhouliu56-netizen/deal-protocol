@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { BanditRanker, recordReward } from '../src/modules/m08-bandit/bandit-ranker'
-import { __setSupabaseClient, __resetSupabaseClient } from '../src/lib/supabase-client'
+import { __setServiceClient, __resetServiceClient } from '../src/lib/supabase-client'
 import type { CandidateProvider } from '../src/lib/contracts'
 
 type MockResponse = { data: unknown; error: unknown }
@@ -22,11 +22,11 @@ describe('M08 Bandit Ranker', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     chain = new MockChain()
-    __setSupabaseClient({ from: chain.from })
+    __setServiceClient({ from: chain.from })
   })
 
   afterEach(() => {
-    __resetSupabaseClient()
+    __resetServiceClient()
   })
 
   describe('BanditRanker', () => {

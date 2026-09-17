@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { callLLM } from '@/lib/llm-adapter'
 
 interface ConciergeMessage {
@@ -21,7 +21,7 @@ export async function buildConciergeContext(userId: string, lastUserMessage?: st
   if (!userId) return messages
 
   try {
-    const { data: activeContracts } = await getSupabase()
+    const { data: activeContracts } = await getServiceClient()
       .from('contracts')
       .select('id, service_stage, core_fields')
       .or(`demander_id.eq.${userId},provider_id.eq.${userId}`)

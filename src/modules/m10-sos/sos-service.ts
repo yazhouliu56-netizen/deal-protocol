@@ -1,7 +1,7 @@
 // M10: SOS 与安全应急
 // 五步触发链：①冻结订单→②推送安全值班→③共享位置→④报警指引→⑤暂停接单
 
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from '@/modules/m07-credit/credit-engine'
 
@@ -24,7 +24,7 @@ export async function triggerSOS(input: SOSInput): Promise<SOSResult> {
   const now = new Date().toISOString()
 
   // ======== ① 冻结当前订单 ========
-  await getSupabase()
+  await getServiceClient()
     .from('protocols')
     .update({ status: 'disputed' })
     .eq('id', input.protocolId)
@@ -49,14 +49,14 @@ export async function triggerSOS(input: SOSInput): Promise<SOSResult> {
   await notifyEmergencyContact(input)
 
   // ======== ④ 获取服务者信息，暂停接单 ========
-  const { data: protocol } = await getSupabase()
+  const { data: protocol } = await getServiceClient()
     .from('protocols')
     .select('provider_id, category')
     .eq('id', input.protocolId)
     .single()
 
   if (protocol?.provider_id) {
-    await getSupabase()
+    await getServiceClient()
       .from('provider_categories')
       .update({ is_online: false })
       .eq('user_id', protocol.provider_id)
@@ -81,14 +81,14 @@ export async function triggerSOS(input: SOSInput): Promise<SOSResult> {
 async function notifySecurityTeam(input: SOSInput, level: string): Promise<void> {
   const message = `[M10] SOS: user ${input.userId} triggered alert on protocol ${input.protocolId} at (${input.latitude}, ${input.longitude})`
 
-  const { data: admins } = await getSupabase()
+  const { data: admins } = await getServiceClient()
     .from('profiles')
     .select('id, phone')
     .eq('role', 'ADMIN')
 
   if (admins && admins.length > 0) {
     for (const admin of admins) {
-      await getSupabase().from('notifications').insert({
+      await getServiceClient().from('notifications').insert({
         user_id: admin.id,
         title: 'SOS Alert',
         body: message,
@@ -151,7 +151,7 @@ async function notifyEmergencyContact(input: SOSInput): Promise<void> {
 
   let contacts: { name: string; phone: string }[] = []
 
-  const { data: emergencyContacts } = await getSupabase()
+  const { data: emergencyContacts } = await getServiceClient()
     .from('emergency_contacts')
     .select('name, phone')
     .eq('user_id', input.userId)
@@ -159,7 +159,7 @@ async function notifyEmergencyContact(input: SOSInput): Promise<void> {
   if (emergencyContacts && emergencyContacts.length > 0) {
     contacts = emergencyContacts
   } else {
-    const { data: profile } = await getSupabase()
+    const { data: profile } = await getServiceClient()
       .from('profiles')
       .select('name, phone')
       .eq('id', input.userId)
@@ -216,7 +216,7 @@ export async function getSOSStatus(protocolId: string): Promise<{
   protocolStatus: string
   providerSuspended: boolean
 } | null> {
-  const { data: protocol } = await getSupabase()
+  const { data: protocol } = await getServiceClient()
     .from('protocols')
     .select('status, provider_id')
     .eq('id', protocolId)
@@ -226,7 +226,7 @@ export async function getSOSStatus(protocolId: string): Promise<{
 
   let providerSuspended = false
   if (protocol.provider_id) {
-    const { data: pc } = await getSupabase()
+    const { data: pc } = await getServiceClient()
       .from('provider_categories')
       .select('is_online')
       .eq('user_id', protocol.provider_id)
@@ -234,7 +234,7 @@ export async function getSOSStatus(protocolId: string): Promise<{
     providerSuspended = pc?.is_online === false
   }
 
-  const { data: sosEv } = await getSupabase()
+  const { data: sosEv } = await getServiceClient()
     .from('evidence_log')
     .select('id')
     .eq('protocol_id', protocolId)

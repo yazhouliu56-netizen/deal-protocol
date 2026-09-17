@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getSupabase } from "@/lib/supabase-client";
+import { getServiceClient } from "@/lib/supabase-client";
 import { addContractEvent } from "@/lib/contract/events";
 import { handleSatisfactionBatch, releaseSatisfactionOrder } from "@/lib/contract/satisfaction";
 // D-5 Phase E：协议定义资产归位 Base + 超时放款校验收编 Base 纯函数核
@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = getSupabase();
+  // R10：cron 系 CRON_SECRET 自证的系统节拍，无用户会话——必须走 service；
+  // 匿名读 contracts/orders 全被 parties 策略过滤，写全被拒（RLS 全断血训）。
+  const supabase = getServiceClient();
   const results: string[] = [];
 
   try {

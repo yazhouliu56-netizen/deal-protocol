@@ -1,4 +1,4 @@
-import { getSupabase } from '@/lib/supabase-client'
+import { getServiceClient } from '@/lib/supabase-client'
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 
 export async function processReferralCommission(
@@ -9,7 +9,7 @@ export async function processReferralCommission(
   const rewardAmount = Math.round(totalCommission * commissionRate * 100) / 100
   if (rewardAmount <= 0) return { rewarded: false }
 
-  const { data: protocol } = await getSupabase()
+  const { data: protocol } = await getServiceClient()
     .from('protocols')
     .select('demander_id, provider_id')
     .eq('id', protocolId)
@@ -17,7 +17,7 @@ export async function processReferralCommission(
 
   if (!protocol) return { rewarded: false }
 
-  const { data: buyer } = await getSupabase()
+  const { data: buyer } = await getServiceClient()
     .from('profiles')
     .select('referrer_id')
     .eq('id', protocol.demander_id)
@@ -27,7 +27,7 @@ export async function processReferralCommission(
 
   if (!referrerId) return { rewarded: false }
 
-  const { data: wallet } = await getSupabase()
+  const { data: wallet } = await getServiceClient()
     .from('provider_wallets')
     .select('balance')
     .eq('provider_id', referrerId)
@@ -38,17 +38,17 @@ export async function processReferralCommission(
     : rewardAmount
 
   if (wallet) {
-    await getSupabase()
+    await getServiceClient()
       .from('provider_wallets')
       .update({ balance: newBalance })
       .eq('provider_id', referrerId)
   } else {
-    await getSupabase()
+    await getServiceClient()
       .from('provider_wallets')
       .insert({ provider_id: referrerId, balance: rewardAmount })
   }
 
-  await getSupabase()
+  await getServiceClient()
     .from('wallet_logs')
     .insert({
       provider_id: referrerId,
