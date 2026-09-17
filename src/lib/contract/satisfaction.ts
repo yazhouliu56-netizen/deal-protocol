@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/supabase-client"
+import { getConfig } from "@/lib/platform/config"
 import { addContractEvent } from "./events"
 import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
@@ -143,8 +144,15 @@ export async function releaseSatisfactionOrder(
     /* 评价表缺席 = 无评价，全返 */
   }
 
-  // 方程真相源：85/15 内生（弹药表非零 hold 恒 0.15；hold=0 协议从不进 HELD，到此必为 85/15 单）
-  const settled = settleType1(totalCents, pass, 0);
+  // 方程真相源：85/15 内生（弹药表非零 hold 恒 0.15；hold=0 协议从不进 HELD，到此必为 85/15 单）。
+  // P3：佣金率＋份额由 platform_config 注入（纯核只收数；当前佣金 0，sunset 翻转即生效）。
+  let commissionRate = 0
+  try {
+    commissionRate = (await getConfig()).fees.commissionRate ?? 0
+  } catch {
+    /* 配置缺席回落 0（免费政策方向 fail-safe） */
+  }
+  const settled = settleType1(totalCents, pass, 0, { commissionRate });
   const providerNet = settled.providerNetCents / 100
   const qualityFee = settled.qualityFeeCents / 100
 
@@ -196,6 +204,19 @@ export async function releaseSatisfactionOrder(
       },
     ])
     if (logError) throw logError
+    // P3：佣金记账（当前 0；sunset 翻转后每单落 transactions，平台收入有出处）。
+    const commission = settled.commissionCents / 100
+    if (commission > 0) {
+      const { error: commissionError } = await supabase.from('transactions').insert({
+        user_id: contract.provider_id,
+        type: 'COMMISSION',
+        amount: -commission,
+        balance_before: base,
+        balance_after: Math.round((base + providerNet) * 100) / 100,
+        description: `72h单单释放: 合同 ${contractId} 平台佣金¥${commission}`,
+      })
+      if (commissionError) throw commissionError
+    }
   }
 
   const { error: updateContractError } = await supabase

@@ -1,6 +1,6 @@
 /**
- * Type1 结算真相源考卷（P0 治本收敛 · 用户裁决 2026-09-16）。
- * 锁：守恒方程 providerNet + qualityFee + channelFee ≡ total（全组合 fuzz）+
+ * Type1 结算真相源考卷（P0 治本收敛 · 用户裁决 2026-09-16；P3 五项扩展）。
+ * 锁：守恒方程 providerNet + qualityFee + commission + channelFee ≡ total（全组合 fuzz）+
  * 默认全返 + 三勾等权 + 通道费 + 窗常量跨锁 review.ts。
  */
 import { test } from "node:test";
@@ -25,7 +25,7 @@ function assertConservation(
   fee: number,
 ): void {
   const r = settleType1(total, pass, fee);
-  assert.equal(r.providerNetCents + r.qualityFeeCents + r.channelFeeCents, total);
+  assert.equal(r.providerNetCents + r.qualityFeeCents + r.commissionCents + r.channelFeeCents, total);
 }
 
 test("整百金额：全勾全返，通道费从服务者侧扣除", () => {
@@ -90,6 +90,46 @@ test("非法输入 fail-fast：总额非正整数 / 通道费为负 / 通道费�
   assert.throws(() => settleType1(100, ALL, -1), /INVALID_CHANNEL_FEE/);
   // 总额 1 分毛额 1 分，通道费 2 分超毛额 → 拒绝
   assert.throws(() => settleType1(1, ALL, 2), /INVALID_CHANNEL_FEE/);
+  // P3：佣金率非法 → INVALID_RATE；份额非法 → INVALID_SHARES
+  assert.throws(() => settleType1(100, ALL, 0, { commissionRate: -0.1 }), /INVALID_RATE/);
+  assert.throws(() => settleType1(100, ALL, 0, { commissionRate: 1.5 }), /INVALID_RATE/);
+  assert.throws(() => settleType1(100, ALL, 0, { shares: [85, 5, 5] }), /INVALID_SHARES/);
+  assert.throws(() => settleType1(100, ALL, 0, { shares: [85, 5, 5, -5] }), /INVALID_SHARES/);
+});
+
+test("P3 五项方程：佣金 5% 先切，余量 85/15（用户算例 300 元单）", () => {
+  const r = settleType1(30000, ALL, 0, { commissionRate: 0.05 });
+  assert.equal(r.commissionCents, 1500);
+  assert.equal(r.baseCents, 24225);
+  assert.equal(r.holdReleasedCents, 4275);
+  assert.equal(r.qualityFeeCents, 0);
+  assert.equal(r.providerNetCents, 28500);
+  assert.equal(
+    r.providerNetCents + r.qualityFeeCents + r.commissionCents + r.channelFeeCents,
+    30000,
+  );
+});
+
+test("P3 五项方程：佣金＋通道费＋落勾全组合守恒", () => {
+  const totals = [101, 999, 30000, 123456];
+  const passes = [ALL, { ...ALL, attitude: false }, null];
+  for (const total of totals) {
+    for (const pass of passes) {
+      const r = settleType1(total, pass, 7, { commissionRate: 0.05 });
+      assert.equal(
+        r.providerNetCents + r.qualityFeeCents + r.commissionCents + r.channelFeeCents,
+        total,
+        `total=${total}`,
+      );
+    }
+  }
+});
+
+test("P3 可配份额：自定义 [80,10,5,5] 按新比例分配", () => {
+  const r = settleType1(10000, ALL, 0, { shares: [80, 10, 5, 5] });
+  assert.equal(r.baseCents, 8000);
+  assert.equal(r.holdReleasedCents, 2000);
+  assert.equal(r.providerNetCents, 10000);
 });
 
 test("窗常量：确认 24h / 评价 72h 且与 review.ts 同值跨锁", () => {
