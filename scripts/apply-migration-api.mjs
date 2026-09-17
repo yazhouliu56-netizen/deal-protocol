@@ -10,16 +10,22 @@ import { resolve, basename } from "path";
 const ref = process.env.SUPABASE_PROJECT_ID ?? "";
 const token = process.env.SUPABASE_ACCESS_TOKEN ?? "";
 const argv = process.argv.slice(2);
-const checkIdx = argv.indexOf("--check");
-const expectIdx = argv.indexOf("--expect");
-const files = argv.filter((a, i) => {
-  if (a.startsWith("--")) return false;
-  if (checkIdx !== -1 && (i === checkIdx + 1)) return false;
-  if (expectIdx !== -1 && (i === expectIdx + 1)) return false;
-  return a;
-});
-const checkSql = checkIdx !== -1 ? argv[checkIdx + 1] : "";
-const expectSub = expectIdx !== -1 ? argv[expectIdx + 1] : "";
+const files = [];
+let checkSql = "";
+let expectSub = "";
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === "--check") {
+    const parts = [];
+    while (i + 1 < argv.length && argv[i + 1] !== "--expect") parts.push(argv[++i]);
+    checkSql = parts.join(" ");
+  } else if (argv[i] === "--expect") {
+    const parts = [];
+    while (i + 1 < argv.length && argv[i + 1] !== "--check") parts.push(argv[++i]);
+    expectSub = parts.join(" ");
+  } else if (!argv[i].startsWith("--")) {
+    files.push(argv[i]);
+  }
+}
 if (!ref || !token || files.length === 0) {
   console.error("缺 SUPABASE_PROJECT_ID / SUPABASE_ACCESS_TOKEN / 文件参数");
   process.exit(1);
