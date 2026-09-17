@@ -87,7 +87,7 @@ export async function releaseSatisfactionOrder(
 
   const { data: contract } = await supabase
     .from('contracts')
-    .select('provider_id, customer_id, amount, fund_status, protocol_id, satisfaction_held_at')
+    .select('provider_id, customer_id, amount, fund_status, protocol_id, satisfaction_held_at, demand_id')
     .eq('id', contractId)
     .single()
 
@@ -100,6 +100,21 @@ export async function releaseSatisfactionOrder(
       : NaN
   if (!satisfactionReleaseDue(heldAtMs, nowMs)) {
     return { released: false }
+  }
+
+  // P1 跨模型互斥锁（用户裁决 2026-09-18）：孪生 demand 侧已放款（released_at 非空）
+  // → 本侧只推进状态（SETTLED＋事件＋信用），不碰钱包，杜绝双付。
+  let skipPayout = false
+  const demandId = (contract as { demand_id?: string | null }).demand_id
+  if (demandId) {
+    const { data: demand } = await supabase
+      .from('demands')
+      .select('released_at')
+      .eq('id', demandId)
+      .single()
+    if ((demand as { released_at?: string | null } | null)?.released_at != null) {
+      skipPayout = true
+    }
   }
 
   const totalCents = Math.round(Number(contract.amount) * 100)
@@ -136,7 +151,8 @@ export async function releaseSatisfactionOrder(
   // R11 双账本统一：释放必须落 provider_wallets（此前零记账，钱凭空蒸发）。
   // 幂等对账：wallet_logs(order_id=contractId, type=satisfaction_payout) 存在即跳过记账
   // （崩溃重放：已记账未 SETTLED → 只补状态，绝不双付）。
-  const { data: paid } = await supabase
+  // P1：skipPayout（demand 侧已放款）→ 整段跳过，只走状态。
+  const { data: paid } = skipPayout ? { data: [{ id: '__skipped__' }] } : await supabase
     .from('wallet_logs')
     .select('id')
     .eq('order_id', contractId)
@@ -194,7 +210,9 @@ export async function releaseSatisfactionOrder(
     fromStatus: 'SATISFACTION_HELD',
     toStatus: 'SETTLED',
     action: 'release_satisfaction',
-    reason: `72h单单释放: 实得¥${settled.providerNetCents / 100} / 质管费¥${settled.qualityFeeCents / 100}${pass ? ` / ${passedCount ?? '?'}勾` : ' / 无评价默认全返'}`,
+    reason: skipPayout
+      ? `互斥锁跳过记账: 孪生需求单 ${demandId} 已放款，本侧只推进状态`
+      : `72h单单释放: 实得¥${settled.providerNetCents / 100} / 质管费¥${settled.qualityFeeCents / 100}${pass ? ` / ${passedCount ?? '?'}勾` : ' / 无评价默认全返'}`,
   })
 
   const ev = await appendEvidence({
@@ -213,7 +231,7 @@ export async function releaseSatisfactionOrder(
   await updateCredit({ userId: contract.provider_id, eventType: 'completion', evidenceId: ev.id, description: 'Satisfaction order released' })
 
   return {
-    released: true,
+    released: !skipPayout,
     providerNetCents: settled.providerNetCents,
     qualityFeeCents: settled.qualityFeeCents,
     passedCount,

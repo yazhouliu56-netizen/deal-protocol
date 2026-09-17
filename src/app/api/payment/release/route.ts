@@ -56,6 +56,29 @@ export const POST = withAuth(async (req, user) => {
     return NextResponse.json({ error: "ORDER_AMOUNT_INVALID", message: "订单金额缺失或非法，无法放款" }, { status: 400 })
   }
 
+  // P1 跨模型互斥锁（用户裁决 2026-09-18）：孪生合同侧已记过账（自动释放/检查点）
+  // → 本侧拒绝放款，杜绝同一经济单双付。只读检查，无状态变更。
+  const { data: siblings } = await svc
+    .from("contracts")
+    .select("id")
+    .eq("demand_id", orderId)
+  const siblingIds = ((siblings ?? []) as { id: string }[]).map((c) => c.id)
+  if (siblingIds.length > 0) {
+    const { data: paid } = await svc
+      .from("wallet_logs")
+      .select("id")
+      .in("order_id", siblingIds)
+      .in("type", ["satisfaction_payout", "CHECKPOINT_RELEASE", "checkpoint_release"])
+      .gt("amount", 0)
+      .limit(1)
+    if (paid && paid.length > 0) {
+      return NextResponse.json(
+        { error: "ORDER_ALREADY_SETTLED_VIA_CONTRACT", message: "该单已在合同侧结算，本侧不再重复放款" },
+        { status: 409 },
+      )
+    }
+  }
+
   if (!demand.matched_provider_id) {
     return NextResponse.json({ error: "未找到服务商信息，放款中断" }, { status: 500 })
   }

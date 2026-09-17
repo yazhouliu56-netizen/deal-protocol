@@ -41,6 +41,8 @@ const scenario = {
   settleResult: "ok" as "ok" | "empty",
   walletUpdateCalls: 0,
   currentUserId: "u-cliente",
+  siblings: [] as { id: string }[],
+  siblingPaid: false,
 };
 
 vi.mock("@/lib/supabase-client", () => ({
@@ -76,7 +78,26 @@ vi.mock("@/lib/supabase-client", () => ({
           }),
         };
       }
-      if (table === "wallet_logs") return { insert: async () => ({ error: null }) };
+      if (table === "wallet_logs") {
+        // P1 互斥锁：select 链（order_id in → type in → amount gt → limit）按场景回空/命中。
+        const selectChain = {
+          in: () => selectChain,
+          gt: () => selectChain,
+          limit: async () => ({
+            data: scenario.siblingPaid ? [{ id: "w-sib" }] : [],
+            error: null,
+          }),
+        };
+        return { insert: async () => ({ error: null }), select: () => selectChain };
+      }
+      if (table === "contracts") {
+        // P1 互斥锁：孪生合同查询；默认无孪生（空数组=互斥锁放行）。
+        return {
+          select: () => ({
+            eq: async () => ({ data: scenario.siblings, error: null }),
+          }),
+        };
+      }
       throw new Error(`unexpected table ${table}`);
     },
   }),
@@ -122,6 +143,8 @@ beforeEach(() => {
   scenario.settleResult = "ok";
   scenario.walletUpdateCalls = 0;
   scenario.currentUserId = "u-cliente";
+  scenario.siblings = [];
+  scenario.siblingPaid = false;
 });
 
 describe("POST /api/payment/release 阶梯费率接线", () => {
@@ -197,5 +220,26 @@ describe("POST /api/payment/release Step3b 幂等与守卫", () => {
     const resp = await POST(post({ orderId: "d-1" }));
     expect(resp.status).toBe(400);
     expect(scenario.walletUpdateCalls).toBe(0);
+  });
+
+  it("P1 互斥锁：孪生合同侧已记账 → 409 ORDER_ALREADY_SETTLED_VIA_CONTRACT，钱包绝不写入", async () => {
+    mockGetConfig.mockResolvedValue(CUSTOM_TIERS);
+    scenario.siblings = [{ id: "c-sib" }];
+    scenario.siblingPaid = true;
+    const { POST } = await import("@/app/api/payment/release/route");
+    const resp = await POST(post({ orderId: "d-1" }));
+    const body = await resp.json();
+    expect(resp.status).toBe(409);
+    expect(body.error).toBe("ORDER_ALREADY_SETTLED_VIA_CONTRACT");
+    expect(scenario.walletUpdateCalls).toBe(0);
+  });
+
+  it("P1 互斥锁：有孪生合同但未记账 → 放行正常结算", async () => {
+    mockGetConfig.mockResolvedValue(CUSTOM_TIERS);
+    scenario.siblings = [{ id: "c-sib" }];
+    scenario.siblingPaid = false;
+    const { POST } = await import("@/app/api/payment/release/route");
+    const resp = await POST(post({ orderId: "d-1" }));
+    expect(resp.status).toBe(200);
   });
 });
