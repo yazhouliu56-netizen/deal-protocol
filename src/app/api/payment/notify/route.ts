@@ -67,9 +67,54 @@ export async function POST(request: Request) {
 
   const { data: contractData } = await svc
     .from("contracts")
-    .select("customer_id, provider_id")
+    .select("customer_id, provider_id, demand_id")
     .eq("id", notifyOrderId)
     .single();
+
+  // P5b 应收费落账（幂等：fee_status CAS uncollected→paid；失败不阻断托管主流程）。
+  try {
+    const demandId = (contractData as { demand_id?: string | null } | null)?.demand_id
+    if (demandId && contractData) {
+      const { data: due } = await svc
+        .from("demands")
+        .select("id, publish_fee_due, custom_platform_due, fee_status")
+        .eq("id", demandId)
+        .single()
+      const d = due as { publish_fee_due?: number; custom_platform_due?: number; fee_status?: string } | null
+      if (d && d.fee_status === "uncollected") {
+        const pub = Number(d.publish_fee_due) || 0
+        const plat = Number(d.custom_platform_due) || 0
+        const rows = []
+        if (pub > 0) {
+          rows.push({
+            user_id: contractData.customer_id,
+            type: "PUBLISH_FEE",
+            amount: pub,
+            balance_before: 0,
+            balance_after: 0,
+            description: `发布费: 需求单 ${demandId}（ channel ${channel} 实收，永不退）`,
+          })
+        }
+        if (plat > 0) {
+          rows.push({
+            user_id: contractData.customer_id,
+            type: "CUSTOM_PLATFORM_FEE",
+            amount: plat,
+            balance_before: 0,
+            balance_after: 0,
+            description: `定制平台费: 需求单 ${demandId}（ channel ${channel} 实收）`,
+          })
+        }
+        if (rows.length > 0) {
+          const { error: feeError } = await svc.from("transactions").insert(rows)
+          if (feeError) throw feeError
+        }
+        await svc.from("demands").update({ fee_status: "paid" }).eq("id", demandId).eq("fee_status", "uncollected")
+      }
+    }
+  } catch (e) {
+    console.warn("[payment/notify] fee posting skipped:", e instanceof Error ? e.message : e)
+  }
 
   if (contractData) {
     await addContractEvent({

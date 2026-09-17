@@ -149,6 +149,43 @@ export async function GET(request: NextRequest) {
       results.push(`sla_enforce FAILED: ${msg}`);
     }
 
+    // 5. P5b 匹配失败作废（用户裁决 2026-09-18）：OPEN 超 24h 无人接 →
+    // CANCELLED＋定制作废（发布费不退／未收作废；已收场景不可达，见 unmatched.ts）。
+    try {
+      const { voidUnmatchedDemand } = await import("@/lib/demand/unmatched");
+      const cutoff = new Date(now.getTime() - 24 * 3600_000).toISOString();
+      const stale = await supabase
+        .from("demands")
+        .select("id, fee_status")
+        .eq("status", "OPEN")
+        .is("matched_provider_id", null)
+        .lte("created_at", cutoff)
+        .limit(100);
+      if (stale.error) throw stale.error;
+      let voided = 0;
+      for (const d of ((stale.data ?? []) as { id: string; fee_status?: string }[])) {
+        try {
+          const up = await supabase
+            .from("demands")
+            .update({ status: "CANCELLED" })
+            .eq("id", d.id)
+            .eq("status", "OPEN")
+            .is("matched_provider_id", null);
+          if (up.error) throw up.error;
+          const r = await voidUnmatchedDemand(supabase, d);
+          voided += 1;
+          results.push(`unmatched_void: ${d.id}（定制退 ${r.customRefunded} 项）`);
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          results.push(`unmatched_void FAILED ${d.id}: ${msg}`);
+        }
+      }
+      if (voided === 0) results.push("unmatched_void: 0 条到期");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push(`unmatched_void SKIP: ${msg}`);
+    }
+
     return NextResponse.json({ checked: now.toISOString(), results });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

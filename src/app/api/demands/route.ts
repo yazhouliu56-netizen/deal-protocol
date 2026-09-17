@@ -74,6 +74,7 @@ async function createProtocolWithDemand(
   payload: Record<string, unknown>,
   body: Record<string, unknown>,
   info?: Record<string, unknown>,
+  dues?: { publishFeeDue: number; customPlatformDue: number },
 ) {
   const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
   if (error || !protocol) throw error ?? new Error("Protocol insert failed")
@@ -86,9 +87,30 @@ async function createProtocolWithDemand(
     title: (info?.title ?? body.title ?? '未命名需求') as string,
     price: resolveDemandPrice(body, info),
     status: 'OPEN',
+    // P5b：应收落行（实收在 escrow 支付时并入；列缺席的老库由迁移补）。
+    publish_fee_due: dues?.publishFeeDue ?? 0,
+    custom_platform_due: dues?.customPlatformDue ?? 0,
   }
   const { error: demandError, data: demandInserted } = await svc.from('demands').insert(demandRow).select('id').single()
   if (demandError) {
+    // 列缺席兼容：老库无迁移时退化为无应收建单（费收在 P8 通道落地后统一对账）。
+    const missingColumn = /publish_fee_due|custom_platform_due|fee_status/.test(demandError.message)
+    if (missingColumn) {
+      const retry = await svc.from('demands').insert({
+        protocol_id: protocol.id,
+        demander_id: userId,
+        client_id: userId,
+        customer_id: userId,
+        title: demandRow.title,
+        price: demandRow.price,
+        status: 'OPEN',
+      }).select('id').single()
+      if (retry.error) {
+        await svc.from('protocols').delete().eq('id', protocol.id)
+        throw new Error(`Demand bridge insert failed, protocol compensated: ${retry.error.message}`)
+      }
+      return { protocol, demandId: (retry.data as { id: string } | null)?.id ?? null }
+    }
     await svc.from('protocols').delete().eq('id', protocol.id)
     throw new Error(`Demand bridge insert failed, protocol compensated: ${demandError.message}`)
   }
@@ -216,6 +238,7 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
       }
       const created = await createProtocolWithDemand(
         svc, user.id, payload, body, info as unknown as Record<string, unknown>,
+        { publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue },
       )
       const protocol = created.protocol
       if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)
@@ -237,7 +260,10 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
     if (pre.validationError) {
       return NextResponse.json({ error: `定制项不满足最低价: ${pre.validationError}` }, { status: 400 })
     }
-    const created = await createProtocolWithDemand(svc, user.id, payload, body)
+    const created = await createProtocolWithDemand(
+      svc, user.id, payload, body, undefined,
+      { publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue },
+    )
     const protocol = created.protocol
     if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)
     const custom = { customTotal: pre.customTotal, publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue }

@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
+import { getServiceClient } from "@/lib/supabase-client";
 import {
   getPaymentRegistry,
 } from "@/adapters/payment/registry";
@@ -31,7 +32,35 @@ export const POST = withAuth(async (req, user) => {
   const channel = rawChannel || process.env.PAYMENT_CHANNEL || 'mock';
 
   if (!contractId) {
-    return NextResponse.json({ error: "缺少 contractId 参数" }, { status: 400 });
+    return NextResponse.json({ error: "ȱ�� contractId ����" }, { status: 400 });
+  }
+
+  // P5b 应收并入：有 demandId → 读 dues（发布费＋定制平台费）＋校验金额覆盖基础＋溢价。
+  let feeDues = 0;
+  if (demandId) {
+    const feeSvc = getServiceClient();
+    const { data: feeDemand } = await feeSvc
+      .from("demands")
+      .select("id, price, publish_fee_due, custom_platform_due")
+      .eq("id", demandId)
+      .single();
+    if (feeDemand) {
+      const d = feeDemand as { price?: number; publish_fee_due?: number; custom_platform_due?: number };
+      feeDues = (Number(d.publish_fee_due) || 0) + (Number(d.custom_platform_due) || 0);
+      const { data: customRows } = await feeSvc
+        .from("demand_customizations")
+        .select("amount")
+        .eq("demand_id", demandId)
+        .eq("status", "active");
+      const premium = ((customRows ?? []) as { amount: number }[])
+        .reduce((s, r) => s + (Number(r.amount) || 0), 0);
+      if (amount != null && amount < (Number(d.price) || 0) + premium) {
+        return NextResponse.json(
+          { error: "ORDER_AMOUNT_BELOW_TOTAL", message: "支付金额低于基础价＋定制溢价总额" },
+          { status: 400 },
+        );
+      }
+    }
   }
 
   if (channel === "stripe") {
@@ -51,6 +80,8 @@ export const POST = withAuth(async (req, user) => {
         customer_id: user.id,
         fund_status: "PENDING_HELD",
         amount,
+        // P5b：孪生 demand 链接（notify 落账查应收用）。
+        ...(demandId ? { demand_id: demandId } : {}),
       });
       if (createError) {
         return NextResponse.json({ error: "创建合约记录失败" }, { status: 500 });
@@ -61,12 +92,14 @@ export const POST = withAuth(async (req, user) => {
 
     const stripeClient = getStripeClient();
     const paymentIntent = await stripeClient.paymentIntents.create({
-      amount: Math.round(amount * 100),
+      // P5b：应收并入实收（基础＋溢价＋发布费＋定制平台费一次收）。
+      amount: Math.round((amount + feeDues) * 100),
       currency: "cny",
       metadata: {
         contract_id: contractId,
         customer_id: user.id,
         demand_id: demandId || "",
+        fee_dues: String(feeDues),
       },
     });
 
