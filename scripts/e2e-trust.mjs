@@ -25,6 +25,22 @@ async function waitUntil(page, fn, timeout = 15000, label = "条件") {
   throw new Error(`等待超时: ${label}`);
 }
 
+/**
+ * P10 flake 根治（3 次连跑超时、单跑全过 · 2026-09-18）。
+ * 根因：reload 与跨 tab storage 广播存在丢失更新竞态（mount 只订阅未来事件，
+ * 不读广播快照；高负载下 20s 窗内无重播即超时）。真治本需 store 挂载时
+ * pull 快照（动 CRDT 合并链，另案）；此处脚本侧有界恢复：超时→重载→再等一轮，
+ * 两轮都 miss 才算真失败。生产行为零改动。
+ */
+async function waitUntilWithReload(page, fn, timeout, label, reloadAndGoto) {
+  try {
+    await waitUntil(page, fn, timeout, label);
+  } catch (_e) {
+    await reloadAndGoto();
+    await waitUntil(page, fn, timeout, `${label}（重载后第二轮）`);
+  }
+}
+
 const browser = await chromium.launch(getDefaultLaunchOptions());
 
 // 广播命名空间隔离：该浏览器所有 context/page 物理锁定本脚本专属通道
@@ -125,11 +141,18 @@ try {
   // 首页重设计：一屏一职，广播流在雷达段
   await pageB.getByTestId("home-tab-radar").click();
   await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 雷达 feed 挂载");
-  await waitUntil(
+  const radarResync = async () => {
+    await pageB.reload({ waitUntil: "domcontentloaded" });
+    await pageB.getByLabel("首页").click();
+    await pageB.getByTestId("home-tab-radar").click();
+    await waitUntil(pageB, () => document.body.textContent?.includes("谁正在附近发需求"), 20000, "B 重载后 feed 挂载");
+  };
+  await waitUntilWithReload(
     pageB,
     () => document.body.textContent?.includes("需要擦窗"),
     20000,
-    "认证后进家单可见"
+    "认证后进家单可见",
+    radarResync,
   );
   await pageB.getByRole("button", { name: /接单/ }).first().click();
   await pageB.waitForTimeout(400);

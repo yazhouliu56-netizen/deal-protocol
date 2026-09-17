@@ -169,6 +169,29 @@ if (typeof window !== "undefined") {
   getP2pTransport().subscribe(() => {
     useWaveStore.persist.rehydrate();
   });
+  // P10 flake 根治（e2e-trust 连跑 3 次超时、单跑全过 · 2026-09-18）：
+  // mount 只订阅未来事件、不读广播快照 → reload 恰好错过对端已发布数据即永久
+  // miss（同上下文多 page 不触发 storage 事件，只能靠重载读盘）。
+  // 此处挂载即拉一次广播快照：纯加法合并（只补缺失 id，不覆盖、不回退，
+  // 广播键 union 只增不减，追加恒安全），顺手补上事件到达与重载之间的缝隙。
+  try {
+    const snap = getP2pTransport().read();
+    if (snap && (snap.waves?.length || snap.claims?.length)) {
+      const cur = useWaveStore.getState();
+      const knownWaves = new Set((cur.waves ?? []).map((w: Wave) => w.id));
+      const missingWaves = (snap.waves ?? []).filter((w: Wave) => !knownWaves.has(w.id));
+      const knownClaims = new Set((cur.claims ?? []).map((c: Claim) => c.id));
+      const missingClaims = (snap.claims ?? []).filter((c: Claim) => !knownClaims.has(c.id));
+      if (missingWaves.length > 0 || missingClaims.length > 0) {
+        useWaveStore.setState({
+          waves: [...(cur.waves ?? []), ...missingWaves],
+          claims: [...(cur.claims ?? []), ...missingClaims],
+        });
+      }
+    }
+  } catch {
+    /* 快照缺席/坏盘不阻断挂载（事件流兜底） */
+  }
 }
 
 /** In-memory virtual interest calibration (hotness padding) for the feed. */
