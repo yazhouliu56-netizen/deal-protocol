@@ -71,17 +71,26 @@ export const POST = withAuth(async (req, user) => {
   }
   const { platformFee, providerNet } = calculateProviderSettlement(amount, rate)
 
-  const { data: wallet, error: walletError } = await svc
+  const { data: wallet } = await svc
     .from("provider_wallets")
     .select("balance")
     .eq("provider_id", demand.matched_provider_id)
     .single()
 
-  if (walletError || !wallet) {
-    return NextResponse.json({ error: "服务商钱包尚未初始化" }, { status: 500 })
+  // R11-3 根本解决：钱包缺行不再 500（触发器未覆盖的旧行/异构行自愈建零行），
+  // 后续原子锁＋回滚语义不变。
+  let walletBalance = Number((wallet as { balance?: number } | null)?.balance ?? 0)
+  if (!wallet) {
+    const { error: ensureError } = await svc
+      .from("provider_wallets")
+      .insert({ provider_id: demand.matched_provider_id, balance: 0 })
+    if (ensureError) {
+      return NextResponse.json({ error: "服务商钱包初始化失败" }, { status: 500 })
+    }
+    walletBalance = 0
   }
 
-  const newBalance = Math.round((wallet.balance + providerNet) * 100) / 100
+  const newBalance = Math.round((walletBalance + providerNet) * 100) / 100
   const releasedAt = new Date().toISOString()
 
   // 原子幂等锁：COMPLETED + released_at IS NULL 两行条件同时命中才结算；

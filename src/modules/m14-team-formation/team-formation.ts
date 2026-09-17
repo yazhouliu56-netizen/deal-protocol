@@ -239,12 +239,20 @@ async function performWalletTransfer(userId: string, amount: number, description
     .eq('provider_id', userId)
     .single()
 
-  if (wallet) {
-    await getServiceClient()
+  // R11-3 根本解决：缺行自愈（此前缺行跳过记账却照写 payout 日志＝账实不符）。
+  if (!wallet) {
+    const { error: ensureError } = await getServiceClient()
       .from('provider_wallets')
-      .update({ balance: Math.round((Number(wallet.balance) + amount) * 100) / 100 })
-      .eq('provider_id', userId)
+      .insert({ provider_id: userId, balance: 0 })
+    if (ensureError) throw ensureError
   }
+
+  const base = Number((wallet as { balance?: number } | null)?.balance ?? 0)
+  const { error: updateError } = await getServiceClient()
+    .from('provider_wallets')
+    .update({ balance: Math.round((base + amount) * 100) / 100 })
+    .eq('provider_id', userId)
+  if (updateError) throw updateError
 
   await getServiceClient()
     .from('wallet_logs')

@@ -71,19 +71,27 @@ export const POST = withAuth(async (req, user) => {
       .update({ status: "force_settled" })
       .eq("order_id", orderId)
 
-    const { data: wallet, error: walletFetchErr } = await svc
+    const { data: wallet } = await svc
       .from("provider_wallets")
       .select("balance")
       .eq("provider_id", demand.matched_provider_id)
       .single()
 
-    if (walletFetchErr || !wallet) {
-      await svc.from("demands").update({ status: "completed" }).eq("id", orderId)
-      await svc.from("order_disputes").update({ status: "pending" }).eq("order_id", orderId)
-      return NextResponse.json({ error: "Provider wallet not found, rolled back" }, { status: 500 })
+    // R11-3 根本解决：缺行自愈建零行（旧回滚分支仅保留给真实写入失败）。
+    let walletBalance = Number((wallet as { balance?: number } | null)?.balance ?? 0)
+    if (!wallet) {
+      const { error: ensureError } = await svc
+        .from("provider_wallets")
+        .insert({ provider_id: demand.matched_provider_id, balance: 0 })
+      if (ensureError) {
+        await svc.from("demands").update({ status: "completed" }).eq("id", orderId)
+        await svc.from("order_disputes").update({ status: "pending" }).eq("order_id", orderId)
+        return NextResponse.json({ error: "Provider wallet init failed, rolled back" }, { status: 500 })
+      }
+      walletBalance = 0
     }
 
-    const newBalance = Math.round((Number(wallet.balance) + providerNet) * 100) / 100
+    const newBalance = Math.round((walletBalance + providerNet) * 100) / 100
 
     const { error: walletUpdateErr } = await svc
       .from("provider_wallets")
