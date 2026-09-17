@@ -37,6 +37,14 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
     notFound()
   }
 
+  // P2 退役 demands 放款：查孪生合同，有则验收卡只展示合同验收指引，不再调放款。
+  const { data: sibling } = await supabase
+    .from("contracts")
+    .select("id")
+    .eq("demand_id", id)
+    .limit(1)
+  const hasContract = (sibling ?? []).length > 0
+
   return (
     <div className="min-h-screen bg-zinc-50 pb-24 text-zinc-900">
       {/* Batch⑤-5：深黑顶栏→Duo 白底（验收语义零动） */}
@@ -45,11 +53,11 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
       </header>
       <div className="max-w-md mx-auto p-4">
         <AcceptanceCard
-          orderId={demand.id}
           title={demand.title ?? "未命名需求"}
           price={demand.price}
           status={demand.status}
           releasedAt={demand.released_at}
+          hasContract={hasContract}
         />
       </div>
     </div>

@@ -2,10 +2,12 @@ import { getServiceClient } from "@/lib/supabase-client"
 
 // ── Types ──
 
-export interface CommissionTier {
-  maxAmount: number
-  rate: number
-}
+/**
+ * P2 退役：阶梯佣金引擎（getCommissionRate）已删除。
+ * commissionTiers 字段仅作历史行兼容保留（值恒全 0，不再被任何代码读取）；
+ * 扁平 commissionRate 为唯一佣金口径。
+ */
+export type CommissionTier = { maxAmount: number; rate: number }
 
 export interface CreditLevel {
   minScore: number
@@ -150,12 +152,7 @@ export function getDefaultConfig(): PlatformConfig {
 
 // ── Helpers ──
 
-export function getCommissionRate(amount: number, config: PlatformConfig): number {
-  for (const tier of config.fees.commissionTiers) {
-    if (amount <= tier.maxAmount) return tier.rate
-  }
-  return config.fees.commissionTiers[config.fees.commissionTiers.length - 1]?.rate ?? 0.15
-}
+/** P2 退役：阶梯引擎删除。用 config.fees.commissionRate（扁平总额百分比）。 */
 
 export function getCreditLevel(score: number, config: PlatformConfig): CreditLevel {
   const sorted = [...config.credit.levels].sort((a, b) => b.minScore - a.minScore)

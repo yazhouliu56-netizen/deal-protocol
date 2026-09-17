@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
 import { getServiceClient } from "@/lib/supabase-client";
-// P0-2 收编：可用余额估算不再内联 `totalEarned * 0.95` 硬编码比例，
-// 统一经 escrow 确定性净得口径（DEFAULT_PLATFORM_RATE 10% 平台费）。
-import { calculateProviderSettlement } from "@/base/money/escrow";
 
 export const GET = withAuth(async (request: Request, user) => {
   try {
@@ -41,9 +38,10 @@ export const GET = withAuth(async (request: Request, user) => {
       .eq("provider_id", user.id)
       .single();
 
+    // P2 上线免费政策：钱包缺行回落=完工总额（零佣金），不再按 10% 抽成估算。
     const availableBalance = wallet != null
       ? Number((wallet as { balance?: number }).balance ?? 0)
-      : calculateProviderSettlement(totalEarned).providerNet;
+      : totalEarned;
 
     // 在途冻结＝pending 提现单合计（rpc 提交即扣减余额，pending 单即冻结额）。
     const { data: pendingReqs } = await supabase

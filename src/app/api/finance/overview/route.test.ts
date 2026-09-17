@@ -70,15 +70,15 @@ beforeEach(() => {
   mockSupabase.from.mockClear()
 })
 
-describe("finance/overview 资金概览（R11 钱包口径）", () => {
-  it("钱包缺行时，可用余额按 escrow 净得口径估算（平台费 10% → 90%）", async () => {
+describe("finance/overview 资金概览（R11 钱包口径，P2 免费政策）", () => {
+  it("钱包缺行时，可用余额=完工总额（零佣金，不再按 10% 估算）", async () => {
     setupOrders([100, 200])
     const res = await GET(new Request("http://local"), user)
     const body = await res.json()
 
     expect(res.status).toBe(200)
     expect(body.data?.totalEarned).toBe(300)
-    expect(body.data?.availableBalance).toBe(270)
+    expect(body.data?.availableBalance).toBe(300)
     expect(body.data?.pendingWithdrawal).toBe(0)
   })
 

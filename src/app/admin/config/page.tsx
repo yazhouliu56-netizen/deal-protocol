@@ -12,7 +12,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card"
-import type { PlatformConfig, CommissionTier, CreditLevel } from "@/lib/platform/config"
+import type { PlatformConfig, CreditLevel } from "@/lib/platform/config"
 
 // P0：初始态手写完整形状（不 runtime import 服务端 config 模块，防 service key 进浏览器包；
 // 服务端返回后覆盖，此处仅首屏占位）。
@@ -79,25 +79,7 @@ export default function AdminConfigPage() {
     finally { setSaving(false) }
   }, [config])
 
-  // ── 佣金阶梯操作 ──
-  const updateTier = (i: number, field: keyof CommissionTier, value: string) => {
-    const tiers = [...config.fees.commissionTiers]
-    const current = tiers[i]!
-    const parsed = field === "rate" ? parseFloat(value) || 0 : parseInt(value) || 0
-    tiers[i] = { ...current, [field]: parsed }
-    setConfig({ ...config, fees: { ...config.fees, commissionTiers: tiers } })
-  }
-
-  const addTier = () => {
-    const tiers = [...config.fees.commissionTiers, { maxAmount: 0, rate: 0 }]
-    setConfig({ ...config, fees: { ...config.fees, commissionTiers: tiers } })
-  }
-
-  const removeTier = (i: number) => {
-    if (config.fees.commissionTiers.length <= 1) return
-    const tiers = config.fees.commissionTiers.filter((_, idx) => idx !== i)
-    setConfig({ ...config, fees: { ...config.fees, commissionTiers: tiers } })
-  }
+  // ── 佣金阶梯已退役（P2）：扁平 commissionRate 为唯一佣金口径，sunset 翻转即改值 ──
 
   // ── 信用等级操作 ──
   const updateLevel = (i: number, field: keyof CreditLevel | "benefitsStr", value: string) => {
@@ -129,39 +111,27 @@ export default function AdminConfigPage() {
         <p className="text-center text-muted-foreground">加载中...</p>
       ) : (
         <div className="space-y-6">
-          {/* ── 佣金设置 ── */}
+          {/* ── 佣金设置（P2：扁平费率唯一口径；阶梯引擎已退役） ── */}
           <Card>
             <CardHeader>
               <CardTitle>佣金设置</CardTitle>
-              <CardDescription>平台佣金阶梯费率，按订单金额匹配第一个满足条件的阶梯</CardDescription>
+              <CardDescription>订单总额百分比，当前 0（上线免费政策）；sunset 到期改此值即生效，需提前 30 天公示</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {config.fees.commissionTiers.map((tier, i) => (
-                <div key={i} className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="mb-1 block text-xs text-muted-foreground">金额上限 (≤)</label>
-                    <Input
-                      type="number"
-                      value={tier.maxAmount === Number.MAX_SAFE_INTEGER ? "" : tier.maxAmount}
-                      placeholder="不限"
-                      onChange={e => updateTier(i, "maxAmount", e.target.value)}
-                    />
-                  </div>
-                  <div className="w-24">
-                    <label className="mb-1 block text-xs text-muted-foreground">费率 (%)</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={tier.rate * 100}
-                      onChange={e => updateTier(i, "rate", String(parseFloat(e.target.value) / 100))}
-                    />
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => removeTier(i)} disabled={config.fees.commissionTiers.length <= 1}>
-                    删除
-                  </Button>
+              <div className="flex items-end gap-3">
+                <div className="w-32">
+                  <label className="mb-1 block text-xs text-muted-foreground">佣金率 (%)</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={(config.fees.commissionRate ?? 0) * 100}
+                    onChange={e => setConfig({ ...config, fees: { ...config.fees, commissionRate: (parseFloat(e.target.value) || 0) / 100 } })}
+                  />
                 </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={addTier}>+ 添加阶梯</Button>
+                <div className="text-xs text-muted-foreground pb-2">
+                  sunset：净完单 {config.fees.sunset?.netCompletedTrigger ?? 10000} → {((config.fees.sunset?.targetCommissionRate ?? 0.05) * 100).toFixed(1)}%（{config.fees.sunset?.status ?? 'pending'}）
+                </div>
+              </div>
 
               <div className="flex items-end gap-3 pt-2">
                 <div className="w-32">

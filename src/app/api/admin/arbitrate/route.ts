@@ -71,6 +71,27 @@ export const POST = withAuth(async (req, user) => {
       .update({ status: "force_settled" })
       .eq("order_id", orderId)
 
+    // P1/P2 跨模型互斥锁：孪生合同侧已记过账 → 回滚并拒绝，防止仲裁与自动释放双付。
+    const { data: siblings } = await svc
+      .from("contracts")
+      .select("id")
+      .eq("demand_id", orderId)
+    const siblingIds = ((siblings ?? []) as { id: string }[]).map((c) => c.id)
+    if (siblingIds.length > 0) {
+      const { data: paid } = await svc
+        .from("wallet_logs")
+        .select("id")
+        .in("order_id", siblingIds)
+        .in("type", ["satisfaction_payout", "CHECKPOINT_RELEASE", "checkpoint_release"])
+        .gt("amount", 0)
+        .limit(1)
+      if (paid && paid.length > 0) {
+        await svc.from("demands").update({ status: "completed" }).eq("id", orderId)
+        await svc.from("order_disputes").update({ status: "pending" }).eq("order_id", orderId)
+        return NextResponse.json({ error: "ORDER_ALREADY_SETTLED_VIA_CONTRACT, rolled back" }, { status: 409 })
+      }
+    }
+
     const { data: wallet } = await svc
       .from("provider_wallets")
       .select("balance")

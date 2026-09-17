@@ -31,12 +31,10 @@ export const PUT = withAuth(async (req, user) => {
 
   const { config } = body
   if (!config) {
-    return NextResponse.json({ error: "缺少 config 字段" }, { status: 400 })
+    return NextResponse.json({ error: "ȱ�� config �ֶ�" }, { status: 400 })
   }
 
-  if (!config.fees?.commissionTiers?.length) {
-    return NextResponse.json({ error: "至少需要一个佣金阶梯" }, { status: 400 })
-  }
+  // P2：commissionTiers 退役为历史兼容字段，不再强制要求。
   if (!config.credit?.levels?.length) {
     return NextResponse.json({ error: "至少需要一个信用等级" }, { status: 400 })
   }
