@@ -100,8 +100,14 @@ step("lint:changed", () => {
   if (r.status !== 0) fail("eslint");
 });
 
+// 4.5 野表门禁（R8）：纯静态毫秒级，quick 相内置，pre-commit 同跑。
+step("wild-tables", () => {
+  const r = spawnSync(process.execPath, ["scripts/check-wild-tables.mjs"], { cwd: root, stdio: "inherit" });
+  if (r.status !== 0) fail("wild-tables");
+});
+
 if (mode === "quick") {
-  console.log("\n[check] QUICK PASS ✓ (tsc + lint)");
+  console.log("\n[check] QUICK PASS ✓ (tsc + lint + wild-tables)");
   summary();
   process.exit(0);
 }

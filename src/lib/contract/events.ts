@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase-client"
+import { getServiceClient } from "@/lib/supabase-client"
 
 export async function addContractEvent(params: {
   contractId: string
@@ -9,7 +9,9 @@ export async function addContractEvent(params: {
   reason?: string
   metadata?: string
 }) {
-  const supabase = getSupabase()
+  // R8 野表收编：写端统一 service（contract_events 无 INSERT 策略 = 仅 service 可写；
+  // RLS 之前开而零策略，匿名写全灭——单点收敛，调用方零改动）。
+  const supabase = getServiceClient()
   const { error } = await supabase.from('contract_events').insert({
     contract_id: params.contractId,
     actor_id: params.actorId,
