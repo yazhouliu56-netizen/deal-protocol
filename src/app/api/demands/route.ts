@@ -87,12 +87,12 @@ async function createProtocolWithDemand(
     price: resolveDemandPrice(body, info),
     status: 'OPEN',
   }
-  const { error: demandError } = await svc.from('demands').insert(demandRow)
+  const { error: demandError, data: demandInserted } = await svc.from('demands').insert(demandRow).select('id').single()
   if (demandError) {
     await svc.from('protocols').delete().eq('id', protocol.id)
     throw new Error(`Demand bridge insert failed, protocol compensated: ${demandError.message}`)
   }
-  return protocol
+  return { protocol, demandId: (demandInserted as { id: string } | null)?.id ?? null }
 }
 
 async function autoMatchProtocol(supabase: SupabaseClient, protocolId: string, category: string): Promise<void> {
@@ -114,8 +114,85 @@ async function autoMatchProtocol(supabase: SupabaseClient, protocolId: string, c
   }
 }
 
-export const POST = withAuth(async (req, user) => {
-  const userResult = checkRateLimit(`demands:create:user:${user.id}`, RULE_DEFAULT)
+/**
+ * P5a 定制行项＋发布费应收（用户裁决 2026-09-18）。
+ * customItems: [{ dim_key, amount }]（amount ≥ 底价，否则 400）。
+ * 发布费：3 单/天/人免费，超出 1 元/单——此处只计应收（custom.publishFeeDue），
+ * 实收在 P5b 支付时并入；定制平台费 1 元/项同样计应收待 P5b。
+ * 两段式：validateCustom（建单前，防孤儿单）→ insertCustomRows（建单后）。
+ */
+interface ValidatedCustom {
+  rows: { demand_id?: string; dim_key: string; amount: number; floor: number; status: string }[]
+  customTotal: number
+  publishFeeDue: number
+  customPlatformDue: number
+  validationError?: string
+}
+
+async function validateCustom(
+  svc: SupabaseClient,
+  userId: string,
+  body: Record<string, unknown>,
+  baseAmount: number,
+): Promise<ValidatedCustom> {
+  const items = (body.customItems ?? []) as { dim_key: string; amount: number }[]
+
+  // 发布费计数（自然天，demands.created_at；本单尚未落库，计数天然是"之前"）。
+  let publishFeeDue = 0
+  try {
+    const { getConfig } = await import("@/lib/platform/config")
+    const cfg = await getConfig()
+    const dayStart = new Date()
+    dayStart.setHours(0, 0, 0, 0)
+    const { count } = await svc
+      .from("demands")
+      .select("id", { count: "exact", head: true })
+      .eq("demander_id", userId)
+      .gte("created_at", dayStart.toISOString())
+    if ((count ?? 0) + 1 > (cfg.fees.publishFee?.freePerDay ?? 3)) {
+      publishFeeDue = cfg.fees.publishFee?.unitPrice ?? 1
+    }
+  } catch {
+    /* 计数失败不阻断发单（应收记 0，fail-open） */
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return { rows: [], customTotal: 0, publishFeeDue, customPlatformDue: 0 }
+  }
+  const { data: floors } = await svc.from("custom_dim_floors").select("*").eq("active", true)
+  const { validateCustomItems, floorForDim } = await import("@/base/custom/pricing")
+  const dimMap = new Map(
+    ((floors ?? []) as { dim_key: string; mode: "fixed" | "percent"; fixed_amount: number; percent_rate: number }[])
+      .map((d) => [d.dim_key, { dim_key: d.dim_key, mode: d.mode, fixed_amount: Number(d.fixed_amount), percent_rate: Number(d.percent_rate) }]),
+  )
+  const normalized = items.map((it) => ({ dim_key: String(it.dim_key), amount: Number(it.amount) }))
+  const errors = validateCustomItems(normalized, dimMap, baseAmount)
+  if (errors.length > 0) {
+    return { rows: [], customTotal: 0, publishFeeDue, customPlatformDue: 0, validationError: errors.join("；") }
+  }
+  const rows = normalized.map((it) => ({
+    dim_key: it.dim_key,
+    amount: it.amount,
+    floor: floorForDim(dimMap.get(it.dim_key)!, baseAmount),
+    status: "active",
+  }))
+  const customTotal = rows.reduce((s, r) => s + r.amount, 0)
+  return { rows, customTotal, publishFeeDue, customPlatformDue: rows.length * 1 }
+}
+
+async function insertCustomRows(
+  svc: SupabaseClient,
+  demandId: string,
+  rows: { dim_key: string; amount: number; floor: number; status: string }[],
+): Promise<void> {
+  if (rows.length === 0) return
+  const { error } = await svc
+    .from("demand_customizations")
+    .insert(rows.map((r) => ({ ...r, demand_id: demandId })))
+  if (error) throw new Error(`定制行项落库失败: ${error.message}`)
+}
+
+export const POST = withAuth(async (req, user) => {  const userResult = checkRateLimit(`demands:create:user:${user.id}`, RULE_DEFAULT)
   if (!userResult.allowed) return rateLimitResponse(userResult.resetAt)
 
   const supabase = await getRouteClient()
@@ -132,9 +209,19 @@ export const POST = withAuth(async (req, user) => {
       const info = await classifyDemand(body.text)
 
       const payload = makeProtocolPayload(user.id, body, info as unknown as Record<string, unknown>)
-      const protocol = await createProtocolWithDemand(
+      // P5a：先验定制（建单前，400 拦截，零孤儿单）。
+      const pre = await validateCustom(svc, user.id, body, resolveDemandPrice(body, info as unknown as Record<string, unknown>) ?? 0)
+      if (pre.validationError) {
+        return NextResponse.json({ error: `定制项不满足最低价: ${pre.validationError}` }, { status: 400 })
+      }
+      const created = await createProtocolWithDemand(
         svc, user.id, payload, body, info as unknown as Record<string, unknown>,
       )
+      const protocol = created.protocol
+      if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)
+
+      // P5a 定制行项：校验底价→落行项→计发布费应收（实收 P5b 在支付时并入）。
+      const custom = { customTotal: pre.customTotal, publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue }
 
       revalidatePath('/demands')
       after(async () => {
@@ -142,11 +229,18 @@ export const POST = withAuth(async (req, user) => {
         if (category) await autoMatchProtocol(supabase, protocol!.id, category)
       })
 
-      return NextResponse.json({ demand: { id: protocol.id, ...payload }, classified: info }, { status: 201 })
+      return NextResponse.json({ demand: { id: protocol.id, ...payload }, classified: info, custom }, { status: 201 })
     }
 
     const payload = makeProtocolPayload(user.id, body)
-    const protocol = await createProtocolWithDemand(svc, user.id, payload, body)
+    const pre = await validateCustom(svc, user.id, body, resolveDemandPrice(body) ?? 0)
+    if (pre.validationError) {
+      return NextResponse.json({ error: `定制项不满足最低价: ${pre.validationError}` }, { status: 400 })
+    }
+    const created = await createProtocolWithDemand(svc, user.id, payload, body)
+    const protocol = created.protocol
+    if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)
+    const custom = { customTotal: pre.customTotal, publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue }
 
     revalidatePath('/demands')
     after(async () => {
@@ -154,7 +248,7 @@ export const POST = withAuth(async (req, user) => {
       if (category) await autoMatchProtocol(supabase, protocol!.id, category)
     })
 
-    return NextResponse.json({ id: protocol.id }, { status: 201 })
+    return NextResponse.json({ id: protocol.id, custom }, { status: 201 })
   } catch (err) {
     console.error("Create demand error:", err)
     const msg = err instanceof Error ? err.message : String(err)

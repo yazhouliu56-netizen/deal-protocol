@@ -137,6 +137,39 @@ async function processCandidates(
   // B 贝叶斯定档上线（用户裁决 2026-09-18）：批量定档一次，失败回空 Map→全放行（#10）。
   const tierMap = await getBayesianTiers(providerIds, { category: config.category })
 
+  // P5a 定制过滤（用户裁决 2026-09-18）：有活跃定制项的单只派给开关打开的师傅；
+  // 开关表缺席/查询失败→放行（#10，不拦派单）。
+  let needsCustom = false
+  const customOk = new Set<string>()
+  try {
+    const { data: linked } = await getServiceClient()
+      .from("demands")
+      .select("id")
+      .eq("protocol_id", protocolId)
+      .limit(1)
+    const demandId = ((linked ?? []) as { id: string }[])[0]?.id
+    if (demandId) {
+      const { data: items } = await getServiceClient()
+        .from("demand_customizations")
+        .select("id")
+        .eq("demand_id", demandId)
+        .eq("status", "active")
+        .limit(1)
+      needsCustom = ((items ?? []).length ?? 0) > 0
+    }
+    if (needsCustom) {
+      const { data: profs } = await getServiceClient()
+        .from("profiles")
+        .select("id, accepts_custom")
+        .in("id", providerIds)
+      for (const p of ((profs ?? []) as { id: string; accepts_custom: boolean | null }[])) {
+        if (p.accepts_custom !== false) customOk.add(p.id)
+      }
+    }
+  } catch {
+    needsCustom = false
+  }
+
   const candidateRecords: CandidateProvider[] = []
 
   for (const geo of geoResults) {
@@ -145,6 +178,9 @@ async function processCandidates(
 
     // B：贝叶斯最差档（tier 1）硬排除；null/缺席＝样本不足，放行（新人保护对齐）。
     if (tierMap.get(geo.provider_id)?.tier === 1) continue
+
+    // P5a：定制单只派给开关打开的师傅（批量档案缺席＝无信用档案，本就不可派）。
+    if (needsCustom && !customOk.has(geo.provider_id)) continue
 
     if (entryReqs?.qualification) {
       const quals = entryReqs.qualification as string[]
@@ -184,6 +220,8 @@ async function processCandidates(
     for (const geo of geoResults) {
       const credit = creditMap.get(geo.provider_id)
       if (credit && credit.baseScore >= 30) {
+        // P5a：降级池同样执行定制开关过滤。
+        if (needsCustom && !customOk.has(geo.provider_id)) continue
         // B：降级池同样执行 tier 1 硬排除（最差档永不放单）。
         if (tierMap.get(geo.provider_id)?.tier === 1) continue
         let cs = credit.baseScore

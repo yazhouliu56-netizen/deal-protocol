@@ -58,6 +58,8 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [skillsInput, setSkillsInput] = useState('');
   const [serviceAreas, setServiceAreas] = useState('');
+  // P5a 师傅定制总开关（默认开；关闭只接基础单）。
+  const [acceptsCustom, setAcceptsCustom] = useState(true);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -83,6 +85,7 @@ export default function ProfilePage() {
         : [];
       setSkillsInput(existingSkills.join(', '));
       setServiceAreas(data.user.service_areas ?? '');
+      setAcceptsCustom(data.user.accepts_custom !== false);
     } catch {
       toast('加载个人信息失败', "error");
     } finally {
@@ -332,13 +335,26 @@ export default function ProfilePage() {
                   <Input value={serviceAreas} onChange={(e) => setServiceAreas(e.target.value)} placeholder="如: 三里屯, 望京, 国贸" className="border-[var(--color-duo-swan)] bg-white text-[var(--color-duo-eel)]" />
                 </div>
               </div>
+              <div className="flex items-start gap-3 rounded-md border-2 border-[var(--color-duo-swan)] p-3">
+                <input
+                  type="checkbox"
+                  checked={acceptsCustom}
+                  onChange={(e) => setAcceptsCustom(e.target.checked)}
+                  className="mt-1 h-4 w-4"
+                  data-testid="accepts-custom-toggle"
+                />
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-duo-eel)]">接受定制单</p>
+                  <p className="text-xs text-[var(--color-duo-wolf)]">接受定制条件可以增加收入，但要满足额外需求；关闭后只接基础需求单。</p>
+                </div>
+              </div>
               <div className="flex justify-end">
                 <Button onClick={async () => {
                   const skills = skillsInput.split(',').map((s) => s.trim()).filter(Boolean);
                   const res = await fetch('/api/profile', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ bio, skills, service_areas: serviceAreas }),
+                    body: JSON.stringify({ bio, skills, service_areas: serviceAreas, accepts_custom: acceptsCustom }),
                   });
                   if (res.ok) toast('服务商信息已更新', "success");
                   else {

@@ -9,7 +9,7 @@ import { maskPhone } from "@/lib/privacy-guard";
  * 写入即整行被拒；扩展画像字段待 P8 迁移后再放行。
  */
 const PROFILE_LIVE_COLUMNS =
-  'id, name, phone, role, credit_score, balance, created_at, verification_status, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by';
+  'id, name, phone, role, credit_score, balance, created_at, verification_status, verification_rejected_reason, verification_submitted_at, verification_reviewed_at, verification_reviewed_by, accepts_custom';
 
 export const GET = withAuth(async (req, user) => {
   const svc = await getRouteClient()
@@ -59,9 +59,14 @@ export const GET = withAuth(async (req, user) => {
 export const PATCH = withAuth(async (req, user) => {
   const svc = await getRouteClient()
   const body = await req.json();
-  const { name, phone, currentPassword, newPassword, bio, skills, service_areas } = body;
+  const { name, phone, currentPassword, newPassword, bio, skills, service_areas, accepts_custom } = body;
 
-  const updateData: Record<string, string | number | null> = {};
+  const updateData: Record<string, string | number | boolean | null> = {};
+
+  if (name) updateData.name = name;
+  if (phone !== undefined) updateData.phone = phone;
+  // P5a 师傅定制总开关（布尔直写；附说明见前端）。
+  if (accepts_custom !== undefined) updateData.accepts_custom = !!accepts_custom;
 
   if (name) updateData.name = name;
   if (phone !== undefined) updateData.phone = phone;
