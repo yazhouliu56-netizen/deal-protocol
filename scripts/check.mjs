@@ -106,8 +106,14 @@ step("wild-tables", () => {
   if (r.status !== 0) fail("wild-tables");
 });
 
+// 4.6 冻结账本门禁（P9）：profiles 余额停写＋platform_fee 类型退役，quick 相内置。
+step("frozen-ledgers", () => {
+  const r = spawnSync(process.execPath, ["scripts/check-frozen-ledgers.mjs"], { cwd: root, stdio: "inherit" });
+  if (r.status !== 0) fail("frozen-ledgers");
+});
+
 if (mode === "quick") {
-  console.log("\n[check] QUICK PASS ✓ (tsc + lint + wild-tables)");
+  console.log("\n[check] QUICK PASS ✓ (tsc + lint + wild-tables + frozen-ledgers)");
   summary();
   process.exit(0);
 }

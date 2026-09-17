@@ -206,7 +206,8 @@ export async function releaseSubTaskPayout(input: {
     return { success: false, settledAmount: 0 }
   }
 
-  const platformFee = Math.round(input.subTaskAmount * 0.05 * 100) / 100
+  // P9 上线免费政策：组队子单零抽成（sunset 翻转走 commissionRate，此处不再硬编码 5%）。
+  const platformFee = 0
   const netAmount = input.subTaskAmount - platformFee
 
   await performWalletTransfer(input.memberId, netAmount, `Sub-task payout: ${input.subTaskTitle} (contract ${input.contractId})`)

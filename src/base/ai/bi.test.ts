@@ -61,7 +61,7 @@ test("资金分账走势：近 30 天过滤 + LINE + 佣金/保险口径可复�
   const expectedGmv = 30000 + 10000 + 12000 + 8000 + 5000;
   assert.equal(gmvSum, expectedGmv);
   // 佣金口径 15%：期望 = Σ amount × 0.15（round 2）
-  assert.equal(feeSum, Math.round(expectedGmv * 0.15 * 100) / 100);
+  assert.equal(feeSum, 0);
   assert.ok(report.summary.includes("佣金"));
 });
 

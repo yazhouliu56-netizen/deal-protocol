@@ -16,7 +16,7 @@ import type { ISplitRetrySchedule } from "../../types/ammo-schema.ts";
 
 /** 默认保证金托管率（deposit_only，映射 m13 缺省 0.3）。 */
 export const DEFAULT_DEPOSIT_RATE = 0.3;
-/** 默认平台抽成率（映射 api/payment/release 与 m13 commission 0.10）。 */
+/** P2 retired: demands payout deleted. Generic math only; live commission = config commissionRate. */
 export const DEFAULT_PLATFORM_RATE = 0.1;
 /** 满意度暂存比例（用户裁决 2026-09-16：Type1 通用 15%）。
  * 收敛声明：本常量为存量别名，唯一真相源 = base/money/type1-settlement.ts

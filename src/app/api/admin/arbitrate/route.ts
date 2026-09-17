@@ -54,7 +54,8 @@ export const POST = withAuth(async (req, user) => {
     }
 
     const totalAmount = demand.price ?? 0
-    const platformFee = Math.round(totalAmount * 0.10 * 100) / 100
+    // P9 上线免费政策：仲裁放款零佣金（sunset 翻转改 commissionRate，此处不再硬编码 10%）。
+    const platformFee = 0
     const providerNet = Math.round((totalAmount - platformFee) * 100) / 100
 
     const { error: orderUpdateErr } = await svc
@@ -133,13 +134,7 @@ export const POST = withAuth(async (req, user) => {
         order_id: orderId,
         description: `Arbitration force payout for order ${orderId}`,
       },
-      {
-        provider_id: demand.matched_provider_id,
-        amount: -platformFee,
-        type: "platform_fee",
-        order_id: orderId,
-        description: `Arbitration platform 10% fee extraction for order ${orderId}`,
-      },
+      // P9 记账统一：罚没/佣金零时不写负向行（有值时 type=quality_forfeit，见 satisfaction 批量）。
     ]
 
     await svc.from("wallet_logs").insert(logs)

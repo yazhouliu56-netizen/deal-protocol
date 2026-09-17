@@ -145,7 +145,8 @@ export interface BiRawDataContext {
 }
 
 /** 默认分账口径（估算标注用；与实际分账表独立）。 */
-export const DEFAULT_PLATFORM_FEE_RATIO = 0.15;
+// P9 free-launch: commission estimate ratio -> 0 (flip with sunset commissionRate).
+export const DEFAULT_PLATFORM_FEE_RATIO = 0;
 export const DEFAULT_INSURANCE_RATIO = 0.05;
 
 type BiIntent = "category-violation" | "funding-trend" | "provider-credit" | "overview";
