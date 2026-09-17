@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import {
   TYPE1_CONFIRM_TIMEOUT_MS,
   TYPE1_REVIEW_WINDOW_MS,
+  qualityHoldCents,
   settleType1,
   splitType1Shares,
   type1ConfirmDeadline,
@@ -96,4 +97,39 @@ test("窗常量：确认 24h / 评价 72h 且与 review.ts 同值跨锁", () => 
   assert.equal(TYPE1_REVIEW_WINDOW_MS, REVIEW_WINDOW_MS);
   assert.equal(type1ConfirmDeadline(1000), 1000 + 24 * 3600_000);
   assert.equal(type1ReviewDeadline(2000), 2000 + 72 * 3600_000);
+});
+
+test("差分锁定：qualityHoldCents = 标准四舍五入（2026-09-17 委托单源）", () => {
+  // 整数神谕：round_half_up(cents*p/q) = floor((2*cents*p + q) / (2*q))，零浮点
+  const oracle = (cents: number, p: number, q: number) =>
+    Math.floor((2 * cents * p + q) / (2 * q));
+  const legacy = (amountYuan: number, rate: number) =>
+    Math.round(amountYuan * rate * 100) / 100;
+  const wired = (amountYuan: number, rate: number) =>
+    qualityHoldCents(Math.round(amountYuan * 100), rate) / 100;
+  const cases: [number, number][] = [
+    [1, 10],
+    [3, 20],
+  ]; // [p, q] = 0.10 / 0.15
+  for (const [p, q] of cases) {
+    const rate = p / q;
+    let legacyDrifts = 0;
+    for (let cents = 1; cents <= 500000; cents++) {
+      const yuan = cents / 100;
+      // 新口径恒等于整数神谕（含半分位向上）
+      assert.equal(qualityHoldCents(cents, rate), oracle(cents, p, q), `cents=${cents}`);
+      // 老公式只允许在精确半分位（真值恰 x.xx5）差 1 分：错→对修正
+      const l = legacy(yuan, rate);
+      const w = wired(yuan, rate);
+      if (l !== w) {
+        legacyDrifts += 1;
+        assert.equal((2 * cents * p) % (2 * q), q, `漂移须在精确半分位 cents=${cents}`);
+        assert.equal(w, (Math.floor((2 * cents * p) / (2 * q)) + 1) / 100);
+      }
+    }
+    assert.ok(legacyDrifts > 0, "老公式半分位尘埃须被复现（否则本断言空转）");
+  }
+  // 经典浮点陷阱位：新口径给正确值
+  assert.equal(qualityHoldCents(35, 0.1), 4); // ¥0.35×10% = 3.5分 → 4分
+  assert.equal(qualityHoldCents(150, 0.15), 23); // ¥1.50×15% = 22.5分 → 23分
 });

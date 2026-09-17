@@ -298,7 +298,7 @@ assert.ok(
   );
   assert.equal(afterB, 99.5, "95 + 4.5（解冻）→ 99.5");
 
-  // --- 7. A 评 B 五星 → B 星级上升（能力面板展示） ---
+  // --- 7. A 评 B 三勾全过 → 5 星 → B 星级上升（能力面板展示） ---
   await pageA.reload({ waitUntil: "domcontentloaded" });
   await pageA.getByLabel("行程").click();
   await waitUntil(
@@ -309,10 +309,7 @@ assert.ok(
   );
   await pageA.getByRole("button", { name: /评价对方/ }).first().click();
   await pageA.waitForTimeout(400);
-  // 三维全 5 + 提交
-  await pageA.getByRole("button", { name: /准时5分/ }).click();
-  await pageA.getByRole("button", { name: /态度5分/ }).click();
-  await pageA.getByRole("button", { name: /专业度5分/ }).click();
+  // 三勾全过（默认全勾，直接提交 → 5 星）
   await pageA.getByRole("button", { name: /提交评价/ }).click();
   // 评价二次确认（Batch②）
   await pageA.getByTestId("confirm-ok").click();

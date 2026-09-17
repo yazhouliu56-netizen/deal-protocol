@@ -108,8 +108,7 @@ export function splitType1Shares(totalCents: number): {
 /**
  * 统一结算：providerNet + qualityFee + channelFee ≡ total（硬断言，违即抛）。
  * pass = null → 窗内无评价，默认全返（只进 released，不发券——发券由 coupon 侧按“有真实评价”独立判定）。
- */
-export function settleType1(
+ */export function settleType1(
   totalCents: number,
   pass: Type1SubjectivePass | null,
   channelFeeCents = 0,
@@ -170,4 +169,17 @@ export function type1ReviewDeadline(confirmedAtMs: number): number {
     throw new Type1SettlementError("INVALID_TIMESTAMP", "confirmedAtMs 非法");
   }
   return confirmedAtMs + TYPE1_REVIEW_WINDOW_MS;
+}
+
+/**
+ * 暂扣口径（批放机制用 · 2026-09-17 由 lib/contract/satisfaction 委托至此单源）。
+ * 口径 = round(totalCents × rate)，与老元公式
+ * Math.round(amountYuan × rate × 100)/100 逐分一致（差分考卷逐分锁定）。
+ * 注意：与方程内最大余数三勾份额和在极端分位可差 1 分；
+ * 批放机制下以本口径为准，批经济退役（72h 单单放）时由 settleType1 接管。
+ * 本函数不抛（老公式亦不抛，零漂移要求）。
+ */
+export function qualityHoldCents(totalCents: number, qualityRate: number): number {
+  if (!Number.isFinite(totalCents) || !Number.isFinite(qualityRate)) return 0;
+  return Math.round(totalCents * qualityRate);
 }

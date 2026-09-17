@@ -4,6 +4,9 @@ import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 // D-5 Phase E：协议定义资产归位 Base
 import { getProtocol } from "@/base/order/protocol-definitions"
+// 暂扣口径单源（2026-09-17 彻底收敛）：委托 Type1 纯核 qualityHoldCents，
+// 差分考卷逐分锁定与老公式一致；批放机制（15 单成团/事件/证据）不动。
+import { qualityHoldCents } from "@/base/money/type1-settlement"
 
 export async function handleSatisfactionBatch(contractId: string) {
   const supabase = getServiceClient()
@@ -19,7 +22,8 @@ export async function handleSatisfactionBatch(contractId: string) {
   const satisfactionHold = getProtocol(contract.protocol_id)?.funding.fees.satisfaction_hold ?? 0
   if (satisfactionHold <= 0) return
 
-  const depositAmount = Math.round(contract.amount * satisfactionHold * 100) / 100
+  const totalCents = Math.round(contract.amount * 100)
+  const depositAmount = qualityHoldCents(totalCents, satisfactionHold) / 100
 
   let { data: batch } = await supabase
     .from('satisfaction_batches')

@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - 'supabase/migrations/**'
+  # 手动重跑（2026-09-17：lint 步因缺本地库自 09-06 起全红，改 push 直推为真门）
+  workflow_dispatch:
 
 jobs:
   migrate:
@@ -16,8 +18,7 @@ jobs:
         with:
           version: latest
 
-      - run: supabase db lint
-
+      # 真门 = db push 本体（SQL 非法直红）；坏掉的本地 lint 已删，不设假门。
       - name: Apply migrations
         uses: supabase/supabase-action@v1
         with:
