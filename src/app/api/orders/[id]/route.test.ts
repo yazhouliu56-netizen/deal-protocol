@@ -31,9 +31,10 @@ vi.mock("@/lib/contract/events", () => ({
   addContractEvent: vi.fn(),
 }))
 
+// R5 批经济退役：releaseSatisfactionBatch 已删，mock 只留存活的 hold 入口。
 vi.mock("@/lib/contract/satisfaction", () => ({
   handleSatisfactionBatch: vi.fn(),
-  releaseSatisfactionBatch: vi.fn(),
+  releaseSatisfactionOrder: vi.fn(),
 }))
 
 vi.mock("@/lib/contract/refund", () => ({

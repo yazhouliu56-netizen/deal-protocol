@@ -172,6 +172,15 @@ export function type1ReviewDeadline(confirmedAtMs: number): number {
 }
 
 /**
+ * 单单释放到期判定（R5 · cron 扫表用）：held_at + 72h ≤ now 即到期。
+ * 边界取 ≥（恰 72h 整算到期，与 reviewDue 同语义）。
+ */
+export function satisfactionReleaseDue(heldAtMs: number, nowMs: number): boolean {
+  if (!Number.isFinite(heldAtMs) || !Number.isFinite(nowMs)) return false;
+  return nowMs >= heldAtMs + TYPE1_REVIEW_WINDOW_MS;
+}
+
+/**
  * 暂扣口径（批放机制用 · 2026-09-17 由 lib/contract/satisfaction 委托至此单源）。
  * 口径 = round(totalCents × rate)，与老元公式
  * Math.round(amountYuan × rate × 100)/100 逐分一致（差分考卷逐分锁定）。

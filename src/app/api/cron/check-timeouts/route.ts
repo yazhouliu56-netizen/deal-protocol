@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getSupabase } from "@/lib/supabase-client";
 import { addContractEvent } from "@/lib/contract/events";
-import { handleSatisfactionBatch } from "@/lib/contract/satisfaction";
+import { handleSatisfactionBatch, releaseSatisfactionOrder } from "@/lib/contract/satisfaction";
 // D-5 Phase E：协议定义资产归位 Base + 超时放款校验收编 Base 纯函数核
 import { validateContractAction } from "@/base/order/contract-engine";
 import { getProtocol } from "@/base/order/protocol-definitions";
@@ -94,74 +94,35 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Satisfaction batch: full 30 days without reaching 15 orders
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    const { data: expiredBatches, error: batchError } = await supabase
-      .from('satisfaction_batches')
-      .select('*')
-      .eq('status', 'PENDING')
-      .lte('created_at', thirtyDaysAgo.toISOString());
-
-    if (batchError) {
-      results.push(`batch_release FETCH ERROR: ${batchError.message}`);
-    } else {
-      // Get contract relations for all expired batches
-      const batchIds = (expiredBatches ?? []).map(b => b.id);
-      const batchContractMap = new Map<string, { id: string }[]>();
-
-      if (batchIds.length > 0) {
-        const { data: contracts, error: contractsError } = await supabase
-          .from('contracts')
-          .select('id, satisfaction_batch_id')
-          .in('satisfaction_batch_id', batchIds);
-
-        if (contractsError) {
-          results.push(`batch_contracts FETCH ERROR: ${contractsError.message}`);
-        } else {
-          for (const c of (contracts ?? [])) {
-            const arr = batchContractMap.get(c.satisfaction_batch_id) ?? [];
-            arr.push({ id: c.id });
-            batchContractMap.set(c.satisfaction_batch_id, arr);
-          }
-        }
-      }
-
-      for (const batch of (expiredBatches ?? [])) {
+    // 2. 单单释放（R5 · 用户裁决 2026-09-17 · 宪法 §6.2 Clean Slate）：
+    // 15 单成团批经济整段删除，SATISFACTION_HELD + held_at+72h 到期即 settleType1 单单结算。
+    // 批表已删（迁移 20260918），本步只读 contracts + order_reviews。
+    try {
+      const releaseDue = new Date(now.getTime() - 72 * 3600_000).toISOString();
+      const due = await supabase
+        .from('contracts')
+        .select('id')
+        .eq('fund_status', 'SATISFACTION_HELD')
+        .lte('satisfaction_held_at', releaseDue)
+        .limit(200);
+      if (due.error) throw due.error;
+      let released = 0;
+      for (const c of ((due.data ?? []) as { id: string }[])) {
         try {
-          await supabase
-            .from('satisfaction_batches')
-            .update({ status: "RELEASED", released_at: now.toISOString() })
-            .eq('id', batch.id);
-
-          const contracts = batchContractMap.get(batch.id) ?? [];
-          for (const c of contracts) {
-            try {
-              await supabase
-                .from('contracts')
-                .update({ fund_status: "SETTLED" })
-                .eq('id', c.id);
-
-              await addContractEvent({
-                contractId: c.id,
-                actorId: batch.provider_id,
-                fromStatus: "SATISFACTION_HELD",
-                toStatus: "SETTLED",
-                action: "batch_release_timeout",
-                reason: `满30天批释放: 共${batch.count}单 / 总额¥${batch.total_amount}`,
-              });
-            } catch (e: unknown) {
-              const msg = e instanceof Error ? e.message : String(e);
-              results.push(`batch_contract FAILED ${c.id}: ${msg}`);
-            }
+          const r = await releaseSatisfactionOrder(c.id, now.getTime());
+          if (r.released) {
+            released += 1;
+            results.push(`satisfaction_release: ${c.id} (net ¥${(r.providerNetCents ?? 0) / 100})`);
           }
-
-          results.push(`batch_release_timeout: ${batch.id} (${contracts.length} contracts)`);
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
-          results.push(`batch_release FAILED ${batch.id}: ${msg}`);
+          results.push(`satisfaction_release FAILED ${c.id}: ${msg}`);
         }
       }
+      if (released === 0) results.push("satisfaction_release: 0 条到期");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push(`satisfaction_release SKIP: ${msg}`);
     }
 
     // 3. 双盲揭晓（R4-3 · 用户裁决 2026-09-16）：双方都交或提交超 72h →

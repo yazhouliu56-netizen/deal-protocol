@@ -9,6 +9,7 @@ import {
   TYPE1_CONFIRM_TIMEOUT_MS,
   TYPE1_REVIEW_WINDOW_MS,
   qualityHoldCents,
+  satisfactionReleaseDue,
   settleType1,
   splitType1Shares,
   type1ConfirmDeadline,
@@ -132,4 +133,13 @@ test("差分锁定：qualityHoldCents = 标准四舍五入（2026-09-17 委托�
   // 经典浮点陷阱位：新口径给正确值
   assert.equal(qualityHoldCents(35, 0.1), 4); // ¥0.35×10% = 3.5分 → 4分
   assert.equal(qualityHoldCents(150, 0.15), 23); // ¥1.50×15% = 22.5分 → 23分
+});
+
+test("单单释放到期：held_at+72h 到即释，未到不释，非法时钟不释（R5）", () => {
+  const held = 1_000_000;
+  assert.equal(satisfactionReleaseDue(held, held + 72 * 3600_000), true); // 恰 72h 整算到期
+  assert.equal(satisfactionReleaseDue(held, held + 72 * 3600_000 - 1), false);
+  assert.equal(satisfactionReleaseDue(held, held + 30 * 24 * 3600_000), true); // 旧批 30 天线早已过
+  assert.equal(satisfactionReleaseDue(NaN, held), false); // 无 held_at（老脏行）不释
+  assert.equal(satisfactionReleaseDue(held, NaN), false);
 });

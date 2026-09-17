@@ -4,59 +4,52 @@ import { appendEvidence } from '@/modules/m11-evidence-log/evidence-chain'
 import { updateCredit } from "@/modules/m07-credit/credit-engine"
 // D-5 Phase E：协议定义资产归位 Base
 import { getProtocol } from "@/base/order/protocol-definitions"
-// 暂扣口径单源（2026-09-17 彻底收敛）：委托 Type1 纯核 qualityHoldCents，
-// 差分考卷逐分锁定与老公式一致；批放机制（15 单成团/事件/证据）不动。
-import { qualityHoldCents } from "@/base/money/type1-settlement"
+// R5 单单释放（用户裁决 2026-09-17 · 宪法 §6.2 Clean Slate）：
+// 15 单成团批经济整段删除，不留适配器；暂扣口径 + 到期判定 + 结算方程全委托纯核。
+import {
+  qualityHoldCents,
+  satisfactionReleaseDue,
+  settleType1,
+} from "@/base/money/type1-settlement"
+import {
+  effectiveSubjectivePass,
+  isSubjectiveChecks,
+  type SubjectiveChecks,
+} from "@/base/trust/subjective-check"
 
+/**
+ * 暂扣（hold）：COMPLETED → SATISFACTION_HELD + 暂扣时刻戳。
+ * 幂等：已 HELD 且有 held_at 直接返回（路由与 cron 双入口互调不双扣）。
+ */
 export async function handleSatisfactionBatch(contractId: string) {
   const supabase = getServiceClient()
 
   const { data: contract } = await supabase
     .from('contracts')
-    .select('provider_id, amount, fund_status, protocol_id')
+    .select('provider_id, amount, fund_status, protocol_id, satisfaction_held_at')
     .eq('id', contractId)
     .single()
 
   if (!contract) return
 
+  if (
+    contract.fund_status === 'SATISFACTION_HELD' &&
+    contract.satisfaction_held_at != null
+  ) {
+    return
+  }
+
   const satisfactionHold = getProtocol(contract.protocol_id)?.funding.fees.satisfaction_hold ?? 0
   if (satisfactionHold <= 0) return
 
-  const totalCents = Math.round(contract.amount * 100)
+  const totalCents = Math.round(Number(contract.amount) * 100)
   const depositAmount = qualityHoldCents(totalCents, satisfactionHold) / 100
-
-  let { data: batch } = await supabase
-    .from('satisfaction_batches')
-    .select('*')
-    .eq('provider_id', contract.provider_id)
-    .eq('status', 'PENDING')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (!batch) {
-    const { data: newBatch, error } = await supabase
-      .from('satisfaction_batches')
-      .insert({ provider_id: contract.provider_id })
-      .select()
-      .single()
-    if (error) throw error
-    batch = newBatch
-  }
-
-  const { error: updateBatchError } = await supabase
-    .from('satisfaction_batches')
-    .update({
-      count: batch.count + 1,
-      total_amount: batch.total_amount + depositAmount,
-    })
-    .eq('id', batch.id)
-  if (updateBatchError) throw updateBatchError
+  const heldAt = new Date().toISOString()
 
   const { error: updateContractError } = await supabase
     .from('contracts')
     .update({
-      satisfaction_batch_id: batch.id,
+      satisfaction_held_at: heldAt,
       fund_status: 'SATISFACTION_HELD',
     })
     .eq('id', contractId)
@@ -70,69 +63,108 @@ export async function handleSatisfactionBatch(contractId: string) {
     action: 'hold_satisfaction',
     reason: `满意度暂存款已冻结: ¥${depositAmount}`,
   })
-
-  const { data: updatedBatch } = await supabase
-    .from('satisfaction_batches')
-    .select('*')
-    .eq('id', batch.id)
-    .single()
-
-  if (updatedBatch && updatedBatch.count >= 15) {
-    await releaseSatisfactionBatch(batch.id)
-  }
 }
 
-export async function releaseSatisfactionBatch(batchId: string) {
+export interface SatisfactionReleaseResult {
+  released: boolean;
+  /** 到期结算明细（未到期时为 null）。 */
+  providerNetCents?: number;
+  qualityFeeCents?: number;
+  passedCount?: number | null;
+}
+
+/**
+ * 单单释放（R5）：SATISFACTION_HELD + held_at+72h 到期 → settleType1 单单结算 → SETTLED。
+ * 评价口径（用户裁决 2026-09-17）：需求方已提交行按勾结算（盲态不影响，
+ * 勾已落库）；无提交行按 null 默认全返。举证门在释放时重算一次（幂等）。
+ * 未到期 → { released: false }，调用方跳过。
+ */
+export async function releaseSatisfactionOrder(
+  contractId: string,
+  nowMs: number = Date.now(),
+): Promise<SatisfactionReleaseResult> {
   const supabase = getServiceClient()
 
-  const { data: batch } = await supabase
-    .from('satisfaction_batches')
-    .select('*')
-    .eq('id', batchId)
+  const { data: contract } = await supabase
+    .from('contracts')
+    .select('provider_id, customer_id, amount, fund_status, protocol_id, satisfaction_held_at')
+    .eq('id', contractId)
     .single()
 
-  if (!batch || batch.status !== 'PENDING') return
-
-  const { data: contracts } = await supabase
-    .from('contracts')
-    .select('id')
-    .eq('satisfaction_batch_id', batchId)
-
-  const { error: updateBatchError } = await supabase
-    .from('satisfaction_batches')
-    .update({ status: 'RELEASED', released_at: new Date().toISOString() })
-    .eq('id', batchId)
-  if (updateBatchError) throw updateBatchError
-
-  for (const c of Array.isArray(contracts) ? contracts : []) {
-    const { error: updateContractError } = await supabase
-      .from('contracts')
-      .update({ fund_status: 'SETTLED' })
-      .eq('id', c.id)
-    if (updateContractError) throw updateContractError
-
-    const { error: eventError } = await supabase
-      .from('contract_events')
-      .insert({
-        contract_id: c.id,
-        actor_id: batch.provider_id,
-        from_status: 'SATISFACTION_HELD',
-        to_status: 'SETTLED',
-        action: 'batch_release',
-        reason: `满意度暂存款批释放: 第${batch.count}单 / 总额¥${batch.total_amount}`,
-      })
-    if (eventError) throw eventError
+  if (!contract || contract.fund_status !== 'SATISFACTION_HELD') {
+    return { released: false }
+  }
+  const heldAtMs =
+    contract.satisfaction_held_at != null
+      ? Date.parse(contract.satisfaction_held_at)
+      : NaN
+  if (!satisfactionReleaseDue(heldAtMs, nowMs)) {
+    return { released: false }
   }
 
+  const totalCents = Math.round(Number(contract.amount) * 100)
+
+  // 需求方提交行（有则按勾，无则全返；blind/抖动只管展示，不管钱）
+  let pass: SubjectiveChecks | null = null;
+  let passedCount: number | null = null;
+  try {
+    const { data: rows } = await supabase
+      .from('order_reviews')
+      .select('checks, has_after_photo, passed_count')
+      .eq('contract_id', contractId)
+      .eq('reviewer_id', contract.customer_id)
+      .limit(1);
+    const row = (rows ?? [])[0] as
+      | { checks: unknown; has_after_photo: boolean | null; passed_count: number | null }
+      | undefined;
+    if (row && isSubjectiveChecks(row.checks)) {
+      pass = effectiveSubjectivePass({
+        checks: row.checks,
+        hasAfterPhoto: row.has_after_photo === true,
+      });
+      passedCount = row.passed_count;
+    }
+  } catch {
+    /* 评价表缺席 = 无评价，全返 */
+  }
+
+  // 方程真相源：85/15 内生（弹药表非零 hold 恒 0.15；hold=0 协议从不进 HELD，到此必为 85/15 单）
+  const settled = settleType1(totalCents, pass, 0);
+
+  const { error: updateContractError } = await supabase
+    .from('contracts')
+    .update({ fund_status: 'SETTLED' })
+    .eq('id', contractId)
+  if (updateContractError) throw updateContractError
+
+  await addContractEvent({
+    contractId,
+    actorId: contract.provider_id,
+    fromStatus: 'SATISFACTION_HELD',
+    toStatus: 'SETTLED',
+    action: 'release_satisfaction',
+    reason: `72h单单释放: 实得¥${settled.providerNetCents / 100} / 质管费¥${settled.qualityFeeCents / 100}${pass ? ` / ${passedCount ?? '?'}勾` : ' / 无评价默认全返'}`,
+  })
+
   const ev = await appendEvidence({
+    protocolId: contract.protocol_id,
     eventType: 'satisfaction_released',
     payload: {
-      batch_id: batchId,
-      provider_id: batch.provider_id,
-      total_amount: batch.total_amount,
-      count: batch.count,
+      contract_id: contractId,
+      provider_id: contract.provider_id,
+      total_cents: totalCents,
+      provider_net_cents: settled.providerNetCents,
+      quality_fee_cents: settled.qualityFeeCents,
+      passed_count: passedCount,
     },
   })
   if (!ev) throw new Error('Failed to append evidence for satisfaction release')
-  await updateCredit({ userId: batch.provider_id, eventType: 'completion', evidenceId: ev.id, description: 'Satisfaction batch released' })
+  await updateCredit({ userId: contract.provider_id, eventType: 'completion', evidenceId: ev.id, description: 'Satisfaction order released' })
+
+  return {
+    released: true,
+    providerNetCents: settled.providerNetCents,
+    qualityFeeCents: settled.qualityFeeCents,
+    passedCount,
+  }
 }

@@ -5,14 +5,29 @@ on:
     branches: [master]
     paths:
       - 'supabase/migrations/**'
-  # 手动重跑
+  # 手动重跑：inputs.files 为空 = 跳过（全量对账须显式填 ALL，经版本表逐个跳过已应用）
   workflow_dispatch:
+    inputs:
+      files:
+        description: '空格分隔的迁移文件（空 = 跳过，ALL = 全量对账）'
+        required: false
+        default: ''
+      check:
+        description: '落库核验 SQL（空 = 跳过）'
+        required: false
+        default: ''
+      expect:
+        description: '核验期望子串（空白归一后包含）'
+        required: false
+        default: ''
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: supabase/setup-cli@v1
         with:
@@ -27,9 +42,19 @@ jobs:
           test -n "${{ secrets.SUPABASE_PROJECT_ID }}" || { echo "::error::缺仓库 Secret SUPABASE_PROJECT_ID（Dashboard → Project Settings → General → Reference ID）"; exit 1; }
           test -n "${{ secrets.SUPABASE_ACCESS_TOKEN }}" || { echo "::error::缺仓库 Secret SUPABASE_ACCESS_TOKEN（Dashboard → Access Tokens，Database + Migrations 读写）"; exit 1; }
 
-      # 真门：R4-1 定向直推 + 落库核验（版本表命中则跳过；文件自带幂等可重跑）。
+      # 真门：定向/全量直推 + 可选落库核验（版本表命中跳过；文件自带幂等可重跑）。
       - name: Apply migrations
-        run: node scripts/apply-migration-api.mjs supabase/migrations/20260917_review_dual_track.sql
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -z "${{ inputs.files }}" ]; then echo "未指定文件，跳过"; exit 0; fi
+            if [ "${{ inputs.files }}" = "ALL" ]; then FILES=$(ls supabase/migrations/*.sql | sort | tr '\n' ' '); else FILES="${{ inputs.files }}"; fi
+          else
+            FILES=$(git diff --name-only ${{ github.event.before }} HEAD -- supabase/migrations/ | tr '\n' ' ')
+          fi
+          if [ -z "$FILES" ]; then echo "无迁移变更，跳过"; exit 0; fi
+          ARGS="$FILES"
+          if [ -n "${{ inputs.check }}" ]; then ARGS="$ARGS --check ${{ inputs.check }} --expect ${{ inputs.expect }}"; fi
+          node scripts/apply-migration-api.mjs $ARGS
         env:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

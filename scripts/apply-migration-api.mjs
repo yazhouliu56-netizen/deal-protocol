@@ -1,20 +1,29 @@
-// scripts/apply-migration-api.mjs — 经 Management API 直推单文件迁移（2026-09-17）
+// scripts/apply-migration-api.mjs — 经 Management API 直推迁移（2026-09-17）
 // 背景：CI 无固定出口 IP，db.<ref> 5432 直连被项目 Network Restrictions 拒；
 // 细粒度 token 已授 Database SQL + Migrations 读写，走 HTTPS /database/query 不碰 pg 端口。
-// 用法：node scripts/apply-migration-api.mjs supabase/migrations/xxxx.sql
+// 用法：node scripts/apply-migration-api.mjs <file...> [--check <sql> --expect <substr>]
 // 要求 env：SUPABASE_PROJECT_ID，SUPABASE_ACCESS_TOKEN
-// 幂等：目标文件须自带 IF NOT EXISTS / OR REPLACE（R4-1 满足），失败可重跑。
+// 幂等：目标文件须自带 IF NOT EXISTS / OR REPLACE（R4-1/R5 满足），失败可重跑。
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 
 const ref = process.env.SUPABASE_PROJECT_ID ?? "";
 const token = process.env.SUPABASE_ACCESS_TOKEN ?? "";
-const file = process.argv[2] ?? "";
-if (!ref || !token || !file) {
+const argv = process.argv.slice(2);
+const checkIdx = argv.indexOf("--check");
+const expectIdx = argv.indexOf("--expect");
+const files = argv.filter((a, i) => {
+  if (a.startsWith("--")) return false;
+  if (checkIdx !== -1 && (i === checkIdx + 1)) return false;
+  if (expectIdx !== -1 && (i === expectIdx + 1)) return false;
+  return a;
+});
+const checkSql = checkIdx !== -1 ? argv[checkIdx + 1] : "";
+const expectSub = expectIdx !== -1 ? argv[expectIdx + 1] : "";
+if (!ref || !token || files.length === 0) {
   console.error("缺 SUPABASE_PROJECT_ID / SUPABASE_ACCESS_TOKEN / 文件参数");
   process.exit(1);
 }
-const version = basename(file).split("_")[0];
 
 async function query(sql) {
   const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
@@ -30,41 +39,37 @@ async function query(sql) {
   return text;
 }
 
-// 0. 已应用则跳过（版本表缺席视为未应用，靠文件自身幂等兜底）
-try {
-  const out = await query(
-    "SELECT version FROM supabase_migrations.schema_migrations WHERE version = '" +
-      version.replace(/'/g, "''") +
-      "'",
-  );
-  if (out.includes(version)) {
-    console.log(`SKIP: ${version} 已在远端应用过`);
-    process.exit(0);
+for (const file of files) {
+  const version = basename(file).split("_")[0];
+  // 0. 已应用则跳过（版本表缺席视为未应用，靠文件自身幂等兜底）
+  try {
+    const out = await query(
+      "SELECT version FROM supabase_migrations.schema_migrations WHERE version = '" +
+        version.replace(/'/g, "''") +
+        "'",
+    );
+    if (out.includes(version)) {
+      console.log(`SKIP: ${version} 已在远端应用过`);
+      continue;
+    }
+  } catch (e) {
+    console.warn(`版本表不可读，继续直推（幂等兜底）: ${String(e).slice(0, 200)}`);
   }
-} catch (e) {
-  console.warn(`版本表不可读，继续直推（幂等兜底）: ${String(e).slice(0, 200)}`);
+
+  // 1. 推文件全文（单调用；多语句 + DO 块由服务端一次执行）
+  const sql = readFileSync(resolve(file), "utf-8");
+  await query(sql);
+  console.log(`✓ 已推送: ${basename(file)}`);
 }
 
-// 1. 推文件全文（单调用；多语句 + DO 块由服务端一次执行）
-const sql = readFileSync(resolve(file), "utf-8");
-await query(sql);
-console.log(`✓ 已推送: ${basename(file)}`);
-
-// 2. 落库核验（R4-1 双轨列 + RLS + 触发器门）
-const verify = await query(`
-  SELECT json_build_object(
-    'cols', (SELECT count(*) FROM information_schema.columns
-             WHERE table_schema='public' AND table_name='order_reviews'
-               AND column_name IN ('contract_id','checks','tags','has_after_photo','passed_count','blind_state','reveal_at','jitter_days')),
-    'comment_nullable', (SELECT is_nullable FROM information_schema.columns
-             WHERE table_schema='public' AND table_name='order_reviews' AND column_name='comment'),
-    'policies', (SELECT count(*) FROM pg_policies
-             WHERE schemaname='public' AND tablename='order_reviews'),
-    'trigger_fn', (SELECT count(*) FROM pg_proc WHERE proname='process_review_reputation_trigger')
-  ) AS v`);
-console.log(`核验 → ${verify}`);
-if (!verify.includes('"cols": 8') && !verify.includes('"cols":8')) {
-  console.error("✗ 核验失败：双轨 8 列不全");
-  process.exit(1);
+// 2. 落库核验（可选：--check <sql> --expect <substr>，空白归一后包含即过）
+if (checkSql) {
+  const verify = await query(checkSql);
+  console.log(`核验 → ${verify.slice(0, 400)}`);
+  const flat = verify.replace(/\s/g, "");
+  if (!expectSub || !flat.includes(expectSub.replace(/\s/g, ""))) {
+    console.error(`✗ 核验失败：缺期望 ${expectSub}`);
+    process.exit(1);
+  }
+  console.log("VERIFIED: 迁移已上云");
 }
-console.log("VERIFIED: R4-1 已上云");

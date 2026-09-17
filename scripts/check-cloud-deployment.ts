@@ -139,8 +139,6 @@ async function checkSupabase() {
     ['wallet_logs', 'wallet_logs'],
     ['contract_events', 'contract_events'],
     ['credit_events', 'credit_events'],
-    ['satisfaction_batches', 'satisfaction_batches'],
-    ['satisfaction_contracts', 'satisfaction_contracts'],
     ['precedents', 'precedents'],
   ]
 

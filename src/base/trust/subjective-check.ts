@@ -61,6 +61,17 @@ export function defaultSubjectiveChecks(): SubjectiveChecks {
   return { attitude: true, appearance: true, restoration: true };
 }
 
+/** 落库回读守卫：防脏 JSON 进结算（三键布尔，缺一不可）。 */
+export function isSubjectiveChecks(v: unknown): v is SubjectiveChecks {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.attitude === "boolean" &&
+    typeof o.appearance === "boolean" &&
+    typeof o.restoration === "boolean"
+  );
+}
+
 /** Tag/原因强制开关：v1 恒 false（用户裁决，用户体验优先）。 */
 export function tagRequired(): boolean {
   return false;
