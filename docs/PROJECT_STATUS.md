@@ -24,6 +24,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-18 ｜ HEAD：v5.0.0（结算重构收官）｜ 摘要：P0 费率配置中心（佣金 0＋通道／发布／取消基准／护栏／份额表／sunset）＋P1 跨模型互斥锁＋P2 demands 放款路退役（净删 527 行）＋P3 Type1 五项方程（佣金先切＋份额可配）＋P4 双钟表（base 即释＋15% 批量 N=10/T=7d，评价随批量解密）＋P5a 定制模型（事实固定／情绪百分比）＋P5b 发布费应收实收＋P6 取消补偿（ETA 快照＋3 分钟冷静＋未到×1／已到×2）＋P7 阶段模板 LLM（护栏＋实测）＋P8 通道费落地（3 通道记账＋提现从到账扣）＋P9 免费口径统一（仲裁／组队／BI 归零＋冻结门禁）＋P10 广播挂载快照（e2e-trust flake 根治）；门禁每 Phase T2 FULL PASS＋verify-prod 15/15。
+
 > 日期：2026-09-12 ｜ HEAD：v4.6.2（Batch③ UX 治本收官）｜ 摘要：③-0 立规矩（motion token＋屏幕预算＋mutation 范式＋入口 in/out）＋③-1 首页减法（ticker 砍＋4 门折叠＋AR 降级＋§3 裁决 C：SOS 有单隐藏）＋③-2 行程三卡合一＋③-3 空卡 CTA 去向诚实化（goHomeTab）＋③-4 抢单乐观化＋③-5 ux-budget 门禁（SUITE_ORDER 第 15 席）；基线 **2120/2120**（851+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 15/15 + convergence 0。
 >
 > 日期：2026-09-12 ｜ HEAD：v4.6.1（Batch①② Duo 化＋发版收官）｜ 摘要：Batch① 8 岛收官（ArbitrationSheet/DynamicDraftCard/MilestoneLadder/Companion/Housekeeping/Meetup/DynamicAmmoSlot/FulfillmentCockpit/FulfillmentCenter）+ Batch②（根级 404/error/global-error＋demands 骨架＋admin 轨深黑壳出清＋杂项核销零代码）+ verify-prod 改吃 SUITE_ORDER 单一源（13→14 套）；基线 **2117/2117**（848+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 14/14（含 dual-role/dyn-slot，09-05 掉线链路恢复）+ convergence 0。
