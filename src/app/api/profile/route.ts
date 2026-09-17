@@ -59,7 +59,7 @@ export const GET = withAuth(async (req, user) => {
 export const PATCH = withAuth(async (req, user) => {
   const svc = await getRouteClient()
   const body = await req.json();
-  const { name, phone, currentPassword, newPassword, bio, skills, service_areas, accepts_custom } = body;
+  const { name, phone, currentPassword, newPassword, bio, skills, service_areas, accepts_custom, vehicle } = body;
 
   const updateData: Record<string, string | number | boolean | null> = {};
 
@@ -67,6 +67,8 @@ export const PATCH = withAuth(async (req, user) => {
   if (phone !== undefined) updateData.phone = phone;
   // P5a 师傅定制总开关（布尔直写；附说明见前端）。
   if (accepts_custom !== undefined) updateData.accepts_custom = !!accepts_custom;
+  // P6 交通工具（twoWheel/fourWheel；取消补偿基准用）。
+  if (vehicle === "twoWheel" || vehicle === "fourWheel") updateData.vehicle = vehicle;
 
   if (name) updateData.name = name;
   if (phone !== undefined) updateData.phone = phone;

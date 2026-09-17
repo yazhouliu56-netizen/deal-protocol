@@ -77,13 +77,14 @@ export async function POST(request: Request) {
     if (demandId && contractData) {
       const { data: due } = await svc
         .from("demands")
-        .select("id, publish_fee_due, custom_platform_due, fee_status")
+        .select("id, publish_fee_due, custom_platform_due, comp_due, fee_status, matched_provider_id")
         .eq("id", demandId)
         .single()
-      const d = due as { publish_fee_due?: number; custom_platform_due?: number; fee_status?: string } | null
+      const d = due as { publish_fee_due?: number; custom_platform_due?: number; comp_due?: number; fee_status?: string; matched_provider_id?: string | null } | null
       if (d && d.fee_status === "uncollected") {
         const pub = Number(d.publish_fee_due) || 0
         const plat = Number(d.custom_platform_due) || 0
+        const comp = Number(d.comp_due) || 0
         const rows = []
         if (pub > 0) {
           rows.push({
@@ -109,7 +110,34 @@ export async function POST(request: Request) {
           const { error: feeError } = await svc.from("transactions").insert(rows)
           if (feeError) throw feeError
         }
-        await svc.from("demands").update({ fee_status: "paid" }).eq("id", demandId).eq("fee_status", "uncollected")
+        // P6：补偿应收实收 → 师傅钱包即时到账（钱已在托管，无垫付）。
+        if (comp > 0 && d.matched_provider_id) {
+          const { data: w } = await svc
+            .from("provider_wallets")
+            .select("balance")
+            .eq("provider_id", d.matched_provider_id)
+            .single()
+          if (!w) {
+            await svc.from("provider_wallets").insert({ provider_id: d.matched_provider_id, balance: 0 })
+          }
+          const before = Number((w as { balance?: number } | null)?.balance ?? 0)
+          const after = Math.round((before + comp) * 100) / 100
+          const { error: compError } = await svc
+            .from("provider_wallets")
+            .update({ balance: after, updated_at: new Date().toISOString() })
+            .eq("provider_id", d.matched_provider_id)
+          if (compError) throw compError
+          const { error: compLogError } = await svc.from("transactions").insert({
+            user_id: d.matched_provider_id,
+            type: "CANCEL_COMPENSATION",
+            amount: comp,
+            balance_before: before,
+            balance_after: after,
+            description: `取消补偿: 需求单 ${demandId}（ channel ${channel} 实收）`,
+          })
+          if (compLogError) throw compLogError
+        }
+        await svc.from("demands").update({ fee_status: "paid", comp_due: 0 }).eq("id", demandId).eq("fee_status", "uncollected")
       }
     }
   } catch (e) {

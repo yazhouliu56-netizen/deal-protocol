@@ -35,11 +35,11 @@ export interface ChannelRates {
   stripe: number
 }
 
-/** 取消补偿城市基准（元/小时；用户裁决：在途按骑手线）。 */
+/** 取消补偿城市基准（元/小时；ETA 默认分钟；用户裁决：在途按骑手线）。 */
 export interface CancelBenchmark {
-  tier1: { twoWheel: number; fourWheel: number }
-  tier2: { twoWheel: number; fourWheel: number }
-  tier3: { twoWheel: number; fourWheel: number }
+  tier1: { twoWheel: number; fourWheel: number; etaMin: number }
+  tier2: { twoWheel: number; fourWheel: number; etaMin: number }
+  tier3: { twoWheel: number; fourWheel: number; etaMin: number }
 }
 
 export interface PlatformConfig {
@@ -102,9 +102,9 @@ export function getDefaultConfig(): PlatformConfig {
       channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
       publishFee: { freePerDay: 3, unitPrice: 1 },
       cancelBenchmark: {
-        tier1: { twoWheel: 35, fourWheel: 80 },
-        tier2: { twoWheel: 30, fourWheel: 70 },
-        tier3: { twoWheel: 25, fourWheel: 60 },
+        tier1: { twoWheel: 35, fourWheel: 80, etaMin: 30 },
+        tier2: { twoWheel: 30, fourWheel: 70, etaMin: 25 },
+        tier3: { twoWheel: 25, fourWheel: 60, etaMin: 20 },
       },
       qualityGuardrails: {
         emotionMinPct: 0.03,

@@ -11,6 +11,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function voidUnmatchedDemand(
   svc: SupabaseClient,
   demand: { id: string; fee_status?: string },
+  opts: { keepFees?: boolean } = {},
 ): Promise<{ customRefunded: number }> {
   const { data: rows } = await svc
     .from("demand_customizations")
@@ -21,6 +22,9 @@ export async function voidUnmatchedDemand(
   if (ids.length > 0) {
     await svc.from("demand_customizations").update({ status: "refunded" }).in("id", ids);
   }
-  await svc.from("demands").update({ fee_status: "void" }).eq("id", demand.id);
+  // 已匹配取消：平台 1 元/项应收保留（不退 ruling），只作废行项。
+  if (!opts.keepFees) {
+    await svc.from("demands").update({ fee_status: "void" }).eq("id", demand.id);
+  }
   return { customRefunded: ids.length };
 }

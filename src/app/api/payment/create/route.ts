@@ -41,12 +41,13 @@ export const POST = withAuth(async (req, user) => {
     const feeSvc = getServiceClient();
     const { data: feeDemand } = await feeSvc
       .from("demands")
-      .select("id, price, publish_fee_due, custom_platform_due")
+      .select("id, price, publish_fee_due, custom_platform_due, comp_due")
       .eq("id", demandId)
       .single();
     if (feeDemand) {
-      const d = feeDemand as { price?: number; publish_fee_due?: number; custom_platform_due?: number };
-      feeDues = (Number(d.publish_fee_due) || 0) + (Number(d.custom_platform_due) || 0);
+      const d = feeDemand as { price?: number; publish_fee_due?: number; custom_platform_due?: number; comp_due?: number };
+      // P6：取消补偿应收一并并入（平台零垫付，实收时师傅才拿钱）。
+      feeDues = (Number(d.publish_fee_due) || 0) + (Number(d.custom_platform_due) || 0) + (Number(d.comp_due) || 0);
       const { data: customRows } = await feeSvc
         .from("demand_customizations")
         .select("amount")

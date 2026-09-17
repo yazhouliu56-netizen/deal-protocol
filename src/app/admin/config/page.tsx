@@ -24,9 +24,9 @@ const EMPTY_CONFIG: PlatformConfig = {
     channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
     publishFee: { freePerDay: 3, unitPrice: 1 },
     cancelBenchmark: {
-      tier1: { twoWheel: 35, fourWheel: 80 },
-      tier2: { twoWheel: 30, fourWheel: 70 },
-      tier3: { twoWheel: 25, fourWheel: 60 },
+      tier1: { twoWheel: 35, fourWheel: 80, etaMin: 30 },
+      tier2: { twoWheel: 30, fourWheel: 70, etaMin: 25 },
+      tier3: { twoWheel: 25, fourWheel: 60, etaMin: 20 },
     },
     qualityGuardrails: { emotionMinPct: 0.03, emotionMaxPct: 0.15, singleItemMaxPct: 0.5, newDimFallback: 5 },
     settlementShares: [
