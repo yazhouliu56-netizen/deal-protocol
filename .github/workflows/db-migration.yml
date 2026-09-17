@@ -18,20 +18,16 @@ jobs:
         with:
           version: latest
 
-      # 前置守卫：缺凭证直接红，不静默绿（2026-09-17 血训：
-      # supabase-action 不认 args 参数，之前全是绿了个寂寞）。
+      # 前置守卫：缺凭证直接红，不静默绿（2026-09-17 血训连环）：
+      # ① supabase-action 不认 args；② 细粒度 token 缺 link 所需项目可见权限。
+      # 故直连推（db push --db-url），只认库密码，不走 token 权限轮盘赌。
       - name: Guard secrets
         run: |
-          test -n "${{ secrets.SUPABASE_ACCESS_TOKEN }}" || { echo "::error::缺仓库 Secret SUPABASE_ACCESS_TOKEN（Supabase Dashboard → Access Tokens）"; exit 1; }
-          test -n "${{ secrets.SUPABASE_PROJECT_ID }}" || { echo "::error::缺仓库 Secret SUPABASE_PROJECT_ID（Dashboard → Project Settings → General）"; exit 1; }
-
-      - name: Link project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          test -n "${{ secrets.SUPABASE_PROJECT_ID }}" || { echo "::error::缺仓库 Secret SUPABASE_PROJECT_ID（Dashboard → Project Settings → General → Reference ID）"; exit 1; }
+          test -n "${{ secrets.SUPABASE_DB_PASSWORD }}" || { echo "::error::缺仓库 Secret SUPABASE_DB_PASSWORD（Dashboard → Project Settings → Database → Database password，忘即 Reset）"; exit 1; }
 
       # 真门 = db push 本体（待应用迁移逐个执行，SQL 非法直红）。
       - name: Apply migrations
-        run: supabase db push
+        run: supabase db push --db-url "postgresql://postgres:${DB_PASSWORD}@db.${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co:5432/postgres"
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
