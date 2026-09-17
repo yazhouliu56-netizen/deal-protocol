@@ -14,16 +14,22 @@ export default function DashboardClient() {
   const [anomalies, setAnomalies] = useState<Record<string, unknown>[]>([])
 
   const fetchDashboardData = useCallback(async () => {
-    const supabase = getBrowserSupabase()
-
-    const { data: statsData } = await supabase
-      .from("view_admin_stats")
-      .select("*")
-      .single()
-
-    if (statsData) {
-      setStats(statsData as AdminStats)
+    // R9：view_admin_stats 不存在，数字改走服务端聚合路由（ADMIN 门禁）。
+    try {
+      const res = await fetch("/api/admin/stats");
+      if (res.ok) {
+        const stats = (await res.json()) as AdminStats;
+        setStats({
+          active_count: stats.active_count ?? 0,
+          completed_count: stats.completed_count ?? 0,
+          anomaly_count: stats.anomaly_count ?? 0,
+        });
+      }
+    } catch {
+      /* 数字缺席不拦异常列表 */
     }
+
+    const supabase = getBrowserSupabase()
 
     const { data: anomalyList } = await supabase
       .from("demands")

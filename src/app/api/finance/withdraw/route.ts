@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-auth";
-import { getServiceClient } from "@/lib/supabase-client";
-// P0-2 收编：余额充足性校验经 escrow 资金安全底线（NaN/负数一并拦截）。
-import { verifyFundSafetyGuard } from "@/base/money/escrow";
+import { getRouteClient } from "@/lib/supabase-route-client";
 
+// R9 码随表（用户裁决 2026-09-18）：旧 withdrawals 表不存在且 profiles 余额模型
+// 已被 M14 provider_wallets 取代；本路由改调 SECURITY DEFINER 函数
+// submit_withdrawal_request（余额校验＋冻结＋pending 单＋wallet_logs 一体，原子），
+// 成功即进入管理员审核流（admin/withdraw/review）。Modal 只读 ok/error，零改动。
+// 必须走 getRouteClient（用户 JWT）：函数内 auth.uid() 落 provider_id，service
+// 上下文 uid 为空必回 Unauthorized。
 export const POST = withAuth(async (request: Request, user) => {
+  void user;
   try {
-    const supabase = getServiceClient();
     const { amount, payoutMethod, accountInfo } = await request.json();
 
     if (!amount || amount <= 0) {
@@ -17,46 +21,24 @@ export const POST = withAuth(async (request: Request, user) => {
       return NextResponse.json({ error: "缺少提现渠道或账号信息" }, { status: 400 });
     }
 
-    const { data: profile, error: profileErr } = await supabase
-      .from("profiles")
-      .select("balance, pending_withdrawal")
-      .eq("id", user.id)
-      .single();
+    const supabase = await getRouteClient();
+    const { data, error } = await supabase.rpc("submit_withdrawal_request", {
+      p_amount: amount,
+      p_channel: payoutMethod,
+      p_account_info: accountInfo,
+    });
 
-    if (profileErr) {
-      return NextResponse.json({ error: "无法调取用户资产账户" }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ error: error.message || "提现请求提交失败" }, { status: 400 });
     }
 
-    const currentBalance = Number(profile?.balance) || 0;
-    if (!verifyFundSafetyGuard(currentBalance, amount)) {
-      return NextResponse.json({ error: `申请金额 ¥${amount} 超过当前可用余额 ¥${currentBalance}` }, { status: 400 });
+    const result = data as { success: boolean; error?: string; request_id?: string } | null;
+    if (!result?.success) {
+      const msg = result?.error === "Insufficient balance" ? "余额不足" : (result?.error || "提现请求提交失败");
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    const { data: withdrawal, error: withdrawErr } = await supabase
-      .from("withdrawals")
-      .insert({
-        user_id: user.id,
-        amount,
-        payout_method: payoutMethod,
-        account_info: accountInfo,
-        status: "PROCESSING"
-      })
-      .select()
-      .single();
-
-    if (withdrawErr) {
-      return NextResponse.json({ error: withdrawErr.message }, { status: 400 });
-    }
-
-    await supabase
-      .from("profiles")
-      .update({
-        balance: currentBalance - amount,
-        pending_withdrawal: (Number(profile?.pending_withdrawal) || 0) + amount
-      })
-      .eq("id", user.id);
-
-    return NextResponse.json({ success: true, withdrawal });
+    return NextResponse.json({ success: true, requestId: result.request_id });
   } catch (err) {
     return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) || "提现请求提交失败" }, { status: 500 });
   }

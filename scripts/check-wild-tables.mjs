@@ -11,14 +11,12 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // 已知债（R9 批次收编；新增野表一律拦截，不许再往此表加行）。
+// R9 已收编：contract_events、payments（20260917_wild_tables_govern）、
+// transactions、emergency_contacts、finance_transactions（20260917_r9_missing_tables）、
+// withdrawals（码随表并入 M14，无表）、view_admin_stats（改服务端路由，无表）。
 const ALLOWLIST = new Map([
   ["evidence_chain", "guarded legacy reads（try/catch），读 evidence_log 为准"],
   ["protocol_versions", "guarded legacy read（order-read try/catch）"],
-  ["transactions", "R9：refund  live 写，表亡"],
-  ["finance_transactions", "R9：finance 路由 live 读，表亡"],
-  ["emergency_contacts", "R9：SOS live 读，表亡"],
-  ["withdrawals", "R9：名实错位（云端只有 withdrawal_requests），withdraw 路由写亡"],
-  ["view_admin_stats", "R9：admin dashboard 读，非表非视图"],
 ]);
 
 const CODE_EXT = /\.(ts|tsx|mjs|js|cjs)$/;
