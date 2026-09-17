@@ -8,6 +8,7 @@ import {
   BAYES_PRIOR_STRENGTH_M,
   bayesianMean,
   objectiveGoodRate,
+  objectiveMultiplier,
   subjectiveGoodRate,
   subjectiveTierScore,
   tierFromBayesianWindow,
@@ -60,6 +61,15 @@ test("准时 flag：仅完工计入，违约记 false，非完工丢弃（R6）"
     [true, false],
   );
   assert.deepEqual(toPunctualFlags([]), []);
+});
+
+test("客观乘子：1→1.0 / 0→0.9 / null→1.0，越界抛（R7·A 温和口径）", () => {
+  assert.equal(objectiveMultiplier(1), 1.0);
+  assert.equal(objectiveMultiplier(0), 0.9);
+  assert.equal(objectiveMultiplier(0.5), 0.95);
+  assert.equal(objectiveMultiplier(null), 1.0);
+  assert.throws(() => objectiveMultiplier(1.5), /INVALID_SAMPLES/);
+  assert.throws(() => objectiveMultiplier(NaN), /INVALID_SAMPLES/);
 });
 
 test("窗内定档：新人保护沿用旧 tier；全满冲 Lv5", () => {

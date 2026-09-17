@@ -86,6 +86,19 @@ export function toPunctualFlags(
   return rows.filter((r) => r.completed).map((r) => !r.breached);
 }
 
+/**
+ * 客观率 → 派单乘子（R7 · 用户裁决 2026-09-18，A 温和口径）：
+ * rate=1 → 1.0，rate=0 → 0.9；无数据（null）→ 1.0 不奖不罚。
+ */
+export function objectiveMultiplier(rate: number | null): number {
+  if (rate === null) return 1.0;
+  if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
+    throw new BayesianError("INVALID_SAMPLES", `客观率须落在 [0,1] 或 null，收到 ${rate}`);
+  }
+  // 4 位定点：0.9＋0.1×rate 的二进制尘在此收敛（下游 Math.round 二次兜底）。
+  return Math.round((0.9 + 0.1 * rate) * 10000) / 10000;
+}
+
 /** 主观好评率 = ≥2 勾（完美＋好评）占比。 */
 export function subjectiveGoodRate(passedCounts: number[]): DualRate {
   const n = passedCounts.length;

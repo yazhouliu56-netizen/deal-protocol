@@ -2,6 +2,8 @@ import { getSupabase } from '@/lib/supabase-client'
 import { matchNearby } from '@/modules/m05-geo-index/geo-service'
 import { getCategoryConfig } from '@/modules/m03-category-config/category-loader'
 import { getCreditScore, isColdStart, getNewbornProtectionFactor, getWeekendMultiplier } from '@/modules/m07-credit/credit-engine'
+import { objectiveMultiplier } from '@/base/trust/bayesian-rating'
+import { getObjectiveRates } from '@/lib/matching/objective-rate'
 import { getCreditTierPrivileges } from '@/lib/credit-privileges'
 import { getCachedSemanticScore } from '@/lib/semantic-matcher'
 import type { CandidateProvider, ResponseMode } from '@/lib/contracts'
@@ -127,6 +129,10 @@ async function processCandidates(
     .in('provider_id', providerIds)
   const depositMap = new Map((walletData ?? []).map((w) => [w.provider_id, { depositAmount: Number(w.deposit_amount ?? 0), isStaked: !!w.is_staked }]))
 
+  // R7 客观率加权（用户裁决 2026-09-18，A 温和口径）：批量派生一次，
+  // 失败回空 Map→乘子 1.0（宪法 #10，不拦派单）。
+  const objectiveMap = await getObjectiveRates(providerIds)
+
   const candidateRecords: CandidateProvider[] = []
 
   for (const geo of geoResults) {
@@ -155,6 +161,9 @@ async function processCandidates(
     const depositMultiplier = dep?.isStaked && dep.depositAmount >= 500 ? 1.2 : 1.0
     cs = Math.round(cs * depositMultiplier * 100) / 100
 
+    const objRate = objectiveMap.get(geo.provider_id)?.rate ?? null
+    cs = Math.round(cs * objectiveMultiplier(objRate) * 100) / 100
+
     candidateRecords.push({
       provider_id: geo.provider_id,
       distance_m: geo.distance_m,
@@ -178,6 +187,8 @@ async function processCandidates(
         const dep = depositMap.get(geo.provider_id)
         const depositMultiplier = dep?.isStaked && dep.depositAmount >= 500 ? 1.2 : 1.0
         cs = Math.round(cs * depositMultiplier * 100) / 100
+        const objRate = objectiveMap.get(geo.provider_id)?.rate ?? null
+        cs = Math.round(cs * objectiveMultiplier(objRate) * 100) / 100
         candidateRecords.push({
           provider_id: geo.provider_id,
           distance_m: geo.distance_m,
