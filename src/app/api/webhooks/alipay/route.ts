@@ -64,6 +64,34 @@ export async function POST(request: Request) {
     amount: totalAmount,
   });
 
+  // P8 收款通道费记账（代通道收取，平台零垫付；失败不阻断托管主流程）。
+  try {
+    const { data: feeContract } = await svc
+      .from("contracts")
+      .select("provider_id")
+      .eq("id", outTradeNo)
+      .single();
+    const pid = (feeContract as { provider_id?: string } | null)?.provider_id;
+    if (pid) {
+      const { getConfig } = await import("@/lib/platform/config");
+      const { receiveChannelFee } = await import("@/lib/channel-fee");
+      const cfg = await getConfig();
+      const { fee, rate } = receiveChannelFee("alipay", totalAmount, cfg.fees.channelRates);
+      if (fee > 0) {
+        await svc.from("transactions").insert({
+          user_id: pid,
+          type: "CHANNEL_FEE",
+          amount: -fee,
+          balance_before: 0,
+          balance_after: 0,
+          description: `通道费: 合同 ${outTradeNo} 显示¥${totalAmount}×${(rate * 100).toFixed(1)}%代通道收取（实收托管¥${Math.round((totalAmount - fee) * 100) / 100}）`,
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("[webhooks/alipay] channel fee memo skipped:", e instanceof Error ? e.message : e);
+  }
+
   // 方向3：回调落盘 split_records 台账（幂等更新）
   try {
     await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("out_order_no", tradeNo);

@@ -22,6 +22,7 @@ const EMPTY_CONFIG: PlatformConfig = {
     commissionRate: 0,
     satisfactionHold: 0.15,
     channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
+    withdrawBankFlat: 2,
     publishFee: { freePerDay: 3, unitPrice: 1 },
     cancelBenchmark: {
       tier1: { twoWheel: 35, fourWheel: 80, etaMin: 30 },

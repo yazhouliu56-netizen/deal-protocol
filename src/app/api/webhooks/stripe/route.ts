@@ -44,6 +44,27 @@ async function handlePaymentSuccess(
     amount: intent.amount / 100,
   })
 
+  // P8 收款通道费记账（代通道收取，平台零垫付；失败不阻断托管主流程）。
+  try {
+    const { getConfig } = await import("@/lib/platform/config");
+    const { receiveChannelFee } = await import("@/lib/channel-fee");
+    const cfg = await getConfig();
+    const shown = intent.amount / 100;
+    const { fee, rate } = receiveChannelFee("stripe", shown, cfg.fees.channelRates);
+    if (fee > 0) {
+      await svc.from("transactions").insert({
+        user_id: contract.provider_id,
+        type: "CHANNEL_FEE",
+        amount: -fee,
+        balance_before: 0,
+        balance_after: 0,
+        description: `通道费: 合同 ${contractId} 显示¥${shown}×${(rate * 100).toFixed(1)}%代通道收取（实收托管¥${Math.round((shown - fee) * 100) / 100}）`,
+      });
+    }
+  } catch (e) {
+    console.warn("[webhooks/stripe] channel fee memo skipped:", e instanceof Error ? e.message : e);
+  }
+
   await svc.from("notifications").insert([
     {
       user_id: contract.customer_id,

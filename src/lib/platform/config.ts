@@ -51,6 +51,8 @@ export interface PlatformConfig {
     /** 与 Type1 对齐 0.15（协议层 funding.fees 为准，此处仅管理面一致口径）。 */
     satisfactionHold: number
     channelRates: ChannelRates
+    /** 提现银行卡固定费（元/笔；ALIPAY 按 channelRates.alipay 费率）。 */
+    withdrawBankFlat: number
     publishFee: { freePerDay: number; unitPrice: number }
     cancelBenchmark: CancelBenchmark
     /** 定制情绪型护栏（比例相对订单基础价）+ 新维度冷启动底线（元）。 */
@@ -100,6 +102,7 @@ export function getDefaultConfig(): PlatformConfig {
       commissionRate: 0,
       satisfactionHold: 0.15,
       channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
+      withdrawBankFlat: 2,
       publishFee: { freePerDay: 3, unitPrice: 1 },
       cancelBenchmark: {
         tier1: { twoWheel: 35, fourWheel: 80, etaMin: 30 },

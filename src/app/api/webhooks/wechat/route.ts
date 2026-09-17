@@ -94,6 +94,27 @@ export async function POST(request: Request) {
     amount: Number(params.total_fee ?? 0) / 100,
   });
 
+  // P8 收款通道费记账（代通道收取，平台零垫付；失败不阻断托管主流程）。
+  try {
+    const { getConfig } = await import("@/lib/platform/config");
+    const { receiveChannelFee } = await import("@/lib/channel-fee");
+    const cfg = await getConfig();
+    const shown = Number(params.total_fee ?? 0) / 100;
+    const { fee, rate } = receiveChannelFee("wechat", shown, cfg.fees.channelRates);
+    if (fee > 0) {
+      await svc.from("transactions").insert({
+        user_id: contract.provider_id,
+        type: "CHANNEL_FEE",
+        amount: -fee,
+        balance_before: 0,
+        balance_after: 0,
+        description: `通道费: 合同 ${contractId} 显示¥${shown}×${(rate * 100).toFixed(1)}%代通道收取（实收托管¥${Math.round((shown - fee) * 100) / 100}）`,
+      });
+    }
+  } catch (e) {
+    console.warn("[webhooks/wechat] channel fee memo skipped:", e instanceof Error ? e.message : e);
+  }
+
   // 方向3：回调落盘 split_records 台账（幂等更新，兼容 order_no/out_order_no 双键）
   try {
     await svc.from("split_records").update({ status: "SUCCESS", settled_at: new Date().toISOString(), channel_response: params }).eq("out_order_no", transactionId);

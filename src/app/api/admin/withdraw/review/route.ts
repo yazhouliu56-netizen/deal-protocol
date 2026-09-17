@@ -43,11 +43,40 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: appErr.message }, { status: 500 })
     }
 
+    // P8 提现通道费（从到账扣，微信提现同逻辑；服务端重算，不信任客户端）。
+    let feeDesc = ""
+    try {
+      const { getConfig } = await import("@/lib/platform/config")
+      const { withdrawFee } = await import("@/lib/channel-fee")
+      const cfg = await getConfig()
+      const gross = Number(withdrawal.amount) || 0
+      const r = withdrawFee(
+        String(withdrawal.channel ?? "ALIPAY").toUpperCase(),
+        gross,
+        cfg.fees.channelRates?.alipay ?? 0,
+        cfg.fees.withdrawBankFlat ?? 2,
+      )
+      if (r.fee > 0) {
+        const { error: feeError } = await svc.from("transactions").insert({
+          user_id: withdrawal.provider_id,
+          type: "WITHDRAW_FEE",
+          amount: -r.fee,
+          balance_before: 0,
+          balance_after: 0,
+          description: `提现通道费: 单 ${requestId} 提现¥${gross}，${r.desc}，实付¥${r.net}`,
+        })
+        if (feeError) throw feeError
+        feeDesc = `，通道费¥${r.fee}（${r.desc}），实付¥${r.net}`
+      }
+    } catch (e) {
+      console.warn("[withdraw/review] fee posting skipped:", e instanceof Error ? e.message : e)
+    }
+
     await svc.from("wallet_logs").insert({
       provider_id: withdrawal.provider_id,
       amount: 0,
       type: "withdrawal_payout",
-      description: `Withdrawal request ${requestId} cleared and successfully paid out via ${withdrawal.channel}`,
+      description: `Withdrawal request ${requestId} cleared and successfully paid out via ${withdrawal.channel}${feeDesc}`,
     })
 
     return NextResponse.json({ success: true, message: "Cleared successfully." })

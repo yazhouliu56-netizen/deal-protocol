@@ -125,13 +125,31 @@ export async function releaseSatisfactionBase(
 
   const totalCents = Math.round(Number(contract.amount) * 100)
   let commissionRate = 0
+  let channelFeeCents = 0
   try {
-    commissionRate = (await getConfig()).fees.commissionRate ?? 0
+    const cfg = await getConfig()
+    commissionRate = cfg.fees.commissionRate ?? 0
+    // P8：按该单实收通道的配置费率算通道费（payments 最新成功行；缺席回落 0）。
+    const { data: pay } = await supabase
+      .from("payments")
+      .select("provider, amount")
+      .eq("contract_id", contractId)
+      .eq("status", "SUCCEEDED")
+      .order("created_at", { ascending: false })
+      .limit(1)
+    const row = ((pay ?? []) as { provider?: string; amount?: number }[])[0]
+    if (row?.provider) {
+      const { receiveChannelFee } = await import("@/lib/channel-fee")
+      const shown = Number(row.amount) || Number(contract.amount)
+      channelFeeCents = Math.round(
+        receiveChannelFee(row.provider, shown, cfg.fees.channelRates).fee * 100,
+      )
+    }
   } catch {
     /* 配置缺席回落 0（免费政策方向 fail-safe） */
   }
   // base 与评价无关：pass 传 null 只为取 base 份额（勾池另行批量结算）。
-  const settled = settleType1(totalCents, null, 0, { commissionRate });
+  const settled = settleType1(totalCents, null, channelFeeCents, { commissionRate });
   const baseYuan = settled.baseCents / 100
   const holdCents = totalCents - settled.commissionCents - settled.baseCents
 

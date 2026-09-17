@@ -16,6 +16,25 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
   const [payoutMethod, setPayoutMethod] = useState<string>("ALIPAY");
   const [accountInfo, setAccountInfo] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  // P8 提现通道费试算（服务端费率，从到账扣）。
+  const [feeQuote, setFeeQuote] = useState<{ fee: number; net: number; desc: string } | null>(null);
+
+  useEffect(() => {
+    // lint 合规：effect 内只做异步取数，不做同步 setState（旧 quote 由 cancelled 键丢弃）。
+    if (!isOpen || !(amount > 0)) return;
+    let cancelled = false;
+    fetch(`/api/finance/withdraw/fee?amount=${amount}&method=${payoutMethod}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!cancelled && j && typeof j.fee === "number") {
+          setFeeQuote({ fee: j.fee, net: j.net, desc: j.desc });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, amount, payoutMethod]);
 
   // Esc 关闭（与 SheetShell 同权）
   useEffect(() => {
@@ -160,12 +179,15 @@ export default function WithdrawModal({ isOpen, onClose, availableBalance, onSuc
 
           <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-400 space-y-1">
             <div className="flex justify-between">
-              <span>提现手续费 (0%)</span>
-              <span className="font-mono text-emerald-400">¥0.00</span>
+              <span>提现通道费（代通道收取）</span>
+              <span className="font-mono text-amber-400">¥{(feeQuote?.fee ?? 0).toLocaleString()}</span>
             </div>
+            {feeQuote?.desc && (
+              <div className="text-[11px] text-zinc-500">{feeQuote.desc}</div>
+            )}
             <div className="flex justify-between font-semibold text-zinc-200 pt-1 border-t border-zinc-800">
               <span>预计实际到账</span>
-              <span className="font-mono text-indigo-400">¥{amount.toLocaleString()}</span>
+              <span className="font-mono text-indigo-400">¥{(feeQuote?.net ?? amount).toLocaleString()}</span>
             </div>
           </div>
 
