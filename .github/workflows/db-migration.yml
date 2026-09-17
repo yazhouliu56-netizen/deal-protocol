@@ -5,7 +5,7 @@ on:
     branches: [master]
     paths:
       - 'supabase/migrations/**'
-  # 手动重跑（2026-09-17：lint 步因缺本地库自 09-06 起全红，改 push 直推为真门）
+  # 手动重跑
   workflow_dispatch:
 
 jobs:
@@ -18,11 +18,20 @@ jobs:
         with:
           version: latest
 
-      # 真门 = db push 本体（SQL 非法直红）；坏掉的本地 lint 已删，不设假门。
-      - name: Apply migrations
-        uses: supabase/supabase-action@v1
-        with:
-          args: db push
+      # 前置守卫：缺凭证直接红，不静默绿（2026-09-17 血训：
+      # supabase-action 不认 args 参数，之前全是绿了个寂寞）。
+      - name: Guard secrets
+        run: |
+          test -n "${{ secrets.SUPABASE_ACCESS_TOKEN }}" || { echo "::error::缺仓库 Secret SUPABASE_ACCESS_TOKEN（Supabase Dashboard → Access Tokens）"; exit 1; }
+          test -n "${{ secrets.SUPABASE_PROJECT_ID }}" || { echo "::error::缺仓库 Secret SUPABASE_PROJECT_ID（Dashboard → Project Settings → General）"; exit 1; }
+
+      - name: Link project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+      # 真门 = db push 本体（待应用迁移逐个执行，SQL 非法直红）。
+      - name: Apply migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
