@@ -4,6 +4,7 @@ import { getCategoryConfig } from '@/modules/m03-category-config/category-loader
 import { getCreditScore, isColdStart, getNewbornProtectionFactor, getWeekendMultiplier } from '@/modules/m07-credit/credit-engine'
 import { objectiveMultiplier } from '@/base/trust/bayesian-rating'
 import { getObjectiveRates } from '@/lib/matching/objective-rate'
+import { getBayesianTiers } from '@/lib/matching/bayesian-tier'
 import { getCreditTierPrivileges } from '@/lib/credit-privileges'
 import { getCachedSemanticScore } from '@/lib/semantic-matcher'
 import type { CandidateProvider, ResponseMode } from '@/lib/contracts'
@@ -133,11 +134,17 @@ async function processCandidates(
   // 失败回空 Map→乘子 1.0（宪法 #10，不拦派单）。
   const objectiveMap = await getObjectiveRates(providerIds)
 
+  // B 贝叶斯定档上线（用户裁决 2026-09-18）：批量定档一次，失败回空 Map→全放行（#10）。
+  const tierMap = await getBayesianTiers(providerIds, { category: config.category })
+
   const candidateRecords: CandidateProvider[] = []
 
   for (const geo of geoResults) {
     const credit = creditMap.get(geo.provider_id)
     if (!credit || credit.baseScore < minCredit) continue
+
+    // B：贝叶斯最差档（tier 1）硬排除；null/缺席＝样本不足，放行（新人保护对齐）。
+    if (tierMap.get(geo.provider_id)?.tier === 1) continue
 
     if (entryReqs?.qualification) {
       const quals = entryReqs.qualification as string[]
@@ -177,6 +184,8 @@ async function processCandidates(
     for (const geo of geoResults) {
       const credit = creditMap.get(geo.provider_id)
       if (credit && credit.baseScore >= 30) {
+        // B：降级池同样执行 tier 1 硬排除（最差档永不放单）。
+        if (tierMap.get(geo.provider_id)?.tier === 1) continue
         let cs = credit.baseScore
         if (await isColdStart(geo.provider_id, config.category)) {
           cs = Math.round(cs * 0.5)
