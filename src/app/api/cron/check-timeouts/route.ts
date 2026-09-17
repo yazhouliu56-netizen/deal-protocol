@@ -164,7 +164,55 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. SLA 违约扫描（D-5 Phase D：自 sla-enforcer 进程内 setInterval 轮询迁入，60s→cron 权威节拍）
+    // 3. 双盲揭晓（R4-3 · 用户裁决 2026-09-16）：双方都交或提交超 72h →
+    // blind 翻 revealed。表未迁移（无 blind_state 列）时整步跳过，老环境零影响。
+    try {
+      const blindDeadline = new Date(now.getTime() - 72 * 3600_000).toISOString();
+      const toReveal = new Set<string>();
+      const timedOut = await supabase
+        .from('order_reviews')
+        .select('id')
+        .eq('blind_state', 'blind')
+        .lte('created_at', blindDeadline)
+        .limit(500);
+      if (timedOut.error) throw timedOut.error;
+      for (const r of ((timedOut.data ?? []) as { id: string }[])) toReveal.add(r.id);
+
+      const blinds = await supabase
+        .from('order_reviews')
+        .select('id, contract_id, reviewer_id')
+        .eq('blind_state', 'blind')
+        .limit(1000);
+      if (blinds.error) throw blinds.error;
+      const byContract = new Map<string, { id: string; reviewer_id: string }[]>();
+      for (const r of ((blinds.data ?? []) as { id: string; contract_id: string; reviewer_id: string }[])) {
+        if (!r.contract_id) continue;
+        const arr = byContract.get(r.contract_id) ?? [];
+        arr.push({ id: r.id, reviewer_id: r.reviewer_id });
+        byContract.set(r.contract_id, arr);
+      }
+      for (const arr of byContract.values()) {
+        if (new Set(arr.map((x) => x.reviewer_id)).size >= 2) {
+          for (const x of arr) toReveal.add(x.id);
+        }
+      }
+
+      let revealed = 0;
+      for (const id of toReveal) {
+        const up = await supabase
+          .from('order_reviews')
+          .update({ blind_state: 'revealed' })
+          .eq('id', id)
+          .eq('blind_state', 'blind');
+        if (!up.error) revealed += 1;
+      }
+      results.push(`blind_reveal: ${revealed} 条`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push(`blind_reveal SKIP: ${msg}`);
+    }
+
+    // 4. SLA 违约扫描（D-5 Phase D：自 sla-enforcer 进程内 setInterval 轮询迁入，60s→cron 权威节拍）
     try {
       const enforced = await checkAndEnforceSLA();
       results.push(`sla_enforced: ${enforced.length} 条`);

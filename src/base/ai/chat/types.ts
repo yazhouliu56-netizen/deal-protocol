@@ -38,6 +38,8 @@ export interface ProviderItem {
   distanceKm?: number;
   /** Slot ids this provider is available for; absent = all slots. */
   freeSlots?: string[];
+  /** 主观分 0–1（贝叶斯后验/通过率，调用方喂；缺席=中性，用于优质单倾斜）。 */
+  subjective01?: number;
 }
 
 /** Matchmaking result attached to a provider card (M6). */

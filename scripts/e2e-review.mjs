@@ -6,8 +6,8 @@
  *   Tab A 发布"宠物代遛 + 爽约保障险"信号波（无磋商）
  *   Tab B 直接接单 → 押金冻结（100 → 95）
  *   Tab A 确认履约 → 押金解冻退回（B 95 → 99.5，含平台服务费 0.5）
- *   A 评价 B（三维全 5）→ B 信用 Lv 3 → 5
- *   B 评价 A（三维全 4）→ A 信用 Lv 3 → 4（额度扩容提示）
+  *   A 评价 B（三勾全过 → 5 星）→ B 信用 Lv 3 → 5（改后 4.0 → Lv4）
+  *   B 评价 A（落一勾 → 4.0）→ A 信用 Lv 3 → 4（额度扩容提示）
  *   双方脱敏展示（时间衰减标签）
  */
 import { chromium } from "playwright-core";
@@ -207,7 +207,7 @@ try {
     "B 押金记录终态 confirmed"
   );
 
-  // --- 6. A 评价 B（三维全 5 → score 5.0） ---
+  // --- 6. A 评价 B（三勾全过 → 5 星，默认全勾直接提交） ---
   await waitUntil(
     pageA,
     () => document.body.textContent?.includes("评价对方"),
@@ -221,9 +221,9 @@ try {
   await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
 
-  // --- 6b. 撤销窗：A 改评价 1 次（5.0 → 4.7；第二次入口消失） ---
+  // --- 6b. 撤销窗：A 改评价 1 次（落“态度”一勾 → 4.0；第二次入口消失） ---
   await pageA.getByTestId("edit-review").click();
-  await pageA.getByRole("button", { name: /准时4分/ }).click();
+  await pageA.getByRole("button", { name: "态度通过" }).click();
   await pageA.getByRole("button", { name: /确认修改/ }).click();
   await pageA.getByTestId("confirm-ok").click();
   await pageA.waitForTimeout(500);
@@ -239,7 +239,7 @@ try {
       ),
     ["oto-broadcast-v1::oto::e2e::review", aId]
   );
-  assert.equal(editedA?.score, 4.7, "撤销窗改后重算分 4.7（B 仍 Lv5）");
+  assert.equal(editedA?.score, 4.0, "撤销窗改后重算分 4.0（B 转 Lv4）");
   assert.equal(editedA?.editCount, 1, "改写记账仅 1 次");
   assert.equal(
     await pageA.getByTestId("edit-review").count(),
@@ -247,7 +247,7 @@ try {
     "第二次改写入口消失"
   );
 
-  // --- 7. B 评价 A（三维全 4 → score 4.0） ---
+  // --- 7. B 评价 A（落“态度”一勾 → 4.0） ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
   await waitUntil(
@@ -257,9 +257,7 @@ try {
     "B 看到互评入口"
   );
   await pageB.getByRole("button", { name: /评价对方/ }).first().click();
-  await pageB.getByRole("button", { name: /准时4分/ }).click();
-  await pageB.getByRole("button", { name: /态度4分/ }).click();
-  await pageB.getByRole("button", { name: /专业度4分/ }).click();
+  await pageB.getByRole("button", { name: "态度通过" }).click();
   await pageB.getByRole("button", { name: /提交评价/ }).click();
   // 评价二次确认（Batch②）
   await pageB.getByTestId("confirm-ok").click();
@@ -279,14 +277,14 @@ try {
     "claim 双方均已评价（幂等）"
   );
 
-  // --- 8. 信用由评价驱动：B Lv5 / A Lv4 + 脱敏展示 ---
+  // --- 8. 信用由评价驱动：B Lv4 / A Lv4 + 脱敏展示 ---
   await pageB.reload({ waitUntil: "domcontentloaded" });
   await pageB.getByLabel("我的", { exact: true }).click();
   await pageB.waitForTimeout(600);
   const creditB = await pageB.evaluate((k) =>
     JSON.parse(localStorage.getItem(k) || "{}"), idKeyB
   );
-  assert.equal(creditB?.state?.creditTier, 5, "A 的 5.0 好评 → B 信用 Lv5");
+  assert.equal(creditB?.state?.creditTier, 4, "A 改后 4.0 评价 → B 信用 Lv4");
   assert.ok(
     await pageB.evaluate(() =>
       document.body.innerText.includes("收到的评价（脱敏）")

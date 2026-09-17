@@ -205,3 +205,24 @@ test("matchProviders: style match wins for photography", () => {
   assert.equal(breakdown.distance, 6); // 2.6 > 2.5 (5*0.5) → 6
   assert.equal(breakdown.distance, 6);
 });
+
+test("subjective tilt: premium orders favor high-subjective providers (R4-5)", () => {
+  const star: ProviderItem = { ...kai, subjective01: 1 };
+  const mid: ProviderItem = { ...kai, id: "p9", subjective01: 0.5 };
+  const premium = need({ orderTier: "premium" });
+  assert.equal(scoreProvider(star, premium).breakdown.subjective, 8);
+  assert.equal(scoreProvider(mid, premium).breakdown.subjective, 4);
+  assert.equal(
+    scoreProvider(star, premium).score - scoreProvider(mid, premium).score,
+    4,
+  );
+});
+
+test("subjective tilt: normal orders and missing subjective stay neutral", () => {
+  const star: ProviderItem = { ...kai, subjective01: 1 };
+  assert.equal(scoreProvider(star, need()).breakdown.subjective, 0);
+  assert.equal(scoreProvider(star, need({ orderTier: "normal" })).breakdown.subjective, 0);
+  assert.equal(scoreProvider(kai, need({ orderTier: "premium" })).breakdown.subjective, 0);
+  // 旧分零漂移：无倾斜输入时总分与既有语义一致（25+20+12+14.7+6+10=87.7→88）
+  assert.equal(scoreProvider(kai, need()).score, 88);
+});

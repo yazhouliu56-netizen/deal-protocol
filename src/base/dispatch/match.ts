@@ -18,6 +18,11 @@ export interface MatchNeed {
   online?: boolean;
   /** Group size — venues get a bonus for hosting larger groups. */
   partySize?: number | null;
+  /**
+   * 订单档（R4-5 · 用户裁决 2026-09-16）：premium = 大单/会员单/元老单/
+   * 优质客户单，主观分好的服务者优先（倾斜加成，不碰既有六维权重）。
+   */
+  orderTier?: "normal" | "premium" | null;
 }
 
 export type MatchedProvider = ProviderItem & {
@@ -35,6 +40,8 @@ export interface ScoreBreakdown {
   rating: number;
   distance: number;
   availability: number;
+  /** 优质单主观倾斜 0–8（普通单/无主观分恒 0）。 */
+  subjective: number;
 }
 
 const LEVEL_ORDER_CN: Record<string, number> = {
@@ -170,6 +177,14 @@ export function scoreProvider(
     availability = 10;
   }
 
+  // Subjective tilt (0-8): premium orders favor high-subjective providers.
+  // Absent subjective01 or non-premium need → 0 (existing scores untouched).
+  let subjective = 0;
+  const subj = provider.subjective01;
+  if (need.orderTier === "premium" && typeof subj === "number" && Number.isFinite(subj)) {
+    subjective = Math.round(Math.min(1, Math.max(0, subj)) * 8);
+  }
+
   const score = Math.max(
     0,
     Math.min(
@@ -181,6 +196,7 @@ export function scoreProvider(
           rating +
           distance +
           availability +
+          subjective +
           groupBonus(provider, need)
       )
     )
@@ -194,6 +210,7 @@ export function scoreProvider(
       rating: Math.round(rating),
       distance: Math.round(distance),
       availability: Math.round(availability),
+      subjective: Math.round(subjective),
     },
   };
 }
