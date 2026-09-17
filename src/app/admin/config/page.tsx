@@ -36,6 +36,7 @@ const EMPTY_CONFIG: PlatformConfig = {
       { key: 'restoration', pct: 5 },
     ],
     sunset: { netCompletedTrigger: 10000, targetCommissionRate: 0.05, announcedAt: null, status: 'pending' },
+    batchRelease: { minCount: 10, maxAgeDays: 7 },
   },
   credit: { levels: [] },
   rules: { cancelThreshold: 3, cancelPenaltyCount: 5, cancelPenaltyCredit: 100, cancelPenaltyDays: 7 },

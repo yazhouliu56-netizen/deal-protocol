@@ -61,6 +61,8 @@ export interface PlatformConfig {
       newDimFallback: number
     }
     settlementShares: SettlementShare[]
+    /** P4 双钟表：15% 批量触发（N 单 / T 天，先到为准；用户裁决 10/7）。 */
+    batchRelease: { minCount: number; maxAgeDays: number }
     /** 佣金 sunset：净完单破 trigger + 公示 30 天 → commissionRate 翻为 target。 */
     sunset: {
       netCompletedTrigger: number
@@ -116,6 +118,7 @@ export function getDefaultConfig(): PlatformConfig {
         { key: 'appearance', pct: 5 },
         { key: 'restoration', pct: 5 },
       ],
+      batchRelease: { minCount: 10, maxAgeDays: 7 },
       sunset: {
         netCompletedTrigger: 10000,
         targetCommissionRate: 0.05,

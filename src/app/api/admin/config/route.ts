@@ -62,6 +62,15 @@ export const PUT = withAuth(async (req, user) => {
       }
     }
   }
+  const br = f.batchRelease as { minCount?: number; maxAgeDays?: number } | undefined
+  if (br !== undefined) {
+    if (!Number.isInteger(br.minCount) || (br.minCount as number) < 1) {
+      return NextResponse.json({ error: "batchRelease.minCount 须为正整数" }, { status: 400 })
+    }
+    if (!Number.isInteger(br.maxAgeDays) || (br.maxAgeDays as number) < 1) {
+      return NextResponse.json({ error: "batchRelease.maxAgeDays 须为正整数" }, { status: 400 })
+    }
+  }
   if (config.insurance.ratePerOrder < 0 || config.insurance.ratePerOrder > 1) {
     return NextResponse.json({ error: "保险费率必须在 0-1 之间" }, { status: 400 })
   }

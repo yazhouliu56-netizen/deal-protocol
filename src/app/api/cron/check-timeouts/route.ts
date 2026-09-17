@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getServiceClient } from "@/lib/supabase-client";
 import { addContractEvent } from "@/lib/contract/events";
-import { handleSatisfactionBatch, releaseSatisfactionOrder } from "@/lib/contract/satisfaction";
+import { handleSatisfactionBatch, releaseSatisfactionBase, settleSatisfactionBatch } from "@/lib/contract/satisfaction";
 // D-5 Phase E：协议定义资产归位 Base + 超时放款校验收编 Base 纯函数核
 import { validateContractAction } from "@/base/order/contract-engine";
 import { getProtocol } from "@/base/order/protocol-definitions";
@@ -96,84 +96,48 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. 单单释放（R5 · 用户裁决 2026-09-17 · 宪法 §6.2 Clean Slate）：
-    // 15 单成团批经济整段删除，SATISFACTION_HELD + held_at+72h 到期即 settleType1 单单结算。
-    // 批表已删（迁移 20260918），本步只读 contracts + order_reviews。
+    // 2. P4 双钟表（用户裁决 2026-09-18）：R5 整单释放已退役。
+    // (a) base 扫：HELD 但未记 base 账的行补记（HELD 入口崩溃 recovery）；
+    // (b) 批量：窗过 hold 按师傅 N=10/T=7 天结算＋评价同步解密。
     try {
-      const releaseDue = new Date(now.getTime() - 72 * 3600_000).toISOString();
-      const due = await supabase
+      const held = await supabase
         .from('contracts')
         .select('id')
         .eq('fund_status', 'SATISFACTION_HELD')
-        .lte('satisfaction_held_at', releaseDue)
         .limit(200);
-      if (due.error) throw due.error;
-      let released = 0;
-      for (const c of ((due.data ?? []) as { id: string }[])) {
+      if (held.error) throw held.error;
+      let based = 0;
+      for (const c of ((held.data ?? []) as { id: string }[])) {
         try {
-          const r = await releaseSatisfactionOrder(c.id, now.getTime());
+          const r = await releaseSatisfactionBase(c.id);
           if (r.released) {
-            released += 1;
-            results.push(`satisfaction_release: ${c.id} (net ¥${(r.providerNetCents ?? 0) / 100})`);
+            based += 1;
+            results.push(`satisfaction_base: ${c.id} (base ¥${(r.providerNetCents ?? 0) / 100})`);
           }
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
-          results.push(`satisfaction_release FAILED ${c.id}: ${msg}`);
+          results.push(`satisfaction_base FAILED ${c.id}: ${msg}`);
         }
       }
-      if (released === 0) results.push("satisfaction_release: 0 条到期");
+      if (based === 0) results.push("satisfaction_base: 0 条需补记");
+      const batches = await settleSatisfactionBatch(now.getTime());
+      if (batches.length === 0) {
+        results.push("satisfaction_batch: 0 组触发");
+      }
+      for (const b of batches) {
+        results.push(
+          `satisfaction_batch: 师傅 ${b.providerId.slice(0, 8)} ${b.contracts} 单 ¥${b.amountCents / 100}（${b.hooksPassed}/${b.hooksTotal} 勾）`,
+        );
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      results.push(`satisfaction_release SKIP: ${msg}`);
+      results.push(`satisfaction_batch SKIP: ${msg}`);
     }
 
-    // 3. 双盲揭晓（R4-3 · 用户裁决 2026-09-16）：双方都交或提交超 72h →
-    // blind 翻 revealed。表未迁移（无 blind_state 列）时整步跳过，老环境零影响。
-    try {
-      const blindDeadline = new Date(now.getTime() - 72 * 3600_000).toISOString();
-      const toReveal = new Set<string>();
-      const timedOut = await supabase
-        .from('order_reviews')
-        .select('id')
-        .eq('blind_state', 'blind')
-        .lte('created_at', blindDeadline)
-        .limit(500);
-      if (timedOut.error) throw timedOut.error;
-      for (const r of ((timedOut.data ?? []) as { id: string }[])) toReveal.add(r.id);
-
-      const blinds = await supabase
-        .from('order_reviews')
-        .select('id, contract_id, reviewer_id')
-        .eq('blind_state', 'blind')
-        .limit(1000);
-      if (blinds.error) throw blinds.error;
-      const byContract = new Map<string, { id: string; reviewer_id: string }[]>();
-      for (const r of ((blinds.data ?? []) as { id: string; contract_id: string; reviewer_id: string }[])) {
-        if (!r.contract_id) continue;
-        const arr = byContract.get(r.contract_id) ?? [];
-        arr.push({ id: r.id, reviewer_id: r.reviewer_id });
-        byContract.set(r.contract_id, arr);
-      }
-      for (const arr of byContract.values()) {
-        if (new Set(arr.map((x) => x.reviewer_id)).size >= 2) {
-          for (const x of arr) toReveal.add(x.id);
-        }
-      }
-
-      let revealed = 0;
-      for (const id of toReveal) {
-        const up = await supabase
-          .from('order_reviews')
-          .update({ blind_state: 'revealed' })
-          .eq('id', id)
-          .eq('blind_state', 'blind');
-        if (!up.error) revealed += 1;
-      }
-      results.push(`blind_reveal: ${revealed} 条`);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      results.push(`blind_reveal SKIP: ${msg}`);
-    }
+    // 3. 双盲揭晓（P4 收归批量 · 用户裁决 2026-09-18：评价随资金同步解密）。
+    // 时间到期/双方互评不再自动揭晓（会泄露评价↔资金对应）；揭晓只发生在
+    // settleSatisfactionBatch 内（按批次合同解密）。旧逻辑整段删除。
+    results.push("blind_reveal: 已收归批量（本步零操作）");
 
     // 4. SLA 违约扫描（D-5 Phase D：自 sla-enforcer 进程内 setInterval 轮询迁入，60s→cron 权威节拍）
     try {
