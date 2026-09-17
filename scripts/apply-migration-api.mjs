@@ -71,7 +71,7 @@ for (const file of files) {
 // 2. 落库核验（可选：--check <sql> --expect <substr>，空白归一后包含即过）
 if (checkSql) {
   const verify = await query(checkSql);
-  console.log(`核验 → ${verify.slice(0, 400)}`);
+  console.log(`核验 → ${verify.slice(0, 3000)}`);
   const flat = verify.replace(/\s/g, "");
   if (!expectSub || !flat.includes(expectSub.replace(/\s/g, ""))) {
     console.error(`✗ 核验失败：缺期望 ${expectSub}`);
