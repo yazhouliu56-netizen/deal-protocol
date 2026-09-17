@@ -28,6 +28,11 @@ function toProtocolCategoryFields(body: Record<string, unknown>, info?: Record<s
   if (body.budget != null) fields.budget = body.budget
   if (info?.urgency) fields.urgency = info.urgency
   if (body.urgency) fields.urgency = body.urgency
+  // P7 阶段计划（用户确认版，建单前已校验；存档供合同里程碑物化＋观察期审计）。
+  if (body.stages != null) fields.stages = body.stages
+  if (info && (info as Record<string, unknown>).stages != null) {
+    fields.stages = (info as Record<string, unknown>).stages
+  }
   // 增长归因透传（m20/f20 投流：零 DDL，category_fields 扩展位直存，ROI 口径）。
   if (body.attribution != null && typeof body.attribution === "object") fields.attribution = body.attribution
   if (info?.attribution != null && typeof info.attribution === "object") fields.attribution = info.attribution
@@ -137,6 +142,23 @@ async function autoMatchProtocol(supabase: SupabaseClient, protocolId: string, c
 }
 
 /**
+ * P7 阶段计划校验（建单前）：用户确认版 plan 存档（source 标记供观察期审计）。
+ * 缺席 → 单阶段默认（不阻断）；非法 → 400。
+ */
+async function validateStages(body: Record<string, unknown>): Promise<string | null> {
+  const stages = body.stages as { title: string; weightPct: number; acceptance: string }[] | undefined;
+  if (stages == null) {
+    body.stages = [{ title: "整单一次交付", weightPct: 100, acceptance: "按订单要求整体验收", source: "default" }];
+    return null;
+  }
+  const { validateStagePlan } = await import("@/base/stages/plan");
+  const errors = validateStagePlan(stages);
+  if (errors.length > 0) return `阶段计划非法: ${errors.join("；")}`;
+  body.stages = (stages as Record<string, unknown>[]).map((s) => ({ ...s, source: body.stageSource ?? "user" }));
+  return null;
+}
+
+/**
  * P5a 定制行项＋发布费应收（用户裁决 2026-09-18）。
  * customItems: [{ dim_key, amount }]（amount ≥ 底价，否则 400）。
  * 发布费：3 单/天/人免费，超出 1 元/单——此处只计应收（custom.publishFeeDue），
@@ -231,10 +253,14 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
       const info = await classifyDemand(body.text)
 
       const payload = makeProtocolPayload(user.id, body, info as unknown as Record<string, unknown>)
-      // P5a：先验定制（建单前，400 拦截，零孤儿单）。
+      // P5a＋P7：先验（建单前，400 拦截，零孤儿单）。
       const pre = await validateCustom(svc, user.id, body, resolveDemandPrice(body, info as unknown as Record<string, unknown>) ?? 0)
       if (pre.validationError) {
         return NextResponse.json({ error: `定制项不满足最低价: ${pre.validationError}` }, { status: 400 })
+      }
+      const stageError = await validateStages(body)
+      if (stageError) {
+        return NextResponse.json({ error: stageError }, { status: 400 })
       }
       const created = await createProtocolWithDemand(
         svc, user.id, payload, body, info as unknown as Record<string, unknown>,
@@ -259,6 +285,10 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
     const pre = await validateCustom(svc, user.id, body, resolveDemandPrice(body) ?? 0)
     if (pre.validationError) {
       return NextResponse.json({ error: `定制项不满足最低价: ${pre.validationError}` }, { status: 400 })
+    }
+    const stageError = await validateStages(body)
+    if (stageError) {
+      return NextResponse.json({ error: stageError }, { status: 400 })
     }
     const created = await createProtocolWithDemand(
       svc, user.id, payload, body, undefined,

@@ -67,9 +67,43 @@ export async function POST(request: Request) {
 
   const { data: contractData } = await svc
     .from("contracts")
-    .select("customer_id, provider_id, demand_id")
+    .select("customer_id, provider_id, demand_id, amount")
     .eq("id", notifyOrderId)
     .single();
+
+  // P7 阶段物化：demand 计划（用户确认版）→ milestone_schedules 行（检查点释放沿用既有 rpc）。
+  // 无计划/单阶段默认 → 不建行（整单走既有 Type1 路，不扰动）。
+  try {
+    const demandId = (contractData as { demand_id?: string | null } | null)?.demand_id
+    const total = Number((contractData as { amount?: number } | null)?.amount) || 0
+    if (demandId && total > 0) {
+      const { data: dem } = await svc.from("demands").select("protocol_id").eq("id", demandId).single()
+      const protocolId = (dem as { protocol_id?: string } | null)?.protocol_id
+      if (protocolId) {
+        const { data: proto } = await svc.from("protocols").select("category_fields").eq("id", protocolId).single()
+        const stages = ((proto as { category_fields?: Record<string, unknown> } | null)?.category_fields?.stages ?? []) as {
+          title: string; weightPct: number; acceptance: string
+        }[]
+        const multi = stages.filter((s) => s && Number.isInteger(s.weightPct) && s.weightPct > 0 && s.weightPct < 100)
+        if (multi.length > 0) {
+          const { stageAmounts } = await import("@/base/stages/plan")
+          const amounts = stageAmounts(total, multi)
+          const { error: msError } = await svc.from("milestone_schedules").insert(
+            multi.map((s, i) => ({
+              contract_id: notifyOrderId,
+              title: s.title,
+              amount: amounts[i],
+              step_number: i + 1,
+              status: "PENDING",
+            })),
+          )
+          if (msError) throw msError
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[payment/notify] milestone materialize skipped:", e instanceof Error ? e.message : e)
+  }
 
   // P5b 应收费落账（幂等：fee_status CAS uncollected→paid；失败不阻断托管主流程）。
   try {
