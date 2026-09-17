@@ -14,8 +14,29 @@ import {
 } from "@/components/ui/card"
 import type { PlatformConfig, CommissionTier, CreditLevel } from "@/lib/platform/config"
 
+// P0：初始态手写完整形状（不 runtime import 服务端 config 模块，防 service key 进浏览器包；
+// 服务端返回后覆盖，此处仅首屏占位）。
 const EMPTY_CONFIG: PlatformConfig = {
-  fees: { commissionTiers: [], satisfactionHold: 0.1 },
+  fees: {
+    commissionTiers: [],
+    commissionRate: 0,
+    satisfactionHold: 0.15,
+    channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
+    publishFee: { freePerDay: 3, unitPrice: 1 },
+    cancelBenchmark: {
+      tier1: { twoWheel: 35, fourWheel: 80 },
+      tier2: { twoWheel: 30, fourWheel: 70 },
+      tier3: { twoWheel: 25, fourWheel: 60 },
+    },
+    qualityGuardrails: { emotionMinPct: 0.03, emotionMaxPct: 0.15, singleItemMaxPct: 0.5, newDimFallback: 5 },
+    settlementShares: [
+      { key: 'base', pct: 85 },
+      { key: 'attitude', pct: 5 },
+      { key: 'appearance', pct: 5 },
+      { key: 'restoration', pct: 5 },
+    ],
+    sunset: { netCompletedTrigger: 10000, targetCommissionRate: 0.05, announcedAt: null, status: 'pending' },
+  },
   credit: { levels: [] },
   rules: { cancelThreshold: 3, cancelPenaltyCount: 5, cancelPenaltyCredit: 100, cancelPenaltyDays: 7 },
   insurance: { ratePerOrder: 0.01, poolAllocation: { warranty: 0.4, customer: 0.3, provider: 0.2, sos: 0.1 } },

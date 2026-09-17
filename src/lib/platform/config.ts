@@ -20,10 +20,52 @@ export interface PoolAllocation {
   sos: number
 }
 
+/** 结算份额项（百分比，和≡100，P3 方程读此；用户裁决 2026-09-18）。 */
+export interface SettlementShare {
+  key: string
+  pct: number
+}
+
+/** 通道费率（签约值待商务确认，初值公开市场价；用户裁决：平台零垫付）。 */
+export interface ChannelRates {
+  wechat: number
+  alipay: number
+  stripe: number
+}
+
+/** 取消补偿城市基准（元/小时；用户裁决：在途按骑手线）。 */
+export interface CancelBenchmark {
+  tier1: { twoWheel: number; fourWheel: number }
+  tier2: { twoWheel: number; fourWheel: number }
+  tier3: { twoWheel: number; fourWheel: number }
+}
+
 export interface PlatformConfig {
   fees: {
+    /** P2 退役；现值全 0（上线免费政策，可逆，sunset 翻转改 commissionRate）。 */
     commissionTiers: CommissionTier[]
+    /** 扁平佣金率（订单总额百分比），当前 0；sunset 到期改此值即生效。 */
+    commissionRate: number
+    /** 与 Type1 对齐 0.15（协议层 funding.fees 为准，此处仅管理面一致口径）。 */
     satisfactionHold: number
+    channelRates: ChannelRates
+    publishFee: { freePerDay: number; unitPrice: number }
+    cancelBenchmark: CancelBenchmark
+    /** 定制情绪型护栏（比例相对订单基础价）+ 新维度冷启动底线（元）。 */
+    qualityGuardrails: {
+      emotionMinPct: number
+      emotionMaxPct: number
+      singleItemMaxPct: number
+      newDimFallback: number
+    }
+    settlementShares: SettlementShare[]
+    /** 佣金 sunset：净完单破 trigger + 公示 30 天 → commissionRate 翻为 target。 */
+    sunset: {
+      netCompletedTrigger: number
+      targetCommissionRate: number
+      announcedAt: string | null
+      status: 'pending' | 'announced' | 'effective'
+    }
   }
   credit: {
     levels: CreditLevel[]
@@ -46,12 +88,38 @@ export function getDefaultConfig(): PlatformConfig {
   return {
     fees: {
       commissionTiers: [
-        { maxAmount: 500, rate: 0.15 },
-        { maxAmount: 5_000, rate: 0.12 },
-        { maxAmount: 50_000, rate: 0.10 },
-        { maxAmount: Number.MAX_SAFE_INTEGER, rate: 0.08 },
+        { maxAmount: 500, rate: 0 },
+        { maxAmount: 5_000, rate: 0 },
+        { maxAmount: 50_000, rate: 0 },
+        { maxAmount: Number.MAX_SAFE_INTEGER, rate: 0 },
       ],
-      satisfactionHold: 0.10,
+      commissionRate: 0,
+      satisfactionHold: 0.15,
+      channelRates: { wechat: 0.006, alipay: 0.006, stripe: 0.029 },
+      publishFee: { freePerDay: 3, unitPrice: 1 },
+      cancelBenchmark: {
+        tier1: { twoWheel: 35, fourWheel: 80 },
+        tier2: { twoWheel: 30, fourWheel: 70 },
+        tier3: { twoWheel: 25, fourWheel: 60 },
+      },
+      qualityGuardrails: {
+        emotionMinPct: 0.03,
+        emotionMaxPct: 0.15,
+        singleItemMaxPct: 0.5,
+        newDimFallback: 5,
+      },
+      settlementShares: [
+        { key: 'base', pct: 85 },
+        { key: 'attitude', pct: 5 },
+        { key: 'appearance', pct: 5 },
+        { key: 'restoration', pct: 5 },
+      ],
+      sunset: {
+        netCompletedTrigger: 10000,
+        targetCommissionRate: 0.05,
+        announcedAt: null,
+        status: 'pending',
+      },
     },
     credit: {
       levels: [

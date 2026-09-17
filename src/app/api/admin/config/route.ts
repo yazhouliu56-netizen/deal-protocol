@@ -41,7 +41,28 @@ export const PUT = withAuth(async (req, user) => {
     return NextResponse.json({ error: "至少需要一个信用等级" }, { status: 400 })
   }
   if (config.fees.satisfactionHold < 0 || config.fees.satisfactionHold > 1) {
-    return NextResponse.json({ error: "满意暂存款比例必须在 0-1 之间" }, { status: 400 })
+    return NextResponse.json({ error: "�����ݴ����������� 0-1 ֮��" }, { status: 400 })
+  }
+  // P0：新费率字段范围校验（缺失=老版本配置，跳过以兼容渐进升级）。
+  const f = config.fees as Record<string, unknown>
+  const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
+  if (f.commissionRate !== undefined && (!num(f.commissionRate) || (f.commissionRate as number) < 0 || (f.commissionRate as number) > 1)) {
+    return NextResponse.json({ error: "commissionRate 须在 0-1 之间" }, { status: 400 })
+  }
+  const shares = f.settlementShares as { key: string; pct: number }[] | undefined
+  if (shares !== undefined) {
+    const sum = shares.reduce((s, x) => s + (Number(x.pct) || 0), 0)
+    if (Math.abs(sum - 100) > 1e-9) {
+      return NextResponse.json({ error: `settlementShares 和必须≡100，收到 ${sum}` }, { status: 400 })
+    }
+  }
+  const ch = f.channelRates as Record<string, number> | undefined
+  if (ch !== undefined) {
+    for (const k of ['wechat', 'alipay', 'stripe']) {
+      if (!num(ch[k]) || ch[k] < 0 || ch[k] > 1) {
+        return NextResponse.json({ error: `channelRates.${k} 须在 0-1 之间` }, { status: 400 })
+      }
+    }
   }
   if (config.insurance.ratePerOrder < 0 || config.insurance.ratePerOrder > 1) {
     return NextResponse.json({ error: "保险费率必须在 0-1 之间" }, { status: 400 })
