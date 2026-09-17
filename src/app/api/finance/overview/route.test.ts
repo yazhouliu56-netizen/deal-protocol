@@ -39,8 +39,12 @@ function setupOrders(completedAmounts: number[], escrowAmounts: number[] = []) {
   })
   const escrowChain = vi.fn().mockReturnValue({ in: escrowIn })
 
-  const profileSingle = vi.fn().mockResolvedValue({ data: null, error: null })
-  const profileChain = vi.fn().mockReturnValue({ single: profileSingle })
+  // R11：余额真相源为 provider_wallets；缺行回落估算。
+  const walletSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+  const walletChain = vi.fn().mockReturnValue({ single: walletSingle })
+
+  const pendingEq2 = vi.fn().mockResolvedValue({ data: [], error: null })
+  const pendingEq1 = vi.fn().mockReturnValue({ eq: pendingEq2 })
 
   mockSupabase.from.mockImplementation((table: string) => {
     if (table === "orders") {
@@ -52,8 +56,11 @@ function setupOrders(completedAmounts: number[], escrowAmounts: number[] = []) {
       }
       return { select: vi.fn().mockReturnValue({ or: escrowChain }) }
     }
-    if (table === "profiles") {
-      return { select: vi.fn().mockReturnValue({ eq: profileChain }) }
+    if (table === "provider_wallets") {
+      return { select: vi.fn().mockReturnValue({ eq: walletChain }) }
+    }
+    if (table === "withdrawal_requests") {
+      return { select: vi.fn().mockReturnValue({ eq: pendingEq1 }) }
     }
     return { select: vi.fn() }
   })
@@ -63,8 +70,8 @@ beforeEach(() => {
   mockSupabase.from.mockClear()
 })
 
-describe("finance/overview 资金概览（P0-2 收编口径）", () => {
-  it("profile 无余额时，可用余额按 escrow 净得口径估算（平台费 10% → 90%）", async () => {
+describe("finance/overview 资金概览（R11 钱包口径）", () => {
+  it("钱包缺行时，可用余额按 escrow 净得口径估算（平台费 10% → 90%）", async () => {
     setupOrders([100, 200])
     const res = await GET(new Request("http://local"), user)
     const body = await res.json()
@@ -72,15 +79,19 @@ describe("finance/overview 资金概览（P0-2 收编口径）", () => {
     expect(res.status).toBe(200)
     expect(body.data?.totalEarned).toBe(300)
     expect(body.data?.availableBalance).toBe(270)
+    expect(body.data?.pendingWithdrawal).toBe(0)
   })
 
-  it("profile 有真实余额时直接用余额，不经估算", async () => {
+  it("钱包有真实余额时直接用余额，不经估算", async () => {
     ordersCall = 0
-    const profileSingle = vi.fn().mockResolvedValue({
-      data: { balance: 42, pending_withdrawal: 0 },
+    const walletSingle = vi.fn().mockResolvedValue({
+      data: { balance: 42 },
       error: null,
     })
-    const profileChain = vi.fn().mockReturnValue({ single: profileSingle })
+    const walletChain = vi.fn().mockReturnValue({ single: walletSingle })
+    // select→eq→eq→resolve：两层 eq，第二层直接 resolve。
+    const pendingEq2 = vi.fn().mockResolvedValue({ data: [{ amount: 5 }], error: null })
+    const pendingEq1 = vi.fn().mockReturnValue({ eq: pendingEq2 })
 
     mockSupabase.from.mockImplementation((table: string) => {
       if (table === "orders") {
@@ -90,8 +101,11 @@ describe("finance/overview 资金概览（P0-2 收编口径）", () => {
         }
         return { select: vi.fn().mockReturnValue({ or: vi.fn().mockReturnValue({ in: vi.fn().mockResolvedValue({ data: [], error: null }) }) }) }
       }
-      if (table === "profiles") {
-        return { select: vi.fn().mockReturnValue({ eq: profileChain }) }
+      if (table === "provider_wallets") {
+        return { select: vi.fn().mockReturnValue({ eq: walletChain }) }
+      }
+      if (table === "withdrawal_requests") {
+        return { select: vi.fn().mockReturnValue({ eq: pendingEq1 }) }
       }
       return { select: vi.fn() }
     })
@@ -101,5 +115,6 @@ describe("finance/overview 资金概览（P0-2 收编口径）", () => {
 
     expect(res.status).toBe(200)
     expect(body.data?.availableBalance).toBe(42)
+    expect(body.data?.pendingWithdrawal).toBe(5)
   })
 })

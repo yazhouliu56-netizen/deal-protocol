@@ -130,6 +130,57 @@ export async function releaseSatisfactionOrder(
 
   // 方程真相源：85/15 内生（弹药表非零 hold 恒 0.15；hold=0 协议从不进 HELD，到此必为 85/15 单）
   const settled = settleType1(totalCents, pass, 0);
+  const providerNet = settled.providerNetCents / 100
+  const qualityFee = settled.qualityFeeCents / 100
+
+  // R11 双账本统一：释放必须落 provider_wallets（此前零记账，钱凭空蒸发）。
+  // 幂等对账：wallet_logs(order_id=contractId, type=satisfaction_payout) 存在即跳过记账
+  // （崩溃重放：已记账未 SETTLED → 只补状态，绝不双付）。
+  const { data: paid } = await supabase
+    .from('wallet_logs')
+    .select('id')
+    .eq('order_id', contractId)
+    .eq('type', 'satisfaction_payout')
+    .limit(1)
+  if (!paid || paid.length === 0) {
+    const { data: wallet } = await supabase
+      .from('provider_wallets')
+      .select('balance')
+      .eq('provider_id', contract.provider_id)
+      .single()
+    if (!wallet) {
+      const { error: ensureError } = await supabase
+        .from('provider_wallets')
+        .insert({ provider_id: contract.provider_id, balance: 0 })
+      if (ensureError) throw ensureError
+    }
+    const base = Number((wallet as { balance?: number } | null)?.balance ?? 0)
+    const { error: creditError } = await supabase
+      .from('provider_wallets')
+      .update({
+        balance: Math.round((base + providerNet) * 100) / 100,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('provider_id', contract.provider_id)
+    if (creditError) throw creditError
+    const { error: logError } = await supabase.from('wallet_logs').insert([
+      {
+        provider_id: contract.provider_id,
+        amount: providerNet,
+        type: 'satisfaction_payout',
+        order_id: contractId,
+        description: `72h单单释放: 合同 ${contractId} 实得¥${providerNet}`,
+      },
+      {
+        provider_id: contract.provider_id,
+        amount: -qualityFee,
+        type: 'platform_fee',
+        order_id: contractId,
+        description: `72h单单释放: 合同 ${contractId} 质管费¥${qualityFee}`,
+      },
+    ])
+    if (logError) throw logError
+  }
 
   const { error: updateContractError } = await supabase
     .from('contracts')

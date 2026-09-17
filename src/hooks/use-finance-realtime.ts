@@ -28,15 +28,17 @@ export function useFinanceRealtime(
 
     const supabase = getBrowserSupabase()
 
-    const profileChannel = supabase
-      .channel(`finance:profile:${userId}`)
+    // R11 双账本统一：余额真相源为 provider_wallets（018 已入 realtime publication；
+    // profiles.balance 停写，旧订阅移除）。
+    const walletChannel = supabase
+      .channel(`finance:wallet:${userId}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`,
+          table: 'provider_wallets',
+          filter: `provider_id=eq.${userId}`,
         },
         (payload) => {
           const newBalance = (payload.new as Record<string, unknown>).balance
@@ -65,7 +67,7 @@ export function useFinanceRealtime(
       .subscribe()
 
     return () => {
-      supabase.removeChannel(profileChannel)
+      supabase.removeChannel(walletChannel)
       supabase.removeChannel(withdrawalChannel)
       if (animTimerRef.current) clearTimeout(animTimerRef.current)
     }

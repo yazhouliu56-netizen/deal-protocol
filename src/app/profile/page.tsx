@@ -48,6 +48,8 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // R11：展示余额以钱包为准（profiles.balance 停写，旧数为 frozen 值）。
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -72,6 +74,7 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error('Failed to fetch profile');
       const data = await res.json();
       setProfile(data.user);
+      setWalletBalance(Number(data.walletBalance ?? data.user?.balance ?? 0));
       setName(data.user.name);
       setPhone(data.user.phone ?? '');
       setBio(data.user.bio ?? '');
@@ -225,7 +228,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Escrow Battle Report（只留真数：托管余额＋信誉积分） */}
-        <EscrowStats balance={profile.balance} creditScore={profile.credit_score} />
+        <EscrowStats balance={walletBalance} creditScore={profile.credit_score} />
 
         {/* Verification Status */}
         <Card className="border-2 border-[var(--color-duo-swan)] bg-white">

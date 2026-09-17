@@ -45,7 +45,15 @@ export const GET = withAuth(async (req, user) => {
   }
 
   if (profile.phone) profile.phone = maskPhone(profile.phone)
-  return NextResponse.json({ user: profile });
+  // R11 双账本统一：展示用余额以 provider_wallets 为准（profiles.balance 停写）。
+  // 响应加字段（加法，旧客户端忽略零破坏）。
+  const { data: wallet } = await svc
+    .from('provider_wallets')
+    .select('balance')
+    .eq('provider_id', user.id)
+    .single();
+  const walletBalance = Number((wallet as { balance?: number } | null)?.balance ?? 0);
+  return NextResponse.json({ user: profile, walletBalance });
 });
 
 export const PATCH = withAuth(async (req, user) => {
