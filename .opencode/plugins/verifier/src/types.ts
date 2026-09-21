@@ -7,7 +7,6 @@ export const VerifierConfigSchema = z.object({
   numCandidates: z.number().int().min(2).max(5).default(3),
   temperatures: z.array(z.number()).default([0.2, 0.7, 1.0]),
   defaultL1Command: z.string().optional(),
-  autoTriggerOnIdle: z.boolean().default(false),
 })
 
 export type VerifierConfig = z.infer<typeof VerifierConfigSchema>

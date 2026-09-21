@@ -98,7 +98,6 @@ describe("VerifierConfigSchema", () => {
       numCandidates: 3,
       temperatures: [0.2, 0.7, 1.0],
       defaultL1Command: undefined,
-      autoTriggerOnIdle: false,
     })
   })
 

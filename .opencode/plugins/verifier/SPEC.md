@@ -37,7 +37,6 @@ Define VerifierConfigSchema using zod with the following configurable options:
 numCandidates: integer, range [2, 5], default 3.
 temperatures: array of numbers, default [0.2, 0.7, 1.0].
 defaultL1Command: optional string (e.g., "bun test", "tsc --noEmit").
-autoTriggerOnIdle: boolean, default false.
 Define TypeScript interfaces:
 CandidateSolution: { index: number; temperature: number; code: string; rawResponse?: string }
 L1CheckResult: { passed: boolean; command: string; stdout: string; stderr: string; exitCode: number }
