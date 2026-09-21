@@ -45,7 +45,13 @@ next-env.d.ts
 # dev
 dev.db
 .understand-anything/
-.opencode/
+# runtime state (prod pid, task snapshots) — see scripts/restart-prod.mjs
+/.runtime/
+# .opencode/: only plugins/agents/commands/skills are versioned;
+# local residue stays ignored
+.opencode/node_modules/
+.opencode/*.log
+.opencode/backups/
 
 .vercel
 
@@ -73,7 +79,6 @@ public/sw.js
 oto-spa-*.png
 oto-spatial*.png
 oto-spatial-snapshot.md
-opencode-plugin-cache-check.md
 
 # supabase temp files
 supabase/.temp/

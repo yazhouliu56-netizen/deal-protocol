@@ -1,6 +1,6 @@
 /**
  * 终结本仓残留 prod 服务（P15 hygiene：.next 锁盘三连的根治）。
- * 只认 .opencode/prod-pid.txt 追踪到的自有子进程（restart-prod.mjs 写入），
+ * 只认 .runtime/prod-pid.txt 追踪到的自有子进程（restart-prod.mjs 写入），
  * 动手前按身份复核（cmdline 必须同时含本仓路径与 standalone/start-server），
  * 绝不按端口滥杀。hygiene 永不阻断调用方：任何异常都 exit 0。
  * 用法：node scripts/stop-stale-prod.mjs
@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const pidFile = path.join(root, ".opencode", "prod-pid.txt");
+const pidFile = path.join(root, ".runtime", "prod-pid.txt");
 const SELF = process.pid;
 
 function cmdlineOf(pid) {

@@ -57,7 +57,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    ".opencode/**",
+    ".opencode/node_modules/**",
+    ".opencode/backups/**",
+    ".opencode/*.log",
     "mobile/**",
     // 构建产物：Serwist 由 src/app/sw.ts 编译生成，禁止 lint 扫描
     "public/sw.js",

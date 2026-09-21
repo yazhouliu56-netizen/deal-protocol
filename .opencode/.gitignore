@@ -1,0 +1,8 @@
+# Local residue inside the OpenCode config dir — never versioned.
+# Versioned: plugins/ agents/ commands/ skills/ (+ opencode.jsonc beside them).
+node_modules/
+package-lock.json
+bun.lock
+*.log
+backups/
+prod-pid.txt

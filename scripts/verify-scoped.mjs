@@ -76,7 +76,7 @@ async function probe() {
 /** 三元组确认自有 prod：pid 存活 + 进程名 node + 端口属主 == pid。任一不符即未确认。 */
 function confirmOwnProd() {
   try {
-    const pidFile = path.join(root, ".opencode", "prod-pid.txt");
+    const pidFile = path.join(root, ".runtime", "prod-pid.txt");
     if (!existsSync(pidFile)) return { ok: false, why: "no pid file" };
     const pid = parseInt(readFileSync(pidFile, "utf8").trim(), 10);
     if (!Number.isFinite(pid)) return { ok: false, why: "bad pid file" };

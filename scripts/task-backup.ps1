@@ -9,7 +9,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
-$snapshotFile = Join-Path $root ".opencode" "snapshot-index.json"
+$snapshotFile = Join-Path $root ".runtime" "snapshot-index.json"
 $timestamp = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
 
 # 1. 检查 git dirty

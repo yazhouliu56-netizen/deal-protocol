@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const pidFile = path.join(root, ".opencode", "prod-pid.txt");
+const pidFile = path.join(root, ".runtime", "prod-pid.txt");
 const port = process.argv[2] || "3000";
 
 function kill(desc, pid) {
