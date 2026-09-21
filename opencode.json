@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    {
+      "package": "./.opencode/plugins/verifier",
+      "options": {
+        "numCandidates": 3,
+        "defaultL1Command": "npm run test:units && npx tsc --noEmit"
+      }
+    }
+  ]
+}
