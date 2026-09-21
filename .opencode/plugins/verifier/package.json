@@ -4,6 +4,7 @@
   "private": true,
   "description": "LLM-as-a-Verifier OpenCode V2 plugin (project-local): L1 deterministic checks + parallel candidate sampling + L2 comparative ranking.",
   "type": "module",
+  "main": "./index.ts",
   "dependencies": {
     "@opencode/plugin": "2.0.6",
     "zod": "^3.25.76"
