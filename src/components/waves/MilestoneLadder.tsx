@@ -1,13 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
+import { toast } from "@/base/platform/toast";
 import {
   createMilestonePlan,
-  releaseMilestone,
   releasedTotalCents,
   frozenRemainingCents,
   submitMilestoneCheckpoint,
@@ -25,8 +24,11 @@ import {
  * - releaseMilestone：需求方放款（SUBMITTED ➔ RELEASED / HELD 免验收直放）；
  * - releasedTotalCents / frozenRemainingCents：守恒账目展示。
  *
- * 持久化说明：当前批次无 milestone_schedules 写入 API，计划状态为组件内
- * 确定性重放（同输入必同状态）；onPlanChange 钩子预留给后续持久化接线。
+ * 上线前诚实态（用户裁决 2026-09-23）：真钱路当前只走 Type1 整单，
+ * 分期放款钱侧未立项——梯子仅做计划展示＋交验进度，验收放款按钮只
+ * toast 告知“即将上线、按整单结算”，不做本地 RELEASED 翻转（此前
+ * 本地翻转＋“对方将收到本期款项”文案构成虚假承诺，已下线）。
+ * 立项接线点：onPlanChange 持久化 ＋ 行级 release API ＋ 本按钮改调 API。
  *
  * Duo 化（Batch① 2026-09，插槽三件套先例）：暗岛 `<style>`（.ms-）去除，
  * 白底 DuoCardShell + 状态 DuoPill（soft）+ 提交验收 secondary / 验收放款 primary；
@@ -80,8 +82,7 @@ export default function MilestoneLadder({
     [],
   );
   const [plan, setPlan] = useState(initial);
-  // 分期放款二次确认：待确认的里程碑 id（null = 未弹层）
-  const [confirmReleaseId, setConfirmReleaseId] = useState<string | null>(null);
+  // 上线前诚实态：放款走整单路，此处不做本地 RELEASED 翻转（见文件头注释）。
 
   const apply = (next: IMilestoneEscrowPlan) => {
     setPlan(next);
@@ -96,6 +97,9 @@ export default function MilestoneLadder({
         🪜 里程碑分期托管 ·{" "}
         {milestones.length} 期 · 总额 {fmtYuan(plan.totalAmountCents)}
       </h4>
+      <p data-testid="milestone-honesty-note" className="text-[11px] text-[var(--color-duo-wolf)]">
+        分阶段放款即将上线，当前订单按整单结算
+      </p>
       {plan.milestones.map((m, i) => {
         const meta = STATUS_TONE[m.status];
         return (
@@ -142,7 +146,9 @@ export default function MilestoneLadder({
                 size="sm"
                 variant="primary"
                 data-testid={`milestone-release-${i}`}
-                onClick={() => setConfirmReleaseId(m.id)}
+                onClick={() =>
+                  toast("分阶段放款即将上线，当前订单按整单结算", "info")
+                }
                 className="shrink-0"
               >
                 验收放款
@@ -157,20 +163,6 @@ export default function MilestoneLadder({
         </span>
         <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(frozenRemainingCents(plan))}</span>
       </div>
-      {/* 分期放款二次确认（Batch②：直调改显式确认，放款不可逆） */}
-      {confirmReleaseId != null && (
-        <ConfirmSheet
-          title="确认本期放款？"
-          body="放款后不可撤销，对方将收到本期款项。"
-          danger
-          confirmLabel="确认放款"
-          onConfirm={() => {
-            apply(releaseMilestone(plan, confirmReleaseId).plan);
-            setConfirmReleaseId(null);
-          }}
-          onCancel={() => setConfirmReleaseId(null)}
-        />
-      )}
     </DuoCardShell>
   );
 }

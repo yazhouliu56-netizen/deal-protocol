@@ -57,17 +57,18 @@ describe("MilestoneLadder（方向 1 接线 C · base 纯函数驱动）", () =>
     expect(container.querySelector('[data-testid="milestone-submit-1"]')).toBeTruthy();
   });
 
-  it("验收放款走二次确认：先弹层，确认后 RELEASED 且守恒账目同步", () => {
+  it("上线前诚实态：验收放款只 toast 告知，不做本地 RELEASED 翻转", () => {
     const { container } = mountLadder({ ...PROPS });
+    expect(container.querySelector('[data-testid="milestone-honesty-note"]')?.textContent).toContain(
+      "分阶段放款即将上线，当前订单按整单结算",
+    );
     click(container, '[data-testid="milestone-submit-0"]');
     click(container, '[data-testid="milestone-release-0"]');
-    // 确认前不放款
-    expect(container.querySelector('[data-testid="confirm-sheet"]')).toBeTruthy();
+    // 无二次确认弹层、无状态翻转：钱路走整单，梯子只做计划展示
+    expect(container.querySelector('[data-testid="confirm-sheet"]')).toBeFalsy();
     expect(container.querySelector('[data-testid="milestone-row-0"]')?.getAttribute("data-status")).toBe("SUBMITTED");
-    click(container, '[data-testid="confirm-ok"]');
-    expect(container.querySelector('[data-testid="milestone-row-0"]')?.getAttribute("data-status")).toBe("RELEASED");
-    expect(container.querySelector('[data-testid="milestone-released-total"]')?.textContent).toContain("已放款 ¥500");
-    expect(container.querySelector('[data-testid="milestone-frozen"]')?.textContent).toContain("剩余冻结 ¥500");
+    expect(container.querySelector('[data-testid="milestone-released-total"]')?.textContent).toContain("已放款 ¥0");
+    expect(container.querySelector('[data-testid="milestone-frozen"]')?.textContent).toContain("剩余冻结 ¥1000");
   });
 
   it("免验收直放语义不外泄：HELD 行无放款按钮（红线 1 刻意放款仅限引擎层）", () => {
