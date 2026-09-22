@@ -239,7 +239,8 @@ export interface Database {
           title: string
           amount: number
           step_number: number
-          status: 'PENDING' | 'HELD' | 'SETTLED' | 'DISPUTED' | 'submitted' | 'completed' | 'skipped'
+          status: 'PENDING' | 'HELD' | 'SUBMITTED' | 'RELEASED' | 'REFUNDED'
+          submitted_at: string | null
           auto_confirm_at: string | null
           confirmed_at: string | null
           sla_hours: number | null
