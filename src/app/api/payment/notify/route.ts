@@ -71,7 +71,9 @@ export async function POST(request: Request) {
     .eq("id", notifyOrderId)
     .single();
 
-  // P7 阶段物化：demand 计划（用户确认版）→ milestone_schedules 行（检查点释放沿用既有 rpc）。
+  // P7 阶段物化：demand 计划（用户确认版）→ milestone_schedules 行（PENDING 台账）。
+  // 检查点释放暂走 Type1 整单路（release_checkpoint_rpc 已退役：零生产调用方，
+  // 代码封装层出清，DB 函数体按 F2 只增不改保留）。
   // 无计划/单阶段默认 → 不建行（整单走既有 Type1 路，不扰动）。
   try {
     const demandId = (contractData as { demand_id?: string | null } | null)?.demand_id

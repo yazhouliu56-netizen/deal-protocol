@@ -1,14 +1,16 @@
 /**
- * 6 大核心 Supabase 原子 RPC 调用通道（已落库函数的安全类型封装）。
+ * 5 大核心 Supabase 原子 RPC 调用通道（已落库函数的安全类型封装）。
  *
  * 统一包装器 callRpc：注入 transport（supabase-js 的 rpc 适配器）走真实
  * 远程通道；未注入 / 注入失败 → 确定性 Mock 降级（红线 5：无远程 DB 连接
  * 时单测 100% 畅通，且降级结果可断言，不引入随机性）。
  *
- * 封装的 6 大原子 RPC（supabase/migrations 已落库）：
- *   grab_demand（抢单）/ release_checkpoint_rpc（里程碑放款）/
- *   sla_auto_release_rpc（SLA 自动放款）/ match_demands_hybrid（混合匹配）/
- *   init_provider_wallet（服务方钱包初始化）/ submit_withdrawal_request（提现）。
+ * 封装的 5 大原子 RPC（supabase/migrations 已落库）：
+ *   grab_demand（抢单）/ sla_auto_release_rpc（SLA 自动放款）/
+ *   match_demands_hybrid（混合匹配）/ init_provider_wallet（服务方钱包初始化）/
+ *   submit_withdrawal_request（提现）。
+ * （release_checkpoint_rpc 已退役：零生产调用方，见 P8 另案收敛；
+ * DB 函数体按 F2 只增不改保留在迁移文件中，仅代码封装层出清。）
  */
 
 /** RPC 传输通道（supabase-js 的 rpc 最小接口，便于注入与单测 mock）。 */
@@ -31,7 +33,6 @@ export type RpcResult<T> =
  */
 const MOCK_RESULTS: Record<string, Record<string, unknown>> = {
   grab_demand: { grabbed: true, assignedAt: "MOCK" },
-  release_checkpoint_rpc: { released: true, checkpointIndex: 0 },
   sla_auto_release_rpc: { autoReleased: true, releasedAt: "MOCK" },
   match_demands_hybrid: { candidates: [] },
   init_provider_wallet: { initialized: true, walletId: "MOCK-WALLET" },
@@ -79,19 +80,6 @@ export function rpcGrabDemand(
   transport?: RpcTransport,
 ): Promise<RpcResult<{ grabbed: boolean; demandId: string; providerId: string }>> {
   return callRpc("grab_demand", { p_demand_id: demandId, p_provider_id: providerId }, transport);
-}
-
-/** 里程碑放款（release_checkpoint_rpc）：按里程碑序号释放托管资金。 */
-export function rpcReleaseCheckpoint(
-  contractId: string,
-  checkpointIndex: number,
-  transport?: RpcTransport,
-): Promise<RpcResult<{ released: boolean; checkpointIndex: number }>> {
-  return callRpc(
-    "release_checkpoint_rpc",
-    { p_contract_id: contractId, p_checkpoint_index: checkpointIndex },
-    transport,
-  );
 }
 
 /** SLA 自动放款（sla_auto_release_rpc）：超时无争议自动释放。 */

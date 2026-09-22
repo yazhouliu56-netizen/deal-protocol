@@ -1,5 +1,5 @@
 /**
- * 6 大核心 Supabase 原子 RPC 调用通道测试：
+ * 5 大核心 Supabase 原子 RPC 调用通道测试：
  * 无 transport 时确定性 Mock 降级（degraded=true）/ 注入 transport 走真实
  * 通道（error 透传）/ 异常时回落降级不抛错 / 参数契约与结果形状断言。
  */
@@ -11,7 +11,6 @@ import {
   rpcGrabDemand,
   rpcInitProviderWallet,
   rpcMatchDemandsHybrid,
-  rpcReleaseCheckpoint,
   rpcSlaAutoRelease,
   rpcSubmitWithdrawalRequest,
   type RpcTransport,
@@ -28,16 +27,6 @@ test("Mock 降级：grab_demand 抢单通道（无 transport → degraded=true �
   if (r.ok) {
     assert.equal(r.data.demandId, "d-1");
     assert.equal(r.data.providerId, "p-1");
-  }
-});
-
-test("Mock 降级：release_checkpoint 里程碑放款通道", async () => {
-  const r = await rpcReleaseCheckpoint("c-1", 2);
-  assert.equal(r.ok, true);
-  assert.equal(r.degraded, true);
-  if (r.ok) {
-    assert.equal(r.data.released, true);
-    assert.equal(r.data.checkpointIndex, 2);
   }
 });
 
@@ -100,7 +89,7 @@ test("真实通道：RPC error → ok=false 透传错误信息", async () => {
   const transport: RpcTransport = {
     rpc: async () => ({ data: undefined, error: { message: "permission denied" } }),
   };
-  const r = await rpcReleaseCheckpoint("c-2", 1, transport);
+  const r = await rpcSlaAutoRelease("c-2", transport);
   assert.equal(r.ok, false);
   assert.equal(r.degraded, false);
   if (!r.ok) assert.equal(r.error, "permission denied");
