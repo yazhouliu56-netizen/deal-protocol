@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateAmmoFromSentence } from "@/adapters/ai/sentence-to-ammo";
 import { compileAmmoPrompt } from "@/base/ai/prompt-compiler";
+import { getServiceClient } from "@/lib/supabase-client";
 
 /**
  * 增长实验 · 一句话量产（/lab 看板后端）。
@@ -19,6 +20,19 @@ export async function POST(req: Request) {
     typeof body.categoryHint === "string" ? body.categoryHint : undefined;
   const compiled = compileAmmoPrompt(body.sentence, { categoryHint });
   const result = await generateAmmoFromSentence(body.sentence, { categoryHint });
+  // 网关 strict 决策数仓：attempts 分布落库（失败永不阻断主流程）。
+  try {
+    await getServiceClient().from("metric_events").insert({
+      name: "growth.ammo_attempts",
+      value: result.attempts,
+      tags: {
+        provider: result.provider ?? "none",
+        ok: String(result.ok),
+      },
+    });
+  } catch {
+    /* 遥测失败静默（主流程已返回，不重试） */
+  }
   return NextResponse.json({
     ...result,
     compiled: {

@@ -3,6 +3,7 @@
  * profiles.balance / pending_withdrawal 已停写（R11 冻结）；
  * wallet_logs/transactions 的 platform_fee 类型已统一为 quality_forfeit 系。
  * 任一新增写入即 fail。node scripts/check-frozen-ledgers.mjs（check.mjs quick 内调用）。
+ * argv[2] 可选扫描根（考卷阴性对照用；缺省=仓库 src）。
  */
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -44,7 +45,7 @@ function walk(d) {
     }
   }
 }
-walk(path.join(root, "src"));
+walk(process.argv[2] ? path.resolve(process.argv[2]) : path.join(root, "src"));
 
 if (violations.length > 0) {
   console.error("[frozen-ledgers] FAIL（已知 0 处冻结违规，新增未登记）：");

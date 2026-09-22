@@ -20,6 +20,7 @@ export const METRIC_NAMES = [
   'growth.sms_sent',
   'growth.verified',
   'growth.demand_created',
+  'growth.ammo_attempts',
   'intent.assembled',
   'intent.confirmed',
   'intent.edit',

@@ -2,10 +2,23 @@ import { getServiceClient } from '@/lib/supabase-client'
 import type { Ranker } from '@/modules/m06-matching-routing/matcher'
 import type { CandidateProvider } from '@/lib/contracts'
 
+/** 探索率 B 口径：工作日 5%（用户裁决 2026-09-23）。 */
+export const BANDIT_EPSILON_WEEKDAY = 0.05;
+/** 周末探索率：10%（多给新人/新玩法机会，用户裁决 2026-09-23）。 */
+export const BANDIT_EPSILON_WEEKEND = 0.1;
+
+/**
+ * 按时钟取探索率（周六/周日=周末档；nowMs 入参可测，红线 1）。
+ */
+export function epsilonFor(nowMs: number = Date.now()): number {
+  const day = new Date(nowMs).getDay();
+  return day === 0 || day === 6 ? BANDIT_EPSILON_WEEKEND : BANDIT_EPSILON_WEEKDAY;
+}
+
 export class BanditRanker implements Ranker {
   private epsilon: number
 
-  constructor(epsilon = 0.1) {
+  constructor(epsilon: number = epsilonFor()) {
     this.epsilon = epsilon
   }
 

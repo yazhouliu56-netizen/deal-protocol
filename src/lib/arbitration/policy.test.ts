@@ -82,7 +82,7 @@ describe("evaluateIssuance 签发门禁", () => {
     confidence: 0.9,
     evidence: "PARTIAL" as const,
     agreementSigned: false,
-    providerCounterEvidence: false,
+    responderCounterEvidence: false,
   };
 
   it("全门禁通过 → AUTO（协议未验证只留痕不阻塞）", () => {
@@ -110,8 +110,8 @@ describe("evaluateIssuance 签发门禁", () => {
     expect(v.reasons).toContain("no-evidence");
   });
 
-  it("商家已反驳举证 → REVIEW（双方各执一词转人工）", () => {
-    const v = evaluateIssuance({ ...ok, providerCounterEvidence: true });
+  it("被发起侧已反驳举证 → REVIEW（双方各执一词转人工）", () => {
+    const v = evaluateIssuance({ ...ok, responderCounterEvidence: true });
     expect(v.decision).toBe("REVIEW");
     expect(v.reasons).toContain("counter-evidence-manual");
   });

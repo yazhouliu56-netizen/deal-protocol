@@ -106,8 +106,8 @@ export interface IssuanceInput {
   evidence: EvidenceState;
   /** 协议预置争议条款已勾选（先行赔付前提①）。 */
   agreementSigned: boolean;
-  /** 商家已提交反驳举证（双方各执一词 → 转人工/议会）。 */
-  providerCounterEvidence: boolean;
+  /** 被发起侧已提交反驳举证（双方各执一词 → 转人工/议会）。 */
+  responderCounterEvidence: boolean;
 }
 
 export interface IssuanceVerdict {
@@ -132,7 +132,7 @@ export function evaluateIssuance(
   if (input.tier === "HARD") reasons.push("hard-tier-manual");
   if (!(input.confidence >= policy.autoConfidence)) reasons.push("low-confidence");
   if (input.evidence === "NONE") reasons.push("no-evidence");
-  if (input.providerCounterEvidence) reasons.push("counter-evidence-manual");
+  if (input.responderCounterEvidence) reasons.push("counter-evidence-manual");
   if (!input.agreementSigned) {
     // 先行赔付前提①：严格门禁未开前只审计留痕，不阻塞（防自动链路猝死）。
     if (STRICT_AGREEMENT_GATE) reasons.push("no-agreement");

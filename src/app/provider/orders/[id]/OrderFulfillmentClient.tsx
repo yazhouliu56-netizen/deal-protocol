@@ -192,8 +192,8 @@ export default function OrderFulfillmentClient({
         <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">联系人与地址信息</h3>
           <div className="text-sm space-y-2">
-            <p><span className="text-zinc-400">客户姓名：</span>{demand.client_name || "张先生 (系统脱敏)"}</p>
-            <p><span className="text-zinc-400">服务地址：</span>{demand.address || "北京市海淀区中关村南大街1号"}</p>
+            <p><span className="text-zinc-400">客户姓名：</span>{demand.client_name || "待补充（已脱敏）"}</p>
+            <p><span className="text-zinc-400">服务地址：</span>{demand.address || "待补充"}</p>
           </div>
           <MapWithNoSSR
             className="h-64 w-full rounded-2xl overflow-hidden"
@@ -201,12 +201,21 @@ export default function OrderFulfillmentClient({
             dots={targetDots}
           />
           <div className="grid grid-cols-3 gap-3 pt-2">
-            <a
-              href={`tel:${demand.client_phone || "13800000000"}`}
-              className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 hover:bg-zinc-100 active:scale-95 transition-transform"
-            >
-              拨打电话
-            </a>
+            {demand.client_phone ? (
+              <a
+                href={`tel:${demand.client_phone}`}
+                className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 hover:bg-zinc-100 active:scale-95 transition-transform"
+              >
+                拨打电话
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 text-zinc-400 cursor-not-allowed"
+              >
+                拨打电话（暂无号码）
+              </span>
+            )}
             <button
               onClick={() => alert(`唤起导航至: [${demand.latitude}, ${demand.longitude}]`)}
               className="touch-target flex items-center justify-center gap-2 border border-zinc-200 py-3 rounded-xl text-xs font-medium bg-zinc-50 hover:bg-zinc-100 active:scale-95 transition-transform"

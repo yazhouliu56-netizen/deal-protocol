@@ -471,16 +471,3 @@ export async function settleSatisfactionBatch(
   }
   return out
 }
-
-/**
- * 单单释放（R5 · P4 已退役，保留签名防外部误调）。
- * @deprecated 改用 releaseSatisfactionBase（确认即释）＋ settleSatisfactionBatch（批量勾池）。
- */
-export async function releaseSatisfactionOrder(
-  _contractId: string,
-  _nowMs: number = Date.now(),
-): Promise<SatisfactionReleaseResult> {
-  void _contractId
-  void _nowMs
-  throw new Error('releaseSatisfactionOrder 已退役（P4 双钟表）：改用 releaseSatisfactionBase + settleSatisfactionBatch')
-}

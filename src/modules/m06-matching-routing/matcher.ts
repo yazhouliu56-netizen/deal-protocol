@@ -326,8 +326,8 @@ async function maybeActivateBandit(category: string, candidates: CandidateProvid
 
     const deals = (data?.base_total_deals as number) ?? 0
     if (deals >= MONTHLY_ORDER_THRESHOLD) {
-      const { BanditRanker } = await import('@/modules/m08-bandit/bandit-ranker')
-      const bandit = new BanditRanker(0.1)
+      const { BanditRanker, epsilonFor } = await import('@/modules/m08-bandit/bandit-ranker')
+      const bandit = new BanditRanker(epsilonFor())
       setRanker(bandit)
       console.log(`[M06] Bandit ranker auto-activated: provider ${c.provider_id} has ${deals} deals`)
       return bandit

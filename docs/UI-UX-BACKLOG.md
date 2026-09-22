@@ -39,7 +39,7 @@
 
 ## P2  parked（2026-09-11 三路审计结论：不动的需设计裁决/基线重拍，不顺手改）
 
-- **8 自造体系迁移**（draft/cockpit/fc/hk/mt/cp/dyn/ms 嵌入式 CSS）：e2e 选择器依赖 `.draft-card` 等类名 + docs/shot 截图基线，整迁需设计裁决 + 基线重拍，另起批次。
+- **8 自造体系迁移**（draft/cockpit/fc/hk/mt/cp/dyn/ms 嵌入式 CSS）：e2e 选择器依赖 `.draft-card` 等类名 + docs/shot 截图基线，整迁需设计裁决 + 基线重拍，另起批次。（2026-09-22 核验：cockpit 已收敛为结构钩，仅剩 `.cockpit{max-width:460px}`，见 FulfillmentCockpit.tsx:108-111；其余文件待查，本项不关闭。）
 - **暗岛 hex**（仲裁/座舱 inline + 渐变 + AmmoPillBar/Tier 动态 map）：值为动态 theme 查找，无法静态 class 化；且本仓未 emit TW color vars，`var(--color-red-300)` 式映射会静默断色。冻结。
 - **阴影 25 行**：P13 冻结范围（卡片/按钮）之外，无功能影响。冻结。
 - **loading/not-found/error 矩阵**（32 页仅 5 loading、无根 not-found/error）：加法安全但改动面广，另起批次。

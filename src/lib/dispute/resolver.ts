@@ -1,5 +1,6 @@
 import { getServiceClient } from "@/lib/supabase-client"
 import { arbitrate } from "@/lib/arbitration"
+import { hasResponderCounterEvidence } from "./counter-evidence"
 import {
   appealDeadline,
   classifyEvidence,
@@ -76,6 +77,10 @@ export async function resolveDispute(
   const contractAmount = contract.amount
   const evidenceState = classifyEvidence(dispute.evidence);
   const tier = determineTierWithPolicy(contractAmount, policy)
+  // 侧归属实读：被发起侧举证（responder_evidence）非空即转人工。
+  const responderCounterEvidence = hasResponderCounterEvidence(
+    (dispute as { responder_evidence?: unknown }).responder_evidence,
+  );
   const issuance = evaluateIssuance(
     {
       tier,
@@ -83,9 +88,7 @@ export async function resolveDispute(
       confidence: 0,
       evidence: evidenceState,
       agreementSigned: readAgreementSigned(contract.terms),
-      // TODO(ADR-0021 后续)：商家反驳举证独立字段落库后，此处由 false 改为实读；
-      // 当前单 evidence 字段无法区分双方举证，有反驳内容一律走人工由客服判定。
-      providerCounterEvidence: false,
+      responderCounterEvidence,
     },
     policy,
   );
@@ -139,7 +142,7 @@ export async function resolveDispute(
       confidence: verdict.confidence,
       evidence: evidenceState,
       agreementSigned: readAgreementSigned(contract.terms),
-      providerCounterEvidence: false,
+      responderCounterEvidence,
     },
     policy,
   );

@@ -149,9 +149,11 @@ export function splitType1Shares(
   }
   const commissionCents = Math.round(totalCents * commissionRate);
   // 可分配池 = 总额 − 佣金（佣金先切，用户裁决 2026-09-18）。
-  // 通道费不进池：由师傅实得全额承担（P0 锁死语义，考卷逐分锁定——
+  // 通道费不进池：由师傅实得全额承担（P0 锁死语义，P8 已接通实收传值——
+  // satisfaction 按该单 SUCCEEDED 行通道费率实算 channelFeeCents 灌入，
+  // 本函数只收数；旧三参调用语义不变 commission 0＋缺省份额）。
   // 与用户算例"283.2 进 85/15"相比，师傅全好评实得恒等，仅勾失败时
-  // 质量费差通道×15%（300 元单差 0.27 元），可忽略，旧语义优先）。
+  // 质量费差通道×15%（300 元单差 0.27 元），可忽略，旧公式优先。
   const pool = totalCents - commissionCents;
   const shares = splitType1Shares(pool, opts.shares ?? DEFAULT_TYPE1_SHARES);
   const p = pass ?? { attitude: true, appearance: true, restoration: true };
