@@ -1,13 +1,28 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MilestoneRowError, releaseStageRow, submitStageRow } from "./rows";
 
 const NOW = "2026-09-23T00:00:00.000Z";
+
+// M3：费率配置可控（缺省全 0＝M1 语义；逐例按需调高）。
+const cfgState = vi.hoisted(() => ({
+  commissionRate: 0,
+  channelRates: { wechat: 0, alipay: 0, stripe: 0 },
+}));
+vi.mock("@/lib/platform/config", () => ({
+  getConfig: async () => ({
+    fees: {
+      commissionRate: cfgState.commissionRate,
+      channelRates: cfgState.channelRates,
+    },
+  }),
+}));
 
 interface Fx {
   row?: unknown;
   contract?: unknown;
   wallet?: unknown;
   logRows?: unknown[];
+  payRows?: unknown[];
   updatedRows?: unknown[];
   updateError?: { message: string } | null;
   captured?: { table: string; payload: unknown }[];
@@ -43,6 +58,7 @@ function stubSvc(fx: Fx) {
   };
   b.eq = () => self;
   b.like = () => self;
+  b.order = () => self;
   b.limit = () => self;
   b.single = async () => {
     if (st.table === "milestone_schedules") return { data: fx.row ?? null, error: null };
@@ -58,6 +74,9 @@ function stubSvc(fx: Fx) {
       }
       if (st.mode === "select" && st.table === "wallet_logs") {
         return { data: fx.logRows ?? [], error: null };
+      }
+      if (st.mode === "select" && st.table === "payments") {
+        return { data: fx.payRows ?? null, error: null };
       }
       return { data: null, error: null };
     })().then(res, rej);
@@ -149,6 +168,9 @@ describe("releaseStageRow 需求方放款", () => {
     expect(r).toEqual({
       released: true,
       amountYuan: 500,
+      providerNetYuan: 500,
+      commissionYuan: 0,
+      channelFeeYuan: 0,
       skippedAcceptance: false,
     });
     expect(fx.captured).toContainEqual({
@@ -220,5 +242,80 @@ describe("行金额单位（P7 元口径）", () => {
     });
     const e = await errOf(releaseStageRow(svc as never, "row-1", "u-c", NOW));
     expect(e.code).toBe("INVALID_AMOUNT");
+  });
+});
+
+describe("M3 费用分摊（佣金逐期＋通道同口径）", () => {
+  it("佣金 5%：平台记 COMMISSION 行，师傅实得 475", async () => {
+    cfgState.commissionRate = 0.05;
+    try {
+      const { svc, fx } = stubSvc({
+        row: { ...ROW, status: "SUBMITTED" },
+        contract: CONTRACT,
+        wallet: { balance: 10 },
+      });
+      const r = await releaseStageRow(svc as never, "row-1", "u-c", NOW);
+      expect(r).toEqual({
+        released: true,
+        amountYuan: 500,
+        providerNetYuan: 475,
+        commissionYuan: 25,
+        channelFeeYuan: 0,
+        skippedAcceptance: false,
+      });
+      expect(fx.captured).toContainEqual({
+        table: "provider_wallets",
+        payload: expect.objectContaining({ balance: 485 }),
+      });
+      expect(fx.captured).toContainEqual({
+        table: "transactions",
+        payload: expect.objectContaining({ type: "COMMISSION", amount: -25 }),
+      });
+      expect(fx.captured).toContainEqual({
+        table: "wallet_logs",
+        payload: expect.objectContaining({ type: "milestone_payout", amount: 475 }),
+      });
+    } finally {
+      cfgState.commissionRate = 0;
+    }
+  });
+
+  it("通道费：微信 0.6% 按本期计提，师傅实得 497", async () => {
+    cfgState.channelRates = { wechat: 0.006, alipay: 0.006, stripe: 0.029 };
+    try {
+      const { svc, fx } = stubSvc({
+        row: { ...ROW, status: "SUBMITTED" },
+        contract: CONTRACT,
+        wallet: { balance: 10 },
+        payRows: [{ provider: "wechat", amount: 500 }],
+      });
+      const r = await releaseStageRow(svc as never, "row-1", "u-c", NOW);
+      expect(r.channelFeeYuan).toBe(3);
+      expect(r.providerNetYuan).toBe(497);
+      expect(fx.captured).toContainEqual({
+        table: "provider_wallets",
+        payload: expect.objectContaining({ balance: 507 }),
+      });
+    } finally {
+      cfgState.channelRates = { wechat: 0, alipay: 0, stripe: 0 };
+    }
+  });
+
+  it("费用超本期 → 500（P3 守恒硬锁逐期）", async () => {
+    cfgState.commissionRate = 0.9;
+    cfgState.channelRates = { wechat: 0.2, alipay: 0.2, stripe: 0.2 };
+    try {
+      const { svc } = stubSvc({
+        row: { ...ROW, status: "SUBMITTED", amount: 100 },
+        contract: CONTRACT,
+        wallet: { balance: 0 },
+        payRows: [{ provider: "wechat", amount: 100 }],
+      });
+      const e = await errOf(releaseStageRow(svc as never, "row-1", "u-c", NOW));
+      expect(e.code).toBe("INVALID_FEE");
+    } finally {
+      cfgState.commissionRate = 0;
+      cfgState.channelRates = { wechat: 0, alipay: 0, stripe: 0 };
+    }
   });
 });

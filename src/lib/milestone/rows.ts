@@ -1,4 +1,6 @@
 import { getServiceClient } from "@/lib/supabase-client";
+import { getConfig } from "@/lib/platform/config";
+import { receiveChannelFee } from "@/lib/channel-fee";
 
 /**
  * 里程碑行级流转（C 全功能 M1 · 用户裁决 2026-09-23）。
@@ -134,15 +136,18 @@ export async function submitStageRow(
 /**
  * 需求方放款：SUBMITTED → RELEASED（正常验收流）/ HELD → RELEASED
  * （免验收刻意直放，skippedAcceptance 标记）。RELEASED 重放幂等直返。
- * 记账：provider_wallets 即时到账 ＋ wallet_logs MILESTONE_PAYOUT（元口径，
- * 与 satisfaction_base 同形）；先查账防崩溃重放双付。
+ * 记账（M3 费用分摊，与 Type1/P8 同口径）：师傅实得＝本期－佣金－通道费；
+ * 佣金（总额百分比逐期计提，sunset 翻转即生效）记 COMMISSION 行，
+ * 通道费（本期实收通道费率）直接抵扣（Type1 同姿态，无独立行）；
+ * wallet_logs MILESTONE_PAYOUT 记实得。逐期 rounding dust ≤ 期数/2 分。
+ * 崩溃重放不双付（先查账）；残余双击窗口见文件头。
  */
 export async function releaseStageRow(
   svc: Svc,
   rowId: string,
   callerId: string,
   nowIso: string = new Date().toISOString(),
-): Promise<{ released: boolean; alreadyReleased?: boolean; recovered?: boolean; amountYuan: number; skippedAcceptance: boolean }> {
+): Promise<{ released: boolean; alreadyReleased?: boolean; recovered?: boolean; amountYuan: number; providerNetYuan?: number; commissionYuan?: number; channelFeeYuan?: number; skippedAcceptance: boolean }> {
   if (Number.isNaN(Date.parse(nowIso))) {
     throw new MilestoneRowError("INVALID_TIMESTAMP", 400, "nowIso 非法");
   }
@@ -176,6 +181,49 @@ export async function releaseStageRow(
     return { released: false, alreadyReleased: true, recovered: true, amountYuan, skippedAcceptance };
   }
 
+  // M3 费用分摊（P8 同口径；配置缺席 fail-safe 0）。
+  let commissionRate = 0;
+  let channelRates = { wechat: 0, alipay: 0, stripe: 0 };
+  try {
+    const cfg = await getConfig();
+    const r = cfg.fees.commissionRate ?? 0;
+    commissionRate = Number.isFinite(r) && r >= 0 && r <= 1 ? r : 0;
+    channelRates = cfg.fees.channelRates ?? channelRates;
+  } catch {
+    /* 免费政策方向 fail-safe */
+  }
+  const commissionCents = Math.round(amountCents * commissionRate);
+  let channelFeeCents = 0;
+  try {
+    const { data: payRows } = await svc
+      .from("payments")
+      .select("provider, amount")
+      .eq("contract_id", row.contract_id)
+      .eq("status", "SUCCEEDED")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const payRow = ((payRows ?? []) as { provider?: string; amount?: number }[])[0];
+    if (payRow?.provider) {
+      channelFeeCents = Math.round(
+        receiveChannelFee(payRow.provider, amountYuan, channelRates).fee * 100,
+      );
+    }
+  } catch {
+    /* 通道缺席回落 0 */
+  }
+  if (channelFeeCents > amountCents - commissionCents) {
+    throw new MilestoneRowError(
+      "INVALID_FEE",
+      500,
+      `费用超本期：通道 ${channelFeeCents} 分＋佣金 ${commissionCents} 分 > 本期 ${amountCents} 分`,
+    );
+  }
+  // P3 守恒硬锁（逐期）：实得＋佣金＋通道费 ≡ 本期。
+  const providerNetCents = amountCents - commissionCents - channelFeeCents;
+  const providerNetYuan = providerNetCents / 100;
+  const commissionYuan = commissionCents / 100;
+  const channelFeeYuan = channelFeeCents / 100;
+
   await ensureWallet(svc, contract.provider_id);
   const { data: w } = await svc
     .from("provider_wallets")
@@ -183,7 +231,7 @@ export async function releaseStageRow(
     .eq("provider_id", contract.provider_id)
     .single();
   const before = Number((w as { balance?: number } | null)?.balance ?? 0);
-  const after = Math.round((before + amountYuan) * 100) / 100;
+  const after = Math.round((before + providerNetYuan) * 100) / 100;
   const { error: creditError } = await svc
     .from("provider_wallets")
     .update({ balance: after, updated_at: nowIso })
@@ -191,12 +239,23 @@ export async function releaseStageRow(
   if (creditError) throw new MilestoneRowError("CREDIT_FAILED", 500, creditError.message);
   const { error: logError } = await svc.from("wallet_logs").insert({
     provider_id: contract.provider_id,
-    amount: amountYuan,
+    amount: providerNetYuan,
     type: "milestone_payout",
     order_id: row.contract_id,
-    description: `分期放款: 合同 ${row.contract_id} 第${row.step_number}期「${row.title}」(row ${rowId})`,
+    description: `分期放款: 合同 ${row.contract_id} 第${row.step_number}期「${row.title}」(row ${rowId})实得¥${providerNetYuan}（佣金¥${commissionYuan}/通道¥${channelFeeYuan}）`,
   });
   if (logError) throw new MilestoneRowError("LEDGER_FAILED", 500, logError.message);
+  if (commissionYuan > 0) {
+    const { error: commissionError } = await svc.from("transactions").insert({
+      user_id: contract.provider_id,
+      type: "COMMISSION",
+      amount: -commissionYuan,
+      balance_before: before,
+      balance_after: after,
+      description: `分期放款: 合同 ${row.contract_id} 第${row.step_number}期平台佣金¥${commissionYuan}`,
+    });
+    if (commissionError) throw new MilestoneRowError("LEDGER_FAILED", 500, commissionError.message);
+  }
 
   const { data: flipped, error } = await svc
     .from("milestone_schedules")
@@ -207,5 +266,5 @@ export async function releaseStageRow(
   if (error || !flipped || (flipped as unknown[]).length === 0) {
     throw new MilestoneRowError("CONFLICT", 409, "阶段行已被并发变更，账已记请核对后重试");
   }
-  return { released: true, amountYuan, skippedAcceptance };
+  return { released: true, amountYuan, providerNetYuan, commissionYuan, channelFeeYuan, skippedAcceptance };
 }
