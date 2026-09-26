@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { toast } from "@/base/platform/toast";
 import { useClaimDemand } from "@/hooks/useClaimDemand"
+import { useMeetupArming } from "@/hooks/useMeetupArming"
 
 interface Demand {
   id: string
@@ -84,10 +85,12 @@ export default function ProviderConsole({ onBackToHome }: ProviderConsoleProps) 
     }
   }
 
+  const armOnClaim = useMeetupArming();
   const { claim, claimingId } = useClaimDemand({
     verificationStatus,
     messages: { network: "网络错误，抢单失败" },
-    onSuccess: async () => {
+    onSuccess: async (id, extra) => {
+      armOnClaim(id, extra);
       toast("契约锁定成功！", "success")
       await loadDemands()
       await loadContracts()

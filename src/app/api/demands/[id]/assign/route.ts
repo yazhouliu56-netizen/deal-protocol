@@ -63,6 +63,33 @@ export const POST = withAuth(async (req, user, ...args) => {
     }
   }
 
+  // 见面武装输入（首单＋入户；失败回落 standard，通知包兜底感知）。
+  let firstOrder = false
+  let cluster: string | undefined
+  try {
+    const { data: prior } = await svc
+      .from("contracts")
+      .select("id")
+      .eq("provider_id", providerId)
+      .limit(1)
+    firstOrder = !prior || (prior as unknown[]).length === 0
+  } catch {
+    /* 回落 standard */
+  }
+  try {
+    const { getAmmoById, resolveAmmoByFreeText } = await import("@/ammo/registry")
+    const hit = resolveAmmoByFreeText(String(demand?.title ?? ""))
+    if (hit) cluster = getAmmoById(hit.ammoId).supplyCluster
+  } catch {
+    /* 解析失败按非入户处理 */
+  }
+  const { evaluateMeetupArming } = await import("@/base/safe/meetup-guard")
+  const arming = evaluateMeetupArming({
+    isFirstOrder: firstOrder,
+    hourOfDay: new Date().getHours(),
+    homeAccess: cluster === "C2_IN_HOME",
+  })
+
   const { data: updated, error } = await supabase
     .from("demands")
     .update({
@@ -100,27 +127,10 @@ export const POST = withAuth(async (req, user, ...args) => {
   }
 
   // 见面安全包：首单或入户（C2）→ 双向安全须知＋metric（零 DDL/UI 改动；失败静默）。
+  // 夜单只进响应武装位（本地横幅＋隐私会话），不推通知（防夜间高频打扰）。
   try {
     const { meetupSafetyPackage } = await import("@/lib/gang-rules")
-    const { data: prior } = await svc
-      .from("contracts")
-      .select("id")
-      .eq("provider_id", providerId)
-      .limit(1)
-    let cluster: string | undefined
-    try {
-      const { getAmmoById, resolveAmmoByFreeText } = await import("@/ammo/registry")
-      const hit = resolveAmmoByFreeText(
-        String((updated[0] as { title?: string } | undefined)?.title ?? ""),
-      )
-      if (hit) cluster = getAmmoById(hit.ammoId).supplyCluster
-    } catch {
-      /* 解析失败按非入户处理 */
-    }
-    const pack = meetupSafetyPackage({
-      isFirstOrder: !prior || (prior as unknown[]).length === 0,
-      supplyCluster: cluster,
-    })
+    const pack = meetupSafetyPackage({ isFirstOrder: firstOrder, supplyCluster: cluster })
     if (pack.send && demand?.demander_id) {
       const tag = pack.reasons.join("＋")
       const tip = `首次合作安全包（${tag}）：①尽量选公共场所见面 ②保持电话畅通 ③先到安全中心完善紧急联系人 ④紧急情况用 SOS 一键报警`
@@ -138,5 +148,12 @@ export const POST = withAuth(async (req, user, ...args) => {
     /* 安全包失败不阻断接单 */
   }
 
-  return NextResponse.json({ success: true }, { status: 200 })
+  return NextResponse.json(
+    {
+      success: true,
+      demanderId: demand?.demander_id ?? null,
+      meetupGuard: arming,
+    },
+    { status: 200 },
+  )
 })

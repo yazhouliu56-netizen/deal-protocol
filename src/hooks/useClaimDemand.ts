@@ -31,7 +31,8 @@ interface ClaimDemandOpts {
   verificationStatus?: string;
   /** 实名拦截时的专属处理（不传则走 onFailure 统一提示）。 */
   onBlocked?: () => void;
-  onSuccess: (demandId: string) => void | Promise<void>;
+  /** 成功回调（第二参为服务端回执：demanderId/meetupGuard，缺席为 null）。 */
+  onSuccess: (demandId: string, extra?: unknown) => void | Promise<void>;
   onFailure: (message: string) => void;
   /**
    * Batch③-4 乐观抢单：fetch 前同步触发（调用方先行移除卡片/置灰）；
@@ -75,7 +76,7 @@ export function useClaimDemand(opts: ClaimDemandOpts) {
           onFailure(message);
           return;
         }
-        await onSuccess(demandId);
+        await onSuccess(demandId, data);
       } catch {
         onRollback?.(demandId, networkMessage);
         onFailure(networkMessage);

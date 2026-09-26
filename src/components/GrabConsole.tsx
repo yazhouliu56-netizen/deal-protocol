@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useClaimDemand } from "@/hooks/useClaimDemand";
+import { useMeetupArming } from "@/hooks/useMeetupArming";
 
 interface GrabConsoleProps {
   demandId: string;
@@ -31,12 +32,16 @@ export default function GrabConsole({
   }, [timeLeft, status]);
 
   const [showVerifyBanner, setShowVerifyBanner] = useState(false);
+  const [guardReasons, setGuardReasons] = useState<string[]>([]);
+  const armOnClaim = useMeetupArming();
 
   const { claim } = useClaimDemand({
     verificationStatus,
     onBlocked: () => setShowVerifyBanner(true),
     messages: { network: "网络异常，请稍后重试", fallback: "手慢了，订单已被其他师傅接到" },
-    onSuccess: () => {
+    onSuccess: (id, extra) => {
+      const reasons = armOnClaim(id, extra);
+      if (reasons.length > 0) setGuardReasons(reasons);
       setStatus("success");
       setTimeout(() => {
         onGrabSuccess();
@@ -118,6 +123,22 @@ export default function GrabConsole({
             >
               正在为您锁定订单，请稍候...
             </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {guardReasons.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            data-testid="guard-banner"
+            className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center"
+          >
+            <p className="text-sm font-semibold text-emerald-600">
+              🛡️ 强化守护已武装（{guardReasons.join("＋")}）：隐私号会话已建，履约中行程守护自动跟进
+            </p>
           </motion.div>
         )}
       </AnimatePresence>

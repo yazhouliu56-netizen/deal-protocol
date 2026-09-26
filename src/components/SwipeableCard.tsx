@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { useClaimDemand } from "@/hooks/useClaimDemand"
+import { useMeetupArming } from "@/hooks/useMeetupArming"
 
 export interface IncomingDemand {
   id: string
@@ -71,7 +72,8 @@ export default function SwipeableCard({
     messages: { network: "网络异常，请重试", fallback: "被其他师傅捷足先登了" },
     onOptimistic: onAcceptOptimistic,
     onRollback: onAcceptRollback,
-    onSuccess: (id) => {
+    onSuccess: (id, extra) => {
+      armOnClaim(id, extra)
       onAcceptSuccess(id)
     },
     onFailure: (message) => {
@@ -80,6 +82,8 @@ export default function SwipeableCard({
       setIsSubmitting(false)
     },
   })
+
+  const armOnClaim = useMeetupArming()
 
   const triggerAccept = async () => {
     // 视觉语义保持原样：成功不复位（父级移除卡片），失败回弹。
