@@ -165,7 +165,7 @@
 - 补 3 埋点：growth.page_view{page:landing}（进页分母，f20/m20 同口径）＋diagnose_click＋diagnose_result{outcome,elapsed_ms}；METRIC_NAMES 注册（/api/metrics allow 名单自动生效）。
 - 切阀门：.env.local METRICS_BACKEND=console→api；POST 实测 {stored:3} 进库（metric_events 表＋service client 全通）。
 - 门禁：tsc 0＋lint 0＋vitest 853（109 文件，含 landing.test.tsx 新 2 例）＋build exit 0。
-- 未动：呈现层（首屏 CTA/标题/Duo 化/sticky 条）等漏斗数据出来再议；SmsLeadSheet friction 不动；线上 Vercel 需同步设 NEXT_PUBLIC_METRICS_BACKEND=api（本地 .env.local 不进线上）。
+- 未动：呈现层（首屏 CTA/标题/Duo 化/sticky 条）等漏斗数据出来再议；SmsLeadSheet friction 不动；线上 Vercel 已设 NEXT_PUBLIC_METRICS_BACKEND=api（2026-09-12，All Environments，用户截图实证 2026-09-26，漏斗自 09-12 进库）。
 
 ## Batch④-2：AR 去伪装更名“附近服务”（2026-09-12，用户裁决）
 - 用户可见 AR 字样 5 处出清：雷达入口“AR 场景探索/对准真实场景找服务”→“附近服务/看看附近可撮合的服务”（aria-label 同步）；ARPage 模式“场景探索”→“附近探索”、“全息 3D 体验”→“3D 模型预览”、“AR 取景框”→“服务探索区”、空态去“对准真实场景”。
