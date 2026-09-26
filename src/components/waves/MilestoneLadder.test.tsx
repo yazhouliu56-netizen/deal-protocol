@@ -104,7 +104,7 @@ describe("Server 模式（M2 · 行合同驱动）", () => {
   ];
 
   function stubFetch(
-    impl: (url: string, init?: { method?: string }) => Promise<{ ok: boolean; json?: () => Promise<unknown>; text?: () => Promise<string> }>,
+    impl: (url: string, init?: RequestInit) => Promise<{ ok: boolean; json?: () => Promise<unknown>; text?: () => Promise<string> }>,
   ) {
     global.fetch = vi.fn(impl) as unknown as typeof fetch;
   }
@@ -177,5 +177,31 @@ describe("Server 模式（M2 · 行合同驱动）", () => {
     const { container } = mountLadder({ contractId: "c9" });
     await flush();
     expect(container.querySelector('[data-testid="milestone-ladder"]')).toBeFalsy();
+  });
+
+  it("M5 三勾：取消一勾 → POST 带 pass＋总额按实放记（475 非 500）", async () => {
+    let postedBody: unknown = null;
+    stubFetch(async (url, init) => {
+      if (typeof url === "string" && url.startsWith("/api/milestones?")) {
+        return { ok: true, json: async () => ({ rows: ROWS }) };
+      }
+      if (typeof url === "string" && url.endsWith("/r1/release")) {
+        postedBody = JSON.parse((init?.body as string) ?? "{}");
+        return { ok: true, json: async () => ({ released: true, amountYuan: 500, providerNetYuan: 475 }) };
+      }
+      throw new Error("unexpected " + url);
+    });
+    const { container } = mountLadder({ contractId: "c1" });
+    await flush();
+    click(container, '[data-testid="milestone-release-0"]');
+    // 缺省全勾
+    expect(container.querySelector('[data-testid="milestone-check-attitude"]')?.getAttribute("aria-pressed")).toBe("true");
+    click(container, '[data-testid="milestone-check-attitude"]');
+    expect(container.querySelector('[data-testid="milestone-check-attitude"]')?.getAttribute("aria-pressed")).toBe("false");
+    click(container, '[data-testid="confirm-ok"]');
+    await flush();
+    expect(postedBody).toEqual({ pass: { attitude: false, appearance: true, restoration: true } });
+    expect(container.querySelector('[data-testid="milestone-row-0"]')?.getAttribute("data-status")).toBe("RELEASED");
+    expect(container.querySelector('[data-testid="milestone-released-total"]')?.textContent).toContain("已放款 ¥475");
   });
 });

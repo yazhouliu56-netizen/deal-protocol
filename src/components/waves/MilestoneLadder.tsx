@@ -175,7 +175,16 @@ interface MilestoneRowVM {
   amountYuan: number;
   stepNumber: number;
   status: MilestoneStatus;
+  /** 实放金额（M5 部分放款；缺省回落全额）。 */
+  releasedYuan?: number;
 }
+
+/** 主观三勾（M5 · 与 Type1 三勾同语义：态度/仪容/复原）。 */
+const SUBJECTIVE_ITEMS = [
+  { key: "attitude", label: "态度" },
+  { key: "appearance", label: "仪容" },
+  { key: "restoration", label: "复原" },
+] as const;
 
 /**
  * Server 模式梯子（M2 · 行合同 id 驱动）：读 `/api/milestones` 行、
@@ -187,6 +196,8 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
   const [rows, setRows] = useState<MilestoneRowVM[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  // M5 主观三勾（缺省全勾＝全返；取消勾选按项扣质管费）。
+  const [checks, setChecks] = useState({ attitude: true, appearance: true, restoration: true });
 
   useEffect(() => {
     let alive = true;
@@ -243,22 +254,38 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
   if (rows.length === 0) return null;
 
   const totalCents = rows.reduce((s, r) => s + Math.round(r.amountYuan * 100), 0);
+  // M5 部分放款：已放款口径取实放（releasedYuan），缺省回落全额。
   const releasedCents = rows
     .filter((r) => r.status === "RELEASED")
-    .reduce((s, r) => s + Math.round(r.amountYuan * 100), 0);
+    .reduce((s, r) => s + Math.round((r.releasedYuan ?? r.amountYuan) * 100), 0);
   const firstActionIndex = rows.findIndex(
     (r) => r.status === "PENDING" || r.status === "HELD" || r.status === "SUBMITTED",
   );
   const confirmRow = confirmId != null ? (rows.find((r) => r.id === confirmId) ?? null) : null;
 
-  const mutate = async (row: MilestoneRowVM, action: "submit" | "release", next: MilestoneStatus) => {
+  const mutate = async (
+    row: MilestoneRowVM,
+    action: "submit" | "release",
+    next: MilestoneStatus,
+    pass?: { attitude: boolean; appearance: boolean; restoration: boolean },
+  ) => {
     const prev = rows;
     setRows(prev.map((r) => (r.id === row.id ? { ...r, status: next } : r)));
     try {
       const res = await fetch(`/api/milestones/${encodeURIComponent(row.id)}/${action}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: action === "release" ? JSON.stringify({ pass: pass ?? null }) : undefined,
       });
       if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
+      if (action === "release") {
+        const body = (await res.json().catch(() => null)) as { providerNetYuan?: number } | null;
+        if (typeof body?.providerNetYuan === "number") {
+          setRows((cur) =>
+            (cur ?? []).map((r) => (r.id === row.id ? { ...r, releasedYuan: body.providerNetYuan } : r)),
+          );
+        }
+      }
     } catch {
       setRows(prev);
       toast(action === "submit" ? "提交验收失败，已回滚" : "放款失败，已回滚", "error");
@@ -321,17 +348,41 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
         <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(totalCents - releasedCents)}</span>
       </div>
       {confirmRow && (
-        <ConfirmSheet
-          title="确认本期放款？"
-          body={`放款后不可撤销，对方将收到本期 ${fmtYuan(Math.round(confirmRow.amountYuan * 100))}。`}
-          danger
-          confirmLabel="确认放款"
-          onConfirm={() => {
-            setConfirmId(null);
-            void mutate(confirmRow, "release", "RELEASED");
-          }}
-          onCancel={() => setConfirmId(null)}
-        />
+        <>
+          <div data-testid="milestone-checks" className="flex gap-1.5">
+            {SUBJECTIVE_ITEMS.map((item) => {
+              const on = checks[item.key];
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  data-testid={`milestone-check-${item.key}`}
+                  aria-pressed={on}
+                  onClick={() => setChecks((c) => ({ ...c, [item.key]: !c[item.key] }))}
+                  className={`touch-target rounded-full border-2 px-2.5 py-1 text-[11px] font-extrabold transition-transform active:scale-95 ${
+                    on
+                      ? "border-[var(--color-duo-green-dark)] bg-[var(--color-duo-green)] text-neutral-900"
+                      : "border-[var(--color-duo-swan)] bg-white text-[var(--color-duo-wolf)]"
+                  }`}
+                >
+                  {on ? "✓" : "✗"} {item.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-[var(--color-duo-wolf)]">未勾选按项扣质管费（不退款给客户，退只走取消/争议）</p>
+          <ConfirmSheet
+            title="确认本期放款？"
+            body={`放款后不可撤销，对方将收到本期 ${fmtYuan(Math.round(confirmRow.amountYuan * 100))}。`}
+            danger
+            confirmLabel="确认放款"
+            onConfirm={() => {
+              setConfirmId(null);
+              void mutate(confirmRow, "release", "RELEASED", { ...checks });
+            }}
+            onCancel={() => setConfirmId(null)}
+          />
+        </>
       )}
     </DuoCardShell>
   );

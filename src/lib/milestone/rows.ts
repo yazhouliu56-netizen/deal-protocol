@@ -1,6 +1,10 @@
 import { getServiceClient } from "@/lib/supabase-client";
 import { getConfig } from "@/lib/platform/config";
 import { receiveChannelFee } from "@/lib/channel-fee";
+import {
+  settleType1,
+  type Type1SubjectivePass,
+} from "@/base/money/type1-settlement";
 
 /**
  * 里程碑行级流转（C 全功能 M1 · 用户裁决 2026-09-23）。
@@ -155,6 +159,9 @@ export async function submitStageRow(
  * 佣金（总额百分比逐期计提，sunset 翻转即生效）记 COMMISSION 行，
  * 通道费（本期实收通道费率）直接抵扣（Type1 同姿态，无独立行）；
  * wallet_logs MILESTONE_PAYOUT 记实得。逐期 rounding dust ≤ 期数/2 分。
+ * M5 主观三勾：opts.pass 逐期套 Type1 五项方程——全勾/无评价（null）全返；
+ * 未释勾进平台质管费（transactions QUALITY_FORFEIT，整单勾池罚没同口径；
+ * 注意：不是退客户，退客户只走取消/争议路）。pass 非法 → INVALID_PASS。
  * 崩溃重放不双付（先查账）；残余双击窗口见文件头。
  */
 export async function releaseStageRow(
@@ -162,8 +169,8 @@ export async function releaseStageRow(
   rowId: string,
   callerId: string,
   nowIso: string = new Date().toISOString(),
-  opts: { system?: boolean } = {},
-): Promise<{ released: boolean; alreadyReleased?: boolean; recovered?: boolean; amountYuan: number; providerNetYuan?: number; commissionYuan?: number; channelFeeYuan?: number; skippedAcceptance: boolean }> {
+  opts: { system?: boolean; pass?: Type1SubjectivePass | null } = {},
+): Promise<{ released: boolean; alreadyReleased?: boolean; recovered?: boolean; amountYuan: number; providerNetYuan?: number; commissionYuan?: number; channelFeeYuan?: number; qualityFeeYuan?: number; skippedAcceptance: boolean }> {
   if (Number.isNaN(Date.parse(nowIso))) {
     throw new MilestoneRowError("INVALID_TIMESTAMP", 400, "nowIso 非法");
   }
@@ -235,11 +242,25 @@ export async function releaseStageRow(
       `费用超本期：通道 ${channelFeeCents} 分＋佣金 ${commissionCents} 分 > 本期 ${amountCents} 分`,
     );
   }
-  // P3 守恒硬锁（逐期）：实得＋佣金＋通道费 ≡ 本期。
-  const providerNetCents = amountCents - commissionCents - channelFeeCents;
+  // M5 主观三勾：逐期套 Type1 五项方程（pass null＝全勾全返，既有语义零漂移）。
+  const pass = opts.pass ?? null;
+  if (
+    pass !== null &&
+    (typeof pass !== "object" ||
+      typeof pass.attitude !== "boolean" ||
+      typeof pass.appearance !== "boolean" ||
+      typeof pass.restoration !== "boolean")
+  ) {
+    throw new MilestoneRowError("INVALID_PASS", 400, "pass 须为 null 或三勾布尔对象");
+  }
+  // P3 守恒硬锁（逐期）：实得＋质管费＋佣金＋通道费 ≡ 本期（方程内断言）。
+  const settled = settleType1(amountCents, pass, channelFeeCents, { commissionRate });
+  const providerNetCents = settled.providerNetCents;
+  const qualityFeeCents = settled.qualityFeeCents;
   const providerNetYuan = providerNetCents / 100;
   const commissionYuan = commissionCents / 100;
   const channelFeeYuan = channelFeeCents / 100;
+  const qualityFeeYuan = qualityFeeCents / 100;
 
   await ensureWallet(svc, contract.provider_id);
   const { data: w } = await svc
@@ -259,9 +280,20 @@ export async function releaseStageRow(
     amount: providerNetYuan,
     type: "milestone_payout",
     order_id: row.contract_id,
-    description: `分期放款: 合同 ${row.contract_id} 第${row.step_number}期「${row.title}」(row ${rowId})实得¥${providerNetYuan}（佣金¥${commissionYuan}/通道¥${channelFeeYuan}）`,
+    description: `分期放款: 合同 ${row.contract_id} 第${row.step_number}期「${row.title}」(row ${rowId})实得¥${providerNetYuan}（佣金¥${commissionYuan}/通道¥${channelFeeYuan}/质管¥${qualityFeeYuan}）`,
   });
   if (logError) throw new MilestoneRowError("LEDGER_FAILED", 500, logError.message);
+  if (qualityFeeYuan > 0) {
+    const { error: forfeitError } = await svc.from("transactions").insert({
+      user_id: contract.provider_id,
+      type: "QUALITY_FORFEIT",
+      amount: -qualityFeeYuan,
+      balance_before: 0,
+      balance_after: 0,
+      description: `分期罚没: 合同 ${row.contract_id} 第${row.step_number}期质管费¥${qualityFeeYuan}（未释勾）`,
+    });
+    if (forfeitError) throw new MilestoneRowError("LEDGER_FAILED", 500, forfeitError.message);
+  }
   if (commissionYuan > 0) {
     const { error: commissionError } = await svc.from("transactions").insert({
       user_id: contract.provider_id,
@@ -283,7 +315,7 @@ export async function releaseStageRow(
   if (error || !flipped || (flipped as unknown[]).length === 0) {
     throw new MilestoneRowError("CONFLICT", 409, "阶段行已被并发变更，账已记请核对后重试");
   }
-  return { released: true, amountYuan, providerNetYuan, commissionYuan, channelFeeYuan, skippedAcceptance };
+  return { released: true, amountYuan, providerNetYuan, commissionYuan, channelFeeYuan, qualityFeeYuan, skippedAcceptance };
 }
 
 export interface MilestoneSweepResult {

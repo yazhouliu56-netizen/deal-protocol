@@ -202,6 +202,7 @@ describe("releaseStageRow 需求方放款", () => {
       providerNetYuan: 500,
       commissionYuan: 0,
       channelFeeYuan: 0,
+      qualityFeeYuan: 0,
       skippedAcceptance: false,
     });
     expect(fx.captured).toContainEqual({
@@ -292,6 +293,7 @@ describe("M3 费用分摊（佣金逐期＋通道同口径）", () => {
         providerNetYuan: 475,
         commissionYuan: 25,
         channelFeeYuan: 0,
+        qualityFeeYuan: 0,
         skippedAcceptance: false,
       });
       expect(fx.captured).toContainEqual({
@@ -380,6 +382,65 @@ describe("M4 争议冻结（OPEN/PENDING_REVIEW 钱不动）", () => {
     const r = await releaseStageRow(svc as never, "row-1", "u-c", NOW);
     expect(r.released).toBe(true);
     expect(fx.captured?.some((c) => c.table === "provider_wallets")).toBe(true);
+  });
+});
+
+describe("M5 主观三勾（逐期方程）", () => {
+  it("一勾未过：实得 475＋质管罚没 25（QUALITY_FORFEIT），非退客户", async () => {
+    const { svc, fx } = stubSvc({
+      row: { ...ROW, status: "SUBMITTED" },
+      contract: CONTRACT,
+      wallet: { balance: 0 },
+    });
+    const r = await releaseStageRow(svc as never, "row-1", "u-c", NOW, {
+      pass: { attitude: false, appearance: true, restoration: true },
+    });
+    expect(r).toEqual({
+      released: true,
+      amountYuan: 500,
+      providerNetYuan: 475,
+      commissionYuan: 0,
+      channelFeeYuan: 0,
+      qualityFeeYuan: 25,
+      skippedAcceptance: false,
+    });
+    expect(fx.captured).toContainEqual({
+      table: "provider_wallets",
+      payload: expect.objectContaining({ balance: 475 }),
+    });
+    expect(fx.captured).toContainEqual({
+      table: "transactions",
+      payload: expect.objectContaining({ type: "QUALITY_FORFEIT", amount: -25 }),
+    });
+    expect(fx.captured).toContainEqual({
+      table: "wallet_logs",
+      payload: expect.objectContaining({ type: "milestone_payout", amount: 475 }),
+    });
+  });
+
+  it("全勾/null 全返（既有语义零漂移）", async () => {
+    const { svc } = stubSvc({
+      row: { ...ROW, status: "SUBMITTED" },
+      contract: CONTRACT,
+      wallet: { balance: 0 },
+    });
+    const r = await releaseStageRow(svc as never, "row-1", "u-c", NOW, {
+      pass: { attitude: true, appearance: true, restoration: true },
+    });
+    expect(r.providerNetYuan).toBe(500);
+    expect(r.qualityFeeYuan).toBe(0);
+  });
+
+  it("非法 pass → INVALID_PASS 400", async () => {
+    const { svc } = stubSvc({
+      row: { ...ROW, status: "SUBMITTED" },
+      contract: CONTRACT,
+    });
+    const e = await errOf(
+      releaseStageRow(svc as never, "row-1", "u-c", NOW, { pass: "all" as never }),
+    );
+    expect(e.code).toBe("INVALID_PASS");
+    expect(e.status).toBe(400);
   });
 });
 
