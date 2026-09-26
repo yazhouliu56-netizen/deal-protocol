@@ -4,6 +4,14 @@
 // 用法：node scripts/apply-migration-api.mjs <file...> [--check <sql> --expect <substr>]
 // 要求 env：SUPABASE_PROJECT_ID，SUPABASE_ACCESS_TOKEN
 // 幂等：目标文件须自带 IF NOT EXISTS / OR REPLACE（R4-1/R5 满足），失败可重跑。
+//
+// 2026-09-26 诊断纪律（血训）：
+// - 本地 .env.local 的 SUPABASE_MANAGEMENT_TOKEN 与 CI 的 SUPABASE_ACCESS_TOKEN
+//   是两个不同的 token，前者 401 不能推出后者坏。判 CI 健康的唯一依据：
+//   GitHub Actions 的 Database Migration 运行结论（runs API 可查，仓库 public
+//   免鉴权）＋云端列探针（service 直查 information_schema 等价物）。
+// - 实证：CI token 自 09-17 起全绿（含 09-26 c506937 推送全量 7 文件）；
+//   本地 MANAGEMENT_TOKEN 持续 401，仅代表它自己缺权，别再拿它说事。
 import { readFileSync } from "fs";
 import { resolve, basename } from "path";
 
