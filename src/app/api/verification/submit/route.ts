@@ -28,6 +28,13 @@ export const POST = withAuth(async (req, user) => {
     .single()
 
   if (fetchError || !profile) {
+    const code = (fetchError as { code?: string } | null)?.code;
+    if (code === "42703") {
+      return NextResponse.json(
+        { error: "实名升级迁移未应用，请联系管理员执行 20260926 收编迁移" },
+        { status: 503 },
+      )
+    }
     return NextResponse.json({ error: "查询用户失败" }, { status: 500 })
   }
   const p = profile as {
@@ -84,9 +91,19 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: `身份核验未通过：${v.reason ?? "信息不匹配"}，可核对后重提` }, { status: 400 })
     }
     const idNorm = String(idNumber).trim().toUpperCase();
+    const idHash = createHash("sha256").update(idNorm).digest("hex");
+    // R2 撞库：同证多号拒绝后绑（无人工列队；提示用原号）。
+    const { findIdCollision } = await import("@/lib/gang-rules");
+    const collision = await findIdCollision(svc, idHash, user.id);
+    if (collision) {
+      return NextResponse.json(
+        { error: "该证件已绑定其他账号，请使用原账号登录后继续" },
+        { status: 400 },
+      )
+    }
     updates.verification_real_name = String(realName);
     updates.verification_id_number = encryptPII(String(idNumber));
-    updates.id_number_hash = createHash("sha256").update(idNorm).digest("hex");
+    updates.id_number_hash = idHash;
   }
   if (wantFace) {
     const v = await verifyFaceLiveness({ imageRef: String(faceImageUrl) });
@@ -121,6 +138,13 @@ export const POST = withAuth(async (req, user) => {
     .eq("id", user.id)
 
   if (updateError) {
+    const code = (updateError as { code?: string } | null)?.code;
+    if (code === "42703") {
+      return NextResponse.json(
+        { error: "实名升级迁移未应用，请联系管理员执行 20260926 收编迁移" },
+        { status: 503 },
+      )
+    }
     return NextResponse.json({ error: "提交失败，请稍后重试" }, { status: 500 })
   }
 
