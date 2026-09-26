@@ -96,6 +96,27 @@ try {
   customerId = await mkUser("c");
   providerId = await mkUser("p");
   contractId = randomUUID();
+  // demands 行：wallet_logs.order_id FK 指向 demands（012 原始定义），
+  // 且 contracts.demand_id 关联需求——照生产 demands 流口径建种。
+  {
+    const { error } = await svc.from("demands").insert({
+      id: contractId,
+      demander_id: customerId,
+      title: `e2e-ms-${tag}`,
+      status: "MATCHED",
+    });
+    assert.ok(!error, `建 demands 失败: ${error?.message}`);
+  }
+  // profiles 行：外键底座（provider_wallets.provider_id→profiles），照 register 口径。
+  for (const [id, role] of [[customerId, "demander"], [providerId, "provider"]]) {
+    const { error } = await svc.from("profiles").insert({
+      id,
+      name: `e2e-ms-${tag}`,
+      phone: null,
+      role,
+    });
+    assert.ok(!error, `建 profiles 失败: ${error?.message}`);
+  }
   const anon = createClient(SUPABASE_URL, ANON);
   const signCookie = async (id) => {
     const email = id === customerId ? `${tag}-c@t.e2e` : `${tag}-p@t.e2e`;
@@ -133,6 +154,8 @@ try {
   const { error: cErr } = await svc.from("contracts").insert({
     id: contractId,
     customer_id: customerId,
+    provider_id: providerId,
+    demand_id: contractId,
     fund_status: "HELD",
     amount: 800,
   });
@@ -208,17 +231,33 @@ try {
 
   console.log("e2e-milestone PASS（交验→放款→对账→幂等→越权全链路）");
 } finally {
-  // 清场（best-effort，不污染云端）。
+  // 清场（best-effort，不污染云端；builder 仅 thenable，逐项 try/catch）。
+  const quiet = async (p) => {
+    try {
+      await p;
+    } catch {
+      /* 清场失败只告警，不污染 verdict */
+    }
+  };
   try {
     if (rowIds.length > 0) await svc.from("milestone_schedules").delete().in("id", rowIds);
     if (contractId) {
       await svc.from("wallet_logs").delete().eq("order_id", contractId);
       await svc.from("contracts").delete().eq("id", contractId);
+      await quiet(svc.from("demands").delete().eq("id", contractId));
     }
-    const { data: w } = await svc.from("provider_wallets").select("provider_id").eq("provider_id", providerId).single().catch(() => ({ data: null }));
+    let w = null;
+    try {
+      const r = await svc.from("provider_wallets").select("provider_id").eq("provider_id", providerId).single();
+      w = r.data;
+    } catch {
+      w = null;
+    }
     if (w) await svc.from("provider_wallets").delete().eq("provider_id", providerId);
-    if (customerId) await svc.auth.admin.deleteUser(customerId).catch(() => {});
-    if (providerId) await svc.auth.admin.deleteUser(providerId).catch(() => {});
+    if (customerId) await quiet(svc.from("profiles").delete().eq("id", customerId));
+    if (providerId) await quiet(svc.from("profiles").delete().eq("id", providerId));
+    if (customerId) await quiet(svc.auth.admin.deleteUser(customerId));
+    if (providerId) await quiet(svc.auth.admin.deleteUser(providerId));
   } catch (e) {
     console.log(`e2e-milestone 清场警告: ${e instanceof Error ? e.message : e}`);
   }
