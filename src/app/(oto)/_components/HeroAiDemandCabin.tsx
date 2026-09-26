@@ -26,6 +26,12 @@ interface HeroAiDemandCabinProps {
   hasMission?: boolean;
   /** 组装/发布中时水豚戴墨镜＋searching 态（HomePage 同源投影）。 */
   composing?: boolean;
+  /**
+   * 丝滑④发射分阶段反馈（派生状态，HomePage 现状直投：publishOpen→publishing，
+   * draft→assembling；零新状态源）。非 idle 时输入区下方出阶段行（aria-live），
+   * 文案只陈述已发生事实（组装/发布面板均已在屏，不承诺未发生动作）。
+   */
+  phase?: "idle" | "assembling" | "publishing";
   /** B4 输入联想：模板别名匹配（缺省不渲染，E2E 零影响）。 */
   suggestions?: Array<{ label: string; hint?: string }>;
   onSuggestSelect?: (label: string) => void;
@@ -86,7 +92,7 @@ function playLaunchChime() {
 
 /* 吉祥物状态表收归 @/components/oto-ui/MascotStates（水豚 5 态：idle/listening/searching/success/sleepy）。 */
 
-function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false, composing = false, suggestions = [], onSuggestSelect }: HeroAiDemandCabinProps) {
+function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = false, composing = false, phase = "idle", suggestions = [], onSuggestSelect }: HeroAiDemandCabinProps) {
   const nickname = useIdentityStore((s) => s.identity.nickname) || "Alex";
   const [focused, setFocused] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
@@ -185,6 +191,17 @@ function HeroAiDemandCabin({ value, onChange, onLaunch, onMic, hasMission = fals
             出发!
           </DuoButton>
         </div>
+        {/* 丝滑④发射分阶段反馈：派生阶段行（纯文案，无动效新增，不碰 Motion token） */}
+        {phase !== "idle" && (
+          <p
+            data-testid="launch-phase"
+            data-phase={phase}
+            aria-live="polite"
+            className="mt-2 text-center text-xs font-extrabold text-[var(--color-duo-green-ink)]"
+          >
+            {phase === "assembling" ? "📝 草稿组装中，去确认并发射" : "📣 发布面板已开，填完即广播"}
+          </p>
+        )}
         {/* B4 输入联想：聚焦且有匹配时展开（缺省 suggestions=[] 不渲染，E2E 零影响） */}
         {focused && suggestions.length > 0 && (
           <ul

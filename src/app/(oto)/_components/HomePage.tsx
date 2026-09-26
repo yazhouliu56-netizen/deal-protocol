@@ -239,6 +239,7 @@ export default function HomePage() {
                 onChange={setAiInput}
                 hasMission={activeWave !== null}
                 composing={draft !== null || publishOpen}
+                phase={publishOpen ? "publishing" : draft !== null ? "assembling" : "idle"}
                 onLaunch={handleLaunch}
                 onMic={handleMic}
                 suggestions={aiSuggestions}
