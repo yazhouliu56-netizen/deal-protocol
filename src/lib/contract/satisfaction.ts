@@ -32,6 +32,9 @@ export async function handleSatisfactionBatch(contractId: string) {
 
   if (!contract) return
 
+  // M2 互斥最小守卫：有里程碑行的合同不进暂扣（只走阶段路；终局由 M4 行扫收尾）。
+  if (await hasMilestoneRows(supabase, contractId)) return
+
   if (
     contract.fund_status === 'SATISFACTION_HELD' &&
     contract.satisfaction_held_at != null
@@ -78,6 +81,8 @@ export interface SatisfactionReleaseResult {
   providerNetCents?: number;
   qualityFeeCents?: number;
   passedCount?: number | null;
+  /** M2 互斥：有里程碑行的合同跳过 Type1（只走阶段路，费用分摊见 M3）。 */
+  skippedMilestone?: boolean;
 }
 
 /**
@@ -121,6 +126,12 @@ export async function releaseSatisfactionBase(
       })
       return { released: false }
     }
+  }
+
+  // M2 互斥最小守卫：有里程碑行的合同只走阶段路，Type1 base 不二次放款
+  // （M3 接管费用分摊；终局 SETTLED 由 M4 行扫收尾，此处只跳过不推进状态）。
+  if (await hasMilestoneRows(supabase, contractId)) {
+    return { released: false, skippedMilestone: true }
   }
 
   const totalCents = Math.round(Number(contract.amount) * 100)
@@ -211,6 +222,19 @@ export async function releaseSatisfactionBase(
   })
 
   return { released: true, providerNetCents: settled.baseCents }
+}
+
+/** M2 互斥：合同下存在任一里程碑行即走阶段路（调用方据此跳过 Type1）。 */
+async function hasMilestoneRows(
+  supabase: ReturnType<typeof getServiceClient>,
+  contractId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('milestone_schedules')
+    .select('id')
+    .eq('contract_id', contractId)
+    .limit(1)
+  return !!data && data.length > 0
 }
 
 /** 确保钱包行存在（转入前置，幂等）。 */

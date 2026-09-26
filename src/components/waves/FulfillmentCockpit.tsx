@@ -97,9 +97,11 @@ export interface FulfillmentCockpitProps {
    * base/money/milestone-escrow 纯函数驱动（红线 1）。
    */
   milestones?: {
-    totalAmountYuan: number;
-    items: MilestoneLadderInput[];
+    totalAmountYuan?: number;
+    items?: MilestoneLadderInput[];
     defaultTimeoutHours?: number;
+    /** M2：行合同 id（server 模式读行；无行渲染空）。 */
+    contractId?: string;
   };
   /** 完工礼遇：用于确定性礼遇派生的 waveId（缺省回落 ammo.ammoId）。 */
   waveId?: string;
@@ -225,7 +227,7 @@ export default function FulfillmentCockpit({
           💼 Deal 官方资金全额托管中 · ¥{totalAmount} (未完工不放款 🛡️)
         </section>
       )}
-      {mounted && milestones && milestones.items.length > 0 && (
+      {mounted && milestones && (milestones.items?.length ?? 0) > 0 && (
         <section data-testid="cockpit-sla-progress">
           <DuoProgress value={60} max={100} />
         </section>
@@ -316,12 +318,13 @@ export default function FulfillmentCockpit({
       />
 
       {/* 方向 1 接线 C：分期托管里程碑阶梯（milestone_staged 协议时渲染） */}
-      {milestones && milestones.items.length > 0 && (
-        <MilestoneLadder
-          totalAmountYuan={milestones.totalAmountYuan}
-          milestones={milestones.items}
-          defaultTimeoutHours={milestones.defaultTimeoutHours}
-        />
+      {milestones && (milestones.contractId != null || (milestones.items?.length ?? 0) > 0) && (
+          <MilestoneLadder
+            totalAmountYuan={milestones.totalAmountYuan}
+            milestones={milestones.items}
+            defaultTimeoutHours={milestones.defaultTimeoutHours}
+            contractId={milestones.contractId}
+          />
       )}
 
       <DuoButton

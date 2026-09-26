@@ -549,6 +549,11 @@ export default function FulfillmentCenter({
         customRequirements={wave.customRequirements}
         forceArmed={safety?.safetyLevel === "PROXIMITY_ENHANCED"}
         safetyBadge={safety?.safetyBadge}
+        milestones={
+          ammoDef?.holographic?.fundingMode === "milestone_staged"
+            ? { contractId: activeWave.id }
+            : undefined
+        }
       />
 
       {/* W4：保洁增项 → 订单总额动态更新（D9 ONSITE_QUOTE 模块声明驱动显隐） */}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import ConfirmSheet from "@/components/ui/ConfirmSheet";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
@@ -54,7 +55,7 @@ export interface MilestoneLadderInput {
   ratio: number;
 }
 
-export default function MilestoneLadder({
+function LegacyMilestoneLadder({
   totalAmountYuan,
   milestones,
   defaultTimeoutHours,
@@ -164,5 +165,193 @@ export default function MilestoneLadder({
         <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(frozenRemainingCents(plan))}</span>
       </div>
     </DuoCardShell>
+  );
+}
+
+/** 行视图（服务端行投影；金额统一转分参与守恒口径）。 */
+interface MilestoneRowVM {
+  id: string;
+  title: string;
+  amountYuan: number;
+  stepNumber: number;
+  status: MilestoneStatus;
+}
+
+/**
+ * Server 模式梯子（M2 · 行合同 id 驱动）：读 `/api/milestones` 行、
+ * 交验/放款调 M1 API。Batch③-0 mutation 范式：先行乐观翻转，
+ * 失败回滚＋toast；放款保留二次确认（此时文案为真：对方真收款项）。
+ * 无行渲染空（座舱不挂梯子）。
+ */
+function ServerMilestoneLadder({ contractId }: { contractId: string }) {
+  const [rows, setRows] = useState<MilestoneRowVM[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/milestones?contractId=${encodeURIComponent(contractId)}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const body = (await r.json()) as {
+          rows?: Array<{
+            id: string;
+            title: string;
+            amount: number;
+            step_number: number;
+            status: MilestoneStatus;
+          }>;
+        };
+        if (!alive) return;
+        setRows(
+          (body.rows ?? [])
+            .map((w) => ({
+              id: w.id,
+              title: w.title,
+              amountYuan: Number(w.amount),
+              stepNumber: w.step_number,
+              status: w.status,
+            }))
+            .sort((a, b) => a.stepNumber - b.stepNumber),
+        );
+      })
+      .catch(() => {
+        if (!alive) return;
+        setLoadError(true);
+        toast("里程碑计划加载失败，请稍后重试", "error");
+      });
+    return () => {
+      alive = false;
+    };
+  }, [contractId]);
+
+  if (rows === null) {
+    return (
+      <DuoCardShell className="mt-3 p-3.5" dataAttrs={{ "data-testid": "milestone-ladder" }}>
+        {loadError ? (
+          <p data-testid="milestone-error" className="text-xs font-bold text-[var(--color-duo-wolf)]">
+            里程碑计划加载失败，请稍后重试
+          </p>
+        ) : (
+          <p data-testid="milestone-loading" className="text-xs text-[var(--color-duo-wolf)]">
+            里程碑计划加载中…
+          </p>
+        )}
+      </DuoCardShell>
+    );
+  }
+  if (rows.length === 0) return null;
+
+  const totalCents = rows.reduce((s, r) => s + Math.round(r.amountYuan * 100), 0);
+  const releasedCents = rows
+    .filter((r) => r.status === "RELEASED")
+    .reduce((s, r) => s + Math.round(r.amountYuan * 100), 0);
+  const firstActionIndex = rows.findIndex(
+    (r) => r.status === "PENDING" || r.status === "HELD" || r.status === "SUBMITTED",
+  );
+  const confirmRow = confirmId != null ? (rows.find((r) => r.id === confirmId) ?? null) : null;
+
+  const mutate = async (row: MilestoneRowVM, action: "submit" | "release", next: MilestoneStatus) => {
+    const prev = rows;
+    setRows(prev.map((r) => (r.id === row.id ? { ...r, status: next } : r)));
+    try {
+      const res = await fetch(`/api/milestones/${encodeURIComponent(row.id)}/${action}`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
+    } catch {
+      setRows(prev);
+      toast(action === "submit" ? "提交验收失败，已回滚" : "放款失败，已回滚", "error");
+    }
+  };
+
+  return (
+    <DuoCardShell className="mt-3 p-3.5 space-y-2" dataAttrs={{ "data-testid": "milestone-ladder" }}>
+      <h4 className="flex items-center gap-1.5 text-xs font-extrabold text-[var(--color-duo-eel)]">
+        🪜 里程碑分期托管 · {rows.length} 期 · 总额 {fmtYuan(totalCents)}
+      </h4>
+      {rows.map((m, i) => {
+        const meta = STATUS_TONE[m.status];
+        return (
+          <div
+            key={m.id}
+            data-testid={`milestone-row-${i}`}
+            data-status={m.status}
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-2.5 py-2"
+          >
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-duo-swan)] text-[10px] font-extrabold text-[var(--color-duo-eel)]">
+              {m.stepNumber}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-xs font-bold text-[var(--color-duo-eel)]">
+              {m.title}
+            </span>
+            <span className="shrink-0 text-xs font-extrabold text-[var(--color-duo-eel)]">
+              {fmtYuan(Math.round(m.amountYuan * 100))}
+            </span>
+            <DuoPill tone={meta.tone} variant="soft" className="shrink-0 whitespace-nowrap text-xs">
+              {meta.label}
+            </DuoPill>
+            {(m.status === "PENDING" || m.status === "HELD") && i === firstActionIndex && (
+              <DuoButton
+                size="sm"
+                variant="secondary"
+                data-testid={`milestone-submit-${i}`}
+                onClick={() => void mutate(m, "submit", "SUBMITTED")}
+                className="shrink-0"
+              >
+                提交验收
+              </DuoButton>
+            )}
+            {m.status === "SUBMITTED" && (
+              <DuoButton
+                size="sm"
+                variant="primary"
+                data-testid={`milestone-release-${i}`}
+                onClick={() => setConfirmId(m.id)}
+                className="shrink-0"
+              >
+                验收放款
+              </DuoButton>
+            )}
+          </div>
+        );
+      })}
+      <div className="flex justify-between text-xs text-[var(--color-duo-wolf)]">
+        <span data-testid="milestone-released-total">已放款 {fmtYuan(releasedCents)}</span>
+        <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(totalCents - releasedCents)}</span>
+      </div>
+      {confirmRow && (
+        <ConfirmSheet
+          title="确认本期放款？"
+          body={`放款后不可撤销，对方将收到本期 ${fmtYuan(Math.round(confirmRow.amountYuan * 100))}。`}
+          danger
+          confirmLabel="确认放款"
+          onConfirm={() => {
+            setConfirmId(null);
+            void mutate(confirmRow, "release", "RELEASED");
+          }}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
+    </DuoCardShell>
+  );
+}
+
+export default function MilestoneLadder(props: {
+  totalAmountYuan?: number;
+  milestones?: MilestoneLadderInput[];
+  defaultTimeoutHours?: number;
+  onPlanChange?: (plan: IMilestoneEscrowPlan) => void;
+  /** M2：行合同 id（server 模式：读行＋调 M1 API，诚实横幅下线）。 */
+  contractId?: string;
+}) {
+  if (props.contractId) return <ServerMilestoneLadder contractId={props.contractId} />;
+  return (
+    <LegacyMilestoneLadder
+      totalAmountYuan={props.totalAmountYuan ?? 0}
+      milestones={props.milestones ?? []}
+      defaultTimeoutHours={props.defaultTimeoutHours}
+      onPlanChange={props.onPlanChange}
+    />
   );
 }
