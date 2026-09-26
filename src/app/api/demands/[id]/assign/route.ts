@@ -10,7 +10,7 @@ export const POST = withAuth(async (req, user, ...args) => {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("verification_status")
+    .select("verification_status, phone_verified_at, verification_id_number, face_verified_at, created_at")
     .eq("id", providerId)
     .single()
 
@@ -18,11 +18,19 @@ export const POST = withAuth(async (req, user, ...args) => {
     return NextResponse.json({ error: "查询用户信息失败" }, { status: 500 })
   }
 
-  if (profile.verification_status !== "approved") {
-    return NextResponse.json(
-      { reason: "抢单失败：请先完成实名身份验证！" },
-      { status: 403 },
+  // P2-b 实名门禁（接单侧）：FULL 或存量宽限（与发单侧同一口径）。
+  {
+    const { checkVerificationGate } = await import("@/base/safe/verification")
+    const gate = checkVerificationGate(
+      (profile ?? {}) as Parameters<typeof checkVerificationGate>[0],
+      Date.now(),
     )
+    if (!gate.allowed) {
+      return NextResponse.json(
+        { reason: `抢单失败：请先完成实名身份验证！（缺：${gate.missing.join("、")}）`, missing: gate.missing },
+        { status: 403 },
+      )
+    }
   }
 
   const { data: updated, error } = await supabase

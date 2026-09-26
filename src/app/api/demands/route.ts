@@ -245,6 +245,26 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
   // 直插必 42501。withAuth 已验明正身，demander_id 强制取 user.id，防越权。
   const svc = getServiceClient()
 
+  // P2-b 实名门禁（发单侧）：FULL（手机＋身份证＋人脸＋系统 approved）或存量宽限。
+  {
+    const { checkVerificationGate } = await import("@/base/safe/verification")
+    const { data: vp } = await svc
+      .from("profiles")
+      .select("verification_status, phone_verified_at, verification_id_number, face_verified_at, created_at")
+      .eq("id", user.id)
+      .single()
+    const gate = checkVerificationGate(
+      (vp ?? {}) as Parameters<typeof checkVerificationGate>[0],
+      Date.now(),
+    )
+    if (!gate.allowed) {
+      return NextResponse.json(
+        { reason: `发单失败：请先完成实名认证（缺：${gate.missing.join("、")}）`, missing: gate.missing },
+        { status: 403 },
+      )
+    }
+  }
+
   try {
     const body = await req.json()
 

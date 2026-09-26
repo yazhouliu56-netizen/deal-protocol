@@ -168,6 +168,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // P2-b L0 手机戳：SMS 成功即证（best-effort，不阻断登录；
+  // 戳失败门禁侧缺件即拦，fail-closed 在门禁）。
+  try {
+    await svc
+      .from("profiles")
+      .update({ phone_verified_at: new Date().toISOString() })
+      .eq("id", userId);
+  } catch {
+    /* 戳失败静默（登录已成，门禁兜底） */
+  }
+
   return NextResponse.json({
     success: true,
     user: profileData,
