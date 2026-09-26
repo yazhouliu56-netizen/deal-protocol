@@ -31,6 +31,10 @@ export interface Database {
           verification_submitted_at: string | null
           verification_reviewed_at: string | null
           verification_reviewed_by: string | null
+          phone_verified_at: string | null
+          id_number_hash: string | null
+          face_image_url: string | null
+          face_verified_at: string | null
           reputation_score: number
           compliance_status: string
           onboarding_completed: boolean
