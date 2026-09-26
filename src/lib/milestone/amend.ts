@@ -8,9 +8,10 @@ import { MilestoneRowError } from "./rows";
  * 不变量：
  * - 只重切未放款行（PENDING/HELD）；在途验收（SUBMITTED）须先结算；
  *   已放款/已退款行锁定不动。
- * - 改期只重切、不改总额（总额以 contracts.amount 为准重算；增项另走 OnsiteQuote）。
+ * - 重切基数＝未放款余量（已放款不重复计入，守恒：已放款＋新行 ≡ 原总额）；
+ *   总额本身不改（增项另走 OnsiteQuote）。
  * - 对方确认：提议人不得自批（decide 要求非提议当事方）。
- * - 接受即删未放款行＋按新权重建行；提案 stages JSON 即审计＋灾备源
+ * - 接受即删未放款行＋按余量重切建行；提案 stages JSON 即审计＋灾备源
  *   （建行失败可照提案重放，残余窗口已注记）。
  * - 版本 per-contract 递增＋唯一约束（并发同版 409 重试）。
  */
@@ -60,6 +61,17 @@ async function assertNoSubmitted(svc: Svc, contractId: string): Promise<void> {
   }
 }
 
+/** 未放款余量（PENDING/HELD 行金额和 · 元；0＝无可改行）。 */
+async function amendableTotalYuan(svc: Svc, contractId: string): Promise<number> {
+  const { data } = await svc
+    .from("milestone_schedules")
+    .select("amount")
+    .eq("contract_id", contractId)
+    .in("status", ["PENDING", "HELD"]);
+  const rows = ((data ?? []) as { amount?: number }[]);
+  return rows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+}
+
 /** 提议改期：校验计划＋无在途验收＋写入 PROPOSED 提案（版本号递增）。 */
 export async function proposeStageAmendment(
   svc: Svc,
@@ -74,6 +86,9 @@ export async function proposeStageAmendment(
     throw new MilestoneRowError("INVALID_PLAN", 400, `阶段计划非法：${problems.join("；")}`);
   }
   await assertNoSubmitted(svc, contractId);
+  if ((await amendableTotalYuan(svc, contractId)) <= 0) {
+    throw new MilestoneRowError("NO_AMENDABLE", 409, "无可改期行（均已放款/退款或在途）");
+  }
   const { data: latest } = await svc
     .from("milestone_amendments")
     .select("version")
@@ -176,17 +191,18 @@ export async function decideStageAmendment(
       .eq("status", "PROPOSED");
     return { accepted: false, version: p.version ?? 0 };
   }
-  // 接受：复核→删未放款行→按合同额重切（总额以合同为准，不采提案金额）。
+  // 接受：复核无在途验收 → 按未放款余量重切（已放款不重复计入）→
+  // 删未放款行 → 建行 → ACCEPTED（顺序执行，建行失败抛 500，提案即重放源）。
   await assertNoSubmitted(svc, p.contract_id);
+  const remainderYuan = await amendableTotalYuan(svc, p.contract_id);
+  if (!(remainderYuan > 0)) {
+    throw new MilestoneRowError("NO_AMENDABLE", 409, "无可改期行（均已放款/退款或在途）");
+  }
   const problems = validateStagePlan((p.stages ?? []) as StagePlanItem[]);
   if (problems.length > 0) {
     throw new MilestoneRowError("INVALID_PLAN", 400, `提案计划非法：${problems.join("；")}`);
   }
-  const totalYuan = Number(contract.amount);
-  if (!Number.isFinite(totalYuan) || totalYuan <= 0) {
-    throw new MilestoneRowError("INVALID_AMOUNT", 500, "合同金额非法，无法重切");
-  }
-  const amounts = stageAmounts(totalYuan, (p.stages ?? []) as StagePlanItem[]);
+  const amounts = stageAmounts(remainderYuan, (p.stages ?? []) as StagePlanItem[]);
   const { error: delError } = await svc
     .from("milestone_schedules")
     .delete()

@@ -229,7 +229,40 @@ try {
   });
   assert.equal(fob.status, 403, "服务方放款应 403");
 
-  console.log("e2e-milestone PASS（交验→放款→对账→幂等→越权全链路）");
+  // 改期：需求方提议重切剩余行（r2 HELD 400→尾款 100%），自批 403，对方接受后行重切。
+  const amendProp = await api("/api/milestones/amend/propose", {
+    method: "POST",
+    cookie: customerCookie,
+    body: {
+      contractId,
+      stages: [{ title: "尾款", weightPct: 100, acceptance: "全部完工" }],
+    },
+  });
+  assert.equal(amendProp.status, 200, `改期提议失败: ${amendProp.text}`);
+  const amendSelf = await api(`/api/milestones/amend/${amendProp.json.proposalId}/decide`, {
+    method: "POST",
+    cookie: customerCookie,
+    body: { accept: true },
+  });
+  assert.equal(amendSelf.status, 403, "自批应 403");
+  const amendDec = await api(`/api/milestones/amend/${amendProp.json.proposalId}/decide`, {
+    method: "POST",
+    cookie: providerCookie,
+    body: { accept: true },
+  });
+  assert.equal(amendDec.status, 200, `改期接受失败: ${amendDec.text}`);
+  assert.equal(amendDec.json.accepted, true);
+  const { data: rowsAfter } = await svc
+    .from("milestone_schedules")
+    .select("title, amount, step_number, status")
+    .eq("contract_id", contractId)
+    .order("step_number");
+  assert.deepEqual(
+    (rowsAfter ?? []).map((r) => [r.title, Number(r.amount), r.step_number, r.status]),
+    [["拆旧清运", 400, 1, "RELEASED"], ["尾款", 400, 1, "PENDING"]],
+  );
+
+  console.log("e2e-milestone PASS（交验→放款→对账→幂等→越权→改期全链路）");
 } finally {
   // 清场（best-effort，不污染云端；builder 仅 thenable，逐项 try/catch）。
   const quiet = async (p) => {
@@ -240,9 +273,10 @@ try {
     }
   };
   try {
-    if (rowIds.length > 0) await svc.from("milestone_schedules").delete().in("id", rowIds);
+    await svc.from("milestone_schedules").delete().eq("contract_id", contractId);
     if (contractId) {
       await svc.from("wallet_logs").delete().eq("order_id", contractId);
+      await svc.from("milestone_amendments").delete().eq("contract_id", contractId);
       await svc.from("contracts").delete().eq("id", contractId);
       await quiet(svc.from("demands").delete().eq("id", contractId));
     }

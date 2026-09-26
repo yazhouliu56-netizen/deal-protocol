@@ -9,6 +9,7 @@ import { MilestoneRowError } from "./rows";
 interface Fx {
   contract?: unknown;
   submittedRows?: unknown[];
+  amendable?: unknown[];
   latest?: unknown[];
   proposals?: unknown[];
   proposal?: unknown;
@@ -67,6 +68,7 @@ function stubSvc(fx: Fx) {
         return { data: fx.inserted ?? [{ id: "p-new" }], error: null };
       }
       if (st.mode === "select" && st.table === "milestone_schedules") {
+        if (st.selectArgs === "amount") return { data: fx.amendable ?? [], error: null };
         return { data: fx.submittedRows ?? [], error: null };
       }
       if (st.mode === "select" && st.table === "milestone_amendments") {
@@ -107,7 +109,11 @@ async function errOf(p: Promise<unknown>): Promise<MilestoneRowError> {
 
 describe("proposeStageAmendment 改期提议", () => {
   it("合法计划 → 版本递增写入 PROPOSED", async () => {
-    const { svc, fx } = stubSvc({ contract: CONTRACT, latest: [{ version: 2 }] });
+    const { svc, fx } = stubSvc({
+      contract: CONTRACT,
+      amendable: [{ amount: 100 }],
+      latest: [{ version: 2 }],
+    });
     const r = await proposeStageAmendment(svc, "c-1", "u-c", STAGES);
     expect(r).toEqual({ proposalId: "p-new", version: 3 });
     expect(fx.captured).toContainEqual({
@@ -137,6 +143,13 @@ describe("proposeStageAmendment 改期提议", () => {
     const e = await errOf(proposeStageAmendment(svc, "c-1", "stranger", STAGES));
     expect(e.status).toBe(403);
   });
+
+  it("无可改期行 → NO_AMENDABLE 409", async () => {
+    const { svc } = stubSvc({ contract: CONTRACT, amendable: [] });
+    const e = await errOf(proposeStageAmendment(svc, "c-1", "u-c", STAGES));
+    expect(e.code).toBe("NO_AMENDABLE");
+    expect(e.status).toBe(409);
+  });
 });
 
 describe("decideStageAmendment 改期裁决", () => {
@@ -149,8 +162,12 @@ describe("decideStageAmendment 改期裁决", () => {
     status: "PROPOSED",
   };
 
-  it("对方接受 → 删未放款行＋按合同额重切＋ACCEPTED", async () => {
-    const { svc, fx } = stubSvc({ contract: CONTRACT, proposal: PROPOSAL });
+  it("对方接受 → 删未放款行＋按余量重切＋ACCEPTED", async () => {
+    const { svc, fx } = stubSvc({
+      contract: CONTRACT,
+      proposal: PROPOSAL,
+      amendable: [{ amount: 500 }, { amount: 500 }],
+    });
     const r = await decideStageAmendment(svc, "p-1", "u-p", true);
     expect(r).toEqual({ accepted: true, version: 3 });
     expect(fx.captured).toContainEqual({ table: "milestone_schedules", op: "delete" });
@@ -194,6 +211,12 @@ describe("decideStageAmendment 改期裁决", () => {
     });
     const e = await errOf(decideStageAmendment(svc, "p-1", "u-p", true));
     expect(e.status).toBe(409);
+  });
+
+  it("接受时余量归零 → NO_AMENDABLE（防已放款重复计入）", async () => {
+    const { svc } = stubSvc({ contract: CONTRACT, proposal: PROPOSAL, amendable: [] });
+    const e = await errOf(decideStageAmendment(svc, "p-1", "u-p", true));
+    expect(e.code).toBe("NO_AMENDABLE");
   });
 });
 
