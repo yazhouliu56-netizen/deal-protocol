@@ -35,15 +35,31 @@ test("新用户：图纸教育序（行为<3，即使有点过）", () => {
   );
 });
 
-test("老用户：复购优先（订单×2＋点击），零分保原序", () => {
+test("老用户：复购优先（订单×2＋点击），零分保原序＋B 轨曝光位", () => {
   const p: DiscoveryProfile = {
     orderCounts: { companion: 2 },
     pillClicks: { appliance: 5 },
     optOut: false,
   };
   const ordered = orderPills(PILLS, p, FEATURED).map((x) => x.ammoId);
-  assert.equal(ordered[0], "appliance-repair-v1");
-  assert.equal(ordered[1], "companion-v1");
+  // 复购首位不动（appliance），零行为 featured（meetup，featured 首位）锁下标 1
+  assert.deepEqual(ordered, [
+    "appliance-repair-v1",
+    "meetup-social-v1",
+    "companion-v1",
+    "housekeeping-v1",
+  ]);
+});
+
+test("老用户无零行为 featured → 纯复购序（无硬掺）", () => {
+  const p: DiscoveryProfile = {
+    orderCounts: { companion: 2, meetup: 1, housekeeping: 1, appliance: 1 },
+    pillClicks: {},
+    optOut: false,
+  };
+  const ordered = orderPills(PILLS, p, FEATURED).map((x) => x.ammoId);
+  assert.equal(ordered[0], "companion-v1");
+  assert.equal(new Set(ordered).size, 4);
 });
 
 test("optOut：永远图纸原序（行为再多也不动）", () => {

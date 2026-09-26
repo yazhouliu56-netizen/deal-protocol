@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DuoCardShell from "@/components/ui/DuoCardShell";
 import DuoPill from "@/components/ui/DuoPill";
+import { loadDiscoveryProfile, setDiscoveryOptOut } from "@/lib/discovery-profile";
 import DuoEmpty from "@/components/oto-ui/DuoEmpty";
 import {
   ArrowRightLeft,
@@ -93,6 +94,10 @@ export default function ProfilePage({
 
   const [showReviewFor, setShowReviewFor] = useState<string | null>(null);
   const [view, setView] = useState<"profile" | "workbench">("profile");
+  // B4 推荐开关搬家：读写同一画像源（localStorage），与首页排序同源。
+  const [discoveryOptOut, setDiscoveryOptOutState] = useState<boolean>(
+    () => loadDiscoveryProfile().optOut,
+  );
   /** 3 大抽屉式二级菜单（信息架构重组：18 层平铺 → 安全中心 / 隐私合规 / 系统设置）。 */
   const [drawer, setDrawer] = useState<null | "safety" | "privacy" | "system">(null);
   const setAvatar = useIdentityStore((s) => s.setAvatar);
@@ -504,6 +509,33 @@ export default function ProfilePage({
           </div>
           <p className="text-xs text-[var(--color-duo-wolf)] mt-2 leading-relaxed">
             点击标签切换偏好，将用于撮合匹配排序（本地保存）
+          </p>
+        </DuoCardShell>
+
+        {/* B4 推荐开关搬家（首页 11px 小字 → 设置；同一画像源，开关语义不变） */}
+        <DuoCardShell className="rounded-2xl p-3.5">
+          <h3 className="text-xs font-bold text-[var(--color-duo-eel)] mb-2 flex items-center gap-1.5">
+            为你推荐
+            <DuoPill tone="neutral">
+              订单＋点击排序
+            </DuoPill>
+          </h3>
+          <label className="flex items-center justify-between gap-2 text-xs text-[var(--color-duo-eel)] font-bold cursor-pointer">
+            <span>开启个性化推荐</span>
+            <input
+              type="checkbox"
+              data-testid="discovery-prefs-toggle"
+              aria-label={discoveryOptOut ? "开启个性化推荐" : "关闭个性化推荐"}
+              checked={!discoveryOptOut}
+              onChange={(e) => {
+                const next = setDiscoveryOptOut(!e.target.checked);
+                setDiscoveryOptOutState(next.optOut);
+              }}
+              className="accent-[var(--color-duo-green)]"
+            />
+          </label>
+          <p className="text-xs text-[var(--color-duo-wolf)] mt-2 leading-relaxed">
+            按你的订单和点击给首页胶囊排序；关闭后永远按图纸顺序（本地保存）
           </p>
         </DuoCardShell>
 

@@ -4,10 +4,10 @@ import { lockEdgeGesture } from "@/components/oto-ui/edgeGestureLock";
 import { toAtomicFiveState } from "@/base/ammo/runner";
 import { listAmmoPillDescriptors, listRegisteredAmmos } from "@/ammo/registry";
 import { orderPills, suggestByPrefix } from "@/base/growth/discovery";
+import { toast } from "@/base/platform/toast";
 import {
   loadDiscoveryProfile,
   recordPillClick,
-  setDiscoveryOptOut,
 } from "@/lib/discovery-profile";
 import { useAppStore } from "@/store/useAppStore";
 import { useWaveStore } from "@/store/useWaveStore";
@@ -148,9 +148,6 @@ export default function HomePage() {
     if (pill) setDiscoveryProfile(recordPillClick(pill.category));
     setDraft(d);
   }, []);
-  const handleTogglePrefs = useCallback(() => {
-    setDiscoveryProfile((prev) => setDiscoveryOptOut(!prev.optOut));
-  }, []);
   // 回调固化：memo 子组件 props 引用稳定，广播同步时才能跳过重渲染
   const handleLaunch = useCallback((text: string) => {
     setDraft({ key: "default-ammo", label: text });
@@ -165,6 +162,16 @@ export default function HomePage() {
   useEffect(() => {
     lockEdgeGesture(showCart || publishOpen || talkOpen);
   }, [showCart, publishOpen, talkOpen]);
+  // B4 开关搬家告知：一次性 toast（无按钮，ux-budget 零影响），localStorage 幂等。
+  useEffect(() => {
+    try {
+      if (typeof localStorage === "undefined" || localStorage.getItem("oto-discovery-notice-v1")) return;
+      localStorage.setItem("oto-discovery-notice-v1", "1");
+      toast("✨ 为你推荐已开启（按订单和点击排序），可在我的 → 系统设置中随时关闭", "info");
+    } catch {
+      /* 存储不可用则跳过，不拦首页 */
+    }
+  }, []);
   const ammoPills = useMemo(
     () => orderPills(listAmmoPillDescriptors(), discoveryProfile, FEATURED_PILL_ORDER),
     [discoveryProfile],
@@ -245,7 +252,7 @@ export default function HomePage() {
                 suggestions={aiSuggestions}
                 onSuggestSelect={(label) => setAiInput(label)}
               />
-              <AmmoPillBar pills={ammoPills} onSelectDraft={handleSelectPill} variant="compact" hasLiveWaves={hasLiveWaves} prefsOn={!discoveryProfile.optOut} onTogglePrefs={handleTogglePrefs} />
+              <AmmoPillBar pills={ammoPills} onSelectDraft={handleSelectPill} variant="compact" hasLiveWaves={hasLiveWaves} />
               <MorePublishWays
                 onTalk={() => setTalkOpen(true)}
                 chatOpen={chatOpen}

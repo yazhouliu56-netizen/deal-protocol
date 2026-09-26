@@ -15,7 +15,8 @@ await page.waitForTimeout(800);
 const visBtns = () => page.evaluate(() => [...document.querySelectorAll("button")].filter((b) => b.offsetParent !== null).length);
 
 // 1. 首页发单段：可见 button ≤ 19（Batch③-1 实测 18；2026-09-12 batch-b 推荐开关
-// PrefsToggle 常驻＋1，用户裁决 2026-09-18 提到 19，锁死棘轮只减不增）
+// PrefsToggle 常驻＋1，用户裁决 2026-09-18 提到 19，锁死棘轮只减不增；
+// 2026-09-26 B4 开关搬家：首页小字开关迁入设置，基线回落 18）
 const n0 = await visBtns();
 assert.ok(n0 <= 19, `首页可见按钮 ${n0} 超预算 19`);
 // 2. 折叠完整性：更多发单方式存在；说句话/AI 撮合默认不可见

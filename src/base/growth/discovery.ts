@@ -50,8 +50,11 @@ export interface PillLike {
  * 胶囊排序（稳定排序，无记录保原序）：
  * - optOut → 图纸原序；
  * - 新用户（有效行为 < 3）→ featured 教育序（缺席回落保序）＋其余；
- * - 老用户 → 订单分×2＋点击分 降序，零分保原序。
+ * - 老用户 → 订单分×2＋点击分 降序，零分保原序，再掺 1 个零行为 featured
+ *   曝光位（B 轨心智：下标 1 锁定，用户裁决 2026-09-26；无零行为 featured
+ *   或表短于 2 位时退化为纯复购序）。
  */
+export const DISCOVERY_BLEND_SLOT = 1;
 export function orderPills<T extends PillLike>(
   pills: T[],
   profile: DiscoveryProfile,
@@ -64,10 +67,24 @@ export function orderPills<T extends PillLike>(
     const rank = new Map(featuredAmmoIds.map((id, i) => [id, i]));
     return [...pills].sort((a, b) => (rank.get(a.ammoId) ?? 999) - (rank.get(b.ammoId) ?? 999));
   }
-  return [...pills]
+  const sorted = [...pills]
     .map((p, i) => ({ p, i, s: scoreOf(p) }))
     .sort((a, b) => b.s - a.s || a.i - b.i)
     .map((x) => x.p);
+  // B 轨曝光位：首个零行为 featured 提到下标 1（转化首位不动）。
+  const fresh = featuredAmmoIds.find((id) => {
+    const hit = sorted.find((x) => x.ammoId === id);
+    return (
+      hit != null &&
+      (profile.orderCounts[hit.category] ?? 0) === 0 &&
+      (profile.pillClicks[hit.category] ?? 0) === 0
+    );
+  });
+  if (fresh == null) return sorted;
+  const at = sorted.findIndex((x) => x.ammoId === fresh);
+  const [item] = sorted.splice(at, 1);
+  sorted.splice(Math.min(DISCOVERY_BLEND_SLOT, sorted.length), 0, item);
+  return sorted;
 }
 
 export interface SuggestEntry {

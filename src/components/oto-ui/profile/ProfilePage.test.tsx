@@ -187,3 +187,36 @@ describe("我的订单双源聚合", () => {
     expect(t).not.toContain("[ 演示体验 ]");
   });
 });
+
+describe("B4 推荐开关搬家（首页→系统设置抽屉）", () => {
+  function openSystemDrawer() {
+    // PushEnableBar 同抽屉挂载：jsdom 无 serviceWorker，按门面 stub（仅事件注册位）。
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: { addEventListener: () => {}, removeEventListener: () => {} },
+      configurable: true,
+    });
+    renderPage();
+    const entry = document.querySelector('[data-testid="drawer-entry-system"]') as HTMLButtonElement;
+    expect(entry).not.toBeNull();
+    act(() => {
+      entry.click();
+    });
+    const toggle = document.querySelector('[data-testid="discovery-prefs-toggle"]') as HTMLInputElement;
+    expect(toggle).not.toBeNull();
+    return toggle;
+  }
+
+  it("抽屉内开关缺省开；关闭落盘 optOut", () => {
+    const toggle = openSystemDrawer();
+    expect(toggle.checked).toBe(true);
+    act(() => {
+      toggle.click();
+    });
+    expect(toggle.checked).toBe(false);
+    const raw = JSON.parse(window.localStorage.getItem("oto-discovery-v1") ?? "{}") as {
+      optOut?: boolean;
+    };
+    expect(raw.optOut).toBe(true);
+    // serviceWorker 门面保留至文件末（卸载清理需 removeEventListener；文件级隔离无外泄）。
+  });
+});
