@@ -246,22 +246,35 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
   const svc = getServiceClient()
 
   // P2-b 实名门禁（发单侧）：FULL（手机＋身份证＋人脸＋系统 approved）或存量宽限。
+  // 缺列降级：迁移未应用时回落旧 approved 口径（部署偏斜期不断流；列齐后走 FULL）。
   {
     const { checkVerificationGate } = await import("@/base/safe/verification")
-    const { data: vp } = await svc
-      .from("profiles")
-      .select("verification_status, phone_verified_at, verification_id_number, face_verified_at, created_at")
-      .eq("id", user.id)
-      .single()
-    const gate = checkVerificationGate(
-      (vp ?? {}) as Parameters<typeof checkVerificationGate>[0],
-      Date.now(),
-    )
-    if (!gate.allowed) {
-      return NextResponse.json(
-        { reason: `发单失败：请先完成实名认证（缺：${gate.missing.join("、")}）`, missing: gate.missing },
-        { status: 403 },
+    const FULL_COLS = "verification_status, phone_verified_at, verification_id_number, face_verified_at, created_at"
+    let vp: Record<string, unknown> | null = null
+    const full = await svc.from("profiles").select(FULL_COLS).eq("id", user.id).single()
+    if (full.error && (full.error.code === "42703")) {
+      const base = await svc.from("profiles").select("verification_status").eq("id", user.id).single()
+      if (base.error || !base.data) {
+        return NextResponse.json({ error: "查询用户信息失败" }, { status: 500 })
+      }
+      if ((base.data as { verification_status?: string }).verification_status !== "approved") {
+        return NextResponse.json({ reason: "发单失败：请先完成实名身份验证！" }, { status: 403 })
+      }
+    } else {
+      if (full.error || !full.data) {
+        return NextResponse.json({ error: "查询用户信息失败" }, { status: 500 })
+      }
+      vp = full.data as Record<string, unknown>
+      const gate = checkVerificationGate(
+        vp as Parameters<typeof checkVerificationGate>[0],
+        Date.now(),
       )
+      if (!gate.allowed) {
+        return NextResponse.json(
+          { reason: `发单失败：请先完成实名认证（缺：${gate.missing.join("、")}）`, missing: gate.missing },
+          { status: 403 },
+        )
+      }
     }
   }
 
