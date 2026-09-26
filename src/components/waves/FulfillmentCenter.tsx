@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { advanceLifecycle } from "@/base/ammo/runner";
+import { recordDiscoveryOrder } from "@/lib/discovery-profile";
 import { getAmmoById } from "@/ammo/registry";
 import { useWaveStore } from "@/store/useWaveStore";
 import { useIdentityStore } from "@/store/useIdentityStore";
@@ -330,6 +331,10 @@ export default function FulfillmentCenter({
     // P1 缺陷 2 修复：SETTLED 终局 → 同步归档 wave（释放 activeWave 槽位，后续 MATCHED 单可正常载入座舱）
     if (res.state === "SETTLED") {
       closeWave(wave.id);
+      // P2-a 复购回路：干净完单即记订单类目（B4 老用户排序真值；BREACH_SETTLED
+      // 协商流经 handleAcceptProposal，不记）。类目取弹药口径（与胶囊同词表，
+      // wave 中文 label 不直接写，避免零命中）。
+      if (ammoDef?.category) recordDiscoveryOrder(ammoDef.category);
     }
   }
 

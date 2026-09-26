@@ -30,3 +30,15 @@ describe("B4 发现推荐接线", () => {
     expect(withToggle).toContain("aria-pressed=\"false\"");
   });
 });
+
+describe("P2-a 复购回路 recordDiscoveryOrder", () => {
+  it("完单即记类目（同类目累加，不同类目分立）", async () => {
+    const { recordDiscoveryOrder, loadDiscoveryProfile } = await import("@/lib/discovery-profile");
+    recordDiscoveryOrder("p2-cat-a");
+    recordDiscoveryOrder("p2-cat-a");
+    recordDiscoveryOrder("p2-cat-b");
+    const p = loadDiscoveryProfile();
+    expect(p.orderCounts["p2-cat-a"]).toBe(2);
+    expect(p.orderCounts["p2-cat-b"]).toBe(1);
+  });
+});

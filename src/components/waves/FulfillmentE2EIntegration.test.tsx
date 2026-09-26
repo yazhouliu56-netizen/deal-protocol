@@ -308,6 +308,7 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
       status: "claimed" as const,
       ammoId: "housekeeping-v1",
     });
+    window.localStorage.removeItem("oto-discovery-v1");
     useWaveStore.setState({ waves: [wave], claims: [makeAcceptedClaim(wave.id)] });
     await renderCenter([
       { photo: "cap-before", aiNote: "Before 水印存证" },
@@ -341,6 +342,11 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     expect(useWaveStore.getState().fulfilment[wave.id]?.isSettled).toBe(true);
     // P1 缺陷 2 修复：SETTLED 终局同步归档 wave（释放 activeWave 槽位）
     expect(useWaveStore.getState().waves[0]?.status).toBe("closed");
+    // P2-a 复购回路：干净完单落盘订单类目（弹药口径 housekeeping，非中文 label）
+    const profile = JSON.parse(window.localStorage.getItem("oto-discovery-v1") ?? "{}") as {
+      orderCounts?: Record<string, number>;
+    };
+    expect(profile.orderCounts?.["housekeeping"]).toBe(1);
     // SETTLED 后座舱卸载（needsCockpit=false）
     expect(container.querySelector('[data-testid="fulfillment-center"]')).toBeNull();
     root.unmount();
@@ -402,6 +408,7 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
       status: "locked" as const,
       ammoId: "housekeeping-v1",
     });
+    window.localStorage.removeItem("oto-discovery-v1");
     useWaveStore.setState({ waves: [wave], claims: [makeAcceptedClaim(wave.id)] });
     await renderCenter();
 
@@ -417,6 +424,8 @@ describe("W3~W5 端到端：FulfillmentCenter 装配与真实 advanceLifecycle �
     });
     expect(useWaveStore.getState().fulfilment[wave.id]?.isSettled).toBe(true);
     expect(container.querySelector('[data-testid="arbitration-sheet"]')).toBeNull();
+    // P2-a：协商结案（BREACH_SETTLED）不记复购（弱信号，防争议单污染排序）
+    expect(window.localStorage.getItem("oto-discovery-v1")).toBeNull();
     root.unmount();
     container.remove();
   });
