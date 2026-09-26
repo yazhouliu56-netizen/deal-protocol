@@ -6,9 +6,10 @@
 
 ## Current Phase
 
+分阶段放款 C 全功能收官（2026-09-26：B 诚实降级 → M1 行级提交/放款 API → M2 座舱接线＋Type1 互斥 → M3 逐期费用分摊 → M4 兜底扫描＋争议冻结＋e2e 槽位 → M5 主观三勾＋质管罚没 → M6 版本化双边改期 → M7 全量 verify-prod 16/16）。
 Microkernel 3.1 增长特区量产闭环收官（2026-09-05：P0 真题库 → P1 编译器纯核 → P2 旁路量产链+/lab → P3 双盘单页）。
 UI 视觉单轨制收官（2026-09-06：Batch 1~3 + glow 死定义补刀，全仓 Feather/Duo 3D 单一设计系统，glass/btn-primary/4 预设/主题切换全出清）。
-下一步：真机 15/20 法定达标（2026-09-07 五池回血复跑：gemini-lite 主力 19/20 均经 JSON 硬化修复；#02 CLUSTER 系预期安全拦截、#03 命中 8s 动态熔断、#12/#14/#16 回空已转 THROTTLED 维度 + 双考卷锁死 dcbf64e；首页买家单轨 Phase1 落盘 d7f5a8d 已推远端）→ m20/f20 投流转化 + P8 商业化线上化。
+下一步：m20/f20 投流转化 + P8 商业化线上化（landing 漏斗已进库，线上需设 NEXT_PUBLIC_METRICS_BACKEND=api）；云端收编迁移（SQL Editor 手工应用，CI token 401，直至接管前保持手动）。
 
 ## Test Baseline
 
@@ -24,6 +25,8 @@ Next.js 16.2.12 App Router · React 19 · TS strict · build 101 路由。
 
 > **纪律（Step1 ③a）**：日常 commit 零触碰本文件；`LAST_SYNC` 仅发版 / Tag / 阶段收官时刷新。独立 `docs: sync` 提交已被 `scripts/hooks/commit-msg` 门禁拦截。
 
+> 日期：2026-09-26 ｜ HEAD：C 全功能收官 ｜ 摘要：B 梯子诚实降级（本地翻转＋虚假文案下线）＋M1 行级提交/放款 API（幂等＋崩溃重放不双付）＋M2 座舱接线（读行＋乐观＋真二次确认）＋Type1 双入口互斥（skippedMilestone）＋M3 逐期费用分摊（佣金/通道＋P3 守恒硬锁）＋M4 兜底扫描（auto_confirm/终局收敛）＋争议冻结（OPEN/PENDING_REVIEW 409）＋e2e-milestone 真链路（seed→交验→放款→对账→幂等→越权）＋M5 主观三勾（未释勾 QUALITY_FORFEIT，非退客户已裁决）＋M6 版本化双边改期（自批禁止＋重切）＋云端缺列收编（contracts 5 列＋status 五态 CHECK＋amendments 表，SQL Editor 手工应用）；基线 **2369/2369**（vitest 984＋node:test 1385，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build exit 0 + verify-prod 16/16（含 milestone）+ convergence 0。
+>
 > 日期：2026-09-18 ｜ HEAD：v5.0.0（结算重构收官）｜ 摘要：P0 费率配置中心（佣金 0＋通道／发布／取消基准／护栏／份额表／sunset）＋P1 跨模型互斥锁＋P2 demands 放款路退役（净删 527 行）＋P3 Type1 五项方程（佣金先切＋份额可配）＋P4 双钟表（base 即释＋15% 批量 N=10/T=7d，评价随批量解密）＋P5a 定制模型（事实固定／情绪百分比）＋P5b 发布费应收实收＋P6 取消补偿（ETA 快照＋3 分钟冷静＋未到×1／已到×2）＋P7 阶段模板 LLM（护栏＋实测）＋P8 通道费落地（3 通道记账＋提现从到账扣）＋P9 免费口径统一（仲裁／组队／BI 归零＋冻结门禁）＋P10 广播挂载快照（e2e-trust flake 根治）；门禁每 Phase T2 FULL PASS＋verify-prod 15/15。
 
 > 日期：2026-09-12 ｜ HEAD：v4.6.2（Batch③ UX 治本收官）｜ 摘要：③-0 立规矩（motion token＋屏幕预算＋mutation 范式＋入口 in/out）＋③-1 首页减法（ticker 砍＋4 门折叠＋AR 降级＋§3 裁决 C：SOS 有单隐藏）＋③-2 行程三卡合一＋③-3 空卡 CTA 去向诚实化（goHomeTab）＋③-4 抢单乐观化＋③-5 ux-budget 门禁（SUITE_ORDER 第 15 席）；基线 **2120/2120**（851+1269，0 fail）｜ 门禁 tsc 0 + 全量 lint 0 + build 101 + verify-prod 15/15 + convergence 0。
