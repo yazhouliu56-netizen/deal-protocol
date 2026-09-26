@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { uploadPhotoWithRetry } from "@/lib/upload"
 import type { VerificationStatus } from "@/lib/types"
 import { Shield, ShieldCheck, ShieldX, Clock, Upload, X, ChevronRight, Loader2, ArrowRight } from "lucide-react"
+import StagedVerification from "./_components/StagedVerification"
 
 function VerificationForm({
   status,
@@ -222,14 +223,37 @@ export default function VerificationPage() {
   const [status, setStatus] = useState<VerificationStatus | null>(null)
   const [rejectedReason, setRejectedReason] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  // P2-b wizard 进度（读口可用时启用；503 回落旧单表）。
+  const [stage, setStage] = useState<{ phoneDone: boolean; idDone: boolean; faceDone: boolean } | null>(null)
 
   const fetchStatus = useCallback(async () => {
+    setLoading(true)
+    try {
+      const staged = await fetch("/api/verification/status")
+      if (staged.ok) {
+        const d = (await staged.json()) as {
+          status?: VerificationStatus;
+          rejectedReason?: string | null;
+          phoneDone?: boolean;
+          idDone?: boolean;
+          faceDone?: boolean;
+        }
+        setStatus(d.status || "unverified")
+        setRejectedReason(d.rejectedReason || null)
+        setStage({ phoneDone: !!d.phoneDone, idDone: !!d.idDone, faceDone: !!d.faceDone })
+        setLoading(false)
+        return
+      }
+    } catch {
+      /* 读口异常回落旧口 */
+    }
     try {
       const res = await fetch("/api/profile")
       const data = await res.json()
       const profile = data.user
       setStatus(profile.verification_status || "unverified")
       setRejectedReason(profile.verification_rejected_reason || null)
+      setStage(null)
     } catch {
       toast("加载用户信息失败", "error")
     } finally {
@@ -279,10 +303,10 @@ export default function VerificationPage() {
               <Clock className="size-10 text-amber-500" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900">
-              资料审核中
+              资料核验中
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              您的实名认证资料正在人工审核中，预计 1-2 个工作日完成
+              剩余步骤完成后系统自动通过，无需等待人工
             </p>
             <div className="mt-8 flex items-center justify-center gap-1">
               <span className="flex size-2 rounded-full bg-amber-400" />
@@ -328,11 +352,32 @@ export default function VerificationPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <VerificationForm
-                status={status || "unverified"}
-                rejectedReason={rejectedReason}
-                onSubmitted={fetchStatus}
-              />
+              {stage ? (
+                <>
+                  {status === "rejected" && rejectedReason && (
+                    <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-4">
+                      <p className="text-sm font-semibold text-red-400">核验未通过</p>
+                      <p className="mt-0.5 text-sm text-red-300/80">{rejectedReason}</p>
+                    </div>
+                  )}
+                  <StagedVerification
+                    stage={{
+                      phoneDone: stage.phoneDone,
+                      idDone: stage.idDone,
+                      faceDone: stage.faceDone,
+                      // approved 分支走专属视图，此处恒 false（类型收窄实证）。
+                      approved: false,
+                    }}
+                    onChanged={fetchStatus}
+                  />
+                </>
+              ) : (
+                <VerificationForm
+                  status={status || "unverified"}
+                  rejectedReason={rejectedReason}
+                  onSubmitted={fetchStatus}
+                />
+              )}
             </div>
           </div>
         )}
