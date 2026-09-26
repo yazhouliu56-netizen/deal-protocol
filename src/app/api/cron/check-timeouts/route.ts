@@ -186,6 +186,26 @@ export async function GET(request: NextRequest) {
       results.push(`unmatched_void SKIP: ${msg}`);
     }
 
+    // 6. 里程碑兜底（C 全功能 M4）：SUBMITTED 超 auto_confirm_at 系统自动放＋
+    // 终局合同（SETTLED/CANCELLED）未终态行收敛 REFUNDED。
+    try {
+      const { sweepMilestoneTimeouts } = await import("@/lib/milestone/rows");
+      const sweep = await sweepMilestoneTimeouts(supabase, now.toISOString());
+      for (const id of sweep.autoReleased) results.push(`milestone_auto_release: ${id}`);
+      for (const line of sweep.autoFailed) results.push(`milestone_auto FAILED: ${line}`);
+      for (const id of sweep.closedTerminal) results.push(`milestone_terminal_close: ${id}`);
+      if (
+        sweep.autoReleased.length === 0 &&
+        sweep.autoFailed.length === 0 &&
+        sweep.closedTerminal.length === 0
+      ) {
+        results.push("milestone_sweep: 0 条到期");
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push(`milestone_sweep SKIP: ${msg}`);
+    }
+
     return NextResponse.json({ checked: now.toISOString(), results });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

@@ -46,6 +46,20 @@ interface StageRow {
 interface StageContract {
   customer_id: string;
   provider_id: string;
+  dispute_status?: string | null;
+}
+
+/** 争议冻结态：OPEN / PENDING_REVIEW 期间阶段钱一律不动（M4）。 */
+const DISPUTE_FROZEN = new Set(["OPEN", "PENDING_REVIEW"]);
+
+function assertNoOpenDispute(contract: StageContract): void {
+  if (contract.dispute_status != null && DISPUTE_FROZEN.has(contract.dispute_status)) {
+    throw new MilestoneRowError(
+      "DISPUTE_OPEN",
+      409,
+      `争议处理中（${contract.dispute_status}），阶段流转冻结`,
+    );
+  }
 }
 
 async function loadRowAndContract(
@@ -63,7 +77,7 @@ async function loadRowAndContract(
   }
   const { data: contract } = await svc
     .from("contracts")
-    .select("customer_id, provider_id")
+    .select("customer_id, provider_id, dispute_status")
     .eq("id", r.contract_id)
     .single();
   const c = contract as StageContract | null;
@@ -108,6 +122,7 @@ export async function submitStageRow(
     throw new MilestoneRowError("INVALID_TIMESTAMP", 400, "nowIso 非法");
   }
   const { row, contract } = await loadRowAndContract(svc, rowId);
+  assertNoOpenDispute(contract);
   if (callerId !== contract.provider_id) {
     throw new MilestoneRowError("FORBIDDEN", 403, "仅服务方可提交阶段验收");
   }
@@ -147,12 +162,14 @@ export async function releaseStageRow(
   rowId: string,
   callerId: string,
   nowIso: string = new Date().toISOString(),
+  opts: { system?: boolean } = {},
 ): Promise<{ released: boolean; alreadyReleased?: boolean; recovered?: boolean; amountYuan: number; providerNetYuan?: number; commissionYuan?: number; channelFeeYuan?: number; skippedAcceptance: boolean }> {
   if (Number.isNaN(Date.parse(nowIso))) {
     throw new MilestoneRowError("INVALID_TIMESTAMP", 400, "nowIso 非法");
   }
   const { row, contract } = await loadRowAndContract(svc, rowId);
-  if (callerId !== contract.customer_id) {
+  assertNoOpenDispute(contract);
+  if (!opts.system && callerId !== contract.customer_id) {
     throw new MilestoneRowError("FORBIDDEN", 403, "仅需求方可验收放款");
   }
   if (row.status === "RELEASED") {
@@ -267,4 +284,77 @@ export async function releaseStageRow(
     throw new MilestoneRowError("CONFLICT", 409, "阶段行已被并发变更，账已记请核对后重试");
   }
   return { released: true, amountYuan, providerNetYuan, commissionYuan, channelFeeYuan, skippedAcceptance };
+}
+
+export interface MilestoneSweepResult {
+  autoReleased: string[];
+  autoFailed: string[];
+  closedTerminal: string[];
+}
+
+/**
+ * 里程碑兜底扫描（M4 · cron 权威节拍调用）：
+ * (i) SUBMITTED 且 auto_confirm_at 已过 → 系统自动放款（免验收语义，
+ * 争议冻结行自动跳过记 hold）；(ii) 终局合同（SETTLED/CANCELLED）下
+ * 未终态行（PENDING/HELD/SUBMITTED）→ REFUNDED 收敛（钱归合同级结算，
+ * 此处只关状态，不断言金额）。
+ */
+export async function sweepMilestoneTimeouts(
+  svc: Svc,
+  nowIso: string = new Date().toISOString(),
+): Promise<MilestoneSweepResult> {
+  if (Number.isNaN(Date.parse(nowIso))) {
+    throw new MilestoneRowError("INVALID_TIMESTAMP", 400, "nowIso 非法");
+  }
+  const out: MilestoneSweepResult = { autoReleased: [], autoFailed: [], closedTerminal: [] };
+
+  const { data: due } = await svc
+    .from("milestone_schedules")
+    .select("id, contract_id")
+    .eq("status", "SUBMITTED")
+    .lte("auto_confirm_at", nowIso)
+    .limit(200);
+  for (const d of ((due ?? []) as { id: string; contract_id: string }[])) {
+    try {
+      const { data: c } = await svc
+        .from("contracts")
+        .select("customer_id")
+        .eq("id", d.contract_id)
+        .single();
+      const customerId = (c as { customer_id?: string } | null)?.customer_id ?? "";
+      const r = await releaseStageRow(svc, d.id, customerId, nowIso, { system: true });
+      if (r.released) out.autoReleased.push(d.id);
+    } catch (e) {
+      out.autoFailed.push(`${d.id}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  const { data: open } = await svc
+    .from("milestone_schedules")
+    .select("id, contract_id")
+    .in("status", ["PENDING", "HELD", "SUBMITTED"])
+    .limit(500);
+  const openRows = ((open ?? []) as { id: string; contract_id: string }[]);
+  const cids = [...new Set(openRows.map((r) => r.contract_id))];
+  if (cids.length > 0) {
+    const { data: cs } = await svc
+      .from("contracts")
+      .select("id, fund_status")
+      .in("id", cids);
+    const terminal = new Set(
+      ((cs ?? []) as { id: string; fund_status?: string }[])
+        .filter((c) => c.fund_status === "SETTLED" || c.fund_status === "CANCELLED")
+        .map((c) => c.id),
+    );
+    const closeIds = openRows.filter((r) => terminal.has(r.contract_id)).map((r) => r.id);
+    if (closeIds.length > 0) {
+      await svc
+        .from("milestone_schedules")
+        .update({ status: "REFUNDED" })
+        .in("id", closeIds)
+        .in("status", ["PENDING", "HELD", "SUBMITTED"]);
+      out.closedTerminal = closeIds;
+    }
+  }
+  return out;
 }
