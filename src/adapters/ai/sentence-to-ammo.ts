@@ -21,6 +21,7 @@ import {
   registerDynamicAmmo,
   validateAmmoConfig,
 } from "../../ammo/factory.ts";
+import { matchAmmoTemplateExact } from "../../ammo/registry.ts";
 import type {
   IAmmoDefinition,
   IHolographicAmmoConfig,
@@ -46,11 +47,11 @@ export interface ISentenceToAmmoResult {
   tokens?: { prompt: number; completion: number };
   failureDimension?: AmmoFailureDimension;
   autoRepaired?: boolean;
-  /** 实际命中的上游 provider（网关 TextOutcome 透出；Mock/注入传输无此字段时为 undefined）。 */
+  /** 实际命中的上游 provider（网关 TextOutcome 透出；"template" = 模板短路 0ms；Mock/注入传输无此字段时为 undefined）。 */
   provider?: string;
   /** A3/A4：装配 Schema 版本（Schema 当 API 管，升级即换号，进日志）。 */
   schemaVersion: typeof AMMO_LLM_SCHEMA_VERSION;
-  /** A3：实际传输次数（含重试；0 = 未进传输即失败）。 */
+  /** A3：实际传输次数（含重试；0 = 未进传输：失败早退或模板短路成功）。 */
   attempts: number;
 }
 
@@ -68,6 +69,13 @@ export interface IGenerateAmmoOpts {
 export const AMMO_LLM_SCHEMA_VERSION = "ammo-llm/1" as const;
 
 export const SENTENCE_TO_AMMO_TIMEOUT_MS = 8000;
+
+/**
+ * 丝滑③输出上限：2048→1024（8D 配置 JSON 体小，1024 足够；
+ * 截断由 validateAmmoConfig＋A3 有界重试兜底，截断激增会体现在
+ * growth.ammo_attempts 的 attempts=2 占比上，顺带喂网关 strict 决策）。
+ */
+export const SENTENCE_TO_AMMO_MAX_TOKENS = 1024;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -248,6 +256,15 @@ export async function generateAmmoFromSentence(
     return finish({ ok: false, errors: ["EMPTY_SENTENCE"], failureDimension: "PARSE" });
   }
 
+  // 丝滑①模板命中短路：逐字命中注册别名即 0ms 直返整弹（attempts 恒 0，
+  // provider 记 "template" 与传输成功区分；网关 strict 排期看 attempts 分布时
+  // 以 provider 过滤短路样本，防稀释）。
+  const templateHit = matchAmmoTemplateExact(sentence);
+  if (templateHit) {
+    provider = "template";
+    return finish({ ok: true, ammoId: templateHit.ammoId, ammo: templateHit.ammo });
+  }
+
   const compiled = compileAmmoPrompt(sentence, {
     categoryHint: opts?.categoryHint,
   });
@@ -258,7 +275,7 @@ export async function generateAmmoFromSentence(
         task: "decompose",
         messages: args.messages,
         temperature: args.temperature ?? 0,
-        maxTokens: args.maxTokens ?? 2048,
+        maxTokens: args.maxTokens ?? SENTENCE_TO_AMMO_MAX_TOKENS,
         timeoutMs: args.timeoutMs ?? timeoutMs,
       }));
 
@@ -286,7 +303,7 @@ export async function generateAmmoFromSentence(
             { role: "user", content: userPrompt },
           ],
           temperature: 0,
-          maxTokens: 2048,
+          maxTokens: SENTENCE_TO_AMMO_MAX_TOKENS,
           timeoutMs,
         }),
         timeoutMs,

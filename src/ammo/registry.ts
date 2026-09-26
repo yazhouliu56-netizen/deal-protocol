@@ -234,9 +234,40 @@ export function resolveAmmoIdForPublish(category: string): string {
 }
 
 /**
+ * 模板精确命中（丝滑① · 0ms 短路）：输入归一化后与某弹药别名逐字相等
+ * 即直返整弹，不进 LLM。归一化 = trim＋小写＋去尾随标点；别名侧同样归一化
+ * 后比对（防 "家政保洁。" 这种合法变体漏网）。检索序：动态池别名 →
+ * 中文类目直拨 → 官方 key。纯函数只读（Map.get / includes / ===）。
+ * 未命中返回 null（调用方走 LLM 量产链）。
+ */
+const TEMPLATE_TRAILING_PUNCT = /[。！？!?.，,、；;：:\s]+$/u;
+
+export function normalizeAmmoTemplateInput(sentence: unknown): string {
+  if (typeof sentence !== "string") return "";
+  return sentence.trim().toLowerCase().replace(TEMPLATE_TRAILING_PUNCT, "").trim();
+}
+
+export function matchAmmoTemplateExact(
+  sentence: string,
+): { ammoId: string; ammo: IAmmoDefinition; label: string } | null {
+  const q = normalizeAmmoTemplateInput(sentence);
+  if (!q) return null;
+  for (const ammo of DYNAMIC_AMMO_POOL.values()) {
+    const aliases = ammo.holographic?.aliases;
+    const hit = aliases?.find((a) => normalizeAmmoTemplateInput(a) === q);
+    if (hit) return { ammoId: ammo.ammoId, ammo, label: hit };
+  }
+  const officialKey = CATEGORY_TO_OFFICIAL[q];
+  const official = OFFICIAL_AMMO[officialKey ?? q];
+  if (official) return { ammoId: official.ammoId, ammo: official, label: q };
+  return null;
+}
+
+/**
  * 自由文本 → 弹药（首页 AI 拟物草稿卡原地展开的检索链，弹药表驱动零硬编码）：
  * 动态池中文类目别名（D8 aliases 只读扫描）→ 中文类目词表（CATEGORY_TO_OFFICIAL 键
  * 子串命中，首命即止）。未命中返回 null（调用方回落全类目 default 弹药草稿）。
+ * 与 matchAmmoTemplateExact 的区别：此处子串即可（展示链），彼处须逐字相等（短路链）。
  */
 export function resolveAmmoByFreeText(
   text: string,

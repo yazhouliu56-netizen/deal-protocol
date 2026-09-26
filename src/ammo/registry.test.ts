@@ -11,6 +11,8 @@ import {
   isConfiguredCategory,
   listAmmoPillDescriptors,
   listRegisteredAmmos,
+  matchAmmoTemplateExact,
+  normalizeAmmoTemplateInput,
   resolveAmmoRequirementForText,
   toDispatchRule,
   toFuzePolicy,
@@ -170,4 +172,16 @@ test("resolveAmmoRequirementForText：注册表单一真理源文本→门槛", 
   ]);
   assert.equal(resolveAmmoRequirementForText("日系写真 · 滨江"), undefined, "写实类不在注册表别名 → 无门槛");
   assert.equal(resolveAmmoRequirementForText("无关文本"), undefined);
+});
+
+test("matchAmmoTemplateExact 丝滑①：逐字相等才短路", () => {
+  assert.equal(normalizeAmmoTemplateInput("  家政保洁。"), "家政保洁");
+  assert.equal(normalizeAmmoTemplateInput(""), "");
+  assert.equal(normalizeAmmoTemplateInput(null), "");
+  const hit = matchAmmoTemplateExact("羽毛球");
+  assert.ok(hit);
+  assert.equal(hit.ammoId, "meetup-social-v1");
+  assert.equal(matchAmmoTemplateExact("我想打羽毛球"), null, "子串不成短路理由");
+  assert.equal(matchAmmoTemplateExact(""), null);
+  assert.equal(matchAmmoTemplateExact("火星开矿"), null);
 });

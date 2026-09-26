@@ -8,6 +8,7 @@ import {
   autoRepairAmmoConfig,
   extractAmmoJson,
   generateAmmoFromSentence,
+  SENTENCE_TO_AMMO_MAX_TOKENS,
   toFailureDimension,
 } from "./sentence-to-ammo.ts";
 import { DYNAMIC_AMMO_POOL } from "../../ammo/factory.ts";
@@ -247,4 +248,66 @@ test("EMPTY_COMPLETION (upstream empty) is THROTTLED, never PARSE", async () => 
   assert.equal(r2.ok, false);
   assert.deepEqual(r2.errors, ["EMPTY_COMPLETION"]);
   assert.equal(r2.failureDimension, "THROTTLED");
+});
+
+test("丝滑①模板命中短路：官方别名逐字命中 → 0ms 直返，传输零调用", async () => {
+  let calls = 0;
+  const never: CompleteTextFn = (async () => {
+    calls += 1;
+    return "{}";
+  }) as unknown as CompleteTextFn;
+  const r = await generateAmmoFromSentence("家政保洁", { completeFn: never });
+  assert.equal(r.ok, true);
+  assert.equal(r.ammoId, "housekeeping-v1");
+  assert.equal(r.attempts, 0);
+  assert.equal(r.provider, "template");
+  assert.equal(calls, 0);
+});
+
+test("丝滑①模板命中：尾随标点＋首尾空格归一化照样命中", async () => {
+  const never = (async () => {
+    throw new Error("must not be called");
+  }) as unknown as CompleteTextFn;
+  const r = await generateAmmoFromSentence("  家政保洁。", { completeFn: never });
+  assert.equal(r.ok, true);
+  assert.equal(r.ammoId, "housekeeping-v1");
+  assert.equal(r.provider, "template");
+});
+
+test("丝滑①非逐字命中照常走传输（子串不成短路理由）", async () => {
+  const category = track("test-pc-noswitch");
+  const r = await generateAmmoFromSentence("电脑维修", {
+    completeFn: mockOk(validConfig(category)),
+  });
+  // "维修" 只是子串：仍走 LLM 链（attempts ≥ 1），结果以传输内容为准
+  assert.ok(r.attempts >= 1);
+  assert.notEqual(r.provider, "template");
+});
+
+test("丝滑①动态别名命中：热注册后直拨动态弹药", async () => {
+  const category = track("test-pc-tpldyn");
+  const first = await generateAmmoFromSentence("新买的散件到了求装机", {
+    completeFn: mockOk(validConfig(category)),
+  });
+  assert.equal(first.ok, true);
+  const never = (async () => {
+    throw new Error("must not be called");
+  }) as unknown as CompleteTextFn;
+  const r = await generateAmmoFromSentence("测试装机", { completeFn: never });
+  assert.equal(r.ok, true);
+  assert.equal(r.ammoId, `${category}-v1`);
+  assert.equal(r.attempts, 0);
+  assert.equal(r.provider, "template");
+});
+
+test("丝滑③输出上限缺省 1024（调用方可显式覆盖）", async () => {
+  const seen: number[] = [];
+  const fn = (async (args: { maxTokens?: number }) => {
+    seen.push(args.maxTokens ?? -1);
+    return JSON.stringify(validConfig(track("test-pc-tokens-cap")));
+  }) as unknown as CompleteTextFn;
+  const r = await generateAmmoFromSentence("机箱侧板合不上求助", { completeFn: fn });
+  assert.equal(r.ok, true);
+  assert.deepEqual(seen, [1024]);
+  assert.equal(SENTENCE_TO_AMMO_MAX_TOKENS, 1024);
 });
