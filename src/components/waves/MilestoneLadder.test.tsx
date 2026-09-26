@@ -179,6 +179,83 @@ describe("Server 模式（M2 · 行合同驱动）", () => {
     expect(container.querySelector('[data-testid="milestone-ladder"]')).toBeFalsy();
   });
 
+  it("M6 改期提议：面板预填可改行，提交 POST body 断言＋提案卡出现", async () => {
+    let postedBody: unknown = null;
+    stubFetch(async (url, init) => {
+      if (typeof url === "string" && url.startsWith("/api/milestones?")) {
+        return { ok: true, json: async () => ({ rows: ROWS }) };
+      }
+      if (typeof url === "string" && url.endsWith("/amend/propose")) {
+        postedBody = JSON.parse((init?.body as string) ?? "{}");
+        return { ok: true, json: async () => ({ proposalId: "p-9", version: 1 }) };
+      }
+      if (typeof url === "string" && url.includes("/api/milestones/amend")) {
+        return { ok: true, json: async () => ({ proposals: [] }) };
+      }
+      throw new Error("unexpected " + url);
+    });
+    const { container } = mountLadder({ contractId: "c1" });
+    await flush();
+    click(container, '[data-testid="milestone-amend-open"]');
+    // 预填：仅 HELD 行（r2 水电改造），SUBMITTED 行不进草稿
+    expect((container.querySelector('[data-testid="milestone-amend-title-0"]') as HTMLInputElement)?.value).toBe("水电改造");
+    expect(container.querySelector('[data-testid="milestone-amend-title-1"]')).toBeFalsy();
+    // 验收标准必填：经原生 setter 驱动受控 input（仓内无 testing-library）
+    const acc = container.querySelector('[data-testid="milestone-amend-accept-0"]') as HTMLInputElement;
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+      setter?.call(acc, "通电通水");
+      acc.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await flush();
+    click(container, '[data-testid="milestone-amend-propose"]');
+    await flush();
+    const body = postedBody as { contractId: string; stages: Array<{ title: string; weightPct: number; acceptance: string }> };
+    expect(body.contractId).toBe("c1");
+    expect(body.stages).toHaveLength(1);
+    expect(body.stages[0].title).toBe("水电改造");
+    expect(container.querySelector('[data-testid="milestone-amend-proposal-1"]')?.textContent).toContain("我发起的");
+  });
+
+  it("M6 对方提案：接受调 decide＋提案卡消失", async () => {
+    const calls: string[] = [];
+    let decided = false;
+    const PROPS = [
+      {
+        id: "p-2",
+        version: 2,
+        stages: [{ title: "水电改造", weightPct: 100, acceptance: "通电通水" }],
+        status: "PROPOSED",
+        canDecide: true,
+      },
+    ];
+    stubFetch(async (url, init) => {
+      if (typeof url === "string" && url.startsWith("/api/milestones?")) {
+        return { ok: true, json: async () => ({ rows: ROWS }) };
+      }
+      if (typeof url === "string" && url.includes("/api/milestones/amend") && (!init || init.method !== "POST")) {
+        // 接受后重读：服务端真相已是 ACCEPTED（列表不再含该提案）
+        return { ok: true, json: async () => ({ proposals: decided ? [] : PROPS }) };
+      }
+      if (typeof url === "string" && url.endsWith("/p-2/decide")) {
+        decided = true;
+        calls.push(JSON.stringify(JSON.parse((init?.body as string) ?? "{}")));
+        return { ok: true, json: async () => ({ accepted: true, version: 2 }) };
+      }
+      if (typeof url === "string" && url.includes("/api/milestones/amend")) {
+        return { ok: true, json: async () => ({ proposals: [] }) };
+      }
+      throw new Error("unexpected " + url);
+    });
+    const { container } = mountLadder({ contractId: "c1" });
+    await flush();
+    expect(container.querySelector('[data-testid="milestone-amend-proposal-2"]')?.textContent).toContain("待你确认");
+    click(container, '[data-testid="milestone-amend-accept-2"]');
+    await flush();
+    expect(calls).toEqual([JSON.stringify({ accept: true })]);
+    expect(container.querySelector('[data-testid="milestone-amend-proposal-2"]')).toBeFalsy();
+  });
+
   it("M5 三勾：取消一勾 → POST 带 pass＋总额按实放记（475 非 500）", async () => {
     let postedBody: unknown = null;
     stubFetch(async (url, init) => {
@@ -188,6 +265,9 @@ describe("Server 模式（M2 · 行合同驱动）", () => {
       if (typeof url === "string" && url.endsWith("/r1/release")) {
         postedBody = JSON.parse((init?.body as string) ?? "{}");
         return { ok: true, json: async () => ({ released: true, amountYuan: 500, providerNetYuan: 475 }) };
+      }
+      if (typeof url === "string" && url.includes("/api/milestones/amend")) {
+        return { ok: true, json: async () => ({ proposals: [] }) };
       }
       throw new Error("unexpected " + url);
     });

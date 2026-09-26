@@ -179,7 +179,22 @@ interface MilestoneRowVM {
   releasedYuan?: number;
 }
 
-/** 主观三勾（M5 · 与 Type1 三勾同语义：态度/仪容/复原）。 */
+/** 改期提案视图（M6 · 列表读口投影）。 */
+interface AmendProposalVM {
+  id: string;
+  version: number;
+  stages: Array<{ title: string; weightPct: number; acceptance: string }>;
+  status: string;
+  canDecide: boolean;
+  mine?: boolean;
+}
+
+/** 改期草稿行（权重文本态，提交时转数，服务端硬校验）。 */
+interface AmendDraft {
+  title: string;
+  weightPct: string;
+  acceptance: string;
+}
 const SUBJECTIVE_ITEMS = [
   { key: "attitude", label: "态度" },
   { key: "appearance", label: "仪容" },
@@ -198,6 +213,11 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   // M5 主观三勾（缺省全勾＝全返；取消勾选按项扣质管费）。
   const [checks, setChecks] = useState({ attitude: true, appearance: true, restoration: true });
+  // M6 改期：提案列表＋编辑器开关＋草稿＋重载节拍。
+  const [proposals, setProposals] = useState<AmendProposalVM[]>([]);
+  const [amendOpen, setAmendOpen] = useState(false);
+  const [draft, setDraft] = useState<AmendDraft[]>([]);
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -234,7 +254,23 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
     return () => {
       alive = false;
     };
-  }, [contractId]);
+  }, [contractId, reloadTick]);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/milestones/amend?contractId=${encodeURIComponent(contractId)}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const body = (await r.json()) as { proposals?: AmendProposalVM[] };
+        if (alive) setProposals(body.proposals ?? []);
+      })
+      .catch(() => {
+        /* 提案读失败静默（行是主体，不阻断梯子） */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [contractId, reloadTick]);
 
   if (rows === null) {
     return (
@@ -252,6 +288,72 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
     );
   }
   if (rows.length === 0) return null;
+
+  // M6 改期：草稿以可改行（PENDING/HELD）预填权重（就近取整，和由服务端硬校验）。
+  const openAmend = () => {
+    const amendable = (rows ?? []).filter((r) => r.status === "PENDING" || r.status === "HELD");
+    const total = amendable.reduce((s, r) => s + r.amountYuan, 0);
+    setDraft(
+      amendable.map((r) => ({
+        title: r.title,
+        weightPct: total > 0 ? String(Math.round((r.amountYuan / total) * 100)) : "",
+        acceptance: "",
+      })),
+    );
+    setAmendOpen(true);
+  };
+
+  const propose = async () => {
+    const stages = draft.map((d) => ({
+      title: d.title.trim(),
+      weightPct: Number(d.weightPct),
+      acceptance: d.acceptance.trim(),
+    }));
+    try {
+      const res = await fetch("/api/milestones/amend/propose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId, stages }),
+      });
+      if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
+      const body = (await res.json()) as { proposalId: string; version: number };
+      setProposals((prev) => [
+        {
+          id: body.proposalId,
+          version: body.version,
+          stages: stages.map((s) => ({ ...s })),
+          status: "PROPOSED",
+          canDecide: false,
+          mine: true,
+        },
+        ...prev,
+      ]);
+      setAmendOpen(false);
+      toast("改期已提议，待对方确认", "success");
+    } catch {
+      toast("改期提议失败（权重和须≡100/需先结算在途验收）", "error");
+    }
+  };
+
+  const decide = async (id: string, accept: boolean) => {
+    try {
+      const res = await fetch(`/api/milestones/amend/${encodeURIComponent(id)}/decide`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accept }),
+      });
+      if (!res.ok) throw new Error(await res.text().catch(() => `HTTP ${res.status}`));
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, status: accept ? "ACCEPTED" : "REJECTED", canDecide: false } : p,
+        ),
+      );
+      if (accept) setReloadTick((t) => t + 1);
+      toast(accept ? "改期已生效" : "已拒绝改期", "success");
+    } catch {
+      toast("改期裁决失败", "error");
+    }
+  };
 
   const totalCents = rows.reduce((s, r) => s + Math.round(r.amountYuan * 100), 0);
   // M5 部分放款：已放款口径取实放（releasedYuan），缺省回落全额。
@@ -347,6 +449,115 @@ function ServerMilestoneLadder({ contractId }: { contractId: string }) {
         <span data-testid="milestone-released-total">已放款 {fmtYuan(releasedCents)}</span>
         <span data-testid="milestone-frozen">剩余冻结 {fmtYuan(totalCents - releasedCents)}</span>
       </div>
+      <div className="flex justify-end">
+        <DuoButton
+          size="sm"
+          variant="outline"
+          data-testid="milestone-amend-open"
+          onClick={() => (amendOpen ? setAmendOpen(false) : openAmend())}
+          className="shrink-0"
+        >
+          改期
+        </DuoButton>
+      </div>
+      {amendOpen && (
+        <div data-testid="milestone-amend-panel" className="space-y-1.5 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] p-2.5">
+          {draft.length === 0 ? (
+            <p className="text-[11px] text-[var(--color-duo-wolf)]">无可改期阶段（均已放款或在途验收）</p>
+          ) : (
+            <>
+              {draft.map((d, i) => (
+                <div key={i} className="flex gap-1.5">
+                  <input
+                    data-testid={`milestone-amend-title-${i}`}
+                    value={d.title}
+                    onChange={(e) => setDraft((prev) => prev.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+                    placeholder="阶段标题"
+                    className="min-w-0 flex-1 rounded-lg border-2 border-[var(--color-duo-swan)] bg-white px-2 py-1.5 text-xs"
+                  />
+                  <input
+                    data-testid={`milestone-amend-weight-${i}`}
+                    value={d.weightPct}
+                    onChange={(e) => setDraft((prev) => prev.map((x, j) => (j === i ? { ...x, weightPct: e.target.value } : x)))}
+                    placeholder="权重%"
+                    inputMode="numeric"
+                    className="w-16 shrink-0 rounded-lg border-2 border-[var(--color-duo-swan)] bg-white px-2 py-1.5 text-xs"
+                  />
+                  <input
+                    data-testid={`milestone-amend-accept-${i}`}
+                    value={d.acceptance}
+                    onChange={(e) => setDraft((prev) => prev.map((x, j) => (j === i ? { ...x, acceptance: e.target.value } : x)))}
+                    placeholder="验收标准"
+                    className="min-w-0 flex-1 rounded-lg border-2 border-[var(--color-duo-swan)] bg-white px-2 py-1.5 text-xs"
+                  />
+                  <button
+                    type="button"
+                    data-testid={`milestone-amend-remove-${i}`}
+                    onClick={() => setDraft((prev) => prev.filter((_, j) => j !== i))}
+                    className="shrink-0 rounded-lg px-2 text-xs font-bold text-[var(--color-duo-wolf)]"
+                    aria-label={`删除第${i + 1}期`}
+                  >
+                    删
+                  </button>
+                </div>
+              ))}
+              <div className="flex gap-1.5">
+                {draft.length < 5 && (
+                  <DuoButton
+                    size="sm"
+                    variant="secondary"
+                    data-testid="milestone-amend-add"
+                    onClick={() => setDraft((prev) => [...prev, { title: "", weightPct: "", acceptance: "" }])}
+                  >
+                    ＋加一期
+                  </DuoButton>
+                )}
+                <DuoButton size="sm" variant="primary" data-testid="milestone-amend-propose" onClick={() => void propose()}>
+                  提交改期（待对方确认）
+                </DuoButton>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      {proposals
+        .filter((p) => p.status === "PROPOSED")
+        .map((p) => (
+          <div
+            key={p.id}
+            data-testid={`milestone-amend-proposal-${p.version}`}
+            className="flex items-center gap-2 rounded-xl bg-[var(--color-duo-polar)] border-2 border-[var(--color-duo-swan)] px-2.5 py-2"
+          >
+            <span className="min-w-0 flex-1 truncate text-xs font-bold text-[var(--color-duo-eel)]">
+              改期 v{p.version} · {p.stages.map((s) => `${s.title}${s.weightPct}%`).join("＋")}
+            </span>
+            <span className="shrink-0 text-[11px] text-[var(--color-duo-wolf)]">
+              {p.mine ? "我发起的 · 待对方确认" : p.canDecide ? "对方提案 · 待你确认" : "待确认"}
+            </span>
+            {p.canDecide && (
+              <>
+                <DuoButton
+                  size="sm"
+                  variant="primary"
+                  data-testid={`milestone-amend-accept-${p.version}`}
+                  onClick={() => void decide(p.id, true)}
+                  className="shrink-0"
+                >
+                  接受
+                </DuoButton>
+                <DuoButton
+                  size="sm"
+                  variant="secondary"
+                  data-testid={`milestone-amend-reject-${p.version}`}
+                  onClick={() => void decide(p.id, false)}
+                  className="shrink-0"
+                >
+                  拒绝
+                </DuoButton>
+              </>
+            )}
+          </div>
+        ))}
       {confirmRow && (
         <>
           <div data-testid="milestone-checks" className="flex gap-1.5">

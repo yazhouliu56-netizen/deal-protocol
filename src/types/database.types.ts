@@ -253,6 +253,23 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['milestone_schedules']['Insert']>
       }
+      milestone_amendments: {
+        Row: {
+          id: string
+          contract_id: string
+          version: number
+          stages: Json
+          proposed_by: string
+          status: string
+          decided_by: string | null
+          decided_at: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['milestone_amendments']['Row'], 'created_at'> & {
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['milestone_amendments']['Insert']>
+      }
       order_disputes: {
         Row: {
           id: string
