@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { getSiteUrl } from '@/lib/site-url';
 import type {
   CreatePaymentRequest,
   CreatePaymentResult,
@@ -61,7 +62,7 @@ export class AlipayService implements IPaymentProvider {
   }
 
   public generatePaymentUrl(params: { outTradeNo: string; amount: number; subject: string; returnUrl?: string; notifyUrl?: string }) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const siteUrl = getSiteUrl();
     const notifyUrl = params.notifyUrl || `${siteUrl}/api/webhooks/alipay`;
     const returnUrl = params.returnUrl || `${siteUrl}/payment/${params.outTradeNo}?status=success`;
 

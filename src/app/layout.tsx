@@ -4,9 +4,9 @@ import Script from "next/script";
 import { UXProvider } from "@/components/providers/UXProvider";
 import ToastHost from "@/components/oto-ui/ToastHost";
 import "./globals.css";
+import { getSiteUrl } from "@/lib/site-url";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://deal-protocol-phi.vercel.app";
+const SITE_URL = getSiteUrl();
 
 /**
  * PWA Native-Like 严格视口（白皮书 §九 Design QA 验收项 V-1）：

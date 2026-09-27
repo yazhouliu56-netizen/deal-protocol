@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
+import { getSiteUrl } from "@/lib/site-url"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://deal-protocol-phi.vercel.app"
+const BASE_URL = getSiteUrl()
 
 export default function robots(): MetadataRoute.Robots {
   return {

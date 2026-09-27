@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/site-url";
+
 export const METRIC_NAMES = [
   'api.latency.p50',
   'api.latency.p95',
@@ -53,7 +55,7 @@ const METRICS_BACKEND = (process.env.NEXT_PUBLIC_METRICS_BACKEND || 'console') a
 
 async function flushToApi(batch: MetricPoint[]): Promise<void> {
   try {
-    const origin = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const origin = typeof window !== 'undefined' ? '' : getSiteUrl();
     await fetch(`${origin}/api/metrics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
