@@ -37,7 +37,7 @@ jobs:
           node-version: 22
           cache: 'npm'
       - run: npm ci
-      - name: 全量单元测试（1907 项：vitest 718 + node:test 1189）
+      - name: 全量单元测试（vitest + node:test，双跑道自动发现，计数不锁死）
         run: npm test
       - name: ESLint
         run: npm run lint

@@ -89,6 +89,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@opencode/plugin": "^2.0.18",
     "@playwright/test": "^1.61.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.0.0",

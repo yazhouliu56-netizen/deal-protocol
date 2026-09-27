@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import PwaServiceWorker from "@/components/oto-ui/PwaServiceWorker";
 import OnlineStatusBridge from "@/components/oto-ui/OnlineStatusBridge";
 import IdentityRehydrator from "@/components/oto-ui/IdentityRehydrator";
@@ -7,17 +7,22 @@ import FactoryShelfBridge from "@/components/oto-ui/FactoryShelfBridge";
 import A2HSPromptHost from "@/components/oto-ui/A2HSPromptHost";
 import "./globals.css";
 
-/* Duo 圆体：Feather Bold 官方平替（拉丁+数字圆润粗体，中文回退系统粗黑，next/font 自托管离线可用） */
-const duoRounded = Nunito({
+/* Duo 圆体：Feather Bold 官方平替（拉丁+数字圆润粗体，中文回退系统粗黑）。
+ * 自托管（public/fonts variable woff2，scripts/vendor-fonts.mjs 可复现）：
+ * next/font/google 构建期拉取 Google Fonts，CI 无出站即崩（2026-09-27 血训），
+ * 本地文件构建期零网络。字形与线上 Google 版同源（同版本同子集），零视觉差。 */
+const duoRounded = localFont({
+  src: "../../../public/fonts/nunito-latin-var.woff2",
   variable: "--font-duo-rounded",
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
+  weight: "200 1000",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../../../public/fonts/geist-mono-latin-var.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
 });
 
 /**
