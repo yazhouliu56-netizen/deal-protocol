@@ -87,51 +87,59 @@ export async function proxy(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
+  // 沙盒降级（2026-09-27 CI 血训）：Supabase env 缺席（CI/离线沙盒）时，
+  // createServerClient 会同步抛错导致全站 500。本仓其余链路早已是
+  // "无 DB 即降级"姿态，网关看齐：无会话按匿名走，保护路由照旧跳登录。
+  type SessionUser = { id: string } | null;
+  let user: SessionUser = null;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(
+            cookiesToSet: { name: string; value: string; options: CookieOptions }[],
+          ) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+            supabaseResponse = NextResponse.next({ request })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options),
+            )
+          },
         },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: CookieOptions }[],
-        ) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          )
-        },
-      },
-    },
-  )
+      });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+      user = (await supabase.auth.getUser()).data.user as SessionUser;
+
+      if (user && isProtectedRoute(pathname) && pathname.startsWith("/admin")) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profile?.role !== "admin") {
+          const url = request.nextUrl.clone();
+          // 存活路由：/dashboard 不存在，非管理员回首页。
+          url.pathname = "/";
+          return NextResponse.redirect(url);
+        }
+      }
+    } catch {
+      // 会话解析失败即按匿名处理（不抛全站 500）。
+      user = null;
+    }
+  }
 
   if (isProtectedRoute(pathname)) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = "/login"
       return NextResponse.redirect(url)
-    }
-
-    if (pathname.startsWith("/admin")) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single()
-
-      if (profile?.role !== "admin") {
-        const url = request.nextUrl.clone()
-        // 存活路由：/dashboard 不存在，非管理员回首页。
-        url.pathname = "/"
-        return NextResponse.redirect(url)
-      }
     }
   }
 
