@@ -15,7 +15,13 @@ let consoleErrors: string[] = []
 test.beforeEach(async ({ page }) => {
   consoleErrors = []
   page.on("console", (msg) => {
-    if (msg.type() === "error") consoleErrors.push(msg.text())
+    if (msg.type() !== "error") return
+    const t = msg.text()
+    // Preview 部署专属噪音：SW 脚本子请求不带 bypass 头，被 Deployment
+    // Protection 302 后报 "behind a redirect"（e2e-app 同款过滤口径）；
+    // 生产首页已实证零报错，SW 缺席不影响应用主体。
+    if (/Service worker registration failed|behind a redirect/i.test(t)) return
+    consoleErrors.push(t)
   })
   page.on("pageerror", (err) => consoleErrors.push(err.message))
 })
