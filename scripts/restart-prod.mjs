@@ -21,7 +21,7 @@
  * （CI 无文件时靠 secrets 进进程 env；缺关键键只警告，由轮询 200 裁决）。
  */
 import { execSync, spawn } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -104,12 +104,16 @@ if (!env.NEXT_PUBLIC_SUPABASE_URL) {
 // 4. start — detached + stdio ignore + unref（见文件头 08-07 注释），
 //    ws 逃生舱 + PORT/HOSTNAME 经 env 注入（子进程自动继承）。
 mkdirSync(runtimeDir, { recursive: true });
+// 启动日志落盘（file 描述符直写，不经 shell redirect，无 08-07 假死问题；
+// NOT READY 时打印尾巴——CI 黑盒排障唯一依据）。
+const bootLog = path.join(runtimeDir, "prod-boot.log");
+const logFd = openSync(bootLog, "w");
 const child = spawn(process.execPath, [standaloneServer], {
   cwd: root,
   // 全平台 detached：父进程（含 CI 步骤/工具沙箱）退出时不被连带回收；
   // stdio ignore + unref 避开 08-07 redirect 假死坑。
   detached: true,
-  stdio: "ignore",
+  stdio: ["ignore", logFd, logFd],
   env: {
     ...env,
     WS_NO_BUFFER_UTIL: "1",
@@ -127,6 +131,12 @@ writeFileSync(pidFile, String(child.pid), "utf8");
 console.log(`[restart] started (pid ${child.pid})`);
 
 // 5. poll until HTTP 200（半残服务由本步裁决；端口被占会在此超时并提示查 pidfile 之外进程）。
+// CI Runner 若设了 http_proxy：localhost 直连必须 bypass，否则 poll 发往代理必挂。
+{
+  const prev = process.env.NO_PROXY ?? process.env.no_proxy ?? "";
+  const extra = "localhost,127.0.0.1";
+  process.env.NO_PROXY = prev ? `${prev},${extra}` : extra;
+}
 let ready = false;
 for (let i = 0; i < 30 && !ready; i++) {
   await new Promise((r) => setTimeout(r, 1000));
@@ -143,5 +153,23 @@ if (ready) {
   console.error(
     `[restart] NOT READY after 30s on :${port} (check for processes outside pidfile holding the port)`
   );
+  try {
+    const { readFileSync: readTail, existsSync: hasLog } = await import("node:fs");
+    if (hasLog(bootLog)) {
+      const tail = readTail(bootLog, "utf8").split("\n").slice(-40).join("\n");
+      console.error(`[restart] ---- boot log tail (${bootLog}) ----\n${tail}\n---- end ----`);
+    }
+    let alive = false;
+    try {
+      const pid = parseInt(readFileSync(pidFile, "utf8").trim(), 10);
+      process.kill(pid, 0);
+      alive = true;
+    } catch {
+      /* dead */
+    }
+    console.error(`[restart] tracked pid alive: ${alive}`);
+  } catch (e) {
+    console.error(`[restart] diagnostics failed: ${e instanceof Error ? e.message : e}`);
+  }
   process.exitCode = 1;
 }
