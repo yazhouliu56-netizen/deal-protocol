@@ -7,6 +7,7 @@ import { toast } from "@/base/platform/toast";
 import { Skeleton } from "@/components/ui/Skeleton"
 import { useFulfillmentMutation } from "@/hooks/useFulfillmentMutation"
 import { getBrowserSupabase } from "@/lib/supabase-browser"
+import GuardStrip from "@/components/guard/GuardStrip"
 import { uploadPhotoWithRetry } from "@/lib/upload"
 import type { GeoPoint, MapDot } from "@/base/geo/mapConfig"
 
@@ -189,6 +190,9 @@ export default function OrderFulfillmentClient({
           <p className="text-3xl font-black text-[var(--color-duo-green-ink)] mb-3">￥{demand.price}</p>
           <h2 className="text-base font-bold">{demand.title}</h2>
         </div>
+
+        {/* ADR-0022 强制守护双可见（服务者侧；无便捷开关） */}
+        <GuardStrip demandId={demand.id} />
 
         <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">联系人与地址信息</h3>

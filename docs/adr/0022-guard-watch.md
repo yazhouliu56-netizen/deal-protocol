@@ -37,6 +37,6 @@
 
 ## Consequences
 
-- 新增：`supabase/migrations/20260927_guard_breadcrumbs.sql`（云 DDL 需 SQL Editor 手工执行，CI 不跑 DDL）、`src/app/api/guard/breadcrumb/route.ts` + `route.test.ts`、`src/app/api/guard/state/route.ts` + `route.test.ts`、`src/hooks/useGuardWatch.ts`、`src/components/guard/GuardStrip.tsx` + `GuardStrip.test.tsx`、2 处挂载
+- 新增：`supabase/migrations/20260927_guard_breadcrumbs.sql`（云 DDL 需 SQL Editor 手工执行，CI 不跑 DDL）、`src/app/api/guard/breadcrumb/route.ts` + `route.test.ts`、`src/app/api/guard/state/route.ts` + `route.test.ts`、`src/hooks/useGuardWatch.ts`、`src/components/guard/GuardStrip.tsx` + `GuardStrip.test.tsx`、2 处挂载（服务者 `OrderFulfillmentClient` + 需求方 `demands/[id]` 验收页履约中四态；座舱无 demandId 不硬挂）
 - follow-up：订单终局后面包屑清理任务；TAMPER/LOST 进 crisis 升级链（当前仅通知）
 - 门禁：T2（`npm run check` 全绿 + `build` + `verify-scoped e2e-fulfil` 无回归）

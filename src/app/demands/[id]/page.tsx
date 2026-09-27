@@ -3,6 +3,10 @@ import { notFound } from "next/navigation"
 import { getRouteClient } from "@/lib/supabase-route-client"
 import { auth } from "@/lib/auth"
 import AcceptanceCard from "./AcceptanceCard"
+import GuardStrip from "@/components/guard/GuardStrip"
+
+/** 履约中四态才挂守护条（OPEN/完工/取消不扰；ADR-0022 需求方侧）。 */
+const GUARD_ACTIVE_STATUSES = ["ASSIGNED", "DEPARTED", "ARRIVED", "STARTED"]
 
 export const dynamic = "force-dynamic"
 
@@ -59,6 +63,11 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
           releasedAt={demand.released_at}
           hasContract={hasContract}
         />
+        {GUARD_ACTIVE_STATUSES.includes(demand.status) && (
+          <div className="mt-4">
+            <GuardStrip demandId={demand.id} />
+          </div>
+        )}
       </div>
     </div>
   )
