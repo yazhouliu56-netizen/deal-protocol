@@ -13,8 +13,18 @@ const OTHERS = ["GEMINI", "ZHIPU", "DASHSCOPE", "DEEPSEEK", "KIMI"].map(
  * 缺陷考卷（2026-09-07 基线 3/20）：单次尝试拿满总预算，stall 的首发
  * 独吞 8s，链条一次没走就 TIMEOUT。修后：首发 hang 必须被逐次上限
  * 熔断，调用在总预算内走到第二家并成功。
+ *
+ * CI 加固（2026-09-27）：挂起的 mock fetch 自身不占 event-loop 句柄，
+ * 熔断只靠 AbortSignal.timeout 的内部计时器——该计时器在不同 Node
+ * 大版本下 ref 语义不一致，loop 排空即判测试取消。因此本文件用显式
+ * ref 计时器钉住 loop（finally 必清），并给用例加具名超时：
+ * 真挂起走超时失败（有名有姓），不再是神秘 cancelledByParent。
  */
-test("completeText: stalled first provider does not eat the whole budget", async () => {
+test(
+  "completeText: stalled first provider does not eat the whole budget",
+  { timeout: 30_000 },
+  async () => {
+    const keepalive = setTimeout(() => {}, 20_000);
   const all = [...OTHERS, ORK];
   const saved = new Map<string, string | undefined>();
   for (const k of all) {
@@ -64,6 +74,7 @@ test("completeText: stalled first provider does not eat the whole budget", async
     // 自家熔断不污染健康分：首发 abort 后不得进 30s 冷却，否则连锁清空整条链。
     assert.equal(isCooling("openrouter-cohere"), false);
   } finally {
+    clearTimeout(keepalive);
     globalThis.fetch = realFetch;
     for (const [k, v] of saved) {
       if (v === undefined) delete process.env[k];
@@ -76,7 +87,7 @@ test("completeText: stalled first provider does not eat the whole budget", async
  * 缺陷→考卷 2026-09-07（真机 15/20 #12/#14/#16）：上游 200 回空
  * 不是失败、不污染健康分，直接下跳下一家，整句仍成功。
  */
-test("completeText: empty content falls through to next provider", async () => {
+test("completeText: empty content falls through to next provider", { timeout: 30_000 }, async () => {
   const all = [...OTHERS, ORK];
   const saved = new Map<string, string | undefined>();
   for (const k of all) {
