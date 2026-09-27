@@ -55,10 +55,17 @@ async function resolveRole(u: SessionUser): Promise<SessionUser> {
 
 export default function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  // 无 Supabase env（CI/离线沙盒）时初始即非 loading，避免 effect 内同步 setState
+  // 触 react-hooks/set-state-in-effect 门禁；有 env 时沿用原语义（会话落定才放行）。
+  const [loading, setLoading] = useState(() => getBrowserSupabase() == null)
 
   const refresh = async () => {
     const supabase = getBrowserSupabase()
+    if (!supabase) {
+      setUser(null)
+      setLoading(false)
+      return
+    }
     const { data: { session } } = await supabase.auth.getSession()
     setUser(session?.user ? mapUser(session.user) : null)
     setLoading(false)
@@ -66,6 +73,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    if (!supabase) return
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ? mapUser(session.user) : null

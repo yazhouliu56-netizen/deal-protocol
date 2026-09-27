@@ -47,6 +47,7 @@ export default function IncomingListClient({ initialDemands }: IncomingListClien
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    if (!supabase) return
     const channel = supabase
       .channel("realtime:public:demands")
       .on(

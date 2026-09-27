@@ -93,7 +93,7 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => router.push("/profile")} className="hover:bg-[var(--color-duo-polar)] focus:bg-[var(--color-duo-polar)]">
                     <User className="mr-2 size-4" /> 个人中心
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => { await getBrowserSupabase().auth.signOut(); window.location.href = "/" }} className="text-red-600 hover:bg-[var(--color-duo-polar)] focus:bg-[var(--color-duo-polar)]">
+                  <DropdownMenuItem onClick={async () => { await getBrowserSupabase()?.auth.signOut(); window.location.href = "/" }} className="text-red-600 hover:bg-[var(--color-duo-polar)] focus:bg-[var(--color-duo-polar)]">
                     <LogOut className="mr-2 size-4" /> 退出登录
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -133,7 +133,7 @@ export default function Header() {
                   <span className="truncate">{session.name || session.email}</span>
                 </div>
                 <Link href="/profile" onClick={() => setMobileOpen(false)} className="touch-target flex items-center rounded-lg px-3 text-sm text-[var(--color-duo-wolf)] hover:bg-[var(--color-duo-polar)] active:bg-[var(--color-duo-swan)]">玩家中心</Link>
-                <button type="button" onClick={async () => { setMobileOpen(false); await getBrowserSupabase().auth.signOut(); window.location.href = "/" }} className="touch-target flex items-center rounded-lg px-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-[var(--color-duo-polar)] active:bg-[var(--color-duo-swan)]">退出登录</button>
+                <button type="button" onClick={async () => { setMobileOpen(false); await getBrowserSupabase()?.auth.signOut(); window.location.href = "/" }} className="touch-target flex items-center rounded-lg px-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-[var(--color-duo-polar)] active:bg-[var(--color-duo-swan)]">退出登录</button>
               </>
             ) : (
               <div className="flex gap-2 pt-1">

@@ -27,6 +27,7 @@ export function useFinanceRealtime(
     if (!userId) return
 
     const supabase = getBrowserSupabase()
+    if (!supabase) return
 
     // R11 双账本统一：余额真相源为 provider_wallets（018 已入 realtime publication；
     // profiles.balance 停写，旧订阅移除）。

@@ -28,6 +28,7 @@ export function useOrderRealtime(
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    if (!supabase) return
     const channel = supabase
       .channel(`order:${initialOrder.id}`)
       .on(

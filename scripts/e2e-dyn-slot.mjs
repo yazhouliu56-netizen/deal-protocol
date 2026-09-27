@@ -31,6 +31,11 @@ function loadEnv(p) {
   return m;
 }
 const env = { ...loadEnv(".env"), ...loadEnv(".env.local") };
+// 无后端 CI 降级：本套件断言跨端云端行，无 Supabase 即 SKIP（exit 0）。
+if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.log("e2e-dyn-slot SKIP（supabase env 缺席）");
+  process.exit(0);
+}
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
   auth: { persistSession: false },
 });

@@ -211,7 +211,14 @@ function PasswordLoginForm({ onError }: { onError: (msg: string) => void }) {
     setLoading(true)
     onError("")
 
-    const { error: authError } = await getBrowserSupabase().auth.signInWithPassword({ email, password })
+    const supabase = getBrowserSupabase()
+    if (!supabase) {
+      onError("登录服务未配置（缺 Supabase 环境），请联系管理员")
+      setLoading(false)
+      return
+    }
+
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError) {
       onError(
         authError.message === "Invalid login credentials"

@@ -88,6 +88,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!user?.id) return
 
     const supabase = getBrowserSupabase()
+    if (!supabase) return
 
     const channel = supabase
       .channel(`realtime:user_notifications:${user.id}`)

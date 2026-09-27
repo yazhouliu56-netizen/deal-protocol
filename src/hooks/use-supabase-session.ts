@@ -14,10 +14,12 @@ export interface SessionUser {
 
 export function useSupabaseSession() {
   const [user, setUser] = useState<SessionUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  // 与 SessionProvider 同式：无 env 初始即非 loading（门禁要求见该文件注释）。
+  const [loading, setLoading] = useState(() => getBrowserSupabase() == null)
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    if (!supabase) return
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ? mapUser(session.user) : null)

@@ -30,6 +30,7 @@ export default function DashboardClient() {
     }
 
     const supabase = getBrowserSupabase()
+    if (!supabase) return
 
     const { data: anomalyList } = await supabase
       .from("demands")
@@ -45,6 +46,7 @@ export default function DashboardClient() {
     init()
 
     const supabase = getBrowserSupabase()
+    if (!supabase) return
     const channel = supabase
       .channel("admin_stats")
       .on("postgres_changes", { event: "*", schema: "public", table: "demands" }, fetchDashboardData)

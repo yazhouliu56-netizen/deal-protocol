@@ -146,6 +146,7 @@ export default function OrderFulfillmentClient({
 
   useEffect(() => {
     const supabase = getBrowserSupabase()
+    if (!supabase) return
     const channel = supabase
       .channel(`demand:${demand.id}`)
       .on(

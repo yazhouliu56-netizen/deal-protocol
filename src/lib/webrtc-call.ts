@@ -19,7 +19,11 @@ export function createSignalingChannel(
   pc: RTCPeerConnection,
   localUserId: string,
 ) {
-  const channel = getBrowserSupabase().channel(`webrtc:${contractId}`, {
+  const supabase = getBrowserSupabase()
+  if (!supabase) {
+    throw new Error("云端未配置，无法建立通话信令通道")
+  }
+  const channel = supabase.channel(`webrtc:${contractId}`, {
     config: { broadcast: { ack: false, self: false } },
   })
 
@@ -142,6 +146,9 @@ export async function logWebRTCCallEvidence(
   const hash = crypto.createHash('sha256').update(rawPayload).digest('hex')
 
   const supabase = getBrowserSupabase()
+  if (!supabase) {
+    throw new Error("云端未配置，证据链无法落账")
+  }
 
   const { data: lastEvidence } = await supabase
     .from('evidence_log')

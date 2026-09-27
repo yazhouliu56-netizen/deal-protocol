@@ -53,6 +53,7 @@ export default function ClaimantTrust({
     (async () => {
       try {
         const supabase = getBrowserSupabase();
+        if (!supabase) return;
         const { data, error } = await supabase
           .from("profiles")
           .select("credit_score, dispute_losses, is_online")

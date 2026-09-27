@@ -29,12 +29,13 @@ export function useSupabaseRealtime(orderId: string, currentUserId: string) {
   const [isPeerTyping, setIsPeerTyping] = useState(false)
   const [updatedField, setUpdatedField] = useState<string | null>(null)
   const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const channelRef = useRef<ReturnType<ReturnType<typeof getBrowserSupabase>['channel']> | null>(null)
+  const channelRef = useRef<ReturnType<NonNullable<ReturnType<typeof getBrowserSupabase>>['channel']> | null>(null)
 
   useEffect(() => {
     if (!orderId) return
 
     const supabase = getBrowserSupabase()
+    if (!supabase) return
     const channelName = `realtime:order:${orderId}`
 
     const channel = supabase.channel(channelName, {

@@ -10,6 +10,7 @@ export async function uploadPhotoWithRetry(
   for (let i = 0; i < retries; i++) {
     try {
       const supabase = getBrowserSupabase()
+      if (!supabase) throw new Error("云端未配置，照片无法上传")
       const { error } = await supabase.storage
         .from("certificates")
         .upload(filePath, file, { cacheControl: "3600", upsert: true })

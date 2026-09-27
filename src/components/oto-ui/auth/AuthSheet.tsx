@@ -90,6 +90,10 @@ export function readAuthAccount(): AuthAccount | null {
 export async function refreshAuthAccount(): Promise<AuthAccount | null> {
   try {
     const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setCachedAccount(null);
+      return null;
+    }
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -135,7 +139,7 @@ export async function refreshAuthAccount(): Promise<AuthAccount | null> {
 
 export async function clearAuthAccount() {
   try {
-    await getBrowserSupabase().auth.signOut();
+    await getBrowserSupabase()?.auth.signOut();
   } catch {
     /* 登出失败也清本地投影 */
   }

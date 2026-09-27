@@ -5,15 +5,18 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 let client: SupabaseClient | null = null
 
-// Browser-only client (for client components and hooks)
-export function getBrowserSupabase(): SupabaseClient {
+// Browser-only client (for client components and hooks).
+// 沙盒降级（2026-09-27 CI 血训）：env 缺席（CI/离线构建无 key）
+// 返回 null 而不是抛错——抛错会在 SessionProvider 等启动路径上
+// 白屏全站。调用方一律判空（tsc 强制枚举），缺席即访客/本地语义。
+export function getBrowserSupabase(): SupabaseClient | null {
   if (client) return client
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY env vars')
+    return null
   }
 
   client = createBrowserClient(supabaseUrl, supabaseAnonKey, {

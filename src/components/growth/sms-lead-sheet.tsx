@@ -392,7 +392,10 @@ export function useLeadDemandSubmit(opts: LeadSubmitOpts) {
     setSubmitting(true);
     setError(null);
     try {
-      const { data } = await getBrowserSupabase().auth.getSession();
+      const supabase = getBrowserSupabase()
+      const { data } = supabase
+        ? await supabase.auth.getSession()
+        : { data: { session: null } }
       if (data.session) {
         const tags = { page: pageKey, channel: collectGrowthAttribution(pageKey).source };
         const id = await postDemandPayload(buildPayload(draft), tags);
