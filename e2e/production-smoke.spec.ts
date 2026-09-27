@@ -3,6 +3,13 @@ import { test, expect, type Page } from "@playwright/test"
 const BASE_URL = process.env.BASE_URL || "https://deal-protocol.vercel.app"
 const MIN_TOUCH = 44
 
+// Vercel Deployment Protection bypass（CI secrets.VERCEL_PROTECTION_BYPASS；
+// 缺席即直连，本地跑法零变化；配了才过 bot challenge）。
+const BYPASS = process.env.VERCEL_PROTECTION_BYPASS
+if (BYPASS) {
+  test.use({ extraHTTPHeaders: { "x-vercel-protection-bypass": BYPASS } })
+}
+
 let consoleErrors: string[] = []
 
 test.beforeEach(async ({ page }) => {

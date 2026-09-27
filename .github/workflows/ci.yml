@@ -78,4 +78,5 @@ jobs:
       - name: Execute Smoke Test on Vercel Target URL
         env:
           BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          VERCEL_PROTECTION_BYPASS: ${{ secrets.VERCEL_PROTECTION_BYPASS }}
         run: npm run test:smoke
