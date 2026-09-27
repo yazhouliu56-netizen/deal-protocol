@@ -1,7 +1,7 @@
 /** Batch③-5 UX 预算门禁：首屏按钮上限 + 折叠完整性 + 空卡合一 + AR 降级 + SOS 条件。
  * 访客态（无在途单）普查；任一超标即 FAIL，防止入口只加不减复发。 */
 import assert from "node:assert";
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
 import { getE2eBaseUrl, getDefaultLaunchOptions, isolateBrowserChannels } from "./lib/e2e-channel.mjs";
 
 // 访客态普查，无需云端行。
