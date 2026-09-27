@@ -46,6 +46,7 @@ test("passesHardFilter gates on category / offline", () => {
     0,
     "被封禁者不出现在广播"
   );
+});
 
 test("requiresVerification: home-access categories need verified responders（ammo 表驱动）", () => {
   const rule = dispatchRuleFor("家政保洁");
@@ -109,7 +110,6 @@ test("star growth bonus: ★≥4 + ≥90% completion pushes credit up", () => {
     wave
   )[0];
   assert.equal(weak.score, base.score);
-});
 });
 
 test("distance beyond radius stays visible but ranks lower (软约束)", () => {

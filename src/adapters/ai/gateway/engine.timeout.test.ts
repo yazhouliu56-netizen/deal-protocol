@@ -28,8 +28,15 @@ test("completeText: stalled first provider does not eat the whole budget", async
     attempts += 1;
     if (attempts === 1) {
       // 首发 stall：直到 signal 熔断才抛，模拟挂起的上游。
+      // 12s 自毁兜底：若引擎未传 signal/未熔断，拒绝悬挂（悬挂 promise 会在
+      // 进程收尾时被记为未决，导致整文件用例被连带取消）。
       return new Promise((_resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(new DOMException("backstop-no-signal", "AbortError"));
+        }, 12_000);
+        timer.unref?.();
         init?.signal?.addEventListener("abort", () => {
+          clearTimeout(timer);
           reject(new DOMException("aborted", "AbortError"));
         });
       });
