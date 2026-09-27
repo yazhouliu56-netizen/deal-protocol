@@ -666,7 +666,7 @@ S4 资金合规 ──── COMPLIANCE_SPLIT 合规分账指令路由（generat
 | V2 | **三维信用缺失**（单维信用跨类目通兑） | BCS/PQS/ESF 三维解耦信用雷达引擎：强合规一票熔断（IMPACT/PROXIMITY 引信 → 公安核验 + ESF 门槛，BCS 满分也拒绝）+ 垂直技能类目隔离（PQS 按 category 精确匹配，禁通兑）+ 定向押金折抵（creditWaiverRule 单维度 + maxWaiverPercentage 上限） | `src/base/trust/tri-credit.ts` + `src/types/ammo-schema.ts`（ITriDimensionalCredit） | `tri-credit.test.ts` 16 项：警察核验熔断 / ESF 50<60 熔断 / PQS 缺失拒 / 守时不通兑 / 折抵守恒与上限 |
 | V3 | **运力割裂**（供给池无属性聚类） | SupplyCluster 运力池属性契约：C1_MOBILITY（同城移动）/ C2_IN_HOME（入户重背调）/ C3_TECH_B2B（技术类）；三大标杆弹药全部装配 | `src/types/ammo-schema.ts`（SupplyCluster）+ 三弹药 `supplyCluster` 字段 | 弹药装备完整性测试断言（housekeeping/meetup/companion） |
 | V4 | **资金合规缺位**（二级账户缺失、信息流资金流未分离） | 二级虚拟账户体系：masterAccountId（银行存管大账户）+ providerSubWalletId（服务者虚拟子账户）+ instructionSignature（djb2 确定性签名）+ isMirrorLedgerOnly 只读镜像声明——信息流与资金流严格分离 | `src/base/money/escrow.ts`（IComplianceSplitInstruction 强化） | `escrow.test.ts` 漏洞四段 3 项：子账户/签名派生/签名确定性/自定义注入 |
-| V5 | **三级仲裁缺位**（全量争议挤入 AI 通道） | 三级人机双轨仲裁分流：Level 1（≤30 元且无安全告警）规则引擎秒赔零扣罚 / Level 2（30~500 元）AI+人工双出口 / Level 3（>500 元或红色报警）法务专家组直通 + 保险公司联动，自动切断线上调解 | `src/components/waves/ArbitrationSheet.tsx`（resolveArbitrationLevel 确定性分流） | `ArbitrationSheet.test.tsx` 21 项：25 元 L1 秒赔卡 / 200 元 L2 双轨 / 800 元与红色报警 L3 法务直连 / 边界值与回调 |
+| V5 | **三级仲裁缺位**（全量争议挤入 AI 通道） | 三级仲裁分流：Level 1（≤30 元且无安全告警）规则引擎秒裁零垫资 / Level 2（30~500 元）AI 议会双出口 / Level 3（>500 元或红色报警）法务专家组直通 + 保险公司联动，自动切断线上调解 | `src/components/waves/ArbitrationSheet.tsx`（resolveArbitrationLevel 确定性分流） | `ArbitrationSheet.test.tsx` 21 项：25 元 L1 秒裁卡 / 200 元 L2 双轨 / 800 元与红色报警 L3 法务直连 / 边界值与回调 |
 
 ---
 

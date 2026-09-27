@@ -746,7 +746,7 @@ export function buildDisputeProposal(
   evidencePhotoCount = 0,
 ): ArbitrationProposal {
   const safeAmount = Number.isFinite(amountYuan) && amountYuan > 0 ? amountYuan : 0;
-  // 小额（≤30）全额退还；其余按 30% 折算（最小 30 元），保证 L1 秒赔与 L2 建议的确定性分档
+  // 小额（≤30）全额退还；其余按 30% 折算（最小 30 元），保证 L1 秒裁与 L2 建议的确定性分档
   const refundAmount =
     safeAmount <= 30 ? safeAmount : Math.max(30, Math.round(safeAmount * 0.3));
   const refundPct = safeAmount > 0 ? Math.round((refundAmount / safeAmount) * 100) : 0;

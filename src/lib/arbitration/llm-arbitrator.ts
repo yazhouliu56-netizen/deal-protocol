@@ -1,12 +1,14 @@
 import { callLLM } from "@/lib/llm"
 import type { ArbitrationRequest, ArbitrationVerdict } from "./types"
+import { civilCodePromptBlock } from "./civil-code"
 
 const SYSTEM_PROMPT = `你是一个中立公正的在线争议仲裁员。你的职责是根据事实做出公平裁决。
 核心原则：
 - 依据双方提供的证据做出判断
 - 保护诚信交易，惩罚欺诈和违约
 - 裁决应清晰、可执行、有依据
-- 裁决金额必须在合同金额范围内`
+- 裁决金额必须在合同金额范围内
+${civilCodePromptBlock()}`
 
 function buildPrompt(req: ArbitrationRequest): string {
   return `请裁决以下争议：

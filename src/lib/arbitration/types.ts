@@ -9,6 +9,8 @@ export interface ArbitrationRequest {
   serviceTitle: string
   initiatorId: string
   responderId: string
+  /** 库内先例引用（可选；缺席即无先例段，不伪造案例）。 */
+  precedents?: import("./civil-code").CitedPrecedent[]
 }
 
 export interface CouncilVote {

@@ -11,19 +11,18 @@ import type { ForgeryRiskLevel } from "@/base/ai/forgery";
 /**
  * 争议调解 · AI 小法官半屏抽屉（Dispute & AI Arbitration Sheet · 白皮书 §五 5.6.3）。
  *
- * 漏洞五闭环 · 三级人机双轨仲裁分流（resolveArbitrationLevel 确定性纯函数）：
- * - Level 1（≤30 元 且 无安全告警）：🟢 规则引擎自动秒赔，一键补偿结案，
- *   不扣罚服务者（平台体验保障金出账）；
- * - Level 2（30 < 金额 ≤ 500）：🤖 AI 小法官建议卡（Advisory）+ 人工审核
- *   双出口（接受方案 / 驳回修正升级人工）；
+ * 漏洞五闭环 · 三级仲裁分流（resolveArbitrationLevel 确定性纯函数）：
+ * - Level 1（≤30 元 且 无安全告警）：🟢 规则引擎即时裁决，证据齐全秒出结果，
+ *   结算走托管划转（非平台垫资；先行赔付已砍）；
+ * - Level 2（30 < 金额 ≤ 500）：🤖 AI 议会裁决（多模型复核），高置信自动执行；
  * - Level 3（>500 元 或 红色报警）：🔴 法务专家组直通，自动切断线上调解，
  *   展示紧急连线安全法务组 + 联动保险公司现场勘查状态卡。
  *
  * 三区组装：
  * 1. 物证比对链 —— 客户投诉诉求 / 履约完工照片（含 AI 视觉标注）/ 关键聊天记录；
- * 2. 分级仲裁区 —— L1 秒赔卡 / L2 AI 建议卡 / L3 法务直连卡（互斥渲染）；
- * 3. 分级出口 —— L1 一键补偿 / L2 双出口 / L3 法务 + 保险联动。
- * 红线 1：分流判定与 L1 秒赔为确定性纯函数，LLM 仅存在于 L2 Advisory。
+ * 2. 分级仲裁区 —— L1 秒裁卡 / L2 AI 建议卡 / L3 法务直连卡（互斥渲染）；
+ * 3. 分级出口 —— L1 确认即时裁决 / L2 双出口 / L3 法务 + 保险联动。
+ * 红线 1：分流判定与 L1 秒裁为确定性纯函数，LLM 仅存在于 L2 Advisory。
  *
  * Duo 化（Batch① 2026-09）：暗岛 SHEET_CSS 删除。DarkSheetShell 保留
  * （深色遮罩/z80-81/拖拽离场/Esc/data-action 契约均为行为资产），面板视觉换
@@ -36,9 +35,9 @@ export type ArbitrationLevel = "LEVEL_1" | "LEVEL_2" | "LEVEL_3";
 
 /**
  * 三级仲裁分流判定（确定性纯函数，红线 1）：
- * - 金额 ≤ 30 且无安全告警 → LEVEL_1（小额秒赔）；
+ * - 金额 ≤ 30 且无安全告警 → LEVEL_1（小额秒裁）；
  * - 金额 > 500 或 触发安全告警 → LEVEL_3（重大/高危，法务直通）；
- * - 其余（30 < 金额 ≤ 500）→ LEVEL_2（AI + 人工双轨）。
+ * - 其余（30 < 金额 ≤ 500）→ LEVEL_2（AI 议会裁决）。
  * 金额未提供（undefined）→ 保守按 LEVEL_2（维持既有行为）。
  */
 export function resolveArbitrationLevel(
@@ -125,7 +124,7 @@ export interface ArbitrationSheetProps {
   disputeAmountYuan?: number;
   /** 红色安全报警（人身安全告警；触发即 LEVEL_3 法务直通）。 */
   hasSafetyAlert?: boolean;
-  /** L1 秒赔回调（一键秒级补偿，扣平台体验保障金，不扣罚服务者）。 */
+  /** L1 即时裁决确认回调（证据齐全秒出裁决；结算走托管划转，非平台垫资）。 */
   onInstantCompensate?: () => void;
   /** L3 法务直通回调（紧急连线安全法务组）。 */
   onConnectLegal?: () => void;
@@ -353,10 +352,10 @@ export default function ArbitrationSheet({
         >
           {isLevel1 && (
             <>
-              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟢 Level 1 极小额争议 · 规则引擎自动秒赔</div>
+              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟢 Level 1 极小额争议 · 规则引擎即时裁决</div>
               <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
-                争议金额 ¥{disputeAmountYuan} ≤ 30 元且无安全告警——符合小额速赔规则，
-                由平台体验保障金直接补偿，不扣罚服务者信用与收入。
+                争议金额 ¥{disputeAmountYuan} ≤ 30 元且无安全告警——符合小额速裁规则，
+                证据齐全即时出裁决并结算（托管资金划转，非平台垫资）。
               </div>
             </>
           )}
@@ -372,10 +371,10 @@ export default function ArbitrationSheet({
           )}
           {!isLevel1 && !isLevel3 && (
             <>
-              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟡 Level 2 中额争议 · AI + 人工双轨</div>
+              <div className="text-[13px] font-extrabold text-[var(--color-duo-eel)]">🟡 Level 2 中额争议 · AI 议会裁决</div>
               <div className="mt-1 text-xs text-[var(--color-duo-wolf)]">
                 金额 {disputeAmountYuan === undefined ? "未知" : `¥${disputeAmountYuan}`}
-                落在 30~500 元区间——AI 建议书先行，人工审核员复核双出口。
+                落在 30~500 元区间——多模型议会复核，高置信自动执行。
               </div>
             </>
           )}
@@ -511,7 +510,7 @@ export default function ArbitrationSheet({
           </section>
         ) : isLevel1 ? (
           <section className={`${SECTION_CLASS} bg-[var(--color-duo-green)]/10 border-[var(--color-duo-green-dark)]/50`} data-testid="instant-compensate-card">
-            <DuoPill tone="green" variant="solid">⚡ 规则引擎秒赔 · 确定性规则（红线 1）</DuoPill>
+            <DuoPill tone="green" variant="solid">⚡ 规则引擎秒裁 · 确定性规则（红线 1）</DuoPill>
             <div className={KV_ROW}>
               <span className="text-[var(--color-duo-wolf)]">争议金额</span>
               <span className="text-[17px] font-black text-[var(--color-duo-green-ink)]" data-testid="instant-amount">
@@ -519,12 +518,12 @@ export default function ArbitrationSheet({
               </span>
             </div>
             <div className={KV_ROW}>
-              <span className="text-[var(--color-duo-wolf)]">赔付来源</span>
-              <strong className="text-[var(--color-duo-yellow-ink)]">平台体验保障金（不扣罚服务者）</strong>
+              <span className="text-[var(--color-duo-wolf)]">结算来源</span>
+              <strong className="text-[var(--color-duo-yellow-ink)]">托管资金按裁决划转（非平台垫资）</strong>
             </div>
             <div className={KV_ROW}>
               <span className="text-[var(--color-duo-wolf)]">服务者处置</span>
-              <strong className="text-[var(--color-duo-green-ink)]">零扣罚 · 零信用减分 · 即时结案</strong>
+              <strong className="text-[var(--color-duo-green-ink)]">即时结案 · 按裁决结果划转</strong>
             </div>
           </section>
         ) : (
@@ -554,7 +553,7 @@ export default function ArbitrationSheet({
           </section>
         )}
 
-        {/* ③ 分级出口：L2 隔离墙双出口 / L1 一键秒赔 / L3 法务直连 */}
+        {/* ③ 分级出口：L2 隔离墙双出口 / L1 确认即时裁决 / L3 法务直连 */}
         {isLevel1 ? (
           <div className="mt-3.5 flex gap-2.5">
             <DuoButton
@@ -563,7 +562,7 @@ export default function ArbitrationSheet({
               data-action="instant-compensate"
               onClick={onInstantCompensate}
             >
-              ⚡ 一键秒级补偿（扣除平台体验保障金）
+              ⚡ 确认即时裁决（证据齐全秒出结果）
             </DuoButton>
           </div>
         ) : isLevel3 ? (

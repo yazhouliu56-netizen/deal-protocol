@@ -92,10 +92,13 @@ describe("evaluateIssuance 签发门禁", () => {
     expect(v.notes).toContain("agreement-unverified");
   });
 
-  it("HARD 恒转人工（置信度满分也不自动）", () => {
+  it("HARD 无证据完备不自动（议会级置信＋COMPLETE 才放行）", () => {
     const v = evaluateIssuance({ ...ok, tier: "HARD", confidence: 1 });
     expect(v.decision).toBe("REVIEW");
-    expect(v.reasons).toContain("hard-tier-manual");
+    expect(v.reasons).toContain("hard-needs-review");
+    const auto = evaluateIssuance({ ...ok, tier: "HARD", confidence: 0.9, evidence: "COMPLETE" });
+    expect(auto.decision).toBe("AUTO");
+    expect(auto.reasons).toEqual([]);
   });
 
   it("置信度低于自动线 → REVIEW", () => {
@@ -118,7 +121,7 @@ describe("evaluateIssuance 签发门禁", () => {
 
   it("多拦截原因全部收集（审计完备）", () => {
     const v = evaluateIssuance({ ...ok, tier: "HARD", confidence: 0.5, evidence: "NONE" });
-    expect(v.reasons).toEqual(expect.arrayContaining(["hard-tier-manual", "low-confidence", "no-evidence"]));
+    expect(v.reasons).toEqual(expect.arrayContaining(["hard-needs-review", "low-confidence", "no-evidence"]));
   });
 
   it("弹药可调高自动线（品类收紧）", () => {

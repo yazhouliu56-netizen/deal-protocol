@@ -120,8 +120,9 @@ export interface IssuanceVerdict {
 
 /**
  * 签发门禁：全部通过才 AUTO，有任一拦截即 REVIEW。
- * MEDIUM 经议会仲裁（council）且高置信仍可 AUTO——议会本身即复核；
- * 仅 HARD 恒为人工。
+ * MEDIUM/HARD 经议会仲裁（council 本身即复核）：高置信＋证据完备仍可 AUTO；
+ * HARD 另需证据 COMPLETE（大额无完整证据链不自动，REVIEW 进人工抽查列）。
+ * 全自动纪律：REVIEW 仅极少数低置信/证据不全 HARD 可达，无人工值守队列。
  */
 export function evaluateIssuance(
   input: IssuanceInput,
@@ -129,7 +130,12 @@ export function evaluateIssuance(
 ): IssuanceVerdict {
   const reasons: string[] = [];
   const notes: string[] = [];
-  if (input.tier === "HARD") reasons.push("hard-tier-manual");
+  if (
+    input.tier === "HARD" &&
+    !(input.confidence >= policy.autoConfidence && input.evidence === "COMPLETE")
+  ) {
+    reasons.push("hard-needs-review");
+  }
   if (!(input.confidence >= policy.autoConfidence)) reasons.push("low-confidence");
   if (input.evidence === "NONE") reasons.push("no-evidence");
   if (input.responderCounterEvidence) reasons.push("counter-evidence-manual");

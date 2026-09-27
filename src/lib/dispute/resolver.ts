@@ -1,6 +1,7 @@
 import { getServiceClient } from "@/lib/supabase-client"
 import { arbitrate } from "@/lib/arbitration"
 import { hasResponderCounterEvidence } from "./counter-evidence"
+import { rankPrecedents, type CitedPrecedent } from "../arbitration/civil-code"
 import {
   appealDeadline,
   classifyEvidence,
@@ -77,49 +78,29 @@ export async function resolveDispute(
   const contractAmount = contract.amount
   const evidenceState = classifyEvidence(dispute.evidence);
   const tier = determineTierWithPolicy(contractAmount, policy)
-  // 侧归属实读：被发起侧举证（responder_evidence）非空即转人工。
+  // 被发起侧举证实读（侧归属：responder_evidence 非空即转人工）。
   const responderCounterEvidence = hasResponderCounterEvidence(
     (dispute as { responder_evidence?: unknown }).responder_evidence,
   );
-  const issuance = evaluateIssuance(
-    {
-      tier,
-      // HARD 不调用 LLM：confidence 置 0，门禁必拦截（hard-tier-manual）。
-      confidence: 0,
-      evidence: evidenceState,
-      agreementSigned: readAgreementSigned(contract.terms),
-      responderCounterEvidence,
-    },
-    policy,
-  );
-
-  // HARD 强制人工：不调用 arbitrate()（其 HARD 分支抛错），直接挂 PENDING_REVIEW。
-  // 修复旧行为：HARD 抛错导致争议永久 OPEN、无人接管。
-  if (tier === "HARD") {
-    const envelope = { gate: issuance, policy };
-    const { error } = await supabase
-      .from('disputes')
-      .update({
-        status: 'PENDING_REVIEW',
-        resolution: 'HARD 级争议转人工仲裁',
-        tier,
-        llm_verdict: JSON.stringify(envelope),
-        needs_human_review: true,
-      })
-      .eq('id', dispute.id);
-    if (error) throw error;
-    return {
-      resolution: 'HARD 级争议转人工仲裁',
-      providerAmount: 0,
-      customerAmount: 0,
-      issuance,
-      appealUntil: null,
-    };
-  }
 
   const serviceTitle = contract.terms
     ? (() => { try { const t = JSON.parse(contract.terms); return t.title ?? "服务订单" } catch { return "服务订单" } })()
     : "服务订单"
+
+  // 库内先例（binding 优先 top 3；空表即无：不伪造案例、不联网现查）。
+  let precedents: CitedPrecedent[] = [];
+  try {
+    const { data: precRows } = await supabase
+      .from('precedents')
+      .select('summary, ruling_principle, binding')
+      .limit(20);
+    precedents = rankPrecedents(
+      ((precRows ?? []) as { summary?: string; ruling_principle?: string; binding?: boolean }[]),
+      dispute.reason ?? "",
+    );
+  } catch {
+    /* 无先例即无，不阻断仲裁 */
+  }
 
   const verdict = await arbitrate({
     disputeId: dispute.id,
@@ -132,10 +113,11 @@ export async function resolveDispute(
     responderId: dispute.initiator_id === contract.customer_id
       ? contract.provider_id
       : contract.customer_id,
+    precedents,
   })
 
   // ADR-0021 签发门禁：LLM 输出只是《仲裁建议书》，能否生效看门禁。
-  // MEDIUM 经议会仲裁且高置信仍可 AUTO（议会本身即复核）；仅 HARD 恒人工（上已返回）。
+  // MEDIUM/HARD 经议会仲裁（议会本身即复核）；HARD 另需证据 COMPLETE 方可 AUTO。
   const gate = evaluateIssuance(
     {
       tier,
@@ -149,8 +131,13 @@ export async function resolveDispute(
   const autoExecutable = gate.decision === "AUTO";
   const resolutionStatus = autoExecutable ? 'RESOLVED' : 'PENDING_REVIEW'
   // 终裁申诉窗：窗内资金冻结不划转（ADR-0021 §三；调用方据 appealUntil 延期划转）。
+  // 秒仲裁：EASY 终裁即时执行（窗零）；中大额留 72h 申诉窗。
   const nowMs = Date.now();
-  const appealUntil = autoExecutable ? appealDeadline(nowMs, policy.appealWindowHours) : null;
+  const appealUntil = autoExecutable
+    ? tier === "EASY"
+      ? nowMs
+      : appealDeadline(nowMs, policy.appealWindowHours)
+    : null;
 
   const { error: disputeUpdateError } = await supabase
     .from('disputes')
@@ -175,7 +162,8 @@ export async function resolveDispute(
   if (disputeUpdateError) throw disputeUpdateError
 
   if (!autoExecutable) {
-    // 门禁拦截：标记需人工复核，不继续执行（修复旧行为：REVIEW 仍被划转）。
+    // 门禁拦截：标记需人工抽查列，不继续执行（修复旧行为：REVIEW 仍被划转；
+    // 全自动纪律：REVIEW 仅极少数低置信/证据不全可达，admin/disputes 可见抽查）。
     return {
       resolution: verdict.resolution,
       providerAmount: verdict.providerAmount,
@@ -272,7 +260,10 @@ export async function processPendingDisputes(): Promise<string[]> {
     }
 
     const elapsedHours = (Date.now() - new Date(dispute.created_at).getTime()) / (1000 * 60 * 60)
-    const llmElapsed = elapsedHours >= channel.llmHours
+    // 秒仲裁：证据链 COMPLETE 即时触发，不等 llmHours 整点。
+    const evidenceComplete =
+      classifyEvidence((dispute as { evidence?: unknown }).evidence) === "COMPLETE";
+    const llmElapsed = evidenceComplete || elapsedHours >= channel.llmHours
 
     if (!llmElapsed) continue
 
@@ -287,7 +278,7 @@ export async function processPendingDisputes(): Promise<string[]> {
           getProtocol(contract.protocol_id)?.dispute ?? null,
         );
 
-        // ADR-0021 划转唯一闸口（pur核 decideRefundTiming）：REVIEW 只排队人工，
+        // ADR-0021 划转唯一闸口（pur核 decideRefundTiming）：REVIEW 只排队人工抽查列，
         // AUTO 窗内冻结等窗过（修复旧行为：REVIEW 仍被退款）。
         const timing = decideRefundTiming(decision.issuance.decision, decision.appealUntil, Date.now());
         if (timing === "QUEUE_REVIEW") {

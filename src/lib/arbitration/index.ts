@@ -18,7 +18,9 @@ export async function arbitrate(req: ArbitrationRequest): Promise<ArbitrationVer
     case "MEDIUM":
       return councilArbitrate(req)
     case "HARD":
-      throw new Error("HARD 级别争议需人工仲裁")
+      // 全自动纪律：无人工队列，HARD 同走议会（议会本身即复核；
+      // 门禁仍按议会级置信＋证据完备度把关，见 evaluateIssuance）。
+      return councilArbitrate(req)
     default:
       return singleArbitrate(req)
   }

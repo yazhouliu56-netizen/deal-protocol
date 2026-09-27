@@ -1,5 +1,6 @@
 import { callLLM } from "@/lib/llm"
 import type { ArbitrationRequest, ArbitrationVerdict, CouncilVote } from "./types"
+import { civilCodePromptBlock, precedentsPromptBlock } from "./civil-code"
 
 const PERSONAS = [
   {
@@ -9,7 +10,8 @@ const PERSONAS = [
 - 没有充分证据的诉求一概不支持
 - 严格按合同金额分配责任
 - 关注法律条文和先例逻辑
-- 不接受情感诉求和假设性陈述`,
+- 不接受情感诉求和假设性陈述
+${civilCodePromptBlock()}`,
   },
   {
     id: "consumer_advocate",
@@ -38,6 +40,7 @@ const COUNCIL_SYSTEM = `你是一个争议仲裁协调员。你的职责是汇�
 - 最终裁决必须有清晰的依据`
 
 function buildPrompt(req: ArbitrationRequest): string {
+  const precedentBlock = precedentsPromptBlock(req.precedents ?? []);
   return `请裁决以下争议：
 
 服务: ${req.serviceTitle}
@@ -45,7 +48,7 @@ function buildPrompt(req: ArbitrationRequest): string {
 发起方: ${req.initiatorId} 发起争议
 争议原因: ${req.reason}
 证据: ${req.evidence}
-
+${precedentBlock ? `\n${precedentBlock}\n` : ""}
 请按以下JSON格式返回裁决（不要任何额外文字）：
 {
   "resolution": "简要裁决说明（30字以内）",

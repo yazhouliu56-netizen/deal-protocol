@@ -77,7 +77,7 @@ async function clickAction(
 /* ============ 1. 三级分流判定纯函数 ============ */
 
 describe("resolveArbitrationLevel 三级分流判定", () => {
-  it("金额 25 元且无安全告警 → LEVEL_1（小额秒赔）", () => {
+  it("金额 25 元且无安全告警 → LEVEL_1（小额秒裁）", () => {
     expect(resolveArbitrationLevel(25, false)).toBe("LEVEL_1");
   });
 
@@ -85,7 +85,7 @@ describe("resolveArbitrationLevel 三级分流判定", () => {
     expect(resolveArbitrationLevel(30, false)).toBe("LEVEL_1");
   });
 
-  it("金额 200 元 → LEVEL_2（AI+人工双轨）", () => {
+  it("金额 200 元 → LEVEL_2（AI 议会裁决）", () => {
     expect(resolveArbitrationLevel(200, false)).toBe("LEVEL_2");
   });
 
@@ -115,18 +115,18 @@ describe("resolveArbitrationLevel 三级分流判定", () => {
 
 /* ============ 2. Level 1 渲染（25 元） ============ */
 
-describe("Level 1 · 小额秒赔卡", () => {
-  it("金额 25 元 → 渲染 🟢 Level 1 秒赔卡 + 一键秒赔按钮，无 AI 建议卡", () => {
+describe("Level 1 · 小额秒裁卡", () => {
+  it("金额 25 元 → 渲染 🟢 Level 1 秒裁卡 + 确认即时裁决按钮，无 AI 建议卡", () => {
     const html = renderStatic({ disputeAmountYuan: 25 });
     expect(html).toContain("data-level=\"LEVEL_1\"");
     expect(html).toContain("🟢 Level 1 极小额争议");
     expect(html).toContain("data-testid=\"instant-compensate-card\"");
-    expect(html).toContain("一键秒级补偿");
+    expect(html).toContain("确认即时裁决");
     expect(html).not.toContain("data-testid=\"ai-proposal-card\"");
     expect(html).not.toContain("data-action=\"accept-proposal\"");
   });
 
-  it("秒赔按钮 → 触发 onInstantCompensate 回调", async () => {
+  it("秒裁按钮 → 触发 onInstantCompensate 回调", async () => {
     const calls = await clickAction(
       { disputeAmountYuan: 25 },
       "instant-compensate",
@@ -134,16 +134,16 @@ describe("Level 1 · 小额秒赔卡", () => {
     expect(calls).toEqual(["instant-compensate"]);
   });
 
-  it("L1 秒赔卡标注平台体验保障金与零扣罚", () => {
+  it("L1 秒裁卡标注托管划转（非平台垫资，先行赔付已砍）", () => {
     const html = renderStatic({ disputeAmountYuan: 25 });
-    expect(html).toContain("平台体验保障金");
-    expect(html).toContain("零扣罚");
+    expect(html).toContain("非平台垫资");
+    expect(html).not.toContain("平台体验保障金");
   });
 });
 
 /* ============ 3. Level 2 渲染（200 元） ============ */
 
-describe("Level 2 · AI + 人工双轨", () => {
+describe("Level 2 · AI 议会裁决", () => {
   it("金额 200 元 → 渲染 🟡 Level 2 + AI 建议卡 + 双出口", () => {
     const html = renderStatic({ disputeAmountYuan: 200 });
     expect(html).toContain("data-level=\"LEVEL_2\"");
