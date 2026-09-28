@@ -258,6 +258,11 @@ export interface IComplianceSplitInstruction {
   platformFeeYuan: number;
   /** 需求方退款（阶梯退款场景原路退回额）。 */
   demanderRefundYuan: number;
+  /**
+   * 随单险直付额（R-0928-13/F：总额内切给持牌保险机构，不沉淀；
+   * 缺省 0 跳过；E 组费率回来填数，代码不动第二遍）。
+   */
+  insurancePremiumYuan?: number;
   /** 指令确定性签名（djb2 摘要占位，生产注入密钥中心签名）。 */
   instructionSignature: string;
   /** 平台钱包为只读镜像（信息流/资金流分离的法务声明）。 */
@@ -303,17 +308,18 @@ export function djb2Signature(input: string): string {
  * 派生；指令携带 djb2 确定性签名（isMirrorLedgerOnly 恒定 true，
  * 声明平台钱包仅为只读镜像——信息流与资金流分离）。
  *
- * 金额守恒校验：分账总额（split + fee + refund）≡ 结算总额
- * （防资金凭空多分；传入总额缺省按三者之和推导）。
+ * 金额守恒校验：分账总额（split + fee + refund + insurance）≡ 结算总额
+ * （防资金凭空多分；传入总额缺省按四者之和推导；insurance 缺省 0 跳过）。
  */
 export function generateComplianceSplitInstruction(
   settlement:
-    | { platformFee: number; providerNet: number; demanderRefund?: number }
+    | { platformFee: number; providerNet: number; demanderRefund?: number; insurancePremium?: number }
     | {
         refundToDemander: number;
         payToProvider: number;
         platformFee: number;
         providerNet?: never;
+        insurancePremium?: number;
       },
   channel: ComplianceChannel,
   opts: {
@@ -336,6 +342,7 @@ export function generateComplianceSplitInstruction(
     demanderRefund?: number;
     refundToDemander?: number;
     payToProvider?: number;
+    insurancePremium?: number;
   };
   const platformFee = round2c(Math.max(0, s.platformFee ?? 0));
   const splitAmountYuan = round2c(
@@ -344,6 +351,7 @@ export function generateComplianceSplitInstruction(
   const demanderRefundYuan = round2c(
     Math.max(0, s.demanderRefund ?? s.refundToDemander ?? 0),
   );
+  const insurancePremiumYuan = round2c(Math.max(0, s.insurancePremium ?? 0));
   const instructionId = `split-${opts.orderId}-${channel}`;
   const masterAccountId = opts.masterAccountId ?? COMPLIANCE_MASTER_ACCOUNT_MAP[channel];
   const providerSubWalletId =
@@ -351,7 +359,7 @@ export function generateComplianceSplitInstruction(
   const signatureSecret = opts.signatureSecret ?? "deal-protocol";
   const createdAt = opts.now ?? Date.now();
   const instructionSignature = djb2Signature(
-    `${instructionId}|${splitAmountYuan}|${platformFee}|${demanderRefundYuan}|${masterAccountId}|${signatureSecret}`,
+    `${instructionId}|${splitAmountYuan}|${platformFee}|${demanderRefundYuan}|${insurancePremiumYuan}|${masterAccountId}|${signatureSecret}`,
   );
   return {
     instructionId,
@@ -363,6 +371,7 @@ export function generateComplianceSplitInstruction(
     splitAmountYuan,
     platformFeeYuan: platformFee,
     demanderRefundYuan,
+    ...(insurancePremiumYuan > 0 ? { insurancePremiumYuan } : {}),
     instructionSignature,
     isMirrorLedgerOnly: true,
     currency: "CNY",

@@ -594,3 +594,32 @@ test("漏洞四：自定义存管大账户/子账户/签名密钥可注入", () 
   assert.equal(ins.splitAmountYuan, 45);
   assert.equal(ins.demanderRefundYuan, 50);
 });
+
+test("随单险位（R-0928-13/F）：缺省 0 跳过，>0 进指令＋签名＋守恒", () => {
+  const opts = { orderId: "esc-23", receiverAccountId: "p1" };
+  const zero = generateComplianceSplitInstruction(
+    { platformFee: 10, providerNet: 170 },
+    "WECHAT_PAY",
+    opts,
+  );
+  assert.equal(zero.insurancePremiumYuan, undefined);
+  const withIns = generateComplianceSplitInstruction(
+    { platformFee: 10, providerNet: 170, insurancePremium: 20 },
+    "WECHAT_PAY",
+    opts,
+  );
+  assert.equal(withIns.insurancePremiumYuan, 20);
+  assert.notEqual(withIns.instructionSignature, zero.instructionSignature);
+  // 守恒：师傅实收＋平台费＋退款＋随单险 ≡ 结算总额（200）。
+  assert.equal(
+    withIns.splitAmountYuan + withIns.platformFeeYuan + withIns.demanderRefundYuan + (withIns.insurancePremiumYuan ?? 0),
+    200,
+  );
+  // 非法输入钳制：负数/NaN 按 0 计，不污染指令。
+  const bad = generateComplianceSplitInstruction(
+    { platformFee: 10, providerNet: 170, insurancePremium: Number.NaN },
+    "WECHAT_PAY",
+    opts,
+  );
+  assert.equal(bad.insurancePremiumYuan, undefined);
+});
