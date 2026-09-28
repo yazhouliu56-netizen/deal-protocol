@@ -93,8 +93,8 @@ test("预约爽约档投影（R-0928-12）：双档落 stage 1，语义谁赔谁
     },
   } as unknown as Parameters<typeof projectRefundRules>[0]);
   assert.deepEqual(rules, [
-    { stage: 1, customerGets: "all" },
-    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest" },
+    { stage: 1, customerGets: "all", withinHours: 24 },
+    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest", withinHours: 24 },
   ]);
 });
 
@@ -103,8 +103,8 @@ test("supportsBooking 全能开关＋全开默认：无自带档自动附加标�
     holographic: { supportsBooking: true },
   } as unknown as Parameters<typeof projectRefundRules>[0]);
   assert.deepEqual(auto, [
-    { stage: 1, customerGets: "all" },
-    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest" },
+    { stage: 1, customerGets: "all", withinHours: 24 },
+    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest", withinHours: 24 },
   ]);
   // 全开默认：无 flag 同自动附加。
   const def = projectRefundRules({
@@ -124,7 +124,7 @@ test("supportsBooking 全能开关＋全开默认：无自带档自动附加标�
       ],
     },
   } as unknown as Parameters<typeof projectRefundRules>[0]);
-  assert.deepEqual(self, [{ stage: 1, customerGets: "all" }]);
+  assert.deepEqual(self, [{ stage: 1, customerGets: "all", withinHours: 24 }]);
 });
 
 /* ══════════════════════════════════════════════════════════════════════
