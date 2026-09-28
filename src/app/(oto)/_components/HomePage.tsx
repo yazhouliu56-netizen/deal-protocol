@@ -16,6 +16,7 @@ import HomeTopBar from "./HomeTopBar";
 import AmmoPillBar from "./AmmoPillBar";
 import HeroAiDemandCabin from "./HeroAiDemandCabin";
 import FloatingSosButton from "./FloatingSosButton";
+import FloatingRecordButton from "./FloatingRecordButton";
 import HomeDraftSheet from "./HomeDraftSheet";
 import CartSheet from "./CartSheet";
 import PublishSheet from "@/components/waves/PublishSheet";
@@ -293,6 +294,8 @@ export default function HomePage() {
       />
       {/* Batch③-1：AR 悬浮 pill 撤除（入口见雷达段 radar-ar-entry）；SOS 按 §3 裁决 C：有在途单隐藏（胶囊 SOS 在位），无单保留兜底。 */}
       <FloatingSosButton waveId={activeWave?.id} hidden={activeWave !== null} />
+      {/* R-0928-10 对称布局：SOS 右下，一键录音左下；同 hidden 规则（座舱内由 GuardStrip 承接）。 */}
+      <FloatingRecordButton demandId={null} hidden={activeWave !== null} />
     </div>
   );
 }

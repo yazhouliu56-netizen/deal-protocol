@@ -5,6 +5,7 @@
  * 无便捷开关（用户裁决）；失败静默保最后已知态（宪法 #10）。
  */
 import { useGuardWatch, type GuardSideState } from "@/hooks/useGuardWatch";
+import { useRecording } from "@/hooks/useRecording";
 
 export interface GuardDescription {
   tone: "standby" | "live" | "warn" | "lost" | "tamper";
@@ -84,6 +85,8 @@ const TONE_CLASS: Record<GuardDescription["tone"], string> = {
 
 export default function GuardStrip({ demandId }: { demandId: string | null }) {
   const w = useGuardWatch(demandId);
+  // B 档自保录音（R-0928-08；A 档自动触发由后端节点流驱动，C 档钩子内拒收）。
+  const r = useRecording({ tier: "B", demandId });
   if (!demandId) return null;
   if (w.loading && !w.self && !w.peer) {
     return (
@@ -113,6 +116,25 @@ export default function GuardStrip({ demandId }: { demandId: string | null }) {
           {w.checkingIn ? "上报中…" : "✅ 我安全，报平安"}
         </button>
       )}
+      <button
+        type="button"
+        data-testid="guard-record"
+        onClick={() => {
+          if (r.phase === "recording" || r.phase === "uploading") void r.stop();
+          else void r.start();
+        }}
+        className="touch-target mt-2 w-full rounded-xl border-2 border-[var(--color-duo-red)] px-3 py-2 text-xs font-extrabold text-[var(--color-duo-red)]"
+      >
+        {r.phase === "recording"
+          ? `⏹ 停止上传（${r.seconds}s）`
+          : r.phase === "uploading"
+            ? "上传中…"
+            : r.phase === "sealed"
+              ? "🔒 已封存 · 再录一段"
+              : "● 一键录音"}
+      </button>
+      {r.locked && <p className="mt-1 font-semibold opacity-90">录音保护中（完工自动关）</p>}
+      {r.error && <p className="mt-1 font-semibold opacity-90">{r.error}</p>}
     </section>
   );
 }

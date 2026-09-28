@@ -99,4 +99,10 @@ describe("GuardStrip 静态渲染", () => {
     expect(html).toContain('data-testid="guard-strip"');
     expect(html).toContain("守护加载中");
   });
+
+  it("加载态不含操作按钮（首帧无 checkin/录音，避免误点）", () => {
+    const html = renderToStaticMarkup(<GuardStrip demandId="d-1" />);
+    expect(html).not.toContain('data-testid="guard-checkin"');
+    expect(html).not.toContain('data-testid="guard-record"');
+  });
 });
