@@ -90,6 +90,9 @@ function mockAll() {
                 eq: () => ({
                   select: async () => ({ data: [{ id: "d-1" }], error: null }),
                 }),
+                in: () => ({
+                  select: async () => ({ data: [{ id: "d-1" }], error: null }),
+                }),
               };
             }
             return Promise.resolve({ error: null });
@@ -180,6 +183,23 @@ describe("POST assign · 撞单保护（R-0928-12）", () => {
     expect(res.status).toBe(409);
     expect(json.code).toBe("SLOT_CONFLICT");
     expect(updateCalls).toBe(0);
+  });
+
+  it("预约单（BOOKED）可提前接：锁定时段", async () => {
+    demandRow = {
+      id: "d-1",
+      demander_id: "demander-1",
+      title: "保洁",
+      status: "BOOKED",
+      timeslot_start: iso(NOW + 7 * 24 * H),
+      timeslot_end: iso(NOW + 7 * 24 * H + 2 * H),
+    };
+    activeRows = [];
+    mockAll();
+    const res = await POST(makeReq());
+    const json = (await res.json()) as { success: boolean };
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
   });
 
   it("在途查询异常：fail-open 放行 200", async () => {

@@ -80,6 +80,21 @@ export function slotsOverlap(aStartMs: number, aEndMs: number, bStartMs: number,
   return aStartMs < bEndMs && bStartMs < aEndMs;
 }
 
+/**
+ * BOOKED 到期有效态（R-0928-12 惰性转语义）：预约开始时间已到即视为 OPEN。
+ * 写回由 cron 兜底（guard-booking 每日扫）；热路径读此函数，不等 cron。
+ */
+export function effectiveDemandStatus(
+  status: string,
+  timeslotStart: string | null,
+  nowMs: number,
+): string {
+  if (status !== DEMAND_STATUSES.BOOKED) return status;
+  const startMs = timeslotStart ? Date.parse(timeslotStart) : NaN;
+  if (!Number.isFinite(startMs)) return status;
+  return startMs <= nowMs ? DEMAND_STATUSES.OPEN : status;
+}
+
 /** 新时段是否撞上已有任一时段（任一端缺失即不判，fail-open 由调用方 409 门执行）。 */
 export function hasSlotConflict(
   existing: { timeslot_start: string | null; timeslot_end: string | null }[],

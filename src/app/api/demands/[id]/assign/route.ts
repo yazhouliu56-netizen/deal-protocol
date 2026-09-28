@@ -117,6 +117,7 @@ export const POST = withAuth(async (req, user, ...args) => {
     homeAccess: cluster === "C2_IN_HOME",
   })
 
+  // R-0928-12：预约单可提前接（锁定时段，撞单门已在上游执行）。
   const { data: updated, error } = await supabase
     .from("demands")
     .update({
@@ -124,7 +125,7 @@ export const POST = withAuth(async (req, user, ...args) => {
       matched_provider_id: providerId,
     })
     .eq("id", demandId)
-    .eq("status", DEMAND_STATUSES.OPEN)
+    .in("status", [DEMAND_STATUSES.OPEN, DEMAND_STATUSES.BOOKED])
     .select()
 
   if (error) {

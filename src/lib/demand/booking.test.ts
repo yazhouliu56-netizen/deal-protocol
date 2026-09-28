@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BOOKED_ACTIVE_STATUSES, hasSlotConflict, parseBookingFields, slotsOverlap } from "./booking";
+import { BOOKED_ACTIVE_STATUSES, effectiveDemandStatus, hasSlotConflict, parseBookingFields, slotsOverlap } from "./booking";
 import { DEMAND_STATUSES } from "./state";
 
 const NOW = 1_800_000_000_000;
@@ -72,5 +72,15 @@ describe("slotsOverlap / hasSlotConflict（撞单保护）", () => {
   it("在途集合含 BOOKED 四态", () => {
     expect([...BOOKED_ACTIVE_STATUSES]).toContain(DEMAND_STATUSES.BOOKED);
     expect([...BOOKED_ACTIVE_STATUSES]).toContain(DEMAND_STATUSES.STARTED);
+  });
+});
+
+describe("effectiveDemandStatus（BOOKED 到期惰性转）", () => {
+  it("未到期 BOOKED 保持；到期即 OPEN；非 BOOKED 原样", () => {
+    expect(effectiveDemandStatus("BOOKED", iso(NOW + H), NOW)).toBe("BOOKED");
+    expect(effectiveDemandStatus("BOOKED", iso(NOW - H), NOW)).toBe("OPEN");
+    expect(effectiveDemandStatus("ASSIGNED", iso(NOW - H), NOW)).toBe("ASSIGNED");
+    expect(effectiveDemandStatus("BOOKED", null, NOW)).toBe("BOOKED");
+    expect(effectiveDemandStatus("BOOKED", "not-a-time", NOW)).toBe("BOOKED");
   });
 });

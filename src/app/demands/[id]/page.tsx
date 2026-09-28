@@ -4,6 +4,7 @@ import { getRouteClient } from "@/lib/supabase-route-client"
 import { auth } from "@/lib/auth"
 import AcceptanceCard from "./AcceptanceCard"
 import GuardStrip from "@/components/guard/GuardStrip"
+import ConfirmArrivalButton from "./ConfirmArrivalButton"
 
 /** 履约中四态才挂守护条（OPEN/完工/取消不扰；ADR-0022 需求方侧）。 */
 const GUARD_ACTIVE_STATUSES = ["ASSIGNED", "DEPARTED", "ARRIVED", "STARTED"]
@@ -27,7 +28,7 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
   const supabase = await getRouteClient()
   const { data: demand, error } = await supabase
     .from("demands")
-    .select("id, title, price, status, released_at, demander_id, client_id, customer_id")
+    .select("id, title, price, status, released_at, demander_id, client_id, customer_id, matched_provider_id, arrival_confirmed_at")
     .eq("id", id)
     .single()
 
@@ -66,6 +67,12 @@ export default async function DemandAcceptancePage({ params }: PageProps) {
         {GUARD_ACTIVE_STATUSES.includes(demand.status) && (
           <div className="mt-4">
             <GuardStrip demandId={demand.id} />
+          </div>
+        )}
+        {/* R-0928-08 双确认之第二票：师傅已到＋尚未确认才露 */}
+        {demand.status === "ARRIVED" && demand.matched_provider_id && !demand.arrival_confirmed_at && (
+          <div className="mt-4">
+            <ConfirmArrivalButton demandId={demand.id} />
           </div>
         )}
       </div>
