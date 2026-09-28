@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/api-auth";
 import { getRouteClient } from "@/lib/supabase-route-client";
 import { getServiceClient } from "@/lib/supabase-client";
 import { checkGuardMembership } from "@/lib/guard-watch";
+export { GET } from "./guard-get";
 
 /**
  * POST /api/guard/recording（R-0928-08/09）：
