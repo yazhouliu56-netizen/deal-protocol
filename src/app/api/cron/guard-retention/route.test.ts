@@ -66,7 +66,7 @@ beforeEach(() => {
     if (table === "evidence_log") {
       return {
         select: () => ({
-          eq: (col: string, val: string) => ({
+          eq: (_col: string, _val: string) => ({
             order: () => ({ limit: async () => ({ data: anchors, error: null }) }),
             eq: (_c2: string, v2: string) => ({
               limit: async () => ({
