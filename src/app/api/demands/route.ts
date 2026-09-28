@@ -80,27 +80,40 @@ async function createProtocolWithDemand(
   body: Record<string, unknown>,
   info?: Record<string, unknown>,
   dues?: { publishFeeDue: number; customPlatformDue: number },
+  booking?: { status: string; timeslotStart: string | null; timeslotEnd: string | null } | null,
 ) {
   const { data: protocol, error } = await svc.from('protocols').insert(payload).select().single()
   if (error || !protocol) throw error ?? new Error("Protocol insert failed")
 
-  const demandRow = {
+  const withSlot = booking != null && booking.timeslotStart != null && booking.timeslotEnd != null
+  const demandRow: Record<string, unknown> = {
     protocol_id: protocol.id,
     demander_id: userId,
     client_id: userId,
     customer_id: userId,
     title: (info?.title ?? body.title ?? '未命名需求') as string,
     price: resolveDemandPrice(body, info),
-    status: 'OPEN',
+    status: booking?.status ?? 'OPEN',
     // P5b：应收落行（实收在 escrow 支付时并入；列缺席的老库由迁移补）。
     publish_fee_due: dues?.publishFeeDue ?? 0,
     custom_platform_due: dues?.customPlatformDue ?? 0,
+    // R-0928-12 预约时段（即时单不带键，老库字节等价；缺列老库走下方 fallback）。
+    ...(withSlot ? { timeslot_start: booking.timeslotStart, timeslot_end: booking.timeslotEnd } : {}),
   }
   const { error: demandError, data: demandInserted } = await svc.from('demands').insert(demandRow).select('id').single()
   if (demandError) {
+    // 预约单 fail-closed：时段列缺席＝迁移未应用，降级成即时单是错单（会立刻被抢），直接报迁移。
+    if (withSlot && /timeslot_start|timeslot_end/.test(demandError.message)) {
+      await svc.from('protocols').delete().eq('id', protocol.id)
+      throw new Error("预约建单需先应用 timeslot 迁移（20260928_demand_timeslots）")
+    }
     // 列缺席兼容：老库无迁移时退化为无应收建单（费收在 P8 通道落地后统一对账）。
     const missingColumn = /publish_fee_due|custom_platform_due|fee_status/.test(demandError.message)
     if (missingColumn) {
+      if (withSlot) {
+        await svc.from('protocols').delete().eq('id', protocol.id)
+        throw new Error("预约建单需先应用 timeslot 迁移（20260928_demand_timeslots）")
+      }
       const retry = await svc.from('demands').insert({
         protocol_id: protocol.id,
         demander_id: userId,
@@ -281,6 +294,24 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
   try {
     const body = await req.json()
 
+    // R-0928-12 预约建单：未来时段 → BOOKED，否则 OPEN（既有）；非法时段 400。
+    const { parseBookingFields } = await import("@/lib/demand/booking")
+    const bookingParsed = parseBookingFields(
+      body as Record<string, unknown>,
+      Date.now(),
+    )
+    if (!bookingParsed.ok) {
+      return NextResponse.json({ error: bookingParsed.error }, { status: 400 })
+    }
+    const booking =
+      bookingParsed.timeslotStart != null && bookingParsed.timeslotEnd != null
+        ? {
+            status: bookingParsed.status,
+            timeslotStart: bookingParsed.timeslotStart,
+            timeslotEnd: bookingParsed.timeslotEnd,
+          }
+        : null
+
     if (body.text && !body.title) {
       const { classifyDemand } = await import("@/lib/demand/classifier")
       const info = await classifyDemand(body.text)
@@ -298,6 +329,7 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
       const created = await createProtocolWithDemand(
         svc, user.id, payload, body, info as unknown as Record<string, unknown>,
         { publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue },
+        booking,
       )
       const protocol = created.protocol
       if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)
@@ -326,6 +358,7 @@ export const POST = withAuth(async (req, user) => {  const userResult = checkRat
     const created = await createProtocolWithDemand(
       svc, user.id, payload, body, undefined,
       { publishFeeDue: pre.publishFeeDue, customPlatformDue: pre.customPlatformDue },
+      booking,
     )
     const protocol = created.protocol
     if (created.demandId) await insertCustomRows(svc, created.demandId, pre.rows)

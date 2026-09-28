@@ -46,10 +46,37 @@ export const POST = withAuth(async (req, user, ...args) => {
 
   const { data: demandRow } = await supabase
     .from("demands")
-    .select("id, demander_id, title")
+    .select("id, demander_id, title, timeslot_start, timeslot_end")
     .eq("id", demandId)
     .single()
-  const demand = demandRow as { demander_id?: string; title?: string } | null
+  const demand = demandRow as { demander_id?: string; title?: string; timeslot_start?: string | null; timeslot_end?: string | null } | null
+
+  // R-0928-12 撞单保护（供给方重复占时段，判供给方担责）：新单带时段且与
+  // 该服务者任一在途/预约单重叠 → 409（查询异常放行，见 R1 注释同惯例）。
+  if (demand?.timeslot_start && demand?.timeslot_end) {
+    try {
+      const { hasSlotConflict, BOOKED_ACTIVE_STATUSES } = await import("@/lib/demand/booking")
+      const { data: active } = await svc
+        .from("demands")
+        .select("timeslot_start, timeslot_end")
+        .eq("matched_provider_id", providerId)
+        .in("status", [...BOOKED_ACTIVE_STATUSES])
+      const rows = ((active ?? []) as { timeslot_start: string | null; timeslot_end: string | null }[])
+      if (
+        hasSlotConflict(rows, {
+          timeslot_start: demand.timeslot_start,
+          timeslot_end: demand.timeslot_end,
+        })
+      ) {
+        return NextResponse.json(
+          { reason: "接单失败：该时段已有履约单（撞单保护），请先完成或取消已有订单", code: "SLOT_CONFLICT" },
+          { status: 409 },
+        )
+      }
+    } catch {
+      /* 查询异常放行 */
+    }
+  }
 
   // R1 互刷环：同对 30 天已结算≥3 → 409（查询异常放行，见库注释）。
   if (demand?.demander_id) {
