@@ -98,6 +98,29 @@ test("预约爽约档投影（R-0928-12）：双档落 stage 1，语义谁赔谁
   ]);
 });
 
+test("supportsBooking 全能开关：无自带档自动附加标准档，自带不重复，缺省零变化", () => {
+  const auto = projectRefundRules({
+    holographic: { supportsBooking: true },
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.deepEqual(auto, [
+    { stage: 1, customerGets: "all" },
+    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest" },
+  ]);
+  const self = projectRefundRules({
+    holographic: {
+      supportsBooking: true,
+      cancellationTiers: [
+        { stage: "BOOKED_NOSHOW_PROVIDER", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 1 },
+      ],
+    },
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.deepEqual(self, [{ stage: 1, customerGets: "all" }]);
+  const off = projectRefundRules({
+    holographic: {},
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.equal(off, undefined);
+});
+
 /* ══════════════════════════════════════════════════════════════════════
  * ② 动态新弹六引擎路全自动命中（零外部静态表编辑）
  * ══════════════════════════════════════════════════════════════════════ */

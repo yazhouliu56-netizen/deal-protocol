@@ -6,6 +6,7 @@ import {
   HOUSEKEEPING_EVIDENCE,
 } from "@/ammo/housekeeping.ammo"
 import { MEETUP_REFUND_RULES, MEETUP_EVIDENCE } from "@/ammo/meetup.ammo"
+import { CANCELLATION_BOOKED_NOSHOW_STANDARD } from "@/ammo/baseline"
 
 /* ══════════════════════════════════════════════════════════════════════
  * 协议注册表 · P1 步骤二（旧垂直协议旧轨完全收敛）→ D-5 Phase E 资产归位 Base
@@ -169,8 +170,16 @@ function projectAutoTimeoutSeconds(ammo: IAmmoDefinition): number {
 
 /** D6 违约阶梯 → refundRules（demanderRefundRatio → providerRatio = 1 - 退还比；补偿金 → providerMax）。 */
 export function projectRefundRules(ammo: IAmmoDefinition): ProtocolDef["refundRules"] {
-  const tiers = ammo.holographic?.cancellationTiers
-  if (!tiers || tiers.length === 0) return undefined
+  const declared = ammo.holographic?.cancellationTiers ?? [];
+  // R-0928-12 全能型：supportsBooking 弹药自动附加爽约标准档（自带 BOOKED_* 档则不重复）。
+  const hasBooked = declared.some(
+    (t) => t.stage === "BOOKED_NOSHOW_DEMANDER" || t.stage === "BOOKED_NOSHOW_PROVIDER",
+  );
+  const tiers =
+    ammo.holographic?.supportsBooking === true && !hasBooked
+      ? [...declared, ...CANCELLATION_BOOKED_NOSHOW_STANDARD]
+      : declared;
+  if (tiers.length === 0) return undefined;
   const stageByTier: Record<string, number> = {
     BEFORE_MATCH: 0,
     // 预约爽约档 → 1（"成局未出发"语义：已匹配未服务；R-0928-12）。
