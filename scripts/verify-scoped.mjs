@@ -1,5 +1,5 @@
 /**
- * Step 2 · 作用域 E2E：只跑与本次改动相关的链路（替代 13 全量）。
+ * Step 2 · 作用域 E2E：只跑与本次改动相关的链路（替代全量，套件数以 e2e-map 派生）。
  * 用法：
  *   node scripts/verify-scoped.mjs --only=e2e-match.mjs[,e2e-app.mjs]
  *   node scripts/verify-scoped.mjs --files=<f1,f2,...>   (check --full 调用：映射命中，无命中→smoke 退化)

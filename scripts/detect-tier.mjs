@@ -63,9 +63,10 @@ function parseNameStatusZ(out) {
     if (!t) continue;
     const code = t[0];
     if (code === "R" || code === "C") {
+      const score = Number.parseInt(t.slice(1), 10);
       const from = toks[i++] ?? "";
       const to = toks[i++] ?? "";
-      if (to) entries.push({ status: code, path: to, from });
+      if (to) entries.push({ status: code, path: to, from, score: Number.isFinite(score) ? score : null });
     } else {
       const p = toks[i++] ?? "";
       if (p) entries.push({ status: code, path: p });
@@ -179,7 +180,13 @@ function classify(e) {
   if ((e.status === "R" || e.status === "C") && e.from && isGrowthZone(e.from) && isGrowthZone(p)) {
     return ["T1", `growth-zone ${e.from} -> ${p} (e2e/convergence exempt)`];
   }
-  // R/C：任何重命名/复制 = 结构变更，直接 T3（状态机最高优先）。
+  // 七项减负修订（2026-09-28）：R100 内容零改动的纯改名直走 T1，
+  // 安全由 T1 的 tsc+lint+build 全过实证（残留引用必炸编译/构建）。
+  // R<100（含搭车编辑）与 C 复制仍走 T3。
+  if (e.status === "R" && e.score === 100) {
+    return ["T1", `pure-rename ${e.from} -> ${p} (R100, tsc+build verify zero-residue)`];
+  }
+  // R<100（含搭车编辑）与 C 复制仍走 T3（状态机最高优先）。
   if (e.status === "R" || e.status === "C") {
     return ["T3", `${e.status === "R" ? "rename" : "copy"} ${e.from} -> ${p}${e.manual ? " ~manual-pair" : ""}`];
   }

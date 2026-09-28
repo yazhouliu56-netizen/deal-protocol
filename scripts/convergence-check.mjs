@@ -2,7 +2,8 @@
 /**
  * 宪法收敛门禁（CONVERGENCE GATE）
  * 依据 docs/DESIGN_CONSTITUTION.md §2 与 docs/CONVERGENCE-LOG.md：
- * 任何结构性改动（文件 git rename）合入前必须在登记表登记并标注「宪法收敛：条文 #n」。
+ * 语义修订/抽层合入前必须在登记表登记并标注「宪法收敛：条文 #n」；
+ * R100 内容零改动的纯改名免登记（2026-09-28 七项减负修订）。
  *
  * 检测逻辑：
  *   1. 扫描工作区未提交的 git rename（R 状态）——结构性改动信号；
@@ -41,8 +42,10 @@ const stagedRenames = staged
   .split("\n")
   .filter((l) => /^R\d+/.test(l.trim()))
   .map((l) => {
-    const [from, to] = l.trim().split(/\t/).slice(1);
-    return { from, to, text: `${from} -> ${to}` };
+    const parts = l.trim().split(/\t/);
+    const score = Number.parseInt((parts[0] ?? "").slice(1), 10);
+    const [from, to] = parts.slice(1);
+    return { from, to, score: Number.isFinite(score) ? score : null, text: `${from} -> ${to}` };
   });
 
 // §6 特区：两端均在增长区内部的 rename 豁免（实验换名/改路由，保持 T1 构建即可）。
@@ -53,15 +56,25 @@ if (intraGrowthStaged.length > 0) {
 }
 
 if (exoticStaged.length > 0) {
+  // 七项减负修订（2026-09-28）：R100 纯改名免登记（内容零改动，T1 的 tsc+build 实证零残留）。
+  const impure = exoticStaged.filter((r) => r.score !== 100);
+  const pure = exoticStaged.filter((r) => r.score === 100);
+  if (pure.length > 0) {
+    console.log(`  ✓ 纯改名 ×${pure.length}（R100 内容零改动，免收敛登记，直走 T1）`);
+  }
+  if (impure.length === 0) {
+    // 全纯改名：无需 LOG 同台，直接放行。
+  } else {
   // Step 4 同 commit 豁免：rename 与登记表同台暂存 → 放行（提交说明标记由第 2 步在历史侧复核）。
   const stagedNames = sh("git diff --cached --name-only").split("\n").map((l) => l.trim());
   if (stagedNames.includes(LOG)) {
     console.log(`  ✓ rename 与 ${LOG} 同台暂存（同 commit 登记，提交说明须含「宪法收敛」标记）`);
   } else {
     issues++;
-    console.error(`\n✗ 检测到未提交的结构性改动（rename）：`);
-    for (const r of exoticStaged) console.error(`    ${r.text}`);
+    console.error(`\n✗ 检测到未提交的结构性改动（rename，含内容编辑）：`);
+    for (const r of impure) console.error(`    ${r.text}`);
     console.error(`    请在提交说明中标注「宪法收敛：条文 #n」并在 docs/CONVERGENCE-LOG.md 登记该 commit 后再提交。`);
+  }
   }
 }
 
@@ -79,8 +92,10 @@ for (const line of logLines) {
     cur = { hash, subject: subjectParts.join("\t"), renames: [] };
     renameByCommit.set(hash, cur);
   } else if (cur && /^\s*R\d+/.test(line)) {
+    const m = line.match(/^\s*R(\d+)\t/);
+    const score = m ? Number.parseInt(m[1], 10) : null;
     const [from, to] = line.replace(/^\s*R\d+\t/, "").split("\t");
-    cur.renames.push({ from, to, text: `${from} -> ${to}` });
+    cur.renames.push({ from, to, score: Number.isFinite(score) ? score : null, text: `${from} -> ${to}` });
   }
 }
 const logText = readFileSync(resolve(ROOT, LOG), "utf8");
@@ -97,6 +112,12 @@ for (const c of renameByCommit.values()) {
     console.log(`  ✓ ${c.hash} 仅含特区内部 rename ×${c.renames.length}（§6.4 豁免）`);
     continue;
   }
+  // 七项减负修订（2026-09-28）：R100 纯改名直接放行（内容零改动）。
+  const impure = exotic.filter((r) => r.score !== 100);
+  if (impure.length === 0) {
+    console.log(`  ✓ ${c.hash} 仅含纯改名 ×${exotic.length}（R100，免登记）`);
+    continue;
+  }
   const registered = [...listed].some((h) => c.hash.startsWith(h) || h.startsWith(c.hash));
   // Step 4 同 commit 认定：提交说明含「宪法收敛」标记即视为已登记（hash 事前不可知，
   // 登记行随改动同 commit 落表，不再强制事后 docs-sync 补 hash）。
@@ -107,7 +128,7 @@ for (const c of renameByCommit.values()) {
   }
   issues++;
   console.error(`\n✗ 提交 ${c.hash} 「${c.subject}」含结构改动但未在 CONVERGENCE-LOG 登记：`);
-  for (const r of exotic.slice(0, 6)) console.error(`    rename: ${r.text}`);
+  for (const r of impure.slice(0, 6)) console.error(`    rename: ${r.text}`);
   console.error(`    请在提交说明标注「宪法收敛：条文 #n」并到 docs/CONVERGENCE-LOG.md 追加该 commit 行。`);
 }
 
