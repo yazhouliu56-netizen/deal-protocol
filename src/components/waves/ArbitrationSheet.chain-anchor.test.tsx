@@ -132,7 +132,11 @@ describe("ArbitrationSheet 司法证据链常驻锚定（方向 1 接线 A③）
     });
     await act(async () => {});
     await act(async () => {});
-    // open=true 渲染两次 + 重开一次 → 恰好 1 次（首次）+ 重开 1 次 = 2 次 fetch
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    // open=true 渲染两次 + 重开一次 → 存证包校验恰好 1 次（首次）+ 重开 1 次 = 2 次；
+    // 只数 export-judicial-package（录音段等兄弟 fetch 不计入，见 RecordingEvidenceSection）。
+    const anchorCalls = fetchMock.mock.calls.filter((args) =>
+      String(args[0]).includes("export-judicial-package"),
+    );
+    expect(anchorCalls).toHaveLength(2);
   });
 });
