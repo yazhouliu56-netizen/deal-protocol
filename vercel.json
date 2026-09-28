@@ -25,6 +25,10 @@
     {
       "path": "/api/cron/credit-decay",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/guard-retention",
+      "schedule": "0 3 * * *"
     }
   ]
 }
