@@ -35,11 +35,9 @@ export default function RecordingEvidenceSection({ disputeId }: { disputeId: str
   const [note, setNote] = useState("");
 
   useEffect(() => {
+    // 门禁同式：effect 体内零同步 setState（诉求见 useGuardWatch 注释）；
+    // disputeId 切换时旧列表短暂留存（stale-while-revalidate），抽屉按争议重挂，实际不可见。
     let alive = true;
-    setItems(null);
-    setPlaying(null);
-    setSrc(null);
-    setNote("");
     void fetch(`/api/guard/recording?disputeId=${encodeURIComponent(disputeId)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
