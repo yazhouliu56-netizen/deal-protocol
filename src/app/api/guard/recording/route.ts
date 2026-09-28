@@ -19,6 +19,53 @@ const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_MIME = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/ogg", "audio/x-m4a"];
 
 export const POST = withAuth(async (req, user) => {
+  const contentType = req.headers.get("content-type") ?? "";
+  // JSON 否决锚模式（A 档手动关被拒即 TAMPER 留痕，无文件体）。
+  if (contentType.includes("application/json")) {
+    let body: { tier?: unknown; demandId?: unknown };
+    try {
+      body = (await req.json()) as typeof body;
+    } catch {
+      return NextResponse.json({ error: "非法请求体" }, { status: 400 });
+    }
+    if (body.tier !== "A" || typeof body.demandId !== "string" || body.demandId.trim() === "") {
+      return NextResponse.json({ error: "否决锚需 tier=A＋demandId" }, { status: 400 });
+    }
+    const route = await getRouteClient();
+    const { ok } = await checkGuardMembership(route, body.demandId.trim(), user.id);
+    if (!ok) {
+      return NextResponse.json({ error: "仅履约双方可留痕" }, { status: 403 });
+    }
+    const svc = getServiceClient();
+    try {
+      const timestamp = new Date().toISOString();
+      const payload = { demandId: body.demandId.trim(), tier: "A", by: user.id };
+      const hash = createHash("sha256")
+        .update(`RECORDING_TAMPER_DENIED|${body.demandId}|${timestamp}`)
+        .digest("hex");
+      const { error } = await (svc.from("evidence_log") as unknown as {
+        insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }).insert({
+        order_id: null,
+        event_type: "RECORDING_TAMPER_DENIED",
+        payload,
+        payload_ref: null,
+        captured_by: user.id,
+        hash,
+        prev_hash: "GENESIS",
+      });
+      if (error) {
+        return NextResponse.json({ error: `留痕失败：${error.message}` }, { status: 500 });
+      }
+    } catch (err) {
+      return NextResponse.json(
+        { error: `留痕失败：${err instanceof Error ? err.message : "unknown"}` },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
   let form: FormData;
   try {
     form = await req.formData();

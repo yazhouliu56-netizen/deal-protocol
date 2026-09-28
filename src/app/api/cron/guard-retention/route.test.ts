@@ -33,6 +33,7 @@ function anchor(id: string, ageDays: number, tier: string, demandId: string | nu
 let anchors: ReturnType<typeof anchor>[];
 let removed: string[][];
 let marked: { id: string }[];
+let tamperedDemands: Set<string>;
 const savedSecret = process.env.CRON_SECRET;
 
 function getReq(): Request {
@@ -48,6 +49,7 @@ beforeEach(() => {
   svcStorageFrom.mockReset();
   removed = [];
   marked = [];
+  tamperedDemands = new Set(["d-tamper"]);
   anchors = [
     anchor("old-b", 10, "B", "d-1"), // B clean 7 天 → 过期删
     anchor("fresh-b", 2, "B", "d-1"), // 未到期留
@@ -64,8 +66,13 @@ beforeEach(() => {
     if (table === "evidence_log") {
       return {
         select: () => ({
-          eq: () => ({
+          eq: (col: string, val: string) => ({
             order: () => ({ limit: async () => ({ data: anchors, error: null }) }),
+            eq: (_c2: string, v2: string) => ({
+              limit: async () => ({
+                data: tamperedDemands.has(v2) ? [{ id: "t-1" }] : [],
+              }),
+            }),
           }),
         }),
         update: (row: Record<string, unknown>) => ({
@@ -139,5 +146,14 @@ describe("GET /api/cron/guard-retention（R-0928-09）", () => {
     // d-3 全程 OPEN 立案 → disputed 30 天：40 天删，20 天留。
     expect(json.purged).toBe(1);
     expect(marked.map((m) => m.id)).toEqual(["disp-40"]);
+  });
+
+  it("TAMPER 否决优先立案口径（40 天 A 留 90 天档）", async () => {
+    anchors = [anchor("tamper-40", 40, "A", "d-tamper")];
+    const res = await GET(getReq());
+    const json = (await res.json()) as { checked: number; purged: number };
+    expect(json.checked).toBe(1);
+    expect(json.purged).toBe(0);
+    expect(removed).toHaveLength(0);
   });
 });

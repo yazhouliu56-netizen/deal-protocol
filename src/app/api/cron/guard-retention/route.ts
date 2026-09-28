@@ -71,11 +71,29 @@ export async function GET(request: Request) {
     let terminal: TerminalKind = "clean";
     if (demandId) {
       try {
-        const open = await findOpenDispute(
-          svc as unknown as Parameters<typeof findOpenDispute>[0],
-          demandId,
-        );
-        if (open) terminal = "disputed";
+        // TAMPER 否决优先于立案口径（断链信号留最久）。
+        const { data: tamper } = await (svc.from("evidence_log") as unknown as {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => {
+                limit: (n: number) => Promise<{ data: { id: string }[] | null }>;
+              };
+            };
+          };
+        })
+          .select("id")
+          .eq("event_type", "RECORDING_TAMPER_DENIED")
+          .eq("payload->>demandId", demandId)
+          .limit(1);
+        if (tamper && tamper.length > 0) {
+          terminal = "tampered";
+        } else {
+          const open = await findOpenDispute(
+            svc as unknown as Parameters<typeof findOpenDispute>[0],
+            demandId,
+          );
+          if (open) terminal = "disputed";
+        }
       } catch {
         /* 查不到按 clean（宁可晚删，不可误删） */
       }

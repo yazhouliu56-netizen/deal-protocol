@@ -142,4 +142,21 @@ describe("POST /api/guard/recording（R-0928-08/09）", () => {
     expect(res.status).toBe(500);
     expect(anchors).toHaveLength(0);
   });
+
+  it("JSON 否决锚：A＋demandId 留 TAMPER 痕；缺参/非双方 400/403", async () => {
+    const denyReq = (body: unknown) =>
+      new Request("http://localhost:3000/api/guard/recording", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    const res = await POST(denyReq({ tier: "A", demandId: "d-1" }), USER);
+    expect(res.status).toBe(200);
+    expect(anchors).toHaveLength(1);
+    const a = anchors[0] as Record<string, unknown>;
+    expect(a.event_type).toBe("RECORDING_TAMPER_DENIED");
+    expect(a.captured_by).toBe("provider-1");
+    expect((await POST(denyReq({ tier: "B", demandId: "d-1" }), USER)).status).toBe(400);
+    expect((await POST(denyReq({ tier: "A" }), USER)).status).toBe(400);
+  });
 });

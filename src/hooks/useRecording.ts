@@ -99,9 +99,16 @@ export function useRecording(opts: UseRecordingOptions = {}) {
   const stop = useCallback(async (): Promise<boolean> => {
     const verdict = decideStop({ tier, state: phase === "recording" ? "RECORDING" : "IDLE", manual: true });
     if (verdict.action === "deny") {
-      // A 档授权后不可逆：拒绝＋锁定态（tamper 留痕由后端节点流记，另路）。
+      // A 档授权后不可逆：拒绝＋锁定态＋TAMPER 否决锚（留痕，best-effort）。
       setLocked(true);
       setError("录音保护中（完工自动关）");
+      if (demandId) {
+        void fetch("/api/guard/recording", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tier, demandId }),
+        }).catch(() => {});
+      }
       return false;
     }
     if (verdict.action === "noop") return false;
