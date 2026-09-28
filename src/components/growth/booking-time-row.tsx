@@ -22,11 +22,21 @@ const DURATIONS = [
 
 const START_TIMES = ["09:00", "14:00", "19:00"];
 
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
 function toLocalDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 本地墙钟展示（24h 制＋区间）："09-29 14:00–16:00（2 小时）"。ISO 切片是 UTC，会错 8 小时。 */
+export function formatSlotRange(startISO: string, endISO: string): string {
+  const s = new Date(startISO);
+  const e = new Date(endISO);
+  if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime())) return "";
+  const hours = Math.round((e.getTime() - s.getTime()) / 3_600_000);
+  return `${pad(s.getMonth() + 1)}-${pad(s.getDate())} ${pad(s.getHours())}:${pad(s.getMinutes())}–${pad(e.getHours())}:${pad(e.getMinutes())}（${hours} 小时）`;
 }
 
 export function bookingRuleLine(): string {
@@ -136,7 +146,7 @@ export default function BookingTimeRow({
             </div>
           </div>
           <p className="mt-2 font-semibold">
-            已约 {value.startISO.slice(0, 16).replace("T", " ")}（{hours} 小时）
+            已约 {formatSlotRange(value.startISO, value.endISO)}
           </p>
           <p className="mt-1 opacity-80">{bookingRuleLine()}</p>
         </div>
