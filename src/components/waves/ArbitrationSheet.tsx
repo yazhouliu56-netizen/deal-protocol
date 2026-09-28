@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import DarkSheetShell from "@/components/ui/DarkSheetShell";
 import DuoButton from "@/components/ui/DuoButton";
 import DuoPill, { type DuoPillTone } from "@/components/ui/DuoPill";
+import RecordingEvidenceSection from "./RecordingEvidenceSection";
 import type { AtomicFiveState } from "@/types/ammo-schema";
 import { useDragToDismiss } from "@/adapters/ui/useDragToDismiss";
 import type { ForgeryRiskLevel } from "@/base/ai/forgery";
@@ -470,6 +471,9 @@ export default function ArbitrationSheet({
             )}
           </div>
         </section>
+
+        {/* 录音证据段（R-0928-09：立案可听＋播放审计；未立案/无录音自收起） */}
+        <RecordingEvidenceSection disputeId={orderId} />
 
         {/* ② 分级仲裁区：L2 = AI 小法官建议卡（Advisory）；L1/L3 自动切断线上调解 */}
         {isLevel2 ? (

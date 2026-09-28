@@ -105,7 +105,7 @@ async function resolveDemandByDispute(
   }
 }
 
-async function findOpenDispute(
+export async function findOpenDispute(
   svc: SvcLike,
   demandId: string,
 ): Promise<{ id: string } | null> {
