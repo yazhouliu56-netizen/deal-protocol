@@ -160,6 +160,24 @@ test("阶梯退款：无精确匹配时回落最近较低阶段规则", () => {
   assert.deepEqual(calcContractRefund(DEF, 2, 1000), { provider: 30, customer: 970 });
 });
 
+test("阶梯退款时间档（R-0928-12 彻底版）：同 stage 按 hoursBeforeStart 选当日/timeless", () => {
+  const def: IContractProtocolDef = {
+    states: [],
+    transitions: [],
+    refundRules: [
+      { stage: 1, customerGets: "all" },
+      { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest", withinHours: 24 },
+    ],
+  };
+  // 未知时间 → timeless 档（旧行为字节等价，全退）。
+  assert.deepEqual(calcContractRefund(def, 1, 1000), { provider: 0, customer: 1000 });
+  // 24h 外 → timeless 全退；24h 内 → 当日档车马费 30。
+  assert.deepEqual(calcContractRefund(def, 1, 1000, 72), { provider: 0, customer: 1000 });
+  assert.deepEqual(calcContractRefund(def, 1, 1000, 5), { provider: 30, customer: 970 });
+  // 非法 hours → timeless 回落，不抛。
+  assert.deepEqual(calcContractRefund(def, 1, 1000, NaN), { provider: 0, customer: 1000 });
+});
+
 test("阶梯退款：ratio+max 组合取小（min 语义钉死）", () => {
   const def: IContractProtocolDef = {
     states: [],

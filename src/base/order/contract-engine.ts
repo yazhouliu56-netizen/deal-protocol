@@ -75,6 +75,8 @@ export interface IContractRefundRule {
   providerMax?: number;
   providerRatio?: number;
   customerGets: "rest" | "all";
+  /** 当日档限定（R-0928-12）：仅距服务开始不足该小时数时命中；缺席为 timeless 档。 */
+  withinHours?: number;
 }
 
 export interface IContractProtocolDef {
@@ -214,12 +216,35 @@ export function deriveNextActions(
 
 /* =====================================================================
  * 阶梯退款计算（旧轨 calcRefund 忠实移植：规则精确匹配 → 最近较低阶段回落）
+ * R-0928-12 彻底版：同 stage 多档时按 hoursBeforeStart 选时间档
+ * （当日档 withinHours 优先；未知时间沿用 timeless 档，旧行为字节等价）。
  * ===================================================================== */
+
+export function selectRefundRule(
+  rules: readonly IContractRefundRule[],
+  serviceStage: number,
+  hoursBeforeStart?: number,
+): IContractRefundRule | undefined {
+  const exact = rules.filter((r) => r.stage === serviceStage);
+  if (exact.length > 0) {
+    if (hoursBeforeStart == null || !Number.isFinite(hoursBeforeStart)) {
+      return exact.find((r) => r.withinHours == null) ?? exact[0];
+    }
+    const timed = exact.find(
+      (r) => r.withinHours != null && hoursBeforeStart < r.withinHours,
+    );
+    if (timed) return timed;
+    return exact.find((r) => r.withinHours == null) ?? exact[0];
+  }
+  const sorted = [...rules].sort((a, b) => b.stage - a.stage);
+  return sorted.find((r) => r.stage <= serviceStage);
+}
 
 export function calcContractRefund(
   protocolDef: IContractProtocolDef,
   serviceStage: number,
   amount: number,
+  hoursBeforeStart?: number,
 ): { provider: number; customer: number } {
   if (amount <= 0) return { provider: 0, customer: 0 };
 
@@ -229,11 +254,7 @@ export function calcContractRefund(
     return { provider: 0, customer: amount };
   }
 
-  let rule = rules.find((r) => r.stage === serviceStage);
-  if (!rule) {
-    const sorted = [...rules].sort((a, b) => b.stage - a.stage);
-    rule = sorted.find((r) => r.stage <= serviceStage);
-  }
+  const rule = selectRefundRule(rules, serviceStage, hoursBeforeStart);
   if (!rule) {
     return { provider: 0, customer: amount };
   }

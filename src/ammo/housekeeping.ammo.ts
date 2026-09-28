@@ -57,6 +57,8 @@ export type HousekeepingStage = (typeof HOUSEKEEPING_STAGES)[number];
 export const HOUSEKEEPING_REFUND_RULES = [
   { stage: 0, customerGets: "all" },
   { stage: 1, customerGets: "all" },
+  // R-0928-12 彻底版：需求方当日爽约（<24h）赔车马费，上限 ¥30；24h 外沿用上条无损退。
+  { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest", withinHours: 24 },
   { stage: 2, providerRatio: 0.1, providerMax: 30, customerGets: "rest" },
   { stage: 3, providerRatio: 0.15, providerMax: 50, customerGets: "rest" },
   { stage: 4, providerRatio: 0.5, customerGets: "rest" },

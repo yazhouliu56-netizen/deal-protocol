@@ -56,6 +56,36 @@ async function insertNotification({
 
 const notify: NotifyFn = insertNotification;
 
+/**
+ * R-0928-12 彻底版：预约取消时间档。
+ * 由合同 demand_id 回查 demands.timeslot_start，算距开始小时数；
+ * 查不到/无时段/非法 → undefined（引擎沿用 timeless 档，旧行为零变化）。
+ */
+async function resolveHoursBeforeStart(
+  supabase: { from: (t: string) => unknown },
+  contract: { demand_id?: string },
+): Promise<number | undefined> {
+  try {
+    const demandId = contract?.demand_id;
+    if (!demandId) return undefined;
+    const chain = supabase.from("demands") as {
+      select: (cols: string) => {
+        eq: (col: string, val: string) => {
+          single: () => Promise<{ data: { timeslot_start?: string } | null }>;
+        };
+      };
+    };
+    const { data } = await chain.select("timeslot_start").eq("id", demandId).single();
+    const start = data?.timeslot_start;
+    if (!start) return undefined;
+    const ms = Date.parse(start) - Date.now();
+    if (!Number.isFinite(ms)) return undefined;
+    return ms / 3_600_000;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function handleOrderPatch(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -79,6 +109,12 @@ export async function handleOrderPatch(
   if (contractError || !contract) {
     return NextResponse.json({ error: "订单不存在" }, { status: 404 });
   }
+
+  // 预约时间档（R-0928-12）：取消/仲裁退款按距开始小时选当日档，无时段沿旧路。
+  const hoursBeforeStart = await resolveHoursBeforeStart(
+    supabase as unknown as Parameters<typeof resolveHoursBeforeStart>[0],
+    contract as { demand_id?: string },
+  );
 
   const { data: user } = await supabase
     .from('profiles')
@@ -223,7 +259,7 @@ export async function handleOrderPatch(
   if (action === "cancel_before_pay" || action === "cancel_during_service") {
     // 引擎缺席时与旧门面语义一致：无规则默认全退
     const refund = protocolDef
-      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount)
+      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount, hoursBeforeStart)
       : { provider: 0, customer: contract.amount };
     updates.fund_status = "CANCELLED";
     if (action === "cancel_during_service") {
@@ -325,7 +361,7 @@ export async function handleOrderPatch(
     eventMetadata = JSON.stringify(metadata);
   } else if (action === "cancel_before_pay" || action === "cancel_during_service") {
     const refund = protocolDef
-      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount)
+      ? calcContractRefund(protocolDef, contract.service_stage, contract.amount, hoursBeforeStart)
       : { provider: 0, customer: contract.amount };
     eventMetadata = JSON.stringify({ refund });
   }

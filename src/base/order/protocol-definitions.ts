@@ -193,12 +193,18 @@ export function projectRefundRules(ammo: IAmmoDefinition): ProtocolDef["refundRu
   const rules = tiers.map((t) => {
     const stage = stageByTier[t.stage]
     if (stage === undefined) return null
-    if (t.demanderRefundRatio >= 1) return { stage, customerGets: "all" as const }
+    // 预约爽约档自带当日限定（24h 内才命中；提前取消沿用 timeless 档）。
+    const timed =
+      t.stage === "BOOKED_NOSHOW_DEMANDER" || t.stage === "BOOKED_NOSHOW_PROVIDER"
+        ? { withinHours: 24 }
+        : {};
+    if (t.demanderRefundRatio >= 1) return { stage, customerGets: "all" as const, ...timed }
     return {
       stage,
       providerRatio: Math.max(0, 1 - t.demanderRefundRatio),
       providerMax: t.providerCompensationYuan > 0 ? t.providerCompensationYuan : undefined,
       customerGets: "rest" as const,
+      ...timed,
     }
   })
   return rules.filter((r): r is NonNullable<typeof r> => r !== null)

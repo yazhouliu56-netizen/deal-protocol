@@ -370,6 +370,11 @@ export interface ProtocolDef {
     providerMax?: number              // 师傅最多拿多少（如上门费上限¥30）
     providerRatio?: number            // 或按比例（如服务中五五分）
     customerGets: "rest" | "all"     // 剩余给客户 / 全退
+    /**
+     * 当日档限定（R-0928-12 彻底版）：仅当距服务开始不足该小时数时命中
+     * （如 24 = 当日爽约档）；缺席 = 无时间限定（提前取消沿用）。
+     */
+    withinHours?: number
   }>
 
   // 评价 / 证据 / 争议

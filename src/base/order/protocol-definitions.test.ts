@@ -29,7 +29,7 @@ test("housekeeping 投影：7 态 17 转换 + 金额/时机与 ammo 一致", () 
   assert.equal(d.funding.fees.platform_commission, 0.15);
   assert.equal(d.funding.fees.satisfaction_hold, 0.15);
   assert.equal(d.completion.autoTimeoutSeconds, 24 * 3600);
-  assert.equal(d.refundRules?.length, 6);
+  assert.equal(d.refundRules?.length, 7);
   // 退款计算权威在 Base 合同引擎（旧 engine.calcRefund 语义等价）
   assert.deepEqual(calcContractRefund(d, 5, 100), { provider: 50, customer: 50 });
   assert.deepEqual(calcContractRefund(d, 0, 100), { provider: 0, customer: 100 });
@@ -51,6 +51,7 @@ test("meetup 投影：6h 超时 + 分账 0.88 → 佣金 0.12", () => {
   const d = protocolRegistry.get("protocol_meetup")!;
   assert.equal(d.completion.autoTimeoutSeconds, 6 * 3600);
   assert.ok(Math.abs(d.funding.fees.platform_commission - 0.12) < 1e-5);
+  // meetup 双押金语义自带爽约罚（stage 2 no-show-penalty），静态表不动，仍 6 档。
   assert.equal(d.refundRules?.length, 6);
 });
 

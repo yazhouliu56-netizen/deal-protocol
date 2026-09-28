@@ -109,8 +109,9 @@ test("存量协议资产升级：六阶段/退款规则/证据契约投影完整
     "IN_PROGRESS",
     "DONE",
   ]);
-  assert.equal(HOUSEKEEPING_REFUND_RULES.length, 6);
-  assert.deepEqual(HOUSEKEEPING_REFUND_RULES[2], { stage: 2, providerRatio: 0.1, providerMax: 30, customerGets: "rest" });
+  assert.equal(HOUSEKEEPING_REFUND_RULES.length, 7);
+  assert.deepEqual(HOUSEKEEPING_REFUND_RULES[2], { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest", withinHours: 24 });
+  assert.deepEqual(HOUSEKEEPING_REFUND_RULES[3], { stage: 2, providerRatio: 0.1, providerMax: 30, customerGets: "rest" });
   assert.equal(HOUSEKEEPING_EVIDENCE.beforePhoto.required, true);
   assert.equal(HOUSEKEEPING_EVIDENCE.afterPhoto.maxCount, 5);
 });
