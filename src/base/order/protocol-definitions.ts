@@ -171,12 +171,13 @@ function projectAutoTimeoutSeconds(ammo: IAmmoDefinition): number {
 /** D6 违约阶梯 → refundRules（demanderRefundRatio → providerRatio = 1 - 退还比；补偿金 → providerMax）。 */
 export function projectRefundRules(ammo: IAmmoDefinition): ProtocolDef["refundRules"] {
   const declared = ammo.holographic?.cancellationTiers ?? [];
-  // R-0928-12 全能型：supportsBooking 弹药自动附加爽约标准档（自带 BOOKED_* 档则不重复）。
+  // R-0928-12 全能型＋用户裁决全开：supportsBooking 缺省即自动附加（显式 false 才关）。
+  // 自带 BOOKED_* 档不重复；calcContractRefund 暂无线上调用者，快照外零行为影响。
   const hasBooked = declared.some(
     (t) => t.stage === "BOOKED_NOSHOW_DEMANDER" || t.stage === "BOOKED_NOSHOW_PROVIDER",
   );
   const tiers =
-    ammo.holographic?.supportsBooking === true && !hasBooked
+    ammo.holographic?.supportsBooking !== false && !hasBooked
       ? [...declared, ...CANCELLATION_BOOKED_NOSHOW_STANDARD]
       : declared;
   if (tiers.length === 0) return undefined;

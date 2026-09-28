@@ -98,7 +98,7 @@ test("预约爽约档投影（R-0928-12）：双档落 stage 1，语义谁赔谁
   ]);
 });
 
-test("supportsBooking 全能开关：无自带档自动附加标准档，自带不重复，缺省零变化", () => {
+test("supportsBooking 全能开关＋全开默认：无自带档自动附加标准档，自带不重复，显式 false 才关", () => {
   const auto = projectRefundRules({
     holographic: { supportsBooking: true },
   } as unknown as Parameters<typeof projectRefundRules>[0]);
@@ -106,6 +106,16 @@ test("supportsBooking 全能开关：无自带档自动附加标准档，自带�
     { stage: 1, customerGets: "all" },
     { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest" },
   ]);
+  // 全开默认：无 flag 同自动附加。
+  const def = projectRefundRules({
+    holographic: {},
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.deepEqual(def, auto);
+  // 显式关闭：回到无档。
+  const off = projectRefundRules({
+    holographic: { supportsBooking: false },
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.equal(off, undefined);
   const self = projectRefundRules({
     holographic: {
       supportsBooking: true,
@@ -115,10 +125,6 @@ test("supportsBooking 全能开关：无自带档自动附加标准档，自带�
     },
   } as unknown as Parameters<typeof projectRefundRules>[0]);
   assert.deepEqual(self, [{ stage: 1, customerGets: "all" }]);
-  const off = projectRefundRules({
-    holographic: {},
-  } as unknown as Parameters<typeof projectRefundRules>[0]);
-  assert.equal(off, undefined);
 });
 
 /* ══════════════════════════════════════════════════════════════════════

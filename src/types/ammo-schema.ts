@@ -328,9 +328,9 @@ export interface IHolographicAmmoConfig {
   /** 违约阶段阶梯（按阶段声明退款比例/车马费补偿/保证金扣划）。 */
   cancellationTiers?: ICancellationTier[];
   /**
-   * 预约支持开关（R-0928-12 全能型：不定品类）。
-   * true → 投影层自动附加预约爽约标准档（CANCELLATION_BOOKED_NOSHOW_STANDARD），
-   * 弹药自带 BOOKED_* 档时以自带为准（不重复附加）；缺省 false，现有弹药行为零变化。
+   * 预约支持开关（R-0928-12 全能型＋用户裁决全开：不定品类）。
+   * 缺省即自动附加预约爽约标准档（CANCELLATION_BOOKED_NOSHOW_STANDARD），
+   * 弹药自带 BOOKED_* 档时以自带为准（不重复附加）；显式 false 才关闭。
    */
   supportsBooking?: boolean;
   /**
