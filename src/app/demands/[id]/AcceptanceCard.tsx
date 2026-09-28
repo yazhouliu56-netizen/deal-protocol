@@ -13,6 +13,11 @@ interface AcceptanceCardProps {
 
 // P2 退役 demands 放款（路由＋引擎已删除）：验收卡只做状态展示，不再发起任何放款调用。
 // 有孪生合同 → 指引去合同验收；无合同（未托管）→ 无背书放款，只展示状态。
+/** 状态人话（未知态回落原文，不断裂；R-0928-12 加 BOOKED）。 */
+export function describeDemandStatus(status: string): string {
+  if (status === "BOOKED") return "已预约 · 到时开工";
+  return status;
+}
 export default function AcceptanceCard({ title, price, status, releasedAt, hasContract = false }: AcceptanceCardProps) {
   const [settled] = useState<{ payout: number; fee: number; releasedAt: string } | null>(
     status === "settled" ? { payout: 0, fee: 0, releasedAt: releasedAt ?? "" } : null,
@@ -37,10 +42,10 @@ export default function AcceptanceCard({ title, price, status, releasedAt, hasCo
       ) : hasContract ? (
         <div className="p-3 bg-sky-50 text-sky-700 text-sm rounded-xl border border-sky-200">
           本单已纳入合同结算（85% 确认即释 + 15% 评价暂扣），请前往合同验收查看进度。
-          当前状态：{status}。
+          当前状态：{describeDemandStatus(status)}。
         </div>
       ) : (
-        <p className="text-sm text-zinc-400">当前状态：{status}（托管签约后进入合同验收）</p>
+        <p className="text-sm text-zinc-400">当前状态：{describeDemandStatus(status)}（托管签约后进入合同验收）</p>
       )}
     </div>
   )

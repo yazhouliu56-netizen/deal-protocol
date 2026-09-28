@@ -8,6 +8,7 @@ import {
   useLeadDemandSubmit,
   type LeadDraft,
 } from "@/components/growth/sms-lead-sheet";
+import BookingTimeRow, { type BookingSlot } from "@/components/growth/booking-time-row";
 import { trackMetric } from "@/lib/track-metric";
 
 /** 女盘 · 上门衣橱收纳与全屋整理（home-organizing · C2_IN_HOME）增长单页。 */
@@ -33,6 +34,8 @@ export function buildF20DemandText(preset: GrowthPreset, tuning: string): string
 export default function F20Page() {
   const [presetId, setPresetId] = useState(F20_PRESETS[0].id);
   const [tuning, setTuning] = useState("");
+  // R-0928-12 预约时段（null＝即时单；随草稿持久化，见 applyDraft）。
+  const [slot, setSlot] = useState<BookingSlot | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +46,15 @@ export default function F20Page() {
     trackMetric("growth.page_view", 1, { page: "f20", channel: a.source });
   }, []);
 
-  const collect = (): LeadDraft => ({ presetId, tuning });
+  const collect = (): LeadDraft => ({
+    presetId,
+    tuning,
+    ...(slot ? { timeslotStart: slot.startISO, timeslotEnd: slot.endISO } : {}),
+  });
   const applyDraft = (d: LeadDraft) => {
     if (F20_PRESETS.some((p) => p.id === d.presetId)) setPresetId(d.presetId);
     setTuning(d.tuning);
+    setSlot(d.timeslotStart && d.timeslotEnd ? { startISO: d.timeslotStart, endISO: d.timeslotEnd } : null);
   };
 
   const { submit, sheetOpen, setSheetOpen, handleVerified, demandId } = useLeadDemandSubmit({
@@ -60,6 +68,9 @@ export default function F20Page() {
         description: extra ? `${preset.name}：${extra}` : `${preset.name}（${preset.price}）`,
         category: "home-organizing",
         attribution: collectGrowthAttribution("f20"),
+        ...(d.timeslotStart && d.timeslotEnd
+          ? { timeslotStart: d.timeslotStart, timeslotEnd: d.timeslotEnd }
+          : {}),
       };
     },
     applyDraft,
@@ -100,6 +111,8 @@ export default function F20Page() {
         <p>🛡️ 入户强背调（公安核验）· 女性收纳师可选</p>
         <p>📸 完工双拍前后对比验收 · 72h 质保 · 资金官方托管</p>
       </div>
+      {/* R-0928-12 预约时间行（即时单零变化） */}
+      <BookingTimeRow value={slot} onChange={setSlot} />
       <button
         type="button"
         onClick={submit}

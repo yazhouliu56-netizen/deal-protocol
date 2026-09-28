@@ -12,6 +12,7 @@ import {
   useLeadDemandSubmit,
   type LeadDraft,
 } from "@/components/growth/sms-lead-sheet"
+import BookingTimeRow, { type BookingSlot } from "@/components/growth/booking-time-row"
 import { trackMetric } from "@/lib/track-metric"
 
 const CATEGORIES = [
@@ -54,6 +55,8 @@ export default function LandingPage() {
   const [editing, setEditing] = useState(false)
   const [mediaFiles, setMediaFiles] = useState<Array<{ id: string; name: string; progress: number }>>([])
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
+  // R-0928-12 预约时段（null＝即时单；随草稿持久化，见 applyDraft）。
+  const [slot, setSlot] = useState<BookingSlot | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // 漏斗可见性（Batch④-1）：进页分母，渠道 tag 随归因走（f20/m20 同口径）。
@@ -101,7 +104,11 @@ export default function LandingPage() {
     handleVerified,
   } = useLeadDemandSubmit({
     pageKey: "landing",
-    collect: (): LeadDraft => ({ presetId: selectedCategory ?? "", tuning: text }),
+    collect: (): LeadDraft => ({
+      presetId: selectedCategory ?? "",
+      tuning: text,
+      ...(slot ? { timeslotStart: slot.startISO, timeslotEnd: slot.endISO } : {}),
+    }),
     buildPayload: () => ({
       // 结构化直发：绕开 text→classifyDemand→GEMINI 链路（该 key 线上缺席）。
       // result 在提交瞬间必存在（按钮仅在结果区渲染）；回放沿用同态快照。
@@ -112,10 +119,12 @@ export default function LandingPage() {
         CATEGORIES.find((c) => c.id === selectedCategory)?.label ??
         "general",
       attribution: collectGrowthAttribution("landing"),
+      ...(slot ? { timeslotStart: slot.startISO, timeslotEnd: slot.endISO } : {}),
     }),
     applyDraft: (d) => {
       if (CATEGORIES.some((c) => c.id === d.presetId)) setSelectedCategory(d.presetId)
       if (d.tuning) setText(d.tuning)
+      setSlot(d.timeslotStart && d.timeslotEnd ? { startISO: d.timeslotStart, endISO: d.timeslotEnd } : null)
     },
     setSubmitting,
     setDone: () => {
@@ -378,6 +387,8 @@ export default function LandingPage() {
               )}
             </Button>
           </div>
+          {/* R-0928-12 预约时间行（即时单零变化；诊断结果区内，随单走） */}
+          <BookingTimeRow value={slot} onChange={setSlot} />
         </div>
       )}
       <SmsLeadSheet open={sheetOpen} onOpenChange={setSheetOpen} onVerified={handleVerified} pageKey="landing" />

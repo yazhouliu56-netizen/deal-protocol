@@ -8,6 +8,7 @@ import {
   useLeadDemandSubmit,
   type LeadDraft,
 } from "@/components/growth/sms-lead-sheet";
+import BookingTimeRow, { type BookingSlot } from "@/components/growth/booking-time-row";
 import { trackMetric } from "@/lib/track-metric";
 
 /** 男盘 · 上门电脑装机与维护（pc-assembly · C3_TECH_B2B）增长单页。 */
@@ -33,6 +34,8 @@ export function buildM20DemandText(preset: GrowthPreset, tuning: string): string
 export default function M20Page() {
   const [presetId, setPresetId] = useState(M20_PRESETS[0].id);
   const [tuning, setTuning] = useState("");
+  // R-0928-12 预约时段（null＝即时单；随草稿持久化，见 applyDraft）。
+  const [slot, setSlot] = useState<BookingSlot | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +46,15 @@ export default function M20Page() {
     trackMetric("growth.page_view", 1, { page: "m20", channel: a.source });
   }, []);
 
-  const collect = (): LeadDraft => ({ presetId, tuning });
+  const collect = (): LeadDraft => ({
+    presetId,
+    tuning,
+    ...(slot ? { timeslotStart: slot.startISO, timeslotEnd: slot.endISO } : {}),
+  });
   const applyDraft = (d: LeadDraft) => {
     if (M20_PRESETS.some((p) => p.id === d.presetId)) setPresetId(d.presetId);
     setTuning(d.tuning);
+    setSlot(d.timeslotStart && d.timeslotEnd ? { startISO: d.timeslotStart, endISO: d.timeslotEnd } : null);
   };
 
   const { submit, sheetOpen, setSheetOpen, handleVerified, demandId } = useLeadDemandSubmit({
@@ -60,6 +68,9 @@ export default function M20Page() {
         description: extra ? `${preset.name}：${extra}` : `${preset.name}（${preset.price}）`,
         category: "pc-assembly",
         attribution: collectGrowthAttribution("m20"),
+        ...(d.timeslotStart && d.timeslotEnd
+          ? { timeslotStart: d.timeslotStart, timeslotEnd: d.timeslotEnd }
+          : {}),
       };
     },
     applyDraft,
@@ -100,6 +111,8 @@ export default function M20Page() {
         <p>🛡️ 自备防静电工具 · 现场增项先确认后加价（≤50% 熔断）</p>
         <p>🔒 资金全额官方托管 · 硬件场景险 · 弄坏包赔</p>
       </div>
+      {/* R-0928-12 预约时间行（即时单零变化） */}
+      <BookingTimeRow value={slot} onChange={setSlot} />
       <button
         type="button"
         onClick={submit}

@@ -36,6 +36,9 @@ export const LEAD_SMS_CODE_LENGTH = 6;
 export interface LeadDraft {
   presetId: string;
   tuning: string;
+  /** 预约时段（R-0928-12；缺席＝即时单，老草稿天然兼容）。 */
+  timeslotStart?: string;
+  timeslotEnd?: string;
 }
 
 const DRAFT_KEY_PREFIX = "growth:lead-draft:";
@@ -44,8 +47,17 @@ export function buildDraftKey(pageKey: string): string {
   return `${DRAFT_KEY_PREFIX}${pageKey}`;
 }
 
+function cleanTimeslot(v: unknown): string | undefined {
+  return typeof v === "string" && v.trim() !== "" ? v : undefined;
+}
+
 export function serializeLeadDraft(draft: LeadDraft): string {
-  return JSON.stringify({ presetId: draft.presetId, tuning: draft.tuning });
+  return JSON.stringify({
+    presetId: draft.presetId,
+    tuning: draft.tuning,
+    ...(draft.timeslotStart ? { timeslotStart: draft.timeslotStart } : {}),
+    ...(draft.timeslotEnd ? { timeslotEnd: draft.timeslotEnd } : {}),
+  });
 }
 
 export function parseLeadDraft(raw: string | null): LeadDraft | null {
@@ -55,7 +67,13 @@ export function parseLeadDraft(raw: string | null): LeadDraft | null {
     if (typeof parsed.presetId !== "string" || typeof parsed.tuning !== "string") {
       return null;
     }
-    return { presetId: parsed.presetId, tuning: parsed.tuning };
+    // 老草稿无时段键 → 即时单；非法值丢弃（fail-open，不整单作废）。
+    return {
+      presetId: parsed.presetId,
+      tuning: parsed.tuning,
+      ...(cleanTimeslot(parsed.timeslotStart) ? { timeslotStart: cleanTimeslot(parsed.timeslotStart) } : {}),
+      ...(cleanTimeslot(parsed.timeslotEnd) ? { timeslotEnd: cleanTimeslot(parsed.timeslotEnd) } : {}),
+    };
   } catch {
     return null;
   }

@@ -39,6 +39,24 @@ describe("投流留资纯函数", () => {
     expect(parseLeadDraft(serializeLeadDraft(draft))).toEqual(draft);
   });
 
+  it("预约时段随草稿走；老草稿（无时段键）照常解析为即时单", () => {
+    const booked = {
+      presetId: "f20-season",
+      tuning: "",
+      timeslotStart: "2026-10-01T09:00:00.000Z",
+      timeslotEnd: "2026-10-01T11:00:00.000Z",
+    };
+    expect(parseLeadDraft(serializeLeadDraft(booked))).toEqual(booked);
+    expect(parseLeadDraft(JSON.stringify({ presetId: "m20-clean", tuning: "x" }))).toEqual({
+      presetId: "m20-clean",
+      tuning: "x",
+    });
+    // 非法时段值丢弃（fail-open），不整单作废。
+    expect(
+      parseLeadDraft(JSON.stringify({ presetId: "m20-clean", tuning: "x", timeslotStart: 123 })),
+    ).toEqual({ presetId: "m20-clean", tuning: "x" });
+  });
+
   it("畸形草稿降级为 null（不抛异常）", () => {
     expect(parseLeadDraft(null)).toBeNull();
     expect(parseLeadDraft("")).toBeNull();
