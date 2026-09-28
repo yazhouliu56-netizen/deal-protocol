@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   CANCELLATION_4STAGE_STANDARD,
+  CANCELLATION_BOOKED_NOSHOW_STANDARD,
   R1_TRANSFER_POLICY,
   STANDARD_SPLIT_85_10_5,
 } from "./baseline.ts";
@@ -18,6 +19,15 @@ test("基线冻结：三基线全图不可变", () => {
   assert.equal(Object.isFrozen(STANDARD_SPLIT_85_10_5), true);
   assert.equal(Object.isFrozen(CANCELLATION_4STAGE_STANDARD), true);
   assert.equal(Object.isFrozen(CANCELLATION_4STAGE_STANDARD[0]), true);
+});
+
+test("预约爽约档基线（R-0928-12 谁的责任谁赔）：冻结＋两档语义", () => {
+  assert.equal(Object.isFrozen(CANCELLATION_BOOKED_NOSHOW_STANDARD), true);
+  assert.equal(Object.isFrozen(CANCELLATION_BOOKED_NOSHOW_STANDARD[0]), true);
+  assert.deepEqual([...CANCELLATION_BOOKED_NOSHOW_STANDARD], [
+    { stage: "BOOKED_NOSHOW_PROVIDER", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 1 },
+    { stage: "BOOKED_NOSHOW_DEMANDER", demanderRefundRatio: 0, providerCompensationYuan: 30, deductDepositRatio: 0 },
+  ]);
 });
 
 test("R1 基线：三弹药展开值一致（副本独立，改一家不影响别家）", () => {

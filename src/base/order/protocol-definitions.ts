@@ -168,11 +168,14 @@ function projectAutoTimeoutSeconds(ammo: IAmmoDefinition): number {
 }
 
 /** D6 违约阶梯 → refundRules（demanderRefundRatio → providerRatio = 1 - 退还比；补偿金 → providerMax）。 */
-function projectRefundRules(ammo: IAmmoDefinition): ProtocolDef["refundRules"] {
+export function projectRefundRules(ammo: IAmmoDefinition): ProtocolDef["refundRules"] {
   const tiers = ammo.holographic?.cancellationTiers
   if (!tiers || tiers.length === 0) return undefined
   const stageByTier: Record<string, number> = {
     BEFORE_MATCH: 0,
+    // 预约爽约档 → 1（"成局未出发"语义：已匹配未服务；R-0928-12）。
+    BOOKED_NOSHOW_DEMANDER: 1,
+    BOOKED_NOSHOW_PROVIDER: 1,
     AFTER_MATCH_EN_ROUTE: 2,
     ON_SITE: 3,
     IN_SERVICE: 4,

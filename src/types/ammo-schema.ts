@@ -213,7 +213,9 @@ export type CancellationStage =
   | "BEFORE_MATCH" // 匹配前取消（雇主零成本撤单）
   | "AFTER_MATCH_EN_ROUTE" // 匹配后·服务者出发途中（车马费补偿）
   | "ON_SITE" // 已到现场（场地/等待成本补偿）
-  | "IN_SERVICE"; // 服务中（按已完成比例结算）
+  | "IN_SERVICE" // 服务中（按已完成比例结算）
+  | "BOOKED_NOSHOW_DEMANDER" // 预约单·需求方爽约（谁的责任谁赔：服务方得车马费，R-0928-12）
+  | "BOOKED_NOSHOW_PROVIDER"; // 预约单·服务方爽约（谁的责任谁赔：需求方全退＋扣服务方保证金，R-0928-12）
 
 /** 逆向违约单阶梯（按阶段声明退款/补偿/扣金三件套）。 */
 export interface ICancellationTier {

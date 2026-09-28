@@ -38,3 +38,13 @@ export const CANCELLATION_4STAGE_STANDARD: Readonly<ICancellationTier[]> = deepF
   { stage: "ON_SITE", demanderRefundRatio: 0.5, providerCompensationYuan: 0, deductDepositRatio: 0.5 },
   { stage: "IN_SERVICE", demanderRefundRatio: 0, providerCompensationYuan: 0, deductDepositRatio: 1 },
 ]);
+
+/**
+ * 预约爽约标准档（R-0928-12 谁的责任谁赔）：
+ * 服务方爽约 → 需求方全退＋扣服务方保证金（对接爽约保障险押金没收）；
+ * 需求方爽约 → 服务方得车马费 ¥30（对标在途档），余款退还。
+ */
+export const CANCELLATION_BOOKED_NOSHOW_STANDARD: Readonly<ICancellationTier[]> = deepFreeze([
+  { stage: "BOOKED_NOSHOW_PROVIDER", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 1 },
+  { stage: "BOOKED_NOSHOW_DEMANDER", demanderRefundRatio: 0, providerCompensationYuan: 30, deductDepositRatio: 0 },
+]);

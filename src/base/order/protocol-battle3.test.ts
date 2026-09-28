@@ -7,7 +7,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getProtocol } from "./protocol-definitions.ts";
+import { getProtocol, projectRefundRules } from "./protocol-definitions.ts";
 import {
   pricingForCategory,
   DEFAULT_PRICING,
@@ -81,6 +81,21 @@ test("快照：三官方投影 JSON 序列化稳定性（同进程两次投影�
     assert.equal(a, b, `${id} 投影必须确定性`);
     assert.ok((a ?? "").length > 500, `${id} 投影非退化`);
   }
+});
+
+test("预约爽约档投影（R-0928-12）：双档落 stage 1，语义谁赔谁", () => {
+  const rules = projectRefundRules({
+    holographic: {
+      cancellationTiers: [
+        { stage: "BOOKED_NOSHOW_PROVIDER", demanderRefundRatio: 1, providerCompensationYuan: 0, deductDepositRatio: 1 },
+        { stage: "BOOKED_NOSHOW_DEMANDER", demanderRefundRatio: 0, providerCompensationYuan: 30, deductDepositRatio: 0 },
+      ],
+    },
+  } as unknown as Parameters<typeof projectRefundRules>[0]);
+  assert.deepEqual(rules, [
+    { stage: 1, customerGets: "all" },
+    { stage: 1, providerRatio: 1, providerMax: 30, customerGets: "rest" },
+  ]);
 });
 
 /* ══════════════════════════════════════════════════════════════════════
